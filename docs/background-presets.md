@@ -11,19 +11,33 @@ They are not wallpapers and should not become decorative theme chaos.
 - `warm-white`: A warm neutral workspace tone.
 - `cool-white`: A cooler white workspace tone.
 - `soft-grey`: A quiet neutral grey.
+- `cool-grey`: A grounded cool grey for modern productivity workspaces.
+- `warm-grey`: A soft industrial warm grey.
+- `slate`: A richer light-mode slate with stronger surface separation.
+- `graphite-light`: A premium dark-light hybrid graphite tone.
 - `light-blue-grey`: A restrained blue-grey.
+- `muted-blue-grey`: A richer muted cool background with less pastel wash.
+- `neutral-dim`: A soft neutral dim workspace tone.
+- `stone-slate`: A balanced stone and slate neutral.
 - `blue-mist`: A subtle blue mist.
 - `frosted-light`: The default light frosted neutral.
 
 ## Dark Presets
 
 - `charcoal`: The default dark charcoal.
+- `soft-charcoal`: A softer low-contrast charcoal.
 - `graphite`: A slightly lifted graphite tone.
 - `soft-black`: A deeper low-light tone.
 - `deep-navy`: A restrained navy atmosphere.
+- `muted-navy`: A calmer navy with reduced blue intensity.
 - `dark-blue-grey`: A dark blue-grey neutral.
+- `deep-slate`: A cinematic deep slate background.
+- `dark-glass`: A low-contrast dark glass workspace.
+- `low-neon`: A cool dark workspace tuned away from electric contrast.
 - `midnight-blue`: A deeper blue workspace.
 - `dark-frosted`: A dark frosted neutral.
+
+Detailed palette intent and contrast guidance live in `docs/theme-palettes.md`.
 
 ## Rules
 

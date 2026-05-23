@@ -72,11 +72,11 @@ Command:
 .venv\Scripts\python.exe -m pytest -q
 ```
 
-Latest result: 38 passed, 0 failed.
+Latest result: 42 passed, 0 failed.
 
 Previous discovery result: 6 passed, 3 failed.
 
-Passed coverage included app/dashboard/settings load, CSS imports, theme persistence, background preset persistence, secondary surface glass-language screenshots, workspace toolbar command-island screenshots, toolbar mode toggles, generic Add Widget menu options, theme-aware timeframe controls, timeframe resize, timeframe minimum resize clamping, exact layout save/load round trips, small-panel menu overlays, panel placeholder/body sizing, drag ghost creation, ordered drag reflow, local top insertion, reversible collision previews, suppression of underlying hover menus during drag, global widget/panel occupancy, pinned item protection, pin menu close behavior, sparse empty-space placement, grid-bound drag clamping, grid snapping alignment, collision/overlap checks, resize snapping, menu icon alignment, dark-mode panel hover parity, dark-mode panel/widget menu parity, group multi-selection, grouped drag, grouped proportional resize, pinned items inside groups, mixed widget/panel group transforms, group mode, layout save/load/reset, settings save, mobile overflow checks, console errors, and network errors.
+Passed coverage included app/dashboard/settings load, CSS imports, theme persistence, expanded background palette persistence, secondary surface glass-language screenshots, workspace toolbar command-island screenshots, toolbar mode toggles, generic Add Widget menu options, theme-aware timeframe controls, timeframe resize, timeframe minimum resize clamping, exact layout save/load round trips, small-panel menu overlays, panel placeholder/body sizing, adaptive panel content density, drag ghost creation, ordered drag reflow, local top insertion, reversible collision previews, suppression of underlying hover menus during drag, global widget/panel occupancy, pinned item protection, pin menu close behavior, sparse empty-space placement, grid-bound drag clamping, grid snapping alignment, collision/overlap checks, resize snapping, left-edge anchored resize, menu icon alignment, panel header chevron centering, light-mode panel/widget/timeframe hover-focus parity, dark-mode panel hover parity, dark-mode panel/widget menu parity, group multi-selection, grouped drag, grouped proportional resize, pinned items inside groups, mixed widget/panel group transforms, group mode, layout save/load/reset, settings save, mobile overflow checks, console errors, and network errors.
 
 ### BUG-023: Secondary App Surfaces Felt Disconnected From Dashboard Glass Language
 
@@ -533,6 +533,90 @@ Passed coverage included app/dashboard/settings load, CSS imports, theme persist
 - Suspected cause: Older widget-specific dark rules for `.stat-card.active`, `.widget-card.db-panel-custom-color.active`, group selection, and custom color variants remained later or more specific than some panel-focused neon cleanup rules.
 - Fix notes: Added a final dark-only widget/panel parity calibration in `themes.css` that uses muted material border colors, restrained inset focus/selection treatment, and removes outer accent glow from widget active, selected, dragging, and live resize states while preserving custom widget background color.
 - Validation: Added `test_dark_widget_focus_and_active_borders_match_panel_softness` and reran the existing dark midnight-glass, hover parity, and menu parity tests successfully. `.venv\Scripts\python.exe -m pytest -q` passed with 38 tests.
+
+### BUG-034: Panel Content Density Did Not Adapt Before Overflow
+
+- Status: Verified
+- Area: Panel content / dashboard grid
+- Severity: Medium
+- Environment: Dashboard workspace, light and dark themes
+- Observed: Small panels could waste useful vertical space because panel chrome, empty placeholders, table cell padding, and table empty-state padding retained medium/large spacing even when the available panel height was tight. This made scrollbars or clipping appear before the panel had compressed its internal rhythm.
+- Expected: Panels preserve the existing visual language while progressively adapting internal density. Small panels reduce nonessential padding and gaps, tables show more useful rows before overflow, empty states scale down gracefully, and medium/large panels keep the normal polished spacing.
+- Suspected cause: Panel header, empty-state, and table spacing were fixed CSS values that did not respond to the panel's committed grid row span.
+- Fix notes: Added a focused CSS density calibration using existing panel classes and committed `data-grid-row-span` state. Small and medium-short panels now reduce header height, header padding, title size, empty-state padding/gaps, table cell padding, and table empty-state padding while medium/large panels retain the standard rhythm. This is a fitting/polish fix, not a layout, drag, resize, collision, save/load, or component architecture change.
+- Validation: Added `test_panel_content_density_adapts_before_overflow` for row-span-aware panel density. `.venv\Scripts\python.exe -m pytest -q` passed with 39 tests.
+
+### BUG-035: Light Background Palette Felt Washed Out
+
+- Status: Verified
+- Area: Theme / background palettes
+- Severity: Medium
+- Environment: Dashboard workspace, light and dark themes
+- Observed: The existing light background tones skewed very pale, making the workspace feel washed out and limiting richer neutral choices. Dark mode also needed calmer low-neon variants beyond the existing set.
+- Expected: Background palettes provide grounded light-mode greys, slate, graphite-light, muted blue-grey, and neutral dim options, plus calm dark charcoal/navy/slate/glass options. Dashboard panels, widgets, nav chrome, menus, and settings surfaces remain readable, separated, and premium.
+- Suspected cause: The original background preset list focused on soft frosted light tones and did not include enough darker-neutral ambient palettes.
+- Fix notes: Added expanded `data-background` token sets for grounded light neutrals and calm dark palettes, exposed the new options in dashboard and settings pickers, added compact swatch previews, and made final nav/menu surfaces use palette tokens so chrome stays cohesive with the selected background. Added `docs/theme-palettes.md` with palette intent and contrast guidance.
+- Validation: Updated `test_background_presets_and_secondary_surfaces_share_glass_language` to verify new light and dark palette entries, swatch previews, persistence, grounded light background tokens, subdued dark borders, and glass surface separation. `.venv\Scripts\python.exe -m pytest -q` passed with 39 tests.
+
+### BUG-036: Right-Side Objects Could Not Resize Wider From The Left Edge
+
+- Status: Verified
+- Area: Dashboard grid / resize semantics
+- Severity: Medium
+- Environment: Dashboard workspace, widgets and panels
+- Observed: Objects placed on the right side were hard to make wider because the existing resize interaction only behaved like a right/bottom edge resize. Dragging left did not provide an anchored-right resize path where the object grows toward the left.
+- Expected: A left-side resize handle keeps the object's right edge fixed while the left edge moves. The object grows or shrinks toward the left, grid snapping still applies, the live resize clone follows raw pointer movement, the snapped footprint represents the anchored-left result, and saved layout state persists the new column and span.
+- Suspected cause: Resize logic only calculated width from the right edge and did not have a left-edge mode that recomputed `gridCol` from the original right boundary.
+- Fix notes: Added a left-side resize handle to the existing panel/widget tool drawer and extended the current live-resize plus snapped-footprint path with a left-edge mode. The right boundary remains anchored while `gridCol` and span update, and the drawer keeps controls in a stable two-row hit-test footprint when the extra handle is present.
+- Validation: Added `test_left_edge_resize_anchors_right_edge_for_right_side_widget` to prove sub-grid live preview movement, anchored snapped footprint behavior, committed column/span updates, and saved layout persistence. `.venv\Scripts\python.exe -m pytest -q` passed with 40 tests.
+
+### BUG-037: Widget Settings Controls Drifted From Panel Edge Alignment
+
+- Status: Verified
+- Area: Dashboard controls / visual alignment
+- Severity: Low
+- Environment: Dashboard workspace, widgets and panels
+- Observed: Widget settings controls used a different right offset than panel header controls, so widgets and panels with the same right edge did not visually align their control buttons.
+- Expected: Panel and widget settings buttons share the same right inset token, remain vertically centered in their respective header/card surfaces, and keep floating tool drawers anchored from the same edge.
+- Suspected cause: Widget tools used a hardcoded absolute `right` offset while panel controls were positioned by header padding.
+- Fix notes: Added a shared dashboard control inset for panel header right padding and widget tool positioning. This is visual polish only and does not change drag, resize, snapping, save/load, or control behavior.
+- Validation: Updated `test_widget_menu_icons_align_like_panel_icons` to assert panel, stat widget, and timeframe widget right-inset parity plus existing glyph centering. `.venv\Scripts\python.exe -m pytest -q` passed with 40 tests.
+
+### BUG-038: Panel Hover And Focus Did Not Match Widget Interaction Polish
+
+- Status: Verified
+- Area: Dashboard controls / hover and focus parity
+- Severity: Medium
+- Environment: Dashboard workspace, light and dark themes
+- Observed: Panels and widgets used different hover and focus surface treatments. Widgets had the preferred lift, border, and shadow response, while panels, collapsed panels, and custom-color panel states could fall back to different shadows or no lift.
+- Expected: Panels, collapsed panels, stat widgets, and timeframe widgets share the same object-level hover/focus treatment while preserving individual color identity and avoiding neon dark-mode outlines.
+- Suspected cause: Panel hover rules and late custom-color theme overrides diverged from the widget hover rules, and the timeframe widget did not share the same outer object hover surface.
+- Fix notes: Updated panel, collapsed panel, stat widget, and timeframe widget hover/focus selectors to share the widget-style lift, border, and shadow treatment. Custom-color panel hover/focus now uses the same non-neon surface shadow as custom widgets. Drag, resize, snapping, save/load, and layout behavior were not changed.
+- Validation: Added `test_panel_widget_hover_focus_surface_parity` for light-mode hover/focus parity across panel, collapsed panel, stat widget, and timeframe widget, and reran existing dark hover/focus/menu parity tests. `.venv\Scripts\python.exe -m pytest -q` passed with 41 tests.
+
+### BUG-039: Panel Header Chevron Was Not Optically Centered
+
+- Status: Verified
+- Area: Dashboard controls / icon alignment
+- Severity: Low
+- Environment: Dashboard workspace, light and dark themes
+- Observed: The panel header chevron could appear slightly off-center inside its circular control, especially on compact panel headers where the header padding changed but the chevron used a fixed absolute left offset.
+- Expected: The chevron stays visually centered inside the fixed circular control across menu, notes, table, empty, collapsed, and open panel states in both light and dark themes.
+- Suspected cause: The circle was laid out from adaptive header padding, while the chevron used a hardcoded `left` value and border-based drawing that introduced optical stroke asymmetry.
+- Fix notes: Positioned the chevron from the same header padding math as the circle and replaced the border-corner drawing with a centered mask icon. The circle size, header layout, collapse behavior, and panel interactions were not changed.
+- Validation: Added `test_panel_header_chevrons_are_optically_centered` to verify chevron/circle center alignment, mask rendering, and light/dark parity. `.venv\Scripts\python.exe -m pytest -q` passed with 42 tests.
+
+### BUG-040: Expanded-Footprint Ghost Did Not Follow Live Resize Geometry
+
+- Status: Verified
+- Area: Drag / resize preview
+- Severity: Medium
+- Environment: Dashboard workspace, collapsed panels during resize
+- Observed: During collapsed-panel resize, the live header/panel preview moved and resized with the pointer, but the dashed expanded-footprint ghost could stay anchored to the old snapped footprint instead of tracking the live preview.
+- Expected: During resize, the live resized panel/header is the visual source of truth for the informational expanded-footprint ghost. The ghost follows the live preview's left, top, and width while keeping its height equal to the expanded/open footprint. The snapped resize footprint remains the collision and commit source.
+- Suspected cause: The ghost was updated from `.dashboard-resize-preview`, and resize movement returned early between snapped grid thresholds. That meant sub-grid pointer movement could update `.dashboard-live-resize` without refreshing the expanded-footprint ghost.
+- Progress notes: This was the resize bug being worked on before later steering requests interrupted the turn. The implementation now creates the ghost from the resize start rect, updates it from `.dashboard-live-resize.getBoundingClientRect()` on every collapsed-panel resize pointermove, and removes the stale snapped-footprint update path. CSS also keeps the fixed-position ghost border-box aligned and disables its width/height transition during active resize so it does not lag behind the live preview.
+- Validation: Updated `test_collapsed_panel_drag_and_resize_show_expanded_footprint_ghost` to prove sub-grid live preview movement, ghost-to-live left/top/width alignment, snapped footprint independence, expanded height preservation, and grid-aligned commit. Targeted tests and `.venv\Scripts\python.exe -m pytest -q` passed with 42 tests after the steering cleanup.
 
 ## Entry Template
  

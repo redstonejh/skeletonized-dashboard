@@ -59,6 +59,7 @@ The current grid is the foundation for a future pan-and-zoom canvas.
 
 - Resize preview snaps cleanly to grid units.
 - Resize handles remain visually attached.
+- Left-edge resize keeps the right boundary anchored while column and span change.
 - Surrounding items respond predictably.
 - Final size commits only on resize end.
 - Pinned items block resize expansion.

@@ -1046,6 +1046,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const panelToolButtonsMarkup = (theme = "#2563eb", includeDelete = true) => `
         <button class="panel-tool-button panel-move-handle" type="button" aria-label="Move panel" title="Move panel"><span class="move-icon" aria-hidden="true"></span></button>
         <button class="panel-tool-button panel-resize-handle" type="button" aria-label="Resize panel" title="Resize panel"><span class="resize-icon" aria-hidden="true"></span></button>
+        <button class="panel-tool-button panel-resize-left-handle" type="button" aria-label="Resize panel from left" title="Resize from left"><span class="resize-icon resize-left-icon" aria-hidden="true"></span></button>
         <button class="panel-tool-button panel-pin-toggle" type="button" aria-label="Pin panel" aria-pressed="false" title="Pin panel"><span class="pin-icon" aria-hidden="true"></span></button>
         <button class="panel-tool-button panel-title-handle" type="button" aria-label="Rename panel" title="Rename panel"><span class="text-icon" aria-hidden="true"></span></button>
         <button class="panel-tool-button panel-color-toggle" type="button" aria-label="Panel colors" aria-expanded="false" title="Panel colors" data-default-theme="${theme}"><span class="color-icon" aria-hidden="true"></span></button>
@@ -2852,6 +2853,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const settings = widget.querySelector(".widget-settings-toggle");
       const moveHandle = widget.querySelector(".panel-move-handle");
       const resizeHandle = widget.querySelector(".panel-resize-handle");
+      const resizeLeftHandle = widget.querySelector(".panel-resize-left-handle");
       const pinButton = widget.querySelector(".panel-pin-toggle");
       const titleButton = widget.querySelector(".panel-title-handle");
       const colorToggle = widget.querySelector(".panel-color-toggle");
@@ -2993,8 +2995,9 @@ document.addEventListener("DOMContentLoaded", () => {
           },
         });
       });
-      resizeHandle?.addEventListener("pointerdown", (event) => {
+      [resizeHandle, resizeLeftHandle].filter(Boolean).forEach((activeResizeHandle) => activeResizeHandle.addEventListener("pointerdown", (event) => {
         if (widget.classList.contains("db-panel-pinned") || widget.dataset.locked === "true" || widget.dataset.resizable === "false") return;
+        const resizeEdge = activeResizeHandle.classList.contains("panel-resize-left-handle") ? "left" : "right";
         if (widget.classList.contains("group-selected") && groupTransformItems(widget).length > 1) {
           openTools();
           const handled = runGroupResize({
@@ -3016,8 +3019,11 @@ document.addEventListener("DOMContentLoaded", () => {
         const layoutWidth = Math.max(1, gridRectForLayout(layout).width);
         const startSpan = Number(widget.dataset.currentSpan) || 1;
         const startRect = widget.getBoundingClientRect();
+        const startCol = Number(widget.dataset.gridCol) || 1;
+        const startRow = Number(widget.dataset.gridRow) || 1;
+        const startRightCol = startCol + startSpan - 1;
         const minLiveWidth = gridItemPixelWidthForSpan(layout, gridItemMinimumSpan(widget));
-        const maxLiveWidth = gridItemPixelWidthForSpan(layout, DASHBOARD_GRID_COLUMNS);
+        const maxLiveWidth = gridItemPixelWidthForSpan(layout, resizeEdge === "left" ? startRightCol : DASHBOARD_GRID_COLUMNS);
         const resizePreview = createResizePreview(layout, widget, "widget-placeholder", startRect);
         const previewStartCell = {
           col: Number(resizePreview.dataset.gridCol) || Number(widget.dataset.gridCol) || 1,
@@ -3034,19 +3040,25 @@ document.addEventListener("DOMContentLoaded", () => {
         const applyResize = (nextSpan) => {
           const requestedDelta = nextSpan - startSpan;
           const minDelta = Math.max(...groupResizeItems.map(({ peer, startSpan }) => gridItemMinimumSpan(peer) - startSpan));
-          const maxDelta = Math.min(...groupResizeItems.map(({ startSpan }) => 6 - startSpan));
+          const edgeMaxDelta = resizeEdge === "left" ? startCol - 1 : 6 - startSpan;
+          const maxDelta = Math.min(edgeMaxDelta, ...groupResizeItems.map(({ startSpan }) => 6 - startSpan));
           const delta = Math.max(minDelta, Math.min(maxDelta, requestedDelta));
+          const snappedSpan = startSpan + delta;
+          const snappedCol = resizeEdge === "left" ? startRightCol - snappedSpan + 1 : previewStartCell.col;
           restoreGridLayoutSnapshot(resizeStartSnapshot, { exclude: [widget] });
-          applyWidgetSpan(resizePreview, startSpan + delta);
+          applyWidgetSpan(resizePreview, snappedSpan);
+          if (resizeEdge === "left") applyWidgetGridPosition(resizePreview, snappedCol, startRow);
           resizePeers.forEach(({ peer, startSpan: peerStartSpan }) => applyWidgetSpan(peer, peerStartSpan + delta));
-          resolveSparseGridLayout(layout, resizePreview, previewStartCell);
-          previewSpan = startSpan + delta;
+          resolveSparseGridLayout(layout, resizePreview, { col: snappedCol, row: previewStartCell.row });
+          previewSpan = snappedSpan;
         };
         const onMove = (moveEvent) => {
           moveEvent.preventDefault();
-          const liveWidth = Math.max(minLiveWidth, Math.min(maxLiveWidth, startRect.width + (moveEvent.clientX - startX)));
-          updateLiveResizeSurface(liveResizePreview, liveWidth, startRect.height, startRect.left, startRect.top);
-          const rawSpan = startSpan + (((moveEvent.clientX - startX) / layoutWidth) * 6);
+          const deltaX = moveEvent.clientX - startX;
+          const liveWidth = Math.max(minLiveWidth, Math.min(maxLiveWidth, startRect.width + (resizeEdge === "left" ? -deltaX : deltaX)));
+          const liveLeft = resizeEdge === "left" ? startRect.right - liveWidth : startRect.left;
+          updateLiveResizeSurface(liveResizePreview, liveWidth, startRect.height, liveLeft, startRect.top);
+          const rawSpan = startSpan + ((((resizeEdge === "left" ? -deltaX : deltaX)) / layoutWidth) * 6);
           const nextSpan = Math.max(gridItemMinimumSpan(widget), Math.min(6, Math.round(rawSpan)));
           if (nextSpan === previewSpan) return;
           animateOrderedGridReflow(layout, () => applyResize(nextSpan), widget);
@@ -3064,21 +3076,25 @@ document.addEventListener("DOMContentLoaded", () => {
             animateOrderedGridReflow(layout, () => {
               const currentSpan = previewSpan || Number(widget.dataset.currentSpan) || startSpan;
               const groupedSpan = groupedWidgetReleaseSpan(currentSpan, resizePeers.length + 1);
-              const snappedSpan = groupedSpan ?? alignedResizeSpan({
+              const snappedSpan = groupedSpan ?? (resizeEdge === "left" ? Math.round(currentSpan) : alignedResizeSpan({
                 layout,
                 item: resizePreview,
                 currentSpan,
                 gap: 12,
                 minSpan: gridItemMinimumSpan(widget),
-              });
+              }));
               const requestedDelta = snappedSpan - startSpan;
               const minDelta = Math.max(...groupResizeItems.map(({ peer, startSpan }) => gridItemMinimumSpan(peer) - startSpan));
-              const maxDelta = Math.min(...groupResizeItems.map(({ startSpan }) => 6 - startSpan));
+              const edgeMaxDelta = resizeEdge === "left" ? startCol - 1 : 6 - startSpan;
+              const maxDelta = Math.min(edgeMaxDelta, ...groupResizeItems.map(({ startSpan }) => 6 - startSpan));
               const delta = Math.max(minDelta, Math.min(maxDelta, requestedDelta));
+              const finalSpan = startSpan + delta;
+              const finalCol = resizeEdge === "left" ? startRightCol - finalSpan + 1 : startCol;
               clearLiveResizeSurface(widget, liveResizePreview);
               restoreGridLayoutSnapshot(resizeStartSnapshot);
               resizePreview.remove();
-              applyWidgetSpan(widget, startSpan + delta);
+              applyWidgetSpan(widget, finalSpan);
+              if (resizeEdge === "left") applyWidgetGridPosition(widget, finalCol, startRow);
               resizePeers.forEach(({ peer, startSpan: peerStartSpan }) => applyWidgetSpan(peer, peerStartSpan + delta));
               applyOrderedGridLayout(layout);
             }, widget);
@@ -3091,7 +3107,7 @@ document.addEventListener("DOMContentLoaded", () => {
         document.addEventListener("pointermove", onMove);
         document.addEventListener("pointerup", onUp);
         document.addEventListener("pointercancel", onUp);
-      });
+      }));
     };
     widgets.forEach(initWidget);
     layout.__initWidget = initWidget;
@@ -3196,6 +3212,7 @@ document.addEventListener("DOMContentLoaded", () => {
       }
       const moveHandle = panel.querySelector(".panel-move-handle");
       const resizeHandle = panel.querySelector(".panel-resize-handle");
+      const resizeLeftHandle = panel.querySelector(".panel-resize-left-handle");
       const pinButton = panel.querySelector(".panel-pin-toggle");
       const titleButton = panel.querySelector(".panel-title-handle");
       const colorToggle = panel.querySelector(".panel-color-toggle");
@@ -3446,8 +3463,9 @@ document.addEventListener("DOMContentLoaded", () => {
         });
       });
 
-      resizeHandle?.addEventListener("pointerdown", (event) => {
+      [resizeHandle, resizeLeftHandle].filter(Boolean).forEach((activeResizeHandle) => activeResizeHandle.addEventListener("pointerdown", (event) => {
         if (panel.classList.contains("db-panel-pinned") || panel.dataset.locked === "true" || panel.dataset.resizable === "false") return;
+        const resizeEdge = activeResizeHandle.classList.contains("panel-resize-left-handle") ? "left" : "right";
         if (panel.classList.contains("group-selected") && groupTransformItems(panel).length > 1) {
           toolPointerCapture = true;
           openPanelTools();
@@ -3482,9 +3500,12 @@ document.addEventListener("DOMContentLoaded", () => {
         const startFootprintHeight = gridHeightForRows(gridItemRowSpan(panel), gap);
         const layoutWidth = Math.max(1, gridRectForLayout(layout).width);
         const startSpan = Number(panel.dataset.currentSpan) || Number(panel.dataset.defaultSpan) || 6;
+        const startCol = Number(panel.dataset.gridCol) || 1;
+        const startRow = Number(panel.dataset.gridRow) || 1;
+        const startRightCol = startCol + startSpan - 1;
         const collapsedPanelResize = panel.classList.contains("db-panel-collapsed");
         const minLiveWidth = gridItemPixelWidthForSpan(layout, gridItemMinimumSpan(panel));
-        const maxLiveWidth = gridItemPixelWidthForSpan(layout, DASHBOARD_GRID_COLUMNS);
+        const maxLiveWidth = gridItemPixelWidthForSpan(layout, resizeEdge === "left" ? startRightCol : DASHBOARD_GRID_COLUMNS);
         const minLiveHeight = collapsedPanelResize ? startRect.height : getPanelMinimumHeight(panel);
         const resizePreview = createResizePreview(layout, panel, "db-panel-placeholder", startRect);
         const previewStartCell = {
@@ -3492,7 +3513,7 @@ document.addEventListener("DOMContentLoaded", () => {
           row: Number(resizePreview.dataset.gridRow) || Number(panel.dataset.gridRow) || 1,
         };
         const liveResizePreview = beginLiveResizeSurface(panel, startRect);
-        const expandedFootprintGhost = createExpandedFootprintGhost(panel, layout, resizePreview.getBoundingClientRect());
+        const expandedFootprintGhost = createExpandedFootprintGhost(panel, layout, startRect);
         const resizePeers = groupPeers(panel, "panel")
           .filter((peer) => !peer.classList.contains("db-panel-pinned") && groupItemLayout(peer) === layout)
           .map((peer) => ({ peer, startSpan: Number(peer.dataset.currentSpan) || Number(peer.dataset.defaultSpan) || 6 }));
@@ -3504,10 +3525,14 @@ document.addEventListener("DOMContentLoaded", () => {
         const applyResize = (nextSpan, nextHeight, nextRows) => {
           const requestedDelta = nextSpan - startSpan;
           const minDelta = Math.max(...groupResizeItems.map(({ peer, startSpan }) => gridItemMinimumSpan(peer) - startSpan));
-          const maxDelta = Math.min(...groupResizeItems.map(({ startSpan }) => 6 - startSpan));
+          const edgeMaxDelta = resizeEdge === "left" ? startCol - 1 : 6 - startSpan;
+          const maxDelta = Math.min(edgeMaxDelta, ...groupResizeItems.map(({ startSpan }) => 6 - startSpan));
           const delta = Math.max(minDelta, Math.min(maxDelta, requestedDelta));
+          const snappedSpan = startSpan + delta;
+          const snappedCol = resizeEdge === "left" ? startRightCol - snappedSpan + 1 : previewStartCell.col;
           restoreGridLayoutSnapshot(resizeStartSnapshot, { exclude: [panel] });
-          applyPanelSpan(resizePreview, startSpan + delta);
+          applyPanelSpan(resizePreview, snappedSpan);
+          if (resizeEdge === "left") applyPanelGridPosition(resizePreview, snappedCol, startRow);
           if (collapsedPanelResize) {
             resizePreview.dataset.gridRowSpan = "1";
             resizePreview.style.height = `${Math.max(DASHBOARD_GRID_ROW_HEIGHT, startRect.height)}px`;
@@ -3521,27 +3546,32 @@ document.addEventListener("DOMContentLoaded", () => {
             applyPanelSpan(peer, peerStartSpan + delta);
             applyPanelHeight(peer, Math.max(getPanelMinimumHeight(peer), nextHeight));
           });
-          resolveSparseGridLayout(layout, resizePreview, previewStartCell);
-          if (collapsedPanelResize) {
-            updateExpandedFootprintGhost(expandedFootprintGhost, panel, layout, {
-              ...resizePreview.getBoundingClientRect(),
-              rows: nextRows,
-            });
-          }
-          previewSpan = startSpan + delta;
+          resolveSparseGridLayout(layout, resizePreview, { col: snappedCol, row: previewStartCell.row });
+          previewSpan = snappedSpan;
           previewHeight = nextHeight;
           previewRows = nextRows;
         };
 
         const onResizeMove = (moveEvent) => {
           moveEvent.preventDefault();
-          const liveWidth = Math.max(minLiveWidth, Math.min(maxLiveWidth, startRect.width + (moveEvent.clientX - startX)));
+          const deltaX = moveEvent.clientX - startX;
+          const liveWidth = Math.max(minLiveWidth, Math.min(maxLiveWidth, startRect.width + (resizeEdge === "left" ? -deltaX : deltaX)));
+          const liveLeft = resizeEdge === "left" ? startRect.right - liveWidth : startRect.left;
           const liveHeight = collapsedPanelResize ? startRect.height : Math.max(minLiveHeight, startRect.height + (moveEvent.clientY - startY));
-          updateLiveResizeSurface(liveResizePreview, liveWidth, liveHeight, startRect.left, startRect.top);
-          const rawSpan = startSpan + (((moveEvent.clientX - startX) / layoutWidth) * 6);
+          updateLiveResizeSurface(liveResizePreview, liveWidth, liveHeight, liveLeft, startRect.top);
+          const rawSpan = startSpan + ((((resizeEdge === "left" ? -deltaX : deltaX)) / layoutWidth) * 6);
           const nextSpan = Math.max(gridItemMinimumSpan(panel), Math.min(6, Math.round(rawSpan)));
           const nextRows = Math.max(panelMinimumRows(panel), startRows + Math.round((moveEvent.clientY - startY) / rowStep));
           const nextHeight = gridHeightForRows(nextRows, gap);
+          if (collapsedPanelResize) {
+            const liveRect = liveResizePreview.getBoundingClientRect();
+            updateExpandedFootprintGhost(expandedFootprintGhost, panel, layout, {
+              left: liveRect.left,
+              top: liveRect.top,
+              width: liveRect.width,
+              rows: nextRows,
+            });
+          }
           if (nextSpan === previewSpan && nextHeight === previewHeight) return;
           animateOrderedGridReflow(layout, () => applyResize(nextSpan, nextHeight, nextRows), panel);
         };
@@ -3561,13 +3591,13 @@ document.addEventListener("DOMContentLoaded", () => {
             animateOrderedGridReflow(layout, () => {
               const currentSpan = previewSpan || Number(panel.dataset.currentSpan) || startSpan;
               const groupedSpan = groupedPanelReleaseSpan(currentSpan, resizePeers.length + 1);
-              const snappedSpan = groupedSpan ?? alignedResizeSpan({
+              const snappedSpan = groupedSpan ?? (resizeEdge === "left" ? Math.round(currentSpan) : alignedResizeSpan({
                 layout,
                 item: resizePreview,
                 currentSpan,
                 gap: 16,
                 minSpan: gridItemMinimumSpan(panel),
-              });
+              }));
               const snappedHeight = collapsedPanelResize
                 ? expandedPanelFootprintHeight(panel, layout, previewRows)
                 : alignedResizeHeight({
@@ -3577,14 +3607,18 @@ document.addEventListener("DOMContentLoaded", () => {
                 });
               const requestedDelta = snappedSpan - startSpan;
               const minDelta = Math.max(...groupResizeItems.map(({ peer, startSpan }) => gridItemMinimumSpan(peer) - startSpan));
-              const maxDelta = Math.min(...groupResizeItems.map(({ startSpan }) => 6 - startSpan));
+              const edgeMaxDelta = resizeEdge === "left" ? startCol - 1 : 6 - startSpan;
+              const maxDelta = Math.min(edgeMaxDelta, ...groupResizeItems.map(({ startSpan }) => 6 - startSpan));
               const delta = Math.max(minDelta, Math.min(maxDelta, requestedDelta));
+              const finalSpan = startSpan + delta;
+              const finalCol = resizeEdge === "left" ? startRightCol - finalSpan + 1 : startCol;
               clearLiveResizeSurface(panel, liveResizePreview);
               restoreGridLayoutSnapshot(resizeStartSnapshot);
               resizePreview.remove();
               expandedFootprintGhost?.remove();
-              applyPanelSpan(panel, startSpan + delta);
+              applyPanelSpan(panel, finalSpan);
               applyPanelHeight(panel, snappedHeight);
+              if (resizeEdge === "left") applyPanelGridPosition(panel, finalCol, startRow);
               resizePeers.forEach(({ peer, startSpan: peerStartSpan }) => {
                 applyPanelSpan(peer, peerStartSpan + delta);
                 applyPanelHeight(peer, Math.max(getPanelMinimumHeight(peer), snappedHeight));
@@ -3602,7 +3636,7 @@ document.addEventListener("DOMContentLoaded", () => {
         document.addEventListener("pointermove", onResizeMove);
         document.addEventListener("pointerup", onResizeEnd);
         document.addEventListener("pointercancel", onResizeEnd);
-      });
+      }));
     };
 
     panels.forEach(initPanel);

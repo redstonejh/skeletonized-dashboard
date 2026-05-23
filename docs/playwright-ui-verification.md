@@ -42,6 +42,7 @@ Verify:
 - The snapped footprint represents the grid size and placement that will commit.
 - Sub-grid pointer movement changes the live clone but does not change the snapped footprint.
 - Crossing a grid threshold changes the snapped footprint smoothly.
+- Left-edge resize keeps the original right boundary anchored while the live clone and snapped footprint grow or shrink toward the left.
 - Mouseup commits the snapped size, not the freeform clone size.
 - The source item is not visually teleporting or covering the live clone.
 - Collision and reflow preview are driven by the snapped footprint, not the freeform clone.
@@ -58,6 +59,7 @@ Playwright coverage should assert:
 - Assert snapped footprint changes.
 - Release pointer.
 - Assert the source item commits to a valid grid-aligned span and row span.
+- For left-edge resize, assert the committed column changes, the span changes, and `column + span` preserves the original right boundary.
 
 ## Drag Interaction Parity
 

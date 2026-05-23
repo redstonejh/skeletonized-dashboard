@@ -2094,16 +2094,16 @@ html:not([data-theme="dark"]) .db-panel.db-panel-custom-color:hover,
 html:not([data-theme="dark"]) .db-panel.db-panel-custom-color:focus-within {
   border-color: color-mix(in srgb, var(--panel-accent) 78%, var(--panel-hover-tint)) !important;
   box-shadow:
-    var(--shadow-card),
-    0 0 0 1px rgba(var(--panel-accent-rgb), .12) !important;
+    0 14px 30px rgba(15, 23, 42, .14),
+    inset 0 1px 0 rgba(255, 255, 255, .22) !important;
 }
 
 html:not([data-theme="dark"]) .db-panel.db-panel-custom-color.db-panel-collapsed:hover,
 html:not([data-theme="dark"]) .db-panel.db-panel-custom-color.db-panel-collapsed:focus-within {
-  border-color: color-mix(in srgb, var(--panel-accent) 62%, white) !important;
+  border-color: color-mix(in srgb, var(--panel-accent) 78%, var(--panel-hover-tint)) !important;
   box-shadow:
-    var(--shadow-card),
-    0 0 0 1px rgba(var(--panel-accent-rgb), .10) !important;
+    0 14px 30px rgba(15, 23, 42, .14),
+    inset 0 1px 0 rgba(255, 255, 255, .22) !important;
 }
 
 html[data-theme="dark"] .db-panel.db-panel-custom-color {
@@ -2602,6 +2602,7 @@ html[data-theme="dark"] .panel-settings-toggle:focus-visible {
 }
 
 .widget-layout > .widget-card.db-panel-custom-color:hover,
+.widget-layout > .widget-card.db-panel-custom-color:focus-visible,
 .widget-layout > .widget-card.db-panel-custom-color.active {
   background: linear-gradient(90deg, rgba(var(--panel-accent-rgb), .58), rgba(var(--panel-accent-rgb), .34));
   border-color: color-mix(in srgb, var(--panel-accent) 78%, var(--panel-hover-tint)) !important;
@@ -3574,7 +3575,7 @@ body {
   z-index: var(--z-dropdown);
   display: grid;
   gap: 10px;
-  width: 244px;
+  width: 316px;
   padding: 12px;
   border: 1.5px solid var(--glass-border);
   border-radius: 18px;
@@ -3602,12 +3603,17 @@ body {
   gap: 8px;
 }
 
+.background-tone-popover .background-tone-group {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
 html:not([data-theme="dark"]) .background-tone-group-dark,
 html[data-theme="dark"] .background-tone-group-light {
   display: none;
 }
 
 .background-tone-label {
+  grid-column: 1 / -1;
   color: var(--muted);
   font-size: 11px;
   font-weight: 800;
@@ -3616,14 +3622,181 @@ html[data-theme="dark"] .background-tone-group-light {
 }
 
 .background-tone-option {
+  --tone-swatch-start: var(--bg);
+  --tone-swatch-end: var(--bg-end, var(--surface-soft));
+  --tone-swatch-border: var(--glass-border);
   min-height: 34px;
   justify-content: flex-start;
+  gap: 8px;
   padding: 0 12px;
   border-radius: 999px;
   font-size: 12px;
   font-weight: 760;
   line-height: 1;
   text-align: left;
+}
+
+.background-tone-option::before {
+  content: "";
+  width: 14px;
+  height: 14px;
+  min-width: 14px;
+  border: 1px solid var(--tone-swatch-border);
+  border-radius: 999px;
+  background: linear-gradient(135deg, var(--tone-swatch-start), var(--tone-swatch-end));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, .30),
+    0 4px 10px rgba(15, 23, 42, .10);
+}
+
+.background-tone-option[data-background-tone="warm-white"] {
+  --tone-swatch-start: #f4efe8;
+  --tone-swatch-end: #fbf8f3;
+  --tone-swatch-border: rgba(151, 141, 128, .46);
+}
+
+.background-tone-option[data-background-tone="cool-white"] {
+  --tone-swatch-start: #eef4fb;
+  --tone-swatch-end: #f8fbff;
+  --tone-swatch-border: rgba(148, 163, 184, .48);
+}
+
+.background-tone-option[data-background-tone="soft-grey"] {
+  --tone-swatch-start: #edf0f4;
+  --tone-swatch-end: #f7f8fa;
+  --tone-swatch-border: rgba(148, 163, 184, .50);
+}
+
+.background-tone-option[data-background-tone="cool-grey"] {
+  --tone-swatch-start: #d9e0e8;
+  --tone-swatch-end: #eef2f7;
+  --tone-swatch-border: rgba(148, 163, 184, .68);
+}
+
+.background-tone-option[data-background-tone="warm-grey"] {
+  --tone-swatch-start: #ded8cf;
+  --tone-swatch-end: #f0ede7;
+  --tone-swatch-border: rgba(151, 141, 128, .62);
+}
+
+.background-tone-option[data-background-tone="slate"] {
+  --tone-swatch-start: #cbd5e1;
+  --tone-swatch-end: #e5ebf2;
+  --tone-swatch-border: rgba(100, 116, 139, .66);
+}
+
+.background-tone-option[data-background-tone="graphite-light"] {
+  --tone-swatch-start: #c3ccd6;
+  --tone-swatch-end: #dde5ee;
+  --tone-swatch-border: rgba(91, 103, 121, .62);
+}
+
+.background-tone-option[data-background-tone="light-blue-grey"] {
+  --tone-swatch-start: #e7eef6;
+  --tone-swatch-end: #f5f8fb;
+  --tone-swatch-border: rgba(117, 135, 154, .52);
+}
+
+.background-tone-option[data-background-tone="muted-blue-grey"] {
+  --tone-swatch-start: #d2dee8;
+  --tone-swatch-end: #edf3f8;
+  --tone-swatch-border: rgba(117, 135, 154, .68);
+}
+
+.background-tone-option[data-background-tone="neutral-dim"] {
+  --tone-swatch-start: #d3d1cb;
+  --tone-swatch-end: #e9e8e4;
+  --tone-swatch-border: rgba(128, 122, 112, .62);
+}
+
+.background-tone-option[data-background-tone="stone-slate"] {
+  --tone-swatch-start: #c9d0d2;
+  --tone-swatch-end: #e2e7e9;
+  --tone-swatch-border: rgba(103, 116, 121, .64);
+}
+
+.background-tone-option[data-background-tone="blue-mist"] {
+  --tone-swatch-start: #eaf3fb;
+  --tone-swatch-end: #f8fbff;
+  --tone-swatch-border: rgba(117, 135, 154, .48);
+}
+
+.background-tone-option[data-background-tone="frosted-light"] {
+  --tone-swatch-start: #edf2f8;
+  --tone-swatch-end: #f7faff;
+  --tone-swatch-border: rgba(148, 163, 184, .50);
+}
+
+.background-tone-option[data-background-tone="charcoal"] {
+  --tone-swatch-start: #090f1c;
+  --tone-swatch-end: #101827;
+  --tone-swatch-border: rgba(82, 96, 118, .62);
+}
+
+.background-tone-option[data-background-tone="soft-charcoal"] {
+  --tone-swatch-start: #0f141c;
+  --tone-swatch-end: #171f2a;
+  --tone-swatch-border: rgba(93, 105, 121, .58);
+}
+
+.background-tone-option[data-background-tone="graphite"] {
+  --tone-swatch-start: #111827;
+  --tone-swatch-end: #182235;
+  --tone-swatch-border: rgba(82, 96, 118, .62);
+}
+
+.background-tone-option[data-background-tone="soft-black"] {
+  --tone-swatch-start: #05070d;
+  --tone-swatch-end: #0c111c;
+  --tone-swatch-border: rgba(82, 96, 118, .58);
+}
+
+.background-tone-option[data-background-tone="deep-navy"] {
+  --tone-swatch-start: #071225;
+  --tone-swatch-end: #0d1c34;
+  --tone-swatch-border: rgba(86, 103, 128, .60);
+}
+
+.background-tone-option[data-background-tone="muted-navy"] {
+  --tone-swatch-start: #0c1726;
+  --tone-swatch-end: #142236;
+  --tone-swatch-border: rgba(86, 103, 128, .58);
+}
+
+.background-tone-option[data-background-tone="dark-blue-grey"] {
+  --tone-swatch-start: #101927;
+  --tone-swatch-end: #162436;
+  --tone-swatch-border: rgba(86, 103, 128, .58);
+}
+
+.background-tone-option[data-background-tone="deep-slate"] {
+  --tone-swatch-start: #0d1621;
+  --tone-swatch-end: #172434;
+  --tone-swatch-border: rgba(91, 106, 126, .58);
+}
+
+.background-tone-option[data-background-tone="dark-glass"] {
+  --tone-swatch-start: #111827;
+  --tone-swatch-end: #182130;
+  --tone-swatch-border: rgba(102, 114, 132, .56);
+}
+
+.background-tone-option[data-background-tone="low-neon"] {
+  --tone-swatch-start: #0e1722;
+  --tone-swatch-end: #162331;
+  --tone-swatch-border: rgba(91, 111, 132, .54);
+}
+
+.background-tone-option[data-background-tone="midnight-blue"] {
+  --tone-swatch-start: #061127;
+  --tone-swatch-end: #0a1a36;
+  --tone-swatch-border: rgba(86, 103, 128, .60);
+}
+
+.background-tone-option[data-background-tone="dark-frosted"] {
+  --tone-swatch-start: #0b1220;
+  --tone-swatch-end: #121d2f;
+  --tone-swatch-border: rgba(86, 103, 128, .58);
 }
 
 .background-tone-option.is-selected {
@@ -5042,18 +5215,18 @@ html[data-theme="dark"] .app-nav.workspace-chrome .composition-add-button {
   border-radius: 26px;
   background:
     radial-gradient(circle at 14% 0%, color-mix(in srgb, var(--blue) 9%, transparent) 0 38%, transparent 62%),
-    linear-gradient(180deg, rgba(250, 253, 255, .92), rgba(230, 237, 247, .78));
+    linear-gradient(180deg, color-mix(in srgb, var(--glass-surface-strong) 92%, var(--surface-raised)), color-mix(in srgb, var(--glass-surface) 74%, var(--surface-soft)));
   box-shadow:
-    0 18px 44px rgba(15, 23, 42, .11),
+    var(--shadow-glass),
     0 2px 10px rgba(15, 23, 42, .055),
-    inset 0 1px 0 rgba(255, 255, 255, .78);
+    inset 0 1px 0 var(--glass-highlight);
   backdrop-filter: blur(22px) saturate(1.12);
   -webkit-backdrop-filter: blur(22px) saturate(1.12);
 }
 
 .app-nav.workspace-chrome::before {
   inset: 1px 24px auto;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, .78), transparent);
+  background: linear-gradient(90deg, transparent, var(--glass-highlight), transparent);
   opacity: .9;
 }
 
@@ -5069,9 +5242,9 @@ html[data-theme="dark"] .app-nav.workspace-chrome .composition-add-button {
   padding: 4px;
   border: 1px solid color-mix(in srgb, var(--line-soft) 72%, rgba(255, 255, 255, .82));
   border-radius: 18px;
-  background: color-mix(in srgb, var(--glass-surface-strong) 74%, rgba(225, 234, 246, .72));
+  background: color-mix(in srgb, var(--glass-surface-strong) 76%, var(--surface-soft));
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, .66),
+    inset 0 1px 0 var(--glass-highlight),
     0 8px 18px rgba(15, 23, 42, .045);
   backdrop-filter: blur(18px) saturate(1.08);
   -webkit-backdrop-filter: blur(18px) saturate(1.08);
@@ -5081,7 +5254,7 @@ html[data-theme="dark"] .app-nav.workspace-chrome .composition-add-button {
   padding-inline: 6px 8px;
   border-color: color-mix(in srgb, var(--line) 72%, rgba(255, 255, 255, .82));
   border-radius: 22px;
-  background: color-mix(in srgb, var(--glass-surface-strong) 84%, rgba(222, 233, 246, .78));
+  background: color-mix(in srgb, var(--glass-surface-strong) 84%, var(--surface-soft));
 }
 
 .app-nav.workspace-chrome .layout-command-island,
@@ -5182,21 +5355,21 @@ html[data-theme="dark"] .app-nav.workspace-chrome .composition-add-button {
 .app-nav.workspace-chrome .background-tone-popover {
   border-color: color-mix(in srgb, var(--line) 62%, rgba(255, 255, 255, .74));
   background:
-    linear-gradient(180deg, rgba(250, 253, 255, .96), rgba(235, 242, 250, .94));
+    linear-gradient(180deg, color-mix(in srgb, var(--glass-surface-strong) 94%, var(--surface-raised)), color-mix(in srgb, var(--glass-surface-strong) 86%, var(--surface-soft)));
   box-shadow:
-    0 24px 58px rgba(15, 23, 42, .17),
-    inset 0 1px 0 rgba(255, 255, 255, .78);
+    var(--shadow-glass),
+    inset 0 1px 0 var(--glass-highlight);
 }
 
 html[data-theme="dark"] .app-nav.workspace-chrome {
-  border: 1.5px solid rgba(86, 102, 126, .62);
+  border: 1.5px solid var(--glass-border);
   background:
     radial-gradient(circle at 14% 0%, rgba(134, 172, 210, .08) 0 38%, transparent 62%),
-    linear-gradient(180deg, rgba(28, 40, 60, .90), rgba(15, 24, 40, .84));
+    linear-gradient(180deg, color-mix(in srgb, var(--glass-surface-strong) 88%, var(--surface-raised)), color-mix(in srgb, var(--glass-surface) 82%, var(--surface)));
   box-shadow:
-    0 24px 62px rgba(0, 0, 0, .42),
+    var(--shadow-glass),
     0 2px 12px rgba(0, 0, 0, .22),
-    inset 0 1px 0 rgba(255, 255, 255, .065);
+    inset 0 1px 0 var(--glass-highlight);
 }
 
 html[data-theme="dark"] .app-nav.workspace-chrome::before {
@@ -5303,12 +5476,12 @@ html[data-theme="dark"] .app-nav.workspace-chrome .layout-slot-menu,
 html[data-theme="dark"] .app-nav.workspace-chrome .dash-switch-menu,
 html[data-theme="dark"] .app-nav.workspace-chrome .nav-status-popover,
 html[data-theme="dark"] .app-nav.workspace-chrome .background-tone-popover {
-  border-color: rgba(86, 102, 126, .58);
+  border-color: var(--glass-border);
   background:
-    linear-gradient(180deg, rgba(28, 40, 60, .96), rgba(15, 24, 40, .96));
+    linear-gradient(180deg, color-mix(in srgb, var(--glass-surface-strong) 94%, var(--surface-raised)), color-mix(in srgb, var(--glass-surface-strong) 88%, var(--surface)));
   box-shadow:
-    0 26px 64px rgba(0, 0, 0, .46),
-    inset 0 1px 0 rgba(255, 255, 255, .06);
+    var(--shadow-glass),
+    inset 0 1px 0 var(--glass-highlight);
 }
 
 /* Dark widget/panel parity: keep colored identity without neon outer rims. */
@@ -5331,6 +5504,8 @@ html[data-theme="dark"] .panel-layout > .db-panel.db-panel-tools-open,
 html[data-theme="dark"] .widget-layout > .stat-card.widget-card:hover,
 html[data-theme="dark"] .widget-layout > .stat-card.widget-card:focus-visible,
 html[data-theme="dark"] .widget-layout > .stat-card.widget-card:focus-within,
+html[data-theme="dark"] .range-bar.widget-card:hover,
+html[data-theme="dark"] .range-bar.widget-card:focus-within,
 html[data-theme="dark"] .widget-layout > .widget-card.widget-tools-open,
 html[data-theme="dark"] .widget-layout > .widget-card.db-panel-custom-color:hover,
 html[data-theme="dark"] .widget-layout > .widget-card.db-panel-custom-color:focus-visible,
