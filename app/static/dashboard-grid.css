@@ -233,7 +233,7 @@ body.layout-tools-active .widget-card:not(.widget-tools-open):not(:has(> .widget
   border-radius: var(--radius-md);
   background: rgba(37, 99, 235, .12);
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .16), 0 0 20px rgba(37, 99, 235, .12);
-  transition: grid-column var(--motion-grid), grid-row var(--motion-grid), width var(--motion-grid), min-height .14s ease, background .14s ease, border-color .14s ease;
+  transition: grid-column var(--motion-grid), grid-row var(--motion-grid), width var(--motion-grid), height var(--motion-grid), min-height .14s ease, background .14s ease, border-color .14s ease;
   will-change: transform;
 }
 
@@ -259,6 +259,47 @@ body.layout-tools-active .widget-card:not(.widget-tools-open):not(:has(> .widget
   opacity: .94;
   transform: rotate(.12deg) scale(1.006);
   box-shadow: 0 26px 58px rgba(15, 23, 42, .24), 0 0 0 1px rgba(37, 99, 235, .18);
+}
+
+.dashboard-live-resize {
+  position: fixed !important;
+  z-index: var(--z-drag-ghost);
+  display: block !important;
+  visibility: visible !important;
+  pointer-events: none;
+  opacity: .74;
+  transform: none !important;
+  box-shadow: 0 26px 58px rgba(15, 23, 42, .20), 0 0 0 1px rgba(37, 99, 235, .16);
+  transition: none !important;
+  will-change: width, height;
+}
+
+.dashboard-resize-source {
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+.dashboard-resize-preview {
+  opacity: .62;
+  background: color-mix(in srgb, var(--surface) 72%, var(--blue) 18%);
+  border-color: color-mix(in srgb, var(--blue) 60%, var(--line));
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .14), 0 14px 34px rgba(37, 99, 235, .10);
+}
+
+.dashboard-expanded-footprint-ghost {
+  position: fixed;
+  z-index: calc(var(--z-drag-ghost) - 1);
+  min-width: 0;
+  min-height: var(--dashboard-grid-row-height, 81px);
+  border: 1.5px dashed color-mix(in srgb, var(--blue) 52%, var(--line));
+  border-radius: var(--radius-lg);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, .22), rgba(255, 255, 255, .06)),
+    color-mix(in srgb, var(--surface) 72%, var(--blue) 16%);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .14), 0 18px 40px rgba(37, 99, 235, .10);
+  opacity: .46;
+  pointer-events: none;
+  transition: width .18s cubic-bezier(.16, 1, .3, 1), height .18s cubic-bezier(.16, 1, .3, 1);
 }
 
 .stat-card:hover,
@@ -732,6 +773,20 @@ body.panel-resize-active .widget-spacer {
   transition: none !important;
 }
 
+body.panel-resize-active .db-panel-placeholder.dashboard-resize-preview,
+body.panel-resize-active .widget-placeholder.dashboard-resize-preview {
+  transition:
+    grid-column .18s cubic-bezier(.16, 1, .3, 1),
+    grid-row .18s cubic-bezier(.16, 1, .3, 1),
+    width .18s cubic-bezier(.16, 1, .3, 1),
+    height .18s cubic-bezier(.16, 1, .3, 1),
+    min-height .18s cubic-bezier(.16, 1, .3, 1),
+    background .14s ease,
+    border-color .14s ease,
+    box-shadow .14s ease,
+    transform .18s cubic-bezier(.16, 1, .3, 1) !important;
+}
+
 body.panel-resize-snapping .db-panel,
 body.panel-resize-snapping .db-panel-placeholder,
 body.panel-resize-snapping .widget-card,
@@ -1185,7 +1240,7 @@ html[data-theme="dark"] .panel-color-label {
   border-radius: var(--radius-lg);
   background: rgba(37, 99, 235, .12);
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .16), 0 0 20px rgba(37, 99, 235, .12);
-  transition: grid-column var(--motion-grid), grid-row var(--motion-grid), width var(--motion-grid), min-height .14s ease, background .14s ease, border-color .14s ease;
+  transition: grid-column var(--motion-grid), grid-row var(--motion-grid), width var(--motion-grid), height var(--motion-grid), min-height .14s ease, background .14s ease, border-color .14s ease;
   will-change: transform;
 }
 

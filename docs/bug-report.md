@@ -72,7 +72,7 @@ Command:
 .venv\Scripts\python.exe -m pytest -q
 ```
 
-Latest result: 34 passed, 0 failed.
+Latest result: 38 passed, 0 failed.
 
 Previous discovery result: 6 passed, 3 failed.
 
@@ -416,7 +416,7 @@ Passed coverage included app/dashboard/settings load, CSS imports, theme persist
 
 ### BUG-024: Top Bar Command Islands Felt Crowded And Admin-Like
 
-- Status: Fixed, pending full regression validation
+- Status: Verified
 - Area: Top bar / workspace chrome / settings / modal surfaces
 - Severity: Medium
 - Environment: Dashboard workspace, light and dark themes
@@ -474,8 +474,68 @@ Passed coverage included app/dashboard/settings load, CSS imports, theme persist
 - Fix notes: Added a focused top-nav polish layer for `.app-nav.workspace-chrome`, dashboard switcher, layout slot controls, add button, reset/undo/group/mode/status controls, theme/background controls, settings link, and nav menus. This is a contained polish bug fix, not a redesign; markup, class names, dashboard layout, drag, resize, save/load, pin, collapse, and group behavior are unchanged.
 - Validation: Updated `test_workspace_chrome_is_spatial_and_modes_still_work` to assert visible light/dark chrome surfaces and preserve layout slot/add menu behavior. Manual Playwright smoke checked `/dashboard`, light and dark top nav, theme toggle, layout slot dropdown, add menu, reset/undo/group controls, and settings link. `.venv\Scripts\python.exe -m pytest -q` passed with 34 tests.
 
-## Entry Template
+### BUG-029: Resize Preview Snapped Abruptly Between Grid Sizes
 
+- Status: Verified
+- Area: Dashboard grid / resize polish
+- Severity: Medium
+- Environment: Dashboard workspace, Chromium via Playwright, light theme
+- Observed: Dragging felt fluid because the active object lifted under the pointer while a ghost/placeholder represented grid placement, but resizing mutated the visible item directly between snapped grid spans and row heights. After the first attempted fix, the live app still did not feel smooth during resize; resize feedback was still not behaving like the drag interaction.
+- Expected: Resize should use the same direct-manipulation model as drag: the active panel or widget follows pointer movement continuously, a translucent grid-aligned preview marks the snapped target size, and the final commit remains grid-based.
+- Suspected cause: The normal widget and panel resize handlers applied snapped span/height changes to the live item on pointermove, with no separate live surface or resize ghost. The first attempted fix also let the snapped panel footprint normalize from raw rendered height with `ceil` row math, so the footprint could jump on tiny pointer movement.
+- Fix notes: Reworked the attempted resize preview into an explicit translucent, non-interactive `.dashboard-live-resize` clone appended to `body` for all normal panel/widget resize interactions. The real source gets `.dashboard-resize-source` and is hidden during active resize, while a separate `.dashboard-resize-preview` placeholder remains the blue snapped grid footprint. Release snapping now measures the snapped footprint instead of the hidden source, so final commit follows the preview. Panel row snapping now uses pointer-delta row thresholds instead of immediate `ceil` normalization.
+- Validation: Strengthened `test_resize_has_live_surface_and_grid_preview` to assert sub-grid live preview movement, translucent preview styling, hidden source state, unchanged committed span during pointer movement, unchanged snapped footprint below grid threshold, changed snapped footprint after crossing threshold, and grid-aligned commit. Manual Playwright probe against `http://127.0.0.1:8001/dashboard` confirmed updated JS/CSS are served and the temporary debug marker was removed; an 8x7px pointer move changed the live clone by 8x7px while the snapped footprint delta stayed 0x0. `.venv\Scripts\python.exe -m pytest -q` passed with 36 tests.
+
+### BUG-030: Collapsed Panels Did Not Show Expanded Footprint During Movement
+
+- Status: Verified
+- Area: Dashboard grid / collapsed panel preview
+- Severity: Medium
+- Environment: Dashboard workspace, Chromium via Playwright, light theme
+- Observed: Collapsed panels could be dragged and resized, but the only visible footprint was the compact collapsed row. After the first attempted fix, the expanded-footprint preview still did not appear or did not behave correctly when moving or resizing collapsed panels in the running dashboard.
+- Expected: Dragging or resizing a collapsed panel shows a translucent expanded-footprint ghost that is informational only. The ghost must not reserve cells, push neighbors, affect snapping, alter collision logic, or persist to layout state.
+- Suspected cause: Existing drag and resize preview paths only represented the active collapsed panel's committed grid footprint. There was no separate visual-only expanded footprint layer.
+- Fix notes: Kept the body-level `.dashboard-expanded-footprint-ghost` visual-only layer for collapsed panel drag and resize, while preserving the collapsed one-row grid placeholder as the real placement footprint. The expanded ghost has no grid/placeholder classes and does not enter occupancy, snapping, collision, or persistence paths.
+- Validation: `test_collapsed_panel_drag_and_resize_show_expanded_footprint_ghost` and targeted drag/resize tests passed. `.venv\Scripts\python.exe -m pytest -q` passed with 36 tests.
+
+### BUG-031: Collapsed Expanded-Footprint Ghost Could Misalign With Real Opened Panel
+
+- Status: Verified
+- Area: Dashboard grid / collapsed panel preview
+- Severity: Medium
+- Environment: Dashboard workspace, Chromium via Playwright, light theme
+- Observed: When dragging or resizing a collapsed panel, the dashed expanded-footprint ghost could extend too far or start/end at the wrong vertical interval. It did not always line up with the panel's actual opened footprint.
+- Expected: The expanded-footprint ghost represents the exact opened panel bounds: same left, top, and width as the collapsed panel or snapped resize footprint, and height equal to the real expanded grid height using the same row math as the open-panel layout.
+- Suspected cause: The ghost used rendered/live clone dimensions or proposed pixel heights in some resize paths, while actual open-panel geometry is determined by committed grid rows and saved expanded height.
+- Fix notes: Added expanded-footprint row helpers that ignore the collapsed one-row state and derive ghost height from saved expanded height, expanded minimum rows, or snapped resize rows. During collapsed resize, the ghost now anchors to the snapped `.dashboard-resize-preview` footprint instead of the freeform live clone.
+- Validation: Updated `test_collapsed_panel_drag_and_resize_show_expanded_footprint_ghost` to capture the ghost, commit the resize, open the panel, and assert the opened panel bounds match the ghost bounds within grid tolerance. Targeted drag/resize tests passed. `.venv\Scripts\python.exe -m pytest -q` passed with 36 tests.
+
+### BUG-032: Panel Expand Used General Reflow Instead Of Vertical Pushdown
+
+- Status: Verified
+- Area: Dashboard grid / expand-collapse
+- Severity: Medium
+- Environment: Dashboard workspace, Chromium via Playwright, light theme
+- Observed: Opening a collapsed panel could route affected items through the general placement resolver. In the NOTES-above-TABLE case, TABLE moved sideways into another open slot instead of staying in its column and moving down.
+- Expected: Expand/collapse behaves like an accordion: the opened panel keeps its current top/left and expands downward, affected items below the expanded footprint shift straight down, and collapse restores the compact layout when space is available. Drag/drop and resize keep their existing placement logic.
+- Suspected cause: The panel toggle handler called `applyLocalCollisionLayout` on expand, which delegates to the broader ordered/grid placement machinery and can choose a lateral slot.
+- Fix notes: Added a focused vertical expansion pass for panel opening that preserves each affected item's column/span and only advances rows enough to clear grid overlaps. Collapse continues to use the existing expansion snapshot restore so temporarily pushed items can return upward.
+- Validation: Added `test_panel_expand_uses_vertical_pushdown_not_sideways_reflow`, which places NOTES collapsed directly above TABLE, opens NOTES, asserts TABLE remains in the same column and moves down, then collapses NOTES and asserts TABLE returns upward. `.venv\Scripts\python.exe -m pytest -q` passed with 37 tests.
+
+### BUG-033: Dark Widget Borders Kept Neon Active And Focus Rims
+
+- Status: Verified
+- Area: Theme / widget-panel parity
+- Severity: Medium
+- Environment: Dashboard workspace, Chromium via Playwright, dark theme
+- Observed: Earlier dark-mode cleanup calmed panel borders, but default and custom colored widgets could still keep bright active, focus, selected, and hover rims. This made widgets and panels feel like different component families in dark mode.
+- Expected: Dark-mode widgets keep their colored surface identity while sharing the same soft glass rim, hover, focus, active, selected, drag, and resize treatment as panels. Focus remains visible without electric blue or saturated color halos.
+- Suspected cause: Older widget-specific dark rules for `.stat-card.active`, `.widget-card.db-panel-custom-color.active`, group selection, and custom color variants remained later or more specific than some panel-focused neon cleanup rules.
+- Fix notes: Added a final dark-only widget/panel parity calibration in `themes.css` that uses muted material border colors, restrained inset focus/selection treatment, and removes outer accent glow from widget active, selected, dragging, and live resize states while preserving custom widget background color.
+- Validation: Added `test_dark_widget_focus_and_active_borders_match_panel_softness` and reran the existing dark midnight-glass, hover parity, and menu parity tests successfully. `.venv\Scripts\python.exe -m pytest -q` passed with 38 tests.
+
+## Entry Template
+ 
 ```md
 ### BUG-000: Short title
 

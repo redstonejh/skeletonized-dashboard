@@ -4910,7 +4910,7 @@ html[data-theme="dark"] .db-panel.db-panel-custom-color.db-panel-tools-open:focu
 html[data-theme="dark"] .widget-layout > .stat-card.widget-card:hover,
 html[data-theme="dark"] .panel-layout > .db-panel:hover,
 html[data-theme="dark"] .panel-layout > .db-panel:focus-within {
-  border-color: rgba(126, 144, 170, .56) !important;
+  border-color: rgba(128, 140, 158, .60) !important;
   box-shadow:
     0 28px 66px rgba(0, 0, 0, .46),
     inset 0 1px 0 rgba(255, 255, 255, .06) !important;
@@ -5309,5 +5309,82 @@ html[data-theme="dark"] .app-nav.workspace-chrome .background-tone-popover {
   box-shadow:
     0 26px 64px rgba(0, 0, 0, .46),
     inset 0 1px 0 rgba(255, 255, 255, .06);
+}
+
+/* Dark widget/panel parity: keep colored identity without neon outer rims. */
+html[data-theme="dark"] .panel-layout > .db-panel,
+html[data-theme="dark"] .widget-layout > .stat-card.widget-card,
+html[data-theme="dark"] .widget-layout > .widget-card.db-panel-custom-color,
+html[data-theme="dark"] .widget-layout > .widget-card.stat-danger,
+html[data-theme="dark"] .widget-layout > .widget-card.stat-warn,
+html[data-theme="dark"] .widget-layout > .widget-card.stat-purple {
+  border-color: #5c6b83 !important;
+  box-shadow:
+    0 24px 58px rgba(0, 0, 0, .42),
+    inset 0 1px 0 rgba(255, 255, 255, .045) !important;
+  outline-color: rgba(192, 207, 226, .045);
+}
+
+html[data-theme="dark"] .panel-layout > .db-panel:hover,
+html[data-theme="dark"] .panel-layout > .db-panel:focus-within,
+html[data-theme="dark"] .panel-layout > .db-panel.db-panel-tools-open,
+html[data-theme="dark"] .widget-layout > .stat-card.widget-card:hover,
+html[data-theme="dark"] .widget-layout > .stat-card.widget-card:focus-visible,
+html[data-theme="dark"] .widget-layout > .stat-card.widget-card:focus-within,
+html[data-theme="dark"] .widget-layout > .widget-card.widget-tools-open,
+html[data-theme="dark"] .widget-layout > .widget-card.db-panel-custom-color:hover,
+html[data-theme="dark"] .widget-layout > .widget-card.db-panel-custom-color:focus-visible,
+html[data-theme="dark"] .widget-layout > .widget-card.db-panel-custom-color:focus-within,
+html[data-theme="dark"] .widget-layout > .widget-card.db-panel-custom-color.widget-tools-open {
+  border-color: #7e8c9e !important;
+  box-shadow:
+    0 28px 66px rgba(0, 0, 0, .46),
+    inset 0 1px 0 rgba(255, 255, 255, .06) !important;
+}
+
+html[data-theme="dark"] .widget-layout > .stat-card.widget-card.active,
+html[data-theme="dark"] .widget-layout > .widget-card.db-panel-custom-color.active,
+html[data-theme="dark"] .widget-layout > .widget-card.stat-danger.active,
+html[data-theme="dark"] .widget-layout > .widget-card.stat-warn.active,
+html[data-theme="dark"] .widget-layout > .widget-card.stat-purple.active {
+  border-color: #6f7886 !important;
+  border-top-color: #6f7886 !important;
+  border-right-color: #6f7886 !important;
+  border-bottom-color: #6f7886 !important;
+  border-left-color: #6f7886 !important;
+  outline: 2px solid rgba(174, 190, 211, .30) !important;
+  outline-offset: -3px !important;
+  box-shadow:
+    0 28px 66px rgba(0, 0, 0, .46),
+    inset 0 1px 0 rgba(255, 255, 255, .06),
+    inset 0 0 0 1px rgba(255, 255, 255, .035) !important;
+}
+
+html[data-theme="dark"] .widget-layout > .widget-card.group-selected,
+html[data-theme="dark"] .panel-layout > .db-panel.group-selected {
+  outline: 1.5px solid rgba(174, 190, 211, .34) !important;
+  outline-offset: 3px !important;
+  box-shadow:
+    var(--shadow-card),
+    inset 0 0 0 1px rgba(255, 255, 255, .035) !important;
+}
+
+html[data-theme="dark"] .widget-layout > .widget-card.active.group-selected,
+html[data-theme="dark"] .widget-layout > .widget-card.db-panel-custom-color.active.group-selected {
+  outline: 2px solid rgba(174, 190, 211, .30) !important;
+  outline-offset: -3px !important;
+  box-shadow:
+    0 28px 66px rgba(0, 0, 0, .46),
+    inset 0 1px 0 rgba(255, 255, 255, .06),
+    inset 0 0 0 1px rgba(255, 255, 255, .035) !important;
+}
+
+html[data-theme="dark"] .widget-dragging,
+html[data-theme="dark"] .db-panel-dragging,
+html[data-theme="dark"] .dashboard-live-resize {
+  border-color: rgba(142, 160, 186, .50) !important;
+  box-shadow:
+    0 32px 76px rgba(0, 0, 0, .54),
+    inset 0 1px 0 rgba(255, 255, 255, .06) !important;
 }
 
