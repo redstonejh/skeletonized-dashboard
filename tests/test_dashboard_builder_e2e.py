@@ -1,5 +1,6 @@
 import math
 import re
+from pathlib import Path
 
 import pytest
 from playwright.sync_api import Page, expect
@@ -224,6 +225,164 @@ def test_theme_toggle_persists(page: Page, app_server: str) -> None:
     assert_clean_browser(page)
 
 
+def test_timeframe_controls_use_theme_aware_glass_color(page: Page, app_server: str) -> None:
+    goto(page, app_server)
+    control = page.locator(".timeframe-widget")
+    expect(control).to_be_visible()
+
+    def ensure_control_tools_open() -> None:
+        if not control.evaluate("node => node.classList.contains('widget-tools-open')"):
+            control.locator(".panel-settings-toggle").click(force=True)
+        expect(control.locator(".panel-tool-drawer")).to_be_visible()
+
+    def apply_swatch(index: int) -> None:
+        ensure_control_tools_open()
+        if not page.locator(".panel-color-menu-open").count():
+            control.locator(".panel-color-toggle").click(force=True)
+        page.locator(".panel-color-menu-open .panel-color-swatch").nth(index).click()
+
+    def rgb_values(value: str) -> list[int]:
+        return [int(part) for part in re.findall(r"\d+", value)[:3]]
+
+    def assert_near_white(value: str) -> None:
+        red, green, blue = rgb_values(value)
+        assert min(red, green, blue) >= 238
+
+    def read_timeframe_style() -> dict:
+        return control.evaluate(
+            """
+            node => {
+              const preset = node.querySelector(".preset-btn.active");
+              const selector = node.querySelector(".timeframe-selector");
+              const refresh = node.querySelector(".range-icon-button");
+              const calendar = node.querySelector(".timeframe-calendar");
+              const settings = node.querySelector(".panel-settings-toggle");
+              return {
+                accent: getComputedStyle(node).getPropertyValue("--panel-accent").trim(),
+                presetBackground: getComputedStyle(preset).backgroundColor,
+                presetBorder: getComputedStyle(preset).borderColor,
+                presetColor: getComputedStyle(preset).color,
+                selectorBackground: getComputedStyle(selector).backgroundColor,
+                selectorColor: getComputedStyle(selector).color,
+                refreshBackground: getComputedStyle(refresh).backgroundColor,
+                refreshColor: getComputedStyle(refresh).color,
+                calendarColor: getComputedStyle(calendar).color,
+                settingsColor: getComputedStyle(settings).color,
+              };
+            }
+            """
+        )
+
+    artifact_dir = Path("test-results") / "timeframe-theme-controls"
+    artifact_dir.mkdir(parents=True, exist_ok=True)
+
+    apply_swatch(3)
+    teal = read_timeframe_style()
+    control.screenshot(path=str(artifact_dir / "timeframe-light-teal.png"))
+
+    apply_swatch(10)
+    pink = read_timeframe_style()
+    control.screenshot(path=str(artifact_dir / "timeframe-light-pink.png"))
+
+    page.locator(".theme-toggle").click()
+    expect(page.locator("html")).to_have_attribute("data-theme", "dark")
+
+    apply_swatch(3)
+    dark_teal = read_timeframe_style()
+    control.screenshot(path=str(artifact_dir / "timeframe-dark-teal.png"))
+
+    apply_swatch(10)
+    dark_pink = read_timeframe_style()
+    control.screenshot(path=str(artifact_dir / "timeframe-dark-pink.png"))
+
+    assert teal["accent"].lower() == "#14b8a6"
+    assert pink["accent"].lower() == "#db2777"
+    assert teal["presetBackground"] != pink["presetBackground"]
+    assert teal["presetBorder"] != pink["presetBorder"]
+    assert teal["selectorBackground"] != pink["selectorBackground"]
+    assert teal["refreshBackground"] != pink["refreshBackground"]
+    for styles in (teal, pink, dark_teal, dark_pink):
+        assert_near_white(styles["presetColor"])
+        assert_near_white(styles["selectorColor"])
+        assert_near_white(styles["refreshColor"])
+        assert_near_white(styles["calendarColor"])
+        assert_near_white(styles["settingsColor"])
+    assert_clean_browser(page)
+
+
+def test_minimum_panel_menu_opens_without_resizing_panel(page: Page, app_server: str) -> None:
+    goto(page, app_server)
+    panel = page.locator('.panel-layout > .db-panel[data-panel-key="builder-menu"]')
+    expect(panel).to_be_visible()
+    before = panel.evaluate(
+        """
+        node => {
+          const rect = node.getBoundingClientRect();
+          return {
+            width: rect.width,
+            height: rect.height,
+            span: node.dataset.currentSpan,
+            rowSpan: node.dataset.gridRowSpan,
+            gridColumn: getComputedStyle(node).gridColumnEnd,
+            gridRow: getComputedStyle(node).gridRowEnd,
+          };
+        }
+        """
+    )
+
+    open_tools(panel)
+    page.wait_for_timeout(220)
+
+    after = panel.evaluate(
+        """
+        node => {
+          const rect = node.getBoundingClientRect();
+          return {
+            width: rect.width,
+            height: rect.height,
+            span: node.dataset.currentSpan,
+            rowSpan: node.dataset.gridRowSpan,
+            gridColumn: getComputedStyle(node).gridColumnEnd,
+            gridRow: getComputedStyle(node).gridRowEnd,
+          };
+        }
+        """
+    )
+    assert abs(after["width"] - before["width"]) <= 1
+    assert abs(after["height"] - before["height"]) <= 1
+    assert after["span"] == before["span"]
+    assert after["rowSpan"] == before["rowSpan"]
+    assert after["gridColumn"] == before["gridColumn"]
+    assert after["gridRow"] == before["gridRow"]
+    assert_clean_browser(page)
+
+
+def test_timeframe_widget_uses_shared_resize_system(page: Page, app_server: str) -> None:
+    goto(page, app_server)
+    control = page.locator(".timeframe-widget")
+    before = control.evaluate("node => Number(node.dataset.currentSpan || node.dataset.defaultSpan || 0)")
+
+    open_tools(control)
+    drag_by(page, control.locator(".panel-resize-handle"), -360, 0, steps=14)
+    page.wait_for_timeout(350)
+
+    after = control.evaluate(
+        """
+        node => ({
+          span: Number(node.dataset.currentSpan || node.dataset.defaultSpan || 0),
+          gridColumn: node.style.gridColumn,
+          row: Number(node.dataset.gridRow || 0),
+        })
+        """
+    )
+    assert before == 6
+    assert 1 <= after["span"] < before
+    assert "span 6" not in after["gridColumn"]
+    assert after["row"] >= 1
+    assert no_visible_overlaps(page, ".dashboard-layout-grid .widget-card, .dashboard-layout-grid .db-panel") == []
+    assert_clean_browser(page)
+
+
 def test_panel_crud_controls_and_visual_state(page: Page, app_server: str) -> None:
     goto(page, app_server)
 
@@ -248,13 +407,21 @@ def test_panel_crud_controls_and_visual_state(page: Page, app_server: str) -> No
     open_tools(panel)
     panel.locator(".panel-pin-toggle").click(force=True)
     expect(panel).to_have_class(re.compile("db-panel-pinned"))
+    expect(panel).not_to_have_class(re.compile("db-panel-tools-open"))
+    open_tools(panel)
     panel.locator(".panel-pin-toggle").click(force=True)
     expect(panel).not_to_have_class(re.compile("db-panel-pinned"))
 
-    panel.locator(".db-panel-hd").click(position={"x": 18, "y": 18})
-    expect(panel).not_to_have_class(re.compile("db-panel-collapsed"))
-    panel.locator(".db-panel-hd").click(position={"x": 18, "y": 18})
-    expect(panel).to_have_class(re.compile("db-panel-collapsed"))
+    if panel.evaluate("node => node.classList.contains('db-panel-collapsed')"):
+        panel.locator(".db-panel-hd").click(position={"x": 18, "y": 18})
+        expect(panel).not_to_have_class(re.compile("db-panel-collapsed"))
+        panel.locator(".db-panel-hd").click(position={"x": 18, "y": 18})
+        expect(panel).to_have_class(re.compile("db-panel-collapsed"))
+    else:
+        panel.locator(".db-panel-hd").click(position={"x": 18, "y": 18})
+        expect(panel).to_have_class(re.compile("db-panel-collapsed"))
+        panel.locator(".db-panel-hd").click(position={"x": 18, "y": 18})
+        expect(panel).not_to_have_class(re.compile("db-panel-collapsed"))
 
     open_tools(panel)
     panel.locator(".panel-delete-handle").click(force=True)
@@ -294,7 +461,10 @@ def test_widget_crud_controls_resize_and_delete(page: Page, app_server: str) -> 
     open_tools(widget)
     widget.locator(".panel-pin-toggle").click(force=True)
     expect(widget).to_have_class(re.compile("db-panel-pinned"))
+    expect(widget).not_to_have_class(re.compile("widget-tools-open"))
+    open_tools(widget)
     widget.locator(".panel-pin-toggle").click(force=True)
+    expect(widget).not_to_have_class(re.compile("db-panel-pinned"))
 
     open_tools(widget)
     widget.locator(".panel-delete-handle").click(force=True)
@@ -367,6 +537,62 @@ def test_resize_preview_snaps_to_grid_and_persists(page: Page, app_server: str) 
     assert end["row"] >= 1
     assert grid_alignment_error(page, ".panel-layout > .db-panel") <= 3
     assert no_visible_overlaps(page, ".panel-layout > .db-panel") == []
+    assert_clean_browser(page)
+
+
+def test_panel_empty_placeholder_tracks_resized_body_area(page: Page, app_server: str) -> None:
+    goto(page, app_server)
+    panel = add_panel_for_setup(page)
+    body = panel.locator(".db-panel-body")
+    placeholder = panel.locator(".db-panel-body > .empty-state")
+    artifact_dir = Path("test-results") / "panel-placeholder-sizing"
+    artifact_dir.mkdir(parents=True, exist_ok=True)
+
+    def body_alignment() -> dict:
+        return panel.evaluate(
+            """
+            node => {
+              const body = node.querySelector(".db-panel-body");
+              const empty = body.querySelector(":scope > .empty-state");
+              const bodyRect = body.getBoundingClientRect();
+              const emptyRect = empty.getBoundingClientRect();
+              const headerRect = node.querySelector(".db-panel-hd").getBoundingClientRect();
+              return {
+                body: bodyRect.toJSON(),
+                empty: emptyRect.toJSON(),
+                header: headerRect.toJSON(),
+                panel: node.getBoundingClientRect().toJSON(),
+              };
+            }
+            """
+        )
+
+    if panel.evaluate("node => node.classList.contains('db-panel-collapsed')"):
+        panel.locator(".db-panel-hd").click(position={"x": 18, "y": 18})
+        expect(panel).not_to_have_class(re.compile("db-panel-collapsed"))
+        page.wait_for_timeout(260)
+    open_tools(panel)
+    drag_by(page, panel.locator(".panel-resize-handle"), 300, 190, steps=16)
+    page.wait_for_timeout(360)
+    panel.screenshot(path=str(artifact_dir / "placeholder-light-resized.png"))
+    light = body_alignment()
+
+    page.locator(".theme-toggle").click()
+    expect(page.locator("html")).to_have_attribute("data-theme", "dark")
+    panel.screenshot(path=str(artifact_dir / "placeholder-dark-resized.png"))
+    dark = body_alignment()
+
+    for state in (light, dark):
+        body_rect = state["body"]
+        empty_rect = state["empty"]
+        header_rect = state["header"]
+        assert body_rect["top"] >= header_rect["bottom"] - 1
+        assert abs(empty_rect["left"] - body_rect["left"]) <= 1
+        assert abs(empty_rect["right"] - body_rect["right"]) <= 1
+        assert abs(empty_rect["top"] - body_rect["top"]) <= 1
+        assert abs(empty_rect["bottom"] - body_rect["bottom"]) <= 1
+        assert empty_rect["width"] >= body_rect["width"] - 2
+        assert empty_rect["height"] >= body_rect["height"] - 2
     assert_clean_browser(page)
 
 
@@ -479,6 +705,83 @@ def test_drag_collision_preview_does_not_stick_to_neighbors(page: Page, app_serv
     assert_clean_browser(page)
 
 
+def test_drop_on_top_item_shifts_forward_without_wrapping_top_item_to_end(page: Page, app_server: str) -> None:
+    goto(page, app_server)
+    top_item = page.locator(".timeframe-widget")
+    dragged = page.locator(".widget-layout > .stat-card.widget-card:not(.range-bar)").first
+    top_before = grid_item_state(page, ".timeframe-widget")
+    assert top_before["row"] == 1
+
+    open_tools(dragged)
+    handle_box = dragged.locator(".panel-move-handle").bounding_box()
+    top_box = top_item.bounding_box()
+    assert handle_box
+    assert top_box
+    start_x, start_y = box_center(handle_box)
+    page.mouse.move(start_x, start_y)
+    page.mouse.down()
+    page.mouse.move(start_x + 42, start_y + 8, steps=6)
+    page.mouse.move(top_box["x"] + 28, top_box["y"] + 28, steps=14)
+    page.mouse.up()
+    page.wait_for_timeout(420)
+
+    dragged_state = grid_item_state(page, ".widget-layout > .stat-card.widget-card:not(.range-bar)")
+    top_after = grid_item_state(page, ".timeframe-widget")
+    all_rows = [item["row"] for item in grid_item_states(page, ".dashboard-layout-grid .widget-card, .dashboard-layout-grid .db-panel")]
+    assert dragged_state["row"] == 1
+    assert dragged_state["col"] == 1
+    assert top_after["row"] <= 2
+    assert top_after["row"] < max(all_rows)
+    assert no_visible_overlaps(page, ".dashboard-layout-grid .widget-card, .dashboard-layout-grid .db-panel") == []
+    assert_clean_browser(page)
+
+
+def test_dragging_over_items_does_not_open_underlying_menus(page: Page, app_server: str) -> None:
+    goto(page, app_server)
+    widget = page.locator(".widget-layout > .stat-card.widget-card:not(.range-bar)").first
+    panel = page.locator(".panel-layout > .db-panel").first
+    open_tools(widget)
+
+    handle_box = widget.locator(".panel-move-handle").bounding_box()
+    panel_box = panel.bounding_box()
+    assert handle_box
+    assert panel_box
+
+    start_x, start_y = box_center(handle_box)
+    page.mouse.move(start_x, start_y)
+    page.mouse.down()
+    page.mouse.move(start_x + 50, start_y + 8, steps=6)
+    expect(page.locator(".widget-dragging")).to_have_count(1)
+
+    page.mouse.move(panel_box["x"] + panel_box["width"] - 18, panel_box["y"] + 22, steps=12)
+    page.wait_for_timeout(320)
+
+    expect(page.locator(".panel-layout > .db-panel.db-panel-tools-open")).to_have_count(0)
+    expect(panel.locator(".panel-settings-toggle")).to_have_attribute("aria-expanded", "false")
+
+    page.mouse.up()
+    page.wait_for_timeout(260)
+    expect(page.locator(".widget-dragging")).to_have_count(0)
+    assert_clean_browser(page)
+
+
+def test_pin_action_closes_tool_menu_and_restores_hover_close(page: Page, app_server: str) -> None:
+    goto(page, app_server)
+    widget = page.locator(".widget-layout > .stat-card.widget-card:not(.range-bar)").first
+    open_tools(widget)
+    widget.locator(".panel-pin-toggle").click(force=True)
+    page.wait_for_timeout(180)
+    expect(widget).to_have_class(re.compile("db-panel-pinned"))
+    expect(widget).not_to_have_class(re.compile("widget-tools-open"))
+    expect(widget.locator(".panel-settings-toggle")).to_have_attribute("aria-expanded", "false")
+
+    open_tools(widget)
+    page.mouse.move(24, 24)
+    page.wait_for_timeout(360)
+    expect(widget).not_to_have_class(re.compile("widget-tools-open"))
+    assert_clean_browser(page)
+
+
 def test_widget_menu_icons_align_like_panel_icons(page: Page, app_server: str) -> None:
     goto(page, app_server)
     panel = page.locator(".panel-layout > .db-panel").first
@@ -498,9 +801,16 @@ def test_widget_menu_icons_align_like_panel_icons(page: Page, app_server: str) -
               y: Math.abs((buttonRect.top + buttonRect.height / 2) - (iconRect.top + iconRect.height / 2)),
             };
           };
+          const sideCenterDelta = (item, button) => {
+            const itemRect = item.getBoundingClientRect();
+            const buttonRect = button.getBoundingClientRect();
+            return Math.abs((itemRect.top + itemRect.height / 2) - (buttonRect.top + buttonRect.height / 2));
+          };
+          const widget = document.querySelector(".widget-layout > .stat-card.widget-card:not(.range-bar)");
           return {
             panel: centerDelta(document.querySelector(".panel-layout > .db-panel .panel-settings-toggle")),
-            widget: centerDelta(document.querySelector(".widget-layout > .stat-card.widget-card:not(.range-bar) .panel-settings-toggle")),
+            widget: centerDelta(widget.querySelector(".panel-settings-toggle")),
+            widgetSideCenter: sideCenterDelta(widget, widget.querySelector(".panel-settings-toggle")),
           };
         }
         """
@@ -511,6 +821,7 @@ def test_widget_menu_icons_align_like_panel_icons(page: Page, app_server: str) -
     assert delta["widget"]["y"] <= 1
     assert abs(delta["widget"]["x"] - delta["panel"]["x"]) <= 1
     assert abs(delta["widget"]["y"] - delta["panel"]["y"]) <= 1
+    assert delta["widgetSideCenter"] <= 1
     assert_clean_browser(page)
 
 
@@ -530,6 +841,73 @@ def test_dark_panel_hover_matches_widget_highlight(page: Page, app_server: str) 
 
     assert panel_styles["borderColor"] == widget_styles["borderColor"]
     assert panel_styles["boxShadow"] == widget_styles["boxShadow"]
+    assert_clean_browser(page)
+
+
+def test_dark_panel_settings_menu_matches_widget_without_white_ring(page: Page, app_server: str) -> None:
+    goto(page, app_server)
+    page.locator(".theme-toggle").click()
+    expect(page.locator("html")).to_have_attribute("data-theme", "dark")
+
+    panel = page.locator(".panel-layout > .db-panel").first
+    widget = page.locator(".widget-layout > .stat-card.widget-card:not(.range-bar)").first
+    artifact_dir = Path("test-results") / "dark-menu-parity"
+    artifact_dir.mkdir(parents=True, exist_ok=True)
+
+    open_tools(panel)
+    page.wait_for_timeout(220)
+    panel.screenshot(path=str(artifact_dir / "panel-open-dark.png"))
+
+    panel_styles = page.evaluate(
+        """
+        () => {
+          const read = (button) => {
+            const computed = getComputedStyle(button);
+            return {
+              backgroundColor: computed.backgroundColor,
+              borderColor: computed.borderColor,
+              boxShadow: computed.boxShadow,
+              color: computed.color,
+              outlineColor: computed.outlineColor,
+              outlineStyle: computed.outlineStyle,
+              outlineWidth: computed.outlineWidth,
+            };
+          };
+          return read(document.querySelector(".panel-layout > .db-panel .panel-settings-toggle"));
+        }
+        """
+    )
+
+    page.mouse.move(24, 24)
+    page.wait_for_timeout(360)
+    open_tools(widget)
+    page.wait_for_timeout(220)
+    widget.screenshot(path=str(artifact_dir / "widget-open-dark.png"))
+
+    widget_styles = page.evaluate(
+        """
+        () => {
+          const button = document.querySelector(".widget-layout > .stat-card.widget-card:not(.range-bar) .panel-settings-toggle");
+          const computed = getComputedStyle(button);
+          return {
+            backgroundColor: computed.backgroundColor,
+            borderColor: computed.borderColor,
+            boxShadow: computed.boxShadow,
+            color: computed.color,
+            outlineColor: computed.outlineColor,
+            outlineStyle: computed.outlineStyle,
+            outlineWidth: computed.outlineWidth,
+          };
+        }
+        """
+    )
+
+    assert panel_styles["backgroundColor"] == widget_styles["backgroundColor"]
+    assert panel_styles["borderColor"] == widget_styles["borderColor"]
+    assert panel_styles["boxShadow"] == widget_styles["boxShadow"]
+    assert panel_styles["color"] == widget_styles["color"]
+    assert panel_styles["outlineStyle"] == widget_styles["outlineStyle"]
+    assert panel_styles["outlineStyle"] == "none"
     assert_clean_browser(page)
 
 

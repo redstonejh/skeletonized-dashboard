@@ -61,11 +61,123 @@ Command:
 .venv\Scripts\python.exe -m pytest -q
 ```
 
-Latest result: 18 passed, 0 failed.
+Latest result: 26 passed, 0 failed.
 
 Previous discovery result: 6 passed, 3 failed.
 
-Passed coverage included app/dashboard/settings load, CSS imports, theme persistence, drag ghost creation, ordered drag reflow, reversible collision previews, global widget/panel occupancy, pinned item protection, sparse empty-space placement, grid-bound drag clamping, grid snapping alignment, collision/overlap checks, resize snapping, menu icon alignment, dark-mode panel hover parity, group mode, layout save/load/reset, settings save, mobile overflow checks, console errors, and network errors.
+Passed coverage included app/dashboard/settings load, CSS imports, theme persistence, theme-aware timeframe controls, timeframe resize, small-panel menu overlays, panel placeholder/body sizing, drag ghost creation, ordered drag reflow, local top insertion, reversible collision previews, suppression of underlying hover menus during drag, global widget/panel occupancy, pinned item protection, pin menu close behavior, sparse empty-space placement, grid-bound drag clamping, grid snapping alignment, collision/overlap checks, resize snapping, menu icon alignment, dark-mode panel hover parity, dark-mode panel/widget menu parity, group mode, layout save/load/reset, settings save, mobile overflow checks, console errors, and network errors.
+
+### BUG-012: Timeframe Control Used Plain Search-Input Styling Instead Of Dashboard Glass Controls
+
+- Status: Verified
+- Area: Widgets / theme
+- Severity: Medium
+- Environment: Chromium via Playwright, 1440x1000 viewport, light theme with multiple preset colors
+- Observed: The top timeframe/search placeholder rendered as a form-like search input, which did not match the dashboard toolbar buttons, floating icon controls, or glass widget language.
+- Expected: The timeframe area uses rounded glass pills, compact spacing, centered icons/text, soft borders/shadows, and inherits the active preset theme color through the existing panel/widget accent variables.
+- Suspected cause: The control reused legacy `.range-search-input` styling instead of the established widget/tool button treatment.
+- Fix notes: Replaced the visible placeholder search field with generic timeframe preset pills, a compact selected-timeframe pill, and two glass icon buttons. The styling reuses `.preset-btn`, `.range-custom-trigger`, widget accent variables, and existing hover/active timing instead of hard-coded colors.
+- Screenshot: `test-results/timeframe-theme-controls/timeframe-teal.png`, `test-results/timeframe-theme-controls/timeframe-pink.png`
+- Validation: `.venv\Scripts\python.exe -m pytest -q` passed with 20 tests.
+
+### BUG-013: Underlying Panel/Widget Menus Could Open During Drag Or Resize
+
+- Status: Verified
+- Area: Dashboard grid / panel controls / widget controls
+- Severity: High
+- Environment: Chromium via Playwright, 1440x1000 viewport, light theme
+- Observed: Dragging an item over another panel/widget could trigger hover/focus menu behavior on the item underneath.
+- Expected: While dragging or resizing, only the active item and its preview state can respond. Non-active item controls must not open or receive hover/focus menu activation until the interaction ends.
+- Suspected cause: Body-level drag state existed for transition suppression, but hover handlers and pointer targets for inactive item tools still remained active.
+- Fix notes: Added a shared dashboard interaction guard, closed inactive tool drawers at drag/resize start, marked the active resize source, and suppressed pointer events for non-active panels/widgets while movement is active.
+- Validation: `.venv\Scripts\python.exe -m pytest -q` passed with 20 tests.
+
+### BUG-014: Timeframe And Tool Control Polish Drifted From The Dashboard Glass Language
+
+- Status: Verified
+- Area: Widgets / theme / panel controls
+- Severity: Medium
+- Environment: Chromium via Playwright, 1440x1000 viewport, light and dark themes with teal and pink preset colors
+- Observed: Timeframe foreground text/icons could render darker than the surrounding glass controls, the command surface felt like a stretched toolbar, widget settings controls sat at the top-right instead of the right-side midpoint, and dark-mode panel tool hover/focus feedback did not feel as consistent as widget controls.
+- Expected: Timeframe text/icons use the existing accessible theme foreground, controls sit in compact glass clusters, widget settings buttons are centered on the right edge, and dark-mode panel tool hover/focus states match the widget control polish.
+- Suspected cause: Generic `.range-bar` text rules overrode pill foreground color, the timeframe utility group inherited legacy search-field sizing, widget tools used a top offset, and dark panel tool-open rules fell back to a less polished panel shadow.
+- Fix notes: Scoped timeframe foreground to the existing accent text variable, grouped presets/active timeframe/utilities into compact glass clusters, centered widget tools with the same 34px control rhythm, and added dark-mode panel tool hover/focus overrides using the existing panel/widget control variables.
+- Screenshots: `test-results/timeframe-theme-controls/timeframe-light-teal.png`, `test-results/timeframe-theme-controls/timeframe-light-pink.png`, `test-results/timeframe-theme-controls/timeframe-dark-teal.png`, `test-results/timeframe-theme-controls/timeframe-dark-pink.png`
+- Validation: `.venv\Scripts\python.exe -m pytest -q` passed with 20 tests.
+
+### BUG-015: Minimum-Size Panel Menu Changed Panel Layout Size
+
+- Status: Verified
+- Area: Panel controls / dashboard grid
+- Severity: High
+- Environment: Chromium via Playwright, 1440x1000 viewport, light theme
+- Observed: Opening tools on a minimum-width panel caused the panel itself to grow because the open state applied a larger `min-width`.
+- Expected: Tool drawers and popovers float above the panel and never change the panel grid span, grid row, width, or height.
+- Suspected cause: `.panel-layout > .db-panel.db-panel-tools-open` applied `min-width: var(--panel-min-width)`, which changed the grid item dimensions instead of only overlaying controls.
+- Fix notes: Removed the layout-affecting open-state min-width and kept tool content as an overlay. Header tool hit-testing was simplified so hidden drawer geometry does not block normal panel header clicks.
+- Validation: `.venv\Scripts\python.exe -m pytest -q` passed with 24 tests.
+
+### BUG-016: Timeframe Widget Was Visually A Dashboard Object But Could Not Resize
+
+- Status: Verified
+- Area: Widgets / dashboard grid
+- Severity: Medium
+- Environment: Chromium via Playwright, 1440x1000 viewport, light theme
+- Observed: The timeframe control looked and behaved like a widget but its CSS forced `grid-column: 1 / -1 !important`, preventing the shared resize system from changing its span.
+- Expected: The timeframe widget participates in the same universal widget resize rules unless explicitly locked.
+- Suspected cause: A hard full-width grid-column override beat the inline grid span written by the shared widget resize handler.
+- Fix notes: Replaced the forced full-row grid-column rule with a normal default `span 6`, allowing the existing widget resize affordance and persistence path to work.
+- Validation: `.venv\Scripts\python.exe -m pytest -q` passed with 24 tests.
+
+### BUG-017: Pin/Unpin Left Tool Menus Stuck Open
+
+- Status: Verified
+- Area: Panel controls / widget controls
+- Severity: Medium
+- Environment: Chromium via Playwright, 1440x1000 viewport, light theme
+- Observed: Pinning worked functionally, but the tool drawer could remain open or focus-active after the pin action.
+- Expected: Pin/unpin closes the drawer, releases tool focus, and normal hover behavior resumes.
+- Suspected cause: The pin state changed without clearing menu state, and focused drawer controls could keep `:focus-within` drawer styles active after the open class was removed.
+- Fix notes: Pin/unpin now closes the relevant tool drawer, blurs focus only for that pin action, and briefly suppresses hover reopen so the menu does not immediately re-open under the cursor. Explicit settings clicks still reopen tools normally.
+- Validation: `.venv\Scripts\python.exe -m pytest -q` passed with 24 tests.
+
+### BUG-018: Dropping On The Top Grid Item Could Send It To The End
+
+- Status: Verified
+- Area: Dashboard grid / ordered placement
+- Severity: High
+- Environment: Chromium via Playwright, 1440x1000 viewport, light theme
+- Observed: Moving an item into the top occupied slot could resolve by sending the displaced top item to a far lower/end slot.
+- Expected: Dropping into the first slot behaves like ordered insertion: the active item takes the target slot and affected neighbors shift forward/down/right locally.
+- Suspected cause: Final drop commit only tried to place the active item around committed occupied cells. It did not commit the same local forward shift represented by the collision preview.
+- Fix notes: Added a targeted drop-commit path for occupied target slots. Open-space drops still commit only the active item; collision drops place the active item at the target and shift non-pinned affected items forward using the shared sparse occupancy checks. Pinned items remain reserved and are not displaced.
+- Validation: `.venv\Scripts\python.exe -m pytest -q` passed with 24 tests.
+
+### BUG-019: Empty Panel Placeholder Did Not Track The Resized Body Area
+
+- Status: Verified
+- Area: Panel content / dashboard grid
+- Severity: Medium
+- Environment: Chromium via Playwright, 1440x1000 viewport, light and dark themes
+- Observed: Resized panels could leave the empty placeholder visually detached from the panel body, with inconsistent height/alignment.
+- Expected: The panel body owns the available content area below the header, and direct empty placeholders fill that body area while respecting panel sizing and padding rhythm.
+- Suspected cause: `.db-panel-body` sized to its content with a fixed max-height, while direct placeholder cards kept their own intrinsic dimensions.
+- Fix notes: Made `.db-panel-body` a flex column that grows inside the panel, removed the open-state max-height cap, and made direct empty-state placeholders stretch to the body bounds without fixed offsets.
+- Screenshots: `test-results/panel-placeholder-sizing/placeholder-light-resized.png`, `test-results/panel-placeholder-sizing/placeholder-dark-resized.png`
+- Validation: `.venv\Scripts\python.exe -m pytest -q` passed with 26 tests.
+
+### BUG-020: Dark Panel Settings Menu Showed A White Ring Unlike Widgets
+
+- Status: Verified
+- Area: Theme / panel controls
+- Severity: Medium
+- Environment: Chromium via Playwright, 1440x1000 viewport, dark theme
+- Observed: Opening or hovering panel settings in dark mode could show a bright white/near-white ring or border that widgets did not show.
+- Expected: Dark-mode panel settings/menu controls match widget settings/menu controls and do not add a white outline.
+- Suspected cause: Late dark-mode panel-only selectors overrode the shared widget control treatment with brighter border and shadow values.
+- Fix notes: Added a final dark custom-panel control rule that matches the widget settings computed background, border, shadow, and outline state, and reduced the dark open-panel border away from white-tinted ring colors.
+- Screenshots: `test-results/dark-menu-parity/panel-open-dark.png`, `test-results/dark-menu-parity/widget-open-dark.png`
+- Validation: `.venv\Scripts\python.exe -m pytest -q` passed with 26 tests.
 
 ### BUG-004: Legacy Drag And Resize Collision Solver Allowed Non-Deterministic Movement
 

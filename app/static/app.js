@@ -360,6 +360,24 @@ document.addEventListener("DOMContentLoaded", () => {
     const hasOpenTools = Boolean(document.querySelector(".db-panel-tools-open, .widget-tools-open"));
     document.body.classList.toggle("layout-tools-active", hasOpenTools);
   };
+  const isDashboardInteractionActive = () => (
+    document.body.classList.contains("panel-interaction-active") ||
+    document.body.classList.contains("panel-resize-active")
+  );
+  const isInteractionSource = (item) => Boolean(item?.classList?.contains("widget-dragging") ||
+    item?.classList?.contains("db-panel-dragging") ||
+    item?.classList?.contains("dashboard-active-resize"));
+  const canOpenDashboardTools = (item) => !isDashboardInteractionActive() || isInteractionSource(item);
+  const closeInactiveDashboardTools = (activeItem = null) => {
+    document.querySelectorAll(".widget-tools-open, .db-panel-tools-open").forEach((item) => {
+      if (item === activeItem) return;
+      item.classList.remove("widget-tools-open", "db-panel-tools-open");
+      item.querySelector(".panel-settings-toggle")?.setAttribute("aria-expanded", "false");
+      item.querySelector(".panel-color-toggle")?.setAttribute("aria-expanded", "false");
+    });
+    document.querySelectorAll(".panel-color-menu-open").forEach((menu) => menu.classList.remove("panel-color-menu-open"));
+    syncLayoutToolsActive();
+  };
   let groupMode = false;
   const groupSelection = new Set();
   const groupSelectedIds = new Set();
@@ -1703,6 +1721,21 @@ document.addEventListener("DOMContentLoaded", () => {
     return best?.bounds || base;
   };
 
+  const nearestSparseSlotAtOrAfter = (item, preferred, occupied, rowLimit = null) => {
+    const base = boundsAtGridSlot(item, preferred?.col || 1, preferred?.row || 1);
+    const maxCol = DASHBOARD_GRID_COLUMNS - base.span + 1;
+    const maxOccupiedRow = occupied.reduce((max, entry) => Math.max(max, entry.bounds.bottom), base.row);
+    const limit = Math.max(base.row + 80, maxOccupiedRow + 40, rowLimit || 0);
+    for (let row = base.row; row <= limit; row += 1) {
+      const startCol = row === base.row ? base.col : 1;
+      for (let col = startCol; col <= maxCol; col += 1) {
+        const candidate = boundsAtGridSlot(item, col, row);
+        if (canPlaceBounds(candidate, occupied)) return candidate;
+      }
+    }
+    return nearestSparseSlot(item, base, occupied, limit);
+  };
+
   const visualGridOrder = (items) => [...items].sort((a, b) => {
     const aBounds = gridBoundsForItem(a);
     const bBounds = gridBoundsForItem(b);
@@ -1757,6 +1790,42 @@ document.addEventListener("DOMContentLoaded", () => {
       bounds = nearestSparseSlot(item, bounds, occupied);
     }
     return bounds;
+  };
+
+  const commitActiveDropSlot = (layout, item, preferredTarget) => {
+    const target = preferredTarget || gridBoundsForItem(item);
+    let activeBounds = boundsAtGridSlot(item, target.col, target.row);
+    const items = globalGridItems(layout, { includePlaceholders: false, exclude: [item] });
+    const pinned = items
+      .filter((other) => other.classList.contains("db-panel-pinned"))
+      .map((other) => ({ item: other, bounds: gridBoundsForItem(other) }));
+
+    if (!canPlaceBounds(activeBounds, pinned)) {
+      activeBounds = nearestSparseSlot(item, activeBounds, pinned);
+      applyGridItemPosition(item, activeBounds.col, activeBounds.row);
+      return { bounds: activeBounds, movedItems: 0 };
+    }
+
+    const movableItems = items.filter((other) => !other.classList.contains("db-panel-pinned"));
+    const targetCollides = movableItems.some((other) => gridBoundsOverlap(activeBounds, gridBoundsForItem(other)));
+    if (!targetCollides) {
+      applyGridItemPosition(item, activeBounds.col, activeBounds.row);
+      return { bounds: activeBounds, movedItems: 0 };
+    }
+
+    const occupied = [...pinned, { item, bounds: activeBounds }];
+    applyGridItemPosition(item, activeBounds.col, activeBounds.row);
+    let movedItems = 0;
+    visualGridOrder(movableItems).forEach((other) => {
+      const current = gridBoundsForItem(other);
+      const next = canPlaceBounds(current, occupied)
+        ? current
+        : nearestSparseSlotAtOrAfter(other, current, occupied);
+      if (next.col !== current.col || next.row !== current.row) movedItems += 1;
+      applyGridItemPosition(other, next.col, next.row);
+      occupied.push({ item: other, bounds: next });
+    });
+    return { bounds: activeBounds, movedItems };
   };
 
   const orderedLayoutStartRow = (layout) => {
@@ -1932,6 +2001,7 @@ document.addEventListener("DOMContentLoaded", () => {
       offsetX = startX - rect.left;
       offsetY = startY - rect.top;
       targetCell = originalCell;
+      closeInactiveDashboardTools(item);
       onStart?.();
     };
 
@@ -1987,9 +2057,9 @@ document.addEventListener("DOMContentLoaded", () => {
           };
           restoreGridLayoutSnapshot(startSnapshot, { exclude: [item] });
           placeholder.remove();
-          const finalBounds = resolveActiveDropSlot(layout, item, finalCell);
-          applyGridItemPosition(item, finalBounds.col, finalBounds.row);
-          onCommit?.({ moved: finalBounds.col !== originalCell.col || finalBounds.row !== originalCell.row });
+          const result = commitActiveDropSlot(layout, item, finalCell);
+          const finalBounds = result.bounds;
+          onCommit?.({ moved: finalBounds.col !== originalCell.col || finalBounds.row !== originalCell.row || result.movedItems > 0 });
         }
       }
       onEnd?.(dragging);
@@ -2177,8 +2247,11 @@ document.addEventListener("DOMContentLoaded", () => {
       const deleteButton = widget.querySelector(".panel-delete-handle");
       const colorMenu = buildPanelColorMenu(widget, layout, colorToggle);
       let closeTimer;
+      let suppressToolOpenUntil = 0;
       let dragging = false;
       const openTools = () => {
+        if (performance.now() < suppressToolOpenUntil) return;
+        if (!canOpenDashboardTools(widget)) return;
         window.clearTimeout(closeTimer);
         widget.classList.add("widget-tools-open");
         settings?.setAttribute("aria-expanded", "true");
@@ -2206,7 +2279,13 @@ document.addEventListener("DOMContentLoaded", () => {
       settings?.addEventListener("click", (event) => {
         event.preventDefault();
         event.stopPropagation();
-        widget.classList.contains("widget-tools-open") ? closeTools() : openTools();
+        if (!canOpenDashboardTools(widget)) return;
+        if (widget.classList.contains("widget-tools-open")) {
+          closeTools();
+        } else {
+          suppressToolOpenUntil = 0;
+          openTools();
+        }
       });
       colorToggle?.addEventListener("click", (event) => {
         event.preventDefault();
@@ -2237,6 +2316,9 @@ document.addEventListener("DOMContentLoaded", () => {
           peer.querySelector(".panel-pin-toggle")?.setAttribute("aria-pressed", pinned.toString());
         });
         saveWidgetLayouts(layout);
+        suppressToolOpenUntil = performance.now() + 320;
+        if (tools?.contains(document.activeElement)) document.activeElement.blur();
+        closeTools();
       });
       titleButton?.addEventListener("click", (event) => {
         event.preventDefault();
@@ -2306,6 +2388,8 @@ document.addEventListener("DOMContentLoaded", () => {
         event.stopPropagation();
         document.body.classList.add("panel-interaction-active");
         document.body.classList.add("panel-resize-active");
+        widget.classList.add("dashboard-active-resize");
+        closeInactiveDashboardTools(widget);
         window.getSelection?.()?.removeAllRanges();
         const layoutWidth = Math.max(1, gridRectForLayout(layout).width);
         const startSpan = Number(widget.dataset.currentSpan) || 1;
@@ -2337,6 +2421,7 @@ document.addEventListener("DOMContentLoaded", () => {
           const canceled = upEvent?.type === "pointercancel";
           document.body.classList.remove("panel-interaction-active");
           document.body.classList.remove("panel-resize-active");
+          widget.classList.remove("dashboard-active-resize");
           if (canceled) {
             restoreGridLayoutSnapshot(resizeStartSnapshot);
           } else {
@@ -2480,21 +2565,10 @@ document.addEventListener("DOMContentLoaded", () => {
       let toolsCloseTimer;
       let toolPointerCapture = false;
       let suppressHeaderToggleUntil = 0;
-      const eventWithinElement = (event, element, inset = 0) => {
-        if (!element) return false;
-        const rect = element.getBoundingClientRect();
-        return event.clientX >= rect.left - inset
-          && event.clientX <= rect.right + inset
-          && event.clientY >= rect.top - inset
-          && event.clientY <= rect.bottom + inset;
-      };
-      const eventWithinPanelTools = (event) => {
-        return Boolean(event.target?.closest?.(".panel-tools"))
-          || eventWithinElement(event, panelTools, 8)
-          || eventWithinElement(event, panelToolDrawer, 8);
-      };
-
+      let suppressToolOpenUntil = 0;
       const openPanelTools = () => {
+        if (performance.now() < suppressToolOpenUntil) return;
+        if (!canOpenDashboardTools(panel)) return;
         window.clearTimeout(toolsCloseTimer);
         panel.classList.add("db-panel-tools-open");
         settingsButton?.setAttribute("aria-expanded", "true");
@@ -2529,6 +2603,7 @@ document.addEventListener("DOMContentLoaded", () => {
       panelTools?.addEventListener("focusin", openPanelTools);
       panelTools?.addEventListener("focusout", scheduleClosePanelTools);
       settingsButton?.addEventListener("mouseenter", () => {
+        if (performance.now() < suppressToolOpenUntil) return;
         suppressHeaderToggleUntil = performance.now() + 250;
         openPanelTools();
       });
@@ -2544,9 +2619,11 @@ document.addEventListener("DOMContentLoaded", () => {
         event.preventDefault();
         event.stopPropagation();
         suppressHeaderToggleUntil = 0;
+        if (!canOpenDashboardTools(panel)) return;
         if (panel.classList.contains("db-panel-tools-open")) {
           closePanelTools();
         } else {
+          suppressToolOpenUntil = 0;
           openPanelTools();
         }
       });
@@ -2583,6 +2660,9 @@ document.addEventListener("DOMContentLoaded", () => {
           peer.querySelector(".panel-pin-toggle")?.setAttribute("aria-pressed", pinned.toString());
         });
         savePanelLayouts(layout);
+        suppressToolOpenUntil = performance.now() + 320;
+        if (panelTools?.contains(document.activeElement)) document.activeElement.blur();
+        closePanelTools();
       });
 
       titleButton?.addEventListener("click", (event) => {
@@ -2684,7 +2764,7 @@ document.addEventListener("DOMContentLoaded", () => {
         savePanelLayouts(layout);
       };
       header.addEventListener("click", (event) => {
-        if (eventWithinPanelTools(event)) return;
+        if (event.target?.closest?.(".panel-tools")) return;
         if (performance.now() < suppressHeaderToggleUntil) return;
         togglePanel();
       });
@@ -2731,6 +2811,8 @@ document.addEventListener("DOMContentLoaded", () => {
         openPanelTools();
         document.body.classList.add("panel-interaction-active");
         document.body.classList.add("panel-resize-active");
+        panel.classList.add("dashboard-active-resize");
+        closeInactiveDashboardTools(panel);
         window.getSelection?.()?.removeAllRanges();
         const startX = event.clientX;
         const startY = event.clientY;
@@ -2775,6 +2857,7 @@ document.addEventListener("DOMContentLoaded", () => {
           const canceled = upEvent?.type === "pointercancel";
           document.body.classList.remove("panel-interaction-active");
           document.body.classList.remove("panel-resize-active");
+          panel.classList.remove("dashboard-active-resize");
           toolPointerCapture = false;
           if (canceled) {
             restoreGridLayoutSnapshot(resizeStartSnapshot);

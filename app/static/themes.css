@@ -3199,6 +3199,50 @@ html[data-theme="dark"] .db-panel.db-panel-custom-color.db-panel-tools-open:focu
   box-shadow: var(--shadow-card) !important;
 }
 
+html[data-theme="dark"] .db-panel .panel-settings-toggle:hover,
+html[data-theme="dark"] .db-panel .panel-settings-toggle:focus-visible,
+html[data-theme="dark"] .db-panel .panel-tool-button:hover,
+html[data-theme="dark"] .db-panel .panel-tool-button:focus-visible,
+html[data-theme="dark"] .db-panel.db-panel-tools-open .panel-settings-toggle {
+  background: color-mix(in srgb, var(--panel-lock-bg) 72%, var(--panel-hover-tint)) !important;
+  border-color: color-mix(in srgb, currentColor 72%, var(--panel-hover-tint)) !important;
+  color: var(--panel-lock-fg) !important;
+  box-shadow:
+    0 12px 28px rgba(0, 0, 0, .34),
+    0 0 22px var(--panel-lock-glow, rgba(103, 169, 255, .20)),
+    inset 0 1px 0 var(--panel-hover-inset) !important;
+}
+
+html[data-theme="dark"] .db-panel.db-panel-custom-color .panel-settings-toggle:hover,
+html[data-theme="dark"] .db-panel.db-panel-custom-color .panel-settings-toggle:focus-visible,
+html[data-theme="dark"] .db-panel.db-panel-custom-color .panel-tool-button:hover,
+html[data-theme="dark"] .db-panel.db-panel-custom-color .panel-tool-button:focus-visible,
+html[data-theme="dark"] .db-panel.db-panel-custom-color.db-panel-tools-open .panel-settings-toggle {
+  outline: none !important;
+  background: color-mix(in srgb, var(--panel-lock-bg) 72%, var(--panel-hover-tint)) !important;
+  border-color: color-mix(in srgb, var(--panel-accent) 70%, var(--panel-hover-tint)) !important;
+  color: var(--panel-lock-fg) !important;
+  box-shadow:
+    0 8px 18px rgba(var(--panel-accent-rgb), .16),
+    inset 0 1px 0 rgba(255, 255, 255, .16) !important;
+}
+
+html[data-theme="dark"] .db-panel.db-panel-tools-open:hover,
+html[data-theme="dark"] .db-panel.db-panel-tools-open:focus-within {
+  border-color: #3d5270 !important;
+  box-shadow:
+    0 14px 30px rgba(0, 0, 0, .30),
+    inset 0 1px 0 rgba(255, 255, 255, .07) !important;
+}
+
+html[data-theme="dark"] .db-panel.db-panel-custom-color.db-panel-tools-open:hover,
+html[data-theme="dark"] .db-panel.db-panel-custom-color.db-panel-tools-open:focus-within {
+  border-color: color-mix(in srgb, var(--panel-accent) 52%, #dbeafe) !important;
+  box-shadow:
+    0 14px 30px rgba(0, 0, 0, .30),
+    0 1px 0 rgba(255, 255, 255, .07) inset !important;
+}
+
 @media (max-width: 980px) {
   .panel-layout {
     grid-template-columns: 1fr;

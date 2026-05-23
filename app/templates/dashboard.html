@@ -72,21 +72,23 @@
 
 <div class="dashboard-layout-grid" data-dashboard-layout-key="builder">
   <div class="stat-band widget-layout" data-widget-layout-key="builder">
-    <nav class="range-bar widget-card" data-widget-key="builder-search" data-widget-type="controls" data-default-span="6" aria-label="Dashboard search">
-      <div class="range-controls">
-        <div class="range-presets">
-          <a class="preset-btn active" href="/dashboard">All</a>
-          <a class="preset-btn" href="/dashboard">View</a>
-          <a class="preset-btn" href="/dashboard">Edit</a>
+    <nav class="range-bar widget-card timeframe-widget" data-widget-key="builder-search" data-widget-type="controls" data-default-span="6" aria-label="Dashboard timeframe controls">
+      <div class="timeframe-command-surface">
+        <div class="range-controls timeframe-controls">
+          <div class="range-presets timeframe-presets" role="group" aria-label="Timeframe presets">
+            <a class="preset-btn active" href="/dashboard">Today</a>
+            <a class="preset-btn" href="/dashboard">7 days</a>
+            <a class="preset-btn" href="/dashboard">30 days</a>
+          </div>
+        </div>
+        <div class="timeframe-active-cluster">
+          <button class="range-custom-trigger timeframe-selector" type="button" aria-label="Selected timeframe" title="Selected timeframe">This week</button>
+        </div>
+        <div class="range-search timeframe-range timeframe-utility-cluster" role="group" aria-label="Timeframe utilities">
+          <button class="range-icon-button timeframe-refresh" type="button" aria-label="Refresh timeframe" title="Refresh timeframe"><span class="timeframe-refresh-icon" aria-hidden="true"></span></button>
+          <button class="range-icon-button timeframe-calendar" type="button" aria-label="Open date range" title="Open date range"><span class="timeframe-calendar-icon" aria-hidden="true"></span></button>
         </div>
       </div>
-      <form class="range-search" action="/dashboard" method="get" role="search">
-        <input class="range-search-input" type="search" name="q" value="{{ search_query }}" placeholder=" " aria-label="Search dashboard">
-        <span class="range-search-label">Search dashboard</span>
-        {% if search_query %}
-          <a class="range-search-clear" href="/dashboard" aria-label="Clear search">Clear</a>
-        {% endif %}
-      </form>
     </nav>
     {% for widget in widgets if widget.widget_type != "controls" %}
     <a class="stat-card widget-card" data-widget-key="{{ widget.key }}" data-widget-type="{{ widget.widget_type }}" data-default-span="{{ widget.span }}" data-default-title="{{ widget.title }}" href="/dashboard">

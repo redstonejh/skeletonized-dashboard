@@ -18,21 +18,22 @@
 .range-bar.widget-card {
   --range-control-accent: var(--panel-accent, var(--blue));
   --range-control-fg: var(--panel-accent-text, var(--blue));
-  --range-button-fg: #ffffff;
+  --range-button-fg: var(--panel-accent-text, #ffffff);
   --range-search-fg: var(--ink-strong);
   --range-search-muted: var(--muted-strong);
   --range-control-bg: color-mix(in srgb, var(--surface-raised) 54%, var(--range-control-accent) 46%);
   --range-control-border: color-mix(in srgb, var(--range-control-accent) 54%, var(--panel-hover-tint));
   --range-control-active-border: color-mix(in srgb, var(--range-control-accent) 72%, var(--panel-hover-tint));
-  --range-control-glow: rgba(var(--panel-accent-rgb, 37, 99, 235), .24);
+  --range-control-glow: color-mix(in srgb, var(--range-control-accent) 24%, transparent);
   box-sizing: border-box;
   width: 100%;
   max-width: 100%;
-  grid-column: 1 / -1 !important;
+  grid-column: span 6;
   min-width: 0;
   min-height: var(--dashboard-grid-row-height, 81px);
   margin-top: 0;
   padding-right: 52px;
+  justify-content: flex-start;
   cursor: default;
 }
 
@@ -44,13 +45,13 @@
 .range-bar.widget-card .range-presets {
   display: inline-flex;
   align-items: center;
-  gap: 12px;
+  gap: 6px;
 }
 
 .range-bar.widget-card .range-search {
   min-width: 220px;
-  max-width: 260px;
-  flex-basis: 240px;
+  max-width: 288px;
+  flex-basis: 288px;
 }
 
 .range-bar.widget-card button,
@@ -59,6 +60,38 @@
 .range-bar.widget-card span {
   font-family: inherit;
   font-weight: 720;
+}
+
+.timeframe-command-surface {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  max-width: 100%;
+  padding: 6px;
+  border: 1.5px solid color-mix(in srgb, var(--range-control-accent) 36%, var(--panel-hover-tint));
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--surface-raised) 54%, var(--range-control-accent) 20%);
+  box-shadow:
+    0 12px 28px color-mix(in srgb, var(--range-control-accent) 18%, transparent),
+    inset 0 1px 0 rgba(255, 255, 255, .20);
+}
+
+.timeframe-presets,
+.timeframe-active-cluster,
+.timeframe-utility-cluster {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px;
+  border: 1.5px solid color-mix(in srgb, var(--range-control-accent) 28%, var(--panel-hover-tint));
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--surface-raised) 42%, var(--range-control-accent) 18%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .14);
+}
+
+.timeframe-active-cluster {
+  background: color-mix(in srgb, var(--surface-raised) 36%, var(--range-control-accent) 24%);
 }
 
 .range-bar.widget-card .widget-tool-drawer {
@@ -208,6 +241,79 @@
   color: var(--range-search-fg);
 }
 
+.range-bar.widget-card .timeframe-range {
+  min-width: 0;
+  max-width: none;
+  flex-basis: auto;
+  flex: 0 0 auto;
+  justify-content: flex-end;
+  background: transparent;
+}
+
+.timeframe-range::before,
+.timeframe-range::after {
+  content: none;
+}
+
+.range-icon-button {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  min-width: 34px;
+  min-height: 34px;
+  padding: 0;
+  border: 1.5px solid var(--range-control-border);
+  border-radius: 999px;
+  background: var(--range-control-bg);
+  color: var(--range-button-fg);
+  box-shadow: 0 8px 18px var(--range-control-glow), inset 0 1px 0 rgba(255, 255, 255, .18);
+  cursor: pointer;
+  transition: background .15s ease, border-color .15s ease, color .15s ease, box-shadow .15s ease, transform .15s ease;
+}
+
+.range-icon-button:hover,
+.range-icon-button:focus-visible {
+  outline: none;
+  border-color: var(--range-control-active-border);
+  background: color-mix(in srgb, var(--range-control-bg) 75%, var(--panel-hover-tint));
+  color: var(--range-button-fg);
+  box-shadow: 0 14px 28px var(--range-control-glow), 0 0 22px var(--range-control-glow), inset 0 1px 0 var(--panel-hover-inset);
+  transform: translateY(-1px);
+}
+
+.range-icon-button:active,
+.range-custom-trigger:active,
+.preset-btn:active {
+  transform: translateY(0);
+}
+
+.timeframe-refresh-icon,
+.timeframe-calendar-icon {
+  display: block;
+  width: 15px;
+  height: 15px;
+  background: currentColor;
+  mask-repeat: no-repeat;
+  mask-position: center;
+  mask-size: 15px 15px;
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  -webkit-mask-size: 15px 15px;
+}
+
+.timeframe-refresh-icon {
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M21 12a9 9 0 0 1-15.6 6.1'/%3E%3Cpath d='M3 12A9 9 0 0 1 18.6 5.9'/%3E%3Cpath d='M18 2v4h4'/%3E%3Cpath d='M6 22v-4H2'/%3E%3C/svg%3E");
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M21 12a9 9 0 0 1-15.6 6.1'/%3E%3Cpath d='M3 12A9 9 0 0 1 18.6 5.9'/%3E%3Cpath d='M18 2v4h4'/%3E%3Cpath d='M6 22v-4H2'/%3E%3C/svg%3E");
+}
+
+.timeframe-calendar-icon {
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M8 2v4'/%3E%3Cpath d='M16 2v4'/%3E%3Crect x='3' y='4' width='18' height='18' rx='3'/%3E%3Cpath d='M3 10h18'/%3E%3C/svg%3E");
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M8 2v4'/%3E%3Cpath d='M16 2v4'/%3E%3Crect x='3' y='4' width='18' height='18' rx='3'/%3E%3Cpath d='M3 10h18'/%3E%3C/svg%3E");
+}
+
 .dashboard-search-hidden {
   display: none !important;
 }
@@ -231,6 +337,25 @@
   text-align: center;
   white-space: nowrap;
   text-decoration: none;
+}
+
+.range-bar.widget-card .preset-btn,
+.range-bar.widget-card .range-custom-trigger,
+.range-bar.widget-card .range-icon-button,
+.range-bar.widget-card .timeframe-refresh-icon,
+.range-bar.widget-card .timeframe-calendar-icon {
+  color: var(--range-button-fg);
+}
+
+.timeframe-widget .preset-btn {
+  width: auto;
+  min-width: 62px;
+  padding: 0 14px;
+}
+
+.timeframe-widget .range-custom-trigger {
+  padding: 0 16px;
+  font-weight: 760;
 }
 
 .preset-btn:hover,

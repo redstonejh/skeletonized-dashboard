@@ -122,13 +122,14 @@
   --panel-lock-glow: rgba(37, 99, 235, .18);
   --panel-drawer-bg: rgba(37, 99, 235, .18);
   position: absolute;
-  top: 8px;
+  top: 50%;
   right: 8px;
   z-index: var(--z-dropdown);
   display: inline-flex;
   align-items: center;
   gap: 8px;
   flex-shrink: 0;
+  transform: translateY(-50%);
 }
 
 /* Widget edit, drag, and ghost states */
@@ -351,11 +352,6 @@ body.layout-tools-active .widget-card:not(.widget-tools-open):not(:has(> .widget
 .panel-layout > .db-panel {
   grid-column: span 6;
   min-width: 0;
-}
-
-.panel-layout > .db-panel.db-panel-tools-open,
-.panel-layout > .db-panel:has(.panel-tools:focus-within) {
-  min-width: var(--panel-min-width, 0);
 }
 
 .panel-layout > .db-panel[data-default-span="4"] {
@@ -758,6 +754,17 @@ body.panel-interaction-active .db-panel:hover,
 body.panel-interaction-active .db-panel:focus-within,
 body.panel-interaction-active .db-panel:active {
   transform: none;
+}
+
+body.panel-interaction-active .widget-card:not(.widget-dragging):not(.dashboard-active-resize),
+body.panel-interaction-active .db-panel:not(.db-panel-dragging):not(.dashboard-active-resize) {
+  pointer-events: none;
+}
+
+body.panel-interaction-active .widget-dragging,
+body.panel-interaction-active .db-panel-dragging,
+body.panel-interaction-active .dashboard-active-resize {
+  pointer-events: auto;
 }
 
 .panel-resize-handle {
@@ -1200,17 +1207,30 @@ html[data-theme="dark"] .panel-color-label {
 }
 
 .db-panel-body {
-  flex: 0 1 auto;
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  align-items: stretch;
+  min-height: 0;
   overflow-y: auto;
   overflow-x: auto;
-  max-height: 580px;
+  max-height: none;
   opacity: 1;
   visibility: visible;
   transition: max-height .24s ease, opacity .18s ease, padding .24s ease, visibility 0s linear 0s;
 }
 
 .db-panel-body > .al-table {
+  flex: 1 1 auto;
   min-width: 680px;
+}
+
+.db-panel-body > .empty-state {
+  box-sizing: border-box;
+  flex: 1 1 auto;
+  align-self: stretch;
+  width: 100%;
+  min-height: 100%;
 }
 
 .db-panel-collapsed .db-panel-hd {
