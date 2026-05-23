@@ -106,4 +106,4 @@ APP_LOG_PATH=./logs/app.log
 
 ## Notes
 
-The default dashboard is deliberately sparse. It includes placeholder widgets, a table panel, a menu panel, and a notes panel so the builder interactions are immediately testable without shipping product-specific data.
+The default dashboard is deliberately sparse. It includes placeholder widgets and generic panel containers so the builder interactions are immediately testable without shipping product-specific data. Panels are layout containers; table, menu, notes, chart, and calendar experiences should be modeled as widgets or panel content rather than inherent panel types.

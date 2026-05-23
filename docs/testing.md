@@ -18,6 +18,19 @@ Use the non-quiet form when investigating failures:
 .venv\Scripts\python.exe -m pytest
 ```
 
+For runtime profiling of the browser suite:
+
+```powershell
+.venv\Scripts\python.exe -m pytest tests\test_dashboard_builder_e2e.py -q --durations=10
+```
+
+During development, prefer targeted slices before the final full suite:
+
+```powershell
+.venv\Scripts\python.exe -m pytest tests\test_dashboard_builder_e2e.py -q -k "resize"
+.venv\Scripts\python.exe -m pytest tests\test_dashboard_builder_e2e.py -q -k "group or drag"
+```
+
 ## Browser Test Expectations
 
 Playwright tests should cover:
@@ -59,14 +72,14 @@ Required for each universal dashboard object:
 ## Panel Coverage
 
 - Add panel.
-- Add widgets inside panel.
+- Future: add widgets inside panel once nested widget behavior exists.
 - Collapse and expand.
 - Resize panel.
 - Minimum-size panel does not grow when menu opens.
 - Placeholder/content area stays aligned to panel body after resize.
-- Panel context is inherited by children.
-- Header context pill attachment works.
-- Removing header context clears inherited context.
+- Future: panel context is inherited by children.
+- Future: header context pill attachment works.
+- Future: removing header context clears inherited context.
 
 ## Context Coverage
 
@@ -135,6 +148,32 @@ Capture screenshots for:
 - Mobile viewport
 
 Visual inconsistency counts as a bug and must be logged in `docs/bug-report.md`.
+
+## Performance Coverage
+
+Interaction performance is part of the dashboard UX contract. The dashboard should remain fluid without weakening protected drag, resize, collision, group, expand/collapse, or persistence behavior.
+
+Performance work should:
+
+- Measure first.
+- Preserve the live ghost plus snapped footprint model.
+- Avoid saving or serializing layout during pointermove.
+- Avoid duplicate drag/resize systems.
+- Avoid broad full-dashboard recomputation when a local operation is intended.
+- Verify cleanup after repeated interactions.
+- Prefer stable cleanup and bounded-artifact tests before frame-budget assertions.
+
+Useful regression checks:
+
+- Repeated drag leaves no stale drag ghosts or active classes.
+- Repeated resize leaves no `.dashboard-live-resize` or `.dashboard-resize-preview` nodes.
+- Pointercancel cleanup removes source and body interaction classes.
+- Group interactions remove group boundary/live surfaces after commit or cancel.
+- Expand/collapse does not move unrelated items.
+
+Avoid fragile CI checks based on absolute frame rate, exact paint cost, or exact DOM read counts unless they have proven stable across machines.
+
+See `docs/performance-stabilization-plan.md` for the current audit baseline and stabilization sequence.
 
 ## Bug Reporting Process
 

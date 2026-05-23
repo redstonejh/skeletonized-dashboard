@@ -18,6 +18,8 @@ Objects include:
 - Timeframe or command-surface widgets
 - Panels and context panels
 
+Panels are dashboard objects, but they are not content types. Panels are layout containers that can eventually host widgets or content components. Tables, menus, notes, charts, and calendars should be modeled as widgets or panel content rather than inherent panel identities.
+
 Default capabilities:
 
 - Draggable
@@ -70,7 +72,7 @@ Graph data must react to inherited and wired context. Graph rendering should res
 - Generic configurable table.
 - Supports placeholder/demo data.
 - Supports filtering from active context.
-- Uses existing panel/table styling.
+- Uses existing table-content styling when rendered inside or near panels.
 - Must preserve readable spacing, alignment, and dark-mode contrast.
 
 ### Calendar Widget
@@ -102,12 +104,14 @@ Graph data must react to inherited and wired context. Graph rendering should res
 - Must look like a floating glass capsule or compact pill control, not a browser-default search input.
 - Must support compact and expanded configurations without breaking the Apple-glass rhythm.
 
-### Panel Widget / Context Panel
+### Panel Containers
 
 - Collapsible container.
-- Can hold child widgets.
-- Provides a context scope to children.
-- Can receive attached context pills through header/chevron drop behavior.
+- Current panels are blank layout containers with title, color, collapse, pin, drag, resize, grouping, and persistence behavior.
+- Tables, menus, notes, charts, calendars, and similar experiences should be modeled as widgets or content components, not as panel identities.
+- Future panel nesting may allow child widgets inside panels.
+- Future context inheritance may let panels provide context scope to children and receive attached context pills through header/chevron drop behavior.
+- Do not expose a separate "Context Panel" create-menu item until it has distinct server-backed behavior and persistence semantics.
 
 ## Widget Configuration
 

@@ -15,7 +15,7 @@ DEFAULT_WIDGETS = [
 ]
 
 DEFAULT_PANELS = [
-    Panel(key="panel-table", title="Table", color="#2563eb", span=3),
+    Panel(key="panel-content", title="Content", color="#2563eb", span=3),
     Panel(key="panel-menu", title="Menu", color="#16a34a", span=2, collapsed=True),
     Panel(key="panel-notes", title="Notes", color="#9333ea", span=1),
 ]

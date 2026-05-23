@@ -47,6 +47,7 @@ Users should always understand:
 Useful future affordances:
 
 - Mini-map or workspace overview.
+- Spatial Anchors for floating viewport-fixed bookmarks into widgets, panels, groups, regions, contexts, or saved viewport positions.
 - Focus breadcrumbs.
 - Subtle region highlights.
 - Context path indicators.
@@ -75,6 +76,7 @@ Useful future affordances:
 - Spatial regions: named, collapsible areas of the workspace.
 - Region-aware grid coordinates.
 - Mini-map or overview rail.
+- Spatial Anchors as a tabless floating navigation layer; see `docs/spatial-anchors.md`.
 - Context-aware camera focus.
 - Zoom-density rules for labels, handles, graph detail, table density, and wiring overlays.
 - Engineer Mode link routing that accounts for zoom, pan, and region collapse.

@@ -77,6 +77,7 @@ Recommended future platform modules:
 ## Dashboard And Grid Systems
 
 - Dashboard movement is order-based. Drag and resize must use the ordered-slot packer instead of per-item physics or ad hoc collision negotiation.
+- Panels are generic layout containers. Tables, menus, notes, charts, calendars, and similar experiences are widgets or panel content, not inherent panel identities.
 - Treat committed grid coordinates as the source of visual placement. DOM order may support persistence and rendering, but it must not override explicit user placement.
 - Widgets and panels share one dashboard occupancy map. Do not resolve widget movement separately from panel movement when they render into the same dashboard grid.
 - Sparse placement is valid. Do not compact, collapse, or repack intentional empty grid space during ordinary drag and resize interactions.

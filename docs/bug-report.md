@@ -72,7 +72,7 @@ Command:
 .venv\Scripts\python.exe -m pytest -q
 ```
 
-Latest result: 42 passed, 0 failed.
+Latest result: 61 passed, 0 failed.
 
 Previous discovery result: 6 passed, 3 failed.
 
@@ -459,7 +459,7 @@ Passed coverage included app/dashboard/settings load, CSS imports, theme persist
 - Observed: Some dashboard surfaces still inherited older bright blue border and glow treatment, especially panel headers, table rows, empty states, timeframe clusters, panel/widget controls, and the workspace chrome accent.
 - Expected: Dark mode borders and hover/focus states remain visible but read as muted glass rims rather than electric blue outlines.
 - Suspected cause: Earlier dark-mode cascade layers still contained saturated border and `0 0 ...` glow rules, and the final dark polish layer did not explicitly cover every dashboard surface.
-- Fix notes: Added a final dark-only border refinement for panel headers, table panel rows, empty states, timeframe command clusters, panel/widget controls, and workspace chrome accent surfaces. The refinement keeps light mode untouched and does not change layout, drag, resize, grid placement, save/load, pinning, collapse, or grouping behavior.
+- Fix notes: Added a final dark-only border refinement for panel headers, table content rows, empty states, timeframe command clusters, panel/widget controls, and workspace chrome accent surfaces. The refinement keeps light mode untouched and does not change layout, drag, resize, grid placement, save/load, pinning, collapse, or grouping behavior.
 - Validation: Expanded `test_dark_mode_uses_midnight_glass_not_neon_edges` to cover table, empty-state, timeframe, and workspace chrome surfaces. `.venv\Scripts\python.exe -m pytest -q` passed with 34 tests.
 
 ### BUG-028: Top Navigation Visual Drift
@@ -713,6 +713,66 @@ Passed coverage included app/dashboard/settings load, CSS imports, theme persist
 - Suspected cause: Collapse restoration used a per-panel full layout snapshot. Nested expansions captured snapshots at different temporary states, so collapsing an earlier panel could discard the only snapshot that knew the lower panel's original stable row; a later collapse then restored toward an already-pushed intermediate row.
 - Fix notes: Replaced per-panel full snapshot restoration with a layout-level expansion baseline plus local upward relaxation. The baseline is captured once at the first expansion after the committed layout, group-resized coordinates included. On each collapse, only items that are below their baseline row and still in their baseline column are considered; each moves upward only as far as it can without overlapping current expanded panels, pinned items, or other occupied cells. The baseline is cleared when the expansion session ends.
 - Validation: Added `test_panel_collapse_restores_local_pushdown_after_group_resize` for both normal and post-group-resize flows. It expands/collapses upper panels repeatedly in the failure-prone order, asserts the lower panel returns to its post-resize baseline, verifies widgets/unrelated items do not globally repack, checks no overlaps, and saves/reloads the collapsed layout. Targeted expand/collapse tests, grouped interaction tests, and `.venv\Scripts\python.exe -m pytest -q` passed with 54 tests. Manual Playwright smoke captured light and dark baseline, expanded pushdown, and restored collapsed states.
+
+### BUG-049: Expanded Panel Header Used Legacy Compact Chevron Geometry
+
+- Status: Verified
+- Area: Dashboard controls / icon alignment
+- Severity: Low
+- Environment: Dashboard workspace, light and dark themes
+- Observed: Collapsed panels used the modern header/chevron control size, but expanding a compact row-span panel made the left chevron area appear smaller and shifted, as if it had fallen back to an older compact header treatment.
+- Expected: The chevron control frame and icon dimensions remain consistent across collapsed, expanded, hover, selected, grouped, and repeated expand/collapse states. Expansion may rotate the chevron, but it must not resize or shift the control.
+- Suspected cause: Legacy expanded-only row-span density rules still changed `--panel-header-min-height`, `--panel-header-pad-y`, and `--panel-header-pad-x`. The pseudo-element icon dimensions stayed fixed, but the header control frame compressed around them.
+- Fix notes: Kept the compact content/table density variables for shorter expanded panels, but restored the modern header control min-height and padding variables for expanded row spans. No expand/collapse JavaScript or layout behavior changed.
+- Validation: Added `test_panel_chevron_size_stays_stable_across_expand_collapse_states` for light and dark themes to verify collapsed, hover, grouped, expanded, recollapsed, and repeated-cycle chevron/header metrics remain stable. Updated the content-density regression so compact panels keep content/table density without shrinking the header control frame. Targeted chevron/density tests passed, `.venv\Scripts\python.exe -m pytest -q` passed with 56 tests, and manual Playwright smoke captured light/dark collapsed, grouped, and expanded states in `test-results/manual-chevron-stability/`.
+
+### BUG-050: Default Panel Architecture Implied Table Was A Panel Type
+
+- Status: Verified
+- Area: Dashboard architecture / panel content model
+- Severity: Medium
+- Environment: Dashboard workspace, default seeded panels, documentation
+- Observed: The default dashboard encoded a `builder-table` / `panel-table` identity and titled the default container `Table`, which implied that a panel could inherently be a table. The intended architecture is that panels are generic layout containers while tables, menus, notes, charts, calendars, and similar experiences are widgets or content components.
+- Expected: Panels expose title, color, collapse, settings, resize, pinning, grouping, and layout behavior only. Table content may exist as legacy/demo content, but table is not a core panel type.
+- Suspected cause: Early demo markup used a table-filled panel as a convenient default example, and the demo identity leaked into panel keys, titles, empty-state copy, docs, and CSS token naming.
+- Fix notes: Renamed the default table-identified panel to a generic content container, updated seeded panel identity/title, reframed the table markup as demo content inside the generic panel, renamed table-content CSS variables away from `panel-table`, and updated docs to state that panels are containers while tables are widgets/content. No nested widget behavior was implemented.
+- Validation: Added `test_panels_are_generic_containers_not_table_panel_types` to assert the default content panel is generic, no table panel add action exists, table remains a widget/content option, and newly added panels use generic empty-panel copy. Updated E2E selectors to use the generic content panel identity while preserving existing drag, resize, group, expand/collapse, density, and persistence coverage. Targeted architecture/content-panel tests passed, and `.venv\Scripts\python.exe -m pytest -q` passed with 57 tests.
+
+### BUG-051: Loaded Expanded Panels Lost Collapse Restoration Baseline
+
+- Status: Verified
+- Area: Dashboard grid / expand-collapse / layout persistence
+- Severity: High
+- Environment: Dashboard workspace, saved layout loaded with panels already expanded
+- Observed: If a panel was expanded during the current session, collapsing it restored lower displaced items upward correctly. If the same layout was saved while expanded and then reloaded, the panel started open but collapsing it did not release lower items back into the freed space.
+- Expected: Collapse restoration behaves the same whether a panel was opened in the current session or loaded already open from a saved layout. Expanded footprint displacement remains temporary and should not become permanent merely because the layout was saved while open.
+- Suspected cause: Same-session expansion captured `layout.__expansionBaselineSnapshot` before pushdown. Saved expanded layouts restored the open visual state and displaced rows, but did not reconstruct the pre-expansion baseline used by `relaxCollapsedExpansionDisplacement`.
+- Fix notes: Persisted serializable expansion-baseline state with saved panel/widget layout records when a layout is saved during an active expansion session. On load, expanded panels reconstruct an in-memory expansion baseline and active expansion source set so collapse can run the same local upward relaxation path used in the original session. Normal collapsed saves still restore as collapsed layouts and do not require global repacking.
+- Validation: Added `test_loaded_expanded_panels_restore_pushdown_on_collapse`, covering multiple expanded panels, save while open, same-session collapse, reload into expanded state, loaded-state collapse restoration, unrelated item stability, no overlaps, and saving/reloading again while collapsed. Targeted expand/collapse tests passed, and `.venv\Scripts\python.exe -m pytest -q` passed with 58 tests.
+
+### BUG-052: Generic Panels Still Rendered Legacy Table Content
+
+- Status: Verified
+- Area: Dashboard architecture / panel placeholders / create menu
+- Severity: Medium
+- Environment: Dashboard workspace, default seeded panels, add/create menu, light and dark themes
+- Observed: The generic content panel still rendered old table column headers (`Name`, `Type`, `Value`, `State`), the menu and notes panels used different empty-state markup and wording, and the create menu exposed a separate `Context Panel` option even though it had no distinct behavior.
+- Expected: Panels are blank layout containers. Default and newly added panels use one shared empty placeholder pattern, no generic panel renders table headers, table remains a widget/content concept, and the create menu exposes only the current generic `Panel` type.
+- Suspected cause: The previous panel/table reframing renamed the default table panel but intentionally left demo table markup in place, so old content-architecture assumptions continued to leak through the panel body and tests. The create menu also retained an old future-facing context-panel label without a matching implementation.
+- Fix notes: Removed the default panel table markup and table-specific panel density rules, standardized all default and custom panel bodies on the same `.panel-empty-state` placeholder with a nonfunctional `Add widgets` affordance, removed the `Context Panel` menu item, and documented context-specific panels as future architecture instead of a current create option. No nested widget behavior was added.
+- Validation: Updated `test_panels_are_generic_containers_not_table_panel_types`, toolbar menu coverage, dark-mode polish coverage, and content-density coverage to assert no legacy panel table headers, one generic Panel menu item, no Context Panel option, shared placeholder structure, and no interactive placeholder behavior. Targeted panel/menu/theme/density tests passed, and `.venv\Scripts\python.exe -m pytest -q` passed with 58 tests.
+
+### BUG-053: Drag And Resize Did Not Auto-Scroll At Viewport Edges
+
+- Status: Verified
+- Area: Dashboard grid / drag-resize / grouped interactions
+- Severity: High
+- Environment: Dashboard workspace, constrained viewport, long dashboard scroll area
+- Observed: During drag or resize, moving the pointer near the bottom of the viewport did not scroll the page to reveal lower dashboard space. Items could not be naturally placed or resized into newly revealed rows without manually scrolling first.
+- Expected: Active widget, panel, and grouped drag/resize interactions smoothly auto-scroll near the top or bottom viewport edge, keep live ghosts and snapped footprints updating, stop immediately after leaving the edge zone or ending the interaction, and never introduce horizontal page scroll.
+- Suspected cause: Drag and resize pointermove handlers only reacted to pointer events. Once the pointer reached the viewport edge, no shared scroll loop advanced the document, and resize math used viewport pointer deltas without accounting for document scroll delta.
+- Fix notes: Added one shared requestAnimationFrame edge auto-scroll helper for active pointer interactions. Drag paths update snapped previews as the document scrolls under the pointer. Resize paths include vertical scroll delta in live and snapped geometry so bottom-edge scrolling extends resize into newly revealed grid rows. Cleanup runs through existing drag/resize lifecycle teardown and removes the transient `dashboard-auto-scroll-active` state.
+- Validation: Added `test_edge_auto_scroll_supports_widget_drag_resize_and_upward_drag`, `test_edge_auto_scroll_supports_panel_resize`, and `test_edge_auto_scroll_supports_group_drag_and_resize`. Coverage verifies widget drag, widget resize, panel resize, group drag, group resize, upward auto-scroll, final committed grid state, stopped scroll loop after release, stale artifact cleanup, and no horizontal overflow. Targeted edge-scroll tests, drag/resize/group slices, and `.venv\Scripts\python.exe -m pytest -q` passed.
 
 ## Entry Template
  

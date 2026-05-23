@@ -13,6 +13,8 @@ Users compose dashboards visually:
 - Create widgets from the GUI.
 - Place widgets anywhere on the grid.
 - Group widgets inside collapsible panels.
+- Treat panels as layout containers, not as table, notes, menu, chart, or calendar identities.
+- Model tables, notes, menus, charts, calendars, and similar content as widgets or panel content.
 - Link widgets and panels through generic context.
 - Let stats filter tables, graphs, calendars, and panels.
 - Let panels provide inherited context to child widgets.

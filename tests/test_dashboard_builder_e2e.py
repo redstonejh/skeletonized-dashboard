@@ -90,6 +90,83 @@ def assert_no_resize_artifacts(page: Page) -> None:
     }
 
 
+def dashboard_scroll_state(page: Page) -> dict:
+    return page.evaluate(
+        """
+        () => ({
+          scrollY: window.scrollY,
+          autoScrollActive: document.body.classList.contains("dashboard-auto-scroll-active"),
+          rootHorizontalOverflow: document.documentElement.scrollWidth > document.documentElement.clientWidth + 1,
+          bodyHorizontalOverflow: document.body.scrollWidth > document.body.clientWidth + 1,
+          liveResize: document.querySelectorAll(".dashboard-live-resize").length,
+          resizePreview: document.querySelectorAll(".dashboard-resize-preview").length,
+          groupBoundary: document.querySelectorAll(".dashboard-group-boundary").length,
+          groupFootprint: document.querySelectorAll(".dashboard-group-footprint, .dashboard-group-resize-footprint").length,
+        })
+        """
+    )
+
+
+def assert_no_auto_scroll_artifacts(page: Page) -> None:
+    page.wait_for_function('!document.body.classList.contains("dashboard-auto-scroll-active")')
+    state = dashboard_scroll_state(page)
+    assert state["autoScrollActive"] is False
+    assert state["rootHorizontalOverflow"] is False
+    assert state["bodyHorizontalOverflow"] is False
+
+
+def prepare_edge_autoscroll_fixture(page: Page) -> None:
+    page.evaluate(
+        """
+        () => {
+          const rowHeight = 81;
+          const gap = 16;
+          const panelHeight = (rows) => (rows * rowHeight) + (Math.max(0, rows - 1) * gap);
+          const place = (node, col, row, span = 1, rowSpan = 1) => {
+            if (!node) return;
+            node.hidden = false;
+            node.dataset.currentSpan = String(span);
+            node.dataset.defaultSpan = node.dataset.defaultSpan || String(span);
+            node.dataset.gridCol = String(col);
+            node.dataset.gridRow = String(row);
+            node.dataset.gridRowSpan = String(rowSpan);
+            node.style.gridColumn = `${col} / span ${span}`;
+            node.style.gridRow = `${row} / span ${rowSpan}`;
+            if (node.classList.contains("db-panel")) {
+              node.classList.remove("db-panel-collapsed");
+              node.dataset.savedHeight = String(panelHeight(rowSpan));
+              node.style.height = `${panelHeight(rowSpan)}px`;
+              node.querySelector(".db-panel-hd")?.setAttribute("aria-expanded", "true");
+            } else {
+              node.style.removeProperty("height");
+            }
+          };
+          place(document.querySelector('[data-widget-key="builder-search"]'), 1, 1, 4, 1);
+          place(document.querySelector('[data-widget-key="widget-1"]'), 1, 3, 1, 1);
+          place(document.querySelector('[data-widget-key="widget-2"]'), 1, 20, 1, 1);
+          place(document.querySelector('[data-widget-key="widget-3"]'), 2, 20, 1, 1);
+          place(document.querySelector('[data-panel-key="builder-content"]'), 3, 3, 2, 2);
+          place(document.querySelector('[data-panel-key="builder-menu"]'), 3, 6, 2, 2);
+          place(document.querySelector('[data-panel-key="builder-notes"]'), 5, 20, 2, 2);
+          document.querySelectorAll(".group-selected").forEach((node) => node.classList.remove("group-selected"));
+          document.body.classList.remove("group-transform-active", "dashboard-auto-scroll-active");
+          window.scrollTo(0, 0);
+        }
+        """
+    )
+
+
+def move_pointer_to_bottom_edge(page: Page, x: float, start_y: float, x_delta: float = 80, steps: int = 18) -> None:
+    viewport = page.viewport_size or {"height": 560}
+    page.mouse.move(x + 18, start_y + 18, steps=4)
+    page.mouse.move(x + x_delta, viewport["height"] - 8, steps=steps)
+
+
+def move_pointer_to_top_edge(page: Page, x: float, start_y: float, x_delta: float = 40, steps: int = 18) -> None:
+    page.mouse.move(x + 12, start_y - 12, steps=4)
+    page.mouse.move(x + x_delta, 8, steps=steps)
+
+
 def close_dialog_if_open(page: Page) -> None:
     dialog = page.locator("#panel-delete-dialog")
     if dialog.evaluate("node => Boolean(node.open)"):
@@ -242,6 +319,50 @@ def test_add_panel_menu_actions_are_pointer_clickable(page: Page, app_server: st
     expect(page.locator(".panel-add-menu")).to_have_class(re.compile("open"))
     page.locator('.panel-add-action[data-panel-kind="panel"]').click()
     expect(page.locator('.panel-layout > .db-panel[data-custom-panel="true"]')).to_have_count(1)
+    assert_clean_browser(page)
+
+
+def test_panels_are_generic_containers_not_table_panel_types(page: Page, app_server: str) -> None:
+    goto(page, app_server)
+    expect(page.locator('[data-panel-key="builder-table"]')).to_have_count(0)
+    panel_layout = page.locator('.panel-layout[data-layout-key="builder"]')
+    content_panel = page.locator('[data-panel-key="builder-content"]')
+    expect(content_panel).to_be_visible()
+    expect(content_panel.locator(".db-panel-title")).to_have_text("Content")
+    expect(panel_layout.locator("th")).to_have_count(0)
+    for legacy_header in ("Name", "Type", "Value", "State"):
+        expect(panel_layout.locator("th", has_text=legacy_header)).to_have_count(0)
+
+    default_panels = page.locator('.panel-layout > .db-panel[data-panel-key^="builder-"]')
+    for index in range(default_panels.count()):
+        panel = default_panels.nth(index)
+        if panel.evaluate("node => node.classList.contains('db-panel-collapsed')"):
+            panel.locator(".db-panel-hd").click(position={"x": 18, "y": 18})
+            expect(panel).not_to_have_class(re.compile("db-panel-collapsed"))
+        placeholder = panel.locator('.db-panel-body > .empty-state.panel-empty-state[data-panel-placeholder="empty"]')
+        expect(placeholder).to_have_count(1)
+        expect(placeholder.locator("strong")).to_have_text("Empty panel")
+        expect(placeholder.locator("small")).to_have_text("Widgets will appear here when this panel is configured.")
+        expect(placeholder.locator(".panel-empty-action")).to_have_text("Add widgets")
+
+    page.locator(".panel-add-button").click()
+    expect(page.locator('.panel-add-action[data-panel-kind="table"]')).to_have_count(0)
+    expect(page.locator('.panel-add-action[data-panel-kind="context-panel"]')).to_have_count(0)
+    expect(page.locator('.panel-add-action[data-panel-kind="panel"]')).to_have_count(1)
+    expect(page.locator(".panel-add-menu")).not_to_contain_text("Context Panel")
+    expect(page.locator('.widget-add-action[data-widget-kind="table"]')).to_have_count(1)
+
+    page.locator('.panel-add-action[data-panel-kind="panel"]').click()
+    new_panel = page.locator('.panel-layout > .db-panel[data-custom-panel="true"]').last
+    expect(new_panel.locator(".db-panel-title")).to_have_text(re.compile(r"Panel \d+"))
+    if new_panel.evaluate("node => node.classList.contains('db-panel-collapsed')"):
+        new_panel.locator(".db-panel-hd").click(position={"x": 18, "y": 18})
+        expect(new_panel).not_to_have_class(re.compile("db-panel-collapsed"))
+    new_placeholder = new_panel.locator('.db-panel-body > .empty-state.panel-empty-state[data-panel-placeholder="empty"]')
+    expect(new_placeholder).to_have_count(1)
+    expect(new_placeholder.locator("strong")).to_have_text("Empty panel")
+    expect(new_placeholder.locator("small")).to_have_text("Widgets will appear here when this panel is configured.")
+    expect(new_placeholder.locator(".panel-empty-action")).to_have_text("Add widgets")
     assert_clean_browser(page)
 
 
@@ -577,8 +698,9 @@ def test_workspace_chrome_is_spatial_and_modes_still_work(page: Page, app_server
 
     page.locator(".panel-add-button").click()
     expect(page.locator(".panel-add-menu")).to_have_class(re.compile("open"))
-    for label in ("Stat", "Stat + Filter", "Graph", "Table", "Calendar", "Panel", "Context Panel"):
+    for label in ("Stat", "Stat + Filter", "Graph", "Table", "Calendar", "Panel"):
         expect(page.locator(".panel-add-menu")).to_contain_text(label)
+    expect(page.locator(".panel-add-menu")).not_to_contain_text("Context Panel")
 
     page.locator(".engineer-mode-button").click()
     expect(page.locator(".engineer-mode-button")).to_have_attribute("aria-pressed", "true")
@@ -716,8 +838,8 @@ def test_dark_mode_uses_midnight_glass_not_neon_edges(page: Page, app_server: st
           const root = getComputedStyle(document.documentElement);
           const stat = getComputedStyle(document.querySelector(".stat-card[data-widget-key='widget-1']"));
           const panel = getComputedStyle(document.querySelector(".db-panel"));
-          const tableHeader = getComputedStyle(document.querySelector(".al-table th"));
-          const empty = getComputedStyle(document.querySelector(".empty-state"));
+          const empty = getComputedStyle(document.querySelector(".panel-empty-state"));
+          const emptyAction = getComputedStyle(document.querySelector(".panel-empty-action"));
           const timeframe = getComputedStyle(document.querySelector(".timeframe-command-surface"));
           const add = getComputedStyle(document.querySelector(".composition-add-button"));
           const marker = getComputedStyle(document.querySelector(".workspace-accent-marker"));
@@ -729,10 +851,10 @@ def test_dark_mode_uses_midnight_glass_not_neon_edges(page: Page, app_server: st
             panelBorder: panel.borderTopColor,
             panelBorderRgb: toRgb(panel.borderTopColor),
             panelShadow: panel.boxShadow,
-            tableBorder: tableHeader.borderBottomColor,
-            tableBorderRgb: toRgb(tableHeader.borderBottomColor),
             emptyBorder: empty.borderTopColor,
             emptyBorderRgb: toRgb(empty.borderTopColor),
+            emptyActionBorder: emptyAction.borderTopColor,
+            emptyActionBorderRgb: toRgb(emptyAction.borderTopColor),
             timeframeBorder: timeframe.borderTopColor,
             timeframeBorderRgb: toRgb(timeframe.borderTopColor),
             addShadow: add.boxShadow,
@@ -744,8 +866,8 @@ def test_dark_mode_uses_midnight_glass_not_neon_edges(page: Page, app_server: st
 
     stat_border = styles["statBorderRgb"]
     panel_border = styles["panelBorderRgb"]
-    table_border = styles["tableBorderRgb"]
     empty_border = styles["emptyBorderRgb"]
+    empty_action_border = styles["emptyActionBorderRgb"]
     timeframe_border = styles["timeframeBorderRgb"]
     assert styles["accent"].lower() == "#86acd2"
     if stat_border:
@@ -753,7 +875,7 @@ def test_dark_mode_uses_midnight_glass_not_neon_edges(page: Page, app_server: st
         assert stat_border[2] - stat_border[0] <= 65
     if panel_border:
         assert max(panel_border) <= 160
-    for name, border in (("table", table_border), ("empty", empty_border), ("timeframe", timeframe_border)):
+    for name, border in (("empty", empty_border), ("empty action", empty_action_border), ("timeframe", timeframe_border)):
         if border:
             assert max(border) <= 170, (name, border)
             assert border[2] - border[0] <= 70, (name, border)
@@ -1349,7 +1471,7 @@ def test_panel_expand_uses_vertical_pushdown_not_sideways_reflow(page: Page, app
         () => {
           const panelLayout = document.querySelector('.panel-layout[data-layout-key="builder"]');
           const notes = panelLayout.querySelector('[data-panel-key="builder-notes"]');
-          const table = panelLayout.querySelector('[data-panel-key="builder-table"]');
+          const table = panelLayout.querySelector('[data-panel-key="builder-content"]');
           const menu = panelLayout.querySelector('[data-panel-key="builder-menu"]');
           const place = (node, col, row, span, rowSpan, height = null) => {
             node.dataset.gridCol = String(col);
@@ -1386,7 +1508,7 @@ def test_panel_expand_uses_vertical_pushdown_not_sideways_reflow(page: Page, app
     )
 
     notes = page.locator('.panel-layout > .db-panel[data-panel-key="builder-notes"]')
-    table = page.locator('.panel-layout > .db-panel[data-panel-key="builder-table"]')
+    table = page.locator('.panel-layout > .db-panel[data-panel-key="builder-content"]')
     expect(notes).to_have_class(re.compile("db-panel-collapsed"))
 
     notes.locator(".db-panel-hd").click(position={"x": 18, "y": 18})
@@ -1396,7 +1518,7 @@ def test_panel_expand_uses_vertical_pushdown_not_sideways_reflow(page: Page, app
         """
         () => {
           const notes = document.querySelector('[data-panel-key="builder-notes"]');
-          const table = document.querySelector('[data-panel-key="builder-table"]');
+          const table = document.querySelector('[data-panel-key="builder-content"]');
           return {
             notesCollapsed: notes.classList.contains("db-panel-collapsed"),
             notesRowSpan: Number(notes.dataset.gridRowSpan || 0),
@@ -1422,7 +1544,7 @@ def test_panel_expand_uses_vertical_pushdown_not_sideways_reflow(page: Page, app
         """
         () => {
           const notes = document.querySelector('[data-panel-key="builder-notes"]');
-          const table = document.querySelector('[data-panel-key="builder-table"]');
+          const table = document.querySelector('[data-panel-key="builder-content"]');
           return {
             notesCollapsed: notes.classList.contains("db-panel-collapsed"),
             notesRowSpan: Number(notes.dataset.gridRowSpan || 0),
@@ -1452,7 +1574,7 @@ def test_panel_collapse_restores_local_pushdown_after_group_resize(page: Page, a
           const layout = document.querySelector('.panel-layout[data-layout-key="builder"]');
           const menu = layout.querySelector('[data-panel-key="builder-menu"]');
           const notes = layout.querySelector('[data-panel-key="builder-notes"]');
-          const table = layout.querySelector('[data-panel-key="builder-table"]');
+          const table = layout.querySelector('[data-panel-key="builder-content"]');
           const place = (node, col, row, span, rowSpan, height = null) => {
             node.dataset.gridCol = String(col);
             node.dataset.gridRow = String(row);
@@ -1492,7 +1614,7 @@ def test_panel_collapse_restores_local_pushdown_after_group_resize(page: Page, a
 
     menu = page.locator('[data-panel-key="builder-menu"]')
     notes = page.locator('[data-panel-key="builder-notes"]')
-    table = page.locator('[data-panel-key="builder-table"]')
+    table = page.locator('[data-panel-key="builder-content"]')
 
     if after_group_resize:
         page.locator(".layout-group-button").click()
@@ -1528,7 +1650,7 @@ def test_panel_collapse_restores_local_pushdown_after_group_resize(page: Page, a
           return {
             menu: read("builder-menu"),
             notes: read("builder-notes"),
-            table: read("builder-table"),
+            table: read("builder-content"),
             widgets: [...document.querySelectorAll(".widget-layout > .widget-card")].map((node) => ({
               key: node.dataset.widgetKey,
               row: Number(node.dataset.gridRow),
@@ -1549,7 +1671,7 @@ def test_panel_collapse_restores_local_pushdown_after_group_resize(page: Page, a
         expanded = {
             "menu": grid_item_state(page, '[data-panel-key="builder-menu"]'),
             "notes": grid_item_state(page, '[data-panel-key="builder-notes"]'),
-            "table": grid_item_state(page, '[data-panel-key="builder-table"]'),
+            "table": grid_item_state(page, '[data-panel-key="builder-content"]'),
         }
         assert expanded["table"]["row"] > baseline["table"]["row"]
         assert expanded["menu"]["row"] == baseline["menu"]["row"]
@@ -1562,7 +1684,7 @@ def test_panel_collapse_restores_local_pushdown_after_group_resize(page: Page, a
         collapsed = {
             "menu": grid_item_state(page, '[data-panel-key="builder-menu"]'),
             "notes": grid_item_state(page, '[data-panel-key="builder-notes"]'),
-            "table": grid_item_state(page, '[data-panel-key="builder-table"]'),
+            "table": grid_item_state(page, '[data-panel-key="builder-content"]'),
         }
         assert collapsed["menu"]["row"] == baseline["menu"]["row"], cycle
         assert collapsed["notes"]["row"] == baseline["notes"]["row"], cycle
@@ -1588,11 +1710,137 @@ def test_panel_collapse_restores_local_pushdown_after_group_resize(page: Page, a
     reloaded = {
         "menu": grid_item_state(page, '[data-panel-key="builder-menu"]'),
         "notes": grid_item_state(page, '[data-panel-key="builder-notes"]'),
-        "table": grid_item_state(page, '[data-panel-key="builder-table"]'),
+        "table": grid_item_state(page, '[data-panel-key="builder-content"]'),
     }
     assert reloaded["menu"]["row"] == baseline["menu"]["row"]
     assert reloaded["notes"]["row"] == baseline["notes"]["row"]
     assert reloaded["table"]["row"] == baseline["table"]["row"]
+    assert no_visible_overlaps(page, ".dashboard-layout-grid .widget-card, .dashboard-layout-grid .db-panel") == []
+    assert_clean_browser(page)
+
+
+def test_loaded_expanded_panels_restore_pushdown_on_collapse(page: Page, app_server: str) -> None:
+    goto(page, app_server)
+    page.evaluate(
+        """
+        () => {
+          const layout = document.querySelector('.panel-layout[data-layout-key="builder"]');
+          const menu = layout.querySelector('[data-panel-key="builder-menu"]');
+          const notes = layout.querySelector('[data-panel-key="builder-notes"]');
+          const content = layout.querySelector('[data-panel-key="builder-content"]');
+          const unrelated = document.querySelector('.widget-layout > .widget-card:not(.range-bar)');
+          const grid = document.querySelector(".dashboard-layout-grid");
+          const styles = getComputedStyle(grid);
+          const rowHeight = parseFloat(styles.gridAutoRows) || 81;
+          const gap = parseFloat(styles.rowGap || styles.gap || "16") || 16;
+          const panelHeight = (rows) => (rows * rowHeight) + (Math.max(0, rows - 1) * gap);
+          const placePanel = (node, col, row, span, rowSpan, collapsed) => {
+            node.dataset.gridCol = String(col);
+            node.dataset.gridRow = String(row);
+            node.dataset.currentSpan = String(span);
+            node.dataset.gridRowSpan = String(collapsed ? 1 : rowSpan);
+            node.dataset.savedHeight = String(panelHeight(rowSpan));
+            node.style.gridColumn = `${col} / span ${span}`;
+            node.style.gridRow = `${row} / span ${collapsed ? 1 : rowSpan}`;
+            node.classList.toggle("db-panel-collapsed", collapsed);
+            node.querySelector(".db-panel-hd")?.setAttribute("aria-expanded", (!collapsed).toString());
+            node.style.height = collapsed ? "" : `${panelHeight(rowSpan)}px`;
+          };
+          const placeWidget = (node, col, row, span) => {
+            node.dataset.gridCol = String(col);
+            node.dataset.gridRow = String(row);
+            node.dataset.currentSpan = String(span);
+            node.style.gridColumn = `${col} / span ${span}`;
+            node.style.gridRow = `${row} / span 1`;
+          };
+          placePanel(menu, 1, 4, 3, 2, true);
+          placePanel(notes, 1, 5, 3, 2, true);
+          placePanel(content, 1, 6, 3, 2, false);
+          placeWidget(unrelated, 5, 4, 1);
+        }
+        """
+    )
+
+    menu = page.locator('[data-panel-key="builder-menu"]')
+    notes = page.locator('[data-panel-key="builder-notes"]')
+    content = page.locator('[data-panel-key="builder-content"]')
+    unrelated = page.locator(".widget-layout > .widget-card:not(.range-bar)").first
+    baseline = {
+        "menu": grid_item_state(page, '[data-panel-key="builder-menu"]'),
+        "notes": grid_item_state(page, '[data-panel-key="builder-notes"]'),
+        "content": grid_item_state(page, '[data-panel-key="builder-content"]'),
+        "unrelated": grid_item_state(page, ".widget-layout > .widget-card:not(.range-bar)"),
+    }
+
+    menu.locator(".db-panel-hd").click(position={"x": 18, "y": 18})
+    page.wait_for_timeout(320)
+    notes.locator(".db-panel-hd").click(position={"x": 18, "y": 18})
+    page.wait_for_timeout(320)
+    expanded_before_save = {
+        "menu": grid_item_state(page, '[data-panel-key="builder-menu"]'),
+        "notes": grid_item_state(page, '[data-panel-key="builder-notes"]'),
+        "content": grid_item_state(page, '[data-panel-key="builder-content"]'),
+        "unrelated": grid_item_state(page, ".widget-layout > .widget-card:not(.range-bar)"),
+    }
+    assert expanded_before_save["content"]["row"] > baseline["content"]["row"]
+    assert expanded_before_save["unrelated"]["row"] == baseline["unrelated"]["row"]
+
+    page.locator(".layout-save-button").click()
+    persisted_baseline = page.evaluate(
+        """
+        () => JSON.parse(localStorage.getItem("dashboard-panel-six-grid-layout:1:builder:builder-content")).expansionBaseline
+        """
+    )
+    assert persisted_baseline["gridRow"] == str(baseline["content"]["row"])
+
+    notes.locator(".db-panel-hd").click(position={"x": 18, "y": 18})
+    page.wait_for_timeout(320)
+    menu.locator(".db-panel-hd").click(position={"x": 18, "y": 18})
+    page.wait_for_timeout(320)
+    same_session_collapsed = {
+        "menu": grid_item_state(page, '[data-panel-key="builder-menu"]'),
+        "notes": grid_item_state(page, '[data-panel-key="builder-notes"]'),
+        "content": grid_item_state(page, '[data-panel-key="builder-content"]'),
+        "unrelated": grid_item_state(page, ".widget-layout > .widget-card:not(.range-bar)"),
+    }
+    assert same_session_collapsed["menu"]["row"] == baseline["menu"]["row"]
+    assert same_session_collapsed["notes"]["row"] == baseline["notes"]["row"]
+    assert same_session_collapsed["content"]["row"] == baseline["content"]["row"]
+    assert same_session_collapsed["unrelated"]["row"] == baseline["unrelated"]["row"]
+
+    page.reload(wait_until="networkidle")
+    menu = page.locator('[data-panel-key="builder-menu"]')
+    notes = page.locator('[data-panel-key="builder-notes"]')
+    expect(menu).not_to_have_class(re.compile("db-panel-collapsed"))
+    expect(notes).not_to_have_class(re.compile("db-panel-collapsed"))
+    loaded_expanded = {
+        "content": grid_item_state(page, '[data-panel-key="builder-content"]'),
+        "unrelated": grid_item_state(page, ".widget-layout > .widget-card:not(.range-bar)"),
+    }
+    assert loaded_expanded["content"]["row"] == expanded_before_save["content"]["row"]
+    assert loaded_expanded["unrelated"]["row"] == baseline["unrelated"]["row"]
+
+    notes.locator(".db-panel-hd").click(position={"x": 18, "y": 18})
+    page.wait_for_timeout(320)
+    menu.locator(".db-panel-hd").click(position={"x": 18, "y": 18})
+    page.wait_for_timeout(320)
+    loaded_collapsed = {
+        "menu": grid_item_state(page, '[data-panel-key="builder-menu"]'),
+        "notes": grid_item_state(page, '[data-panel-key="builder-notes"]'),
+        "content": grid_item_state(page, '[data-panel-key="builder-content"]'),
+        "unrelated": grid_item_state(page, ".widget-layout > .widget-card:not(.range-bar)"),
+    }
+    assert loaded_collapsed["menu"]["row"] == baseline["menu"]["row"]
+    assert loaded_collapsed["notes"]["row"] == baseline["notes"]["row"]
+    assert loaded_collapsed["content"]["row"] == baseline["content"]["row"]
+    assert loaded_collapsed["unrelated"]["row"] == baseline["unrelated"]["row"]
+    assert no_visible_overlaps(page, ".dashboard-layout-grid .widget-card, .dashboard-layout-grid .db-panel") == []
+
+    page.locator(".layout-save-button").click()
+    page.reload(wait_until="networkidle")
+    expect(page.locator('[data-panel-key="builder-menu"]')).to_have_class(re.compile("db-panel-collapsed"))
+    expect(page.locator('[data-panel-key="builder-notes"]')).to_have_class(re.compile("db-panel-collapsed"))
+    assert grid_item_state(page, '[data-panel-key="builder-content"]')["row"] == baseline["content"]["row"]
     assert no_visible_overlaps(page, ".dashboard-layout-grid .widget-card, .dashboard-layout-grid .db-panel") == []
     assert_clean_browser(page)
 
@@ -1623,7 +1871,7 @@ def test_panel_expand_collapse_does_not_shift_dashboard_when_scrollbar_changes(p
           widgets.forEach((node, index) => setGrid(node, 1 + index, 1, 1));
           const notes = document.querySelector('[data-panel-key="builder-notes"]');
           const menu = document.querySelector('[data-panel-key="builder-menu"]');
-          const table = document.querySelector('[data-panel-key="builder-table"]');
+          const table = document.querySelector('[data-panel-key="builder-content"]');
           [notes, menu, table].forEach((node) => {
             node.classList.add("db-panel-collapsed");
             node.querySelector(".db-panel-hd")?.setAttribute("aria-expanded", "false");
@@ -2089,7 +2337,7 @@ def test_widget_resize_lifecycle_repeats_cancels_and_persists(page: Page, app_se
         """
     )
     widget = page.locator(".widget-layout > .stat-card.widget-card:not(.range-bar)").first
-    panel = page.locator('.panel-layout > .db-panel[data-panel-key="builder-table"]')
+    panel = page.locator('.panel-layout > .db-panel[data-panel-key="builder-content"]')
     start_span = int(widget.evaluate("node => node.dataset.currentSpan || node.dataset.defaultSpan"))
     seen_spans = {start_span}
 
@@ -2107,7 +2355,7 @@ def test_widget_resize_lifecycle_repeats_cancels_and_persists(page: Page, app_se
     drag_by(page, panel.locator(".panel-resize-handle"), 180, 90, steps=12)
     page.wait_for_timeout(300)
     assert_no_resize_artifacts(page)
-    assert grid_alignment_error(page, '.panel-layout > .db-panel[data-panel-key="builder-table"]') <= 3
+    assert grid_alignment_error(page, '.panel-layout > .db-panel[data-panel-key="builder-content"]') <= 3
 
     widget.hover()
     widget.evaluate("node => node.classList.add('widget-tools-open')")
@@ -2268,8 +2516,8 @@ def test_panel_content_density_adapts_before_overflow(page: Page, app_server: st
         """
     )
 
-    assert metrics["small"]["headerHeight"] < metrics["large"]["headerHeight"]
-    assert metrics["small"]["bodyHeight"] > 100
+    assert metrics["small"]["headerHeight"] == metrics["large"]["headerHeight"]
+    assert metrics["small"]["bodyHeight"] >= 90
     assert metrics["small"]["emptyPadTop"] < metrics["large"]["emptyPadTop"]
     assert metrics["small"]["emptyPadBottom"] < metrics["large"]["emptyPadBottom"]
     assert metrics["small"]["emptyGap"] < metrics["large"]["emptyGap"]
@@ -2279,7 +2527,7 @@ def test_panel_content_density_adapts_before_overflow(page: Page, app_server: st
     assert metrics["small"]["bodyScrolls"] is False
     assert metrics["small"]["overflowY"] == "auto"
 
-    table_metrics = page.locator('.panel-layout > .db-panel[data-panel-key="builder-table"]').evaluate(
+    content_metrics = page.locator('.panel-layout > .db-panel[data-panel-key="builder-content"]').evaluate(
         """
         node => {
           const grid = node.closest(".dashboard-layout-grid");
@@ -2294,16 +2542,17 @@ def test_panel_content_density_adapts_before_overflow(page: Page, app_server: st
             node.style.gridRow = `${node.dataset.gridRow || 1} / span ${rows}`;
           };
           const read = () => {
-            const th = node.querySelector(".al-table th");
-            const td = node.querySelector(".al-table td");
-            const emptyCell = node.querySelector(".al-empty");
-            const thStyles = getComputedStyle(th);
-            const tdStyles = getComputedStyle(td);
-            const emptyStyles = getComputedStyle(emptyCell);
+            const empty = node.querySelector(".db-panel-body > .panel-empty-state");
+            const action = empty.querySelector(".panel-empty-action");
+            const emptyStyles = getComputedStyle(empty);
+            const actionStyles = getComputedStyle(action);
             return {
-              thPadY: parseFloat(thStyles.paddingTop) + parseFloat(thStyles.paddingBottom),
-              tdPadY: parseFloat(tdStyles.paddingTop) + parseFloat(tdStyles.paddingBottom),
+              placeholderCount: node.querySelectorAll(".db-panel-body > .panel-empty-state").length,
+              tableHeaderCount: node.querySelectorAll(".al-table th").length,
               emptyPadY: parseFloat(emptyStyles.paddingTop) + parseFloat(emptyStyles.paddingBottom),
+              emptyGap: parseFloat(emptyStyles.gap),
+              actionHeight: action.getBoundingClientRect().height,
+              actionPointerEvents: actionStyles.pointerEvents,
             };
           };
           setRows(5);
@@ -2315,9 +2564,170 @@ def test_panel_content_density_adapts_before_overflow(page: Page, app_server: st
         """
     )
 
-    assert table_metrics["small"]["thPadY"] < table_metrics["large"]["thPadY"]
-    assert table_metrics["small"]["tdPadY"] < table_metrics["large"]["tdPadY"]
-    assert table_metrics["small"]["emptyPadY"] < table_metrics["large"]["emptyPadY"]
+    assert content_metrics["large"]["placeholderCount"] == 1
+    assert content_metrics["small"]["placeholderCount"] == 1
+    assert content_metrics["large"]["tableHeaderCount"] == 0
+    assert content_metrics["small"]["tableHeaderCount"] == 0
+    assert content_metrics["small"]["emptyPadY"] < content_metrics["large"]["emptyPadY"]
+    assert content_metrics["small"]["emptyGap"] < content_metrics["large"]["emptyGap"]
+    assert content_metrics["small"]["actionHeight"] <= content_metrics["large"]["actionHeight"]
+    assert content_metrics["small"]["actionPointerEvents"] == "none"
+    assert_clean_browser(page)
+
+
+def test_edge_auto_scroll_supports_widget_drag_resize_and_upward_drag(page: Page, app_server: str) -> None:
+    page.set_viewport_size({"width": 1280, "height": 560})
+    goto(page, app_server)
+    prepare_edge_autoscroll_fixture(page)
+
+    widget = page.locator('[data-widget-key="widget-1"]')
+    before_drag = grid_item_state(page, '[data-widget-key="widget-1"]')
+    open_tools(widget)
+    handle_box = widget.locator(".panel-move-handle").bounding_box()
+    assert handle_box
+    x, y = box_center(handle_box)
+    page.mouse.move(x, y)
+    page.mouse.down()
+    move_pointer_to_bottom_edge(page, x, y, x_delta=96)
+    page.wait_for_function("window.scrollY > 35")
+    assert page.locator(".widget-placeholder").count() >= 1
+    page.mouse.move(240, 240, steps=10)
+    page.wait_for_function('!document.body.classList.contains("dashboard-auto-scroll-active")')
+    page.mouse.up()
+    page.wait_for_timeout(360)
+    after_drag = grid_item_state(page, '[data-widget-key="widget-1"]')
+    assert after_drag["row"] > before_drag["row"]
+    assert_no_auto_scroll_artifacts(page)
+
+    prepare_edge_autoscroll_fixture(page)
+    widget = page.locator('[data-widget-key="widget-1"]')
+    open_tools(widget)
+    before_resize = grid_item_state(page, '[data-widget-key="widget-1"]')
+    resize_box = widget.locator(".panel-resize-handle").bounding_box()
+    assert resize_box
+    rx, ry = box_center(resize_box)
+    page.mouse.move(rx, ry)
+    page.mouse.down()
+    move_pointer_to_bottom_edge(page, rx, ry, x_delta=340)
+    page.wait_for_function("window.scrollY > 35")
+    page.mouse.up()
+    page.wait_for_timeout(360)
+    after_resize = grid_item_state(page, '[data-widget-key="widget-1"]')
+    assert after_resize["span"] > before_resize["span"]
+    assert_no_resize_artifacts(page)
+    assert_no_auto_scroll_artifacts(page)
+
+    lower_widget = page.locator('[data-widget-key="widget-2"]')
+    lower_widget.scroll_into_view_if_needed()
+    page.wait_for_timeout(120)
+    start_scroll = dashboard_scroll_state(page)["scrollY"]
+    assert start_scroll > 80
+    open_tools(lower_widget)
+    top_handle_box = lower_widget.locator(".panel-move-handle").bounding_box()
+    assert top_handle_box
+    tx, ty = box_center(top_handle_box)
+    page.mouse.move(tx, ty)
+    page.mouse.down()
+    move_pointer_to_top_edge(page, tx, ty, x_delta=36)
+    page.wait_for_function(f"window.scrollY < {start_scroll - 35}")
+    page.mouse.up()
+    page.wait_for_timeout(260)
+    assert_no_auto_scroll_artifacts(page)
+    assert_clean_browser(page)
+
+
+def test_edge_auto_scroll_supports_panel_resize(page: Page, app_server: str) -> None:
+    page.set_viewport_size({"width": 1280, "height": 560})
+    goto(page, app_server)
+    prepare_edge_autoscroll_fixture(page)
+
+    panel = page.locator('[data-panel-key="builder-content"]')
+    before = grid_item_state(page, '[data-panel-key="builder-content"]')
+    open_tools(panel)
+    handle_box = panel.locator(".panel-resize-handle").bounding_box()
+    assert handle_box
+    x, y = box_center(handle_box)
+    page.mouse.move(x, y)
+    page.mouse.down()
+    move_pointer_to_bottom_edge(page, x, y, x_delta=180)
+    page.wait_for_function("window.scrollY > 35")
+    assert page.locator(".dashboard-live-resize").count() == 1
+    assert page.locator(".dashboard-resize-preview").count() >= 1
+    page.mouse.up()
+    page.wait_for_timeout(360)
+    after = grid_item_state(page, '[data-panel-key="builder-content"]')
+    assert after["rowSpan"] > before["rowSpan"]
+    assert_no_resize_artifacts(page)
+    assert_no_auto_scroll_artifacts(page)
+    assert_clean_browser(page)
+
+
+def test_edge_auto_scroll_supports_group_drag_and_resize(page: Page, app_server: str) -> None:
+    page.set_viewport_size({"width": 1280, "height": 560})
+    goto(page, app_server)
+    prepare_edge_autoscroll_fixture(page)
+
+    page.locator(".layout-group-button").click()
+    widget = page.locator('[data-widget-key="widget-1"]')
+    panel = page.locator('[data-panel-key="builder-content"]')
+    widget.click(position={"x": 18, "y": 18})
+    panel.click(position={"x": 18, "y": 18})
+    expect(page.locator(".group-selected")).to_have_count(2)
+    before_drag = {
+        "widget": grid_item_state(page, '[data-widget-key="widget-1"]'),
+        "panel": grid_item_state(page, '[data-panel-key="builder-content"]'),
+    }
+    open_tools(widget)
+    handle_box = widget.locator(".panel-move-handle").bounding_box()
+    assert handle_box
+    x, y = box_center(handle_box)
+    page.mouse.move(x, y)
+    page.mouse.down()
+    move_pointer_to_bottom_edge(page, x, y, x_delta=90)
+    page.wait_for_function("window.scrollY > 35")
+    expect(page.locator(".dashboard-group-live-shell")).to_have_count(1)
+    expect(page.locator(".dashboard-group-footprint")).to_have_count(1)
+    page.mouse.up()
+    page.wait_for_timeout(420)
+    after_drag = {
+        "widget": grid_item_state(page, '[data-widget-key="widget-1"]'),
+        "panel": grid_item_state(page, '[data-panel-key="builder-content"]'),
+    }
+    assert after_drag["widget"]["row"] > before_drag["widget"]["row"]
+    assert after_drag["panel"]["row"] > before_drag["panel"]["row"]
+    expect(page.locator(".dashboard-group-live-shell")).to_have_count(0)
+    expect(page.locator(".dashboard-group-footprint")).to_have_count(0)
+    assert_no_auto_scroll_artifacts(page)
+    page.locator(".layout-group-button").click()
+    expect(page.locator(".layout-group-button")).to_have_attribute("aria-pressed", "false")
+
+    prepare_edge_autoscroll_fixture(page)
+    page.locator(".layout-group-button").click()
+    panel = page.locator('[data-panel-key="builder-content"]')
+    menu = page.locator('[data-panel-key="builder-menu"]')
+    panel.click(position={"x": 18, "y": 18})
+    menu.click(position={"x": 18, "y": 18})
+    expect(page.locator(".group-selected")).to_have_count(2)
+    before_resize = grid_item_state(page, '[data-panel-key="builder-content"]')
+    panel.locator(".panel-settings-toggle").hover()
+    expect(panel.locator(".panel-tool-drawer")).to_be_visible()
+    resize_box = panel.locator(".panel-resize-handle").bounding_box()
+    assert resize_box
+    rx, ry = box_center(resize_box)
+    page.mouse.move(rx, ry)
+    page.mouse.down()
+    move_pointer_to_bottom_edge(page, rx, ry, x_delta=220)
+    page.wait_for_function("window.scrollY > 35")
+    expect(page.locator(".dashboard-group-resize-footprint")).to_have_count(1)
+    expect(page.locator(".dashboard-group-resize-boundary")).to_have_count(1)
+    page.mouse.up()
+    page.wait_for_timeout(420)
+    after_resize = grid_item_state(page, '[data-panel-key="builder-content"]')
+    assert after_resize["rowSpan"] > before_resize["rowSpan"]
+    expect(page.locator(".dashboard-group-resize-footprint")).to_have_count(0)
+    expect(page.locator(".dashboard-group-resize-boundary")).to_have_count(0)
+    assert_no_resize_artifacts(page)
+    assert_no_auto_scroll_artifacts(page)
     assert_clean_browser(page)
 
 
@@ -2684,6 +3094,96 @@ def test_panel_header_chevrons_are_optically_centered(page: Page, app_server: st
     assert_clean_browser(page)
 
 
+@pytest.mark.parametrize("theme", ["light", "dark"])
+def test_panel_chevron_size_stays_stable_across_expand_collapse_states(page: Page, app_server: str, theme: str) -> None:
+    goto(page, app_server)
+    if theme == "dark":
+        page.locator(".theme-toggle").click()
+        expect(page.locator("html")).to_have_attribute("data-theme", "dark")
+
+    panel = page.locator('[data-panel-key="builder-menu"]')
+    expect(panel).to_have_class(re.compile("db-panel-collapsed"))
+
+    def chevron_state() -> dict:
+        return panel.evaluate(
+            """
+            node => {
+              const header = node.querySelector(".db-panel-hd");
+              const headerRect = header.getBoundingClientRect();
+              const headerStyles = getComputedStyle(header);
+              const before = getComputedStyle(header, "::before");
+              const after = getComputedStyle(header, "::after");
+              return {
+                collapsed: node.classList.contains("db-panel-collapsed"),
+                headerHeight: headerRect.height,
+                minHeight: headerStyles.minHeight,
+                paddingLeft: headerStyles.paddingLeft,
+                paddingTop: headerStyles.paddingTop,
+                controlWidth: before.width,
+                controlHeight: before.height,
+                controlMinWidth: before.minWidth,
+                controlTransform: before.transform,
+                iconWidth: after.width,
+                iconHeight: after.height,
+                iconLeft: after.left,
+                iconMaskSize: after.webkitMaskSize || after.maskSize,
+              };
+            }
+            """
+        )
+
+    def assert_same_size(actual: dict, expected: dict) -> None:
+        for key in (
+            "headerHeight",
+            "minHeight",
+            "paddingLeft",
+            "paddingTop",
+            "controlWidth",
+            "controlHeight",
+            "controlMinWidth",
+            "controlTransform",
+            "iconWidth",
+            "iconHeight",
+            "iconLeft",
+            "iconMaskSize",
+        ):
+            assert actual[key] == expected[key], (key, actual, expected)
+
+    collapsed = chevron_state()
+    assert collapsed["controlWidth"] == "34px"
+    assert collapsed["controlHeight"] == "34px"
+    assert collapsed["iconWidth"] == "15px"
+    assert collapsed["iconHeight"] == "15px"
+    assert collapsed["iconMaskSize"] == "14px 14px"
+
+    panel.hover()
+    hover = chevron_state()
+    assert_same_size(hover, collapsed)
+
+    page.locator(".layout-group-button").click()
+    panel.click(position={"x": 20, "y": 20})
+    expect(panel).to_have_class(re.compile("group-selected"))
+    grouped = chevron_state()
+    assert_same_size(grouped, collapsed)
+    page.locator(".layout-group-button").click()
+    expect(panel).not_to_have_class(re.compile("group-selected"))
+
+    for _ in range(2):
+        panel.locator(".db-panel-hd").click(position={"x": 18, "y": 18})
+        page.wait_for_timeout(320)
+        expanded = chevron_state()
+        assert expanded["collapsed"] is False
+        assert_same_size(expanded, collapsed)
+
+        panel.locator(".db-panel-hd").click(position={"x": 18, "y": 18})
+        page.wait_for_timeout(320)
+        recollapsed = chevron_state()
+        assert recollapsed["collapsed"] is True
+        assert_same_size(recollapsed, collapsed)
+
+    assert_clean_browser(page)
+
+
 def test_dark_panel_hover_matches_widget_highlight(page: Page, app_server: str) -> None:
     goto(page, app_server)
     page.locator(".theme-toggle").click()
@@ -2816,7 +3316,7 @@ def test_group_drag_moves_selected_items_as_shared_transform(page: Page, app_ser
           };
           const widget = document.querySelector('[data-widget-key="widget-1"]');
           const pinned = document.querySelector('[data-widget-key="widget-2"]');
-          const panel = document.querySelector('[data-panel-key="builder-table"]');
+          const panel = document.querySelector('[data-panel-key="builder-content"]');
           place(widget, 1, 2, 1);
           place(pinned, 6, 2, 1);
           place(panel, 3, 2, 2, 3);
@@ -2830,7 +3330,7 @@ def test_group_drag_moves_selected_items_as_shared_transform(page: Page, app_ser
     group_button.click()
     widget = page.locator('[data-widget-key="widget-1"]')
     pinned = page.locator('[data-widget-key="widget-2"]')
-    panel = page.locator('[data-panel-key="builder-table"]')
+    panel = page.locator('[data-panel-key="builder-content"]')
     widget.click(position={"x": 20, "y": 20})
     pinned.click(position={"x": 20, "y": 20})
     panel.click(position={"x": 20, "y": 20})
@@ -2839,7 +3339,7 @@ def test_group_drag_moves_selected_items_as_shared_transform(page: Page, app_ser
     before = {
         "widget": grid_item_state(page, '[data-widget-key="widget-1"]'),
         "pinned": grid_item_state(page, '[data-widget-key="widget-2"]'),
-        "panel": grid_item_state(page, '[data-panel-key="builder-table"]'),
+        "panel": grid_item_state(page, '[data-panel-key="builder-content"]'),
     }
     open_tools(widget)
     drag_by(page, widget.locator(".panel-move-handle"), 0, 220, steps=18)
@@ -2847,7 +3347,7 @@ def test_group_drag_moves_selected_items_as_shared_transform(page: Page, app_ser
     after = {
         "widget": grid_item_state(page, '[data-widget-key="widget-1"]'),
         "pinned": grid_item_state(page, '[data-widget-key="widget-2"]'),
-        "panel": grid_item_state(page, '[data-panel-key="builder-table"]'),
+        "panel": grid_item_state(page, '[data-panel-key="builder-content"]'),
     }
 
     widget_delta = after["widget"]["row"] - before["widget"]["row"]
@@ -2881,7 +3381,7 @@ def test_group_drag_uses_composite_footprint_and_preserves_member_spacing(page: 
             }
           };
           place(document.querySelector('[data-widget-key="widget-1"]'), 1, 2, 2);
-          place(document.querySelector('[data-panel-key="builder-table"]'), 3, 2, 2, 3);
+          place(document.querySelector('[data-panel-key="builder-content"]'), 3, 2, 2, 3);
           place(document.querySelector('[data-panel-key="builder-notes"]'), 2, 6, 3, 2);
           place(document.querySelector('[data-widget-key="widget-2"]'), 5, 6, 1);
         }
@@ -2890,7 +3390,7 @@ def test_group_drag_uses_composite_footprint_and_preserves_member_spacing(page: 
 
     page.locator(".layout-group-button").click()
     widget = page.locator('[data-widget-key="widget-1"]')
-    panel = page.locator('[data-panel-key="builder-table"]')
+    panel = page.locator('[data-panel-key="builder-content"]')
     blocker = page.locator('[data-panel-key="builder-notes"]')
     widget.click(position={"x": 20, "y": 20})
     panel.click(position={"x": 20, "y": 20})
@@ -2913,7 +3413,7 @@ def test_group_drag_uses_composite_footprint_and_preserves_member_spacing(page: 
           };
           return {
             widget: read('[data-widget-key="widget-1"]'),
-            panel: read('[data-panel-key="builder-table"]'),
+            panel: read('[data-panel-key="builder-content"]'),
             blocker: read('[data-panel-key="builder-notes"]'),
           };
         }
@@ -2953,11 +3453,11 @@ def test_group_drag_uses_composite_footprint_and_preserves_member_spacing(page: 
           return {
             originals: {
               widget: read('[data-widget-key="widget-1"]'),
-              panel: read('[data-panel-key="builder-table"]'),
+              panel: read('[data-panel-key="builder-content"]'),
             },
             blocker: read('[data-panel-key="builder-notes"]'),
             liveWidget: liveRect('.dashboard-group-live-member[data-widget-key="widget-1"]'),
-            livePanel: liveRect('.dashboard-group-live-member[data-panel-key="builder-table"]'),
+            livePanel: liveRect('.dashboard-group-live-member[data-panel-key="builder-content"]'),
             liveCount: document.querySelectorAll(".dashboard-group-live-member").length,
             sourceCount: document.querySelectorAll(".dashboard-group-source").length,
             footprintCount: document.querySelectorAll(".dashboard-group-footprint").length,
@@ -2993,7 +3493,7 @@ def test_group_drag_uses_composite_footprint_and_preserves_member_spacing(page: 
     page.wait_for_timeout(360)
     first_after = {
         "widget": grid_item_state(page, '[data-widget-key="widget-1"]'),
-        "panel": grid_item_state(page, '[data-panel-key="builder-table"]'),
+        "panel": grid_item_state(page, '[data-panel-key="builder-content"]'),
         "blocker": grid_item_state(page, '[data-panel-key="builder-notes"]'),
     }
     assert first_after["panel"]["col"] - first_after["widget"]["col"] == before["panel"]["col"] - before["widget"]["col"]
@@ -3009,7 +3509,7 @@ def test_group_drag_uses_composite_footprint_and_preserves_member_spacing(page: 
     page.wait_for_timeout(300)
     second_after = {
         "widget": grid_item_state(page, '[data-widget-key="widget-1"]'),
-        "panel": grid_item_state(page, '[data-panel-key="builder-table"]'),
+        "panel": grid_item_state(page, '[data-panel-key="builder-content"]'),
     }
     assert second_after["panel"]["col"] - second_after["widget"]["col"] == before["panel"]["col"] - before["widget"]["col"]
     assert second_after["panel"]["row"] - second_after["widget"]["row"] == before["panel"]["row"] - before["widget"]["row"]
@@ -3020,7 +3520,7 @@ def test_group_drag_uses_composite_footprint_and_preserves_member_spacing(page: 
     page.wait_for_selector(".page")
     reloaded = {
         "widget": grid_item_state(page, '[data-widget-key="widget-1"]'),
-        "panel": grid_item_state(page, '[data-panel-key="builder-table"]'),
+        "panel": grid_item_state(page, '[data-panel-key="builder-content"]'),
     }
     assert reloaded["widget"]["col"] == second_after["widget"]["col"]
     assert reloaded["widget"]["row"] == second_after["widget"]["row"]
@@ -3050,7 +3550,7 @@ def test_group_drag_can_target_top_grid_row(page: Page, app_server: str) -> None
             }
           };
           document.querySelectorAll(".widget-layout > .widget-card").forEach((node, index) => place(node, 1 + (index % 6), 14 + index, 1));
-          place(document.querySelector('[data-panel-key="builder-table"]'), 1, 7, 2, 2);
+          place(document.querySelector('[data-panel-key="builder-content"]'), 1, 7, 2, 2);
           place(document.querySelector('[data-panel-key="builder-menu"]'), 3, 7, 2, 2);
           place(document.querySelector('[data-panel-key="builder-notes"]'), 5, 10, 2, 2);
           window.scrollTo(0, 0);
@@ -3059,7 +3559,7 @@ def test_group_drag_can_target_top_grid_row(page: Page, app_server: str) -> None
     )
 
     page.locator(".layout-group-button").click()
-    table = page.locator('[data-panel-key="builder-table"]')
+    table = page.locator('[data-panel-key="builder-content"]')
     menu = page.locator('[data-panel-key="builder-menu"]')
     table.click(position={"x": 20, "y": 20})
     menu.click(position={"x": 20, "y": 20})
@@ -3082,7 +3582,7 @@ def test_group_drag_can_target_top_grid_row(page: Page, app_server: str) -> None
     page.wait_for_timeout(360)
 
     after = {
-        "table": grid_item_state(page, '[data-panel-key="builder-table"]'),
+        "table": grid_item_state(page, '[data-panel-key="builder-content"]'),
         "menu": grid_item_state(page, '[data-panel-key="builder-menu"]'),
     }
     assert min(after["table"]["row"], after["menu"]["row"]) == 1
@@ -3119,7 +3619,7 @@ def test_group_boundary_visuals_match_selection_during_move_and_resize(page: Pag
             }
           };
           document.querySelectorAll(".widget-layout > .widget-card").forEach((node, index) => place(node, 1 + (index % 6), 14 + index, 1));
-          place(document.querySelector('[data-panel-key="builder-table"]'), 1, 5, 2, 2);
+          place(document.querySelector('[data-panel-key="builder-content"]'), 1, 5, 2, 2);
           place(document.querySelector('[data-panel-key="builder-menu"]'), 3, 5, 2, 2);
           place(document.querySelector('[data-panel-key="builder-notes"]'), 5, 9, 2, 2);
           window.scrollTo(0, 0);
@@ -3128,7 +3628,7 @@ def test_group_boundary_visuals_match_selection_during_move_and_resize(page: Pag
     )
 
     page.locator(".layout-group-button").click()
-    table = page.locator('[data-panel-key="builder-table"]')
+    table = page.locator('[data-panel-key="builder-content"]')
     menu = page.locator('[data-panel-key="builder-menu"]')
     table.click(position={"x": 20, "y": 20})
     menu.click(position={"x": 20, "y": 20})
@@ -3287,7 +3787,7 @@ def test_group_resize_is_proportional_and_minimum_aware(page: Page, app_server: 
           };
           const timeframe = document.querySelector('[data-widget-key="builder-search"]');
           const stat = document.querySelector('[data-widget-key="widget-1"]');
-          const panel = document.querySelector('[data-panel-key="builder-table"]');
+          const panel = document.querySelector('[data-panel-key="builder-content"]');
           timeframe.dataset.minW = "4";
           place(timeframe, 1, 1, 6);
           place(stat, 1, 4, 2);
@@ -3301,7 +3801,7 @@ def test_group_resize_is_proportional_and_minimum_aware(page: Page, app_server: 
     page.locator(".layout-group-button").click()
     timeframe = page.locator('[data-widget-key="builder-search"]')
     stat = page.locator('[data-widget-key="widget-1"]')
-    panel = page.locator('[data-panel-key="builder-table"]')
+    panel = page.locator('[data-panel-key="builder-content"]')
     timeframe.click(position={"x": 20, "y": 20})
     stat.click(position={"x": 20, "y": 20})
     panel.click(position={"x": 20, "y": 20})
@@ -3319,9 +3819,9 @@ def test_group_resize_is_proportional_and_minimum_aware(page: Page, app_server: 
         () => ({
           timeframe: Number(document.querySelector('[data-widget-key="builder-search"]').dataset.currentSpan),
           stat: Number(document.querySelector('[data-widget-key="widget-1"]').dataset.currentSpan),
-          panel: Number(document.querySelector('[data-panel-key="builder-table"]').dataset.currentSpan),
+          panel: Number(document.querySelector('[data-panel-key="builder-content"]').dataset.currentSpan),
           timeframeMin: Number(document.querySelector('[data-widget-key="builder-search"]').dataset.minW),
-          panelRows: Number(document.querySelector('[data-panel-key="builder-table"]').dataset.gridRowSpan),
+          panelRows: Number(document.querySelector('[data-panel-key="builder-content"]').dataset.gridRowSpan),
         })
         """
     )
@@ -3351,7 +3851,7 @@ def test_group_resize_uses_live_clones_snapped_previews_and_collapsed_ghost(page
           };
           const timeframe = document.querySelector('[data-widget-key="builder-search"]');
           const stat = document.querySelector('[data-widget-key="widget-1"]');
-          const panel = document.querySelector('[data-panel-key="builder-table"]');
+          const panel = document.querySelector('[data-panel-key="builder-content"]');
           timeframe.dataset.minW = "4";
           place(timeframe, 1, 1, 6);
           place(stat, 1, 4, 2);
@@ -3367,7 +3867,7 @@ def test_group_resize_uses_live_clones_snapped_previews_and_collapsed_ghost(page
     page.locator(".layout-group-button").click()
     timeframe = page.locator('[data-widget-key="builder-search"]')
     stat = page.locator('[data-widget-key="widget-1"]')
-    panel = page.locator('[data-panel-key="builder-table"]')
+    panel = page.locator('[data-panel-key="builder-content"]')
     timeframe.click(position={"x": 20, "y": 20})
     stat.click(position={"x": 20, "y": 20})
     panel.click(position={"x": 20, "y": 20})
@@ -3388,7 +3888,7 @@ def test_group_resize_uses_live_clones_snapped_previews_and_collapsed_ghost(page
           return {
             timeframe: state('[data-widget-key="builder-search"]'),
             stat: state('[data-widget-key="widget-1"]'),
-            panel: state('[data-panel-key="builder-table"]'),
+            panel: state('[data-panel-key="builder-content"]'),
           };
         }
         """
@@ -3451,7 +3951,7 @@ def test_group_resize_uses_live_clones_snapped_previews_and_collapsed_ghost(page
             originals: {
               timeframe: state('[data-widget-key="builder-search"]'),
               stat: state('[data-widget-key="widget-1"]'),
-              panel: state('[data-panel-key="builder-table"]'),
+              panel: state('[data-panel-key="builder-content"]'),
             },
             previewSpans: [...document.querySelectorAll(".dashboard-resize-preview")].map((node) => Number(node.dataset.currentSpan)),
           };
@@ -3466,7 +3966,7 @@ def test_group_resize_uses_live_clones_snapped_previews_and_collapsed_ghost(page
     after = {
         "timeframe": grid_item_state(page, '[data-widget-key="builder-search"]'),
         "stat": grid_item_state(page, '[data-widget-key="widget-1"]'),
-        "panel": grid_item_state(page, '[data-panel-key="builder-table"]'),
+        "panel": grid_item_state(page, '[data-panel-key="builder-content"]'),
     }
 
     assert after["timeframe"]["span"] == 4
@@ -3495,7 +3995,7 @@ def test_group_resize_composite_footprint_pushes_surrounding_items(page: Page, a
             node.dataset.savedHeight = String(height);
             node.style.height = `${height}px`;
           };
-          place(document.querySelector('[data-panel-key="builder-table"]'), 1, 4, 2, 2);
+          place(document.querySelector('[data-panel-key="builder-content"]'), 1, 4, 2, 2);
           place(document.querySelector('[data-panel-key="builder-menu"]'), 3, 4, 2, 2);
           place(document.querySelector('[data-panel-key="builder-notes"]'), 1, 7, 4, 2);
         }
@@ -3503,7 +4003,7 @@ def test_group_resize_composite_footprint_pushes_surrounding_items(page: Page, a
     )
 
     page.locator(".layout-group-button").click()
-    table = page.locator('[data-panel-key="builder-table"]')
+    table = page.locator('[data-panel-key="builder-content"]')
     menu = page.locator('[data-panel-key="builder-menu"]')
     blocker = page.locator('[data-panel-key="builder-notes"]')
     table.click(position={"x": 20, "y": 20})
@@ -3511,7 +4011,7 @@ def test_group_resize_composite_footprint_pushes_surrounding_items(page: Page, a
     expect(page.locator(".group-selected")).to_have_count(2)
 
     before = {
-        "table": grid_item_state(page, '[data-panel-key="builder-table"]'),
+        "table": grid_item_state(page, '[data-panel-key="builder-content"]'),
         "menu": grid_item_state(page, '[data-panel-key="builder-menu"]'),
         "blocker": grid_item_state(page, '[data-panel-key="builder-notes"]'),
     }
@@ -3542,7 +4042,7 @@ def test_group_resize_composite_footprint_pushes_surrounding_items(page: Page, a
           const footprint = document.querySelector(".dashboard-group-resize-footprint");
           return {
             originals: {
-              table: state('[data-panel-key="builder-table"]'),
+              table: state('[data-panel-key="builder-content"]'),
               menu: state('[data-panel-key="builder-menu"]'),
             },
             blocker: state('[data-panel-key="builder-notes"]'),
@@ -3567,7 +4067,7 @@ def test_group_resize_composite_footprint_pushes_surrounding_items(page: Page, a
     page.mouse.up()
     page.wait_for_timeout(360)
     after = {
-        "table": grid_item_state(page, '[data-panel-key="builder-table"]'),
+        "table": grid_item_state(page, '[data-panel-key="builder-content"]'),
         "menu": grid_item_state(page, '[data-panel-key="builder-menu"]'),
         "blocker": grid_item_state(page, '[data-panel-key="builder-notes"]'),
     }
@@ -3608,7 +4108,7 @@ def test_group_resize_preserves_stacked_panel_spacing(page: Page, app_server: st
           });
           place(document.querySelector('[data-panel-key="builder-menu"]'), 1, 4, 2, 2);
           place(document.querySelector('[data-panel-key="builder-notes"]'), 1, 7, 2, 2);
-          place(document.querySelector('[data-panel-key="builder-table"]'), 1, 10, 2, 2);
+          place(document.querySelector('[data-panel-key="builder-content"]'), 1, 10, 2, 2);
         }
         """
     )
@@ -3616,7 +4116,7 @@ def test_group_resize_preserves_stacked_panel_spacing(page: Page, app_server: st
     page.locator(".layout-group-button").click()
     menu = page.locator('[data-panel-key="builder-menu"]')
     notes = page.locator('[data-panel-key="builder-notes"]')
-    table = page.locator('[data-panel-key="builder-table"]')
+    table = page.locator('[data-panel-key="builder-content"]')
     menu.click(position={"x": 20, "y": 20})
     notes.click(position={"x": 20, "y": 20})
     table.click(position={"x": 20, "y": 20})
@@ -3625,8 +4125,8 @@ def test_group_resize_preserves_stacked_panel_spacing(page: Page, app_server: st
     before = page.evaluate(
         """
         () => {
-          const rows = ["builder-menu", "builder-notes", "builder-table"].map((key) => Number(document.querySelector(`[data-panel-key="${key}"]`).dataset.gridRow));
-          const tops = ["builder-menu", "builder-notes", "builder-table"].map((key) => document.querySelector(`[data-panel-key="${key}"]`).getBoundingClientRect().top);
+          const rows = ["builder-menu", "builder-notes", "builder-content"].map((key) => Number(document.querySelector(`[data-panel-key="${key}"]`).dataset.gridRow));
+          const tops = ["builder-menu", "builder-notes", "builder-content"].map((key) => document.querySelector(`[data-panel-key="${key}"]`).getBoundingClientRect().top);
           return { rows, tops, rowGaps: [rows[1] - rows[0], rows[2] - rows[1]], topGaps: [tops[1] - tops[0], tops[2] - tops[1]] };
         }
         """
@@ -3644,7 +4144,7 @@ def test_group_resize_preserves_stacked_panel_spacing(page: Page, app_server: st
     during = page.evaluate(
         """
         () => {
-          const originalRows = ["builder-menu", "builder-notes", "builder-table"].map((key) => Number(document.querySelector(`[data-panel-key="${key}"]`).dataset.gridRow));
+          const originalRows = ["builder-menu", "builder-notes", "builder-content"].map((key) => Number(document.querySelector(`[data-panel-key="${key}"]`).dataset.gridRow));
           const previewRows = [...document.querySelectorAll(".dashboard-group-member-preview")]
             .sort((a, b) => Number(a.dataset.gridRow) - Number(b.dataset.gridRow))
             .map((node) => Number(node.dataset.gridRow));
@@ -3673,7 +4173,7 @@ def test_group_resize_preserves_stacked_panel_spacing(page: Page, app_server: st
     page.wait_for_timeout(360)
     after_rows = page.evaluate(
         """
-        () => ["builder-menu", "builder-notes", "builder-table"].map((key) => Number(document.querySelector(`[data-panel-key="${key}"]`).dataset.gridRow))
+        () => ["builder-menu", "builder-notes", "builder-content"].map((key) => Number(document.querySelector(`[data-panel-key="${key}"]`).dataset.gridRow))
         """
     )
     assert [after_rows[1] - after_rows[0], after_rows[2] - after_rows[1]] == before["rowGaps"]
@@ -3726,7 +4226,7 @@ def test_layout_save_load_round_trips_exact_item_state(page: Page, app_server: s
           setPinned(widgets.E, true);
 
           const panels = {
-            table: panelLayout.querySelector('[data-panel-key="builder-table"]'),
+            table: panelLayout.querySelector('[data-panel-key="builder-content"]'),
             menu: panelLayout.querySelector('[data-panel-key="builder-menu"]'),
             notes: panelLayout.querySelector('[data-panel-key="builder-notes"]'),
           };

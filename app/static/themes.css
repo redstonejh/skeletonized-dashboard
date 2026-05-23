@@ -5302,6 +5302,17 @@ html[data-theme="dark"] .empty-state {
     inset 0 1px 0 rgba(255, 255, 255, .045);
 }
 
+html[data-theme="dark"] .panel-empty-action {
+  border-color: rgba(92, 107, 131, .46);
+  background:
+    linear-gradient(180deg, rgba(27, 40, 60, .78), rgba(15, 24, 40, .82)),
+    var(--glass-surface);
+  color: color-mix(in srgb, var(--ink) 84%, #f8fafc);
+  box-shadow:
+    0 10px 24px rgba(0, 0, 0, .24),
+    inset 0 1px 0 rgba(255, 255, 255, .055);
+}
+
 html[data-theme="dark"] .timeframe-command-surface,
 html[data-theme="dark"] .timeframe-presets,
 html[data-theme="dark"] .timeframe-active-cluster,

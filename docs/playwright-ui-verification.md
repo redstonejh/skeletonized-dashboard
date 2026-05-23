@@ -164,6 +164,35 @@ Standards:
 - Hover-only controls should not activate underneath active drag or resize.
 - The user should be able to distinguish the freeform visual preview from the snapped grid result.
 
+## Performance Verification
+
+Performance regressions are interaction regressions when they make drag, resize, group movement, expand/collapse, or navigation feel delayed, jittery, or visually unstable.
+
+Before optimizing, measure the current behavior. Useful local checks include:
+
+- Frame cadence during drag.
+- Frame cadence during resize.
+- Frame cadence during grouped drag and grouped resize.
+- Geometry read counts during pointermove.
+- Computed-style read counts during pointermove.
+- DOM mutation churn during live interactions.
+- Cleanup of ghost, preview, source, active, and body state classes after release/cancel.
+- Slowest Playwright tests with `--durations=10`.
+
+Performance changes must preserve:
+
+- Live visual ghost or clone following the pointer.
+- Independent snapped footprint preview.
+- Grid-aligned final commit.
+- Composite group behavior.
+- Local expand/collapse pushdown and restoration.
+- Left-edge resize anchoring.
+- Existing visual polish unless a measured paint cost justifies a subtle cheaper equivalent.
+
+Prefer cleanup and bounded-work assertions over brittle frame-budget tests. Do not add hard FPS thresholds unless they are stable across development machines and CI.
+
+See `docs/performance-stabilization-plan.md` for the current stabilization roadmap.
+
 ## Required Playwright Tests
 
 Required examples for interaction-sensitive changes:

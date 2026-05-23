@@ -55,7 +55,6 @@
         <button class="widget-add-action" type="button" data-widget-target="builder" data-widget-kind="calendar">Calendar</button>
         <span class="panel-add-menu-label">Panels</span>
         <button class="panel-add-action" type="button" data-layout-target="builder" data-panel-kind="panel">Panel</button>
-        <button class="panel-add-action" type="button" data-layout-target="builder" data-panel-kind="context-panel">Context Panel</button>
       </div>
       </div>
     </div>
@@ -164,33 +163,18 @@
   </div>
 
   <div class="panel-layout" data-layout-key="builder">
-    <section class="db-panel" data-panel-key="builder-table" data-default-span="3" data-default-title="Table">
+    <section class="db-panel" data-panel-key="builder-content" data-default-span="3" data-default-title="Content">
       <div class="db-panel-hd db-panel-hd-items">
-        <span class="db-panel-title">Table</span>
+        <span class="db-panel-title">Content</span>
         <span class="db-panel-count">0</span>
         {{ panel_tools("#2563eb") }}
       </div>
       <div class="db-panel-body">
-        <table class="al-table builder-table">
-          <thead>
-            <tr>
-              <th>Name</th>
-              <th>Type</th>
-              <th>Value</th>
-              <th>State</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td colspan="4" class="al-empty">
-                <div class="empty-state empty-state-table">
-                  <strong>Empty table</strong>
-                  <small>Add rows or replace this placeholder with your own dashboard content.</small>
-                </div>
-              </td>
-            </tr>
-          </tbody>
-        </table>
+        <div class="empty-state panel-empty-state" data-panel-placeholder="empty">
+          <strong>Empty panel</strong>
+          <small>Widgets will appear here when this panel is configured.</small>
+          <span class="panel-empty-action" aria-hidden="true">Add widgets</span>
+        </div>
       </div>
     </section>
 
@@ -200,10 +184,11 @@
         <span class="db-panel-count">0</span>
         {{ panel_tools("#16a34a") }}
       </div>
-      <div class="db-panel-body esc-feed esc-timeline-empty">
-        <div class="empty-state esc-empty">
-          <strong>Empty menu</strong>
-          <small>Use this panel as a placeholder for links, actions, or grouped controls.</small>
+      <div class="db-panel-body">
+        <div class="empty-state panel-empty-state" data-panel-placeholder="empty">
+          <strong>Empty panel</strong>
+          <small>Widgets will appear here when this panel is configured.</small>
+          <span class="panel-empty-action" aria-hidden="true">Add widgets</span>
         </div>
       </div>
     </section>
@@ -215,9 +200,10 @@
         {{ panel_tools("#9333ea") }}
       </div>
       <div class="db-panel-body">
-        <div class="empty-state panel-empty-state">
+        <div class="empty-state panel-empty-state" data-panel-placeholder="empty">
           <strong>Empty panel</strong>
-          <small>Rename, resize, recolor, move, pin, collapse, or delete panels from the built-in controls.</small>
+          <small>Widgets will appear here when this panel is configured.</small>
+          <span class="panel-empty-action" aria-hidden="true">Add widgets</span>
         </div>
       </div>
     </section>
