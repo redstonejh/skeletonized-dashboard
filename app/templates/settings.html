@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block content %}
+<header class="app-nav settings-nav">
+  <div class="app-nav-brand-group">
+    <a class="settings-brand-switch" href="/dashboard" aria-label="Dashboard">Dashboard</a>
+    <div>
+      <strong>Settings</strong>
+      <small>Dashboard builder</small>
+    </div>
+  </div>
+  <div class="app-nav-actions">
+    <button class="theme-toggle" type="button" aria-label="Switch dashboard theme" title="Toggle dark mode">
+      <span class="theme-icon theme-icon-day" aria-hidden="true">☀</span>
+      <span class="theme-icon theme-icon-night" aria-hidden="true">☾</span>
+    </button>
+    <a class="cmd-btn" id="settings-dashboard-btn" data-href="/dashboard" href="/dashboard">Dashboard</a>
+  </div>
+</header>
+
+{% if request.query_params.get("saved") %}
+  <p class="sync-note">Settings saved.</p>
+{% endif %}
+
+<form class="settings-form clean-settings-form" id="settings-form" method="post" action="/settings">
+  <section class="form-section">
+    <div class="section-heading">
+      <h2>Workspace</h2>
+      <p>These labels are intentionally generic. Dashboard content is created and arranged from the builder UI.</p>
+    </div>
+    <div class="form-grid">
+      <label class="fl-wrap">
+        <input name="title" value="{{ dashboard.title }}" placeholder=" " autocomplete="off">
+        <span class="fl-lbl">Dashboard title</span>
+      </label>
+      <label class="fl-wrap full-span">
+        <input name="description" value="{{ dashboard.description }}" placeholder=" " autocomplete="off">
+        <span class="fl-lbl">Description</span>
+      </label>
+    </div>
+  </section>
+
+  <div class="settings-save-bar">
+    <span id="settings-dirty-note">Changes are saved to the local dashboard database.</span>
+    <button class="cmd-btn" id="settings-save-btn" type="submit">Save settings</button>
+  </div>
+</form>
+{% endblock %}

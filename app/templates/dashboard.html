@@ -1,0 +1,159 @@
+{% extends "base.html" %}
+{% block content %}
+{% macro panel_tools(color) -%}
+  <div class="panel-tools">
+    <div class="panel-tool-drawer" aria-label="Panel tools">
+      <button class="panel-tool-button panel-move-handle" type="button" aria-label="Move panel" title="Move panel"><span class="move-icon" aria-hidden="true"></span></button>
+      <button class="panel-tool-button panel-resize-handle" type="button" aria-label="Resize panel" title="Resize panel"><span class="resize-icon" aria-hidden="true"></span></button>
+      <button class="panel-tool-button panel-pin-toggle" type="button" aria-label="Pin panel" aria-pressed="false" title="Pin panel"><span class="pin-icon" aria-hidden="true"></span></button>
+      <button class="panel-tool-button panel-title-handle" type="button" aria-label="Rename panel" title="Rename panel"><span class="text-icon" aria-hidden="true"></span></button>
+      <button class="panel-tool-button panel-color-toggle" type="button" aria-label="Panel colors" aria-expanded="false" title="Panel colors" data-default-theme="{{ color }}"><span class="color-icon" aria-hidden="true"></span></button>
+    </div>
+    <button class="panel-settings-toggle" type="button" aria-label="Panel settings" aria-expanded="false" title="Panel settings"><span class="settings-icon" aria-hidden="true"></span></button>
+  </div>
+{%- endmacro %}
+
+<header class="app-nav">
+  <div class="app-nav-brand-group">
+    <div class="dash-switcher">
+      <button class="dash-switch-btn dash-switch-hero" type="button" id="dash-switcher-toggle" aria-haspopup="true" aria-expanded="false">
+        {{ dashboard.title }} <span class="dash-switch-arrow" aria-hidden="true">▾</span>
+      </button>
+      <div class="dash-switch-menu" id="dash-switch-menu">
+        <a class="dash-switch-opt dash-switch-opt-active" href="/dashboard" aria-current="page">
+          <span><strong>{{ dashboard.title }}</strong><small>Builder workspace</small></span>
+        </a>
+      </div>
+    </div>
+  </div>
+  <div class="app-nav-status" aria-label="Dashboard controls">
+    <div class="layout-slot-controls" aria-label="Layout save slots">
+      <div class="layout-slot-picker" data-layout-target="builder">
+        <button class="layout-slot-trigger" type="button" data-current-slot="1" aria-haspopup="true" aria-expanded="false">Layout 1</button>
+        <div class="layout-slot-menu" role="menu">
+          {% for slot in range(1, 11) %}<button type="button" role="menuitem" data-slot="{{ slot }}">Layout {{ slot }}</button>{% endfor %}
+        </div>
+      </div>
+      <button class="layout-slot-button layout-save-button" type="button" data-layout-target="builder">Save</button>
+      <button class="layout-slot-button layout-load-button" type="button" data-layout-target="builder">Load</button>
+    </div>
+    <div class="panel-add-picker" data-layout-target="builder">
+      <button class="panel-add-button" type="button" aria-label="Panel actions" aria-haspopup="true" aria-expanded="false" title="Panel actions">+</button>
+      <div class="panel-add-menu">
+        <button class="panel-add-action" type="button" data-layout-target="builder">Add panel</button>
+        <button class="widget-add-action" type="button" data-widget-target="builder">Add widget</button>
+      </div>
+    </div>
+    <button class="panel-reset-button" type="button" data-layout-target="builder" aria-label="Reset panel layout" title="Reset panel layout">Default</button>
+    <button class="panel-undo-button" type="button" data-layout-target="builder" aria-label="Undo last layout change" title="Undo last layout change">Undo</button>
+    <button class="layout-slot-button layout-group-button" type="button" data-layout-target="builder" aria-pressed="false" title="Select widgets or panels as a group">Group</button>
+    <details class="nav-status-menu">
+      <summary class="nav-status-item nav-status-icon-only nav-status-good" aria-label="Workspace ready" title="Workspace ready">
+        <span class="nav-icon nav-icon-sync" aria-hidden="true"></span>
+      </summary>
+      <div class="nav-status-popover">
+        <strong>Workspace</strong>
+        <dl>
+          <div><dt>Status</dt><dd>Ready</dd></div>
+          <div><dt>Panels</dt><dd>{{ panels | length }}</dd></div>
+          <div><dt>Widgets</dt><dd>{{ widgets | length }}</dd></div>
+        </dl>
+      </div>
+    </details>
+  </div>
+  <div class="app-nav-actions">
+    <button class="theme-toggle" type="button" aria-label="Switch dashboard theme" title="Toggle dark mode">
+      <span class="theme-icon theme-icon-day" aria-hidden="true">☀</span>
+      <span class="theme-icon theme-icon-night" aria-hidden="true">☾</span>
+    </button>
+    <a class="cmd-btn cmd-btn-icon-only" href="/settings" aria-label="Configure" title="Configure"><span class="btn-icon btn-icon-settings" aria-hidden="true"></span></a>
+  </div>
+</header>
+
+<div class="dashboard-layout-grid" data-dashboard-layout-key="builder">
+  <div class="stat-band widget-layout" data-widget-layout-key="builder">
+    <nav class="range-bar widget-card" data-widget-key="builder-search" data-widget-type="controls" data-default-span="6" aria-label="Dashboard search">
+      <div class="range-controls">
+        <div class="range-presets">
+          <a class="preset-btn active" href="/dashboard">All</a>
+          <a class="preset-btn" href="/dashboard">View</a>
+          <a class="preset-btn" href="/dashboard">Edit</a>
+        </div>
+      </div>
+      <form class="range-search" action="/dashboard" method="get" role="search">
+        <input class="range-search-input" type="search" name="q" value="{{ search_query }}" placeholder=" " aria-label="Search dashboard">
+        <span class="range-search-label">Search dashboard</span>
+        {% if search_query %}
+          <a class="range-search-clear" href="/dashboard" aria-label="Clear search">Clear</a>
+        {% endif %}
+      </form>
+    </nav>
+    {% for widget in widgets if widget.widget_type != "controls" %}
+    <a class="stat-card widget-card" data-widget-key="{{ widget.key }}" data-widget-type="{{ widget.widget_type }}" data-default-span="{{ widget.span }}" data-default-title="{{ widget.title }}" href="/dashboard">
+      <span class="stat-val">{{ widget.value }}</span>
+      <span class="stat-lbl">{{ widget.title }}</span>
+    </a>
+    {% endfor %}
+  </div>
+
+  <div class="panel-layout" data-layout-key="builder">
+    <section class="db-panel" data-panel-key="builder-table" data-default-span="3" data-default-title="Table">
+      <div class="db-panel-hd db-panel-hd-items">
+        <span class="db-panel-title">Table</span>
+        <span class="db-panel-count">0</span>
+        {{ panel_tools("#2563eb") }}
+      </div>
+      <div class="db-panel-body">
+        <table class="al-table builder-table">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Type</th>
+              <th>Value</th>
+              <th>State</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td colspan="4" class="al-empty">
+                <div class="empty-state empty-state-table">
+                  <strong>Empty table</strong>
+                  <small>Add rows or replace this placeholder with your own dashboard content.</small>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="db-panel db-panel-collapsed" data-collapse-default="closed" data-panel-key="builder-menu" data-default-span="2" data-default-title="Menu">
+      <div class="db-panel-hd db-panel-hd-menu">
+        <span class="db-panel-title">Menu</span>
+        <span class="db-panel-count">0</span>
+        {{ panel_tools("#16a34a") }}
+      </div>
+      <div class="db-panel-body esc-feed esc-timeline-empty">
+        <div class="empty-state esc-empty">
+          <strong>Empty menu</strong>
+          <small>Use this panel as a placeholder for links, actions, or grouped controls.</small>
+        </div>
+      </div>
+    </section>
+
+    <section class="db-panel" data-panel-key="builder-notes" data-default-span="1" data-default-title="Notes">
+      <div class="db-panel-hd db-panel-hd-notes">
+        <span class="db-panel-title">Notes</span>
+        <span class="db-panel-count">0</span>
+        {{ panel_tools("#9333ea") }}
+      </div>
+      <div class="db-panel-body">
+        <div class="empty-state panel-empty-state">
+          <strong>Empty panel</strong>
+          <small>Rename, resize, recolor, move, pin, collapse, or delete panels from the built-in controls.</small>
+        </div>
+      </div>
+    </section>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Configurable Dashboard Builder</title>
+  <script>
+    (() => {
+      try {
+        const theme = localStorage.getItem("dashboard-theme");
+        if (theme === "dark") document.documentElement.dataset.theme = "dark";
+      } catch {}
+    })();
+  </script>
+  <link rel="stylesheet" href="/static/style.css?v=dashboard-builder">
+</head>
+<body>
+  <main class="page">
+    {% if error %}
+      <section class="notice error">{{ error }}</section>
+    {% endif %}
+    {% block content %}{% endblock %}
+  </main>
+  <dialog class="confirm-dialog" id="panel-delete-dialog" aria-labelledby="panel-delete-title">
+    <div class="confirm-dialog-head">
+      <span>Confirm action</span>
+      <button type="button" class="confirm-dialog-close" aria-label="Cancel deletion">x</button>
+    </div>
+    <strong id="panel-delete-title">Delete item?</strong>
+    <p id="panel-delete-message">Are you sure you want to delete this item?</p>
+    <div class="confirm-dialog-actions">
+      <button type="button" class="confirm-dialog-btn confirm-dialog-cancel">Cancel</button>
+      <button type="button" class="confirm-dialog-btn confirm-dialog-danger">Delete</button>
+    </div>
+  </dialog>
+  <div class="toast-stack" aria-live="polite" aria-atomic="true"></div>
+  <script src="/static/app.js?v=dashboard-builder"></script>
+</body>
+</html>
