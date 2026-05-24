@@ -643,6 +643,8 @@ Purpose:
 
 Architecture concerns:
 
+- Minimum footprints should be based on the smallest usable adaptive layout, not the most spacious visual state.
+- Dense widgets should exhaust compact spacing, adaptive padding, intelligent wrapping, and condensed control modes before escalating their required grid span.
 - Density changes must not shift controls unexpectedly.
 - Header/control geometry should remain stable unless intentionally designed.
 - Density state should not corrupt saved layout.

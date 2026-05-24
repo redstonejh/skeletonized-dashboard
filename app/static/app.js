@@ -770,7 +770,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const gridItemMinimumSpan = (item) => {
     const explicit = Number(item?.dataset?.minW || item?.dataset?.minSpan);
     if (Number.isFinite(explicit) && explicit > 0) return Math.max(1, Math.min(6, Math.ceil(explicit)));
-    if (item?.dataset?.widgetType === "controls" || item?.classList?.contains("timeframe-widget")) return 4;
+    if (item?.dataset?.widgetType === "controls" || item?.classList?.contains("timeframe-widget")) return 3;
     return 1;
   };
 
@@ -1493,47 +1493,121 @@ document.addEventListener("DOMContentLoaded", () => {
 
   let activeInteractionAutoScroll = null;
 
-  const beginInteractionAutoScroll = ({ onScrollFrame } = {}) => {
+  const beginInteractionAutoScroll = ({ layout = null, onScrollFrame } = {}) => {
     activeInteractionAutoScroll?.stop();
-    const edgeZone = 92;
+    const edgeZone = 104;
+    const edgeDeadZone = 22;
     const prefersReducedMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
-    const maxVelocity = prefersReducedMotion ? 9 : 22;
-    const minVelocity = prefersReducedMotion ? 1.5 : 2.5;
+    const maxVelocity = prefersReducedMotion ? 120 : 280;
+    const minVelocity = prefersReducedMotion ? 8 : 18;
     const startScrollY = window.scrollY || document.documentElement.scrollTop || 0;
     let frame = null;
+    let startTimer = null;
+    let lastFrameTime = 0;
     let stopped = false;
     let lastClientX = 0;
     let lastClientY = 0;
     let lastEvent = null;
+    let extensionHeight = 0;
+    let extensionTargetHeight = 0;
+    let originalBodyPaddingBottom = null;
+    const host = layout ? gridHostForLayout(layout) : null;
+    const originalRootOverflowAnchor = document.documentElement.style.overflowAnchor || "";
+    const originalBodyOverflowAnchor = document.body.style.overflowAnchor || "";
+    const originalHostOverflowAnchor = host?.style?.overflowAnchor || "";
+    document.documentElement.style.overflowAnchor = "none";
+    document.body.style.overflowAnchor = "none";
+    if (host?.style) host.style.overflowAnchor = "none";
 
     const maxScrollY = () => Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
+    const edgePressure = (distance) => {
+      if (distance >= edgeZone) return 0;
+      const activeRange = Math.max(1, edgeZone - edgeDeadZone);
+      return Math.max(0, Math.min(1, (edgeZone - distance) / activeRange));
+    };
+    const bottomEdgePressure = () => edgePressure(window.innerHeight - lastClientY);
+    const hasEdgePressure = () => (lastClientY < edgeZone && window.scrollY > 0) || bottomEdgePressure() > 0;
     const velocityForPointer = () => {
       if (lastClientY < edgeZone && window.scrollY > 0) {
-        const ratio = Math.max(0, Math.min(1, (edgeZone - lastClientY) / edgeZone));
-        return -(minVelocity + ((maxVelocity - minVelocity) * ratio * ratio));
+        const pressure = edgePressure(lastClientY);
+        if (!pressure) return 0;
+        return -(minVelocity + ((maxVelocity - minVelocity) * pressure * pressure * pressure));
       }
       const bottomDistance = window.innerHeight - lastClientY;
       if (bottomDistance < edgeZone && window.scrollY < maxScrollY() - 1) {
-        const ratio = Math.max(0, Math.min(1, (edgeZone - bottomDistance) / edgeZone));
-        return minVelocity + ((maxVelocity - minVelocity) * ratio * ratio);
+        const pressure = edgePressure(bottomDistance);
+        if (!pressure) return 0;
+        return minVelocity + ((maxVelocity - minVelocity) * pressure * pressure * pressure);
       }
       return 0;
     };
+    const ensureExtension = (deltaMs = 16.7) => {
+      const bottomDistance = window.innerHeight - lastClientY;
+      const pressure = edgePressure(bottomDistance);
+      if (!pressure) return;
+      if (originalBodyPaddingBottom == null) {
+        originalBodyPaddingBottom = document.body.style.paddingBottom || "";
+        document.body.classList.add("dashboard-interaction-scroll-extended");
+      }
+      const remaining = Math.max(0, document.documentElement.scrollHeight - (window.scrollY + window.innerHeight));
+      const desiredRunway = Math.round(window.innerHeight * (.55 + (.85 * pressure)));
+      if (remaining < desiredRunway) {
+        extensionTargetHeight = Math.max(extensionTargetHeight, extensionHeight + (desiredRunway - remaining));
+      }
+      if (extensionTargetHeight <= extensionHeight) return;
+      const growRate = prefersReducedMotion ? 900 : 1200;
+      const maxStep = Math.max(12, growRate * (Math.max(8, Math.min(50, deltaMs)) / 1000));
+      extensionHeight = Math.min(extensionTargetHeight, extensionHeight + maxStep);
+      document.body.style.paddingBottom = `${Math.ceil(extensionHeight)}px`;
+    };
     const stopFrame = () => {
       if (frame != null) window.cancelAnimationFrame(frame);
+      if (startTimer != null) window.clearTimeout(startTimer);
       frame = null;
+      startTimer = null;
       document.body.classList.remove("dashboard-auto-scroll-active");
     };
-    const tick = () => {
+    const removeExtension = () => {
+      if (originalBodyPaddingBottom) {
+        document.body.style.paddingBottom = originalBodyPaddingBottom;
+      } else {
+        document.body.style.removeProperty("padding-bottom");
+      }
+      document.body.classList.remove("dashboard-interaction-scroll-extended");
+      extensionHeight = 0;
+      extensionTargetHeight = 0;
+      originalBodyPaddingBottom = null;
+      if (originalRootOverflowAnchor) {
+        document.documentElement.style.overflowAnchor = originalRootOverflowAnchor;
+      } else {
+        document.documentElement.style.removeProperty("overflow-anchor");
+      }
+      if (originalBodyOverflowAnchor) {
+        document.body.style.overflowAnchor = originalBodyOverflowAnchor;
+      } else {
+        document.body.style.removeProperty("overflow-anchor");
+      }
+      if (host?.style) {
+        if (originalHostOverflowAnchor) {
+          host.style.overflowAnchor = originalHostOverflowAnchor;
+        } else {
+          host.style.removeProperty("overflow-anchor");
+        }
+      }
+    };
+    const tick = (frameTime = performance.now()) => {
       frame = null;
       if (stopped) return;
+      const deltaMs = lastFrameTime ? Math.min(50, Math.max(8, frameTime - lastFrameTime)) : 16.7;
+      lastFrameTime = frameTime;
+      ensureExtension(deltaMs);
       const velocity = velocityForPointer();
       if (!velocity) {
         stopFrame();
         return;
       }
       const before = window.scrollY || document.documentElement.scrollTop || 0;
-      window.scrollBy(0, velocity);
+      window.scrollBy(0, velocity * (deltaMs / 1000));
       const after = window.scrollY || document.documentElement.scrollTop || 0;
       if (Math.abs(after - before) > 0.1) {
         onScrollFrame?.(lastEvent, {
@@ -1548,17 +1622,26 @@ document.addEventListener("DOMContentLoaded", () => {
         document.body.classList.add("dashboard-auto-scroll-active");
         frame = window.requestAnimationFrame(tick);
       } else {
+        lastFrameTime = 0;
         stopFrame();
       }
     };
     const ensureFrame = () => {
-      if (frame != null || stopped) return;
-      if (!velocityForPointer()) {
+      if (frame != null || startTimer != null || stopped) return;
+      if (!velocityForPointer() && !hasEdgePressure()) {
         stopFrame();
         return;
       }
-      document.body.classList.add("dashboard-auto-scroll-active");
-      frame = window.requestAnimationFrame(tick);
+      startTimer = window.setTimeout(() => {
+        startTimer = null;
+        if (stopped || (!velocityForPointer() && !hasEdgePressure())) {
+          stopFrame();
+          return;
+        }
+        document.body.classList.add("dashboard-auto-scroll-active");
+        lastFrameTime = 0;
+        frame = window.requestAnimationFrame(tick);
+      }, 90);
     };
     const controller = {
       update(event) {
@@ -1571,6 +1654,7 @@ document.addEventListener("DOMContentLoaded", () => {
       stop() {
         stopped = true;
         stopFrame();
+        removeExtension();
         if (activeInteractionAutoScroll === controller) activeInteractionAutoScroll = null;
       },
     };
@@ -1580,11 +1664,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
   let activeResizeLifecycle = null;
 
-  const beginResizeLifecycle = ({ event, source, onMove, onEnd, onCleanup }) => {
+  const beginResizeLifecycle = ({ event, source, layout = null, onMove, onEnd, onCleanup }) => {
     activeResizeLifecycle?.cancel();
     let ended = false;
     let lastMoveEvent = event;
     const autoScroll = beginInteractionAutoScroll({
+      layout,
       onScrollFrame: (scrollEvent) => {
         if (ended || !lastMoveEvent) return;
         try {
@@ -2504,6 +2589,61 @@ document.addEventListener("DOMContentLoaded", () => {
     return { bounds: activeBounds, movedItems };
   };
 
+  const verticalSlotAtOrAfter = (item, preferred, occupied, rowLimit = null) => {
+    const base = boundsAtGridSlot(item, preferred?.col || 1, preferred?.row || 1);
+    const maxOccupiedRow = occupied.reduce((max, entry) => Math.max(max, entry.bounds.bottom), base.row);
+    const limit = Math.max(base.row + 80, maxOccupiedRow + 40, rowLimit || 0);
+    for (let row = base.row; row <= limit; row += 1) {
+      const candidate = boundsAtGridSlot(item, base.col, row);
+      if (canPlaceBounds(candidate, occupied)) return candidate;
+    }
+    return null;
+  };
+
+  const panelAddTarget = (layout, panel) => {
+    const panels = visualGridOrder(
+      [...layout.querySelectorAll(":scope > .db-panel:not([hidden])")]
+        .filter((item) => item !== panel && !item.classList.contains("db-panel-placeholder"))
+    );
+    if (!panels.length) {
+      return { col: 1, row: orderedLayoutStartRow(layout) };
+    }
+    const anchor = gridBoundsForItem(panels[panels.length - 1]);
+    if (anchor.right < DASHBOARD_GRID_COLUMNS) {
+      return { col: anchor.right + 1, row: anchor.row };
+    }
+    return { col: 1, row: anchor.bottom + 1 };
+  };
+
+  const commitInsertedGridItemWithVerticalPushdown = (layout, item, preferredTarget = null) => {
+    const allItems = globalGridItems(layout, { includePlaceholders: false, exclude: [item] });
+    const pinnedItems = allItems.filter((other) => other.classList.contains("db-panel-pinned"));
+    let fixedEntries = allItems.map((other) => ({ item: other, bounds: gridBoundsForItem(other) }));
+    const pinnedEntries = fixedEntries.filter((entry) => pinnedItems.includes(entry.item));
+    const target = preferredTarget || gridBoundsForItem(item);
+    let activeBounds = boundsAtGridSlot(item, target.col, target.row);
+    if (!canPlaceBounds(activeBounds, pinnedEntries)) {
+      activeBounds = nearestSparseSlotAtOrAfter(item, activeBounds, pinnedEntries);
+    }
+    applyGridItemPosition(item, activeBounds.col, activeBounds.row);
+
+    let movedItems = 0;
+    const movedEntries = [];
+    visualGridOrder(allItems.filter((other) => !pinnedItems.includes(other))).forEach((other) => {
+      const currentEntry = fixedEntries.find((entry) => entry.item === other);
+      if (!currentEntry || !gridBoundsOverlap(activeBounds, currentEntry.bounds)) return;
+      fixedEntries = fixedEntries.filter((entry) => entry.item !== other);
+      const occupied = [{ item, bounds: activeBounds }, ...fixedEntries, ...movedEntries];
+      const next = verticalSlotAtOrAfter(other, currentEntry.bounds, occupied) ||
+        nearestSparseSlotAtOrAfter(other, currentEntry.bounds, occupied);
+      if (next.col !== currentEntry.bounds.col || next.row !== currentEntry.bounds.row) movedItems += 1;
+      applyGridItemPosition(other, next.col, next.row);
+      movedEntries.push({ item: other, bounds: next });
+    });
+
+    return { bounds: activeBounds, movedItems };
+  };
+
   const groupEntriesFit = (entries, deltaCol, deltaRow, occupied) => {
     const nextBounds = entries.map((entry) => {
       const col = entry.startBounds.col + deltaCol;
@@ -2757,6 +2897,7 @@ document.addEventListener("DOMContentLoaded", () => {
     };
     let lastMoveEvent = event;
     const autoScroll = beginInteractionAutoScroll({
+      layout,
       onScrollFrame: (scrollEvent) => {
         if (!dragging || !lastMoveEvent) return;
         try {
@@ -3373,6 +3514,7 @@ document.addEventListener("DOMContentLoaded", () => {
     beginResizeLifecycle({
       event,
       source,
+      layout,
       onMove,
       onEnd: finishResize,
       onCleanup: () => {
@@ -3794,6 +3936,7 @@ document.addEventListener("DOMContentLoaded", () => {
         beginResizeLifecycle({
           event,
           source: widget,
+          layout,
           onMove,
           onEnd: finishWidgetResize,
           onCleanup: () => {
@@ -4328,6 +4471,7 @@ document.addEventListener("DOMContentLoaded", () => {
         beginResizeLifecycle({
           event,
           source: panel,
+          layout,
           onMove: onResizeMove,
           onEnd: finishPanelResize,
           onCleanup: () => {
@@ -4636,6 +4780,7 @@ document.addEventListener("DOMContentLoaded", () => {
       if (!layout) return;
       const selected = getActivePanelProfile(layoutKey);
       savePanelLayouts(layout, selected);
+      syncDefaultDashboardGrid(layoutKey);
       layout.querySelectorAll(":scope > .db-panel").forEach(syncPanelMinimumWidth);
       const used = new Set(
         [...layout.querySelectorAll(":scope > .db-panel")]
@@ -4658,7 +4803,12 @@ document.addEventListener("DOMContentLoaded", () => {
       applyPanelSpan(panel, 1);
       applyPanelColor(panel, nextColor);
       applyPanelTitleColor(panel, "#ffffff");
-      animatePanelReflow(layout, () => layout.appendChild(panel));
+      const target = panelAddTarget(layout, panel);
+      applyPanelGridPosition(panel, target.col, target.row);
+      animatePanelReflow(layout, () => {
+        layout.appendChild(panel);
+        commitInsertedGridItemWithVerticalPushdown(layout, panel, target);
+      });
       layout.__initPanel?.(panel);
       savePanelLayouts(layout, selected);
       showToast(`${title} added.`);

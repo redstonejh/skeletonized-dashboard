@@ -318,11 +318,15 @@ Design:
 
 - Pointermove handlers update the helper with the latest viewport pointer position.
 - The helper computes vertical scroll velocity from pointer distance to the top or bottom viewport edge.
-- Velocity increases gradually closer to the edge.
-- The helper only writes `window.scrollBy(0, velocity)` inside animation frames.
+- Velocity increases gradually closer to the edge with a cubic ramp and a short dwell before scrolling starts.
+- Velocity is time-based, not frame-count based, so headless or high-refresh browsers cannot turn the loop into runaway page movement.
+- The helper only writes `window.scrollBy(0, velocity * deltaTime)` inside animation frames.
 - A transient `dashboard-auto-scroll-active` body class exists only while the scroll loop is running.
+- A transient `dashboard-interaction-scroll-extended` body class and temporary body padding create a removable workspace runway while dragging/resizing near the bottom edge.
+- The runway grows toward a target height in bounded requestAnimationFrame increments, so scrollable space expands in pixels instead of appearing as one large row-sized jump.
+- Scroll anchoring is disabled only during the active interaction on the root, body, and active dashboard host so placeholder/reflow movement does not cause browser-driven scroll jumps.
 - Reduced-motion users receive a lower maximum velocity.
-- Cleanup is owned by the drag and resize interaction lifecycles and runs on pointerup, pointercancel, Escape/window blur where those lifecycle paths exist, and cancellation/error cleanup.
+- Cleanup is owned by the drag and resize interaction lifecycles and runs on pointerup, pointercancel, Escape/window blur where those lifecycle paths exist, and cancellation/error cleanup. Cleanup removes the scroll loop, active classes, temporary padding, and overflow-anchor overrides.
 
 Behavior constraints:
 
@@ -330,11 +334,15 @@ Behavior constraints:
 - Drag paths continue to use the existing live ghost plus snapped footprint model.
 - Resize paths include scroll delta in their vertical resize math so bottom-edge auto-scroll expands into newly revealed dashboard space instead of freezing at the original viewport pointer delta.
 - Grid rects are still read through existing helpers, so scrolling naturally updates viewport-relative grid conversion without storing stale rects.
+- Temporary workspace extension is removed after interaction end; no permanent blank area is introduced unless the committed item layout itself creates it.
 - No save/load work runs during the auto-scroll loop.
 
 Regression coverage:
 
 - Widget drag bottom auto-scroll and top auto-scroll.
+- Deep widget drag into temporary workspace extension.
+- Smooth scroll/runway frame cadence during deep widget drag, panel resize, and group drag.
+- Panel drag bottom auto-scroll and runway cleanup.
 - Widget resize bottom auto-scroll.
 - Panel resize bottom auto-scroll.
 - Group drag bottom auto-scroll.

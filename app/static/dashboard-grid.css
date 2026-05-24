@@ -1425,7 +1425,7 @@ html[data-theme="dark"] .panel-color-label {
   --panel-header-min-height: var(--dashboard-grid-row-height, 81px);
   --panel-header-pad-y: 16px;
   --panel-header-pad-x: 20px;
-  --panel-header-gap: 9px;
+  --panel-header-gap: 12px;
   --panel-title-size: 18px;
   --panel-empty-pad-y: 14px;
   --panel-empty-pad-x: 14px;

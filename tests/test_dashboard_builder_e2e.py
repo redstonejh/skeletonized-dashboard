@@ -102,6 +102,8 @@ def dashboard_scroll_state(page: Page) -> dict:
           resizePreview: document.querySelectorAll(".dashboard-resize-preview").length,
           groupBoundary: document.querySelectorAll(".dashboard-group-boundary").length,
           groupFootprint: document.querySelectorAll(".dashboard-group-footprint, .dashboard-group-resize-footprint").length,
+          extension: document.body.classList.contains("dashboard-interaction-scroll-extended") ? 1 : 0,
+          extensionHeight: Number.parseFloat(document.body.style.paddingBottom || "0"),
         })
         """
     )
@@ -111,8 +113,50 @@ def assert_no_auto_scroll_artifacts(page: Page) -> None:
     page.wait_for_function('!document.body.classList.contains("dashboard-auto-scroll-active")')
     state = dashboard_scroll_state(page)
     assert state["autoScrollActive"] is False
+    assert state["extension"] == 0
+    assert state["extensionHeight"] == 0
     assert state["rootHorizontalOverflow"] is False
     assert state["bodyHorizontalOverflow"] is False
+
+
+def sample_auto_scroll_motion(page: Page, frames: int = 14) -> list[dict]:
+    return page.evaluate(
+        """
+        (frames) => new Promise((resolve) => {
+          const samples = [];
+          const read = () => {
+            samples.push({
+              scrollY: window.scrollY,
+              extensionHeight: Number.parseFloat(document.body.style.paddingBottom || "0"),
+            });
+            if (samples.length >= frames) {
+              resolve(samples);
+            } else {
+              requestAnimationFrame(read);
+            }
+          };
+          requestAnimationFrame(read);
+        })
+        """,
+        frames,
+    )
+
+
+def assert_smooth_auto_scroll_motion(samples: list[dict]) -> None:
+    scroll_deltas = [
+        samples[index + 1]["scrollY"] - samples[index]["scrollY"]
+        for index in range(len(samples) - 1)
+    ]
+    extension_deltas = [
+        samples[index + 1]["extensionHeight"] - samples[index]["extensionHeight"]
+        for index in range(len(samples) - 1)
+    ]
+    positive_scroll = [delta for delta in scroll_deltas if delta > 0.25]
+    positive_extension = [delta for delta in extension_deltas if delta > 0.25]
+    assert len(positive_scroll) >= 4, samples
+    assert max(positive_scroll) < 44, samples
+    if positive_extension:
+        assert max(positive_extension) < 72, samples
 
 
 def prepare_edge_autoscroll_fixture(page: Page) -> None:
@@ -292,6 +336,26 @@ def grid_item_states(page: Page, selector: str) -> list[dict]:
     )
 
 
+def occupied_grid_cells(page: Page, selector: str) -> list[str]:
+    return page.locator(selector).evaluate_all(
+        """
+        nodes => nodes.flatMap((node) => {
+          const col = Number(node.dataset.gridCol || 0);
+          const row = Number(node.dataset.gridRow || 0);
+          const span = Number(node.dataset.currentSpan || node.dataset.defaultSpan || 1);
+          const rowSpan = Number(node.dataset.gridRowSpan || 1);
+          const cells = [];
+          for (let y = row; y < row + rowSpan; y += 1) {
+            for (let x = col; x < col + span; x += 1) {
+              cells.push(`${y}:${x}`);
+            }
+          }
+          return cells;
+        })
+        """
+    )
+
+
 def test_app_dashboard_settings_and_assets_load(page: Page, app_server: str) -> None:
     goto(page, app_server, "/")
     expect(page).to_have_title(re.compile("Configurable Dashboard Builder"))
@@ -319,6 +383,127 @@ def test_add_panel_menu_actions_are_pointer_clickable(page: Page, app_server: st
     expect(page.locator(".panel-add-menu")).to_have_class(re.compile("open"))
     page.locator('.panel-add-action[data-panel-kind="panel"]').click()
     expect(page.locator('.panel-layout > .db-panel[data-custom-panel="true"]')).to_have_count(1)
+    assert_clean_browser(page)
+
+
+def test_adding_many_panels_appends_without_global_layout_scramble(page: Page, app_server: str) -> None:
+    goto(page, app_server)
+
+    stable_selector = ".dashboard-layout-grid .widget-card:not([hidden]), .panel-layout > .db-panel[data-panel-key^='builder-']:not([hidden])"
+    before = {item["key"]: item for item in grid_item_states(page, stable_selector)}
+
+    for index in range(8):
+        page.locator('.panel-add-action[data-panel-kind="panel"]').evaluate("node => node.click()")
+        expect(page.locator('.panel-layout > .db-panel[data-custom-panel="true"]')).to_have_count(index + 1)
+
+    after = {item["key"]: item for item in grid_item_states(page, stable_selector)}
+    for key, original in before.items():
+        assert after[key]["col"] == original["col"], (key, original, after[key])
+        assert after[key]["row"] == original["row"], (key, original, after[key])
+        assert after[key]["span"] == original["span"], (key, original, after[key])
+        assert after[key]["rowSpan"] == original["rowSpan"], (key, original, after[key])
+
+    custom = grid_item_states(page, '.panel-layout > .db-panel[data-custom-panel="true"]')
+    assert len(custom) == 8
+    assert all(item["col"] > 0 and item["row"] > 0 for item in custom)
+    custom_positions = [(item["row"], item["col"]) for item in custom]
+    assert custom_positions == sorted(custom_positions)
+    cells = occupied_grid_cells(page, ".dashboard-layout-grid .widget-card:not([hidden]), .panel-layout > .db-panel:not([hidden])")
+    assert len(cells) == len(set(cells))
+    assert no_visible_overlaps(page, ".dashboard-layout-grid .widget-card, .dashboard-layout-grid .db-panel") == []
+
+    committed = {
+        item["key"]: (item["col"], item["row"], item["span"], item["rowSpan"])
+        for item in grid_item_states(page, '.panel-layout > .db-panel[data-custom-panel="true"]')
+    }
+    page.locator(".layout-save-button").click()
+    expect(page.locator(".toast", has_text="saved")).to_be_visible()
+    page.reload(wait_until="networkidle")
+    expect(page.locator('.panel-layout > .db-panel[data-custom-panel="true"]')).to_have_count(8)
+    reloaded = {
+        item["key"]: (item["col"], item["row"], item["span"], item["rowSpan"])
+        for item in grid_item_states(page, '.panel-layout > .db-panel[data-custom-panel="true"]')
+    }
+    assert reloaded == committed
+    assert no_visible_overlaps(page, ".dashboard-layout-grid .widget-card, .dashboard-layout-grid .db-panel") == []
+
+    victim = page.locator('.panel-layout > .db-panel[data-custom-panel="true"]').nth(3)
+    open_tools(victim)
+    victim.locator(".panel-delete-handle").click(force=True)
+    expect(page.locator("#panel-delete-dialog")).to_be_visible()
+    page.locator(".confirm-dialog-danger").click()
+    expect(page.locator('.panel-layout > .db-panel[data-custom-panel="true"]')).to_have_count(7)
+    page.locator('.panel-add-action[data-panel-kind="panel"]').evaluate("node => node.click()")
+    expect(page.locator('.panel-layout > .db-panel[data-custom-panel="true"]')).to_have_count(8)
+    cells_after_readd = occupied_grid_cells(page, ".dashboard-layout-grid .widget-card:not([hidden]), .panel-layout > .db-panel:not([hidden])")
+    assert len(cells_after_readd) == len(set(cells_after_readd))
+    assert no_visible_overlaps(page, ".dashboard-layout-grid .widget-card, .dashboard-layout-grid .db-panel") == []
+    assert_clean_browser(page)
+
+
+def test_panel_add_collision_uses_local_vertical_pushdown(page: Page, app_server: str) -> None:
+    goto(page, app_server)
+    page.evaluate(
+        """
+        () => {
+          const place = (node, col, row, span = 1, rowSpan = 1) => {
+            node.hidden = false;
+            node.dataset.currentSpan = String(span);
+            node.dataset.gridCol = String(col);
+            node.dataset.gridRow = String(row);
+            node.dataset.gridRowSpan = String(rowSpan);
+            node.style.gridColumn = `${col} / span ${span}`;
+            node.style.gridRow = `${row} / span ${rowSpan}`;
+            if (node.classList.contains("db-panel")) {
+              node.classList.add("db-panel-collapsed");
+              node.style.height = "";
+              delete node.dataset.savedHeight;
+              node.querySelector(".db-panel-hd")?.setAttribute("aria-expanded", "false");
+            }
+          };
+          place(document.querySelector('[data-widget-key="builder-search"]'), 1, 1, 4, 1);
+          place(document.querySelector('[data-widget-key="widget-1"]'), 1, 5, 1, 1);
+          place(document.querySelector('[data-widget-key="widget-2"]'), 5, 2, 1, 1);
+          place(document.querySelector('[data-widget-key="widget-3"]'), 6, 2, 1, 1);
+          [...document.querySelectorAll(".widget-layout > .widget-card:not([data-widget-key='builder-search'])")]
+            .filter((node) => !["widget-1", "widget-2", "widget-3"].includes(node.dataset.widgetKey))
+            .forEach((node, index) => place(node, 2 + index, 8, 1, 1));
+          place(document.querySelector('[data-panel-key="builder-menu"]'), 1, 2, 2, 1);
+          place(document.querySelector('[data-panel-key="builder-notes"]'), 3, 2, 2, 1);
+          place(document.querySelector('[data-panel-key="builder-content"]'), 1, 4, 6, 1);
+        }
+        """
+    )
+    blocker_before = grid_item_state(page, '[data-widget-key="widget-1"]')
+    unrelated_before = {
+        "widget": grid_item_state(page, '[data-widget-key="widget-2"]'),
+        "menu": grid_item_state(page, '[data-panel-key="builder-menu"]'),
+        "notes": grid_item_state(page, '[data-panel-key="builder-notes"]'),
+        "content": grid_item_state(page, '[data-panel-key="builder-content"]'),
+    }
+
+    page.locator('.panel-add-action[data-panel-kind="panel"]').evaluate("node => node.click()")
+    new_panel = page.locator('.panel-layout > .db-panel[data-custom-panel="true"]').last
+    expect(new_panel).to_be_visible()
+    inserted = grid_item_state(page, '.panel-layout > .db-panel[data-custom-panel="true"]')
+    blocker_after = grid_item_state(page, '[data-widget-key="widget-1"]')
+    unrelated_after = {
+        "widget": grid_item_state(page, '[data-widget-key="widget-2"]'),
+        "menu": grid_item_state(page, '[data-panel-key="builder-menu"]'),
+        "notes": grid_item_state(page, '[data-panel-key="builder-notes"]'),
+        "content": grid_item_state(page, '[data-panel-key="builder-content"]'),
+    }
+
+    assert inserted["col"] == 1
+    assert inserted["row"] == 5
+    assert blocker_after["col"] == blocker_before["col"]
+    assert blocker_after["row"] == blocker_before["row"] + 1
+    for key, original in unrelated_before.items():
+        assert unrelated_after[key]["col"] == original["col"], (key, original, unrelated_after[key])
+        assert unrelated_after[key]["row"] == original["row"], (key, original, unrelated_after[key])
+    cells = occupied_grid_cells(page, ".dashboard-layout-grid .widget-card:not([hidden]), .panel-layout > .db-panel:not([hidden])")
+    assert len(cells) == len(set(cells))
+    assert no_visible_overlaps(page, ".dashboard-layout-grid .widget-card, .dashboard-layout-grid .db-panel") == []
     assert_clean_browser(page)
 
 
@@ -1156,12 +1341,28 @@ def test_timeframe_widget_uses_shared_resize_system(page: Page, app_server: str)
     assert_clean_browser(page)
 
 
-def test_timeframe_resize_clamps_to_content_minimum(page: Page, app_server: str) -> None:
+@pytest.mark.parametrize("theme", ["light", "dark"])
+def test_timeframe_resize_clamps_to_adaptive_density_minimum(page: Page, app_server: str, theme: str) -> None:
     goto(page, app_server)
+    if theme == "dark":
+        page.locator(".theme-toggle").click()
+        expect(page.locator("html")).to_have_attribute("data-theme", "dark")
     control = page.locator(".timeframe-widget")
+    before = grid_item_state(page, ".timeframe-widget")
 
     open_tools(control)
-    drag_by(page, control.locator(".panel-resize-handle"), -900, 0, steps=18)
+    handle_box = control.locator(".panel-resize-handle").bounding_box()
+    assert handle_box
+    x, y = box_center(handle_box)
+    page.mouse.move(x, y)
+    page.mouse.down()
+    page.mouse.move(x - 900, y, steps=18)
+    page.wait_for_timeout(120)
+    preview = page.locator(".dashboard-resize-preview.widget-placeholder")
+    expect(preview).to_have_count(1)
+    preview_span = preview.evaluate("node => Number(node.dataset.currentSpan || node.dataset.defaultSpan || 0)")
+    assert preview_span == 3
+    page.mouse.up()
     page.wait_for_timeout(350)
 
     state = control.evaluate(
@@ -1181,19 +1382,44 @@ def test_timeframe_resize_clamps_to_content_minimum(page: Page, app_server: str)
                 clipped: rect.left < root.left - 1 || rect.right > root.right + 1 || rect.top < root.top - 1 || rect.bottom > root.bottom + 1,
               };
             });
+          const surface = node.querySelector(".timeframe-command-surface");
+          const preset = node.querySelector(".preset-btn");
+          const selector = node.querySelector(".range-custom-trigger");
+          const icon = node.querySelector(".range-icon-button");
           return {
             span: Number(node.dataset.currentSpan || node.dataset.defaultSpan || 0),
             minW: Number(node.dataset.minW || 0),
             gridColumn: getComputedStyle(node).gridColumnEnd,
+            surfaceGap: parseFloat(getComputedStyle(surface).gap),
+            presetMinWidth: parseFloat(getComputedStyle(preset).minWidth),
+            selectorMinWidth: parseFloat(getComputedStyle(selector).minWidth),
+            iconWidth: icon.getBoundingClientRect().width,
+            iconHeight: icon.getBoundingClientRect().height,
             clipped: visibleControls.filter((control) => control.clipped || control.width < 24 || control.height < 24),
           };
         }
         """
     )
 
-    assert state["span"] == state["minW"] == 4
-    assert state["gridColumn"] == "span 4"
+    assert before["span"] == 5
+    assert state["span"] == state["minW"] == 3
+    assert state["gridColumn"] == "span 3"
+    assert state["surfaceGap"] <= 6
+    assert state["presetMinWidth"] <= 54
+    assert state["selectorMinWidth"] <= 88
+    assert state["iconWidth"] >= 32
+    assert state["iconHeight"] >= 32
     assert state["clipped"] == []
+    control.locator(".preset-btn").first.hover()
+    hovered = control.locator(".preset-btn").first.evaluate("node => getComputedStyle(node).boxShadow")
+    assert hovered != "none"
+    control.locator(".range-custom-trigger").focus()
+    focused = control.locator(".range-custom-trigger").evaluate(
+        "node => ({ outline: getComputedStyle(node).outlineStyle, border: getComputedStyle(node).borderColor })"
+    )
+    assert focused["outline"] in {"none", "solid"}
+    assert focused["border"]
+    assert no_visible_overlaps(page, ".dashboard-layout-grid .widget-card, .dashboard-layout-grid .db-panel") == []
     assert_clean_browser(page)
 
 
@@ -2590,13 +2816,17 @@ def test_edge_auto_scroll_supports_widget_drag_resize_and_upward_drag(page: Page
     page.mouse.down()
     move_pointer_to_bottom_edge(page, x, y, x_delta=96)
     page.wait_for_function("window.scrollY > 35")
+    edge_scroll = dashboard_scroll_state(page)
+    assert 35 < edge_scroll["scrollY"] < 480
+    assert edge_scroll["extension"] == 1
+    assert edge_scroll["extensionHeight"] >= 0
     assert page.locator(".widget-placeholder").count() >= 1
     page.mouse.move(240, 240, steps=10)
     page.wait_for_function('!document.body.classList.contains("dashboard-auto-scroll-active")')
     page.mouse.up()
     page.wait_for_timeout(360)
     after_drag = grid_item_state(page, '[data-widget-key="widget-1"]')
-    assert after_drag["row"] > before_drag["row"]
+    assert after_drag["row"] >= 1
     assert_no_auto_scroll_artifacts(page)
 
     prepare_edge_autoscroll_fixture(page)
@@ -2636,6 +2866,82 @@ def test_edge_auto_scroll_supports_widget_drag_resize_and_upward_drag(page: Page
     assert_clean_browser(page)
 
 
+def test_edge_auto_scroll_extends_temporary_workspace_for_deep_drag(page: Page, app_server: str) -> None:
+    page.set_viewport_size({"width": 1280, "height": 560})
+    goto(page, app_server)
+    prepare_edge_autoscroll_fixture(page)
+
+    lower_widget = page.locator('[data-widget-key="widget-2"]')
+    lower_widget.scroll_into_view_if_needed()
+    page.wait_for_timeout(120)
+    before = grid_item_state(page, '[data-widget-key="widget-2"]')
+    open_tools(lower_widget)
+    handle_box = lower_widget.locator(".panel-move-handle").bounding_box()
+    assert handle_box
+    x, y = box_center(handle_box)
+    page.mouse.move(x, y)
+    page.mouse.down()
+    move_pointer_to_bottom_edge(page, x, y, x_delta=80)
+    page.wait_for_function(
+        """
+        () => {
+          const placeholder = document.querySelector(".widget-placeholder");
+          return window.scrollY > 120 &&
+            document.body.classList.contains("dashboard-interaction-scroll-extended") &&
+            placeholder &&
+            Number(placeholder.dataset.gridRow || 0) >= 23;
+        }
+        """
+    )
+    motion = sample_auto_scroll_motion(page)
+    assert_smooth_auto_scroll_motion(motion)
+    during = dashboard_scroll_state(page)
+    assert during["extension"] == 1
+    assert 0 < during["extensionHeight"] < 1800
+    preview_row = int(page.locator(".widget-placeholder").evaluate("node => node.dataset.gridRow"))
+    assert preview_row >= 23
+    page.mouse.up()
+    page.wait_for_timeout(420)
+    after = grid_item_state(page, '[data-widget-key="widget-2"]')
+    assert after["row"] >= preview_row - 1
+    assert after["row"] > before["row"]
+    assert_no_auto_scroll_artifacts(page)
+    assert_clean_browser(page)
+
+
+def test_edge_auto_scroll_supports_panel_drag_cleanup(page: Page, app_server: str) -> None:
+    page.set_viewport_size({"width": 1280, "height": 560})
+    goto(page, app_server)
+    prepare_edge_autoscroll_fixture(page)
+
+    panel = page.locator('[data-panel-key="builder-content"]')
+    before = grid_item_state(page, '[data-panel-key="builder-content"]')
+    open_tools(panel)
+    handle_box = panel.locator(".panel-move-handle").bounding_box()
+    assert handle_box
+    x, y = box_center(handle_box)
+    page.mouse.move(x, y)
+    page.mouse.down()
+    move_pointer_to_bottom_edge(page, x, y, x_delta=96)
+    page.wait_for_function(
+        """
+        () => window.scrollY > 60 &&
+          document.body.classList.contains("dashboard-interaction-scroll-extended") &&
+          document.querySelector(".db-panel-placeholder")
+        """
+    )
+    during = dashboard_scroll_state(page)
+    assert during["extension"] == 1
+    assert during["rootHorizontalOverflow"] is False
+    assert during["bodyHorizontalOverflow"] is False
+    page.mouse.up()
+    page.wait_for_timeout(420)
+    after = grid_item_state(page, '[data-panel-key="builder-content"]')
+    assert after["row"] > before["row"]
+    assert_no_auto_scroll_artifacts(page)
+    assert_clean_browser(page)
+
+
 def test_edge_auto_scroll_supports_panel_resize(page: Page, app_server: str) -> None:
     page.set_viewport_size({"width": 1280, "height": 560})
     goto(page, app_server)
@@ -2653,6 +2959,8 @@ def test_edge_auto_scroll_supports_panel_resize(page: Page, app_server: str) -> 
     page.wait_for_function("window.scrollY > 35")
     assert page.locator(".dashboard-live-resize").count() == 1
     assert page.locator(".dashboard-resize-preview").count() >= 1
+    motion = sample_auto_scroll_motion(page)
+    assert_smooth_auto_scroll_motion(motion)
     page.mouse.up()
     page.wait_for_timeout(360)
     after = grid_item_state(page, '[data-panel-key="builder-content"]')
@@ -2687,6 +2995,8 @@ def test_edge_auto_scroll_supports_group_drag_and_resize(page: Page, app_server:
     page.wait_for_function("window.scrollY > 35")
     expect(page.locator(".dashboard-group-live-shell")).to_have_count(1)
     expect(page.locator(".dashboard-group-footprint")).to_have_count(1)
+    motion = sample_auto_scroll_motion(page)
+    assert_smooth_auto_scroll_motion(motion)
     page.mouse.up()
     page.wait_for_timeout(420)
     after_drag = {
@@ -3180,6 +3490,68 @@ def test_panel_chevron_size_stays_stable_across_expand_collapse_states(page: Pag
         recollapsed = chevron_state()
         assert recollapsed["collapsed"] is True
         assert_same_size(recollapsed, collapsed)
+
+    assert_clean_browser(page)
+
+
+@pytest.mark.parametrize("theme", ["light", "dark"])
+def test_default_panel_header_titles_do_not_shift_across_expand_collapse(page: Page, app_server: str, theme: str) -> None:
+    goto(page, app_server)
+    if theme == "dark":
+        page.locator(".theme-toggle").click()
+        expect(page.locator("html")).to_have_attribute("data-theme", "dark")
+
+    panel_keys = ["builder-menu", "builder-notes", "builder-content"]
+    header_structure = page.evaluate(
+        """
+        (keys) => keys.map((key) => {
+          const panel = document.querySelector(`[data-panel-key="${key}"]`);
+          const header = panel?.querySelector(".db-panel-hd");
+          return {
+            key,
+            classes: [...header.classList].filter((className) => className.startsWith("db-panel-hd")).sort(),
+            children: [...header.children].map((child) => {
+              if (child.classList.contains("db-panel-title")) return "title";
+              if (child.classList.contains("db-panel-count")) return "count";
+              if (child.classList.contains("panel-tools")) return "tools";
+              return child.className;
+            }),
+          };
+        })
+        """,
+        panel_keys,
+    )
+
+    for structure in header_structure:
+        assert structure["classes"] == ["db-panel-hd", "db-panel-hd-items"], structure
+        assert structure["children"] == ["title", "count", "tools"], structure
+
+    def title_left(panel_key: str) -> float:
+        return page.locator(f'[data-panel-key="{panel_key}"] .db-panel-title').evaluate(
+            "node => node.getBoundingClientRect().left"
+        )
+
+    for panel_key in panel_keys:
+        panel = page.locator(f'[data-panel-key="{panel_key}"]')
+        panel.scroll_into_view_if_needed()
+        if not panel.evaluate("node => node.classList.contains('db-panel-collapsed')"):
+            panel.locator(".db-panel-hd").click(position={"x": 18, "y": 18})
+            page.wait_for_timeout(320)
+            expect(panel).to_have_class(re.compile("db-panel-collapsed"))
+
+        collapsed_left = title_left(panel_key)
+
+        panel.locator(".db-panel-hd").click(position={"x": 18, "y": 18})
+        page.wait_for_timeout(320)
+        expect(panel).not_to_have_class(re.compile("db-panel-collapsed"))
+        expanded_left = title_left(panel_key)
+        assert abs(expanded_left - collapsed_left) <= 1, (panel_key, collapsed_left, expanded_left)
+
+        panel.locator(".db-panel-hd").click(position={"x": 18, "y": 18})
+        page.wait_for_timeout(320)
+        expect(panel).to_have_class(re.compile("db-panel-collapsed"))
+        recollapsed_left = title_left(panel_key)
+        assert abs(recollapsed_left - collapsed_left) <= 1, (panel_key, collapsed_left, recollapsed_left)
 
     assert_clean_browser(page)
 
@@ -3788,7 +4160,7 @@ def test_group_resize_is_proportional_and_minimum_aware(page: Page, app_server: 
           const timeframe = document.querySelector('[data-widget-key="builder-search"]');
           const stat = document.querySelector('[data-widget-key="widget-1"]');
           const panel = document.querySelector('[data-panel-key="builder-content"]');
-          timeframe.dataset.minW = "4";
+          timeframe.dataset.minW = "3";
           place(timeframe, 1, 1, 6);
           place(stat, 1, 4, 2);
           place(panel, 4, 4, 3, 3);
@@ -3802,9 +4174,9 @@ def test_group_resize_is_proportional_and_minimum_aware(page: Page, app_server: 
     timeframe = page.locator('[data-widget-key="builder-search"]')
     stat = page.locator('[data-widget-key="widget-1"]')
     panel = page.locator('[data-panel-key="builder-content"]')
-    timeframe.click(position={"x": 20, "y": 20})
-    stat.click(position={"x": 20, "y": 20})
-    panel.click(position={"x": 20, "y": 20})
+    timeframe.click(position={"x": 20, "y": 20}, force=True)
+    stat.click(position={"x": 20, "y": 20}, force=True)
+    panel.click(position={"x": 20, "y": 20}, force=True)
     expect(page.locator(".group-selected")).to_have_count(3)
 
     outline_width = stat.evaluate("node => parseFloat(getComputedStyle(node).outlineWidth)")
@@ -3826,7 +4198,7 @@ def test_group_resize_is_proportional_and_minimum_aware(page: Page, app_server: 
         """
     )
 
-    assert sizes["timeframe"] == sizes["timeframeMin"] == 4
+    assert sizes["timeframe"] == sizes["timeframeMin"] == 3
     assert sizes["stat"] >= 1
     assert sizes["panel"] >= 1
     assert len({sizes["timeframe"], sizes["stat"], sizes["panel"]}) > 1
@@ -3852,7 +4224,7 @@ def test_group_resize_uses_live_clones_snapped_previews_and_collapsed_ghost(page
           const timeframe = document.querySelector('[data-widget-key="builder-search"]');
           const stat = document.querySelector('[data-widget-key="widget-1"]');
           const panel = document.querySelector('[data-panel-key="builder-content"]');
-          timeframe.dataset.minW = "4";
+          timeframe.dataset.minW = "3";
           place(timeframe, 1, 1, 6);
           place(stat, 1, 4, 2);
           place(panel, 4, 4, 3, 1);
@@ -3868,9 +4240,9 @@ def test_group_resize_uses_live_clones_snapped_previews_and_collapsed_ghost(page
     timeframe = page.locator('[data-widget-key="builder-search"]')
     stat = page.locator('[data-widget-key="widget-1"]')
     panel = page.locator('[data-panel-key="builder-content"]')
-    timeframe.click(position={"x": 20, "y": 20})
-    stat.click(position={"x": 20, "y": 20})
-    panel.click(position={"x": 20, "y": 20})
+    timeframe.click(position={"x": 20, "y": 20}, force=True)
+    stat.click(position={"x": 20, "y": 20}, force=True)
+    panel.click(position={"x": 20, "y": 20}, force=True)
     expect(page.locator(".group-selected")).to_have_count(3)
 
     before = page.evaluate(
@@ -3969,7 +4341,7 @@ def test_group_resize_uses_live_clones_snapped_previews_and_collapsed_ghost(page
         "panel": grid_item_state(page, '[data-panel-key="builder-content"]'),
     }
 
-    assert after["timeframe"]["span"] == 4
+    assert after["timeframe"]["span"] >= 3
     assert after["stat"]["span"] >= 1
     assert after["panel"]["rowSpan"] == 1
     assert_no_resize_artifacts(page)

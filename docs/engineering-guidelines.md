@@ -89,6 +89,7 @@ Recommended future platform modules:
 - Do not update persisted layout until the interaction completes successfully.
 - Ghost previews must use the same grid math as final placement.
 - Resize previews and release snapping must agree on columns, rows, and minimum sizes.
+- Widget and panel minimum sizes must be calibrated to the smallest usable adaptive layout, not the most spacious layout. Dense controls should first reduce gaps, padding, text footprint, and wrapping before requiring a larger grid span.
 - Use transforms for temporary movement. Commit final position through grid styles/state.
 - Minimize reflow during pointer movement. Avoid reading layout after writing styles in the same loop.
 - Keep animation synchronization consistent between the dragged item, placeholders, peers, and collision-reflowed items.

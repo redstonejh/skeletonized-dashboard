@@ -72,7 +72,7 @@ Command:
 .venv\Scripts\python.exe -m pytest -q
 ```
 
-Latest result: 61 passed, 0 failed.
+Latest result: 68 passed, 0 failed.
 
 Previous discovery result: 6 passed, 3 failed.
 
@@ -771,8 +771,56 @@ Passed coverage included app/dashboard/settings load, CSS imports, theme persist
 - Observed: During drag or resize, moving the pointer near the bottom of the viewport did not scroll the page to reveal lower dashboard space. Items could not be naturally placed or resized into newly revealed rows without manually scrolling first.
 - Expected: Active widget, panel, and grouped drag/resize interactions smoothly auto-scroll near the top or bottom viewport edge, keep live ghosts and snapped footprints updating, stop immediately after leaving the edge zone or ending the interaction, and never introduce horizontal page scroll.
 - Suspected cause: Drag and resize pointermove handlers only reacted to pointer events. Once the pointer reached the viewport edge, no shared scroll loop advanced the document, and resize math used viewport pointer deltas without accounting for document scroll delta.
-- Fix notes: Added one shared requestAnimationFrame edge auto-scroll helper for active pointer interactions. Drag paths update snapped previews as the document scrolls under the pointer. Resize paths include vertical scroll delta in live and snapped geometry so bottom-edge scrolling extends resize into newly revealed grid rows. Cleanup runs through existing drag/resize lifecycle teardown and removes the transient `dashboard-auto-scroll-active` state.
-- Validation: Added `test_edge_auto_scroll_supports_widget_drag_resize_and_upward_drag`, `test_edge_auto_scroll_supports_panel_resize`, and `test_edge_auto_scroll_supports_group_drag_and_resize`. Coverage verifies widget drag, widget resize, panel resize, group drag, group resize, upward auto-scroll, final committed grid state, stopped scroll loop after release, stale artifact cleanup, and no horizontal overflow. Targeted edge-scroll tests, drag/resize/group slices, and `.venv\Scripts\python.exe -m pytest -q` passed.
+- Fix notes: Added one shared requestAnimationFrame edge auto-scroll helper for active pointer interactions. Drag paths update snapped previews as the document scrolls under the pointer. Resize paths include vertical scroll delta in live and snapped geometry so bottom-edge scrolling extends resize into newly revealed grid rows. Follow-up tuning changed the velocity model from pixels-per-frame to capped pixels-per-second, added a short edge dwell before scrolling starts, temporarily disables scroll anchoring, and uses removable body padding as an interaction-only workspace runway instead of a permanent spacer. Cleanup runs through existing drag/resize lifecycle teardown and removes `dashboard-auto-scroll-active`, `dashboard-interaction-scroll-extended`, temporary padding, and overflow-anchor overrides.
+- Validation: Added `test_edge_auto_scroll_supports_widget_drag_resize_and_upward_drag`, `test_edge_auto_scroll_extends_temporary_workspace_for_deep_drag`, `test_edge_auto_scroll_supports_panel_drag_cleanup`, `test_edge_auto_scroll_supports_panel_resize`, and `test_edge_auto_scroll_supports_group_drag_and_resize`. Coverage verifies widget drag, panel drag, widget resize, panel resize, group drag, group resize, upward auto-scroll, temporary runway creation/removal, bounded short-interval scroll speed, final committed grid state, stopped scroll loop after release, stale artifact cleanup, and no horizontal overflow. Targeted edge-scroll tests, drag/resize/group slices, and `.venv\Scripts\python.exe -m pytest -q` passed.
+
+### BUG-054: Legacy Panel Header Classes Shifted Titles On Expansion
+
+- Status: Verified
+- Area: Dashboard controls / panel headers
+- Severity: Low
+- Environment: Dashboard workspace, default panels, light and dark themes
+- Observed: Some default panels, especially legacy Menu and Notes containers, shifted their header title text slightly left when opened or collapsed. The generic Content panel did not make the legacy type path as obvious.
+- Expected: Panel identity, title, and accent color do not affect header geometry. Collapsed, expanded, hover, selected, grouped, and active states should keep the title x-position stable.
+- Suspected cause: Menu and Notes still used legacy type-specific header class names while Content and new panels used the shared generic header class. Expanded compact row-span density rules also changed `--panel-header-gap`, so the fixed chevron stayed in place while the flex title moved left.
+- Fix notes: Normalized Menu and Notes headers onto the same shared `db-panel-hd db-panel-hd-items` structure used by Content and newly created panels. Kept compact expanded-panel content density but restored the modern 12px header gap so expansion cannot change title x-position. No expand/collapse, drag, resize, collision, persistence, or panel semantics changed.
+- Validation: Added `test_default_panel_header_titles_do_not_shift_across_expand_collapse` for light and dark themes. It asserts Menu, Notes, and Content share the same header class/child structure, then measures each title x-position while collapsed, expanded, and recollapsed with a 1px tolerance. Targeted header/chevron tests passed, and `.venv\Scripts\python.exe -m pytest -q` passed with 65 tests.
+
+### BUG-055: Added Panels Entered The Grid Without Deterministic Committed Placement
+
+- Status: Verified
+- Area: Dashboard grid / panel creation / layout persistence
+- Severity: High
+- Environment: Dashboard workspace, repeated generic panel additions, shared widget/panel grid
+- Observed: Adding several panels could scramble the dashboard. Existing widgets and panels shifted sideways or into unexpected rows, and those inferred positions could later become saved committed layout state.
+- Expected: Adding a panel inserts one new spatial object into the stable dashboard layout. The new panel receives a deterministic grid position, unrelated objects keep their current coordinates, and any direct collision is resolved through local vertical pushdown rather than global repacking or sideways nearest-slot movement.
+- Suspected cause: The add-panel path appended a collapsed custom panel without committed `gridCol`/`gridRow` coordinates. Because `.panel-layout` participates in the root dashboard grid through `display: contents`, the browser could auto-place the new panel visually before the app committed a layout position. Later resolver/save/load paths then had to infer placement from partially committed state, allowing global sparse resolution to make unrelated sideways moves permanent.
+- Fix notes: The add-panel path now synchronizes existing committed dashboard coordinates, computes a deterministic append target from the current panel spatial order, assigns the new panel's grid position before insertion, and commits the insert through a local vertical pushdown helper. The helper treats all unrelated items as fixed obstacles and moves only objects that directly overlap the inserted footprint; moved objects keep their columns and slide downward to the first valid row. Pinned items remain fixed, and the helper falls back to the existing sparse slot finder only if the inserted target itself conflicts with a pinned footprint.
+- Validation: Added `test_adding_many_panels_appends_without_global_layout_scramble` and `test_panel_add_collision_uses_local_vertical_pushdown`. Coverage adds eight panels, verifies default widgets/panels do not move, checks custom panel positions are committed and row-major, rejects duplicate occupied grid cells and visible overlaps, saves/reloads to confirm deterministic persistence, verifies add-delete-add remains stable, and verifies a deliberate add-target collision pushes only the blocker downward while unrelated items retain their original coordinates. Targeted add/layout/save tests passed, grouped interaction slices passed, `.venv\Scripts\python.exe -m pytest -q` passed with 67 tests, and a Chromium smoke added 10 panels in dark mode with no duplicate cells or horizontal overflow.
+
+### BUG-056: Edge Auto-Scroll Runway Grew In Visible Steps
+
+- Status: Verified
+- Area: Dashboard grid / drag-resize / motion polish
+- Severity: Medium
+- Environment: Dashboard workspace, bottom-edge drag and resize auto-scroll
+- Observed: Edge auto-scroll could create reachable lower workspace correctly, but the temporary scrollable area appeared to grow in perceptible steps. The live interaction stayed functional, yet the viewport motion felt bouncy as new rows became reachable.
+- Expected: Logical snapped footprints may update at grid thresholds, but page scrolling and the temporary workspace runway should grow smoothly in pixels. Live drag/resize surfaces should remain pointer-continuous, with no full-page bounce when extra workspace is created.
+- Suspected cause: The helper filled the whole missing bottom runway immediately when remaining scroll space dropped below the desired buffer. Even with root/body scroll anchoring disabled, that large padding change could make scroll-height expansion visually step-like while snapped previews continued updating discretely.
+- Fix notes: The interaction runway now tracks a target height and approaches it in bounded requestAnimationFrame increments. This preserves the logical grid/preview snapping while decoupling the scrollable-space extension from row-sized placement jumps. Scroll anchoring is also disabled on the active dashboard host for the interaction lifetime, then restored with the existing cleanup path.
+- Validation: Added RAF-frame scroll/runway cadence assertions to edge auto-scroll coverage. Deep widget drag, panel resize, and group drag now sample active auto-scroll frames and reject row-sized scroll jumps or large runway growth jumps while still verifying final commit, cleanup, no stale classes, and no horizontal overflow. Targeted edge auto-scroll tests passed, grouped interaction slices passed, and `.venv\Scripts\python.exe -m pytest -q` passed with 67 tests.
+
+### BUG-057: Timeframe Minimum Footprint Was Calibrated To Spacious Layout
+
+- Status: Verified
+- Area: Widgets / resize / adaptive density
+- Severity: Medium
+- Environment: Dashboard workspace, timeframe widget resize, light and dark themes
+- Observed: The timeframe command widget could only shrink to four grid columns even though its controls could remain usable with a tighter adaptive-density layout.
+- Expected: Dense widgets should attempt compact spacing, reduced padding, condensed control widths, and wrapping before increasing their minimum required grid span. The timeframe widget should resize one column smaller while keeping controls visible, usable, readable, and unclipped.
+- Suspected cause: The previous minimum-size fix correctly introduced per-widget minimum span metadata, but it calibrated the timeframe floor to the comfortable/spacious control layout instead of the smallest usable adaptive layout.
+- Fix notes: Reduced the timeframe widget `data-min-w` and shared controls fallback from 4 columns to 3 columns. Added a span-3 compact density state for the timeframe command surface that tightens cluster gaps, surface padding, preset widths, selected-timeframe width, and icon button size while preserving usable hit areas and existing hover/focus treatment. Added the adaptive-density-first sizing rule to engineering and pre-overhaul architecture docs.
+- Validation: Updated `test_timeframe_resize_clamps_to_adaptive_density_minimum` for light and dark themes. The test resizes below the allowed floor, verifies the live snapped preview and final commit clamp at span 3, checks compact density values, asserts visible controls are not clipped or undersized, exercises hover/focus states, and verifies no overlaps. Updated group resize tests to use the new minimum. Targeted timeframe/group resize tests passed, and `.venv\Scripts\python.exe -m pytest -q` passed with 68 tests.
 
 ## Entry Template
  

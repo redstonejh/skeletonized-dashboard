@@ -358,6 +358,49 @@
   font-weight: 760;
 }
 
+.timeframe-widget[data-current-span="3"],
+.timeframe-widget[data-default-span="3"]:not([data-current-span]) {
+  padding-right: 46px;
+}
+
+.timeframe-widget[data-current-span="3"] .timeframe-command-surface,
+.timeframe-widget[data-default-span="3"]:not([data-current-span]) .timeframe-command-surface {
+  gap: 6px;
+  padding: 4px;
+}
+
+.timeframe-widget[data-current-span="3"] .timeframe-presets,
+.timeframe-widget[data-current-span="3"] .timeframe-active-cluster,
+.timeframe-widget[data-current-span="3"] .timeframe-utility-cluster,
+.timeframe-widget[data-default-span="3"]:not([data-current-span]) .timeframe-presets,
+.timeframe-widget[data-default-span="3"]:not([data-current-span]) .timeframe-active-cluster,
+.timeframe-widget[data-default-span="3"]:not([data-current-span]) .timeframe-utility-cluster {
+  gap: 4px;
+  padding: 2px;
+}
+
+.timeframe-widget[data-current-span="3"] .preset-btn,
+.timeframe-widget[data-default-span="3"]:not([data-current-span]) .preset-btn {
+  min-width: 54px;
+  padding: 0 10px;
+  font-size: 11px;
+}
+
+.timeframe-widget[data-current-span="3"] .range-custom-trigger,
+.timeframe-widget[data-default-span="3"]:not([data-current-span]) .range-custom-trigger {
+  min-width: 88px;
+  padding: 0 12px;
+  font-size: 11px;
+}
+
+.timeframe-widget[data-current-span="3"] .range-icon-button,
+.timeframe-widget[data-default-span="3"]:not([data-current-span]) .range-icon-button {
+  width: 32px;
+  height: 32px;
+  min-width: 32px;
+  min-height: 32px;
+}
+
 .preset-btn:hover,
 .preset-btn.active {
   background: color-mix(in srgb, var(--range-control-bg) 75%, var(--panel-hover-tint));
