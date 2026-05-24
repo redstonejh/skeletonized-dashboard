@@ -74,6 +74,71 @@ Measurement cautions:
 - Browser frame cadence in Playwright is not the same as a full manual Chrome Performance trace.
 - Stable automated frame-budget assertions should be avoided unless they are proven non-flaky across machines.
 
+## Stabilization Pass - 2026-05-24
+
+This pass focused on architecture hardening and hot-path normalization before adding anchors, dividers, contextual inheritance, tabless navigation, and larger spatial environments.
+
+Scope:
+
+- Measured representative drag, resize, grouped drag, grouped resize, and bottom edge auto-scroll interactions with a temporary local Playwright harness.
+- Kept production behavior unchanged: no timers, no retry/drop fallback, no collision weakening, and no drag/resize cadence changes.
+- Added a bounded large-dashboard cleanup regression test instead of brittle frame-budget assertions.
+
+Artifacts from the local measurement harness:
+
+- `test-results/performance-audit/current-metrics.json`
+- `test-results/performance-audit/current-metrics-2.json`
+- `test-results/performance-audit/after-cache-metrics.json`
+
+The harness monkey-patches `getBoundingClientRect`, `getComputedStyle`, a `MutationObserver`, and `requestAnimationFrame`. Treat these as relative local measurements, not CI performance budgets.
+
+### Findings
+
+- Widget resize was the clearest hot path because each snapped threshold update re-entered sparse collision/reflow and repeatedly derived stable grid metrics, panel row spans, and panel minimum rows.
+- Drag, group drag, group resize, and auto-scroll already had healthy frame cadence on the default dashboard, but they still repeated stable grid gap/width reads and broad reflow item queries.
+- Group resize cost is mostly mutation/DOM-surface churn from live members, member previews, composite footprint, expanded ghosts, and boundary surfaces. This is expected for the current visual contract and should not be reduced by removing feedback.
+- The deepest auto-scroll scenarios are browser-scheduling sensitive. They should be run as targeted slices when investigating scroll performance.
+
+### Applied Optimizations
+
+- Added per-interaction grid metrics for stable layout width, gap, column width, column step, row step, and a panel minimum-row cache.
+- Routed drag, resize, group resize, resize previews, expanded-footprint ghosts, alignment helpers, and sparse preview resolution through the same optional metrics object where it is safe.
+- Kept grid rect refresh explicit during drag so auto-scroll still uses current viewport-relative grid coordinates.
+- Added optional cached reflow item sets for FLIP animation during live threshold updates, avoiding repeated broad host queries when DOM membership is stable for the interaction.
+- Kept final commit paths deterministic and still derived from the snapped placeholder/footprint.
+
+### Local Before/After Snapshot
+
+Measured on Chromium at a 1440x1000 viewport, default dashboard, using the temporary harness. The most comparable pre-change run was `current-metrics.json`; group interactions used the corrected fixture in `current-metrics-2.json`.
+
+| Interaction | Rect Reads Before | Rect Reads After | Style Reads Before | Style Reads After | Avg Frame After | P95 Frame After |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| Widget drag | 144 | 109 | 485 | 428 | 16.67ms | 16.70ms |
+| Widget resize | 584 | 66 | 1436 | 401 | 16.67ms | 16.70ms |
+| Group drag | 194 | 151 | 714 | 609 | 16.67ms | 16.70ms |
+| Group resize | 195 | 130 | 742 | 627 | 16.67ms | 16.80ms |
+| Auto-scroll drag | 567 | 386 | 901 | 628 | 16.66ms | 16.70ms |
+
+Interpretation:
+
+- The pass materially reduced repeated layout/style reads, especially widget resize.
+- Frame cadence stayed healthy in the local harness.
+- Mutation counts are largely unchanged because the same live surfaces, previews, boundaries, and cleanup artifacts are still created to preserve UX.
+
+### Architecture Notes
+
+- Geometry ownership is more explicit: pointer sessions now capture stable grid metrics once, refresh only viewport-relative rects when scrolling can change them, and pass that model into preview/collision helpers.
+- Preview, temporary displacement, and committed layout remain separate. The metrics cache does not own placement state and is discarded with the interaction.
+- Sparse placement remains valid. No global auto-pack was introduced.
+- Group resize still behaves as a composite object; member surfaces and previews use cached per-layout metrics without changing relative geometry or commit math.
+
+### Remaining Risks
+
+- Large-dashboard scaling still needs a richer deterministic fixture with many panels, mixed row spans, pinned items, collapsed panels, and grouped members.
+- `alignedResizeSpan` and `alignedResizeHeight` still scan possible alignment targets on release. This is acceptable now because it is not in every pointermove, but it remains a future large-dashboard candidate.
+- `applyGroupResizeLayout` still performs collision checks per member during snapped group resize. It is correct for current coverage, but future persisted groups may need a stronger composite geometry API.
+- Paint cost from glass, shadows, and backdrop filters was not reduced in this pass; visual polish remains intentionally preserved.
+
 ## Identified Hot Paths
 
 ### Drag

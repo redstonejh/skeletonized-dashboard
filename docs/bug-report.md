@@ -1160,6 +1160,18 @@ Passed coverage included app/dashboard/settings load, CSS imports, absence of mo
 - Fix notes: Added shared pressable transform tokens, routed timeframe buttons, panel/widget settings and submenu controls, color swatches, nav buttons, dropdown triggers, and action controls through the compact pressable model, and removed later upward-hover transform declarations from workspace-chrome controls. Widget, panel, and timeframe widget bodies still keep the established lifted hover surface behavior.
 - Validation: Added `test_compact_pressable_controls_depress_without_sinking_large_surfaces`, which verifies widget/panel/timeframe bodies still lift while timeframe presets, widget settings/submenu buttons, and the theme toggle depress on hover, with active press deeper than hover. Targeted hover/control coverage passed, and `.venv\Scripts\python.exe -m pytest -q` passed with 83 tests.
 
+### BUG-073: Interaction Hot Paths Repeated Stable Grid Geometry Reads
+
+- Status: Verified
+- Area: Dashboard grid / drag-resize / performance
+- Severity: Medium
+- Environment: Dashboard workspace, drag, resize, grouped drag/resize, edge auto-scroll, Chromium local profiling harness
+- Observed: Pointer interactions kept healthy frame cadence on the default dashboard, but resize and grouped interactions repeatedly re-derived stable grid gap/width, panel row spans, panel minimum rows, and broad FLIP reflow item lists during live threshold updates.
+- Expected: Live interaction math should reuse stable per-interaction geometry where safe, refresh viewport-relative rects only when scrolling can change them, and keep preview/collision/commit geometry derived from the same model.
+- Suspected cause: Grid helpers were centralized functionally, but every caller still measured independently. Sparse preview resolution and FLIP animation helpers also queried broad dashboard item sets during each snapped preview update.
+- Fix notes: Added per-interaction grid metrics with a panel minimum-row cache, passed those metrics into drag/resize/group preview geometry, sparse preview resolution, expanded-footprint ghosts, and release alignment helpers, and allowed live FLIP reflow to reuse a cached item set while DOM membership is stable. Commit paths, snapping, collision rules, auto-scroll timing, and visual surfaces were not changed.
+- Validation: Added `test_large_dashboard_drag_resize_cleanup_stays_bounded` for repeated drag/resize cleanup on a larger deterministic widget fixture. Local temporary measurement showed widget resize drop from roughly 584 rect / 1436 computed-style reads to 66 rect / 401 computed-style reads while frame cadence stayed near 16.7ms. Targeted resize, group, edge auto-scroll, expand/collapse, and large-dashboard tests passed.
+
 ## Entry Template
  
 ```md

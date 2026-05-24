@@ -24,6 +24,8 @@ When modifying complex systems:
 
 The next major version is a context-aware visual analytics workspace, not a new app. Preserve FastAPI, Jinja, vanilla JavaScript, SQLite where useful, and the existing CSS architecture.
 
+Before implementing anchors, dividers, contextual inheritance, tabless navigation, persistent spatial workflows, or other workspace-platform systems, read the conceptual architecture set in `docs/architecture/README.md`.
+
 - Do not introduce React, Vue, Tailwind, or a new visual framework.
 - Do not add IT, security, alert, incident, client, mailbox, vendor, scanner, webhook, escalation, threat, severity, or scoring language.
 - Do not hard-code the current blue theme.

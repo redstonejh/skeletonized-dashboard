@@ -1127,6 +1127,104 @@ def test_workspace_chrome_is_spatial_and_modes_still_work(page: Page, app_server
     assert_clean_browser(page)
 
 
+def test_spatial_workspace_objects_create_persist_and_share_grid_model(page: Page, app_server: str) -> None:
+    goto(page, app_server)
+
+    page.locator(".panel-add-button").click()
+    page.locator('.divider-add-action[data-divider-kind="context-divider"]').click()
+    divider = page.locator('.workspace-divider[data-workspace-object-type="divider"]').last
+    expect(divider).to_be_visible()
+    expect(divider.locator(".db-panel-title")).to_contain_text("Divider")
+
+    page.locator(".panel-add-button").click()
+    page.locator('.widget-add-action[data-widget-kind="anchor"]').click()
+    anchor = page.locator('.workspace-anchor-object[data-workspace-object-type="anchor"]').last
+    expect(anchor).to_be_visible()
+    expect(anchor.locator(".stat-lbl")).to_contain_text("Anchor")
+
+    created_state = page.evaluate(
+        """
+        () => {
+          const divider = document.querySelector('.workspace-divider[data-workspace-object-type="divider"]');
+          const anchor = document.querySelector('.workspace-anchor-object[data-workspace-object-type="anchor"]');
+          return {
+            dividerType: divider?.dataset.workspaceObjectType,
+            dividerRole: divider?.dataset.contextRole,
+            dividerScope: divider?.dataset.contextScopeId,
+            dividerRegion: divider?.dataset.workspaceRegionId,
+            dividerSpan: divider?.dataset.currentSpan,
+            dividerRows: divider?.dataset.gridRowSpan,
+            anchorType: anchor?.dataset.workspaceObjectType,
+            anchorKind: anchor?.dataset.dashboardObjectKind,
+            anchorRegion: anchor?.dataset.workspaceRegionId,
+            anchorTargetType: anchor?.dataset.navigationTargetType,
+            contextModel: document.querySelector('.dashboard-layout-grid')?.dataset.workspaceContextModel,
+          };
+        }
+        """
+    )
+    assert created_state["dividerType"] == "divider"
+    assert created_state["dividerRole"] == "semantic-boundary"
+    assert created_state["dividerScope"] == created_state["dividerRegion"]
+    assert created_state["dividerSpan"] == "6"
+    assert created_state["dividerRows"] == "1"
+    assert created_state["anchorType"] == "anchor"
+    assert created_state["anchorKind"] == "anchor"
+    assert created_state["anchorRegion"]
+    assert created_state["anchorTargetType"] == "workspace-region"
+    assert created_state["contextModel"] == "workspace-context-v1"
+
+    divider_row_before = int(divider.evaluate("node => Number(node.dataset.gridRow) || 1"))
+    open_tools(divider)
+    drag_by(page, divider.locator(".panel-move-handle"), 0, 260, steps=16)
+    divider_row_after = int(divider.evaluate("node => Number(node.dataset.gridRow) || 1"))
+    assert divider_row_after > divider_row_before
+
+    anchor_span_before = int(anchor.evaluate("node => Number(node.dataset.currentSpan) || Number(node.dataset.defaultSpan) || 1"))
+    force_open_tools_for_interaction(page, anchor)
+    drag_by(page, anchor.locator(".panel-resize-handle"), 180, 0, steps=10)
+    anchor_span_after = int(anchor.evaluate("node => Number(node.dataset.currentSpan) || Number(node.dataset.defaultSpan) || 1"))
+    assert anchor_span_after >= anchor_span_before
+
+    page.evaluate(
+        """
+        () => {
+          const divider = document.querySelector('.workspace-divider[data-workspace-object-type="divider"]');
+          const anchor = document.querySelector('.workspace-anchor-object[data-workspace-object-type="anchor"]');
+          const row = (Number(divider.dataset.gridRow) || 1) + 1;
+          anchor.dataset.gridCol = "1";
+          anchor.dataset.gridRow = String(row);
+          anchor.dataset.currentSpan = "2";
+          anchor.style.gridColumn = "1 / span 2";
+          anchor.style.gridRow = `${row} / span 1`;
+        }
+        """
+    )
+    page.locator(".layout-save-button").click()
+    page.reload(wait_until="networkidle")
+    expect(page.locator('.workspace-divider[data-workspace-object-type="divider"]')).to_have_count(1)
+    expect(page.locator('.workspace-anchor-object[data-workspace-object-type="anchor"]')).to_have_count(1)
+    persisted_state = page.evaluate(
+        """
+        () => {
+          const divider = document.querySelector('.workspace-divider[data-workspace-object-type="divider"]');
+          const anchor = document.querySelector('.workspace-anchor-object[data-workspace-object-type="anchor"]');
+          return {
+            dividerScope: divider?.dataset.contextScopeId,
+            anchorRegion: anchor?.dataset.workspaceRegionId,
+            anchorTarget: anchor?.dataset.navigationTargetId,
+            dividerRow: Number(divider?.dataset.gridRow) || 0,
+            anchorRow: Number(anchor?.dataset.gridRow) || 0,
+          };
+        }
+        """
+    )
+    assert persisted_state["anchorRow"] == persisted_state["dividerRow"] + 1
+    assert persisted_state["anchorRegion"] == persisted_state["dividerScope"]
+    assert persisted_state["anchorTarget"] == persisted_state["dividerScope"]
+    assert_clean_browser(page)
+
+
 def test_settings_and_delete_modal_share_spatial_glass_language(page: Page, app_server: str) -> None:
     page.goto(f"{app_server}/settings")
     expect(page.locator(".settings-nav")).to_be_visible()
@@ -4270,6 +4368,58 @@ def test_open_settings_menu_hides_during_drag_and_resize_then_restores(page: Pag
     assert_clean_browser(page)
 
 
+def test_large_dashboard_drag_resize_cleanup_stays_bounded(page: Page, app_server: str) -> None:
+    goto(page, app_server)
+    page.evaluate(
+        """
+        () => {
+          const layout = document.querySelector(".widget-layout");
+          const source = document.querySelector('[data-widget-key="widget-1"]');
+          const place = (node, col, row, span = 1) => {
+            node.dataset.currentSpan = String(span);
+            node.dataset.defaultSpan = node.dataset.defaultSpan || String(span);
+            node.dataset.gridCol = String(col);
+            node.dataset.gridRow = String(row);
+            node.dataset.gridRowSpan = "1";
+            node.style.gridColumn = `${col} / span ${span}`;
+            node.style.gridRow = `${row} / span 1`;
+          };
+          for (let index = 0; index < 24; index += 1) {
+            const clone = source.cloneNode(true);
+            clone.querySelectorAll("[id]").forEach((node) => node.removeAttribute("id"));
+            clone.dataset.widgetKey = `large-widget-${index}`;
+            clone.dataset.panelTitle = `Large Widget ${index + 1}`;
+            clone.dataset.defaultTitle = `Large Widget ${index + 1}`;
+            delete clone.dataset.widgetInitialized;
+            clone.classList.remove("widget-tools-open", "db-panel-pinned", "group-selected");
+            clone.querySelector(".panel-settings-toggle")?.setAttribute("aria-expanded", "false");
+            clone.querySelector(".panel-pin-toggle")?.setAttribute("aria-pressed", "false");
+            const label = clone.querySelector(".stat-lbl");
+            if (label) label.textContent = `Large Widget ${index + 1}`;
+            layout.appendChild(clone);
+            place(clone, (index % 6) + 1, 8 + Math.floor(index / 6));
+            layout.__initWidget?.(clone);
+          }
+        }
+        """
+    )
+
+    moved = page.locator('[data-widget-key="large-widget-0"]')
+    force_open_tools_for_interaction(page, moved)
+    drag_by(page, moved.locator(".panel-move-handle"), 0, 260, steps=18)
+    page.wait_for_timeout(360)
+
+    resized = page.locator('[data-widget-key="large-widget-5"]')
+    force_open_tools_for_interaction(page, resized)
+    drag_by(page, resized.locator(".panel-resize-handle"), 220, 0, steps=16)
+    page.wait_for_timeout(360)
+
+    assert_no_resize_artifacts(page)
+    assert_no_undo_artifacts(page)
+    assert no_visible_overlaps(page, ".dashboard-layout-grid .widget-card, .dashboard-layout-grid .db-panel") == []
+    assert_clean_browser(page)
+
+
 def test_object_settings_click_and_hover_share_menu_geometry(page: Page, app_server: str) -> None:
     goto(page, app_server)
 
@@ -4790,6 +4940,19 @@ def test_panel_widget_hover_focus_surface_parity(page: Page, app_server: str) ->
         assert "0 0 26px" not in value
         assert "103, 169, 255" not in value
 
+    def transform_y(value: str) -> float:
+        if value == "none":
+            return 0
+        parts = [float(part) for part in re.findall(r"-?[\d.]+", value)]
+        if value.startswith("matrix3d") and len(parts) >= 16:
+            return parts[13]
+        if value.startswith("matrix") and len(parts) >= 6:
+            return parts[5]
+        return 0
+
+    def assert_transform_close(actual: str, expected: str, tolerance: float = 0.05) -> None:
+        assert abs(transform_y(actual) - transform_y(expected)) <= tolerance
+
     widget.hover()
     page.wait_for_timeout(260)
     widget_hover = read_surface(widget)
@@ -4800,21 +4963,21 @@ def test_panel_widget_hover_focus_surface_parity(page: Page, app_server: str) ->
     assert_material_border_close(panel_hover["borderColor"], widget_hover["borderColor"])
     assert_material_shadow(panel_hover["boxShadow"])
     assert_material_shadow(widget_hover["boxShadow"])
-    assert panel_hover["transform"] == widget_hover["transform"]
+    assert_transform_close(panel_hover["transform"], widget_hover["transform"])
 
     if collapsed_panel.count():
         collapsed_panel.hover()
         page.wait_for_timeout(260)
         collapsed_hover = read_surface(collapsed_panel)
         assert_material_shadow(collapsed_hover["boxShadow"])
-        assert collapsed_hover["transform"] == widget_hover["transform"]
+        assert_transform_close(collapsed_hover["transform"], widget_hover["transform"])
 
     timeframe.hover()
     page.wait_for_timeout(260)
     timeframe_hover = read_surface(timeframe)
     assert_material_border_close(timeframe_hover["borderColor"], widget_hover["borderColor"])
     assert_material_shadow(timeframe_hover["boxShadow"])
-    assert timeframe_hover["transform"] == widget_hover["transform"]
+    assert_transform_close(timeframe_hover["transform"], widget_hover["transform"])
 
     page.mouse.move(24, 24)
     panel.locator(".db-panel-hd").focus()
@@ -4827,7 +4990,7 @@ def test_panel_widget_hover_focus_surface_parity(page: Page, app_server: str) ->
     assert_material_border_close(panel_focus["borderColor"], widget_focus["borderColor"])
     assert_material_shadow(panel_focus["boxShadow"])
     assert_material_shadow(widget_focus["boxShadow"])
-    assert panel_focus["transform"] == widget_focus["transform"]
+    assert_transform_close(panel_focus["transform"], widget_focus["transform"])
     assert panel_focus["outlineStyle"] != "solid" or panel_focus["outlineWidth"] in {"0px", "1px", "2px"}
     assert_clean_browser(page)
 

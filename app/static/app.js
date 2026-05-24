@@ -769,6 +769,29 @@ document.addEventListener("DOMContentLoaded", () => {
     return Number.isFinite(gap) ? gap : (layout.classList.contains("widget-layout") ? 12 : 16);
   };
 
+  const createGridMetrics = (layout) => {
+    const rect = gridRectForLayout(layout);
+    const gap = gridGapForLayout(layout);
+    const width = Math.max(1, rect.width);
+    const columnWidth = (width - (gap * (DASHBOARD_GRID_COLUMNS - 1))) / DASHBOARD_GRID_COLUMNS;
+    return {
+      layout,
+      rect,
+      gap,
+      width,
+      columnWidth,
+      columnStep: Math.max(1, columnWidth + gap),
+      rowStep: DASHBOARD_GRID_ROW_HEIGHT + gap,
+      panelMinimumRows: new WeakMap(),
+    };
+  };
+
+  const refreshGridMetricsRect = (metrics) => {
+    if (!metrics?.layout) return metrics;
+    metrics.rect = gridRectForLayout(metrics.layout);
+    return metrics;
+  };
+
   const gridHeightForRows = (rows, gap) => {
     const safeRows = Math.max(1, Math.round(Number(rows) || 1));
     return (safeRows * DASHBOARD_GRID_ROW_HEIGHT) + (Math.max(0, safeRows - 1) * gap);
@@ -780,6 +803,103 @@ document.addEventListener("DOMContentLoaded", () => {
   };
 
   const isWidgetGridItem = (item) => item?.classList?.contains("widget-card") || item?.classList?.contains("widget-placeholder");
+
+  const WORKSPACE_OBJECT_TYPES = Object.freeze({
+    widget: "widget",
+    panel: "panel",
+    divider: "divider",
+    anchor: "anchor",
+  });
+  const WORKSPACE_CONTEXT_MODEL_VERSION = "workspace-context-v1";
+  const escapeHtml = (value) => String(value || "").replace(/[&<>"']/g, (char) => ({
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&#39;",
+  }[char]));
+  const workspaceObjectTypeFromDefinition = (definition, fallback) => {
+    const rawType = definition?.workspaceObjectType || definition?.objectType || definition?.type || definition?.dashboardObjectKind || fallback;
+    if (rawType === "anchor") return WORKSPACE_OBJECT_TYPES.anchor;
+    if (rawType === "divider" || rawType === "context-divider") return WORKSPACE_OBJECT_TYPES.divider;
+    if (rawType === "panel") return WORKSPACE_OBJECT_TYPES.panel;
+    return fallback || WORKSPACE_OBJECT_TYPES.widget;
+  };
+  const workspaceObjectType = (item) => {
+    const rawType = item?.dataset?.workspaceObjectType || item?.dataset?.dashboardObjectKind || item?.dataset?.widgetType;
+    if (rawType === WORKSPACE_OBJECT_TYPES.anchor) return WORKSPACE_OBJECT_TYPES.anchor;
+    if (rawType === WORKSPACE_OBJECT_TYPES.divider || rawType === "context-divider") return WORKSPACE_OBJECT_TYPES.divider;
+    if (item?.classList?.contains("db-panel")) return WORKSPACE_OBJECT_TYPES.panel;
+    return WORKSPACE_OBJECT_TYPES.widget;
+  };
+  const workspaceObjectKey = (item) => item?.dataset?.widgetKey || item?.dataset?.panelKey || "";
+  const workspaceRootRegionId = (layoutKey) => `${layoutKey}:region:root`;
+  const workspaceRegionIdForDivider = (divider, layoutKey) => {
+    const key = workspaceObjectKey(divider) || "divider";
+    const existing = divider.dataset.contextScopeId || "";
+    if (existing && (layoutKey === "default" || !existing.startsWith("default:region:"))) return existing;
+    return `${layoutKey}:region:${key}`;
+  };
+  const ensureWorkspaceObjectMetadata = (item, metadata = {}) => {
+    if (!item) return;
+    const inferredType = metadata.workspaceObjectType || metadata.objectType || workspaceObjectType(item);
+    item.dataset.workspaceObjectType = inferredType;
+    item.dataset.workspaceContextModel = WORKSPACE_CONTEXT_MODEL_VERSION;
+    if (metadata.dashboardObjectKind) item.dataset.dashboardObjectKind = metadata.dashboardObjectKind;
+    if (metadata.contextScopeId) item.dataset.contextScopeId = metadata.contextScopeId;
+    if (metadata.workspaceRegionId) item.dataset.workspaceRegionId = metadata.workspaceRegionId;
+    if (metadata.contextRole) item.dataset.contextRole = metadata.contextRole;
+    if (metadata.navigationTargetType) item.dataset.navigationTargetType = metadata.navigationTargetType;
+    if (metadata.navigationTargetId) item.dataset.navigationTargetId = metadata.navigationTargetId;
+    if (inferredType === WORKSPACE_OBJECT_TYPES.divider) {
+      item.dataset.dashboardObjectKind = metadata.dashboardObjectKind || "divider";
+      item.dataset.contextRole = metadata.contextRole || "semantic-boundary";
+      item.dataset.contextScopeId = metadata.contextScopeId || workspaceRegionIdForDivider(item, groupItemLayoutKey(item));
+      item.dataset.workspaceRegionId = item.dataset.contextScopeId;
+    } else if (inferredType === WORKSPACE_OBJECT_TYPES.anchor) {
+      item.dataset.dashboardObjectKind = metadata.dashboardObjectKind || "anchor";
+      item.dataset.navigationTargetType = metadata.navigationTargetType || "workspace-region";
+      item.dataset.contextRole = metadata.contextRole || item.dataset.contextRole || "navigation-reference";
+    } else if (inferredType === WORKSPACE_OBJECT_TYPES.panel) {
+      item.dataset.dashboardObjectKind = metadata.dashboardObjectKind || item.dataset.dashboardObjectKind || "panel";
+      item.dataset.contextRole = metadata.contextRole || item.dataset.contextRole || "container";
+    } else {
+      item.dataset.dashboardObjectKind = metadata.dashboardObjectKind || item.dataset.dashboardObjectKind || "widget";
+      item.dataset.contextRole = metadata.contextRole || item.dataset.contextRole || "content";
+    }
+  };
+  const workspaceObjectPersistence = (item) => ({
+    workspaceObjectType: workspaceObjectType(item),
+    dashboardObjectKind: item.dataset.dashboardObjectKind || null,
+    workspaceRegionId: item.dataset.workspaceRegionId || null,
+    contextScopeId: item.dataset.contextScopeId || null,
+    contextRole: item.dataset.contextRole || null,
+    navigationTargetType: item.dataset.navigationTargetType || null,
+    navigationTargetId: item.dataset.navigationTargetId || null,
+  });
+  const syncWorkspaceRegions = (layout) => {
+    if (!layout) return;
+    const host = gridHostForLayout(layout);
+    const layoutKey = gridItemLayoutKey(layout);
+    let activeRegion = workspaceRootRegionId(layoutKey);
+    visualGridOrder(globalGridItems(layout, { includePlaceholders: false })).forEach((item) => {
+      ensureWorkspaceObjectMetadata(item);
+      if (workspaceObjectType(item) === WORKSPACE_OBJECT_TYPES.divider) {
+        activeRegion = workspaceRegionIdForDivider(item, layoutKey);
+        item.dataset.contextScopeId = activeRegion;
+        item.dataset.workspaceRegionId = activeRegion;
+        item.dataset.contextRole = "semantic-boundary";
+        item.dataset.navigationTargetId = activeRegion;
+        return;
+      }
+      item.dataset.workspaceRegionId = activeRegion;
+      item.dataset.contextInheritedFrom = activeRegion;
+      if (workspaceObjectType(item) === WORKSPACE_OBJECT_TYPES.anchor && item.dataset.navigationTargetType === "workspace-region") {
+        item.dataset.navigationTargetId = activeRegion;
+      }
+    });
+    host?.setAttribute("data-workspace-context-model", WORKSPACE_CONTEXT_MODEL_VERSION);
+  };
 
   const gridItemMinimumSpan = (item) => {
     const explicit = Number(item?.dataset?.minW || item?.dataset?.minSpan);
@@ -804,24 +924,27 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   };
 
-  const panelMinimumRows = (panel) => {
+  const panelMinimumRows = (panel, metrics = null) => {
     if (panel.classList.contains("db-panel-collapsed")) return 1;
+    if (metrics?.panelMinimumRows?.has(panel)) return metrics.panelMinimumRows.get(panel);
     const layout = panel.closest(".panel-layout");
-    return gridRowsFromHeight(getPanelMinimumHeight(panel), gridGapForLayout(layout), 1);
+    const rows = gridRowsFromHeight(getPanelMinimumHeight(panel), metrics?.gap ?? gridGapForLayout(layout), 1);
+    metrics?.panelMinimumRows?.set(panel, rows);
+    return rows;
   };
 
-  const panelExpandedMinimumRows = (panel, layout = panel.closest(".panel-layout")) => (
-    gridRowsFromHeight(getPanelMinimumHeight(panel), gridGapForLayout(layout), 1)
+  const panelExpandedMinimumRows = (panel, layout = panel.closest(".panel-layout"), metrics = null) => (
+    gridRowsFromHeight(getPanelMinimumHeight(panel), metrics?.gap ?? gridGapForLayout(layout), 1)
   );
 
-  const gridItemRowSpan = (item) => {
+  const gridItemRowSpan = (item, metrics = null) => {
     if (item.classList.contains("widget-card") || item.classList.contains("widget-placeholder")) return 1;
     if (item.classList.contains("db-panel-collapsed")) return 1;
     if (item.classList.contains("db-panel-placeholder") && Number(item.dataset.gridRowSpan) === 1) return 1;
     const layout = item.closest(".panel-layout");
-    const gap = gridGapForLayout(layout);
+    const gap = metrics?.gap ?? gridGapForLayout(layout);
     const measuredHeight = Number(item.dataset.savedHeight) || item.getBoundingClientRect().height || DASHBOARD_GRID_ROW_HEIGHT;
-    const minRows = item.classList.contains("db-panel-placeholder") ? 1 : panelMinimumRows(item);
+    const minRows = item.classList.contains("db-panel-placeholder") ? 1 : panelMinimumRows(item, metrics);
     const explicitRows = Number(item.dataset.gridRowSpan);
     const rows = Number.isFinite(explicitRows) && explicitRows > 0
       ? explicitRows
@@ -879,15 +1002,15 @@ document.addEventListener("DOMContentLoaded", () => {
     syncPanelRenderedHeightToFootprint(panel, rowSpan);
   };
 
-  const gridCellFromPoint = (layout, item, clientX, clientY) => {
-    const layoutRect = gridRectForLayout(layout);
-    const gap = gridGapForLayout(layout);
-    const columnWidth = (Math.max(1, layoutRect.width) - (gap * 5)) / 6;
+  const gridCellFromPoint = (layout, item, clientX, clientY, metrics = null) => {
+    const layoutRect = metrics?.rect || gridRectForLayout(layout);
+    const gap = metrics?.gap ?? gridGapForLayout(layout);
+    const columnWidth = metrics?.columnWidth ?? ((Math.max(1, layoutRect.width) - (gap * 5)) / 6);
     const span = Number(item.dataset.currentSpan) || Number(item.dataset.defaultSpan) || 1;
     const safeSpan = Math.max(1, Math.min(6, Math.round(span > 6 ? span / 2 : span)));
     const itemWidth = (columnWidth * safeSpan) + (Math.max(0, safeSpan - 1) * gap);
     const col = Math.round((clientX - layoutRect.left - (itemWidth / 2)) / (columnWidth + gap)) + 1;
-    const rowSpan = isWidgetGridItem(item) ? 1 : gridItemRowSpan(item);
+    const rowSpan = isWidgetGridItem(item) ? 1 : gridItemRowSpan(item, metrics);
     const itemHeight = isWidgetGridItem(item) ? DASHBOARD_GRID_ROW_HEIGHT : gridHeightForRows(rowSpan, gap);
     const row = Math.round((clientY - layoutRect.top - (itemHeight / 2)) / (DASHBOARD_GRID_ROW_HEIGHT + gap)) + 1;
     return {
@@ -898,16 +1021,16 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const panelGridCellFromPoint = (layout, panel, clientX, clientY) => gridCellFromPoint(layout, panel, clientX, clientY);
 
-  const spanFromAlignedWidth = (layout, width, gap, minSpan) => {
-    const layoutWidth = Math.max(1, gridRectForLayout(layout).width);
+  const spanFromAlignedWidth = (layout, width, gap, minSpan, metrics = null) => {
+    const layoutWidth = metrics?.width ?? Math.max(1, gridRectForLayout(layout).width);
     const columnCount = (layout.classList.contains("widget-layout") || layout.classList.contains("panel-layout")) ? 6 : 12;
     const columnWidth = (layoutWidth - (gap * (columnCount - 1))) / columnCount;
     return Math.max(minSpan, Math.min(columnCount, (Math.max(1, width) + gap) / (columnWidth + gap)));
   };
 
-  const alignedResizeSpan = ({ layout, item, currentSpan, gap, minSpan }) => {
+  const alignedResizeSpan = ({ layout, item, currentSpan, gap, minSpan, metrics = null }) => {
     const rect = item.getBoundingClientRect();
-    const layoutRect = gridRectForLayout(layout);
+    const layoutRect = metrics?.rect || gridRectForLayout(layout);
     const tolerance = 18;
     const candidates = [{ edge: layoutRect.right, priority: 1 }];
     document.querySelectorAll(".widget-layout > .widget-card:not([hidden]), .panel-layout > .db-panel:not([hidden])").forEach((target) => {
@@ -925,7 +1048,7 @@ document.addEventListener("DOMContentLoaded", () => {
       .filter((candidate) => candidate.distance <= tolerance && candidate.edge > rect.left + 24)
       .sort((a, b) => a.distance - b.distance || a.priority - b.priority)[0];
     if (!match) return Math.round(currentSpan);
-    return spanFromAlignedWidth(layout, match.edge - rect.left, gap, minSpan);
+    return spanFromAlignedWidth(layout, match.edge - rect.left, gap, minSpan, metrics);
   };
 
   const groupedWidgetReleaseSpan = (currentSpan, groupCount) => {
@@ -1119,15 +1242,13 @@ document.addEventListener("DOMContentLoaded", () => {
         ${includeDelete ? '<button class="panel-tool-button panel-delete-handle" type="button" aria-label="Delete panel" title="Delete panel"><span class="trash-icon" aria-hidden="true"></span></button>' : ""}`;
 
   const createCustomPanel = (definition) => {
-    const safeTitle = String(definition.title || "Panel").replace(/[&<>"']/g, (char) => ({
-      "&": "&amp;",
-      "<": "&lt;",
-      ">": "&gt;",
-      '"': "&quot;",
-      "'": "&#39;",
-    }[char]));
+    const objectType = workspaceObjectTypeFromDefinition(definition, WORKSPACE_OBJECT_TYPES.panel);
+    const isDivider = objectType === WORKSPACE_OBJECT_TYPES.divider;
+    const safeTitle = escapeHtml(definition.title || (isDivider ? "Divider" : "Panel"));
     const panel = document.createElement("section");
-    panel.className = "db-panel db-panel-empty-custom";
+    panel.className = isDivider
+      ? "db-panel db-panel-empty-custom db-panel-collapsed workspace-divider"
+      : "db-panel db-panel-empty-custom";
     panel.dataset.panelKey = definition.key;
     panel.dataset.defaultSpan = String(definition.span || 4);
     if (definition.gridCol) panel.dataset.gridCol = String(definition.gridCol);
@@ -1136,8 +1257,26 @@ document.addEventListener("DOMContentLoaded", () => {
     if (definition.locked) panel.dataset.locked = "true";
     if (definition.resizable === false) panel.dataset.resizable = "false";
     panel.dataset.customPanel = "true";
-    panel.dataset.defaultTitle = definition.title || "Panel";
-    panel.innerHTML = `
+    panel.dataset.defaultTitle = definition.title || (isDivider ? "Divider" : "Panel");
+    ensureWorkspaceObjectMetadata(panel, {
+      ...definition,
+      workspaceObjectType: objectType,
+      dashboardObjectKind: definition.dashboardObjectKind || (isDivider ? "divider" : "panel"),
+      contextRole: definition.contextRole || (isDivider ? "semantic-boundary" : "container"),
+    });
+    const headerMarkup = isDivider ? `
+      <div class="db-panel-hd db-panel-hd-items workspace-divider-surface">
+        <span class="workspace-divider-node" aria-hidden="true"></span>
+        <span class="db-panel-title">${safeTitle}</span>
+        <span class="db-panel-count">Region</span>
+        <div class="panel-tools">
+          <div class="panel-tool-drawer" aria-label="Panel tools">
+            ${panelToolButtonsMarkup(definition.color || "#2563eb", true)}
+          </div>
+          <button class="panel-settings-toggle" type="button" aria-label="Panel settings" aria-expanded="false" title="Panel settings"><span class="settings-icon" aria-hidden="true"></span></button>
+        </div>
+      </div>
+      <div class="db-panel-body workspace-divider-body" hidden></div>` : `
       <div class="db-panel-hd db-panel-hd-items">
         <span class="db-panel-title">${safeTitle}</span>
         <span class="db-panel-count">0</span>
@@ -1155,12 +1294,14 @@ document.addEventListener("DOMContentLoaded", () => {
           <span class="panel-empty-action" aria-hidden="true">Add widgets</span>
         </div>
       </div>`;
+    panel.innerHTML = headerMarkup;
     return panel;
   };
 
   const savePanelLayouts = (layout, profile = getActivePanelProfile(layout.dataset.layoutKey || "default"), options = {}) => {
     const layoutKey = layout.dataset.layoutKey || "default";
     const persist = Boolean(options.persist);
+    syncWorkspaceRegions(layout);
     if (!persist) {
       pushLiveLayoutUndo(layoutKey, profile);
       return;
@@ -1193,6 +1334,7 @@ document.addEventListener("DOMContentLoaded", () => {
           breakBefore: panel.previousElementSibling?.classList.contains("db-panel-row-break") || false,
           expansionBaseline,
           expansionActive,
+          ...workspaceObjectPersistence(panel),
         }));
       } catch {}
     });
@@ -1209,6 +1351,7 @@ document.addEventListener("DOMContentLoaded", () => {
         minW: Number(panel.dataset.minW) || null,
         locked: panel.dataset.locked === "true",
         resizable: panel.dataset.resizable === "false" ? false : true,
+        ...workspaceObjectPersistence(panel),
       }));
     try {
       localStorage.setItem(customPanelsKey(layoutKey, profile), JSON.stringify(customPanels));
@@ -1450,18 +1593,16 @@ document.addEventListener("DOMContentLoaded", () => {
   };
 
   const createCustomWidget = (definition) => {
-    const safeTitle = String(definition.title || "Widget").replace(/[&<>"']/g, (char) => ({
-      "&": "&amp;",
-      "<": "&lt;",
-      ">": "&gt;",
-      '"': "&quot;",
-      "'": "&#39;",
-    }[char]));
+    const objectType = workspaceObjectTypeFromDefinition(definition, WORKSPACE_OBJECT_TYPES.widget);
+    const isAnchor = objectType === WORKSPACE_OBJECT_TYPES.anchor;
+    const safeTitle = escapeHtml(definition.title || (isAnchor ? "Anchor" : "Widget"));
     const widget = document.createElement("a");
-    widget.className = "stat-card widget-card widget-card-custom";
+    widget.className = isAnchor
+      ? "stat-card widget-card widget-card-custom workspace-anchor-object"
+      : "stat-card widget-card widget-card-custom";
     widget.href = definition.href || window.location.pathname + window.location.search;
     widget.dataset.widgetKey = definition.key;
-    widget.dataset.widgetType = definition.type || "tracker";
+    widget.dataset.widgetType = isAnchor ? "anchor" : (definition.type || "tracker");
     widget.dataset.defaultSpan = String(definition.span || 3);
     if (definition.gridCol) widget.dataset.gridCol = String(definition.gridCol);
     if (definition.gridRow) widget.dataset.gridRow = String(definition.gridRow);
@@ -1471,8 +1612,18 @@ document.addEventListener("DOMContentLoaded", () => {
     if (definition.resizable === false) widget.dataset.resizable = "false";
     if (definition.config) widget.dataset.widgetConfig = definition.config;
     widget.dataset.customWidget = "true";
-    widget.innerHTML = `
-      <span class="stat-val">${definition.value || "0"}</span>
+    ensureWorkspaceObjectMetadata(widget, {
+      ...definition,
+      workspaceObjectType: objectType,
+      dashboardObjectKind: definition.dashboardObjectKind || (isAnchor ? "anchor" : "widget"),
+      contextRole: definition.contextRole || (isAnchor ? "navigation-reference" : "content"),
+      navigationTargetType: definition.navigationTargetType || (isAnchor ? "workspace-region" : undefined),
+    });
+    widget.innerHTML = isAnchor ? `
+      <span class="stat-val workspace-anchor-glyph" aria-hidden="true">${escapeHtml(definition.value || "A")}</span>
+      <span class="stat-lbl">${safeTitle}</span>
+      <span class="workspace-anchor-meta">Spatial anchor</span>` : `
+      <span class="stat-val">${escapeHtml(definition.value || "0")}</span>
       <span class="stat-lbl">${safeTitle}</span>`;
     return widget;
   };
@@ -1538,10 +1689,10 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   };
 
-  const gridItemPixelWidthForSpan = (layout, span) => {
-    const gap = gridGapForLayout(layout);
-    const layoutWidth = Math.max(1, gridRectForLayout(layout).width);
-    const columnWidth = (layoutWidth - (gap * (DASHBOARD_GRID_COLUMNS - 1))) / DASHBOARD_GRID_COLUMNS;
+  const gridItemPixelWidthForSpan = (layout, span, metrics = null) => {
+    const gap = metrics?.gap ?? gridGapForLayout(layout);
+    const layoutWidth = metrics?.width ?? Math.max(1, gridRectForLayout(layout).width);
+    const columnWidth = metrics?.columnWidth ?? ((layoutWidth - (gap * (DASHBOARD_GRID_COLUMNS - 1))) / DASHBOARD_GRID_COLUMNS);
     const safeSpan = Math.max(1, Math.min(DASHBOARD_GRID_COLUMNS, Number(span) || 1));
     return (columnWidth * safeSpan) + (gap * Math.max(0, safeSpan - 1));
   };
@@ -1866,12 +2017,12 @@ document.addEventListener("DOMContentLoaded", () => {
     return activeResizeLifecycle;
   };
 
-  const createResizePreview = (layout, item, placeholderClass, rect) => {
+  const createResizePreview = (layout, item, placeholderClass, rect, metrics = null) => {
     const placeholder = document.createElement("div");
     placeholder.className = `${placeholderClass} dashboard-resize-preview`;
     placeholder.dataset.currentSpan = item.dataset.currentSpan || item.dataset.defaultSpan || "1";
     placeholder.dataset.defaultSpan = item.dataset.defaultSpan || placeholder.dataset.currentSpan;
-    placeholder.dataset.gridRowSpan = String(gridItemRowSpan(item));
+    placeholder.dataset.gridRowSpan = String(gridItemRowSpan(item, metrics));
     if (item.dataset.minW) placeholder.dataset.minW = item.dataset.minW;
     if (item.dataset.minSpan) placeholder.dataset.minSpan = item.dataset.minSpan;
     if (item.dataset.widgetType) placeholder.dataset.widgetType = item.dataset.widgetType;
@@ -1880,16 +2031,16 @@ document.addEventListener("DOMContentLoaded", () => {
     placeholder.style.gridColumn = item.style.gridColumn || `span ${placeholder.dataset.currentSpan}`;
     placeholder.style.gridRow = item.style.gridRow || "";
     const footprintHeight = placeholderClass === "db-panel-placeholder"
-      ? gridHeightForRows(gridItemRowSpan(item), gridGapForLayout(layout))
+      ? gridHeightForRows(gridItemRowSpan(item, metrics), metrics?.gap ?? gridGapForLayout(layout))
       : Math.max(DASHBOARD_GRID_ROW_HEIGHT, rect.height);
     placeholder.style.height = `${footprintHeight}px`;
     layout.insertBefore(placeholder, item);
     return placeholder;
   };
 
-  const expandedPanelFootprintRows = (panel, layout, proposedRows = null) => {
-    const gap = gridGapForLayout(layout);
-    const minRows = panelExpandedMinimumRows(panel, layout);
+  const expandedPanelFootprintRows = (panel, layout, proposedRows = null, metrics = null) => {
+    const gap = metrics?.gap ?? gridGapForLayout(layout);
+    const minRows = panelExpandedMinimumRows(panel, layout, metrics);
     const candidateRows = Number(proposedRows);
     if (Number.isFinite(candidateRows) && candidateRows > 0) {
       return Math.max(minRows, Math.round(candidateRows));
@@ -1899,17 +2050,17 @@ document.addEventListener("DOMContentLoaded", () => {
       return gridRowsFromHeight(savedHeight, gap, minRows);
     }
     if (!panel.classList.contains("db-panel-collapsed")) {
-      return Math.max(minRows, gridItemRowSpan(panel));
+      return Math.max(minRows, gridItemRowSpan(panel, metrics));
     }
     return minRows;
   };
 
-  const expandedPanelFootprintHeight = (panel, layout, proposedRows = null) => {
-    const rows = expandedPanelFootprintRows(panel, layout, proposedRows);
-    return gridHeightForRows(rows, gridGapForLayout(layout));
+  const expandedPanelFootprintHeight = (panel, layout, proposedRows = null, metrics = null) => {
+    const rows = expandedPanelFootprintRows(panel, layout, proposedRows, metrics);
+    return gridHeightForRows(rows, metrics?.gap ?? gridGapForLayout(layout));
   };
 
-  const createExpandedFootprintGhost = (panel, layout, rect, proposedRows = null) => {
+  const createExpandedFootprintGhost = (panel, layout, rect, proposedRows = null, metrics = null) => {
     if (!panel?.classList?.contains("db-panel-collapsed")) return null;
     const ghost = document.createElement("div");
     ghost.className = "dashboard-expanded-footprint-ghost";
@@ -1920,13 +2071,13 @@ document.addEventListener("DOMContentLoaded", () => {
       top: rect.top,
       width: rect.width,
       rows: proposedRows,
-    });
+    }, metrics);
     return ghost;
   };
 
-  const updateExpandedFootprintGhost = (ghost, panel, layout, rect) => {
+  const updateExpandedFootprintGhost = (ghost, panel, layout, rect, metrics = null) => {
     if (!ghost) return;
-    const height = expandedPanelFootprintHeight(panel, layout, rect.rows);
+    const height = expandedPanelFootprintHeight(panel, layout, rect.rows, metrics);
     ghost.style.left = `${Math.round(rect.left)}px`;
     ghost.style.top = `${Math.round(rect.top)}px`;
     ghost.style.width = `${Math.round(rect.width)}px`;
@@ -2097,11 +2248,11 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   };
 
-  const gridBoundsForItem = (item) => {
+  const gridBoundsForItem = (item, metrics = null) => {
     const col = Math.max(1, Math.round(Number(item.dataset.gridCol) || 1));
     const row = Math.max(1, Math.round(Number(item.dataset.gridRow) || 1));
     const span = gridItemSpan(item);
-    const rowSpan = gridItemRowSpan(item);
+    const rowSpan = gridItemRowSpan(item, metrics);
     return {
       col,
       row,
@@ -2468,9 +2619,9 @@ document.addEventListener("DOMContentLoaded", () => {
     window.scrollTo(0, Math.min(targetScrollY, maxScrollY));
   };
 
-  const boundsAtGridSlot = (item, col, row) => {
+  const boundsAtGridSlot = (item, col, row, metrics = null) => {
     const span = gridItemSpan(item);
-    const rowSpan = gridItemRowSpan(item);
+    const rowSpan = gridItemRowSpan(item, metrics);
     const safeCol = Math.max(1, Math.min(DASHBOARD_GRID_COLUMNS - span + 1, Math.round(Number(col) || 1)));
     const safeRow = Math.max(1, Math.round(Number(row) || 1));
     return {
@@ -2501,15 +2652,15 @@ document.addEventListener("DOMContentLoaded", () => {
     return !occupied.some((entry) => gridBoundsOverlap(bounds, entry.bounds));
   };
 
-  const nearestSparseSlot = (item, preferred, occupied, rowLimit = null) => {
-    const base = boundsAtGridSlot(item, preferred?.col || 1, preferred?.row || 1);
+  const nearestSparseSlot = (item, preferred, occupied, rowLimit = null, metrics = null) => {
+    const base = boundsAtGridSlot(item, preferred?.col || 1, preferred?.row || 1, metrics);
     const maxCol = DASHBOARD_GRID_COLUMNS - base.span + 1;
     const maxOccupiedRow = occupied.reduce((max, entry) => Math.max(max, entry.bounds.bottom), base.row);
     const limit = Math.max(base.row + 48, maxOccupiedRow + 24, rowLimit || 0);
     let best = null;
     for (let row = 1; row <= limit; row += 1) {
       for (let col = 1; col <= maxCol; col += 1) {
-        const candidate = boundsAtGridSlot(item, col, row);
+        const candidate = boundsAtGridSlot(item, col, row, metrics);
         if (!canPlaceBounds(candidate, occupied)) continue;
         const upwardPenalty = row < base.row ? .65 : 0;
         const leftPenalty = row === base.row && col < base.col ? .15 : 0;
@@ -2522,24 +2673,24 @@ document.addEventListener("DOMContentLoaded", () => {
     return best?.bounds || base;
   };
 
-  const nearestSparseSlotAtOrAfter = (item, preferred, occupied, rowLimit = null) => {
-    const base = boundsAtGridSlot(item, preferred?.col || 1, preferred?.row || 1);
+  const nearestSparseSlotAtOrAfter = (item, preferred, occupied, rowLimit = null, metrics = null) => {
+    const base = boundsAtGridSlot(item, preferred?.col || 1, preferred?.row || 1, metrics);
     const maxCol = DASHBOARD_GRID_COLUMNS - base.span + 1;
     const maxOccupiedRow = occupied.reduce((max, entry) => Math.max(max, entry.bounds.bottom), base.row);
     const limit = Math.max(base.row + 80, maxOccupiedRow + 40, rowLimit || 0);
     for (let row = base.row; row <= limit; row += 1) {
       const startCol = row === base.row ? base.col : 1;
       for (let col = startCol; col <= maxCol; col += 1) {
-        const candidate = boundsAtGridSlot(item, col, row);
+        const candidate = boundsAtGridSlot(item, col, row, metrics);
         if (canPlaceBounds(candidate, occupied)) return candidate;
       }
     }
-    return nearestSparseSlot(item, base, occupied, limit);
+    return nearestSparseSlot(item, base, occupied, limit, metrics);
   };
 
-  const visualGridOrder = (items) => [...items].sort((a, b) => {
-    const aBounds = gridBoundsForItem(a);
-    const bBounds = gridBoundsForItem(b);
+  const visualGridOrder = (items, metrics = null) => [...items].sort((a, b) => {
+    const aBounds = gridBoundsForItem(a, metrics);
+    const bBounds = gridBoundsForItem(b, metrics);
     const documentOrder = a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING ? -1 : 1;
     return aBounds.row - bBounds.row ||
       aBounds.col - bBounds.col ||
@@ -2642,37 +2793,38 @@ document.addEventListener("DOMContentLoaded", () => {
   };
 
   const resolveSparseGridLayout = (layout, activeItem = null, preferredTarget = null, options = {}) => {
+    const metrics = options.metrics || null;
     const items = globalGridItems(layout, { includePlaceholders: true });
     const placements = new Map();
     const occupied = [];
     const pinned = items.filter((item) => item !== activeItem && item.classList.contains("db-panel-pinned"));
     pinned.forEach((item) => {
-      const bounds = gridBoundsForItem(item);
+      const bounds = gridBoundsForItem(item, metrics);
       placements.set(item, bounds);
       occupied.push({ item, bounds });
     });
 
     if (activeItem?.isConnected) {
-      const target = preferredTarget || gridBoundsForItem(activeItem);
-      let activeBounds = boundsAtGridSlot(activeItem, target.col, target.row);
+      const target = preferredTarget || gridBoundsForItem(activeItem, metrics);
+      let activeBounds = boundsAtGridSlot(activeItem, target.col, target.row, metrics);
       if (!canPlaceBounds(activeBounds, occupied)) {
         activeBounds = options.afterOnly
-          ? nearestSparseSlotAtOrAfter(activeItem, activeBounds, occupied)
-          : nearestSparseSlot(activeItem, activeBounds, occupied);
+          ? nearestSparseSlotAtOrAfter(activeItem, activeBounds, occupied, null, metrics)
+          : nearestSparseSlot(activeItem, activeBounds, occupied, null, metrics);
       }
       placements.set(activeItem, activeBounds);
       occupied.push({ item: activeItem, bounds: activeBounds });
     }
 
-    visualGridOrder(items)
+    visualGridOrder(items, metrics)
       .filter((item) => item !== activeItem && !item.classList.contains("db-panel-pinned"))
       .forEach((item) => {
-        const current = gridBoundsForItem(item);
+        const current = gridBoundsForItem(item, metrics);
         const bounds = canPlaceBounds(current, occupied)
           ? current
           : options.afterOnly
-            ? nearestSparseSlotAtOrAfter(item, current, occupied)
-            : nearestSparseSlot(item, current, occupied);
+            ? nearestSparseSlotAtOrAfter(item, current, occupied, null, metrics)
+            : nearestSparseSlot(item, current, occupied, null, metrics);
         placements.set(item, bounds);
         occupied.push({ item, bounds });
       });
@@ -2981,15 +3133,20 @@ document.addEventListener("DOMContentLoaded", () => {
     return placements;
   };
 
-  const animateOrderedGridReflow = (layout, update, excludeItem = null) => {
+  const reflowItemsForLayout = (layout, excludeItem = null) => {
     const host = gridHostForLayout(layout);
     const selector = ".widget-layout > .widget-card, .widget-layout > .widget-placeholder, .panel-layout > .db-panel, .panel-layout > .db-panel-placeholder";
-    const items = [...host.querySelectorAll(selector)]
+    return [...host.querySelectorAll(selector)]
       .filter((item) => item !== excludeItem && !item.classList.contains("widget-dragging") && !item.classList.contains("db-panel-dragging"));
+  };
+
+  const animateOrderedGridReflow = (layout, update, excludeItem = null, options = {}) => {
+    const items = (options.items || reflowItemsForLayout(layout, excludeItem))
+      .filter((item) => item.isConnected && item !== excludeItem && !item.classList.contains("widget-dragging") && !item.classList.contains("db-panel-dragging"));
     const before = new Map(items.map((item) => [item, item.getBoundingClientRect()]));
     update();
-    const afterItems = [...host.querySelectorAll(selector)]
-      .filter((item) => item !== excludeItem && !item.classList.contains("widget-dragging") && !item.classList.contains("db-panel-dragging"));
+    const afterItems = (options.items || reflowItemsForLayout(layout, excludeItem))
+      .filter((item) => item.isConnected && item !== excludeItem && !item.classList.contains("widget-dragging") && !item.classList.contains("db-panel-dragging"));
     afterItems.forEach((item) => {
       const first = before.get(item);
       if (!first) return;
@@ -3058,6 +3215,8 @@ document.addEventListener("DOMContentLoaded", () => {
     let groupDrag = null;
     let groupLive = null;
     let expandedFootprintGhost = null;
+    let dragMetrics = null;
+    let reflowItems = null;
     const originalCell = {
       col: Number(item.dataset.gridCol) || 1,
       row: Number(item.dataset.gridRow) || 1,
@@ -3117,13 +3276,15 @@ document.addEventListener("DOMContentLoaded", () => {
         offsetY = startY - rect.top;
         targetCell = originalCell;
       }
+      dragMetrics = createGridMetrics(layout);
+      reflowItems = reflowItemsForLayout(layout, item);
       closeInactiveDashboardTools(item);
       onStart?.();
     };
 
-    const movePreview = (clientX, clientY) => {
+    const movePreview = (clientX, clientY, metrics = null) => {
       if (!placeholder) return;
-      const nextCell = gridCellFromPoint(layout, groupDrag ? placeholder : item, clientX, clientY);
+      const nextCell = gridCellFromPoint(layout, groupDrag ? placeholder : item, clientX, clientY, metrics);
       if (targetCell && targetCell.col === nextCell.col && targetCell.row === nextCell.row) return;
       targetCell = nextCell;
       animateOrderedGridReflow(layout, () => {
@@ -3134,11 +3295,11 @@ document.addEventListener("DOMContentLoaded", () => {
             col: nextCell.col,
             row: nextCell.row,
           });
-          resolveSparseGridLayout(layout, placeholder, nextCell, { afterOnly: true });
+          resolveSparseGridLayout(layout, placeholder, nextCell, { afterOnly: true, metrics });
         } else {
-          resolveSparseGridLayout(layout, placeholder, nextCell, { afterOnly: true });
+          resolveSparseGridLayout(layout, placeholder, nextCell, { afterOnly: true, metrics });
         }
-      }, item);
+      }, item, { items: reflowItems });
     };
 
     const onMove = (moveEvent) => {
@@ -3149,7 +3310,8 @@ document.addEventListener("DOMContentLoaded", () => {
       moveEvent.preventDefault();
       lastMoveEvent = moveEvent;
       autoScroll.update(moveEvent);
-      const gridRect = gridRectForLayout(layout);
+      const currentMetrics = refreshGridMetricsRect(dragMetrics);
+      const gridRect = currentMetrics?.rect || gridRectForLayout(layout);
       const dragRect = groupLive?.groupRect || rect;
       const minLeft = gridRect.left;
       const maxLeft = Math.max(minLeft, gridRect.right - dragRect.width);
@@ -3175,7 +3337,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const previewRect = groupDrag && groupLive
         ? { left: nextLeft, top: nextTop, width: dragRect.width, height: dragRect.height }
         : item.getBoundingClientRect();
-      movePreview(previewRect.left + (previewRect.width / 2), previewRect.top + (previewRect.height / 2));
+      movePreview(previewRect.left + (previewRect.width / 2), previewRect.top + (previewRect.height / 2), currentMetrics);
     };
 
     const onUp = (upEvent) => {
@@ -3215,7 +3377,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 col: finalCell.col,
                 row: finalCell.row,
               });
-              resolveSparseGridLayout(layout, placeholder, finalCell, { afterOnly: true });
+              resolveSparseGridLayout(layout, placeholder, finalCell, { afterOnly: true, metrics: dragMetrics });
               const resolvedCell = {
                 col: Number(placeholder.dataset.gridCol) || finalCell.col,
                 row: Number(placeholder.dataset.gridRow) || finalCell.row,
@@ -3308,9 +3470,9 @@ document.addEventListener("DOMContentLoaded", () => {
     return Boolean(cursor?.classList?.contains("widget-row-break"));
   };
 
-  const alignedResizeHeight = ({ layout, item, currentHeight }) => {
+  const alignedResizeHeight = ({ layout, item, currentHeight, metrics = null }) => {
     const rect = item.getBoundingClientRect();
-    const layoutRect = gridRectForLayout(layout);
+    const layoutRect = metrics?.rect || gridRectForLayout(layout);
     const tolerance = 18;
     const candidates = [{ edge: layoutRect.bottom, priority: 1 }];
     document.querySelectorAll(".widget-layout > .widget-card:not([hidden]), .panel-layout > .db-panel:not([hidden])").forEach((target) => {
@@ -3326,9 +3488,9 @@ document.addEventListener("DOMContentLoaded", () => {
       }))
       .filter((candidate) => candidate.distance <= tolerance && candidate.edge > rect.top + 40)
       .sort((a, b) => a.distance - b.distance || a.priority - b.priority)[0];
-    const gap = gridGapForLayout(layout);
+    const gap = metrics?.gap ?? gridGapForLayout(layout);
     const nextHeight = match ? Math.max(getPanelMinimumHeight(item), Math.round(match.edge - rect.top)) : currentHeight;
-    return gridHeightForRows(gridRowsFromHeight(nextHeight, gap, panelMinimumRows(item)), gap);
+    return gridHeightForRows(gridRowsFromHeight(nextHeight, gap, panelMinimumRows(item, metrics)), gap);
   };
 
   const groupGridBox = (boundsList) => ({
@@ -3351,7 +3513,7 @@ document.addEventListener("DOMContentLoaded", () => {
     rowSpan: Math.max(1, groupBox.bottom - groupBox.row + 1),
   });
 
-  const applyGroupFootprintBounds = (footprint, layout, bounds) => {
+  const applyGroupFootprintBounds = (footprint, layout, bounds, metrics = null) => {
     const span = Math.max(1, Math.min(DASHBOARD_GRID_COLUMNS, Math.round(Number(bounds.span) || 1)));
     const rowSpan = Math.max(1, Math.round(Number(bounds.rowSpan) || 1));
     const col = Math.max(1, Math.min(DASHBOARD_GRID_COLUMNS - span + 1, Math.round(Number(bounds.col) || 1)));
@@ -3363,7 +3525,7 @@ document.addEventListener("DOMContentLoaded", () => {
     footprint.dataset.gridRow = String(row);
     footprint.style.gridColumn = `${col} / span ${span}`;
     footprint.style.gridRow = `${row} / span ${rowSpan}`;
-    footprint.style.height = `${gridHeightForRows(rowSpan, gridGapForLayout(layout))}px`;
+    footprint.style.height = `${gridHeightForRows(rowSpan, metrics?.gap ?? gridGapForLayout(layout))}px`;
   };
 
   const createGroupFootprint = (layout, groupBox, className = "") => {
@@ -3538,11 +3700,19 @@ document.addEventListener("DOMContentLoaded", () => {
     closeInactiveDashboardTools(source);
     window.getSelection?.()?.removeAllRanges();
 
+    const gridMetricsByLayout = new Map();
+    const metricsForLayout = (targetLayout) => {
+      if (!gridMetricsByLayout.has(targetLayout)) {
+        gridMetricsByLayout.set(targetLayout, createGridMetrics(targetLayout));
+      }
+      return gridMetricsByLayout.get(targetLayout);
+    };
     const startX = event.clientX;
     const startY = event.clientY;
-    const gap = gridGapForLayout(layout);
+    const layoutMetrics = metricsForLayout(layout);
+    const gap = layoutMetrics.gap;
     const startScrollY = window.scrollY || document.documentElement.scrollTop || 0;
-    const layoutRect = gridRectForLayout(layout);
+    const layoutRect = layoutMetrics.rect;
     const columnWidth = (Math.max(1, layoutRect.width) - (gap * (DASHBOARD_GRID_COLUMNS - 1))) / DASHBOARD_GRID_COLUMNS;
     const columnStep = Math.max(1, columnWidth + gap);
     const rowStep = DASHBOARD_GRID_ROW_HEIGHT + gap;
@@ -3571,27 +3741,30 @@ document.addEventListener("DOMContentLoaded", () => {
     const liveMaxScaleX = (DASHBOARD_GRID_COLUMNS - groupBox.col + 1) / startWidth;
     const previewEntries = members.map((member) => {
       const memberLayout = groupItemLayout(member) || layout;
+      const memberMetrics = metricsForLayout(memberLayout);
       const rect = startRects.get(member);
       const preview = createResizePreview(
         memberLayout,
         member,
         isWidgetGridItem(member) ? "widget-placeholder" : "db-panel-placeholder",
-        rect
+        rect,
+        memberMetrics
       );
       preview.classList.add("dashboard-group-member-preview");
       if (member.classList.contains("db-panel-collapsed")) {
         preview.classList.add("db-panel-collapsed");
         preview.dataset.gridRowSpan = "1";
-        preview.style.height = `${gridHeightForRows(1, gridGapForLayout(memberLayout))}px`;
+        preview.style.height = `${gridHeightForRows(1, memberMetrics.gap)}px`;
       }
       const live = beginLiveResizeSurface(member, rect);
-      const expandedGhost = createExpandedFootprintGhost(member, memberLayout, rect);
-      return { member, memberLayout, preview, live, expandedGhost, rect };
+      const expandedGhost = createExpandedFootprintGhost(member, memberLayout, rect, null, memberMetrics);
+      return { member, memberLayout, memberMetrics, preview, live, expandedGhost, rect };
     });
     const previewMembers = previewEntries.map((entry) => entry.preview);
     const previewStartBounds = new Map(previewEntries.map((entry) => [entry.preview, startBounds.get(entry.member)]));
     const sourceForPreview = new Map(previewEntries.map((entry) => [entry.preview, entry.member]));
     const groupFootprint = createGroupFootprint(layout, groupBox, "dashboard-resize-preview dashboard-group-resize-footprint");
+    const reflowItems = reflowItemsForLayout(layout, source);
     let previewCols = startWidth;
     let previewRows = startHeight;
 
@@ -3607,7 +3780,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const startRect = entry.rect;
         const left = groupStartRect.left + ((startRect.left - groupStartRect.left) * scaleX);
         const top = groupStartRect.top - scrollDeltaY + (startRect.top - groupStartRect.top);
-        const width = Math.max(gridItemPixelWidthForSpan(entry.memberLayout, gridItemMinimumSpan(entry.member)), startRect.width * scaleX);
+        const width = Math.max(gridItemPixelWidthForSpan(entry.memberLayout, gridItemMinimumSpan(entry.member), entry.memberMetrics), startRect.width * scaleX);
         const height = isWidgetGridItem(entry.member) || entry.member.classList.contains("db-panel-collapsed")
           ? startRect.height
           : Math.max(getPanelMinimumHeight(entry.member), startRect.height * scaleY);
@@ -3618,7 +3791,7 @@ document.addEventListener("DOMContentLoaded", () => {
         liveBounds.bottom = Math.max(liveBounds.bottom, top + height);
         if (entry.expandedGhost) {
           const ghostRows = Math.max(
-            expandedPanelFootprintRows(entry.member, entry.memberLayout),
+            expandedPanelFootprintRows(entry.member, entry.memberLayout, null, entry.memberMetrics),
             Math.round(startBounds.get(entry.member).rowSpan * scaleY)
           );
           updateExpandedFootprintGhost(entry.expandedGhost, entry.member, entry.memberLayout, {
@@ -3626,7 +3799,7 @@ document.addEventListener("DOMContentLoaded", () => {
             top,
             width,
             rows: ghostRows,
-          });
+          }, entry.memberMetrics);
         }
       });
       updateGroupBoundarySurface(resizeBoundary, {
@@ -3652,13 +3825,13 @@ document.addEventListener("DOMContentLoaded", () => {
           row: groupBox.row,
           span: nextCols,
           rowSpan: nextRows,
-        });
-        resolveSparseGridLayout(layout, groupFootprint.footprint, { col: groupBox.col, row: groupBox.row }, { afterOnly: true });
+        }, metricsForLayout(groupFootprint.footprintLayout));
+        resolveSparseGridLayout(layout, groupFootprint.footprint, { col: groupBox.col, row: groupBox.row }, { afterOnly: true, metrics: layoutMetrics });
         applyGroupResizeLayout(layout, previewMembers, previewStartBounds, groupBox, nextCols / startWidth, nextRows / startHeight, {
           sourceForMember: sourceForPreview,
           collision: false,
         });
-      }, source);
+      }, source, { items: reflowItems });
     };
 
     const finishResize = (upEvent, canceled) => {
@@ -3674,8 +3847,8 @@ document.addEventListener("DOMContentLoaded", () => {
             row: groupBox.row,
             span: previewCols,
             rowSpan: previewRows,
-          });
-          resolveSparseGridLayout(layout, groupFootprint.footprint, { col: groupBox.col, row: groupBox.row }, { afterOnly: true });
+          }, metricsForLayout(groupFootprint.footprintLayout));
+          resolveSparseGridLayout(layout, groupFootprint.footprint, { col: groupBox.col, row: groupBox.row }, { afterOnly: true, metrics: layoutMetrics });
           const resolvedCol = Number(groupFootprint.footprint.dataset.gridCol) || groupBox.col;
           const resolvedRow = Number(groupFootprint.footprint.dataset.gridRow) || groupBox.row;
           const commitGroupBox = {
@@ -3690,7 +3863,7 @@ document.addEventListener("DOMContentLoaded", () => {
           });
           groupFootprint.footprint.remove();
           previewEntries.forEach((entry) => clearLiveResizeSurface(entry.member, entry.live));
-        }, source);
+        }, source, { items: reflowItems });
         syncCommittedWorkspaceScrollFloor(layout, {
           preserveViewport: document.body.classList.contains("dashboard-interaction-scroll-extended"),
         });
@@ -3725,6 +3898,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const saveWidgetLayouts = (layout, profile = getActivePanelProfile(layout.dataset.widgetLayoutKey || "default"), options = {}) => {
     const layoutKey = layout.dataset.widgetLayoutKey || "default";
     const persist = Boolean(options.persist);
+    syncWorkspaceRegions(layout);
     if (!persist) {
       pushLiveLayoutUndo(layoutKey, profile);
       return;
@@ -3754,6 +3928,7 @@ document.addEventListener("DOMContentLoaded", () => {
           breakBefore: widgetHasRowBreakBefore(widget),
           spacerBefore: widgetSpacerSiblingsBefore(widget).length,
           expansionBaseline,
+          ...workspaceObjectPersistence(widget),
         }));
       } catch {}
     });
@@ -3774,6 +3949,7 @@ document.addEventListener("DOMContentLoaded", () => {
         locked: widget.dataset.locked === "true",
         resizable: widget.dataset.resizable === "false" ? false : true,
         config: widget.dataset.widgetConfig || null,
+        ...workspaceObjectPersistence(widget),
       }));
     try {
       localStorage.setItem(customWidgetsKey(layoutKey, profile), JSON.stringify(customWidgets));
@@ -3817,6 +3993,15 @@ document.addEventListener("DOMContentLoaded", () => {
       } catch {}
       savedByWidget.set(widget, saved);
       markLoadedExpansionBaseline(widget, saved?.expansionBaseline);
+      ensureWorkspaceObjectMetadata(widget, {
+        workspaceObjectType: saved?.workspaceObjectType || widget.dataset.workspaceObjectType || workspaceObjectType(widget),
+        dashboardObjectKind: saved?.dashboardObjectKind || widget.dataset.dashboardObjectKind,
+        workspaceRegionId: saved?.workspaceRegionId,
+        contextScopeId: saved?.contextScopeId,
+        contextRole: saved?.contextRole,
+        navigationTargetType: saved?.navigationTargetType,
+        navigationTargetId: saved?.navigationTargetId,
+      });
       const defaultWidgetSpan = widget.dataset.widgetType === "controls" ? 6 : 1;
       applyWidgetSpan(widget, saved?.span ?? widget.dataset.defaultSpan ?? defaultWidgetSpan);
       if (saved?.gridCol && saved?.gridRow) applyWidgetGridPosition(widget, saved.gridCol, saved.gridRow);
@@ -3864,6 +4049,7 @@ document.addEventListener("DOMContentLoaded", () => {
     } else {
       normalizeGridLayout(layout);
     }
+    syncWorkspaceRegions(layout);
 
     const initWidget = (widget) => {
       if (widget.dataset.widgetInitialized === "true") return;
@@ -4108,15 +4294,17 @@ document.addEventListener("DOMContentLoaded", () => {
         widget.classList.add("dashboard-active-resize");
         closeInactiveDashboardTools(widget);
         window.getSelection?.()?.removeAllRanges();
-        const layoutWidth = Math.max(1, gridRectForLayout(layout).width);
+        const layoutMetrics = createGridMetrics(layout);
+        const layoutWidth = layoutMetrics.width;
         const startSpan = Number(widget.dataset.currentSpan) || 1;
         const startRect = widget.getBoundingClientRect();
         const startCol = Number(widget.dataset.gridCol) || 1;
         const startRow = Number(widget.dataset.gridRow) || 1;
         const startRightCol = startCol + startSpan - 1;
-        const minLiveWidth = gridItemPixelWidthForSpan(layout, gridItemMinimumSpan(widget));
-        const maxLiveWidth = gridItemPixelWidthForSpan(layout, resizeEdge === "left" ? startRightCol : DASHBOARD_GRID_COLUMNS);
-        const resizePreview = createResizePreview(layout, widget, "widget-placeholder", startRect);
+        const minLiveWidth = gridItemPixelWidthForSpan(layout, gridItemMinimumSpan(widget), layoutMetrics);
+        const maxLiveWidth = gridItemPixelWidthForSpan(layout, resizeEdge === "left" ? startRightCol : DASHBOARD_GRID_COLUMNS, layoutMetrics);
+        const resizePreview = createResizePreview(layout, widget, "widget-placeholder", startRect, layoutMetrics);
+        const reflowItems = reflowItemsForLayout(layout, widget);
         const previewStartCell = {
           col: Number(resizePreview.dataset.gridCol) || Number(widget.dataset.gridCol) || 1,
           row: Number(resizePreview.dataset.gridRow) || Number(widget.dataset.gridRow) || 1,
@@ -4142,7 +4330,7 @@ document.addEventListener("DOMContentLoaded", () => {
           applyWidgetSpan(resizePreview, snappedSpan);
           if (resizeEdge === "left") applyWidgetGridPosition(resizePreview, snappedCol, startRow);
           resizePeers.forEach(({ peer, startSpan: peerStartSpan }) => applyWidgetSpan(peer, peerStartSpan + delta));
-          resolveSparseGridLayout(layout, resizePreview, { col: snappedCol, row: previewStartCell.row });
+          resolveSparseGridLayout(layout, resizePreview, { col: snappedCol, row: previewStartCell.row }, { metrics: layoutMetrics });
           previewSpan = snappedSpan;
         };
         const onMove = (moveEvent) => {
@@ -4155,7 +4343,7 @@ document.addEventListener("DOMContentLoaded", () => {
           const rawSpan = startSpan + ((((resizeEdge === "left" ? -deltaX : deltaX)) / layoutWidth) * 6);
           const nextSpan = Math.max(gridItemMinimumSpan(widget), Math.min(6, Math.round(rawSpan)));
           if (nextSpan === previewSpan) return;
-          animateOrderedGridReflow(layout, () => applyResize(nextSpan), widget);
+          animateOrderedGridReflow(layout, () => applyResize(nextSpan), widget, { items: reflowItems });
         };
         const finishWidgetResize = (upEvent, canceled) => {
           if (canceled) {
@@ -4170,6 +4358,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 currentSpan,
                 gap: 12,
                 minSpan: gridItemMinimumSpan(widget),
+                metrics: refreshGridMetricsRect(layoutMetrics),
               }));
               const requestedDelta = snappedSpan - startSpan;
               const minDelta = Math.max(...groupResizeItems.map(({ peer, startSpan }) => gridItemMinimumSpan(peer) - startSpan));
@@ -4185,7 +4374,7 @@ document.addEventListener("DOMContentLoaded", () => {
               if (resizeEdge === "left") applyWidgetGridPosition(widget, finalCol, startRow);
               resizePeers.forEach(({ peer, startSpan: peerStartSpan }) => applyWidgetSpan(peer, peerStartSpan + delta));
               applyOrderedGridLayout(layout);
-            }, widget);
+            }, widget, { items: reflowItems });
             saveSharedGridLayouts(layout);
             syncCommittedWorkspaceScrollFloor(layout, {
               preserveViewport: document.body.classList.contains("dashboard-interaction-scroll-extended"),
@@ -4264,9 +4453,22 @@ document.addEventListener("DOMContentLoaded", () => {
       savedByPanel.set(panel, saved);
       markLoadedExpansionBaseline(panel, saved?.expansionBaseline);
       panel.__loadedExpansionActive = Boolean(saved?.expansionActive);
+      ensureWorkspaceObjectMetadata(panel, {
+        workspaceObjectType: saved?.workspaceObjectType || panel.dataset.workspaceObjectType || workspaceObjectType(panel),
+        dashboardObjectKind: saved?.dashboardObjectKind || panel.dataset.dashboardObjectKind,
+        workspaceRegionId: saved?.workspaceRegionId,
+        contextScopeId: saved?.contextScopeId,
+        contextRole: saved?.contextRole,
+        navigationTargetType: saved?.navigationTargetType,
+        navigationTargetId: saved?.navigationTargetId,
+      });
       panel.classList.remove("db-panel-unlocked", "db-panel-pinned");
       if (saved?.pinned) panel.classList.add("db-panel-pinned");
       panel.classList.toggle("db-panel-collapsed", saved?.collapsed ?? panel.classList.contains("db-panel-collapsed"));
+      if (workspaceObjectType(panel) === WORKSPACE_OBJECT_TYPES.divider) {
+        panel.classList.add("db-panel-collapsed");
+        panel.dataset.gridRowSpan = "1";
+      }
       if (saved?.minW) panel.dataset.minW = String(saved.minW);
       if (saved?.locked) panel.dataset.locked = "true";
       if (saved?.resizable === false) panel.dataset.resizable = "false";
@@ -4310,6 +4512,7 @@ document.addEventListener("DOMContentLoaded", () => {
     } else {
       normalizeGridLayout(layout);
     }
+    syncWorkspaceRegions(layout);
 
     const initPanel = (panel) => {
       if (panel.dataset.panelInitialized === "true") return;
@@ -4534,7 +4737,12 @@ document.addEventListener("DOMContentLoaded", () => {
       header.setAttribute("role", "button");
       header.setAttribute("tabindex", "0");
       header.setAttribute("aria-expanded", (!panel.classList.contains("db-panel-collapsed")).toString());
+      if (workspaceObjectType(panel) === WORKSPACE_OBJECT_TYPES.divider) {
+        header.setAttribute("aria-expanded", "false");
+        header.setAttribute("aria-disabled", "true");
+      }
       const togglePanel = () => {
+        if (workspaceObjectType(panel) === WORKSPACE_OBJECT_TYPES.divider) return;
         if (panel.classList.contains("db-panel-title-editing")) return;
         if (movedDuringPointer) {
           movedDuringPointer = false;
@@ -4662,26 +4870,28 @@ document.addEventListener("DOMContentLoaded", () => {
         const startY = event.clientY;
         const startScrollY = window.scrollY || document.documentElement.scrollTop || 0;
         const startRect = panel.getBoundingClientRect();
-        const gap = gridGapForLayout(layout);
-        const startRows = gridItemRowSpan(panel);
+        const layoutMetrics = createGridMetrics(layout);
+        const gap = layoutMetrics.gap;
+        const startRows = gridItemRowSpan(panel, layoutMetrics);
         const rowStep = DASHBOARD_GRID_ROW_HEIGHT + gap;
-        const startFootprintHeight = gridHeightForRows(gridItemRowSpan(panel), gap);
-        const layoutWidth = Math.max(1, gridRectForLayout(layout).width);
+        const startFootprintHeight = gridHeightForRows(gridItemRowSpan(panel, layoutMetrics), gap);
+        const layoutWidth = layoutMetrics.width;
         const startSpan = Number(panel.dataset.currentSpan) || Number(panel.dataset.defaultSpan) || 6;
         const startCol = Number(panel.dataset.gridCol) || 1;
         const startRow = Number(panel.dataset.gridRow) || 1;
         const startRightCol = startCol + startSpan - 1;
         const collapsedPanelResize = panel.classList.contains("db-panel-collapsed");
-        const minLiveWidth = gridItemPixelWidthForSpan(layout, gridItemMinimumSpan(panel));
-        const maxLiveWidth = gridItemPixelWidthForSpan(layout, resizeEdge === "left" ? startRightCol : DASHBOARD_GRID_COLUMNS);
+        const minLiveWidth = gridItemPixelWidthForSpan(layout, gridItemMinimumSpan(panel), layoutMetrics);
+        const maxLiveWidth = gridItemPixelWidthForSpan(layout, resizeEdge === "left" ? startRightCol : DASHBOARD_GRID_COLUMNS, layoutMetrics);
         const minLiveHeight = collapsedPanelResize ? startRect.height : getPanelMinimumHeight(panel);
-        const resizePreview = createResizePreview(layout, panel, "db-panel-placeholder", startRect);
+        const resizePreview = createResizePreview(layout, panel, "db-panel-placeholder", startRect, layoutMetrics);
+        const reflowItems = reflowItemsForLayout(layout, panel);
         const previewStartCell = {
           col: Number(resizePreview.dataset.gridCol) || Number(panel.dataset.gridCol) || 1,
           row: Number(resizePreview.dataset.gridRow) || Number(panel.dataset.gridRow) || 1,
         };
         const liveResizePreview = beginLiveResizeSurface(panel, startRect);
-        const expandedFootprintGhost = createExpandedFootprintGhost(panel, layout, startRect);
+        const expandedFootprintGhost = createExpandedFootprintGhost(panel, layout, startRect, null, layoutMetrics);
         const resizePeers = groupPeers(panel, "panel")
           .filter((peer) => !peer.classList.contains("db-panel-pinned") && groupItemLayout(peer) === layout)
           .map((peer) => ({ peer, startSpan: Number(peer.dataset.currentSpan) || Number(peer.dataset.defaultSpan) || 6 }));
@@ -4714,7 +4924,7 @@ document.addEventListener("DOMContentLoaded", () => {
             applyPanelSpan(peer, peerStartSpan + delta);
             applyPanelHeight(peer, Math.max(getPanelMinimumHeight(peer), nextHeight));
           });
-          resolveSparseGridLayout(layout, resizePreview, { col: snappedCol, row: previewStartCell.row });
+          resolveSparseGridLayout(layout, resizePreview, { col: snappedCol, row: previewStartCell.row }, { metrics: layoutMetrics });
           previewSpan = snappedSpan;
           previewHeight = nextHeight;
           previewRows = nextRows;
@@ -4731,7 +4941,7 @@ document.addEventListener("DOMContentLoaded", () => {
           updateLiveResizeSurface(liveResizePreview, liveWidth, liveHeight, liveLeft, startRect.top - scrollDeltaY);
           const rawSpan = startSpan + ((((resizeEdge === "left" ? -deltaX : deltaX)) / layoutWidth) * 6);
           const nextSpan = Math.max(gridItemMinimumSpan(panel), Math.min(6, Math.round(rawSpan)));
-          const nextRows = Math.max(panelMinimumRows(panel), startRows + Math.round((effectiveClientY - startY) / rowStep));
+          const nextRows = Math.max(panelMinimumRows(panel, layoutMetrics), startRows + Math.round((effectiveClientY - startY) / rowStep));
           const nextHeight = gridHeightForRows(nextRows, gap);
           if (collapsedPanelResize) {
             const liveRect = liveResizePreview.getBoundingClientRect();
@@ -4740,10 +4950,10 @@ document.addEventListener("DOMContentLoaded", () => {
               top: liveRect.top,
               width: liveRect.width,
               rows: nextRows,
-            });
+            }, layoutMetrics);
           }
           if (nextSpan === previewSpan && nextHeight === previewHeight) return;
-          animateOrderedGridReflow(layout, () => applyResize(nextSpan, nextHeight, nextRows), panel);
+          animateOrderedGridReflow(layout, () => applyResize(nextSpan, nextHeight, nextRows), panel, { items: reflowItems });
         };
 
         const finishPanelResize = (upEvent, canceled) => {
@@ -4759,6 +4969,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 currentSpan,
                 gap: 16,
                 minSpan: gridItemMinimumSpan(panel),
+                metrics: refreshGridMetricsRect(layoutMetrics),
               }));
               const snappedHeight = collapsedPanelResize
                 ? expandedPanelFootprintHeight(panel, layout, previewRows)
@@ -4766,6 +4977,7 @@ document.addEventListener("DOMContentLoaded", () => {
                   layout,
                   item: resizePreview,
                   currentHeight: previewHeight || Number(panel.dataset.savedHeight) || panel.getBoundingClientRect().height,
+                  metrics: refreshGridMetricsRect(layoutMetrics),
                 });
               const requestedDelta = snappedSpan - startSpan;
               const minDelta = Math.max(...groupResizeItems.map(({ peer, startSpan }) => gridItemMinimumSpan(peer) - startSpan));
@@ -4786,7 +4998,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 applyPanelHeight(peer, Math.max(getPanelMinimumHeight(peer), snappedHeight));
               });
               applyOrderedGridLayout(layout);
-            }, panel);
+            }, panel, { items: reflowItems });
             saveSharedGridLayouts(layout);
             syncCommittedWorkspaceScrollFloor(layout, {
               preserveViewport: document.body.classList.contains("dashboard-interaction-scroll-extended"),
@@ -5149,7 +5361,15 @@ document.addEventListener("DOMContentLoaded", () => {
         panelThemePresets[customCount % panelThemePresets.length];
       const key = `custom-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`;
       const title = `Panel ${customCount + 1}`;
-      const definition = { key, title, color: nextColor, span: 1 };
+      const definition = {
+        key,
+        title,
+        color: nextColor,
+        span: 1,
+        workspaceObjectType: WORKSPACE_OBJECT_TYPES.panel,
+        dashboardObjectKind: "panel",
+        contextRole: "container",
+      };
       const order = [...layout.querySelectorAll(":scope > .db-panel")].length;
       const panel = createCustomPanel(definition);
       panel.dataset.defaultOrder = String(order);
@@ -5163,6 +5383,7 @@ document.addEventListener("DOMContentLoaded", () => {
       animatePanelReflow(layout, () => {
         layout.appendChild(panel);
         commitInsertedGridItemWithVerticalPushdown(layout, panel, target);
+        syncWorkspaceRegions(layout);
       });
       layout.__initPanel?.(panel);
       savePanelLayouts(layout, selected);
@@ -5179,16 +5400,23 @@ document.addEventListener("DOMContentLoaded", () => {
       savePanelLayouts(layout, selected);
       syncDefaultDashboardGrid(layoutKey);
       const key = `divider-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`;
-      const customCount = layout.querySelectorAll(':scope > .db-panel[data-dashboard-object-kind="divider"]').length;
+      const customCount = layout.querySelectorAll(':scope > .db-panel[data-workspace-object-type="divider"]').length;
       const definition = {
         key,
         title: `Divider ${customCount + 1}`,
         color: "#64748b",
         span: 6,
         minW: 2,
+        workspaceObjectType: WORKSPACE_OBJECT_TYPES.divider,
+        dashboardObjectKind: "divider",
+        contextRole: "semantic-boundary",
+        navigationTargetType: "workspace-region",
       };
       const divider = createCustomPanel(definition);
-      divider.dataset.dashboardObjectKind = button.dataset.dividerKind || "divider";
+      ensureWorkspaceObjectMetadata(divider, {
+        ...definition,
+        dashboardObjectKind: button.dataset.dividerKind || "divider",
+      });
       divider.dataset.defaultOrder = String([...layout.querySelectorAll(":scope > .db-panel")].length);
       divider.classList.add("db-panel-collapsed", "dashboard-divider-placeholder");
       divider.dataset.gridRowSpan = "1";
@@ -5200,6 +5428,7 @@ document.addEventListener("DOMContentLoaded", () => {
       animatePanelReflow(layout, () => {
         layout.appendChild(divider);
         commitInsertedGridItemWithVerticalPushdown(layout, divider, target);
+        syncWorkspaceRegions(layout);
       });
       layout.__initPanel?.(divider);
       savePanelLayouts(layout, selected);
@@ -5228,14 +5457,28 @@ document.addEventListener("DOMContentLoaded", () => {
       const objectName = kind === "anchor" ? "Anchor" : "Widget";
       const key = `${kind === "anchor" ? "anchor" : "widget"}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`;
       const title = `${objectName} ${customCount + 1}`;
-      const definition = { key, title, value: "0", color: nextColor, span: kind === "anchor" ? 2 : 1, type: kind === "anchor" ? "anchor" : "tracker" };
+      const definition = {
+        key,
+        title,
+        value: kind === "anchor" ? "A" : "0",
+        color: nextColor,
+        span: kind === "anchor" ? 2 : 1,
+        type: kind === "anchor" ? "anchor" : "tracker",
+        workspaceObjectType: kind === "anchor" ? WORKSPACE_OBJECT_TYPES.anchor : WORKSPACE_OBJECT_TYPES.widget,
+        dashboardObjectKind: kind === "anchor" ? "anchor" : "widget",
+        contextRole: kind === "anchor" ? "navigation-reference" : "content",
+        navigationTargetType: kind === "anchor" ? "workspace-region" : undefined,
+      };
       const widget = createCustomWidget(definition);
-      if (kind === "anchor") widget.dataset.dashboardObjectKind = "anchor";
+      if (kind === "anchor") ensureWorkspaceObjectMetadata(widget, definition);
       ensureWidgetTools(widget, nextColor);
       applyWidgetSpan(widget, definition.span);
       applyPanelColor(widget, nextColor);
       applyPanelTitleColor(widget, "#ffffff");
-      animateWidgetReflow(layout, () => layout.appendChild(widget));
+      animateWidgetReflow(layout, () => {
+        layout.appendChild(widget);
+        syncWorkspaceRegions(layout);
+      });
       layout.__initWidget?.(widget);
       saveWidgetLayouts(layout, selected);
       showToast(`${title} added.`);

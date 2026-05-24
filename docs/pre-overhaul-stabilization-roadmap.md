@@ -924,6 +924,8 @@ Direction:
 
 ## Refactor Candidates
 
+The conceptual model for the upcoming workspace expansion is now centralized in `docs/architecture/README.md`. Use that architecture set as the vocabulary source for regions, object taxonomy, contextual inheritance, dividers, anchors, spatial laws, persistence rules, navigation, and interaction philosophy before starting implementation work.
+
 ### Collision Engine
 
 Likely future need:

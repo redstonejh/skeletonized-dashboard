@@ -150,6 +150,7 @@ Before changing dashboard behavior, read:
 - `docs/bug-report.md`
 - `docs/performance-stabilization-plan.md`
 - `docs/pre-overhaul-stabilization-roadmap.md`
+- `docs/architecture/README.md`
 - `docs/spatial-anchors.md`
 - `docs/context-divider-architecture.md`
 
