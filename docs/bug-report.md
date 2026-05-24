@@ -31,7 +31,7 @@ Be especially vigilant about:
 - Match the dominant existing behavior when uncertain.
 - Avoid `!important` unless preserving an existing interaction override requires it.
 - Keep class names stable unless a confirmed bug cannot be fixed otherwise.
-- Verify dashboard movement, resize, ghost previews, popovers, menus, theme behavior, and responsive layout after CSS changes.
+- Verify dashboard movement, resize, ghost previews, popovers, menus, shared material behavior, background selection, and responsive layout after CSS changes.
 
 ## Validation Checklist
 
@@ -43,7 +43,7 @@ Use this checklist when filing or closing a UI bug:
 - CSS files load from `style.css` imports.
 - No brace errors in CSS.
 - No visible class-name changes.
-- Light and dark themes both render correctly.
+- Shared glass components render consistently across default and deep background tones.
 - Hover states do not shift layout.
 - Dragging does not jitter or flicker.
 - Resize handles remain aligned and layered.
@@ -59,7 +59,7 @@ The context-aware visual analytics workspace adds new failure modes. Track any i
 - Context propagation regressions: stale filters, incorrect inheritance, conflicting context precedence, or collapsed panels breaking child context.
 - Panel context attachment regressions: header/chevron drops that corrupt layout, attach invalid context, or leave badges out of sync.
 - Engineer Mode regressions: handles interfering with drag/resize/menu controls, links clipping behind panels, stale link routes after movement, or deleted links continuing to filter targets.
-- Toolbar and command-surface regressions: hard-coded colors, default browser controls, poor dark-mode parity, icon misalignment, or stretched ungrouped controls.
+- Toolbar and command-surface regressions: hard-coded colors, default browser controls, background-driven material drift, icon misalignment, or stretched ungrouped controls.
 - Universal object regressions: command surface, graphs, tables, calendars, widgets, and panels not sharing grid occupancy, pinning, sparse placement, save/load, or resize rules.
 
 ## Issue Log
@@ -72,11 +72,83 @@ Command:
 .venv\Scripts\python.exe -m pytest -q
 ```
 
-Latest result: 80 passed, 0 failed.
+Latest result: 72 passed, 0 failed.
 
 Previous discovery result: 6 passed, 3 failed.
 
-Passed coverage included app/dashboard/settings load, CSS imports, theme persistence, expanded background palette persistence, secondary surface glass-language screenshots, workspace toolbar command-island screenshots, toolbar mode toggles, generic Add Widget menu options, theme-aware timeframe controls, timeframe resize, timeframe minimum resize clamping, exact layout save/load round trips, small-panel menu overlays, panel placeholder/body sizing, adaptive panel content density, drag ghost creation, ordered drag reflow, local top insertion, reversible collision previews, suppression of underlying hover menus during drag, global widget/panel occupancy, pinned item protection, pin menu close behavior, sparse empty-space placement, grid-bound drag clamping, grid snapping alignment, collision/overlap checks, resize snapping, left-edge anchored resize, menu icon alignment, panel header chevron centering, light-mode panel/widget/timeframe hover-focus parity, dark-mode panel hover parity, dark-mode panel/widget menu parity, group multi-selection, grouped drag, grouped proportional resize, pinned items inside groups, mixed widget/panel group transforms, group mode, layout save/load/reset, settings save, mobile overflow checks, console errors, and network errors.
+Passed coverage included app/dashboard/settings load, CSS imports, absence of mode toggle state, expanded background palette persistence, shared material invariance across deep background selection, workspace toolbar command-island screenshots, toolbar mode toggles, generic Add Widget menu options, shared timeframe controls, timeframe resize, timeframe minimum resize clamping, exact layout save/load round trips, small-panel menu overlays, panel placeholder/body sizing, adaptive panel content density, drag ghost creation, ordered drag reflow, local top insertion, reversible collision previews, suppression of underlying hover menus during drag, global widget/panel occupancy, pinned item protection, pin menu close behavior, sparse empty-space placement, grid-bound drag clamping, grid snapping alignment, collision/overlap checks, resize snapping, left-edge anchored resize, menu icon alignment, panel header chevron centering, panel/widget/timeframe hover-focus material coverage, group multi-selection, grouped drag, grouped proportional resize, pinned items inside groups, mixed widget/panel group transforms, group mode, layout save/load/reset, settings save, mobile overflow checks, console errors, and network errors.
+
+### BUG-073: Dark Mode Had Become A Separate Material System
+
+- Status: Verified
+- Area: Background selection / shared glass material
+- Severity: High
+- Environment: Dashboard workspace, default and deep background tones
+- Observed: The app still carried a separate mode concept through CSS selectors, toolbar controls, localStorage keys, template picker groups, bootstrap logic, and Playwright coverage. That made darker workspaces behave like an alternate component theme rather than the same glass objects placed over a darker background.
+- Expected: There is one shared glass/component material system. Selecting a darker workspace changes only the background environment and must not swap panel, widget, button, submenu, timeframe, nav, hover, focus, shadow, border, or icon material styling.
+- Suspected cause: Earlier material fixes accumulated as `data-theme` branches and split light/dark background storage, so the cascade could retheme components instead of only changing ambient background colors.
+- Fix notes: Removed dark-mode CSS branches, removed the theme toggle and split background mode markup, collapsed storage to one `dashboard-background` key, rewrote background tokens so presets only set `--bg` and `--bg-end`, expanded the background picker with deep black/charcoal/graphite/slate/navy/steel tones, and updated docs to describe one material system with background tones.
+- Validation: Updated Playwright coverage to assert no mode toggle state remains, verify background hover/click persistence, and verify nav, panel, widget, timeframe, and settings control material styles remain unchanged when selecting `deep-slate`. Removed obsolete dark-mode-only tests. Targeted background/material slices passed, and `.venv\Scripts\python.exe -m pytest -q` passed with 71 tests.
+
+### BUG-074: Pinned Marker Looked Like A Floating HUD Badge
+
+- Status: Verified
+- Area: Pinned state / visual material
+- Severity: Medium
+- Environment: Dashboard workspace, pinned panels and widgets on default and deep background tones
+- Observed: The pinned-state marker used an 18px badge plus a masked pin glyph. Even though it was smaller than the original hover-glow approach, it still read as a floating debug/HUD decoration and competed with calm panel/widget material.
+- Expected: Pinned state should be visible as a tiny, quiet material cue: a subtle glass nodule embedded near the item edge, with no large symbol, glow, harsh outline, or separate overlay language.
+- Suspected cause: The previous fix improved the explicitness of the pinned marker by adding symbolic detail, but that pushed the state cue away from the shared glass-nodule system.
+- Fix notes: Replaced the badge-and-pin pseudo-element pair with a single 7px rounded glass dot. The dot uses shared glass/accent tokens, a restrained darker rim, a tiny material shadow, and no symbolic `::before` overlay.
+- Validation: Updated `test_pin_control_uses_soft_dashboard_chrome` to assert the marker stays tiny, round, non-glowy, has no pseudo-element pin glyph, and remains present on a deep background. Targeted pin coverage passed.
+
+### BUG-075: Open Panel Drag Could Visually Shrink While Keeping Expanded Footprint
+
+- Status: Verified
+- Area: Panel drag / expanded footprint / visual layout
+- Severity: High
+- Environment: Dashboard workspace, expanded panels with displaced neighbors
+- Observed: Dragging an open panel could leave the logical `data-grid-row-span` and collision footprint expanded while the rendered panel height shrank back toward its minimum/content height during or after drop.
+- Expected: An open panel remains visibly expanded unless explicitly collapsed. Drag surface, snapped placeholder, committed panel height, collision footprint, and saved layout footprint all agree.
+- Suspected cause: Expanded height was partly owned by transient inline height. `runOrderedDrag` correctly cleared the fixed-position drag inline height on release, but `applyPanelGridPosition` only restored grid row/span state and did not reapply the rendered height from the expanded footprint.
+- Fix notes: Added `syncPanelRenderedHeightToFootprint` and routed real panels through it from `applyPanelGridPosition`. Open panels now derive rendered height and `savedHeight` from the committed row span; collapsed panels still clear height. `gridItemRowSpan` now honors the expanded panel minimum even when an explicit stale row span is present.
+- Validation: Expanded `test_dragging_expanded_panel_preserves_temporary_pushdown_restoration` to assert open panel height before drag, fixed drag-surface height during drag, snapped placeholder height and row span, post-drop rendered height, collapse restoration, reopen behavior, and absence of overlaps. Targeted collapsed/open drag coverage passed, broader drag/collapse/save coverage passed, and `.venv\Scripts\python.exe -m pytest -q` passed with 71 tests.
+
+### BUG-076: Empty Open Panel Surface Felt Like An Opaque Document Canvas
+
+- Status: Verified
+- Area: Panel empty state / glass material
+- Severity: Medium
+- Environment: Open empty panels on default and deep background tones
+- Observed: The empty placeholder inside open panels used a high-opacity surface mix, so large empty panels read as heavy white/grey blocks instead of inactive frosted workspace space.
+- Expected: Empty panel content areas should remain lightweight and atmospheric: translucent glass, subtle environmental blending, readable empty-state text, and no impact on populated panel/widget content.
+- Suspected cause: `.panel-empty-state` reused stronger surface tokens intended for active surfaces, which made the placeholder fill dominate when stretched across a large open panel body.
+- Fix notes: Reduced the empty-state fill to low-alpha shared glass tokens, softened the dashed edge, kept the inset highlight restrained, and added a light backdrop blur. The change is scoped to `.panel-empty-state`.
+- Validation: Added `test_empty_panel_surface_is_translucent_without_affecting_populated_content`, which verifies default/deep background translucency, readable empty text/action styling, and unchanged populated timeframe surface material. Targeted empty-panel coverage passed.
+
+### BUG-077: Object Settings Menu Controls Kept Legacy Bright Hover Feedback
+
+- Status: Verified
+- Area: Panel controls / widget controls / hover interaction
+- Severity: Medium
+- Environment: Dashboard workspace, widget and panel object settings menus on default and deep background tones
+- Observed: Object settings controls already used the compact pressable downward transform, but old hover/focus/open shadow rules still added large zero-offset luminous halos. The pin glyph also nudged upward on hover, so the submenu could read as floating/brightened legacy buttons rather than compact controls settling into contact.
+- Expected: Widget and panel settings buttons, submenu icon buttons, move/resize/pin/text/theme/delete controls, and object-menu controls should depress subtly on hover, press deeper on active, keep icons at the same visual scale as neighbors, avoid hover lift or icon float, and preserve the shared glass material without bright glow artifacts.
+- Suspected cause: The shared pressable transform tokens were added after older object-control hover rules, leaving `.panel-settings-toggle`, `.panel-tool-button`, `.panel-lock-toggle`, `.panel-pin-toggle`, and custom-color overrides with legacy large shadow stacks such as zero-offset glow layers.
+- Fix notes: Added shared object-control shadow tokens for rest, hover, active, and drawer states, routed panel/widget settings and submenu controls through those tokens, replaced custom-color hover/open/focus shadow overrides with the same compact-control material tokens, and changed the pin icon hover/active motion so it settles inward instead of floating upward.
+- Validation: Expanded `test_compact_pressable_controls_depress_without_sinking_large_surfaces` to hover every widget and panel object settings/menu button, assert depression without scale-up, reject the old glow shadow pattern, verify active press is deeper than hover, keep drawer dimensions stable, and repeat a control check on `deep-slate`. Targeted `compact_pressable or pin_control` coverage passed, and `.venv\Scripts\python.exe -m pytest -q` passed with 72 tests.
+
+### BUG-078: Navbar Read As A Separate Toolbar Instead Of A Dashboard Widget
+
+- Status: Verified
+- Area: Top bar / workspace chrome / shared material
+- Severity: Medium
+- Environment: Dashboard workspace, default and deep background tones
+- Observed: The navbar had accumulated stacked workspace-chrome overrides with floating island transforms, uneven opacity, special add-button glow, separated sync/settings icon controls, and menu styling that made the Layout dropdown feel like an admin toolbar instead of dashboard glass.
+- Expected: The navbar should read as a normal dashboard widget surface. Its buttons, dropdowns, add control, layout controls, mode toggles, restore/background controls, spacing, vertical centering, hover, focus, and active behavior should follow the shared glass and compact pressable-control system.
+- Suspected cause: Earlier navbar polish had treated the top bar as a special chrome layer, adding late overrides for atmospheric glow, island offsets, status popovers, and icon-only utilities instead of letting the same widget/control primitives own the surface.
+- Fix notes: Removed the visible standalone sync/status control and standalone settings icon from the navbar, moved the settings path into the workspace identity selector, and replaced the late navbar-specific visual override with one widget-like glass surface, shared command-island rhythm, consistent 36px compact controls, shared pressable depression states, and shared glass menu treatment for Layout/Add/identity/background popovers.
+- Validation: Updated `test_workspace_chrome_is_spatial_and_modes_still_work` to assert the sync/status and standalone settings icon are gone, the identity selector keeps one settings path, the navbar material is widget-like, controls are vertically centered and evenly sized, the Layout menu uses glass popover styling, default and `deep-slate` navbar screenshots render, and Add/Engineer/Context behaviors still work. Targeted workspace chrome, layout save/load, and background slices passed, and `.venv\Scripts\python.exe -m pytest -q` passed with 72 tests.
 
 ### BUG-023: Secondary App Surfaces Felt Disconnected From Dashboard Glass Language
 
@@ -955,6 +1027,54 @@ Passed coverage included app/dashboard/settings load, CSS imports, theme persist
 - Suspected cause: This was not a separate minimum-size placement resolver rejecting the row. The one-row footprint committed correctly, but placeholder removal and restoration during pointerup let browser scroll anchoring adjust `scrollY` before the temporary lower runway was cleared. Larger items naturally left enough committed document height to mask the adjustment; minimum-size widgets exposed the scroll-position side effect.
 - Fix notes: The drag commit path now captures the release scroll position when the temporary lower runway was active, commits from the snapped placeholder, reconciles a minimal committed dashboard host scroll floor before clearing the body runway, and reapplies the release scroll target after cleanup. Normal drops clear any prior committed scroll floor, canceled interactions still remove only transient runway state, and the shared row/column commit path remains unchanged for all item sizes.
 - Validation: Added `test_edge_auto_scroll_commits_minimum_size_widget_to_lower_workspace`, which forces the timeframe widget to its minimum span, drags it into newly revealed lower rows while auto-scroll is active, verifies the committed span/column/lower row match the preview contract, verifies the viewport does not collapse upward, checks cleanup/no horizontal overflow, saves/reloads, and asserts the lower minimum-size placement persists. Targeted `edge_auto_scroll` tests passed, and `.venv\Scripts\python.exe -m pytest -q` passed with 81 tests.
+
+### BUG-069: Dark Mode Control Glass Diverged Into HUD Buttons
+
+- Status: Verified
+- Area: Theme / dark mode / widget and panel controls
+- Severity: Medium
+- Environment: Dashboard workspace, dark theme, timeframe widget, panel/widget settings controls, tool drawers
+- Observed: Dark mode redefined the same glass objects from light mode as dark filled controls: timeframe pills and icon buttons became hard dark capsules, settings buttons read as dark circular UI buttons, and panel/widget tool drawers could become separate dark submenu layers.
+- Expected: Dark mode keeps the same glass material primitive used in light mode for nodules, pills, settings buttons, panel/widget controls, and submenu clusters. Only environmental luminance, reflection strength, and behind-glass contrast should change.
+- Suspected cause: Dark theme overrides had accumulated around `.preset-btn`, `.range-custom-trigger`, `.range-icon-button`, `.panel-settings-toggle`, `.panel-tool-button`, `.panel-tool-drawer`, `.widget-tool-drawer`, and pinned controls. Those overrides replaced shared glass inheritance with solid dark fills, darker hover mixes, outline-heavy borders, and dark-specific shadow stacks.
+- Fix notes: Removed the dark-only component rethemes for timeframe controls, panel/widget settings buttons, tool drawers, and pinned controls so they inherit the shared glass rules from `components.css` and `dashboard-grid.css`. Kept the adjustment at the environmental token layer by making dark hover tint and inset light catch highlights instead of mixing controls toward black.
+- Validation: Updated `test_dark_timeframe_controls_preserve_layered_glass_depth` to guard against reintroducing dark-only control selectors, verify light/dark geometry and material-structure parity for the timeframe buttons, settings nodule, and tool drawer, and reject the old dark HUD fill values. Updated `test_dark_mode_global_materials_use_smoked_layered_glass`, `test_dark_panel_settings_menu_matches_widget_without_white_ring`, and existing dark/pin assertions so shared glass controls are checked as inherited controls rather than dark-specific gradient layers. Targeted theme/timeframe/pin slices passed, and `.venv\Scripts\python.exe -m pytest -q` passed with 81 tests.
+
+### BUG-070: Pinned Indicator Was Implemented As An Overbright Pin Hover
+
+- Status: Verified
+- Area: Theme / pinned controls / widget and panel state
+- Severity: Medium
+- Environment: Dashboard workspace, light and dark themes, panel/widget tool drawers
+- Observed: The pinned-state visual refinement was expressed through a special pin button hover treatment instead of the pinned indicator itself. The pin hover became brighter than neighboring submenu controls, the pin glyph was visually undersized, and the control read as a glowing button state rather than a calm pinned-state marker.
+- Expected: Hover on the pin control should remain part of the shared glass button system. Pinned state should be visible without hover through a clear, elegant material/status detail on the pinned item, and the pin glyph should match the visual scale of neighboring action icons.
+- Suspected cause: A final pin-specific theme block overrode the shared submenu hover with a stronger gradient/shadow stack. The pin mask was also reduced to a 14px box with a narrow internal path, making the glyph smaller than adjacent icons.
+- Fix notes: Removed the special pin hover override so hover returns to the shared submenu glass treatment. Normalized the pin glyph to the 16px icon scale with a larger mask path. Reworked the pinned item marker from a tiny dot into a small glass badge with an embedded pin glyph, with restrained dark-theme environmental tuning.
+- Validation: Updated `test_pin_control_uses_soft_dashboard_chrome` to verify pin icon sizing, subtle shared hover behavior, visible pinned marker dimensions, marker pin glyph presence, and unchanged pin/unpin behavior in light and dark themes. Targeted pin/control coverage passed, manual light/dark pinned-panel screenshots were checked at `test-results/pin-indicator-manual/pinned-light-panel.png` and `test-results/pin-indicator-manual/pinned-dark-panel.png`, and `.venv\Scripts\python.exe -m pytest -q` passed with 81 tests.
+
+### BUG-071: Dark Glass Used Bright Outlines Instead Of Dark Refraction Rims
+
+- Status: Verified
+- Area: Theme / dark mode / glass material system
+- Severity: Medium
+- Environment: Dashboard workspace, dark theme, glass panels, widgets, timeframe controls, settings buttons, and submenu controls
+- Observed: Dark mode still separated many glass objects with light or blue-tinted rims. Timeframe pills and settings nodules could read as outlined HUD capsules, even after they were routed back through the shared glass primitive.
+- Expected: Dark mode should follow the same material logic as light mode: a darker rim around a subtly different/lifted glass surface, with readability coming from material luminance and soft shadow rather than bright outlines or glow.
+- Suspected cause: Dark glass border tokens and inherited control variables still used light slate or accent-mixed border values. Custom-color controls also mixed accent color directly into settings button and drawer borders, and timeframe border variables reused accent-heavy light-mode formulas.
+- Fix notes: Retuned dark global glass border tokens to darker rim values, added shared rim variables for panel/widget tool drawers and hover borders, introduced timeframe rim variables, and fed dark mode darker control borders while keeping interiors slightly lifted from the parent surface. Custom-color controls now route through dark rim variables instead of bright accent outlines. Light-mode fallbacks remain the existing values.
+- Validation: Added `test_dark_glass_controls_use_dark_rims_not_light_outlines`, which verifies dark panels, widgets, timeframe surfaces, pills, icon buttons, settings buttons, and tool drawers use borders darker than their exposed surface color and reject bright rim values/glow-like shadows. Targeted dark glass/control coverage passed, the dark timeframe screenshot was visually checked at `test-results/timeframe-depth/timeframe-dark-layered-depth.png`, and `.venv\Scripts\python.exe -m pytest -q` passed with 82 tests.
+
+### BUG-072: Compact Pressable Controls Floated Like Large Dashboard Objects
+
+- Status: Verified
+- Area: Theme / controls / hover and active motion
+- Severity: Medium
+- Environment: Dashboard workspace, light and dark themes, widget/panel controls, timeframe controls, toolbar controls
+- Observed: Compact pressable controls inherited the large-object hover language in several places. Timeframe pills, settings buttons, submenu controls, nav buttons, and dropdown triggers could lift upward on hover, while active/pressed states sometimes only reset to neutral. That made small controls feel like floating surfaces instead of tactile buttons settling into glass.
+- Expected: Large dashboard objects such as panels and widgets can retain subtle hover lift, but compact pressable controls should depress subtly on hover and depress more clearly while active/pressed. Focus-visible treatment should remain accessible and distinct without forcing the whole widget or panel body to sink.
+- Suspected cause: Hover, focus, open, and active selectors were grouped together with `translateY(-1px)` across timeframe buttons, panel/widget tool buttons, custom-color controls, and navbar command controls. Some later workspace-chrome selectors had enough specificity to override shared control behavior.
+- Fix notes: Added shared pressable transform tokens, routed timeframe buttons, panel/widget settings and submenu controls, color swatches, nav buttons, dropdown triggers, and action controls through the compact pressable model, and removed later upward-hover transform declarations from workspace-chrome controls. Widget, panel, and timeframe widget bodies still keep the established lifted hover surface behavior.
+- Validation: Added `test_compact_pressable_controls_depress_without_sinking_large_surfaces`, which verifies widget/panel/timeframe bodies still lift while timeframe presets, widget settings/submenu buttons, and the theme toggle depress on hover, with active press deeper than hover. Targeted hover/control coverage passed, and `.venv\Scripts\python.exe -m pytest -q` passed with 83 tests.
 
 ## Entry Template
  

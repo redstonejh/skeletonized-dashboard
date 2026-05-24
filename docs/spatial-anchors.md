@@ -258,7 +258,7 @@ Requirements:
 
 - Each anchor has a descriptive accessible name.
 - Anchor controls are reachable in predictable order.
-- Focus state is visible in light and dark themes.
+- Focus state is visible across default and deep background tones.
 - Keyboard activation performs the same navigation as click.
 - Escape cancels repositioning or creation flow where applicable.
 - Reduced motion is respected.
@@ -368,14 +368,14 @@ Future Playwright coverage should verify:
 - Anchor navigation is suppressed during drag, resize, group move, and group resize.
 - Anchors do not block critical dashboard controls.
 - Save/load profile behavior preserves or clearly scopes anchors.
-- Light and dark visual states remain coherent.
+- Default and deep-background visual states remain coherent.
 - Mobile viewport behavior remains usable.
 
 Manual verification should cover:
 
 - Long-distance navigation feel.
 - Visual clutter with multiple anchors.
-- Light and dark mode polish.
+- Shared material polish across background tones.
 - Keyboard-only usage.
 - Reduced motion.
 - Mobile placement.

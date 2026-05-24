@@ -1,10 +1,10 @@
 # Configurable Dashboard Builder
 
-A local FastAPI app for creating and arranging dashboard panels and widgets from the browser. The app is intentionally context-neutral: it provides the dashboard shell, layout controls, theme behavior, placeholders, and generic persistence without tying the UI to a specific product or data source.
+A local FastAPI app for creating and arranging dashboard panels and widgets from the browser. The app is intentionally context-neutral: it provides the dashboard shell, layout controls, shared glass material system, background selection, placeholders, and generic persistence without tying the UI to a specific product or data source.
 
 ## Features
 
-- Configurable dashboard shell with the existing top bar, theme toggle, menus, popovers, and placeholder content
+- Configurable dashboard shell with the existing top bar, background selector, menus, popovers, and placeholder content
 - Add panel and add widget controls
 - Move, resize, pin, rename, recolor, collapse, and delete controls
 - Group mode for selecting and moving multiple panels or widgets
@@ -27,7 +27,7 @@ Current architectural principles:
 - Grouped objects should behave as composite spatial objects during drag, resize, preview, collision, and commit.
 - Temporary layout pressure from drag, resize, expansion, and edge-scroll previews must remain separate from committed layout state.
 - Dense widgets should prefer adaptive density before increasing their minimum grid footprint.
-- Light and dark themes should share one layered glass material system under different lighting conditions.
+- There is one shared layered glass material system; background tones only change the workspace environment behind it.
 
 ## Roadmap
 
@@ -39,7 +39,7 @@ The upcoming work is intentionally staged around stabilization first, then large
 - Continue tightening edge auto-scroll so newly reachable grid rows remain smooth, preview-accurate, and commit-safe.
 - Preserve local collision behavior and avoid global repacking during add, drag, resize, expand, collapse, and grouped operations.
 - Strengthen Playwright coverage for visual cleanup, stale interaction classes, save/reload persistence, grouped behavior, and compact widget sizing.
-- Continue refining dark-mode smoked glass so controls, panels, widgets, menus, and selection surfaces share one coherent material hierarchy.
+- Keep controls, panels, widgets, menus, and selection surfaces routed through one coherent glass material hierarchy across every background tone.
 
 ### Spatial Navigation And Context
 
@@ -162,10 +162,10 @@ Protected behaviors include:
 - resize snapping
 - ghost preview alignment
 - layout save/load/reset
-- theme and dark-mode hover polish
+- background tone and shared material hover polish
 - menu, popover, icon, and control alignment
 
-Do not modify drag, resize, snapping, collision, pinning, theme polish, or layout persistence without updating Playwright coverage and running the test suite.
+Do not modify drag, resize, snapping, collision, pinning, material/background polish, or layout persistence without updating Playwright coverage and running the test suite.
 
 ## Configuration
 

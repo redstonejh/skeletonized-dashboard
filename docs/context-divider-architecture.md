@@ -470,7 +470,7 @@ Context Dividers should extend the existing glass material system.
 ### Focus
 
 - Visible keyboard focus ring using shared dashboard focus language.
-- No harsh white ring in dark mode.
+- No harsh white ring on deep backgrounds.
 - Focus should include the label pill and enough of the rail to communicate the target.
 
 ### Selected
@@ -646,7 +646,7 @@ Manual verification should cover:
 - Hover/focus/selected/drag states.
 - Context preview during item movement.
 - Anchor navigation to dividers.
-- Light and dark material parity.
+- Shared material parity across background tones.
 - Dashboard feel remains continuous and tabless.
 
 ## Staged Implementation Plan
@@ -661,7 +661,7 @@ Manual verification should cover:
 
 - Define divider records.
 - Render seeded dividers read-only.
-- Verify light/dark visual language.
+- Verify default and deep-background visual language.
 - Keep dividers separate from panels/widgets semantically.
 
 ### Stage 3: Layout Occupancy

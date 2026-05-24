@@ -33,7 +33,7 @@ The missing-class count from the scanner is intentionally treated as noisy becau
 
 ## Remaining Duplicates
 
-The remaining duplicate selector entries are intentional cascade/theme layering, not exact duplicate rules. Most are light/dark variants, hover/focus refinements, or later dashboard-builder overrides that share selector names with base component rules.
+The remaining duplicate selector entries are intentional cascade/material layering, not exact duplicate rules. Most are hover/focus refinements or later dashboard-builder overrides that share selector names with base component rules.
 
 ## Validation Notes
 

@@ -219,12 +219,7 @@
   box-shadow: 0 2px 10px rgba(220, 38, 38, .18);
 }
 
-.theme-toggle,
-.panel-reset-button,
-.panel-undo-button,
-.panel-add-button,
-.layout-slot-button,
-.layout-slot-trigger {
+.panel-reset-button,.panel-undo-button,.panel-add-button,.layout-slot-button,.layout-slot-trigger {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -238,15 +233,6 @@
   box-shadow: 0 2px 10px rgba(15, 23, 42, .06);
   cursor: pointer;
   transition: background .16s ease, border-color .16s ease, box-shadow .16s ease, color .16s ease, transform .16s ease;
-}
-
-.theme-toggle {
-  width: 60px;
-  min-width: 60px;
-}
-
-.theme-toggle {
-  gap: 2px;
 }
 
 .panel-reset-button,
@@ -444,27 +430,13 @@
   padding: 0 12px;
 }
 
-.theme-toggle:hover,
-.panel-reset-button:hover,
-.panel-undo-button:hover,
-.panel-add-button:hover,
-.panel-add-action:hover,
-.widget-add-action:hover,
-.layout-slot-button:hover,
-.layout-slot-trigger:hover {
+.panel-reset-button:hover,.panel-undo-button:hover,.panel-add-button:hover,.panel-add-action:hover,.widget-add-action:hover,.layout-slot-button:hover,.layout-slot-trigger:hover {
   border-color: #bfdbfe;
   background: var(--surface-soft);
   box-shadow: 0 4px 14px rgba(37, 99, 235, .12);
 }
 
-.theme-toggle:focus-visible,
-.panel-reset-button:focus-visible,
-.panel-undo-button:focus-visible,
-.panel-add-button:focus-visible,
-.panel-add-action:focus-visible,
-.widget-add-action:focus-visible,
-.layout-slot-button:focus-visible,
-.layout-slot-trigger:focus-visible {
+.panel-reset-button:focus-visible,.panel-undo-button:focus-visible,.panel-add-button:focus-visible,.panel-add-action:focus-visible,.widget-add-action:focus-visible,.layout-slot-button:focus-visible,.layout-slot-trigger:focus-visible {
   outline: 3px solid rgba(37, 99, 235, .20);
   outline-offset: 2px;
 }
@@ -485,22 +457,7 @@
   box-shadow: 0 10px 24px rgba(37, 99, 235, .12), 0 1px 0 rgba(255, 255, 255, .72) inset;
 }
 
-.app-nav:not(.settings-nav) .cmd-btn:hover,
-.app-nav:not(.settings-nav) .cmd-btn:focus-visible,
-.app-nav:not(.settings-nav) .theme-toggle:hover,
-.app-nav:not(.settings-nav) .theme-toggle:focus-visible,
-.app-nav:not(.settings-nav) .panel-reset-button:hover,
-.app-nav:not(.settings-nav) .panel-reset-button:focus-visible,
-.app-nav:not(.settings-nav) .panel-undo-button:hover,
-.app-nav:not(.settings-nav) .panel-undo-button:focus-visible,
-.app-nav:not(.settings-nav) .panel-add-button:hover,
-.app-nav:not(.settings-nav) .panel-add-button:focus-visible,
-.app-nav:not(.settings-nav) .panel-add-action:hover,
-.app-nav:not(.settings-nav) .panel-add-action:focus-visible,
-.app-nav:not(.settings-nav) .layout-slot-button:hover,
-.app-nav:not(.settings-nav) .layout-slot-button:focus-visible,
-.app-nav:not(.settings-nav) .layout-slot-trigger:hover,
-.app-nav:not(.settings-nav) .layout-slot-trigger:focus-visible {
+.app-nav:not(.settings-nav) .cmd-btn:hover,.app-nav:not(.settings-nav) .cmd-btn:focus-visible,.app-nav:not(.settings-nav) .panel-reset-button:hover,.app-nav:not(.settings-nav) .panel-reset-button:focus-visible,.app-nav:not(.settings-nav) .panel-undo-button:hover,.app-nav:not(.settings-nav) .panel-undo-button:focus-visible,.app-nav:not(.settings-nav) .panel-add-button:hover,.app-nav:not(.settings-nav) .panel-add-button:focus-visible,.app-nav:not(.settings-nav) .panel-add-action:hover,.app-nav:not(.settings-nav) .panel-add-action:focus-visible,.app-nav:not(.settings-nav) .layout-slot-button:hover,.app-nav:not(.settings-nav) .layout-slot-button:focus-visible,.app-nav:not(.settings-nav) .layout-slot-trigger:hover,.app-nav:not(.settings-nav) .layout-slot-trigger:focus-visible {
   transform: translateY(-1px);
 }
 
@@ -514,47 +471,8 @@
   box-shadow: 0 10px 24px rgba(220, 38, 38, .26), 0 0 18px rgba(248, 113, 113, .16);
 }
 
-.app-nav:not(.settings-nav) .nav-status-item:active,
-.app-nav:not(.settings-nav) .cmd-btn:active,
-.app-nav:not(.settings-nav) .theme-toggle:active,
-.app-nav:not(.settings-nav) .panel-reset-button:active,
-.app-nav:not(.settings-nav) .panel-undo-button:active,
-.app-nav:not(.settings-nav) .panel-add-button:active,
-.app-nav:not(.settings-nav) .layout-slot-button:active,
-.settings-nav .nav-status-item:active {
+.app-nav:not(.settings-nav) .nav-status-item:active,.app-nav:not(.settings-nav) .cmd-btn:active,.app-nav:not(.settings-nav) .panel-reset-button:active,.app-nav:not(.settings-nav) .panel-undo-button:active,.app-nav:not(.settings-nav) .panel-add-button:active,.app-nav:not(.settings-nav) .layout-slot-button:active,.settings-nav .nav-status-item:active {
   transform: translateY(1px);
-}
-
-.theme-icon {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 24px;
-  height: 24px;
-  border-radius: 10px;
-  font-size: 13px;
-  line-height: 1;
-  color: var(--muted);
-}
-
-.theme-icon-day {
-  background: #fef9c3;
-  color: #a16207;
-}
-
-.theme-icon-night {
-  background: transparent;
-  color: var(--muted);
-}
-
-.theme-toggle.is-dark .theme-icon-day {
-  background: transparent;
-  color: var(--muted);
-}
-
-.theme-toggle.is-dark .theme-icon-night {
-  background: #dbeafe;
-  color: #1d4ed8;
 }
 
 .range-bar,
@@ -1226,583 +1144,6 @@ button.dash-switch-hero:active {
 
 .stat-purple .stat-val { color: #7c3aed; }
 
-html[data-theme="dark"] body {
-  background: #090f1c;
-  color: var(--ink);
-}
-
-html[data-theme="dark"] * {
-  scrollbar-color: #70829d #101827;
-}
-
-html[data-theme="dark"] ::selection {
-  background: rgba(103, 169, 255, .32);
-  color: #fff;
-}
-
-html[data-theme="dark"] .app-nav {
-  background: #111a2a;
-  border-color: #425a78;
-  box-shadow: 0 18px 42px rgba(0, 0, 0, .34), 0 0 0 1px rgba(103, 169, 255, .06);
-}
-
-html[data-theme="dark"] .range-bar {
-  background: #101827;
-  border-color: #354864;
-  box-shadow: 0 12px 28px rgba(0, 0, 0, .26);
-}
-
-html[data-theme="dark"] .stat-card,
-html[data-theme="dark"] .db-panel,
-html[data-theme="dark"] .nav-status-item,
-html[data-theme="dark"] .dash-switch-menu {
-  background: #121b2b;
-  border-color: #3d5270;
-}
-
-html[data-theme="dark"] .stat-card {
-  background: #1a2a42;
-  border-color: #4d6688;
-}
-
-html[data-theme="dark"] .nav-status-item {
-  background: #1a2a42;
-  border-color: #4d6688;
-}
-
-html[data-theme="dark"] .dash-switch-menu {
-  background: #1a2a42;
-  border-color: #5f7faa;
-  box-shadow:
-    0 18px 40px rgba(0, 0, 0, .42),
-    0 0 0 1px rgba(103, 169, 255, .12),
-    0 0 26px rgba(103, 169, 255, .12);
-}
-
-html[data-theme="dark"] .dash-switch-opt {
-  color: #f2f8ff;
-}
-
-html[data-theme="dark"] .dash-switch-opt small {
-  color: #aebfd4;
-}
-
-html[data-theme="dark"] .stat-card,
-html[data-theme="dark"] .db-panel {
-  box-shadow: 0 20px 50px rgba(0, 0, 0, .40), 0 0 0 1px rgba(103, 169, 255, .05);
-}
-
-html[data-theme="dark"] .stat-card:hover {
-  border-color: rgba(103, 169, 255, .78);
-  box-shadow: 0 18px 42px rgba(0, 0, 0, .38), 0 0 22px rgba(103, 169, 255, .14);
-}
-
-html[data-theme="dark"] .stat-card.active {
-  background: #1b2f4c;
-  border-color: var(--blue);
-  box-shadow: inset 0 0 0 1px rgba(103, 169, 255, .18), 0 0 0 3px rgba(103, 169, 255, .16), 0 18px 44px rgba(0, 0, 0, .38);
-}
-
-html[data-theme="dark"] .stat-card:hover .stat-val,
-html[data-theme="dark"] .stat-card:hover .stat-lbl,
-html[data-theme="dark"] .stat-card.active .stat-val,
-html[data-theme="dark"] .stat-card.active .stat-lbl {
-  color: var(--blue-hover);
-}
-
-html[data-theme="dark"] .range-search,
-html[data-theme="dark"] .range-display,
-html[data-theme="dark"] .range-custom-trigger,
-html[data-theme="dark"] .preset-btn,
-html[data-theme="dark"] button.dash-switch-btn,
-html[data-theme="dark"] .theme-toggle,
-html[data-theme="dark"] .panel-reset-button,
-html[data-theme="dark"] .panel-undo-button,
-html[data-theme="dark"] .panel-add-button,
-html[data-theme="dark"] .panel-add-action,
-html[data-theme="dark"] .widget-add-action,
-html[data-theme="dark"] .layout-slot-button,
-html[data-theme="dark"] .layout-slot-trigger {
-  background: #1b2b43;
-  border-color: #40536e;
-  color: var(--muted-strong);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, .22);
-}
-
-html[data-theme="dark"] .range-search {
-  background: transparent;
-  border-color: transparent;
-  box-shadow: none;
-}
-
-html[data-theme="dark"] button.dash-switch-hero {
-  background: linear-gradient(135deg, #67a9ff, #2563eb);
-  border-color: #9dccff;
-  color: #fff;
-  box-shadow:
-    0 12px 28px rgba(37, 99, 235, .36),
-    0 0 28px rgba(103, 169, 255, .24),
-    inset 0 1px 0 rgba(255, 255, 255, .30);
-}
-
-html[data-theme="dark"] button.dash-switch-hero:hover,
-html[data-theme="dark"] button.dash-switch-hero[aria-expanded="true"] {
-  background: linear-gradient(135deg, #8ec5ff, #3b82f6);
-  border-color: #d5e8ff;
-  color: #fff;
-  box-shadow:
-    0 14px 34px rgba(37, 99, 235, .44),
-    0 0 36px rgba(103, 169, 255, .34),
-    inset 0 1px 0 rgba(255, 255, 255, .38);
-}
-
-html[data-theme="dark"] .settings-brand-copy strong {
-  color: #fff;
-}
-
-html[data-theme="dark"] .settings-brand-copy small {
-  color: #b8cce4;
-}
-
-html[data-theme="dark"] .settings-brand-switch {
-  background: linear-gradient(135deg, #67a9ff, #2563eb);
-  border-color: #9dccff;
-  color: #fff;
-  box-shadow:
-    0 12px 28px rgba(37, 99, 235, .36),
-    0 0 28px rgba(103, 169, 255, .24),
-    inset 0 1px 0 rgba(255, 255, 255, .30);
-}
-
-html[data-theme="dark"] .settings-brand-switch:hover,
-html[data-theme="dark"] .settings-brand-switch:focus-visible {
-  background: linear-gradient(135deg, #8ec5ff, #3b82f6);
-  border-color: #d5e8ff;
-  box-shadow:
-    0 14px 34px rgba(37, 99, 235, .44),
-    0 0 36px rgba(103, 169, 255, .34),
-    inset 0 1px 0 rgba(255, 255, 255, .38);
-}
-
-html[data-theme="dark"] .form-section {
-  background: #121d2f;
-  border-color: #48617f;
-  box-shadow:
-    0 18px 42px rgba(0, 0, 0, .34),
-    0 1px 0 rgba(255, 255, 255, .04) inset,
-    0 0 0 1px rgba(103, 169, 255, .06);
-}
-
-html[data-theme="dark"] .section-heading h2 {
-  color: #f8fbff;
-}
-
-html[data-theme="dark"] .section-heading p,
-html[data-theme="dark"] .form-section p,
-html[data-theme="dark"] .preview-result {
-  color: #b8cce4;
-}
-
-html[data-theme="dark"] .range-search-input,
-html[data-theme="dark"] .field input,
-html[data-theme="dark"] .form-grid input,
-html[data-theme="dark"] .form-grid select,
-html[data-theme="dark"] .form-grid textarea {
-  background: #182940;
-  color: var(--ink-strong);
-  border-color: #526b8c;
-  box-shadow: 0 1px 0 rgba(255, 255, 255, .035) inset;
-}
-
-html[data-theme="dark"] .form-grid input:hover,
-html[data-theme="dark"] .form-grid select:hover,
-html[data-theme="dark"] .form-grid textarea:hover {
-  background: #1b2f4a;
-  border-color: #6782a6;
-}
-
-html[data-theme="dark"] .field input:focus,
-html[data-theme="dark"] .form-grid input:focus,
-html[data-theme="dark"] .form-grid select:focus,
-html[data-theme="dark"] .form-grid textarea:focus {
-  background: #101b2d;
-  border-color: #75b9ff;
-  box-shadow: 0 0 0 3px rgba(103, 169, 255, .16), 0 8px 18px rgba(0, 0, 0, .28);
-}
-
-html[data-theme="dark"] .form-grid label,
-html[data-theme="dark"] .lbl-fixed,
-html[data-theme="dark"] .switch-row strong {
-  color: #f2f8ff;
-}
-
-html[data-theme="dark"] .fl-lbl {
-  color: #aebfd4;
-}
-
-html[data-theme="dark"] .form-grid label.fl-wrap > input:focus ~ .fl-lbl,
-html[data-theme="dark"] .form-grid label.fl-wrap > input:not(:placeholder-shown) ~ .fl-lbl,
-html[data-theme="dark"] .form-grid label.fl-wrap > input[readonly] ~ .fl-lbl {
-  color: #9dccff;
-}
-
-html[data-theme="dark"] .form-grid label.fl-wrap > input:not(:placeholder-shown):not(:focus) ~ .fl-lbl {
-  color: #c5d3e6;
-}
-
-html[data-theme="dark"] .form-grid label.fl-wrap > input[readonly],
-html[data-theme="dark"] .form-grid input[readonly] {
-  background: #16243a;
-  color: #f2f8ff;
-  border-color: #526b8c;
-}
-
-html[data-theme="dark"] .form-grid input::placeholder,
-html[data-theme="dark"] .form-grid textarea::placeholder {
-  color: #8ea3bd;
-  opacity: 1;
-}
-
-html[data-theme="dark"] .field-hint,
-html[data-theme="dark"] .switch-row small {
-  color: #b8cce4;
-}
-
-html[data-theme="dark"] .field-error {
-  color: #ffadb5;
-}
-
-html[data-theme="dark"] .logic-card {
-  background: #172f50;
-  border-color: #75b9ff;
-  color: #dbeeff;
-  box-shadow: 0 10px 24px rgba(37, 99, 235, .16);
-}
-
-html[data-theme="dark"] .logic-card strong {
-  color: #f2f8ff;
-}
-
-html[data-theme="dark"] .logic-card span {
-  color: #d5e8ff;
-}
-
-html[data-theme="dark"] .switch-row {
-  border-color: #40536e;
-  background: #16243a;
-}
-
-html[data-theme="dark"] .switch-row input {
-  background: #0d1728;
-  border-color: #526b8c;
-}
-
-html[data-theme="dark"] .switch-row input:checked {
-  background: #67a9ff;
-  border-color: #9dccff;
-}
-
-html[data-theme="dark"] .icon-btn {
-  background: #1b2b43;
-  border-color: #526b8c;
-  color: #dbe7f5;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, .24);
-}
-
-html[data-theme="dark"] .icon-btn:hover,
-html[data-theme="dark"] .icon-btn:focus-visible {
-  transform: translateY(-1px);
-  background: #223754;
-  border-color: #75b9ff;
-  color: #fff;
-  box-shadow: 0 8px 18px rgba(0, 0, 0, .30), 0 0 18px rgba(103, 169, 255, .14);
-}
-
-html[data-theme="dark"] .icon-btn:active {
-  transform: translateY(1px);
-  background: #1b2f4c;
-  border-color: #75b9ff;
-  color: #fff;
-  box-shadow: none;
-}
-
-html[data-theme="dark"] .secret-toggle.revealed {
-  background: #213653;
-  border-color: #75b9ff;
-  color: #9dccff;
-}
-
-html[data-theme="dark"] .cmd-btn-ghost {
-  background: #0f1a2b;
-  border-color: #48617f;
-  color: #f8fbff;
-  box-shadow: 0 10px 24px rgba(0, 0, 0, .22), 0 0 18px rgba(103, 169, 255, .08);
-}
-
-html[data-theme="dark"] .cmd-btn-ghost:hover,
-html[data-theme="dark"] .cmd-btn-ghost:focus-visible {
-  background: #1b2f4c;
-  border-color: #75b9ff;
-  color: #fff;
-  box-shadow: 0 12px 28px rgba(37, 99, 235, .24), 0 0 24px rgba(103, 169, 255, .18);
-}
-
-html[data-theme="dark"] .detail-list dd {
-  color: #f8fbff;
-}
-
-html[data-theme="dark"] .detail-list dt,
-html[data-theme="dark"] .detail-list dd {
-  border-bottom-color: #293b53;
-}
-
-html[data-theme="dark"] .detail-list dt {
-  color: #b8cce4;
-}
-
-html[data-theme="dark"] .compact-table th {
-  background: #192942;
-  color: #b7c8de;
-  border-bottom-color: #3d5270;
-}
-
-html[data-theme="dark"] .compact-table td {
-  color: #dbe7f5;
-  border-bottom-color: #293b53;
-}
-
-html[data-theme="dark"] .compact-table .al-empty {
-  color: #b8cce4;
-}
-
-html[data-theme="dark"] .raw-panel pre {
-  background: #081222;
-  border-color: #334a68;
-  color: #dbe7f5;
-  box-shadow: inset 0 0 0 1px rgba(103, 169, 255, .04);
-}
-
-html[data-theme="dark"] .range-search:hover .range-search-input,
-html[data-theme="dark"] .range-search-input:focus {
-  background: #101b2d;
-  border-color: var(--blue);
-  box-shadow: 0 0 0 3px rgba(103, 169, 255, .13), 0 8px 18px rgba(0, 0, 0, .28);
-}
-
-html[data-theme="dark"] .range-search-label,
-html[data-theme="dark"] .range-search-input::placeholder {
-  background: #17263d;
-  color: var(--muted);
-}
-
-html[data-theme="dark"] .range-search:focus-within .range-search-label,
-html[data-theme="dark"] .range-search-input:focus + .range-search-label,
-html[data-theme="dark"] .range-search-input:not(:placeholder-shown) + .range-search-label {
-  background: #101b2d;
-  color: var(--blue-hover);
-}
-
-html[data-theme="dark"] .preset-btn:hover,
-html[data-theme="dark"] .preset-btn.active,
-html[data-theme="dark"] .range-custom-trigger:hover,
-html[data-theme="dark"] .range-custom-trigger:focus-visible,
-html[data-theme="dark"] .range-custom-trigger.active,
-html[data-theme="dark"] .dash-switch-opt:hover,
-html[data-theme="dark"] button.dash-switch-btn:hover,
-html[data-theme="dark"] .theme-toggle:hover,
-html[data-theme="dark"] .panel-reset-button:hover,
-html[data-theme="dark"] .panel-undo-button:hover,
-html[data-theme="dark"] .panel-add-button:hover,
-html[data-theme="dark"] .panel-add-action:hover,
-html[data-theme="dark"] .widget-add-action:hover,
-html[data-theme="dark"] .layout-slot-button:hover,
-html[data-theme="dark"] .layout-slot-trigger:hover {
-  background: #213653;
-  border-color: rgba(103, 169, 255, .80);
-  color: var(--blue-hover);
-  box-shadow: 0 8px 18px rgba(0, 0, 0, .28), 0 0 18px rgba(103, 169, 255, .10);
-}
-
-html[data-theme="dark"] .range-bar.widget-card {
-  --range-control-fg: color-mix(in srgb, var(--range-control-accent) 46%, #f8fbff);
-  --range-button-fg: #ffffff;
-  --range-search-fg: #f8fbff;
-  --range-search-muted: #c5d3e6;
-  --range-control-bg: color-mix(in srgb, var(--surface-raised) 84%, var(--range-control-accent) 16%);
-  --range-control-border: color-mix(in srgb, var(--range-control-accent) 42%, #40536e);
-  --range-control-active-bg: color-mix(in srgb, var(--surface-raised) 76%, var(--range-control-accent) 24%);
-  --range-control-active-border: color-mix(in srgb, var(--range-control-accent) 62%, #dbeafe);
-  --range-control-glow: rgba(var(--panel-accent-rgb, 103, 169, 255), .10);
-}
-
-html[data-theme="dark"] .range-bar.widget-card .range-search-input,
-html[data-theme="dark"] .range-bar.widget-card .preset-btn,
-html[data-theme="dark"] .range-bar.widget-card .range-custom-trigger,
-html[data-theme="dark"] .range-bar.widget-card .range-display {
-  background: var(--range-control-bg);
-  border-color: var(--range-control-border);
-  box-shadow: 0 4px 10px rgba(0, 0, 0, .18), 0 0 8px var(--range-control-glow), inset 0 1px 0 rgba(255, 255, 255, .10);
-}
-
-html[data-theme="dark"] .range-bar.widget-card .range-search-input {
-  color: var(--range-search-fg);
-}
-
-html[data-theme="dark"] .range-bar.widget-card .preset-btn,
-html[data-theme="dark"] .range-bar.widget-card .range-custom-trigger,
-html[data-theme="dark"] .range-bar.widget-card .range-display {
-  color: var(--range-button-fg);
-}
-
-html[data-theme="dark"] .range-bar.widget-card .range-search:hover .range-search-input,
-html[data-theme="dark"] .range-bar.widget-card .range-search-input:focus,
-html[data-theme="dark"] .range-bar.widget-card .preset-btn:hover,
-html[data-theme="dark"] .range-bar.widget-card .preset-btn.active,
-html[data-theme="dark"] .range-bar.widget-card .range-custom-trigger:hover,
-html[data-theme="dark"] .range-bar.widget-card .range-custom-trigger:focus-visible,
-html[data-theme="dark"] .range-bar.widget-card .range-custom-trigger.active {
-  background: var(--range-control-active-bg);
-  border-color: var(--range-control-active-border);
-  box-shadow: 0 6px 14px rgba(0, 0, 0, .22), 0 0 10px var(--range-control-glow), inset 0 1px 0 var(--panel-hover-inset);
-}
-
-html[data-theme="dark"] .range-bar.widget-card .range-search:hover .range-search-input,
-html[data-theme="dark"] .range-bar.widget-card .range-search-input:focus {
-  color: var(--range-search-fg);
-}
-
-html[data-theme="dark"] .range-bar.widget-card .preset-btn:hover,
-html[data-theme="dark"] .range-bar.widget-card .preset-btn.active,
-html[data-theme="dark"] .range-bar.widget-card .range-custom-trigger:hover,
-html[data-theme="dark"] .range-bar.widget-card .range-custom-trigger:focus-visible,
-html[data-theme="dark"] .range-bar.widget-card .range-custom-trigger.active {
-  color: var(--range-button-fg);
-}
-
-html[data-theme="dark"] .range-bar.widget-card .range-search:focus-within .range-search-label,
-html[data-theme="dark"] .range-bar.widget-card .range-search-input:focus + .range-search-label,
-html[data-theme="dark"] .range-bar.widget-card .range-search-input:not(:placeholder-shown) + .range-search-label {
-  color: var(--range-search-fg);
-}
-
-html[data-theme="dark"] .app-nav:not(.settings-nav) .nav-status-item:hover,
-html[data-theme="dark"] .app-nav:not(.settings-nav) .nav-status-item:focus-within {
-  background: #223754;
-  border-color: rgba(117, 185, 255, .82);
-  box-shadow:
-    0 12px 28px rgba(0, 0, 0, .34),
-    0 0 24px rgba(103, 169, 255, .16),
-    0 1px 0 rgba(255, 255, 255, .05) inset;
-}
-
-html[data-theme="dark"] .settings-nav .nav-status-item:hover,
-html[data-theme="dark"] .settings-nav .nav-status-item:focus-within {
-  background: #223754;
-  border-color: rgba(117, 185, 255, .82);
-  box-shadow:
-    0 12px 28px rgba(0, 0, 0, .34),
-    0 0 24px rgba(103, 169, 255, .16),
-    0 1px 0 rgba(255, 255, 255, .05) inset;
-}
-
-html[data-theme="dark"] .app-nav:not(.settings-nav) .cmd-btn:hover,
-html[data-theme="dark"] .app-nav:not(.settings-nav) .cmd-btn:focus-visible {
-  box-shadow: 0 12px 28px rgba(37, 99, 235, .38), 0 0 28px rgba(103, 169, 255, .22);
-}
-
-html[data-theme="dark"] .app-nav:not(.settings-nav) .cmd-btn-danger:hover,
-html[data-theme="dark"] .app-nav:not(.settings-nav) .cmd-btn-danger:focus-visible {
-  background: #ef4444;
-  box-shadow: 0 12px 28px rgba(220, 38, 38, .38), 0 0 28px rgba(248, 113, 113, .22);
-}
-
-html[data-theme="dark"] .db-panel {
-  background: #101a2c;
-}
-
-html[data-theme="dark"] .db-panel-body {
-  background: #101a2c;
-}
-
-html[data-theme="dark"] .db-panel-hd,
-html[data-theme="dark"] .al-table th {
-  background: #192942;
-  border-color: #3d5270;
-}
-
-html[data-theme="dark"] .db-panel-count {
-  background: #17365d;
-  color: #b9dcff;
-}
-
-html[data-theme="dark"] .db-panel-hd::before {
-  opacity: .9;
-}
-
-html[data-theme="dark"] .al-table th {
-  color: #b7c8de;
-}
-
-html[data-theme="dark"] .al-table td {
-  color: var(--ink);
-  border-bottom-color: #293b53;
-}
-
-html[data-theme="dark"] .al-date a {
-  color: #68adff;
-}
-
-html[data-theme="dark"] .al-host,
-html[data-theme="dark"] .al-status {
-  color: var(--ink-strong);
-}
-
-html[data-theme="dark"] .al-table tbody tr:hover td {
-  background: #17243a;
-}
-
-html[data-theme="dark"] .empty-state,
-html[data-theme="dark"] .parse-warning,
-html[data-theme="dark"] .confirm-dialog {
-  background: #121b2b;
-  border-color: #3d5270;
-  color: var(--ink);
-  box-shadow: var(--shadow-soft);
-}
-
-html[data-theme="dark"] .confirm-dialog-close,
-html[data-theme="dark"] .confirm-dialog-btn {
-  background: #1b2b43;
-  border-color: #40536e;
-  color: #dbe7f5;
-}
-
-html[data-theme="dark"] .confirm-dialog-danger {
-  background: #dc2626;
-  border-color: #f87171;
-  color: #fff;
-}
-
-html[data-theme="dark"] .cmd-btn {
-  color: #fff;
-  box-shadow: 0 10px 24px rgba(37, 99, 235, .28), 0 0 18px rgba(103, 169, 255, .10);
-}
-
-html[data-theme="dark"] .cmd-btn-danger {
-  background: #dc2626;
-  box-shadow: 0 10px 24px rgba(220, 38, 38, .28), 0 0 18px rgba(248, 113, 113, .10);
-}
-
-html[data-theme="dark"] .theme-icon-day {
-  background: #3b3316;
-  color: #ffd166;
-}
-
-html[data-theme="dark"] .theme-toggle.is-dark .theme-icon-night {
-  background: #dbeafe;
-  color: #1d4ed8;
-}
-
 /* Screenshot-stable rendering: keep dashboard details explicit instead of relying on OS/native layers. */
 .db-panel-body,
 .esc-feed,
@@ -1846,11 +1187,6 @@ body {
   scrollbar-color: color-mix(in srgb, var(--muted) 58%, transparent) transparent;
 }
 
-html[data-theme="dark"],
-html[data-theme="dark"] body {
-  scrollbar-color: color-mix(in srgb, var(--muted) 62%, transparent) transparent;
-}
-
 html::-webkit-scrollbar,
 body::-webkit-scrollbar {
   width: 12px;
@@ -1884,97 +1220,6 @@ body::-webkit-scrollbar-thumb:hover {
   background-clip: content-box;
 }
 
-html[data-theme="dark"] .app-nav,
-html[data-theme="dark"] .sticky-save {
-  backdrop-filter: none;
-}
-
-html[data-theme="dark"] .app-nav,
-html[data-theme="dark"] .range-bar,
-html[data-theme="dark"] .stat-card,
-html[data-theme="dark"] .db-panel,
-html[data-theme="dark"] .nav-status-item,
-html[data-theme="dark"] .range-search-input,
-html[data-theme="dark"] .preset-btn,
-html[data-theme="dark"] .range-custom-trigger,
-html[data-theme="dark"] .range-display,
-html[data-theme="dark"] .theme-toggle,
-html[data-theme="dark"] .panel-reset-button,
-html[data-theme="dark"] .panel-undo-button,
-html[data-theme="dark"] .panel-add-button,
-html[data-theme="dark"] .panel-add-action,
-html[data-theme="dark"] .widget-add-action,
-html[data-theme="dark"] .layout-slot-button,
-html[data-theme="dark"] .layout-slot-trigger {
-  outline: 1px solid rgba(147, 179, 222, .08);
-  outline-offset: -1px;
-}
-
-html[data-theme="dark"] .layout-slot-menu {
-  border-color: #40536e;
-  background: #1b2b43;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, .22);
-}
-
-html[data-theme="dark"] .panel-add-menu {
-  border-color: #40536e;
-  background: #1b2b43;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, .22);
-}
-
-html[data-theme="dark"] .layout-slot-menu button {
-  background: #1b2b43;
-  border-color: #40536e;
-  color: var(--muted-strong);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, .18);
-}
-
-html[data-theme="dark"] .layout-slot-menu button:hover,
-html[data-theme="dark"] .layout-slot-menu button:focus-visible,
-html[data-theme="dark"] .layout-slot-menu button.is-active {
-  border-color: rgba(103, 169, 255, .70);
-  background: #213653;
-  color: #8ec5ff;
-  box-shadow: 0 8px 18px rgba(0, 0, 0, .28), 0 0 18px rgba(103, 169, 255, .10);
-}
-
-html[data-theme="dark"] .stat-card,
-html[data-theme="dark"] .db-panel,
-html[data-theme="dark"] .range-bar,
-html[data-theme="dark"] .app-nav {
-  box-shadow:
-    0 18px 42px rgba(0, 0, 0, .38),
-    0 1px 0 rgba(255, 255, 255, .035) inset,
-    0 0 0 1px rgba(103, 169, 255, .06);
-}
-
-html[data-theme="dark"] .panel-tool-drawer {
-  background: color-mix(in srgb, var(--surface-raised) 92%, var(--panel-lock-fg) 8%);
-  border-color: var(--panel-lock-border, rgba(117, 185, 255, .28));
-}
-
-html[data-theme="dark"] .db-panel-custom-color > .db-panel-hd {
-  background: linear-gradient(90deg, rgba(var(--panel-accent-rgb), .34), rgba(var(--panel-accent-rgb), .20));
-}
-
-html[data-theme="dark"] .db-panel-custom-color .panel-tool-drawer {
-  background: color-mix(in srgb, var(--surface-raised) 92%, var(--panel-accent) 8%);
-  border-color: rgba(var(--panel-accent-rgb), .56);
-}
-
-html[data-theme="dark"] .db-panel-collapsed > .db-panel-hd {
-  border-bottom-color: transparent;
-}
-
-html[data-theme="dark"] .db-panel.db-panel-custom-color {
-  border-color: color-mix(in srgb, var(--panel-accent) 58%, white);
-  box-shadow:
-    0 18px 42px rgba(0, 0, 0, .38),
-    0 1px 0 rgba(255, 255, 255, .035) inset,
-    0 0 0 1px rgba(var(--panel-accent-rgb), .30),
-    0 0 20px rgba(var(--panel-accent-rgb), .12);
-}
-
 .db-panel.db-panel-custom-color:hover,
 .db-panel.db-panel-custom-color:focus-within {
   border-color: color-mix(in srgb, var(--panel-accent) 72%, white);
@@ -1992,23 +1237,7 @@ html[data-theme="dark"] .db-panel.db-panel-custom-color {
     0 0 0 1px rgba(var(--panel-accent-rgb), .10);
 }
 
-html[data-theme="dark"] .db-panel:hover,
-html[data-theme="dark"] .db-panel:focus-within {
-  border-color: rgba(103, 169, 255, .78);
-  box-shadow: 0 14px 34px rgba(0, 0, 0, .32), 0 0 18px rgba(103, 169, 255, .12), inset 0 1px 0 rgba(255, 255, 255, .06);
-}
-
-html[data-theme="dark"] .db-panel.db-panel-collapsed:hover,
-html[data-theme="dark"] .db-panel.db-panel-collapsed:focus-within {
-  transform: none;
-  background: var(--surface);
-  box-shadow:
-    0 18px 42px rgba(0, 0, 0, .38),
-    0 1px 0 rgba(255, 255, 255, .035) inset;
-}
-
-.db-panel.db-panel-custom-color > .db-panel-hd,
-html[data-theme="dark"] .db-panel.db-panel-custom-color > .db-panel-hd {
+.db-panel.db-panel-custom-color > .db-panel-hd {
   --panel-header-control-bg: color-mix(in srgb, var(--surface-raised) 52%, var(--panel-accent) 48%);
   --panel-header-control-fg: var(--panel-accent-text);
   --panel-header-control-border: color-mix(in srgb, var(--panel-accent) 50%, white);
@@ -2018,24 +1247,17 @@ html[data-theme="dark"] .db-panel.db-panel-custom-color > .db-panel-hd {
   box-shadow: none;
 }
 
-.db-panel.db-panel-custom-color > .db-panel-hd:hover,
-.db-panel.db-panel-custom-color > .db-panel-hd:focus-visible,
-html[data-theme="dark"] .db-panel.db-panel-custom-color > .db-panel-hd:hover,
-html[data-theme="dark"] .db-panel.db-panel-custom-color > .db-panel-hd:focus-visible {
+.db-panel.db-panel-custom-color > .db-panel-hd:hover,.db-panel.db-panel-custom-color > .db-panel-hd:focus-visible {
   background: linear-gradient(90deg, rgba(var(--panel-accent-rgb), .54), rgba(var(--panel-accent-rgb), .30));
   border-color: color-mix(in srgb, var(--panel-accent) 52%, white);
   box-shadow: none;
 }
 
-.db-panel.db-panel-custom-color > .db-panel-hd .db-panel-title,
-html[data-theme="dark"] .db-panel.db-panel-custom-color > .db-panel-hd .db-panel-title {
+.db-panel.db-panel-custom-color > .db-panel-hd .db-panel-title {
   color: var(--panel-accent-text);
 }
 
-.db-panel.db-panel-custom-color > .db-panel-hd::before,
-.db-panel.db-panel-custom-color > .db-panel-hd .db-panel-count,
-html[data-theme="dark"] .db-panel.db-panel-custom-color > .db-panel-hd::before,
-html[data-theme="dark"] .db-panel.db-panel-custom-color > .db-panel-hd .db-panel-count {
+.db-panel.db-panel-custom-color > .db-panel-hd::before,.db-panel.db-panel-custom-color > .db-panel-hd .db-panel-count {
   background: var(--panel-header-control-bg);
   border-color: var(--panel-header-control-border);
   color: var(--panel-header-control-fg);
@@ -2044,21 +1266,17 @@ html[data-theme="dark"] .db-panel.db-panel-custom-color > .db-panel-hd .db-panel
 
 .db-panel.db-panel-custom-color .panel-pin-toggle,
 .db-panel.db-panel-custom-color .panel-settings-toggle,
-.db-panel.db-panel-custom-color .panel-tool-button,
-html[data-theme="dark"] .db-panel.db-panel-custom-color .panel-pin-toggle,
-html[data-theme="dark"] .db-panel.db-panel-custom-color .panel-settings-toggle,
-html[data-theme="dark"] .db-panel.db-panel-custom-color .panel-tool-button {
-  --panel-lock-bg: color-mix(in srgb, var(--surface-raised) 64%, var(--panel-accent) 36%) !important;
+.db-panel.db-panel-custom-color .panel-tool-button {
+  --panel-lock-bg: var(--panel-custom-control-bg, color-mix(in srgb, var(--surface-raised) 64%, var(--panel-accent) 36%)) !important;
   --panel-lock-fg: var(--panel-accent-text) !important;
-  --panel-lock-border: rgba(var(--panel-accent-rgb), .58) !important;
-  --panel-lock-glow: rgba(var(--panel-accent-rgb), .28) !important;
+  --panel-lock-border: var(--panel-custom-control-border, rgba(var(--panel-accent-rgb), .58)) !important;
+  --panel-lock-glow: var(--panel-custom-control-shadow, rgba(var(--panel-accent-rgb), .28)) !important;
   --panel-drawer-bg: rgba(var(--panel-accent-rgb), .28) !important;
-  border-color: rgba(var(--panel-accent-rgb), .58);
-  box-shadow: 0 10px 24px rgba(var(--panel-accent-rgb), .24), 0 0 18px rgba(var(--panel-accent-rgb), .16), inset 0 1px 0 rgba(255, 255, 255, .18);
+  border-color: var(--panel-lock-border);
+  box-shadow: var(--panel-control-rest-shadow);
 }
 
-.db-panel.db-panel-custom-color .panel-tools,
-html[data-theme="dark"] .db-panel.db-panel-custom-color .panel-tools {
+.db-panel.db-panel-custom-color .panel-tools {
   background: transparent !important;
   background-color: transparent !important;
   border: 0 !important;
@@ -2068,110 +1286,19 @@ html[data-theme="dark"] .db-panel.db-panel-custom-color .panel-tools {
   -webkit-backdrop-filter: none !important;
 }
 
-.db-panel.db-panel-custom-color .panel-tool-drawer,
-html[data-theme="dark"] .db-panel.db-panel-custom-color .panel-tool-drawer {
+.db-panel.db-panel-custom-color .panel-tool-drawer {
   background: color-mix(in srgb, var(--surface-raised) 92%, var(--panel-accent) 8%);
   border-color: rgba(var(--panel-accent-rgb), .46);
-  box-shadow: 0 14px 32px rgba(15, 23, 42, .18), 0 0 18px rgba(var(--panel-accent-rgb), .16);
+  box-shadow: var(--panel-drawer-shadow, 0 14px 32px rgba(15, 23, 42, .18));
 }
 
-.db-panel.db-panel-tools-open .panel-settings-toggle,
-html[data-theme="dark"] .db-panel.db-panel-tools-open .panel-settings-toggle,
-.widget-card.widget-tools-open .panel-settings-toggle,
-html[data-theme="dark"] .widget-card.widget-tools-open .panel-settings-toggle {
+.db-panel.db-panel-tools-open .panel-settings-toggle,.widget-card.widget-tools-open .panel-settings-toggle {
   background: color-mix(in srgb, var(--panel-lock-bg) 75%, var(--panel-hover-tint));
   border-color: currentColor;
-  box-shadow: 0 10px 20px var(--panel-lock-glow), 0 0 12px var(--panel-lock-glow), inset 0 1px 0 var(--panel-hover-inset);
+  box-shadow: var(--panel-control-active-shadow);
 }
 
-html[data-theme="dark"] .db-panel-body,
-html[data-theme="dark"] .esc-feed,
-html[data-theme="dark"] .table-scroll {
-  scrollbar-color: #71839e #0c1423;
-}
-
-html[data-theme="dark"] .db-panel-body::-webkit-scrollbar-track,
-html[data-theme="dark"] .esc-feed::-webkit-scrollbar-track,
-html[data-theme="dark"] .table-scroll::-webkit-scrollbar-track {
-  background: #0c1423;
-  border-left: 1px solid #24344e;
-}
-
-html[data-theme="dark"] .db-panel-body::-webkit-scrollbar-thumb,
-html[data-theme="dark"] .esc-feed::-webkit-scrollbar-thumb,
-html[data-theme="dark"] .table-scroll::-webkit-scrollbar-thumb {
-  border-color: #0c1423;
-  background: #71839e;
-  box-shadow: 0 0 0 1px rgba(203, 213, 225, .10) inset;
-}
-
-html[data-theme="dark"] .db-panel-body::-webkit-scrollbar-thumb:hover,
-html[data-theme="dark"] .esc-feed::-webkit-scrollbar-thumb:hover,
-html[data-theme="dark"] .table-scroll::-webkit-scrollbar-thumb:hover {
-  background: #8da0bb;
-}
-
-html[data-theme="dark"] .db-panel-hd,
-html[data-theme="dark"] .al-table th,
-html[data-theme="dark"] .al-table td {
-  text-shadow: none;
-}
-
-/* Final panel theme layer: default and custom colors use the same chrome rules. */
-html:not([data-theme="dark"]) .db-panel.db-panel-custom-color {
-  border-color: color-mix(in srgb, var(--panel-accent) 62%, white) !important;
-  box-shadow:
-    var(--shadow-card),
-    0 0 0 1px rgba(var(--panel-accent-rgb), .10) !important;
-}
-
-html:not([data-theme="dark"]) .db-panel.db-panel-custom-color:hover,
-html:not([data-theme="dark"]) .db-panel.db-panel-custom-color:focus-within {
-  border-color: color-mix(in srgb, var(--panel-accent) 78%, var(--panel-hover-tint)) !important;
-  box-shadow:
-    0 14px 30px rgba(15, 23, 42, .14),
-    inset 0 1px 0 rgba(255, 255, 255, .22) !important;
-}
-
-html:not([data-theme="dark"]) .db-panel.db-panel-custom-color.db-panel-collapsed:hover,
-html:not([data-theme="dark"]) .db-panel.db-panel-custom-color.db-panel-collapsed:focus-within {
-  border-color: color-mix(in srgb, var(--panel-accent) 78%, var(--panel-hover-tint)) !important;
-  box-shadow:
-    0 14px 30px rgba(15, 23, 42, .14),
-    inset 0 1px 0 rgba(255, 255, 255, .22) !important;
-}
-
-html[data-theme="dark"] .db-panel.db-panel-custom-color {
-  border-color: color-mix(in srgb, var(--panel-accent) 58%, white) !important;
-  box-shadow:
-    0 18px 42px rgba(0, 0, 0, .38),
-    0 1px 0 rgba(255, 255, 255, .035) inset,
-    0 0 0 1px rgba(var(--panel-accent-rgb), .30),
-    0 0 20px rgba(var(--panel-accent-rgb), .12) !important;
-}
-
-html[data-theme="dark"] .db-panel.db-panel-custom-color:hover,
-html[data-theme="dark"] .db-panel.db-panel-custom-color:focus-within {
-  border-color: color-mix(in srgb, var(--panel-accent) 74%, var(--panel-hover-tint)) !important;
-  box-shadow:
-    0 18px 42px rgba(0, 0, 0, .38),
-    0 1px 0 rgba(255, 255, 255, .04) inset,
-    0 0 0 1px rgba(var(--panel-accent-rgb), .36),
-    0 0 24px rgba(var(--panel-accent-rgb), .16) !important;
-}
-
-html[data-theme="dark"] .db-panel.db-panel-custom-color.db-panel-collapsed:hover,
-html[data-theme="dark"] .db-panel.db-panel-custom-color.db-panel-collapsed:focus-within {
-  border-color: color-mix(in srgb, var(--panel-accent) 58%, white) !important;
-  box-shadow:
-    0 18px 42px rgba(0, 0, 0, .38),
-    0 1px 0 rgba(255, 255, 255, .035) inset,
-    0 0 0 1px rgba(var(--panel-accent-rgb), .30),
-    0 0 20px rgba(var(--panel-accent-rgb), .12) !important;
-}
-
-.db-panel.db-panel-custom-color > .db-panel-hd,
-html[data-theme="dark"] .db-panel.db-panel-custom-color > .db-panel-hd {
+.db-panel.db-panel-custom-color > .db-panel-hd {
   --panel-header-control-bg: color-mix(in srgb, var(--surface-raised) 50%, var(--panel-accent) 50%) !important;
   --panel-header-control-fg: var(--panel-accent-text) !important;
   --panel-header-control-border: color-mix(in srgb, var(--panel-accent) 55%, var(--panel-hover-tint)) !important;
@@ -2186,24 +1313,17 @@ html[data-theme="dark"] .db-panel.db-panel-custom-color > .db-panel-hd {
   box-shadow: none !important;
 }
 
-.db-panel.db-panel-custom-color > .db-panel-hd:hover,
-.db-panel.db-panel-custom-color > .db-panel-hd:focus-visible,
-html[data-theme="dark"] .db-panel.db-panel-custom-color > .db-panel-hd:hover,
-html[data-theme="dark"] .db-panel.db-panel-custom-color > .db-panel-hd:focus-visible {
+.db-panel.db-panel-custom-color > .db-panel-hd:hover,.db-panel.db-panel-custom-color > .db-panel-hd:focus-visible {
   background: linear-gradient(90deg, rgba(var(--panel-accent-rgb), .58), rgba(var(--panel-accent-rgb), .34)) !important;
   border-color: color-mix(in srgb, var(--panel-accent) 64%, var(--panel-hover-tint)) !important;
   box-shadow: none !important;
 }
 
-.db-panel.db-panel-custom-color > .db-panel-hd .db-panel-title,
-html[data-theme="dark"] .db-panel.db-panel-custom-color > .db-panel-hd .db-panel-title {
+.db-panel.db-panel-custom-color > .db-panel-hd .db-panel-title {
   color: var(--panel-accent-text) !important;
 }
 
-.db-panel.db-panel-custom-color > .db-panel-hd::before,
-.db-panel.db-panel-custom-color > .db-panel-hd .db-panel-count,
-html[data-theme="dark"] .db-panel.db-panel-custom-color > .db-panel-hd::before,
-html[data-theme="dark"] .db-panel.db-panel-custom-color > .db-panel-hd .db-panel-count {
+.db-panel.db-panel-custom-color > .db-panel-hd::before,.db-panel.db-panel-custom-color > .db-panel-hd .db-panel-count {
   background: var(--panel-header-control-bg) !important;
   border-color: var(--panel-header-control-border) !important;
   color: var(--panel-header-control-fg) !important;
@@ -2213,30 +1333,24 @@ html[data-theme="dark"] .db-panel.db-panel-custom-color > .db-panel-hd .db-panel
     inset 0 1px 0 rgba(255, 255, 255, .20) !important;
 }
 
-.db-panel.db-panel-custom-color > .db-panel-hd::after,
-html[data-theme="dark"] .db-panel.db-panel-custom-color > .db-panel-hd::after {
+.db-panel.db-panel-custom-color > .db-panel-hd::after {
   border-color: var(--panel-accent-text) !important;
 }
 
 .db-panel.db-panel-custom-color .panel-lock-toggle,
 .db-panel.db-panel-custom-color .panel-pin-toggle,
 .db-panel.db-panel-custom-color .panel-settings-toggle,
-.db-panel.db-panel-custom-color .panel-tool-button,
-html[data-theme="dark"] .db-panel.db-panel-custom-color .panel-lock-toggle,
-html[data-theme="dark"] .db-panel.db-panel-custom-color .panel-pin-toggle,
-html[data-theme="dark"] .db-panel.db-panel-custom-color .panel-settings-toggle,
-html[data-theme="dark"] .db-panel.db-panel-custom-color .panel-tool-button {
-  --panel-lock-bg: color-mix(in srgb, var(--surface-raised) 62%, var(--panel-accent) 38%) !important;
+.db-panel.db-panel-custom-color .panel-tool-button {
+  --panel-lock-bg: var(--panel-custom-control-bg, color-mix(in srgb, var(--surface-raised) 62%, var(--panel-accent) 38%)) !important;
   --panel-lock-fg: var(--panel-accent-text) !important;
-  --panel-lock-border: rgba(var(--panel-accent-rgb), .54) !important;
-  --panel-lock-glow: rgba(var(--panel-accent-rgb), .24) !important;
+  --panel-lock-border: var(--panel-custom-control-border, rgba(var(--panel-accent-rgb), .54)) !important;
+  --panel-lock-glow: var(--panel-custom-control-shadow, rgba(var(--panel-accent-rgb), .24)) !important;
   --panel-drawer-bg: rgba(var(--panel-accent-rgb), .24) !important;
   background: var(--panel-lock-bg) !important;
   border-color: var(--panel-lock-border) !important;
   color: var(--panel-lock-fg) !important;
   box-shadow:
-    0 8px 18px var(--panel-lock-glow),
-    inset 0 1px 0 rgba(255, 255, 255, .18) !important;
+    var(--panel-control-rest-shadow) !important;
 }
 
 .db-panel.db-panel-custom-color .panel-lock-toggle:hover,
@@ -2259,45 +1373,60 @@ html[data-theme="dark"] .db-panel.db-panel-custom-color .panel-tool-button {
 .widget-card.db-panel-custom-color .panel-tool-button:active,
 .db-panel.db-panel-custom-color.db-panel-tools-open .panel-settings-toggle,
 .widget-card.db-panel-custom-color.widget-tools-open .panel-settings-toggle {
-  transform: translateY(-1px);
   background: color-mix(in srgb, var(--panel-lock-bg) 72%, var(--panel-hover-tint)) !important;
-  border-color: color-mix(in srgb, var(--panel-accent) 70%, var(--panel-hover-tint)) !important;
+  border-color: var(--panel-custom-control-hover-border, color-mix(in srgb, var(--panel-accent) 70%, var(--panel-hover-tint))) !important;
   color: var(--panel-lock-fg) !important;
   box-shadow:
-    0 12px 24px var(--panel-lock-glow),
-    0 0 16px var(--panel-lock-glow),
-    inset 0 1px 0 var(--panel-hover-inset) !important;
+    var(--panel-control-hover-shadow) !important;
+}
+
+.db-panel.db-panel-custom-color .panel-lock-toggle:hover,
+.db-panel.db-panel-custom-color .panel-pin-toggle:hover,
+.db-panel.db-panel-custom-color .panel-settings-toggle:hover,
+.db-panel.db-panel-custom-color .panel-tool-button:hover,
+.widget-card.db-panel-custom-color .panel-settings-toggle:hover,
+.widget-card.db-panel-custom-color .panel-tool-button:hover {
+  transform: var(--pressable-hover-transform);
+}
+
+.db-panel.db-panel-custom-color .panel-lock-toggle:focus-visible,
+.db-panel.db-panel-custom-color .panel-pin-toggle:focus-visible,
+.db-panel.db-panel-custom-color .panel-settings-toggle:focus-visible,
+.db-panel.db-panel-custom-color .panel-tool-button:focus-visible,
+.widget-card.db-panel-custom-color .panel-settings-toggle:focus-visible,
+.widget-card.db-panel-custom-color .panel-tool-button:focus-visible {
+  transform: var(--pressable-focus-transform);
 }
 
 .db-panel.db-panel-custom-color .panel-lock-toggle:active,
 .db-panel.db-panel-custom-color .panel-pin-toggle:active,
 .db-panel.db-panel-custom-color .panel-settings-toggle:active,
-.db-panel.db-panel-custom-color .panel-tool-button:active {
-  transform: translateY(1px);
+.db-panel.db-panel-custom-color .panel-tool-button:active,
+.widget-card.db-panel-custom-color .panel-settings-toggle:active,
+.widget-card.db-panel-custom-color .panel-tool-button:active,
+.db-panel.db-panel-custom-color.db-panel-tools-open .panel-settings-toggle,
+.widget-card.db-panel-custom-color.widget-tools-open .panel-settings-toggle {
+  transform: var(--pressable-active-transform);
+  box-shadow: var(--panel-control-active-shadow) !important;
 }
 
-.db-panel.db-panel-custom-color .panel-tool-drawer,
-html[data-theme="dark"] .db-panel.db-panel-custom-color .panel-tool-drawer {
+.db-panel.db-panel-custom-color .panel-tool-drawer {
   background: color-mix(in srgb, var(--surface-raised) 92%, var(--panel-accent) 8%) !important;
   border-color: rgba(var(--panel-accent-rgb), .46) !important;
   box-shadow:
-    0 14px 32px rgba(15, 23, 42, .18),
-    0 0 18px rgba(var(--panel-accent-rgb), .16) !important;
+    var(--panel-drawer-shadow, 0 14px 32px rgba(15, 23, 42, .18)) !important;
 }
 
-.db-panel.db-panel-custom-color .al-table th,
-html[data-theme="dark"] .db-panel.db-panel-custom-color .al-table th {
+.db-panel.db-panel-custom-color .al-table th {
   background: color-mix(in srgb, var(--surface-raised) 72%, var(--panel-accent) 28%) !important;
   border-color: rgba(var(--panel-accent-rgb), .28) !important;
 }
 
-.db-panel.db-panel-custom-color .db-panel-body,
-html[data-theme="dark"] .db-panel.db-panel-custom-color .db-panel-body {
+.db-panel.db-panel-custom-color .db-panel-body {
   scrollbar-color: color-mix(in srgb, var(--panel-accent) 62%, var(--muted)) transparent;
 }
 
-.db-panel.db-panel-custom-color .db-panel-body::-webkit-scrollbar-thumb,
-html[data-theme="dark"] .db-panel.db-panel-custom-color .db-panel-body::-webkit-scrollbar-thumb {
+.db-panel.db-panel-custom-color .db-panel-body::-webkit-scrollbar-thumb {
   background: color-mix(in srgb, var(--panel-accent) 54%, var(--muted)) !important;
 }
 
@@ -2571,20 +1700,6 @@ html[data-theme="dark"] .db-panel.db-panel-custom-color .db-panel-body::-webkit-
   height: 17px;
 }
 
-html[data-theme="dark"] .app-nav:not(.settings-nav) .nav-status-good {
-  border-color: color-mix(in srgb, var(--ok) 50%, var(--line));
-}
-
-html[data-theme="dark"] .app-nav:not(.settings-nav) .nav-status-bad {
-  border-color: color-mix(in srgb, var(--red) 50%, var(--line));
-}
-
-html[data-theme="dark"] .nav-status-popover {
-  background: color-mix(in srgb, var(--surface-raised) 92%, transparent);
-  border-color: #425a78;
-  box-shadow: 0 20px 44px rgba(0, 0, 0, .42), 0 1px 0 rgba(255, 255, 255, .05) inset;
-}
-
 /* Panel menu keyboard focus: keep the circular styling, but make focus unmistakable. */
 .panel-tool-drawer .panel-tool-button:focus-visible,
 .panel-settings-toggle:focus-visible {
@@ -2592,31 +1707,15 @@ html[data-theme="dark"] .nav-status-popover {
   border-color: color-mix(in srgb, currentColor 72%, var(--panel-hover-tint)) !important;
   box-shadow:
     0 0 0 3px color-mix(in srgb, currentColor 28%, transparent),
-    0 12px 24px var(--panel-lock-glow, rgba(37, 99, 235, .22)),
-    0 0 18px var(--panel-lock-glow, rgba(37, 99, 235, .18)),
-    inset 0 1px 0 var(--panel-hover-inset) !important;
+    var(--panel-control-hover-shadow, 0 6px 14px rgba(37, 99, 235, .16)) !important;
 }
 
-.db-panel.db-panel-custom-color .panel-tool-drawer .panel-tool-button:focus-visible,
-.db-panel.db-panel-custom-color .panel-settings-toggle:focus-visible,
-html[data-theme="dark"] .db-panel.db-panel-custom-color .panel-tool-drawer .panel-tool-button:focus-visible,
-html[data-theme="dark"] .db-panel.db-panel-custom-color .panel-settings-toggle:focus-visible {
+.db-panel.db-panel-custom-color .panel-tool-drawer .panel-tool-button:focus-visible,.db-panel.db-panel-custom-color .panel-settings-toggle:focus-visible {
   outline: none !important;
   border-color: color-mix(in srgb, var(--panel-accent) 76%, var(--panel-hover-tint)) !important;
   box-shadow:
     0 0 0 3px rgba(var(--panel-accent-rgb), .30),
-    0 12px 24px rgba(var(--panel-accent-rgb), .24),
-    0 0 18px rgba(var(--panel-accent-rgb), .18),
-    inset 0 1px 0 var(--panel-hover-inset) !important;
-}
-
-html[data-theme="dark"] .panel-tool-drawer .panel-tool-button:focus-visible,
-html[data-theme="dark"] .panel-settings-toggle:focus-visible {
-  box-shadow:
-    0 0 0 3px color-mix(in srgb, currentColor 34%, transparent),
-    0 12px 28px rgba(0, 0, 0, .34),
-    0 0 22px var(--panel-lock-glow, rgba(103, 169, 255, .20)),
-    inset 0 1px 0 var(--panel-hover-inset) !important;
+    var(--panel-control-hover-shadow, 0 6px 14px rgba(var(--panel-accent-rgb), .16)) !important;
 }
 
 /* Widget palette ownership must win over stat-card and status color rules. */
@@ -2676,187 +1775,21 @@ html[data-theme="dark"] .panel-settings-toggle:focus-visible {
 
 .widget-card.db-panel-custom-color .panel-settings-toggle,
 .widget-card.db-panel-custom-color .panel-tool-button {
-  --panel-lock-bg: color-mix(in srgb, var(--surface-raised) 62%, var(--panel-accent) 38%) !important;
+  --panel-lock-bg: var(--panel-custom-control-bg, color-mix(in srgb, var(--surface-raised) 62%, var(--panel-accent) 38%)) !important;
   --panel-lock-fg: var(--panel-accent-text) !important;
-  --panel-lock-border: rgba(var(--panel-accent-rgb), .54) !important;
-  --panel-lock-glow: rgba(var(--panel-accent-rgb), .24) !important;
+  --panel-lock-border: var(--panel-custom-control-border, rgba(var(--panel-accent-rgb), .54)) !important;
+  --panel-lock-glow: var(--panel-custom-control-shadow, rgba(var(--panel-accent-rgb), .24)) !important;
   --panel-drawer-bg: rgba(var(--panel-accent-rgb), .24) !important;
-  border-color: rgba(var(--panel-accent-rgb), .54);
+  border-color: var(--panel-lock-border);
   box-shadow:
-    0 10px 24px rgba(var(--panel-accent-rgb), .24),
-    0 0 18px rgba(var(--panel-accent-rgb), .16),
-    inset 0 1px 0 rgba(255, 255, 255, .18);
+    var(--panel-control-rest-shadow);
 }
 
 .widget-card.db-panel-custom-color .widget-tool-drawer {
   background: color-mix(in srgb, var(--surface-raised) 92%, var(--panel-accent) 8%);
-  border-color: rgba(var(--panel-accent-rgb), .46);
+  border-color: var(--panel-custom-drawer-border, rgba(var(--panel-accent-rgb), .46));
   box-shadow:
-    0 14px 32px rgba(15, 23, 42, .18),
-    0 0 18px rgba(var(--panel-accent-rgb), .16);
-}
-
-html[data-theme="dark"] .widget-layout > .widget-card.db-panel-custom-color,
-html[data-theme="dark"] .widget-layout > .widget-card.db-panel-custom-color.stat-danger,
-html[data-theme="dark"] .widget-layout > .widget-card.db-panel-custom-color.stat-warn,
-html[data-theme="dark"] .widget-layout > .widget-card.db-panel-custom-color.stat-purple {
-  background: color-mix(in srgb, #122033 72%, var(--panel-accent) 28%);
-  border-color: color-mix(in srgb, var(--panel-accent) 62%, #40536e);
-  box-shadow: 0 10px 26px color-mix(in srgb, var(--panel-accent) 18%, transparent), 0 1px 0 rgba(255, 255, 255, .08) inset;
-}
-
-html[data-theme="dark"] .widget-layout > .widget-card.db-panel-custom-color:hover,
-html[data-theme="dark"] .widget-layout > .widget-card.db-panel-custom-color.active {
-  background: color-mix(in srgb, #122033 62%, var(--panel-accent) 38%);
-  border-color: color-mix(in srgb, var(--panel-accent) 78%, var(--panel-hover-tint));
-  box-shadow:
-    0 14px 30px rgba(0, 0, 0, .30),
-    inset 0 1px 0 rgba(255, 255, 255, .07);
-}
-
-/* Dark mode polish: keep the light-mode softness without the heavy saturation. */
-html[data-theme="dark"] body {
-  background: #0b1220;
-}
-
-html[data-theme="dark"] .stat-card,
-html[data-theme="dark"] .db-panel {
-  box-shadow:
-    0 12px 28px rgba(0, 0, 0, .28),
-    0 1px 0 rgba(255, 255, 255, .055) inset,
-    0 0 0 1px rgba(148, 190, 255, .08);
-}
-
-html[data-theme="dark"] .stat-card:hover {
-  border-color: rgba(147, 197, 253, .66);
-  box-shadow:
-    0 14px 30px rgba(0, 0, 0, .30),
-    0 0 0 1px rgba(147, 197, 253, .18),
-    0 0 18px rgba(103, 169, 255, .10),
-    inset 0 1px 0 rgba(255, 255, 255, .07);
-}
-
-html[data-theme="dark"] .widget-layout > .stat-card:hover {
-  border-color: rgba(164, 205, 255, .74);
-  box-shadow:
-    0 14px 30px rgba(0, 0, 0, .30),
-    inset 0 1px 0 rgba(255, 255, 255, .07);
-}
-
-html[data-theme="dark"] .db-panel:hover,
-html[data-theme="dark"] .db-panel:focus-within {
-  border-color: rgba(164, 205, 255, .74);
-  box-shadow:
-    0 14px 30px rgba(0, 0, 0, .30),
-    inset 0 1px 0 rgba(255, 255, 255, .07);
-}
-
-html[data-theme="dark"] .widget-layout > .stat-card.active:hover {
-  border-color: rgba(191, 219, 254, .86);
-  outline-color: rgba(191, 219, 254, .92);
-  box-shadow:
-    inset 0 0 0 1px rgba(147, 197, 253, .30),
-    0 16px 34px rgba(0, 0, 0, .36);
-}
-
-html[data-theme="dark"] .stat-card.active {
-  outline: 3px solid rgba(164, 205, 255, .86);
-  outline-offset: 0;
-  box-shadow:
-    0 16px 34px rgba(0, 0, 0, .34),
-    0 10px 24px rgba(103, 169, 255, .14);
-}
-
-html[data-theme="dark"] .stat-card:hover .stat-val,
-html[data-theme="dark"] .stat-card:hover .stat-lbl,
-html[data-theme="dark"] .stat-card.active .stat-val,
-html[data-theme="dark"] .stat-card.active .stat-lbl {
-  color: #f8fbff;
-}
-
-html[data-theme="dark"] .db-panel.db-panel-custom-color,
-html[data-theme="dark"] .widget-layout > .widget-card.db-panel-custom-color,
-html[data-theme="dark"] .widget-layout > .widget-card.db-panel-custom-color.stat-danger,
-html[data-theme="dark"] .widget-layout > .widget-card.db-panel-custom-color.stat-warn,
-html[data-theme="dark"] .widget-layout > .widget-card.db-panel-custom-color.stat-purple {
-  border-color: color-mix(in srgb, var(--panel-accent) 52%, #dbeafe) !important;
-  box-shadow:
-    0 12px 28px rgba(0, 0, 0, .28),
-    0 1px 0 rgba(255, 255, 255, .06) inset,
-    0 0 0 1px rgba(var(--panel-accent-rgb), .22),
-    0 0 18px rgba(var(--panel-accent-rgb), .10) !important;
-}
-
-html[data-theme="dark"] .widget-layout > .widget-card.db-panel-custom-color,
-html[data-theme="dark"] .widget-layout > .widget-card.db-panel-custom-color.stat-danger,
-html[data-theme="dark"] .widget-layout > .widget-card.db-panel-custom-color.stat-warn,
-html[data-theme="dark"] .widget-layout > .widget-card.db-panel-custom-color.stat-purple,
-html[data-theme="dark"] .db-panel.db-panel-custom-color > .db-panel-hd {
-  --panel-header-control-bg: color-mix(in srgb, #172235 46%, var(--panel-accent) 54%) !important;
-  --panel-header-control-border: color-mix(in srgb, var(--panel-accent) 48%, #dbeafe) !important;
-  --panel-header-control-glow: rgba(var(--panel-accent-rgb), .18) !important;
-  --panel-lock-bg: color-mix(in srgb, #172235 52%, var(--panel-accent) 48%) !important;
-  --panel-lock-border: rgba(var(--panel-accent-rgb), .46) !important;
-  --panel-lock-glow: rgba(var(--panel-accent-rgb), .18) !important;
-  background: linear-gradient(90deg, rgba(var(--panel-accent-rgb), .44), rgba(var(--panel-accent-rgb), .28)) !important;
-}
-
-html[data-theme="dark"] .db-panel.db-panel-custom-color:hover,
-html[data-theme="dark"] .db-panel.db-panel-custom-color:focus-within,
-html[data-theme="dark"] .widget-layout > .widget-card.db-panel-custom-color:hover,
-html[data-theme="dark"] .widget-layout > .widget-card.db-panel-custom-color.active {
-  border-color: color-mix(in srgb, var(--panel-accent) 66%, #f8fbff) !important;
-  box-shadow:
-    0 14px 30px rgba(0, 0, 0, .30),
-    0 1px 0 rgba(255, 255, 255, .07) inset !important;
-}
-
-html[data-theme="dark"] .db-panel.db-panel-custom-color > .db-panel-hd:hover,
-html[data-theme="dark"] .db-panel.db-panel-custom-color > .db-panel-hd:focus-visible,
-html[data-theme="dark"] .widget-layout > .widget-card.db-panel-custom-color:hover,
-html[data-theme="dark"] .widget-layout > .widget-card.db-panel-custom-color.active {
-  background: linear-gradient(90deg, rgba(var(--panel-accent-rgb), .50), rgba(var(--panel-accent-rgb), .32)) !important;
-}
-
-html[data-theme="dark"] .widget-layout > .widget-card.db-panel-custom-color.active {
-  outline: 3px solid color-mix(in srgb, var(--panel-accent) 78%, #f8fbff);
-  outline-offset: 0;
-  border-color: color-mix(in srgb, var(--panel-accent) 82%, #f8fbff) !important;
-  box-shadow:
-    0 16px 34px rgba(0, 0, 0, .36),
-    0 10px 24px rgba(var(--panel-accent-rgb), .14) !important;
-}
-
-html[data-theme="dark"] .widget-layout > .widget-card.db-panel-custom-color.active:hover {
-  outline-color: color-mix(in srgb, var(--panel-accent) 88%, #f8fbff);
-  box-shadow:
-    0 18px 38px rgba(0, 0, 0, .40),
-    0 12px 28px rgba(var(--panel-accent-rgb), .16) !important;
-}
-
-html[data-theme="dark"] .db-panel.db-panel-custom-color > .db-panel-hd::before,
-html[data-theme="dark"] .db-panel.db-panel-custom-color > .db-panel-hd .db-panel-count,
-html[data-theme="dark"] .db-panel.db-panel-custom-color .panel-lock-toggle,
-html[data-theme="dark"] .db-panel.db-panel-custom-color .panel-pin-toggle,
-html[data-theme="dark"] .db-panel.db-panel-custom-color .panel-settings-toggle,
-html[data-theme="dark"] .db-panel.db-panel-custom-color .panel-tool-button,
-html[data-theme="dark"] .widget-card.db-panel-custom-color .panel-settings-toggle,
-html[data-theme="dark"] .widget-card.db-panel-custom-color .panel-tool-button {
-  box-shadow:
-    0 8px 18px rgba(var(--panel-accent-rgb), .16),
-    inset 0 1px 0 rgba(255, 255, 255, .16) !important;
-}
-
-html[data-theme="dark"] .panel-tool-drawer,
-html[data-theme="dark"] .widget-tool-drawer,
-html[data-theme="dark"] .db-panel.db-panel-custom-color .panel-tool-drawer,
-html[data-theme="dark"] .widget-card.db-panel-custom-color .widget-tool-drawer {
-  background: color-mix(in srgb, #101827 88%, var(--panel-accent, #67a9ff) 12%) !important;
-  border-color: rgba(var(--panel-accent-rgb, 103, 169, 255), .42) !important;
-  box-shadow:
-    0 16px 34px rgba(0, 0, 0, .32),
-    0 0 18px rgba(var(--panel-accent-rgb, 103, 169, 255), .12),
-    inset 0 1px 0 rgba(255, 255, 255, .07) !important;
+    var(--panel-drawer-shadow, 0 14px 32px rgba(15, 23, 42, .18));
 }
 
 /* Dashboard top bar polish: match the soft widget/panel control language. */
@@ -2929,14 +1862,7 @@ html[data-theme="dark"] .widget-card.db-panel-custom-color .widget-tool-drawer {
   height: 20px;
 }
 
-.app-nav:not(.settings-nav) .theme-toggle,
-.app-nav:not(.settings-nav) .panel-reset-button,
-.app-nav:not(.settings-nav) .panel-undo-button,
-.app-nav:not(.settings-nav) .panel-add-button,
-.app-nav:not(.settings-nav) .layout-slot-button,
-.app-nav:not(.settings-nav) .layout-slot-trigger,
-.app-nav:not(.settings-nav) .nav-status-icon-only,
-.app-nav:not(.settings-nav) .cmd-btn-icon-only {
+.app-nav:not(.settings-nav) .panel-reset-button,.app-nav:not(.settings-nav) .panel-undo-button,.app-nav:not(.settings-nav) .panel-add-button,.app-nav:not(.settings-nav) .layout-slot-button,.app-nav:not(.settings-nav) .layout-slot-trigger,.app-nav:not(.settings-nav) .nav-status-icon-only,.app-nav:not(.settings-nav) .cmd-btn-icon-only {
   height: 38px;
   min-height: 38px;
   border: 1.5px solid var(--line-soft);
@@ -2977,12 +1903,6 @@ html[data-theme="dark"] .widget-card.db-panel-custom-color .widget-tool-drawer {
   width: 38px;
   min-width: 38px;
   padding: 0;
-}
-
-.app-nav:not(.settings-nav) .theme-toggle {
-  width: 58px;
-  min-width: 58px;
-  padding: 0 6px;
 }
 
 .app-nav:not(.settings-nav) .nav-status-icon-only .nav-icon {
@@ -3049,14 +1969,7 @@ html[data-theme="dark"] .widget-card.db-panel-custom-color .widget-tool-drawer {
   border-radius: 12px;
 }
 
-.app-nav:not(.settings-nav) .theme-toggle:hover,
-.app-nav:not(.settings-nav) .panel-reset-button:hover,
-.app-nav:not(.settings-nav) .panel-undo-button:hover,
-.app-nav:not(.settings-nav) .panel-add-button:hover,
-.app-nav:not(.settings-nav) .layout-slot-button:hover,
-.app-nav:not(.settings-nav) .layout-slot-trigger:hover,
-.app-nav:not(.settings-nav) .nav-status-icon-only:hover {
-  transform: translateY(-1px);
+.app-nav:not(.settings-nav) .panel-reset-button:hover,.app-nav:not(.settings-nav) .panel-undo-button:hover,.app-nav:not(.settings-nav) .panel-add-button:hover,.app-nav:not(.settings-nav) .layout-slot-button:hover,.app-nav:not(.settings-nav) .layout-slot-trigger:hover,.app-nav:not(.settings-nav) .nav-status-icon-only:hover {
   border-color: #93c5fd;
   background: #f7fbff;
   box-shadow:
@@ -3066,7 +1979,6 @@ html[data-theme="dark"] .widget-card.db-panel-custom-color .widget-tool-drawer {
 
 .app-nav:not(.settings-nav) .cmd-btn-icon-only:hover,
 .app-nav:not(.settings-nav) .cmd-btn-icon-only:focus-visible {
-  transform: translateY(-1px);
   box-shadow:
     0 12px 26px rgba(37, 99, 235, .28),
     inset 0 1px 0 rgba(255, 255, 255, .28);
@@ -3077,71 +1989,6 @@ html[data-theme="dark"] .widget-card.db-panel-custom-color .widget-tool-drawer {
   box-shadow:
     0 12px 26px rgba(220, 38, 38, .30),
     inset 0 1px 0 rgba(255, 255, 255, .25);
-}
-
-html[data-theme="dark"] .app-nav:not(.settings-nav) {
-  border-color: #354864;
-  background: color-mix(in srgb, #101827 88%, #172235);
-  box-shadow:
-    0 16px 34px rgba(0, 0, 0, .32),
-    0 1px 0 rgba(255, 255, 255, .055) inset,
-    0 0 0 1px rgba(148, 190, 255, .06);
-}
-
-html[data-theme="dark"] .app-nav:not(.settings-nav) .layout-slot-controls {
-  border-color: #2d405b;
-  background: color-mix(in srgb, #111a2a 82%, #172235);
-  box-shadow: 0 2px 10px rgba(0, 0, 0, .18);
-}
-
-html[data-theme="dark"] .app-nav:not(.settings-nav) .theme-toggle,
-html[data-theme="dark"] .app-nav:not(.settings-nav) .panel-reset-button,
-html[data-theme="dark"] .app-nav:not(.settings-nav) .panel-undo-button,
-html[data-theme="dark"] .app-nav:not(.settings-nav) .panel-add-button,
-html[data-theme="dark"] .app-nav:not(.settings-nav) .layout-slot-button,
-html[data-theme="dark"] .app-nav:not(.settings-nav) .layout-slot-trigger,
-html[data-theme="dark"] .app-nav:not(.settings-nav) .nav-status-icon-only {
-  border-color: #40536e;
-  background: #172235;
-  color: #dbe8f8;
-  box-shadow:
-    0 8px 18px rgba(0, 0, 0, .24),
-    inset 0 1px 0 rgba(255, 255, 255, .06);
-}
-
-html[data-theme="dark"] .app-nav:not(.settings-nav) .layout-slot-menu,
-html[data-theme="dark"] .app-nav:not(.settings-nav) .panel-add-menu,
-html[data-theme="dark"] .app-nav:not(.settings-nav) .dash-switch-menu,
-html[data-theme="dark"] .app-nav:not(.settings-nav) .nav-status-popover {
-  border-color: #40536e;
-  background: #111a2a;
-  box-shadow:
-    0 20px 44px rgba(0, 0, 0, .42),
-    0 1px 0 rgba(255, 255, 255, .055) inset;
-}
-
-html[data-theme="dark"] .app-nav:not(.settings-nav) .theme-toggle:hover,
-html[data-theme="dark"] .app-nav:not(.settings-nav) .panel-reset-button:hover,
-html[data-theme="dark"] .app-nav:not(.settings-nav) .panel-undo-button:hover,
-html[data-theme="dark"] .app-nav:not(.settings-nav) .panel-add-button:hover,
-html[data-theme="dark"] .app-nav:not(.settings-nav) .layout-slot-button:hover,
-html[data-theme="dark"] .app-nav:not(.settings-nav) .layout-slot-trigger:hover,
-html[data-theme="dark"] .app-nav:not(.settings-nav) .nav-status-icon-only:hover {
-  border-color: rgba(147, 197, 253, .72);
-  background: #1b2d47;
-  box-shadow:
-    0 12px 24px rgba(0, 0, 0, .28),
-    inset 0 1px 0 rgba(255, 255, 255, .075);
-}
-
-html[data-theme="dark"] .app-nav:not(.settings-nav) .layout-group-button[aria-pressed="true"] {
-  border-color: rgba(147, 197, 253, .82);
-  background: color-mix(in srgb, #2563eb 28%, #172235);
-  color: #dbeafe;
-  box-shadow:
-    0 12px 24px rgba(37, 99, 235, .24),
-    0 0 0 2px rgba(147, 197, 253, .16),
-    inset 0 1px 0 rgba(255, 255, 255, .08);
 }
 
 body.group-select-active .widget-layout > .widget-card,
@@ -3169,61 +2016,21 @@ body.group-select-active .panel-layout > .db-panel {
     0 0 28px rgba(var(--panel-accent-rgb, 37, 99, 235), .20) !important;
 }
 
-html[data-theme="dark"] .widget-layout > .widget-card.group-selected,
-html[data-theme="dark"] .panel-layout > .db-panel.group-selected {
-  outline-color: color-mix(in srgb, var(--panel-accent, #93c5fd) 58%, rgba(219, 234, 254, .62));
-  box-shadow:
-    var(--shadow-card),
-    0 0 0 1px rgba(var(--panel-accent-rgb, 147, 197, 253), .18),
-    0 0 26px rgba(var(--panel-accent-rgb, 147, 197, 253), .18) !important;
-}
-
-html[data-theme="dark"] .widget-layout > .widget-card.active.group-selected,
-html[data-theme="dark"] .widget-layout > .widget-card.db-panel-custom-color.active.group-selected {
-  outline-color: color-mix(in srgb, var(--panel-accent, #93c5fd) 68%, rgba(255, 255, 255, .74)) !important;
-  box-shadow:
-    var(--shadow-card),
-    0 0 0 1px rgba(var(--panel-accent-rgb, 147, 197, 253), .24),
-    0 0 32px rgba(var(--panel-accent-rgb, 147, 197, 253), .24) !important;
-}
-
 body.group-transform-active .group-transform-member {
   transform-origin: center;
 }
 
-html[data-theme="dark"] .dashboard-group-boundary {
-  border-color: rgba(174, 190, 211, .34);
-  background:
-    linear-gradient(135deg, rgba(42, 54, 74, .44), rgba(25, 36, 54, .30));
-  box-shadow:
-    0 30px 72px rgba(15, 23, 42, .46),
-    inset 0 1px 0 rgba(255, 255, 255, .055);
+/* Compact controls settle into the glass on contact; large dashboard objects keep their hover lift. */
+.settings-brand-switch:hover,.cmd-btn:hover,.icon-btn:hover,.cmd-btn-icon-only:hover,.dash-switch-hero:hover,.background-tone-trigger:hover,.panel-reset-button:hover,.panel-undo-button:hover,.panel-add-button:hover,.panel-add-action:hover,.widget-add-action:hover,.layout-slot-button:hover,.layout-slot-trigger:hover,.layout-slot-menu button:hover,.background-tone-option:hover,.confirm-dialog-close:hover,.confirm-dialog-btn:hover,.app-nav:not(.settings-nav) .nav-status-item:hover,.settings-nav .nav-status-item:hover,.app-nav.workspace-chrome button.dash-switch-hero:hover,.app-nav.workspace-chrome .background-tone-trigger:hover,.app-nav.workspace-chrome .panel-reset-button:hover,.app-nav.workspace-chrome .panel-undo-button:hover,.app-nav.workspace-chrome .layout-slot-button:hover,.app-nav.workspace-chrome .layout-slot-trigger:hover,.app-nav.workspace-chrome .workspace-mode-button:hover,.app-nav.workspace-chrome .nav-status-icon-only:hover,.app-nav.workspace-chrome .cmd-btn-icon-only:hover,.app-nav.workspace-chrome .composition-add-button:hover,.range-icon-button:hover,.preset-btn:hover,.range-custom-trigger:hover,.panel-lock-toggle:hover,.panel-pin-toggle:hover,.panel-settings-toggle:hover,.panel-tool-button:hover {
+  transform: var(--pressable-hover-transform);
 }
 
-html[data-theme="dark"] .dashboard-group-live-member,
-html[data-theme="dark"] .dashboard-live-resize.group-selected {
-  border-color: rgba(174, 190, 211, .34) !important;
-  outline: 1.5px solid rgba(174, 190, 211, .34) !important;
-  outline-offset: 5px !important;
-  box-shadow:
-    0 30px 72px rgba(15, 23, 42, .52),
-    0 0 0 1px rgba(180, 195, 214, .10),
-    inset 0 1px 0 rgba(255, 255, 255, .05) !important;
+.settings-brand-switch:focus-visible,.cmd-btn:focus-visible,.icon-btn:focus-visible,.cmd-btn-icon-only:focus-visible,.dash-switch-hero:focus-visible,.background-tone-trigger:focus-visible,.panel-reset-button:focus-visible,.panel-undo-button:focus-visible,.panel-add-button:focus-visible,.panel-add-action:focus-visible,.widget-add-action:focus-visible,.layout-slot-button:focus-visible,.layout-slot-trigger:focus-visible,.layout-slot-menu button:focus-visible,.background-tone-option:focus-visible,.confirm-dialog-close:focus-visible,.confirm-dialog-btn:focus-visible,.app-nav:not(.settings-nav) .nav-status-item:focus-within,.settings-nav .nav-status-item:focus-within,.app-nav.workspace-chrome button.dash-switch-hero:focus-visible,.app-nav.workspace-chrome .background-tone-trigger:focus-visible,.app-nav.workspace-chrome .panel-reset-button:focus-visible,.app-nav.workspace-chrome .panel-undo-button:focus-visible,.app-nav.workspace-chrome .layout-slot-button:focus-visible,.app-nav.workspace-chrome .layout-slot-trigger:focus-visible,.app-nav.workspace-chrome .workspace-mode-button:focus-visible,.app-nav.workspace-chrome .nav-status-icon-only:focus-visible,.app-nav.workspace-chrome .cmd-btn-icon-only:focus-visible,.app-nav.workspace-chrome .composition-add-button:focus-visible,.range-icon-button:focus-visible,.range-custom-trigger:focus-visible,.panel-lock-toggle:focus-visible,.panel-pin-toggle:focus-visible,.panel-settings-toggle:focus-visible,.panel-tool-button:focus-visible {
+  transform: var(--pressable-focus-transform);
 }
 
-html[data-theme="dark"] .dashboard-group-footprint {
-  border-color: rgba(174, 190, 211, .28);
-  background:
-    linear-gradient(135deg, rgba(42, 54, 74, .28), rgba(25, 36, 54, .22));
-  box-shadow:
-    inset 0 0 0 1px rgba(255, 255, 255, .045),
-    0 22px 54px rgba(15, 23, 42, .34);
-}
-
-html[data-theme="dark"] .dashboard-group-member-preview {
-  border-color: rgba(134, 172, 210, .28);
-  background: rgba(134, 172, 210, .06);
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .04);
+.settings-brand-switch:active,.cmd-btn:active,.icon-btn:active,.cmd-btn-icon-only:active,.dash-switch-hero:active,.background-tone-trigger:active,.panel-reset-button:active,.panel-undo-button:active,.panel-add-button:active,.panel-add-action:active,.widget-add-action:active,.layout-slot-button:active,.layout-slot-trigger:active,.layout-slot-menu button:active,.layout-slot-menu button.is-active,.background-tone-option:active,.confirm-dialog-close:active,.confirm-dialog-btn:active,.app-nav:not(.settings-nav) .nav-status-item:active,.app-nav:not(.settings-nav) .cmd-btn:active,.settings-nav .nav-status-item:active,.app-nav.workspace-chrome button.dash-switch-hero:active,.app-nav.workspace-chrome .background-tone-trigger:active,.app-nav.workspace-chrome .panel-reset-button:active,.app-nav.workspace-chrome .panel-undo-button:active,.app-nav.workspace-chrome .layout-slot-button:active,.app-nav.workspace-chrome .layout-slot-trigger:active,.app-nav.workspace-chrome .workspace-mode-button:active,.app-nav.workspace-chrome .workspace-mode-button[aria-pressed="true"],.app-nav.workspace-chrome .nav-status-icon-only:active,.app-nav.workspace-chrome .cmd-btn-icon-only:active,.app-nav.workspace-chrome .composition-add-button:active,.range-icon-button:active,.preset-btn:active,.preset-btn.active,.range-custom-trigger:active,.range-custom-trigger.active,.panel-lock-toggle:active,.panel-pin-toggle:active,.panel-pin-toggle[aria-pressed="true"],.db-panel-tools-open .panel-settings-toggle,.widget-tools-open .panel-settings-toggle,.panel-settings-toggle:active,.panel-tool-button:active {
+  transform: var(--pressable-active-transform);
 }
 
 @media (max-width: 980px) {
@@ -3241,79 +2048,23 @@ html[data-theme="dark"] .dashboard-group-member-preview {
   }
 }
 
-.db-panel.db-panel-tools-open > .db-panel-hd,
-html[data-theme="dark"] .db-panel.db-panel-tools-open > .db-panel-hd {
+.db-panel.db-panel-tools-open > .db-panel-hd {
   border-radius: 14.5px 14.5px 0 0 !important;
   background-clip: padding-box !important;
 }
 
-.db-panel.db-panel-collapsed.db-panel-tools-open > .db-panel-hd,
-html[data-theme="dark"] .db-panel.db-panel-collapsed.db-panel-tools-open > .db-panel-hd {
+.db-panel.db-panel-collapsed.db-panel-tools-open > .db-panel-hd {
   border-radius: 14.5px !important;
 }
 
-.db-panel.db-panel-tools-open > .db-panel-hd:hover,
-.db-panel.db-panel-tools-open > .db-panel-hd:focus-visible,
-html[data-theme="dark"] .db-panel.db-panel-tools-open > .db-panel-hd:hover,
-html[data-theme="dark"] .db-panel.db-panel-tools-open > .db-panel-hd:focus-visible {
+.db-panel.db-panel-tools-open > .db-panel-hd:hover,.db-panel.db-panel-tools-open > .db-panel-hd:focus-visible {
   box-shadow: none !important;
   outline-offset: -3px;
 }
 
-.db-panel.db-panel-tools-open:hover,
-.db-panel.db-panel-tools-open:focus-within,
-html[data-theme="dark"] .db-panel.db-panel-tools-open:hover,
-html[data-theme="dark"] .db-panel.db-panel-tools-open:focus-within,
-.db-panel.db-panel-custom-color.db-panel-tools-open:hover,
-.db-panel.db-panel-custom-color.db-panel-tools-open:focus-within,
-html[data-theme="dark"] .db-panel.db-panel-custom-color.db-panel-tools-open:hover,
-html[data-theme="dark"] .db-panel.db-panel-custom-color.db-panel-tools-open:focus-within {
+.db-panel.db-panel-tools-open:hover,.db-panel.db-panel-tools-open:focus-within,.db-panel.db-panel-custom-color.db-panel-tools-open:hover,.db-panel.db-panel-custom-color.db-panel-tools-open:focus-within {
   transform: none !important;
   box-shadow: var(--shadow-card) !important;
-}
-
-html[data-theme="dark"] .db-panel .panel-settings-toggle:hover,
-html[data-theme="dark"] .db-panel .panel-settings-toggle:focus-visible,
-html[data-theme="dark"] .db-panel .panel-tool-button:hover,
-html[data-theme="dark"] .db-panel .panel-tool-button:focus-visible,
-html[data-theme="dark"] .db-panel.db-panel-tools-open .panel-settings-toggle {
-  background: color-mix(in srgb, var(--panel-lock-bg) 72%, var(--panel-hover-tint)) !important;
-  border-color: color-mix(in srgb, currentColor 72%, var(--panel-hover-tint)) !important;
-  color: var(--panel-lock-fg) !important;
-  box-shadow:
-    0 12px 28px rgba(0, 0, 0, .34),
-    0 0 22px var(--panel-lock-glow, rgba(103, 169, 255, .20)),
-    inset 0 1px 0 var(--panel-hover-inset) !important;
-}
-
-html[data-theme="dark"] .db-panel.db-panel-custom-color .panel-settings-toggle:hover,
-html[data-theme="dark"] .db-panel.db-panel-custom-color .panel-settings-toggle:focus-visible,
-html[data-theme="dark"] .db-panel.db-panel-custom-color .panel-tool-button:hover,
-html[data-theme="dark"] .db-panel.db-panel-custom-color .panel-tool-button:focus-visible,
-html[data-theme="dark"] .db-panel.db-panel-custom-color.db-panel-tools-open .panel-settings-toggle {
-  outline: none !important;
-  background: color-mix(in srgb, var(--panel-lock-bg) 72%, var(--panel-hover-tint)) !important;
-  border-color: color-mix(in srgb, var(--panel-accent) 70%, var(--panel-hover-tint)) !important;
-  color: var(--panel-lock-fg) !important;
-  box-shadow:
-    0 8px 18px rgba(var(--panel-accent-rgb), .16),
-    inset 0 1px 0 rgba(255, 255, 255, .16) !important;
-}
-
-html[data-theme="dark"] .db-panel.db-panel-tools-open:hover,
-html[data-theme="dark"] .db-panel.db-panel-tools-open:focus-within {
-  border-color: #3d5270 !important;
-  box-shadow:
-    0 14px 30px rgba(0, 0, 0, .30),
-    inset 0 1px 0 rgba(255, 255, 255, .07) !important;
-}
-
-html[data-theme="dark"] .db-panel.db-panel-custom-color.db-panel-tools-open:hover,
-html[data-theme="dark"] .db-panel.db-panel-custom-color.db-panel-tools-open:focus-within {
-  border-color: color-mix(in srgb, var(--panel-accent) 52%, #dbeafe) !important;
-  box-shadow:
-    0 14px 30px rgba(0, 0, 0, .30),
-    0 1px 0 rgba(255, 255, 255, .07) inset !important;
 }
 
 @media (max-width: 980px) {
@@ -3417,7 +2168,6 @@ body {
 .settings-brand-switch:focus-visible,
 .cmd-btn:hover,
 .cmd-btn:focus-visible {
-  transform: translateY(-1px);
   border-color: color-mix(in srgb, var(--blue) 42%, white);
   background: linear-gradient(135deg, color-mix(in srgb, var(--blue) 78%, white), var(--blue-hover));
   box-shadow:
@@ -3425,19 +2175,7 @@ body {
     inset 0 1px 0 rgba(255, 255, 255, .30);
 }
 
-.theme-toggle,
-.background-tone-trigger,
-.panel-reset-button,
-.panel-undo-button,
-.panel-add-button,
-.layout-slot-button,
-.layout-slot-trigger,
-.confirm-dialog-close,
-.confirm-dialog-btn,
-.panel-add-action,
-.widget-add-action,
-.layout-slot-menu button,
-.background-tone-option {
+.background-tone-trigger,.panel-reset-button,.panel-undo-button,.panel-add-button,.layout-slot-button,.layout-slot-trigger,.confirm-dialog-close,.confirm-dialog-btn,.panel-add-action,.widget-add-action,.layout-slot-menu button,.background-tone-option {
   border: 1.5px solid var(--glass-border);
   background: color-mix(in srgb, var(--glass-surface-strong) 86%, var(--surface-soft));
   color: var(--muted-strong);
@@ -3450,23 +2188,7 @@ body {
     box-shadow var(--motion-fast);
 }
 
-.theme-toggle:hover,
-.theme-toggle:focus-visible,
-.background-tone-trigger:hover,
-.background-tone-trigger:focus-visible,
-.panel-reset-button:hover,
-.panel-undo-button:hover,
-.panel-add-button:hover,
-.layout-slot-button:hover,
-.layout-slot-trigger:hover,
-.confirm-dialog-close:hover,
-.confirm-dialog-btn:hover,
-.panel-add-action:hover,
-.widget-add-action:hover,
-.layout-slot-menu button:hover,
-.background-tone-option:hover,
-.background-tone-option:focus-visible {
-  transform: translateY(-1px);
+.background-tone-trigger:hover,.background-tone-trigger:focus-visible,.panel-reset-button:hover,.panel-undo-button:hover,.panel-add-button:hover,.layout-slot-button:hover,.layout-slot-trigger:hover,.confirm-dialog-close:hover,.confirm-dialog-btn:hover,.panel-add-action:hover,.widget-add-action:hover,.layout-slot-menu button:hover,.background-tone-option:hover,.background-tone-option:focus-visible {
   border-color: color-mix(in srgb, var(--blue) 48%, var(--glass-border));
   background: color-mix(in srgb, var(--glass-surface-strong) 78%, var(--blue-soft));
   color: var(--blue);
@@ -3682,11 +2404,6 @@ body {
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
-html:not([data-theme="dark"]) .background-tone-group-dark,
-html[data-theme="dark"] .background-tone-group-light {
-  display: none;
-}
-
 .background-tone-label {
   grid-column: 1 / -1;
   color: var(--muted);
@@ -3892,22 +2609,64 @@ html[data-theme="dark"] .background-tone-group-light {
   --tone-swatch-border: rgba(91, 106, 126, .58);
 }
 
-.background-tone-option[data-background-tone="dark-glass"] {
-  --tone-swatch-start: #111827;
-  --tone-swatch-end: #182130;
-  --tone-swatch-border: rgba(102, 114, 132, .56);
+.background-tone-option[data-background-tone="black"] {
+  --tone-swatch-start: #030406;
+  --tone-swatch-end: #090b0f;
+  --tone-swatch-border: rgba(56, 64, 76, .58);
 }
 
-.background-tone-option[data-background-tone="low-neon"] {
-  --tone-swatch-start: #0e1722;
-  --tone-swatch-end: #162331;
-  --tone-swatch-border: rgba(91, 111, 132, .54);
+.background-tone-option[data-background-tone="near-black"] {
+  --tone-swatch-start: #07080b;
+  --tone-swatch-end: #101218;
+  --tone-swatch-border: rgba(68, 75, 88, .58);
 }
 
-.background-tone-option[data-background-tone="midnight-blue"] {
+.background-tone-option[data-background-tone="warm-near-black"] {
+  --tone-swatch-start: #0d0b09;
+  --tone-swatch-end: #18130f;
+  --tone-swatch-border: rgba(82, 70, 58, .58);
+}
+
+.background-tone-option[data-background-tone="gunmetal"] {
+  --tone-swatch-start: #11191f;
+  --tone-swatch-end: #1a252d;
+  --tone-swatch-border: rgba(86, 101, 112, .58);
+}
+
+.background-tone-option[data-background-tone="dark-grey"] {
+  --tone-swatch-start: #181a1f;
+  --tone-swatch-end: #252830;
+  --tone-swatch-border: rgba(92, 96, 110, .58);
+}
+
+.background-tone-option[data-background-tone="desaturated-dark-blue"] {
+  --tone-swatch-start: #101a2a;
+  --tone-swatch-end: #19263a;
+  --tone-swatch-border: rgba(82, 101, 128, .58);
+}
+
+.background-tone-option[data-background-tone="muted-midnight-blue"] {
   --tone-swatch-start: #061127;
   --tone-swatch-end: #0a1a36;
   --tone-swatch-border: rgba(86, 103, 128, .60);
+}
+
+.background-tone-option[data-background-tone="cool-dark-steel"] {
+  --tone-swatch-start: #101820;
+  --tone-swatch-end: #1b2731;
+  --tone-swatch-border: rgba(90, 107, 119, .58);
+}
+
+.background-tone-option[data-background-tone="dark-steel"] {
+  --tone-swatch-start: #121922;
+  --tone-swatch-end: #202a36;
+  --tone-swatch-border: rgba(88, 102, 118, .58);
+}
+
+.background-tone-option[data-background-tone="soft-cinema"] {
+  --tone-swatch-start: #11131a;
+  --tone-swatch-end: #1d2029;
+  --tone-swatch-border: rgba(86, 91, 106, .58);
 }
 
 .background-tone-option[data-background-tone="dark-frosted"] {
@@ -3938,38 +2697,6 @@ html[data-theme="dark"] .background-tone-group-light {
 .widget-add-action,
 .dash-switch-opt {
   border-radius: 12px;
-}
-
-html[data-theme="dark"] .settings-nav,
-html[data-theme="dark"] .form-section,
-html[data-theme="dark"] .table-section,
-html[data-theme="dark"] .settings-save-bar,
-html[data-theme="dark"] .sync-note,
-html[data-theme="dark"] .confirm-dialog,
-html[data-theme="dark"] .layout-slot-menu,
-html[data-theme="dark"] .panel-add-menu,
-html[data-theme="dark"] .dash-switch-menu,
-html[data-theme="dark"] .nav-status-popover,
-html[data-theme="dark"] .panel-color-menu,
-html[data-theme="dark"] .background-tone-popover {
-  border-color: var(--glass-border);
-  background: var(--glass-surface-strong);
-  box-shadow: var(--shadow-glass);
-}
-
-html[data-theme="dark"] .form-grid input,
-html[data-theme="dark"] .form-grid select,
-html[data-theme="dark"] .form-grid textarea {
-  border-color: var(--field-border);
-  background: var(--field-bg);
-  color: var(--ink-strong);
-}
-
-html[data-theme="dark"] .background-tone-option.is-selected,
-html[data-theme="dark"] .layout-group-button[aria-pressed="true"] {
-  border-color: color-mix(in srgb, var(--blue) 58%, var(--glass-border));
-  background: color-mix(in srgb, var(--blue) 24%, var(--glass-surface-strong));
-  color: var(--blue-hover);
 }
 
 @media (max-width: 720px) {
@@ -4089,7 +2816,6 @@ html[data-theme="dark"] .layout-group-button[aria-pressed="true"] {
 
 .app-nav.workspace-chrome button.dash-switch-hero:hover,
 .app-nav.workspace-chrome button.dash-switch-hero:focus-visible {
-  transform: translateY(-1px);
   background: color-mix(in srgb, var(--glass-surface-strong) 64%, var(--blue-soft));
   box-shadow:
     0 12px 28px color-mix(in srgb, var(--blue) 10%, transparent),
@@ -4105,15 +2831,7 @@ html[data-theme="dark"] .layout-group-button[aria-pressed="true"] {
   box-shadow: none;
 }
 
-.app-nav.workspace-chrome .layout-slot-trigger,
-.app-nav.workspace-chrome .layout-slot-button,
-.app-nav.workspace-chrome .panel-undo-button,
-.app-nav.workspace-chrome .panel-reset-button,
-.app-nav.workspace-chrome .workspace-mode-button,
-.app-nav.workspace-chrome .theme-toggle,
-.app-nav.workspace-chrome .background-tone-trigger,
-.app-nav.workspace-chrome .nav-status-icon-only,
-.app-nav.workspace-chrome .cmd-btn-icon-only {
+.app-nav.workspace-chrome .layout-slot-trigger,.app-nav.workspace-chrome .layout-slot-button,.app-nav.workspace-chrome .panel-undo-button,.app-nav.workspace-chrome .panel-reset-button,.app-nav.workspace-chrome .workspace-mode-button,.app-nav.workspace-chrome .background-tone-trigger,.app-nav.workspace-chrome .nav-status-icon-only,.app-nav.workspace-chrome .cmd-btn-icon-only {
   height: 38px;
   min-height: 38px;
   border: 0;
@@ -4169,7 +2887,6 @@ html[data-theme="dark"] .layout-group-button[aria-pressed="true"] {
 
 .app-nav.workspace-chrome .composition-add-button:hover,
 .app-nav.workspace-chrome .composition-add-button:focus-visible {
-  transform: translateY(-1px) scale(1.03);
   background:
     radial-gradient(circle at 35% 24%, color-mix(in srgb, white 50%, transparent), transparent 38%),
     color-mix(in srgb, var(--blue) 28%, var(--glass-surface-strong));
@@ -4191,10 +2908,6 @@ html[data-theme="dark"] .layout-group-button[aria-pressed="true"] {
   color: color-mix(in srgb, var(--blue) 88%, var(--ink-strong));
 }
 
-.app-nav.workspace-chrome .theme-toggle {
-  width: 52px;
-}
-
 .app-nav.workspace-chrome .background-tone-trigger,
 .app-nav.workspace-chrome .nav-status-icon-only,
 .app-nav.workspace-chrome .cmd-btn-icon-only {
@@ -4202,25 +2915,7 @@ html[data-theme="dark"] .layout-group-button[aria-pressed="true"] {
   min-width: 38px;
 }
 
-.app-nav.workspace-chrome .theme-toggle:hover,
-.app-nav.workspace-chrome .theme-toggle:focus-visible,
-.app-nav.workspace-chrome .background-tone-trigger:hover,
-.app-nav.workspace-chrome .background-tone-trigger:focus-visible,
-.app-nav.workspace-chrome .panel-reset-button:hover,
-.app-nav.workspace-chrome .panel-reset-button:focus-visible,
-.app-nav.workspace-chrome .panel-undo-button:hover,
-.app-nav.workspace-chrome .panel-undo-button:focus-visible,
-.app-nav.workspace-chrome .layout-slot-button:hover,
-.app-nav.workspace-chrome .layout-slot-button:focus-visible,
-.app-nav.workspace-chrome .layout-slot-trigger:hover,
-.app-nav.workspace-chrome .layout-slot-trigger:focus-visible,
-.app-nav.workspace-chrome .workspace-mode-button:hover,
-.app-nav.workspace-chrome .workspace-mode-button:focus-visible,
-.app-nav.workspace-chrome .nav-status-icon-only:hover,
-.app-nav.workspace-chrome .nav-status-icon-only:focus-visible,
-.app-nav.workspace-chrome .cmd-btn-icon-only:hover,
-.app-nav.workspace-chrome .cmd-btn-icon-only:focus-visible {
-  transform: translateY(-1px);
+.app-nav.workspace-chrome .background-tone-trigger:hover,.app-nav.workspace-chrome .background-tone-trigger:focus-visible,.app-nav.workspace-chrome .panel-reset-button:hover,.app-nav.workspace-chrome .panel-reset-button:focus-visible,.app-nav.workspace-chrome .panel-undo-button:hover,.app-nav.workspace-chrome .panel-undo-button:focus-visible,.app-nav.workspace-chrome .layout-slot-button:hover,.app-nav.workspace-chrome .layout-slot-button:focus-visible,.app-nav.workspace-chrome .layout-slot-trigger:hover,.app-nav.workspace-chrome .layout-slot-trigger:focus-visible,.app-nav.workspace-chrome .workspace-mode-button:hover,.app-nav.workspace-chrome .workspace-mode-button:focus-visible,.app-nav.workspace-chrome .nav-status-icon-only:hover,.app-nav.workspace-chrome .nav-status-icon-only:focus-visible,.app-nav.workspace-chrome .cmd-btn-icon-only:hover,.app-nav.workspace-chrome .cmd-btn-icon-only:focus-visible {
   background: color-mix(in srgb, var(--glass-surface-strong) 62%, var(--blue-soft));
   color: var(--ink-strong);
   box-shadow:
@@ -4286,23 +2981,13 @@ html[data-theme="dark"] .layout-group-button[aria-pressed="true"] {
   -webkit-backdrop-filter: blur(24px) saturate(1.14);
 }
 
-.settings-nav .settings-brand-switch,
-.settings-nav .cmd-btn,
-.settings-nav .theme-toggle,
-.settings-nav .background-tone-trigger {
+.settings-nav .settings-brand-switch,.settings-nav .cmd-btn,.settings-nav .background-tone-trigger {
   border: 0;
   background: transparent;
   box-shadow: none;
 }
 
-.settings-nav .settings-brand-switch:hover,
-.settings-nav .settings-brand-switch:focus-visible,
-.settings-nav .cmd-btn:hover,
-.settings-nav .cmd-btn:focus-visible,
-.settings-nav .theme-toggle:hover,
-.settings-nav .theme-toggle:focus-visible,
-.settings-nav .background-tone-trigger:hover,
-.settings-nav .background-tone-trigger:focus-visible {
+.settings-nav .settings-brand-switch:hover,.settings-nav .settings-brand-switch:focus-visible,.settings-nav .cmd-btn:hover,.settings-nav .cmd-btn:focus-visible,.settings-nav .background-tone-trigger:hover,.settings-nav .background-tone-trigger:focus-visible {
   background: color-mix(in srgb, var(--glass-surface-strong) 62%, var(--blue-soft));
   box-shadow:
     0 12px 28px color-mix(in srgb, var(--blue) 10%, transparent),
@@ -4415,101 +3100,6 @@ html[data-theme="dark"] .layout-group-button[aria-pressed="true"] {
   box-shadow:
     0 16px 36px color-mix(in srgb, var(--red) 20%, transparent),
     inset 0 1px 0 color-mix(in srgb, var(--glass-highlight) 64%, transparent);
-}
-
-html[data-theme="dark"] .app-nav.workspace-chrome,
-html[data-theme="dark"] .settings-nav {
-  border-color: color-mix(in srgb, var(--glass-border) 60%, transparent);
-  background:
-    radial-gradient(circle at 16% 0%, color-mix(in srgb, var(--blue) 14%, transparent) 0 42%, transparent 60%),
-    linear-gradient(180deg, color-mix(in srgb, var(--glass-surface-strong) 92%, #263852), color-mix(in srgb, var(--glass-surface) 86%, transparent));
-  box-shadow:
-    0 26px 72px rgba(0, 0, 0, .34),
-    inset 0 1px 0 color-mix(in srgb, var(--glass-highlight) 54%, transparent);
-}
-
-html[data-theme="dark"] .app-nav.workspace-chrome button.dash-switch-hero {
-  color: var(--ink-strong);
-  background: color-mix(in srgb, var(--glass-surface-strong) 46%, transparent);
-}
-
-html[data-theme="dark"] .app-nav.workspace-chrome .layout-slot-trigger,
-html[data-theme="dark"] .app-nav.workspace-chrome .layout-slot-button,
-html[data-theme="dark"] .app-nav.workspace-chrome .panel-undo-button,
-html[data-theme="dark"] .app-nav.workspace-chrome .panel-reset-button,
-html[data-theme="dark"] .app-nav.workspace-chrome .workspace-mode-button,
-html[data-theme="dark"] .app-nav.workspace-chrome .theme-toggle,
-html[data-theme="dark"] .app-nav.workspace-chrome .background-tone-trigger,
-html[data-theme="dark"] .app-nav.workspace-chrome .nav-status-icon-only,
-html[data-theme="dark"] .app-nav.workspace-chrome .cmd-btn-icon-only {
-  color: var(--muted-strong);
-  background: transparent;
-  box-shadow: none;
-}
-
-html[data-theme="dark"] .app-nav.workspace-chrome .composition-add-button {
-  background:
-    radial-gradient(circle at 35% 24%, color-mix(in srgb, white 24%, transparent), transparent 38%),
-    color-mix(in srgb, var(--blue) 20%, var(--glass-surface-strong));
-  color: color-mix(in srgb, var(--blue-hover) 82%, #eef6ff);
-}
-
-html[data-theme="dark"] .app-nav.workspace-chrome .theme-toggle:hover,
-html[data-theme="dark"] .app-nav.workspace-chrome .theme-toggle:focus-visible,
-html[data-theme="dark"] .app-nav.workspace-chrome .background-tone-trigger:hover,
-html[data-theme="dark"] .app-nav.workspace-chrome .background-tone-trigger:focus-visible,
-html[data-theme="dark"] .app-nav.workspace-chrome .panel-reset-button:hover,
-html[data-theme="dark"] .app-nav.workspace-chrome .panel-reset-button:focus-visible,
-html[data-theme="dark"] .app-nav.workspace-chrome .panel-undo-button:hover,
-html[data-theme="dark"] .app-nav.workspace-chrome .panel-undo-button:focus-visible,
-html[data-theme="dark"] .app-nav.workspace-chrome .layout-slot-button:hover,
-html[data-theme="dark"] .app-nav.workspace-chrome .layout-slot-button:focus-visible,
-html[data-theme="dark"] .app-nav.workspace-chrome .layout-slot-trigger:hover,
-html[data-theme="dark"] .app-nav.workspace-chrome .layout-slot-trigger:focus-visible,
-html[data-theme="dark"] .app-nav.workspace-chrome .workspace-mode-button:hover,
-html[data-theme="dark"] .app-nav.workspace-chrome .workspace-mode-button:focus-visible,
-html[data-theme="dark"] .app-nav.workspace-chrome .nav-status-icon-only:hover,
-html[data-theme="dark"] .app-nav.workspace-chrome .nav-status-icon-only:focus-visible,
-html[data-theme="dark"] .app-nav.workspace-chrome .cmd-btn-icon-only:hover,
-html[data-theme="dark"] .app-nav.workspace-chrome .cmd-btn-icon-only:focus-visible {
-  background: color-mix(in srgb, var(--glass-surface-strong) 68%, var(--blue-soft));
-  color: var(--ink-strong);
-  box-shadow:
-    0 14px 34px color-mix(in srgb, var(--blue) 14%, transparent),
-    inset 0 1px 0 color-mix(in srgb, var(--glass-highlight) 54%, transparent);
-}
-
-html[data-theme="dark"] .app-nav.workspace-chrome .workspace-mode-button[aria-pressed="true"],
-html[data-theme="dark"] .app-nav.workspace-chrome .layout-group-button[aria-pressed="true"] {
-  background: color-mix(in srgb, var(--blue) 18%, transparent);
-  color: var(--blue-hover);
-  box-shadow: inset 0 -2px 0 color-mix(in srgb, var(--blue) 58%, transparent);
-}
-
-html[data-theme="dark"] .form-section,
-html[data-theme="dark"] .appearance-control-group,
-html[data-theme="dark"] .settings-save-bar,
-html[data-theme="dark"] .confirm-dialog {
-  border-color: color-mix(in srgb, var(--glass-border) 62%, transparent);
-  background:
-    linear-gradient(180deg, color-mix(in srgb, var(--glass-surface-strong) 92%, #263852), color-mix(in srgb, var(--glass-surface) 88%, transparent));
-  box-shadow:
-    0 26px 72px rgba(0, 0, 0, .30),
-    inset 0 1px 0 color-mix(in srgb, var(--glass-highlight) 54%, transparent);
-}
-
-html[data-theme="dark"] .fl-wrap input {
-  background: color-mix(in srgb, var(--glass-surface-strong) 62%, transparent);
-}
-
-html[data-theme="dark"] .fl-wrap input:focus {
-  background: color-mix(in srgb, var(--glass-surface-strong) 78%, #263852);
-}
-
-html[data-theme="dark"] .confirm-dialog-danger {
-  border-color: color-mix(in srgb, var(--red) 34%, var(--glass-border));
-  background: color-mix(in srgb, var(--red) 18%, var(--glass-surface-strong));
-  color: color-mix(in srgb, #fee2e2 86%, var(--red));
 }
 
 @media (max-width: 1180px) {
@@ -4716,12 +3306,6 @@ html[data-theme="dark"] .confirm-dialog-danger {
   z-index: -1;
 }
 
-.app-nav.workspace-chrome .composition-add-button:hover,
-.app-nav.workspace-chrome .composition-add-button:focus-visible,
-.app-nav.workspace-chrome .panel-add-picker:focus-within .composition-add-button {
-  transform: translateY(-2px) scale(1.045);
-}
-
 .app-nav.workspace-chrome .chrome-add-glyph {
   font-size: 26px;
   font-weight: 480;
@@ -4758,12 +3342,7 @@ html[data-theme="dark"] .confirm-dialog-danger {
   opacity: 1;
 }
 
-.app-nav.workspace-chrome .workspace-mode-button,
-.app-nav.workspace-chrome .theme-toggle,
-.app-nav.workspace-chrome .background-tone-trigger,
-.app-nav.workspace-chrome .nav-status-icon-only,
-.app-nav.workspace-chrome .cmd-btn-icon-only,
-.app-nav.workspace-chrome .panel-reset-button {
+.app-nav.workspace-chrome .workspace-mode-button,.app-nav.workspace-chrome .background-tone-trigger,.app-nav.workspace-chrome .nav-status-icon-only,.app-nav.workspace-chrome .cmd-btn-icon-only,.app-nav.workspace-chrome .panel-reset-button {
   border-radius: 14px;
 }
 
@@ -4771,9 +3350,7 @@ html[data-theme="dark"] .confirm-dialog-danger {
   color: color-mix(in srgb, var(--muted-strong) 66%, transparent);
 }
 
-.app-nav.workspace-chrome .theme-toggle,
-.app-nav.workspace-chrome .background-tone-trigger,
-.app-nav.workspace-chrome .cmd-btn-icon-only {
+.app-nav.workspace-chrome .background-tone-trigger,.app-nav.workspace-chrome .cmd-btn-icon-only {
   width: 36px;
   min-width: 36px;
   height: 36px;
@@ -4799,44 +3376,6 @@ html[data-theme="dark"] .confirm-dialog-danger {
 
 .app-nav.workspace-chrome .panel-add-menu {
   margin-top: 8px;
-}
-
-html[data-theme="dark"] .app-nav.workspace-chrome {
-  border: 0;
-  background: transparent;
-  box-shadow: none;
-}
-
-html[data-theme="dark"] .app-nav.workspace-chrome::before {
-  background:
-    radial-gradient(ellipse at 50% 30%, color-mix(in srgb, var(--blue) 18%, transparent), transparent 64%),
-    linear-gradient(90deg, transparent, color-mix(in srgb, var(--glass-highlight) 18%, transparent), transparent);
-  opacity: .82;
-}
-
-html[data-theme="dark"] .app-nav.workspace-chrome .workspace-identity-island {
-  border-color: color-mix(in srgb, var(--glass-border) 42%, transparent);
-  background:
-    radial-gradient(circle at 18% 12%, color-mix(in srgb, white 12%, transparent), transparent 44%),
-    color-mix(in srgb, var(--glass-surface-strong) 56%, transparent);
-  box-shadow:
-    0 20px 52px rgba(0, 0, 0, .28),
-    inset 0 1px 0 color-mix(in srgb, var(--glass-highlight) 44%, transparent);
-}
-
-html[data-theme="dark"] .app-nav.workspace-chrome .appearance-command-island {
-  background: color-mix(in srgb, var(--glass-surface-strong) 28%, transparent);
-}
-
-html[data-theme="dark"] .app-nav.workspace-chrome .composition-add-button {
-  background:
-    radial-gradient(circle at 34% 24%, color-mix(in srgb, white 22%, transparent), transparent 38%),
-    radial-gradient(circle at 50% 70%, color-mix(in srgb, var(--blue) 34%, transparent), transparent 58%),
-    color-mix(in srgb, var(--glass-surface-strong) 64%, transparent);
-  box-shadow:
-    0 22px 58px color-mix(in srgb, var(--blue) 22%, transparent),
-    0 12px 28px rgba(0, 0, 0, .26),
-    inset 0 1px 0 color-mix(in srgb, var(--glass-highlight) 52%, transparent);
 }
 
 @media (max-width: 1180px) {
@@ -4874,739 +3413,117 @@ html[data-theme="dark"] .app-nav.workspace-chrome .composition-add-button {
   }
 }
 
-/* Premium midnight glass calibration: dark mode keeps depth without neon edges. */
-html[data-theme="dark"] {
-  --blue: #86acd2;
-  --blue-hover: #c6d8ea;
-  --blue-soft: #17273c;
-  --glass-border: rgba(82, 96, 118, .58);
-  --glass-highlight: rgba(255, 255, 255, .065);
-  --field-border: rgba(82, 96, 118, .64);
-  --line: #33445d;
-  --line-soft: #22324a;
-  --shadow-card: 0 24px 58px rgba(0, 0, 0, .44), 0 1px 0 rgba(255, 255, 255, .035) inset;
-  --shadow-soft: 0 14px 32px rgba(0, 0, 0, .30), 0 1px 0 rgba(255, 255, 255, .03) inset;
-  --shadow-glass: 0 24px 58px rgba(0, 0, 0, .40), inset 0 1px 0 var(--glass-highlight);
-  --shadow-control: 0 12px 28px rgba(0, 0, 0, .28), inset 0 1px 0 var(--glass-highlight);
-  --panel-hover-inset: rgba(255, 255, 255, .06);
-  --dark-glass-border: rgba(102, 118, 144, .40);
-  --dark-glass-border-hover: rgba(126, 144, 170, .48);
-  --dark-glass-highlight: rgba(255, 255, 255, .072);
-  --dark-glass-panel-bg:
-    radial-gradient(ellipse at 18% 0%, rgba(255, 255, 255, .070), transparent 48%),
-    radial-gradient(ellipse at 88% 12%, rgba(134, 172, 210, .050), transparent 46%),
-    linear-gradient(180deg, rgba(31, 43, 63, .84), rgba(13, 22, 36, .88));
-  --dark-glass-surface-bg:
-    radial-gradient(ellipse at 22% 0%, rgba(255, 255, 255, .088), transparent 50%),
-    linear-gradient(180deg, rgba(37, 50, 72, .82), rgba(16, 27, 44, .88));
-  --dark-glass-inset-bg:
-    radial-gradient(ellipse at 50% 0%, rgba(255, 255, 255, .064), transparent 60%),
-    linear-gradient(180deg, rgba(26, 39, 60, .88), rgba(10, 18, 31, .82));
-  --dark-glass-control-bg:
-    radial-gradient(ellipse at 50% 0%, rgba(255, 255, 255, .090), transparent 58%),
-    linear-gradient(180deg, rgba(42, 56, 80, .80), rgba(18, 30, 48, .84));
-  --dark-glass-control-hover-bg:
-    radial-gradient(ellipse at 50% 0%, rgba(255, 255, 255, .112), transparent 58%),
-    linear-gradient(180deg, rgba(49, 65, 92, .84), rgba(22, 36, 56, .88));
-  --dark-glass-control-active-bg:
-    radial-gradient(ellipse at 50% 0%, rgba(255, 255, 255, .118), transparent 58%),
-    linear-gradient(180deg, rgba(51, 68, 96, .86), rgba(24, 39, 60, .90));
-  --dark-glass-shadow:
-    0 24px 58px rgba(0, 0, 0, .40),
-    inset 0 1px 0 var(--dark-glass-highlight),
-    inset 0 0 0 1px rgba(255, 255, 255, .024);
-  --dark-glass-control-shadow:
-    0 12px 26px rgba(0, 0, 0, .28),
-    inset 0 1px 0 rgba(255, 255, 255, .086),
-    inset 0 0 0 1px rgba(255, 255, 255, .024),
-    inset 0 -2px 0 rgba(0, 0, 0, .20);
-}
-
-html[data-theme="dark"] ::selection {
-  background: rgba(134, 172, 210, .22);
-}
-
-html[data-theme="dark"] .app-nav,
-html[data-theme="dark"] .settings-nav,
-html[data-theme="dark"] .range-bar,
-html[data-theme="dark"] .stat-card,
-html[data-theme="dark"] .db-panel,
-html[data-theme="dark"] .nav-status-item,
-html[data-theme="dark"] .form-section,
-html[data-theme="dark"] .settings-save-bar,
-html[data-theme="dark"] .confirm-dialog,
-html[data-theme="dark"] .layout-slot-menu,
-html[data-theme="dark"] .panel-add-menu,
-html[data-theme="dark"] .dash-switch-menu,
-html[data-theme="dark"] .nav-status-popover,
-html[data-theme="dark"] .panel-color-menu,
-html[data-theme="dark"] .background-tone-popover,
-html[data-theme="dark"] .widget-tool-drawer,
-html[data-theme="dark"] .panel-tool-drawer {
-  border-color: var(--dark-glass-border);
-  box-shadow: var(--dark-glass-shadow);
-  outline-color: rgba(192, 207, 226, .045);
-}
-
-html[data-theme="dark"] .stat-card,
-html[data-theme="dark"] .db-panel,
-html[data-theme="dark"] .range-bar {
-  background:
-    var(--dark-glass-panel-bg),
-    var(--glass-surface);
-}
-
-html[data-theme="dark"] .stat-card,
-html[data-theme="dark"] .db-panel {
-  box-shadow: var(--dark-glass-shadow);
-}
-
-html[data-theme="dark"] .stat-card:hover,
-html[data-theme="dark"] .db-panel:hover,
-html[data-theme="dark"] .db-panel:focus-within,
-html[data-theme="dark"] .range-bar.widget-card:hover,
-html[data-theme="dark"] .range-bar.widget-card:focus-within {
-  border-color: var(--dark-glass-border-hover);
-  box-shadow:
-    0 28px 66px rgba(0, 0, 0, .46),
-    inset 0 1px 0 rgba(255, 255, 255, .075),
-    inset 0 0 0 1px rgba(255, 255, 255, .028);
-}
-
-html[data-theme="dark"] .stat-card.active,
-html[data-theme="dark"] .widget-card.active,
-html[data-theme="dark"] .widget-card.db-panel-custom-color.active,
-html[data-theme="dark"] .db-panel.db-panel-custom-color:focus-within {
-  border-color: color-mix(in srgb, var(--panel-accent, var(--blue)) 8%, var(--dark-glass-border-hover));
-  box-shadow:
-    0 28px 66px rgba(0, 0, 0, .46),
-    0 0 0 1px color-mix(in srgb, var(--panel-accent, var(--blue)) 13%, transparent),
-    inset 0 1px 0 rgba(255, 255, 255, .06);
-}
-
-html[data-theme="dark"] .widget-card.db-panel-custom-color,
-html[data-theme="dark"] .db-panel.db-panel-custom-color {
-  background:
-    radial-gradient(ellipse at 18% 0%, rgba(255, 255, 255, .064), transparent 48%),
-    radial-gradient(ellipse at 86% 14%, rgba(var(--panel-accent-rgb, 134, 172, 210), .080), transparent 48%),
-    linear-gradient(180deg, color-mix(in srgb, #1e2b42 90%, var(--panel-accent, var(--blue)) 10%), color-mix(in srgb, #0e1828 90%, var(--panel-accent, var(--blue)) 10%)) !important;
-  border-color: color-mix(in srgb, var(--panel-accent, var(--blue)) 16%, var(--dark-glass-border)) !important;
-  box-shadow:
-    var(--dark-glass-shadow),
-    0 0 0 1px rgba(var(--panel-accent-rgb, 134, 172, 210), .035) !important;
-}
-
-html[data-theme="dark"] .widget-card.db-panel-custom-color:hover,
-html[data-theme="dark"] .db-panel.db-panel-custom-color:hover,
-html[data-theme="dark"] .db-panel.db-panel-custom-color:focus-within {
-  background:
-    radial-gradient(ellipse at 18% 0%, rgba(255, 255, 255, .076), transparent 48%),
-    radial-gradient(ellipse at 86% 14%, rgba(var(--panel-accent-rgb, 134, 172, 210), .092), transparent 48%),
-    linear-gradient(180deg, color-mix(in srgb, #233149 88%, var(--panel-accent, var(--blue)) 12%), color-mix(in srgb, #111d30 88%, var(--panel-accent, var(--blue)) 12%)) !important;
-  border-color: color-mix(in srgb, var(--panel-accent, var(--blue)) 22%, var(--dark-glass-border-hover)) !important;
-  box-shadow:
-    0 28px 66px rgba(0, 0, 0, .46),
-    0 0 0 1px rgba(var(--panel-accent-rgb, 134, 172, 210), .040),
-    inset 0 1px 0 rgba(255, 255, 255, .074),
-    inset 0 0 0 1px rgba(255, 255, 255, .026) !important;
-}
-
-html[data-theme="dark"] .widget-card.db-panel-pinned::after,
-html[data-theme="dark"] .db-panel.db-panel-pinned::after {
-  border-color: rgba(170, 185, 204, .48);
-  background:
-    radial-gradient(circle at 35% 28%, rgba(255, 255, 255, .26), transparent 44%),
-    color-mix(in srgb, #1d2c44 46%, var(--panel-accent, var(--blue)) 54%);
-  box-shadow:
-    0 6px 14px rgba(0, 0, 0, .28),
-    inset 0 1px 0 rgba(255, 255, 255, .10);
-}
-
-html[data-theme="dark"] .db-panel-pinned .panel-pin-toggle {
-  background:
-    linear-gradient(180deg, rgba(38, 52, 74, .78), rgba(18, 29, 47, .82));
-  border-color: rgba(142, 160, 186, .50);
-  box-shadow:
-    0 12px 26px rgba(0, 0, 0, .30),
-    inset 0 1px 0 rgba(255, 255, 255, .075),
-    inset 0 -1px 0 rgba(134, 172, 210, .10);
-}
-
-html[data-theme="dark"] .widget-placeholder,
-html[data-theme="dark"] .panel-placeholder {
-  border-color: rgba(134, 172, 210, .40);
-  background: rgba(134, 172, 210, .075);
-  box-shadow:
-    inset 0 0 0 1px rgba(255, 255, 255, .055),
-    0 18px 42px rgba(0, 0, 0, .24);
-}
-
-html[data-theme="dark"] .widget-dragging,
-html[data-theme="dark"] .db-panel.panel-dragging {
-  box-shadow:
-    0 32px 76px rgba(0, 0, 0, .54),
-    0 0 0 1px rgba(180, 195, 214, .12),
-    inset 0 1px 0 rgba(255, 255, 255, .06) !important;
-}
-
-html[data-theme="dark"] .theme-toggle,
-html[data-theme="dark"] .background-tone-trigger,
-html[data-theme="dark"] .panel-reset-button,
-html[data-theme="dark"] .panel-undo-button,
-html[data-theme="dark"] .panel-add-button,
-html[data-theme="dark"] .layout-slot-button,
-html[data-theme="dark"] .layout-slot-trigger,
-html[data-theme="dark"] .workspace-mode-button,
-html[data-theme="dark"] .nav-status-icon-only,
-html[data-theme="dark"] .cmd-btn,
-html[data-theme="dark"] .cmd-btn-icon-only,
-html[data-theme="dark"] .panel-add-action,
-html[data-theme="dark"] .widget-add-action,
-html[data-theme="dark"] .layout-slot-menu button,
-html[data-theme="dark"] .background-tone-option,
-html[data-theme="dark"] .range-custom-trigger,
-html[data-theme="dark"] .preset-btn,
-html[data-theme="dark"] .range-icon-button {
-  border-color: var(--dark-glass-border);
-  background: var(--dark-glass-control-bg);
-  color: var(--muted-strong);
-  box-shadow: var(--dark-glass-control-shadow);
-  outline-color: rgba(192, 207, 226, .04);
-}
-
-html[data-theme="dark"] .theme-toggle:hover,
-html[data-theme="dark"] .theme-toggle:focus-visible,
-html[data-theme="dark"] .background-tone-trigger:hover,
-html[data-theme="dark"] .background-tone-trigger:focus-visible,
-html[data-theme="dark"] .panel-reset-button:hover,
-html[data-theme="dark"] .panel-reset-button:focus-visible,
-html[data-theme="dark"] .panel-undo-button:hover,
-html[data-theme="dark"] .panel-undo-button:focus-visible,
-html[data-theme="dark"] .panel-add-button:hover,
-html[data-theme="dark"] .panel-add-button:focus-visible,
-html[data-theme="dark"] .layout-slot-button:hover,
-html[data-theme="dark"] .layout-slot-button:focus-visible,
-html[data-theme="dark"] .layout-slot-trigger:hover,
-html[data-theme="dark"] .layout-slot-trigger:focus-visible,
-html[data-theme="dark"] .workspace-mode-button:hover,
-html[data-theme="dark"] .workspace-mode-button:focus-visible,
-html[data-theme="dark"] .nav-status-icon-only:hover,
-html[data-theme="dark"] .nav-status-icon-only:focus-visible,
-html[data-theme="dark"] .cmd-btn:hover,
-html[data-theme="dark"] .cmd-btn:focus-visible,
-html[data-theme="dark"] .cmd-btn-icon-only:hover,
-html[data-theme="dark"] .cmd-btn-icon-only:focus-visible,
-html[data-theme="dark"] .panel-add-action:hover,
-html[data-theme="dark"] .panel-add-action:focus-visible,
-html[data-theme="dark"] .widget-add-action:hover,
-html[data-theme="dark"] .widget-add-action:focus-visible,
-html[data-theme="dark"] .layout-slot-menu button:hover,
-html[data-theme="dark"] .layout-slot-menu button:focus-visible,
-html[data-theme="dark"] .background-tone-option:hover,
-html[data-theme="dark"] .background-tone-option:focus-visible,
-html[data-theme="dark"] .range-custom-trigger:hover,
-html[data-theme="dark"] .range-custom-trigger:focus-visible,
-html[data-theme="dark"] .preset-btn:hover,
-html[data-theme="dark"] .preset-btn:focus-visible,
-html[data-theme="dark"] .range-icon-button:hover,
-html[data-theme="dark"] .range-icon-button:focus-visible {
-  border-color: var(--dark-glass-border-hover);
-  background: var(--dark-glass-control-hover-bg);
-  color: #e5edf7;
-  box-shadow:
-    0 16px 36px rgba(0, 0, 0, .32),
-    inset 0 1px 0 rgba(255, 255, 255, .095),
-    inset 0 0 0 1px rgba(255, 255, 255, .028),
-    inset 0 -2px 0 rgba(0, 0, 0, .18);
-}
-
-html[data-theme="dark"] .workspace-mode-button[aria-pressed="true"],
-html[data-theme="dark"] .layout-group-button[aria-pressed="true"],
-html[data-theme="dark"] .background-tone-option.is-selected,
-html[data-theme="dark"] .preset-btn.active,
-html[data-theme="dark"] .range-custom-trigger.active {
-  border-color: color-mix(in srgb, var(--blue) 16%, var(--dark-glass-border-hover));
-  background:
-    var(--dark-glass-control-active-bg),
-    color-mix(in srgb, var(--blue) 7%, transparent);
-  color: #edf4fb;
-  box-shadow:
-    0 16px 38px rgba(0, 0, 0, .34),
-    inset 0 1px 0 rgba(255, 255, 255, .10),
-    inset 0 0 0 1px rgba(255, 255, 255, .030),
-    inset 0 -1px 0 rgba(134, 172, 210, .12);
-}
-
-html[data-theme="dark"] .range-bar.widget-card {
-  --range-control-fg: #eef5fb;
-  --range-button-fg: #f6f9fd;
-  --range-search-fg: #f6f9fd;
-  --range-search-muted: #b8c6d8;
-  --range-control-bg: color-mix(in srgb, var(--surface-raised) 88%, var(--range-control-accent) 12%);
-  --range-control-border: color-mix(in srgb, var(--range-control-accent) 24%, rgba(92, 107, 131, .56));
-  --range-control-active-bg: color-mix(in srgb, var(--surface-raised) 84%, var(--range-control-accent) 16%);
-  --range-control-active-border: color-mix(in srgb, var(--range-control-accent) 14%, var(--dark-glass-border-hover));
-  --range-control-glow: rgba(var(--panel-accent-rgb, 134, 172, 210), .035);
-}
-
-html[data-theme="dark"] .range-bar.widget-card .range-search-input,
-html[data-theme="dark"] .range-bar.widget-card .preset-btn,
-html[data-theme="dark"] .range-bar.widget-card .range-custom-trigger,
-html[data-theme="dark"] .range-bar.widget-card .range-display,
-html[data-theme="dark"] .range-bar.widget-card .range-icon-button {
-  box-shadow:
-    0 8px 18px rgba(0, 0, 0, .22),
-    inset 0 1px 0 rgba(255, 255, 255, .065);
-}
-
-html[data-theme="dark"] .app-nav.workspace-chrome::before {
-  background:
-    radial-gradient(ellipse at 50% 32%, rgba(134, 172, 210, .10), transparent 66%),
-    linear-gradient(90deg, transparent, rgba(255, 255, 255, .045), transparent);
-  opacity: .66;
-}
-
-html[data-theme="dark"] .app-nav.workspace-chrome::after {
-  background: linear-gradient(90deg, transparent, rgba(134, 172, 210, .12), transparent);
-  opacity: .46;
-}
-
-html[data-theme="dark"] .app-nav.workspace-chrome .workspace-accent-marker {
-  background: color-mix(in srgb, var(--blue) 78%, #dbe7f5);
-  box-shadow:
-    0 0 14px rgba(134, 172, 210, .20),
-    0 0 0 6px rgba(134, 172, 210, .045);
-}
-
-html[data-theme="dark"] .app-nav.workspace-chrome .workspace-identity-island,
-html[data-theme="dark"] .app-nav.workspace-chrome .composition-add-button,
-html[data-theme="dark"] .app-nav.workspace-chrome .appearance-command-island {
-  border-color: rgba(92, 107, 131, .40);
-  box-shadow:
-    0 24px 58px rgba(0, 0, 0, .36),
-    inset 0 1px 0 rgba(255, 255, 255, .055);
-}
-
-html[data-theme="dark"] .app-nav.workspace-chrome .composition-add-button::before {
-  background: radial-gradient(circle, rgba(134, 172, 210, .075), transparent 70%);
-  opacity: .62;
-}
-
-html[data-theme="dark"] .app-nav.workspace-chrome .composition-add-button {
-  color: #dbe7f5;
-  background:
-    radial-gradient(circle at 34% 24%, rgba(255, 255, 255, .14), transparent 38%),
-    radial-gradient(circle at 50% 70%, rgba(134, 172, 210, .12), transparent 60%),
-    rgba(25, 36, 55, .72);
-}
-
-html[data-theme="dark"] .widget-layout > .widget-card.group-selected,
-html[data-theme="dark"] .panel-layout > .db-panel.group-selected {
-  outline-color: rgba(174, 190, 211, .46);
-  box-shadow:
-    var(--shadow-card),
-    0 0 0 1px rgba(var(--panel-accent-rgb, 134, 172, 210), .08) !important;
-}
-
-html[data-theme="dark"] .widget-layout > .widget-card.active.group-selected,
-html[data-theme="dark"] .widget-layout > .widget-card.db-panel-custom-color.active.group-selected {
-  outline-color: rgba(196, 210, 228, .54) !important;
-  box-shadow:
-    var(--shadow-card),
-    0 0 0 1px rgba(var(--panel-accent-rgb, 134, 172, 210), .10) !important;
-}
-
-html[data-theme="dark"] .db-panel .panel-settings-toggle:hover,
-html[data-theme="dark"] .db-panel .panel-settings-toggle:focus-visible,
-html[data-theme="dark"] .db-panel .panel-tool-button:hover,
-html[data-theme="dark"] .db-panel .panel-tool-button:focus-visible,
-html[data-theme="dark"] .db-panel.db-panel-tools-open .panel-settings-toggle,
-html[data-theme="dark"] .db-panel.db-panel-custom-color .panel-settings-toggle:hover,
-html[data-theme="dark"] .db-panel.db-panel-custom-color .panel-settings-toggle:focus-visible,
-html[data-theme="dark"] .db-panel.db-panel-custom-color .panel-tool-button:hover,
-html[data-theme="dark"] .db-panel.db-panel-custom-color .panel-tool-button:focus-visible,
-html[data-theme="dark"] .db-panel.db-panel-custom-color.db-panel-tools-open .panel-settings-toggle,
-html[data-theme="dark"] .widget-card .panel-settings-toggle:hover,
-html[data-theme="dark"] .widget-card .panel-settings-toggle:focus-visible,
-html[data-theme="dark"] .widget-card .panel-tool-button:hover,
-html[data-theme="dark"] .widget-card .panel-tool-button:focus-visible,
-html[data-theme="dark"] .widget-card.widget-tools-open .panel-settings-toggle {
-  border-color: rgba(142, 160, 186, .54) !important;
-  background: color-mix(in srgb, var(--panel-lock-bg, rgba(134, 172, 210, .12)) 50%, rgba(25, 36, 55, .82)) !important;
-  color: #edf4fb !important;
-  box-shadow:
-    0 14px 30px rgba(0, 0, 0, .34),
-    inset 0 1px 0 rgba(255, 255, 255, .07) !important;
-}
-
-html[data-theme="dark"] .db-panel.db-panel-custom-color.db-panel-tools-open:hover,
-html[data-theme="dark"] .db-panel.db-panel-custom-color.db-panel-tools-open:focus-within {
-  border-color: color-mix(in srgb, var(--panel-accent) 26%, rgba(122, 138, 164, .58)) !important;
-  box-shadow:
-    0 24px 58px rgba(0, 0, 0, .42),
-    inset 0 1px 0 rgba(255, 255, 255, .055) !important;
-}
-
-html[data-theme="dark"] .widget-layout > .stat-card.widget-card:hover,
-html[data-theme="dark"] .panel-layout > .db-panel:hover,
-html[data-theme="dark"] .panel-layout > .db-panel:focus-within {
-  border-color: rgba(128, 140, 158, .60) !important;
-  box-shadow:
-    0 28px 66px rgba(0, 0, 0, .46),
-    inset 0 1px 0 rgba(255, 255, 255, .06) !important;
-}
-
-html[data-theme="dark"] .db-panel .panel-settings-toggle:hover,
-html[data-theme="dark"] .db-panel .panel-settings-toggle:focus-visible,
-html[data-theme="dark"] .db-panel .panel-tool-button:hover,
-html[data-theme="dark"] .db-panel .panel-tool-button:focus-visible,
-html[data-theme="dark"] .db-panel.db-panel-tools-open .panel-settings-toggle,
-html[data-theme="dark"] .widget-card .panel-settings-toggle:hover,
-html[data-theme="dark"] .widget-card .panel-settings-toggle:focus-visible,
-html[data-theme="dark"] .widget-card .panel-tool-button:hover,
-html[data-theme="dark"] .widget-card .panel-tool-button:focus-visible,
-html[data-theme="dark"] .widget-card.widget-tools-open .panel-settings-toggle {
-  outline: none !important;
-  background: rgba(28, 42, 64, .84) !important;
-  border-color: rgba(142, 160, 186, .54) !important;
-  color: #f6f9fd !important;
-  box-shadow:
-    0 14px 30px rgba(0, 0, 0, .34),
-    inset 0 1px 0 rgba(255, 255, 255, .07) !important;
-}
-
-html[data-theme="dark"] .db-panel.db-panel-custom-color .panel-settings-toggle:hover,
-html[data-theme="dark"] .db-panel.db-panel-custom-color .panel-settings-toggle:focus-visible,
-html[data-theme="dark"] .db-panel.db-panel-custom-color .panel-tool-button:hover,
-html[data-theme="dark"] .db-panel.db-panel-custom-color .panel-tool-button:focus-visible,
-html[data-theme="dark"] .db-panel.db-panel-custom-color.db-panel-tools-open .panel-settings-toggle {
-  outline: none !important;
-  background: rgba(28, 42, 64, .84) !important;
-  border-color: rgba(142, 160, 186, .54) !important;
-  color: #f6f9fd !important;
-  box-shadow:
-    0 14px 30px rgba(0, 0, 0, .34),
-    inset 0 1px 0 rgba(255, 255, 255, .07) !important;
-}
-
-/* Dark dashboard border refinement: keep interaction visible without electric edge light. */
-html[data-theme="dark"] .db-panel-hd,
-html[data-theme="dark"] .al-table th {
-  border-color: rgba(74, 88, 112, .52);
-  background: color-mix(in srgb, var(--surface-raised) 76%, rgba(134, 172, 210, .055));
-}
-
-html[data-theme="dark"] .db-panel.db-panel-custom-color .al-table th {
-  border-color: color-mix(in srgb, var(--panel-accent) 10%, rgba(74, 88, 112, .56)) !important;
-  background: color-mix(in srgb, var(--surface-raised) 90%, var(--panel-accent) 6%) !important;
-}
-
-html[data-theme="dark"] .db-panel-hd:focus-visible {
-  outline: 2px solid rgba(174, 190, 211, .28);
-  outline-offset: -3px;
-}
-
-html[data-theme="dark"] .db-panel-hd:hover::before,
-html[data-theme="dark"] .db-panel-hd:focus-visible::before,
-html[data-theme="dark"] .panel-lock-toggle:hover,
-html[data-theme="dark"] .panel-lock-toggle:focus-visible,
-html[data-theme="dark"] .panel-pin-toggle:hover,
-html[data-theme="dark"] .panel-pin-toggle:focus-visible,
-html[data-theme="dark"] .panel-settings-toggle:hover,
-html[data-theme="dark"] .panel-settings-toggle:focus-visible,
-html[data-theme="dark"] .panel-tool-button:hover,
-html[data-theme="dark"] .panel-tool-button:focus-visible,
-html[data-theme="dark"] .db-panel-tools-open .panel-settings-toggle,
-html[data-theme="dark"] .widget-tools-open .panel-settings-toggle {
-  border-color: rgba(142, 160, 186, .50);
-  box-shadow:
-    0 14px 30px rgba(0, 0, 0, .32),
-    inset 0 1px 0 rgba(255, 255, 255, .065) !important;
-}
-
-html[data-theme="dark"] .db-panel-count,
-html[data-theme="dark"] .empty-illustration {
-  background: rgba(35, 49, 72, .78);
-  border-color: rgba(92, 107, 131, .44);
-  color: #cbd8e8;
-  box-shadow:
-    0 10px 24px rgba(0, 0, 0, .24),
-    inset 0 1px 0 rgba(255, 255, 255, .06);
-}
-
-html[data-theme="dark"] .al-table td {
-  border-bottom-color: rgba(54, 68, 92, .58);
-}
-
-html[data-theme="dark"] .al-table tbody tr:hover td {
-  background: rgba(27, 40, 60, .72);
-}
-
-html[data-theme="dark"] .empty-state {
-  border-color: rgba(92, 107, 131, .42);
-  background:
-    linear-gradient(180deg, rgba(24, 35, 53, .74), rgba(15, 24, 40, .76)),
-    var(--glass-surface);
-  box-shadow:
-    0 18px 42px rgba(0, 0, 0, .30),
-    inset 0 1px 0 rgba(255, 255, 255, .045);
-}
-
-html[data-theme="dark"] .panel-empty-action {
-  border-color: rgba(92, 107, 131, .46);
-  background:
-    linear-gradient(180deg, rgba(27, 40, 60, .78), rgba(15, 24, 40, .82)),
-    var(--glass-surface);
-  color: color-mix(in srgb, var(--ink) 84%, #f8fafc);
-  box-shadow:
-    0 10px 24px rgba(0, 0, 0, .24),
-    inset 0 1px 0 rgba(255, 255, 255, .055);
-}
-
-html[data-theme="dark"] .timeframe-command-surface {
-  border-color: color-mix(in srgb, var(--range-control-accent) 3%, var(--dark-glass-border));
-  background:
-    var(--dark-glass-surface-bg),
-    color-mix(in srgb, var(--surface-raised) 88%, var(--range-control-accent) 4%);
-  box-shadow:
-    0 24px 54px rgba(0, 0, 0, .46),
-    0 1px 0 rgba(255, 255, 255, .045),
-    inset 0 1px 0 rgba(255, 255, 255, .112),
-    inset 0 0 0 1px rgba(255, 255, 255, .030),
-    inset 0 -12px 22px rgba(0, 0, 0, .22);
-}
-
-html[data-theme="dark"] .timeframe-presets,
-html[data-theme="dark"] .timeframe-active-cluster,
-html[data-theme="dark"] .timeframe-utility-cluster {
-  border-color: color-mix(in srgb, var(--range-control-accent) 5%, var(--dark-glass-border));
-  background:
-    var(--dark-glass-inset-bg),
-    color-mix(in srgb, var(--glass-surface) 90%, var(--range-control-accent) 3%);
-  box-shadow:
-    0 10px 22px rgba(0, 0, 0, .28),
-    inset 0 1px 0 rgba(255, 255, 255, .075),
-    inset 0 0 0 1px rgba(255, 255, 255, .025),
-    inset 0 -8px 16px rgba(0, 0, 0, .24);
-}
-
-html[data-theme="dark"] .timeframe-active-cluster {
-  border-color: color-mix(in srgb, var(--range-control-accent) 8%, var(--dark-glass-border-hover));
-  background:
-    radial-gradient(ellipse at 50% 0%, rgba(255, 255, 255, .078), transparent 60%),
-    linear-gradient(180deg, rgba(31, 45, 68, .90), rgba(13, 24, 40, .86)),
-    color-mix(in srgb, var(--glass-surface-strong) 86%, var(--range-control-accent) 4%);
-}
-
-html[data-theme="dark"] .timeframe-widget .preset-btn,
-html[data-theme="dark"] .timeframe-widget .range-custom-trigger,
-html[data-theme="dark"] .timeframe-widget .range-icon-button {
-  border-color: var(--range-control-border);
-  background-color: color-mix(in srgb, var(--surface-raised) 78%, var(--range-control-accent) 8%);
-  background-image:
-    var(--dark-glass-control-bg);
-  box-shadow:
-    0 12px 24px rgba(0, 0, 0, .34),
-    0 1px 0 rgba(255, 255, 255, .038),
-    inset 0 1px 0 rgba(255, 255, 255, .105),
-    inset 0 0 0 1px rgba(255, 255, 255, .026),
-    inset 0 -2px 0 rgba(0, 0, 0, .24);
-}
-
-html[data-theme="dark"] .timeframe-widget .preset-btn:hover,
-html[data-theme="dark"] .timeframe-widget .preset-btn:focus-visible,
-html[data-theme="dark"] .timeframe-widget .range-custom-trigger:hover,
-html[data-theme="dark"] .timeframe-widget .range-custom-trigger:focus-visible,
-html[data-theme="dark"] .timeframe-widget .range-icon-button:hover,
-html[data-theme="dark"] .timeframe-widget .range-icon-button:focus-visible {
-  border-color: var(--range-control-active-border);
-  background-color: color-mix(in srgb, var(--surface-raised) 74%, var(--range-control-accent) 10%);
-  background-image:
-    var(--dark-glass-control-hover-bg);
-  box-shadow:
-    0 16px 32px rgba(0, 0, 0, .38),
-    inset 0 1px 0 rgba(255, 255, 255, .120),
-    inset 0 0 0 1px rgba(255, 255, 255, .030),
-    inset 0 -2px 0 rgba(0, 0, 0, .22);
-}
-
-html[data-theme="dark"] .timeframe-widget .preset-btn.active,
-html[data-theme="dark"] .timeframe-widget .range-custom-trigger.active {
-  border-color: var(--range-control-active-border);
-  background-color: color-mix(in srgb, var(--surface-raised) 78%, var(--range-control-accent) 14%);
-  background-image:
-    var(--dark-glass-control-active-bg);
-  box-shadow:
-    0 16px 34px rgba(0, 0, 0, .40),
-    inset 0 1px 0 rgba(255, 255, 255, .118),
-    inset 0 0 0 1px rgba(255, 255, 255, .030),
-    inset 0 -2px 0 rgba(var(--panel-accent-rgb, 134, 172, 210), .10);
-}
-
-html[data-theme="dark"] .range-bar.widget-card.timeframe-widget .preset-btn.active,
-html[data-theme="dark"] .range-bar.widget-card.timeframe-widget .range-custom-trigger.active {
-  background-color: rgba(31, 45, 67, .94);
-  background-image:
-    var(--dark-glass-control-active-bg);
-  box-shadow:
-    0 16px 34px rgba(0, 0, 0, .40),
-    inset 0 1px 0 rgba(255, 255, 255, .118),
-    inset 0 0 0 1px rgba(255, 255, 255, .030),
-    inset 0 -2px 0 rgba(134, 172, 210, .10);
-}
-
-html[data-theme="dark"] .range-bar.widget-card.timeframe-widget .preset-btn:not(.active),
-html[data-theme="dark"] .range-bar.widget-card.timeframe-widget .range-custom-trigger:not(.active),
-html[data-theme="dark"] .range-bar.widget-card.timeframe-widget .range-icon-button {
-  background-color: rgba(23, 36, 56, .92);
-  background-image:
-    var(--dark-glass-control-bg);
-  box-shadow:
-    0 12px 24px rgba(0, 0, 0, .34),
-    inset 0 1px 0 rgba(255, 255, 255, .105),
-    inset 0 0 0 1px rgba(255, 255, 255, .026),
-    inset 0 -2px 0 rgba(0, 0, 0, .24);
-}
-
-html[data-theme="dark"] .range-bar.widget-card.timeframe-widget .preset-btn:not(.active):hover,
-html[data-theme="dark"] .range-bar.widget-card.timeframe-widget .preset-btn:not(.active):focus-visible,
-html[data-theme="dark"] .range-bar.widget-card.timeframe-widget .range-custom-trigger:not(.active):hover,
-html[data-theme="dark"] .range-bar.widget-card.timeframe-widget .range-custom-trigger:not(.active):focus-visible,
-html[data-theme="dark"] .range-bar.widget-card.timeframe-widget .range-icon-button:hover,
-html[data-theme="dark"] .range-bar.widget-card.timeframe-widget .range-icon-button:focus-visible {
-  background-color: rgba(28, 43, 65, .94);
-  background-image:
-    var(--dark-glass-control-hover-bg);
-  box-shadow:
-    0 16px 32px rgba(0, 0, 0, .38),
-    inset 0 1px 0 rgba(255, 255, 255, .120),
-    inset 0 0 0 1px rgba(255, 255, 255, .030),
-    inset 0 -2px 0 rgba(0, 0, 0, .22);
-}
-
-html[data-theme="dark"] .app-nav.workspace-chrome .workspace-accent-marker {
-  background: color-mix(in srgb, var(--blue) 64%, #dbe7f5);
-  box-shadow:
-    0 0 10px rgba(134, 172, 210, .14),
-    0 0 0 5px rgba(134, 172, 210, .032);
-}
-
-html[data-theme="dark"] .app-nav.workspace-chrome .composition-add-button {
-  box-shadow:
-    0 22px 54px rgba(0, 0, 0, .34),
-    inset 0 1px 0 rgba(255, 255, 255, .055);
-}
-
-/* Pin control material: subtle workspace-state affordance, not a status badge. */
-.db-panel-pinned .panel-pin-toggle,
-.db-panel.db-panel-custom-color.db-panel-pinned .panel-pin-toggle,
-.widget-card.db-panel-pinned .panel-pin-toggle,
-.widget-card.db-panel-custom-color.db-panel-pinned .panel-pin-toggle {
-  background:
-    linear-gradient(180deg, color-mix(in srgb, var(--surface-raised) 84%, var(--panel-lock-fg) 16%), color-mix(in srgb, var(--panel-lock-bg) 72%, transparent)) !important;
-  border-color: color-mix(in srgb, currentColor 56%, var(--panel-lock-border)) !important;
-  box-shadow:
-    0 10px 22px color-mix(in srgb, var(--panel-lock-glow) 50%, transparent),
-    inset 0 1px 0 var(--panel-hover-inset),
-    inset 0 -1px 0 color-mix(in srgb, currentColor 12%, transparent) !important;
-}
-
-.panel-pin-toggle:hover,
-.panel-pin-toggle:focus-visible,
-.db-panel.db-panel-custom-color .panel-pin-toggle:hover,
-.db-panel.db-panel-custom-color .panel-pin-toggle:focus-visible,
-.widget-card.db-panel-custom-color .panel-pin-toggle:hover,
-.widget-card.db-panel-custom-color .panel-pin-toggle:focus-visible {
-  background:
-    linear-gradient(180deg, color-mix(in srgb, var(--surface-raised) 88%, var(--panel-lock-fg) 12%), color-mix(in srgb, var(--panel-lock-bg) 68%, var(--panel-hover-tint))) !important;
-  border-color: color-mix(in srgb, currentColor 52%, var(--panel-lock-border)) !important;
-  box-shadow:
-    0 12px 24px color-mix(in srgb, var(--panel-lock-glow) 56%, transparent),
-    inset 0 1px 0 var(--panel-hover-inset) !important;
-}
-
-html[data-theme="dark"] .db-panel-pinned .panel-pin-toggle,
-html[data-theme="dark"] .db-panel.db-panel-custom-color.db-panel-pinned .panel-pin-toggle,
-html[data-theme="dark"] .widget-card.db-panel-pinned .panel-pin-toggle,
-html[data-theme="dark"] .widget-card.db-panel-custom-color.db-panel-pinned .panel-pin-toggle {
-  background:
-    linear-gradient(180deg, rgba(38, 52, 74, .78), rgba(18, 29, 47, .82)) !important;
-  border-color: rgba(142, 160, 186, .50) !important;
-  box-shadow:
-    0 12px 26px rgba(0, 0, 0, .30),
-    inset 0 1px 0 rgba(255, 255, 255, .075),
-    inset 0 -1px 0 rgba(134, 172, 210, .10) !important;
-}
-
-html[data-theme="dark"] .panel-pin-toggle:hover,
-html[data-theme="dark"] .panel-pin-toggle:focus-visible,
-html[data-theme="dark"] .db-panel.db-panel-custom-color .panel-pin-toggle:hover,
-html[data-theme="dark"] .db-panel.db-panel-custom-color .panel-pin-toggle:focus-visible,
-html[data-theme="dark"] .widget-card.db-panel-custom-color .panel-pin-toggle:hover,
-html[data-theme="dark"] .widget-card.db-panel-custom-color .panel-pin-toggle:focus-visible {
-  background:
-    linear-gradient(180deg, rgba(43, 58, 80, .82), rgba(22, 34, 52, .86)) !important;
-  border-color: rgba(142, 160, 186, .52) !important;
-  box-shadow:
-    0 14px 30px rgba(0, 0, 0, .32),
-    inset 0 1px 0 rgba(255, 255, 255, .075) !important;
-}
-
-/* Focused top-nav polish: visible dashboard-glass toolbar, not a redesign. */
+/* Navbar widget surface: one shared glass/control rhythm for top chrome. */
 .app-nav.workspace-chrome {
-  border: 1.5px solid color-mix(in srgb, var(--line) 68%, rgba(255, 255, 255, .92));
-  border-radius: 26px;
+  --navbar-control-height: 36px;
+  --navbar-control-radius: 14px;
+  --navbar-control-bg: color-mix(in srgb, var(--glass-surface-strong) 46%, transparent);
+  --navbar-control-hover-bg: color-mix(in srgb, var(--glass-surface-strong) 68%, var(--blue-soft));
+  --navbar-control-border: color-mix(in srgb, var(--line) 58%, rgba(255, 255, 255, .72));
+  --navbar-control-shadow: 0 6px 14px color-mix(in srgb, var(--blue) 8%, transparent), inset 0 1px 0 color-mix(in srgb, var(--glass-highlight) 62%, transparent);
+  position: sticky;
+  top: 12px;
+  z-index: var(--z-header);
+  display: grid;
+  grid-template-columns: minmax(180px, max-content) minmax(0, 1fr) max-content;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 66px;
+  margin: 0 auto 22px;
+  padding: 10px 12px;
+  border: 1.5px solid color-mix(in srgb, var(--line) 64%, rgba(255, 255, 255, .78));
+  border-radius: var(--radius-md);
   background:
-    radial-gradient(circle at 14% 0%, color-mix(in srgb, var(--blue) 9%, transparent) 0 38%, transparent 62%),
-    linear-gradient(180deg, color-mix(in srgb, var(--glass-surface-strong) 92%, var(--surface-raised)), color-mix(in srgb, var(--glass-surface) 74%, var(--surface-soft)));
+    linear-gradient(180deg, color-mix(in srgb, var(--glass-surface-strong) 88%, var(--surface-raised)), color-mix(in srgb, var(--glass-surface) 76%, var(--surface-soft)));
   box-shadow:
-    var(--shadow-glass),
-    0 2px 10px rgba(15, 23, 42, .055),
-    inset 0 1px 0 var(--glass-highlight);
+    var(--shadow-card),
+    inset 0 1px 0 color-mix(in srgb, var(--glass-highlight) 74%, transparent);
   backdrop-filter: blur(22px) saturate(1.12);
   -webkit-backdrop-filter: blur(22px) saturate(1.12);
+  isolation: isolate;
 }
 
-.app-nav.workspace-chrome::before {
-  inset: 1px 24px auto;
-  background: linear-gradient(90deg, transparent, var(--glass-highlight), transparent);
-  opacity: .9;
-}
-
+.app-nav.workspace-chrome::before,
 .app-nav.workspace-chrome::after {
-  opacity: 0;
+  content: none;
+  display: none;
 }
 
-.app-nav.workspace-chrome .workspace-command-island {
+.app-nav.workspace-chrome > .app-nav-brand-group,
+.app-nav.workspace-chrome > .app-nav-status,
+.app-nav.workspace-chrome > .app-nav-actions {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  min-width: 0;
+}
+
+.app-nav.workspace-chrome > .app-nav-brand-group {
+  justify-content: flex-start;
+}
+
+.app-nav.workspace-chrome > .app-nav-status {
+  justify-content: center;
+  gap: 8px;
+}
+
+.app-nav.workspace-chrome > .app-nav-actions {
+  justify-content: flex-end;
+}
+
+.app-nav.workspace-chrome .workspace-command-island,
+.app-nav.workspace-chrome .layout-slot-controls {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 6px;
   min-height: 44px;
   padding: 4px;
-  border: 1px solid color-mix(in srgb, var(--line-soft) 72%, rgba(255, 255, 255, .82));
-  border-radius: 18px;
-  background: color-mix(in srgb, var(--glass-surface-strong) 76%, var(--surface-soft));
+  border: 1px solid color-mix(in srgb, var(--line-soft) 64%, transparent);
+  border-radius: calc(var(--radius-sm) + 2px);
+  background: color-mix(in srgb, var(--glass-surface-strong) 54%, transparent);
   box-shadow:
-    inset 0 1px 0 var(--glass-highlight),
-    0 8px 18px rgba(15, 23, 42, .045);
-  backdrop-filter: blur(18px) saturate(1.08);
-  -webkit-backdrop-filter: blur(18px) saturate(1.08);
-}
-
-.app-nav.workspace-chrome .workspace-identity-island {
-  padding-inline: 6px 8px;
-  border-color: color-mix(in srgb, var(--line) 72%, rgba(255, 255, 255, .82));
-  border-radius: 22px;
-  background: color-mix(in srgb, var(--glass-surface-strong) 84%, var(--surface-soft));
-}
-
-.app-nav.workspace-chrome .layout-command-island,
-.app-nav.workspace-chrome .appearance-command-island {
-  background: color-mix(in srgb, var(--glass-surface-strong) 78%, rgba(225, 234, 246, .72));
+    inset 0 1px 0 color-mix(in srgb, var(--glass-highlight) 58%, transparent);
+  backdrop-filter: blur(16px) saturate(1.06);
+  -webkit-backdrop-filter: blur(16px) saturate(1.06);
+  opacity: 1;
+  transform: none;
 }
 
 .app-nav.workspace-chrome .layout-slot-controls {
-  gap: 4px;
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+.app-nav.workspace-chrome .workspace-identity-island {
+  justify-content: flex-start;
+  padding-inline: 6px;
+}
+
+.app-nav.workspace-chrome .workspace-accent-marker {
+  width: 8px;
+  height: 8px;
+  margin-left: 3px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--blue) 72%, var(--glass-surface-strong));
+  box-shadow:
+    0 2px 5px color-mix(in srgb, var(--blue) 22%, transparent),
+    inset 0 1px 0 color-mix(in srgb, var(--glass-highlight) 70%, transparent);
+}
+
+.app-nav.workspace-chrome .dash-switcher,
+.app-nav.workspace-chrome .layout-slot-picker,
+.app-nav.workspace-chrome .panel-add-picker,
+.app-nav.workspace-chrome .background-tone-menu {
+  display: inline-flex;
+  align-items: center;
 }
 
 .app-nav.workspace-chrome button.dash-switch-hero,
@@ -5615,321 +3532,200 @@ html[data-theme="dark"] .widget-card.db-panel-custom-color .panel-pin-toggle:foc
 .app-nav.workspace-chrome .panel-undo-button,
 .app-nav.workspace-chrome .panel-reset-button,
 .app-nav.workspace-chrome .workspace-mode-button,
-.app-nav.workspace-chrome .theme-toggle,
 .app-nav.workspace-chrome .background-tone-trigger,
-.app-nav.workspace-chrome .nav-status-icon-only,
-.app-nav.workspace-chrome .cmd-btn-icon-only {
-  border: 1px solid transparent;
-  background: transparent;
+.app-nav.workspace-chrome .composition-add-button {
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: var(--navbar-control-height);
+  min-height: var(--navbar-control-height);
+  margin: 0;
+  border: 1px solid var(--navbar-control-border);
+  border-radius: var(--navbar-control-radius);
+  background: var(--navbar-control-bg);
   color: var(--muted-strong);
-  box-shadow: none;
+  box-shadow: var(--navbar-control-shadow);
+  font-size: 12px;
+  font-weight: 760;
+  line-height: 1;
+  transform: none;
+  transition: background var(--motion-fast), border-color var(--motion-fast), box-shadow var(--motion-fast), color var(--motion-fast), transform var(--motion-fast);
 }
 
 .app-nav.workspace-chrome button.dash-switch-hero,
 .app-nav.workspace-chrome .layout-slot-trigger {
   color: var(--ink-strong);
+  font-weight: 820;
+}
+
+.app-nav.workspace-chrome button.dash-switch-hero {
+  max-width: 220px;
+  padding-inline: 12px;
+}
+
+.app-nav.workspace-chrome .layout-slot-trigger {
+  min-width: 82px;
+  padding-inline: 11px;
+}
+
+.app-nav.workspace-chrome .layout-slot-button,
+.app-nav.workspace-chrome .panel-undo-button,
+.app-nav.workspace-chrome .panel-reset-button,
+.app-nav.workspace-chrome .workspace-mode-button {
+  min-width: 58px;
+  padding-inline: 10px;
+}
+
+.app-nav.workspace-chrome .background-tone-trigger,
+.app-nav.workspace-chrome .composition-add-button {
+  width: var(--navbar-control-height);
+  min-width: var(--navbar-control-height);
+  padding: 0;
+  border-radius: 999px;
 }
 
 .app-nav.workspace-chrome .composition-add-button {
-  border: 1px solid color-mix(in srgb, var(--blue) 24%, var(--line));
-  background:
-    radial-gradient(circle at 34% 24%, rgba(255, 255, 255, .58), transparent 38%),
-    color-mix(in srgb, var(--blue) 16%, rgba(246, 250, 255, .96));
-  color: color-mix(in srgb, var(--blue) 72%, var(--ink-strong));
-  box-shadow:
-    0 12px 26px color-mix(in srgb, var(--blue) 12%, transparent),
-    inset 0 1px 0 rgba(255, 255, 255, .72);
+  color: color-mix(in srgb, var(--blue) 76%, var(--ink-strong));
+  font-size: 21px;
+  font-weight: 560;
+}
+
+.app-nav.workspace-chrome .composition-add-button::before {
+  content: none;
+  display: none;
+}
+
+.app-nav.workspace-chrome .chrome-add-glyph {
+  display: block;
+  line-height: 1;
+  transform: translateY(-1px);
 }
 
 .app-nav.workspace-chrome button.dash-switch-hero:hover,
-.app-nav.workspace-chrome button.dash-switch-hero:focus-visible,
-.app-nav.workspace-chrome .theme-toggle:hover,
-.app-nav.workspace-chrome .theme-toggle:focus-visible,
 .app-nav.workspace-chrome .background-tone-trigger:hover,
-.app-nav.workspace-chrome .background-tone-trigger:focus-visible,
 .app-nav.workspace-chrome .panel-reset-button:hover,
-.app-nav.workspace-chrome .panel-reset-button:focus-visible,
 .app-nav.workspace-chrome .panel-undo-button:hover,
-.app-nav.workspace-chrome .panel-undo-button:focus-visible,
 .app-nav.workspace-chrome .layout-slot-button:hover,
-.app-nav.workspace-chrome .layout-slot-button:focus-visible,
 .app-nav.workspace-chrome .layout-slot-trigger:hover,
-.app-nav.workspace-chrome .layout-slot-trigger:focus-visible,
 .app-nav.workspace-chrome .workspace-mode-button:hover,
-.app-nav.workspace-chrome .workspace-mode-button:focus-visible,
-.app-nav.workspace-chrome .nav-status-icon-only:hover,
-.app-nav.workspace-chrome .nav-status-icon-only:focus-visible,
-.app-nav.workspace-chrome .cmd-btn-icon-only:hover,
-.app-nav.workspace-chrome .cmd-btn-icon-only:focus-visible {
+.app-nav.workspace-chrome .composition-add-button:hover {
   border-color: color-mix(in srgb, var(--blue) 18%, var(--line));
-  background: color-mix(in srgb, var(--glass-surface-strong) 72%, var(--blue-soft));
+  background: var(--navbar-control-hover-bg);
   color: var(--ink-strong);
   box-shadow:
-    0 10px 22px color-mix(in srgb, var(--blue) 9%, transparent),
-    inset 0 1px 0 rgba(255, 255, 255, .66);
+    0 4px 10px color-mix(in srgb, var(--blue) 8%, transparent),
+    inset 0 1px 0 color-mix(in srgb, var(--glass-highlight) 70%, transparent),
+    inset 0 -1px 0 color-mix(in srgb, var(--blue) 10%, transparent);
+  transform: var(--pressable-hover-transform);
 }
 
-.app-nav.workspace-chrome .composition-add-button:hover,
-.app-nav.workspace-chrome .composition-add-button:focus-visible,
-.app-nav.workspace-chrome .panel-add-picker:focus-within .composition-add-button {
+.app-nav.workspace-chrome button.dash-switch-hero:focus-visible,
+.app-nav.workspace-chrome .background-tone-trigger:focus-visible,
+.app-nav.workspace-chrome .panel-reset-button:focus-visible,
+.app-nav.workspace-chrome .panel-undo-button:focus-visible,
+.app-nav.workspace-chrome .layout-slot-button:focus-visible,
+.app-nav.workspace-chrome .layout-slot-trigger:focus-visible,
+.app-nav.workspace-chrome .workspace-mode-button:focus-visible,
+.app-nav.workspace-chrome .composition-add-button:focus-visible {
   border-color: color-mix(in srgb, var(--blue) 34%, var(--line));
-  background:
-    radial-gradient(circle at 34% 24%, rgba(255, 255, 255, .64), transparent 38%),
-    color-mix(in srgb, var(--blue) 22%, rgba(246, 250, 255, .96));
-  box-shadow:
-    0 14px 30px color-mix(in srgb, var(--blue) 14%, transparent),
-    inset 0 1px 0 rgba(255, 255, 255, .76);
+  outline: 2px solid color-mix(in srgb, var(--blue) 24%, transparent);
+  outline-offset: 2px;
+  background: var(--navbar-control-hover-bg);
+  color: var(--ink-strong);
+  transform: var(--pressable-focus-transform);
 }
 
+.app-nav.workspace-chrome button.dash-switch-hero:active,
+.app-nav.workspace-chrome .background-tone-trigger:active,
+.app-nav.workspace-chrome .panel-reset-button:active,
+.app-nav.workspace-chrome .panel-undo-button:active,
+.app-nav.workspace-chrome .layout-slot-button:active,
+.app-nav.workspace-chrome .layout-slot-trigger:active,
+.app-nav.workspace-chrome .workspace-mode-button:active,
+.app-nav.workspace-chrome .composition-add-button:active,
 .app-nav.workspace-chrome .workspace-mode-button[aria-pressed="true"],
 .app-nav.workspace-chrome .layout-group-button[aria-pressed="true"] {
-  border-color: color-mix(in srgb, var(--blue) 28%, var(--line));
+  border-color: color-mix(in srgb, var(--blue) 26%, var(--line));
   background: color-mix(in srgb, var(--blue) 13%, var(--glass-surface-strong));
-  color: color-mix(in srgb, var(--blue) 76%, var(--ink-strong));
+  color: color-mix(in srgb, var(--blue) 78%, var(--ink-strong));
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, .58),
-    inset 0 -1px 0 color-mix(in srgb, var(--blue) 32%, transparent);
+    0 2px 7px color-mix(in srgb, var(--blue) 7%, transparent),
+    inset 0 1px 0 color-mix(in srgb, var(--glass-highlight) 54%, transparent),
+    inset 0 2px 5px color-mix(in srgb, var(--blue) 10%, rgba(15, 23, 42, .08));
+  transform: var(--pressable-active-transform);
 }
 
 .app-nav.workspace-chrome .panel-add-menu,
 .app-nav.workspace-chrome .layout-slot-menu,
 .app-nav.workspace-chrome .dash-switch-menu,
-.app-nav.workspace-chrome .nav-status-popover,
 .app-nav.workspace-chrome .background-tone-popover {
-  border-color: color-mix(in srgb, var(--line) 62%, rgba(255, 255, 255, .74));
+  border: 1px solid color-mix(in srgb, var(--line) 62%, rgba(255, 255, 255, .72));
+  border-radius: var(--radius-sm);
   background:
-    linear-gradient(180deg, color-mix(in srgb, var(--glass-surface-strong) 94%, var(--surface-raised)), color-mix(in srgb, var(--glass-surface-strong) 86%, var(--surface-soft)));
+    linear-gradient(180deg, color-mix(in srgb, var(--glass-surface-strong) 94%, var(--surface-raised)), color-mix(in srgb, var(--glass-surface) 86%, var(--surface-soft)));
   box-shadow:
     var(--shadow-glass),
-    inset 0 1px 0 var(--glass-highlight);
+    inset 0 1px 0 color-mix(in srgb, var(--glass-highlight) 76%, transparent);
+  backdrop-filter: blur(22px) saturate(1.12);
+  -webkit-backdrop-filter: blur(22px) saturate(1.12);
 }
 
-html[data-theme="dark"] .app-nav.workspace-chrome {
-  border: 1.5px solid var(--dark-glass-border);
-  background:
-    radial-gradient(circle at 14% 0%, rgba(134, 172, 210, .055) 0 38%, transparent 62%),
-    var(--dark-glass-panel-bg);
-  box-shadow:
-    var(--dark-glass-shadow),
-    0 2px 12px rgba(0, 0, 0, .22),
-    inset 0 1px 0 var(--dark-glass-highlight);
+.app-nav.workspace-chrome .layout-slot-menu {
+  min-width: 140px;
+  padding: 6px;
 }
 
-html[data-theme="dark"] .app-nav.workspace-chrome::before {
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, .07), transparent);
-  opacity: .85;
+.app-nav.workspace-chrome .panel-add-action,
+.app-nav.workspace-chrome .widget-add-action,
+.app-nav.workspace-chrome .layout-slot-menu button,
+.app-nav.workspace-chrome .dash-switch-opt {
+  min-height: 34px;
+  border-radius: 12px;
+  background: transparent;
+  color: var(--ink);
 }
 
-html[data-theme="dark"] .app-nav.workspace-chrome .workspace-command-island {
-  border-color: color-mix(in srgb, var(--dark-glass-border) 82%, transparent);
-  background: var(--dark-glass-inset-bg);
-  box-shadow:
-    0 12px 28px rgba(0, 0, 0, .24),
-    inset 0 1px 0 rgba(255, 255, 255, .060),
-    inset 0 0 0 1px rgba(255, 255, 255, .022);
+.app-nav.workspace-chrome .layout-slot-menu button:hover,
+.app-nav.workspace-chrome .layout-slot-menu button:focus-visible,
+.app-nav.workspace-chrome .layout-slot-menu button.is-active,
+.app-nav.workspace-chrome .panel-add-action:hover,
+.app-nav.workspace-chrome .widget-add-action:hover,
+.app-nav.workspace-chrome .dash-switch-opt:hover,
+.app-nav.workspace-chrome .dash-switch-opt:focus-visible {
+  background: color-mix(in srgb, var(--glass-surface-strong) 72%, var(--blue-soft));
+  color: var(--ink-strong);
+  transform: var(--pressable-hover-transform);
 }
 
-html[data-theme="dark"] .app-nav.workspace-chrome .workspace-identity-island,
-html[data-theme="dark"] .app-nav.workspace-chrome .layout-command-island,
-html[data-theme="dark"] .app-nav.workspace-chrome .appearance-command-island {
-  border-color: color-mix(in srgb, var(--dark-glass-border) 88%, transparent);
-  background: var(--dark-glass-surface-bg);
+@media (max-width: 1180px) {
+  .app-nav.workspace-chrome {
+    grid-template-columns: 1fr;
+  }
+
+  .app-nav.workspace-chrome > .app-nav-brand-group,
+  .app-nav.workspace-chrome > .app-nav-status,
+  .app-nav.workspace-chrome > .app-nav-actions {
+    justify-content: center;
+  }
+
+  .app-nav.workspace-chrome > .app-nav-status {
+    flex-wrap: wrap;
+  }
 }
 
-html[data-theme="dark"] .app-nav.workspace-chrome button.dash-switch-hero,
-html[data-theme="dark"] .app-nav.workspace-chrome .layout-slot-trigger,
-html[data-theme="dark"] .app-nav.workspace-chrome .layout-slot-button,
-html[data-theme="dark"] .app-nav.workspace-chrome .panel-undo-button,
-html[data-theme="dark"] .app-nav.workspace-chrome .panel-reset-button,
-html[data-theme="dark"] .app-nav.workspace-chrome .workspace-mode-button,
-html[data-theme="dark"] .app-nav.workspace-chrome .theme-toggle,
-html[data-theme="dark"] .app-nav.workspace-chrome .background-tone-trigger,
-html[data-theme="dark"] .app-nav.workspace-chrome .nav-status-icon-only,
-html[data-theme="dark"] .app-nav.workspace-chrome .cmd-btn-icon-only {
-  border-color: color-mix(in srgb, var(--dark-glass-border) 58%, transparent);
-  background: var(--dark-glass-control-bg);
-  color: #c7d4e5;
-  box-shadow:
-    0 8px 18px rgba(0, 0, 0, .20),
-    inset 0 1px 0 rgba(255, 255, 255, .060),
-    inset 0 0 0 1px rgba(255, 255, 255, .020);
-}
+@media (max-width: 760px) {
+  .app-nav.workspace-chrome {
+    padding: 10px;
+  }
 
-html[data-theme="dark"] .app-nav.workspace-chrome button.dash-switch-hero,
-html[data-theme="dark"] .app-nav.workspace-chrome .layout-slot-trigger {
-  color: #edf4fb;
-}
+  .app-nav.workspace-chrome .workspace-command-island {
+    flex-wrap: wrap;
+    width: 100%;
+  }
 
-html[data-theme="dark"] .app-nav.workspace-chrome .composition-add-button {
-  border-color: color-mix(in srgb, var(--blue) 10%, var(--dark-glass-border-hover));
-  background:
-    radial-gradient(circle at 34% 24%, rgba(255, 255, 255, .13), transparent 38%),
-    var(--dark-glass-control-active-bg),
-    color-mix(in srgb, rgba(35, 49, 72, .88) 86%, var(--blue) 14%);
-  color: #dbe7f5;
-  box-shadow:
-    0 16px 36px rgba(0, 0, 0, .32),
-    inset 0 1px 0 rgba(255, 255, 255, .06);
-}
-
-html[data-theme="dark"] .app-nav.workspace-chrome button.dash-switch-hero:hover,
-html[data-theme="dark"] .app-nav.workspace-chrome button.dash-switch-hero:focus-visible,
-html[data-theme="dark"] .app-nav.workspace-chrome .theme-toggle:hover,
-html[data-theme="dark"] .app-nav.workspace-chrome .theme-toggle:focus-visible,
-html[data-theme="dark"] .app-nav.workspace-chrome .background-tone-trigger:hover,
-html[data-theme="dark"] .app-nav.workspace-chrome .background-tone-trigger:focus-visible,
-html[data-theme="dark"] .app-nav.workspace-chrome .panel-reset-button:hover,
-html[data-theme="dark"] .app-nav.workspace-chrome .panel-reset-button:focus-visible,
-html[data-theme="dark"] .app-nav.workspace-chrome .panel-undo-button:hover,
-html[data-theme="dark"] .app-nav.workspace-chrome .panel-undo-button:focus-visible,
-html[data-theme="dark"] .app-nav.workspace-chrome .layout-slot-button:hover,
-html[data-theme="dark"] .app-nav.workspace-chrome .layout-slot-button:focus-visible,
-html[data-theme="dark"] .app-nav.workspace-chrome .layout-slot-trigger:hover,
-html[data-theme="dark"] .app-nav.workspace-chrome .layout-slot-trigger:focus-visible,
-html[data-theme="dark"] .app-nav.workspace-chrome .workspace-mode-button:hover,
-html[data-theme="dark"] .app-nav.workspace-chrome .workspace-mode-button:focus-visible,
-html[data-theme="dark"] .app-nav.workspace-chrome .nav-status-icon-only:hover,
-html[data-theme="dark"] .app-nav.workspace-chrome .nav-status-icon-only:focus-visible,
-html[data-theme="dark"] .app-nav.workspace-chrome .cmd-btn-icon-only:hover,
-html[data-theme="dark"] .app-nav.workspace-chrome .cmd-btn-icon-only:focus-visible {
-  border-color: var(--dark-glass-border-hover);
-  background: var(--dark-glass-control-hover-bg);
-  color: #f6f9fd;
-  box-shadow:
-    0 12px 28px rgba(0, 0, 0, .28),
-    inset 0 1px 0 rgba(255, 255, 255, .088),
-    inset 0 0 0 1px rgba(255, 255, 255, .026);
-}
-
-html[data-theme="dark"] .app-nav.workspace-chrome .composition-add-button:hover,
-html[data-theme="dark"] .app-nav.workspace-chrome .composition-add-button:focus-visible,
-html[data-theme="dark"] .app-nav.workspace-chrome .panel-add-picker:focus-within .composition-add-button {
-  border-color: color-mix(in srgb, var(--blue) 12%, var(--dark-glass-border-hover));
-  background:
-    radial-gradient(circle at 34% 24%, rgba(255, 255, 255, .15), transparent 38%),
-    var(--dark-glass-control-active-bg),
-    color-mix(in srgb, rgba(39, 55, 80, .90) 84%, var(--blue) 16%);
-}
-
-html[data-theme="dark"] .app-nav.workspace-chrome .workspace-mode-button[aria-pressed="true"],
-html[data-theme="dark"] .app-nav.workspace-chrome .layout-group-button[aria-pressed="true"] {
-  border-color: color-mix(in srgb, var(--blue) 14%, var(--dark-glass-border-hover));
-  background:
-    var(--dark-glass-control-active-bg),
-    color-mix(in srgb, rgba(35, 49, 72, .78) 88%, var(--blue) 12%);
-  color: #f6f9fd;
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, .06),
-    inset 0 -1px 0 rgba(134, 172, 210, .12);
-}
-
-html[data-theme="dark"] .app-nav.workspace-chrome .panel-add-menu,
-html[data-theme="dark"] .app-nav.workspace-chrome .layout-slot-menu,
-html[data-theme="dark"] .app-nav.workspace-chrome .dash-switch-menu,
-html[data-theme="dark"] .app-nav.workspace-chrome .nav-status-popover,
-html[data-theme="dark"] .app-nav.workspace-chrome .background-tone-popover {
-  border-color: var(--dark-glass-border);
-  background:
-    var(--dark-glass-surface-bg),
-    var(--glass-surface);
-  box-shadow:
-    var(--dark-glass-shadow),
-    inset 0 1px 0 var(--dark-glass-highlight);
-}
-
-/* Dark widget/panel parity: keep colored identity without neon outer rims. */
-html[data-theme="dark"] .panel-layout > .db-panel:not(.db-panel-custom-color),
-html[data-theme="dark"] .widget-layout > .stat-card.widget-card:not(.db-panel-custom-color) {
-  background:
-    var(--dark-glass-panel-bg),
-    var(--glass-surface) !important;
-}
-
-html[data-theme="dark"] .panel-layout > .db-panel,
-html[data-theme="dark"] .widget-layout > .stat-card.widget-card,
-html[data-theme="dark"] .widget-layout > .widget-card.db-panel-custom-color,
-html[data-theme="dark"] .widget-layout > .widget-card.stat-danger,
-html[data-theme="dark"] .widget-layout > .widget-card.stat-warn,
-html[data-theme="dark"] .widget-layout > .widget-card.stat-purple {
-  border-color: var(--dark-glass-border) !important;
-  box-shadow:
-    var(--dark-glass-shadow) !important;
-  outline-color: rgba(192, 207, 226, .045);
-}
-
-html[data-theme="dark"] .panel-layout > .db-panel:hover,
-html[data-theme="dark"] .panel-layout > .db-panel:focus-within,
-html[data-theme="dark"] .panel-layout > .db-panel.db-panel-tools-open,
-html[data-theme="dark"] .widget-layout > .stat-card.widget-card:hover,
-html[data-theme="dark"] .widget-layout > .stat-card.widget-card:focus-visible,
-html[data-theme="dark"] .widget-layout > .stat-card.widget-card:focus-within,
-html[data-theme="dark"] .range-bar.widget-card:hover,
-html[data-theme="dark"] .range-bar.widget-card:focus-within,
-html[data-theme="dark"] .widget-layout > .widget-card.widget-tools-open,
-html[data-theme="dark"] .widget-layout > .widget-card.db-panel-custom-color:hover,
-html[data-theme="dark"] .widget-layout > .widget-card.db-panel-custom-color:focus-visible,
-html[data-theme="dark"] .widget-layout > .widget-card.db-panel-custom-color:focus-within,
-html[data-theme="dark"] .widget-layout > .widget-card.db-panel-custom-color.widget-tools-open {
-  border-color: var(--dark-glass-border-hover) !important;
-  box-shadow:
-    0 28px 66px rgba(0, 0, 0, .46),
-    inset 0 1px 0 rgba(255, 255, 255, .074),
-    inset 0 0 0 1px rgba(255, 255, 255, .026) !important;
-}
-
-html[data-theme="dark"] .widget-layout > .stat-card.widget-card.active,
-html[data-theme="dark"] .widget-layout > .widget-card.db-panel-custom-color.active,
-html[data-theme="dark"] .widget-layout > .widget-card.stat-danger.active,
-html[data-theme="dark"] .widget-layout > .widget-card.stat-warn.active,
-html[data-theme="dark"] .widget-layout > .widget-card.stat-purple.active {
-  border-color: var(--dark-glass-border-hover) !important;
-  border-top-color: var(--dark-glass-border-hover) !important;
-  border-right-color: var(--dark-glass-border-hover) !important;
-  border-bottom-color: var(--dark-glass-border-hover) !important;
-  border-left-color: var(--dark-glass-border-hover) !important;
-  outline: 2px solid rgba(174, 190, 211, .30) !important;
-  outline-offset: -3px !important;
-  box-shadow:
-    0 28px 66px rgba(0, 0, 0, .46),
-    inset 0 1px 0 rgba(255, 255, 255, .074),
-    inset 0 0 0 1px rgba(255, 255, 255, .035) !important;
-}
-
-html[data-theme="dark"] .widget-layout > .widget-card.group-selected,
-html[data-theme="dark"] .panel-layout > .db-panel.group-selected {
-  outline: 1.5px solid rgba(174, 190, 211, .34) !important;
-  outline-offset: 5px !important;
-  box-shadow:
-    var(--dark-glass-shadow),
-    inset 0 0 0 1px rgba(255, 255, 255, .035) !important;
-}
-
-html[data-theme="dark"] .widget-layout > .widget-card.active.group-selected,
-html[data-theme="dark"] .widget-layout > .widget-card.db-panel-custom-color.active.group-selected {
-  outline: 1.5px solid rgba(174, 190, 211, .34) !important;
-  outline-offset: 5px !important;
-  box-shadow:
-    var(--dark-glass-shadow),
-    inset 0 1px 0 rgba(255, 255, 255, .06),
-    inset 0 0 0 1px rgba(255, 255, 255, .035) !important;
-}
-
-html[data-theme="dark"] .widget-dragging,
-html[data-theme="dark"] .db-panel-dragging,
-html[data-theme="dark"] .dashboard-live-resize {
-  border-color: rgba(142, 160, 186, .50) !important;
-  box-shadow:
-    0 32px 76px rgba(0, 0, 0, .54),
-    inset 0 1px 0 rgba(255, 255, 255, .06) !important;
-}
-
-html[data-theme="dark"] .dashboard-live-resize.group-selected {
-  border-color: rgba(174, 190, 211, .34) !important;
-  outline: 1.5px solid rgba(174, 190, 211, .34) !important;
-  outline-offset: 5px !important;
-  box-shadow:
-    0 30px 72px rgba(15, 23, 42, .52),
-    0 0 0 1px rgba(180, 195, 214, .10),
-    inset 0 1px 0 rgba(255, 255, 255, .05) !important;
+  .app-nav.workspace-chrome .layout-slot-controls {
+    flex-wrap: wrap;
+  }
 }
 

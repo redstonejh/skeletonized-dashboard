@@ -118,7 +118,7 @@ Exit criteria:
 
 - Visual language matches the existing dashboard.
 - No hard-coded blue.
-- Light/dark mode and at least two theme presets are verified by screenshots.
+- Default/deep backgrounds and at least two background presets are verified by screenshots.
 
 ## Phase 6: Stabilization And Test Expansion
 

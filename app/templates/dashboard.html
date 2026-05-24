@@ -25,6 +25,9 @@
         <a class="dash-switch-opt dash-switch-opt-active" href="/dashboard" aria-current="page">
           <span><strong>{{ dashboard.title }}</strong><small>Builder workspace</small></span>
         </a>
+        <a class="dash-switch-opt" href="/settings">
+          <span><strong>Workspace settings</strong><small>Configure environment</small></span>
+        </a>
       </div>
       </div>
     </div>
@@ -63,73 +66,60 @@
       <button class="workspace-mode-button engineer-mode-button" type="button" data-workspace-mode="engineer" aria-pressed="false" title="Engineer Mode">Engineer</button>
       <button class="workspace-mode-button context-view-button" type="button" data-workspace-mode="context" aria-pressed="false" title="Context View">Context</button>
     </div>
-    <div class="workspace-command-island context-command-island" aria-label="Workspace context">
-      <details class="nav-status-menu">
-        <summary class="nav-status-item nav-status-icon-only nav-status-good" aria-label="Workspace ready" title="Workspace ready">
-          <span class="nav-icon nav-icon-sync" aria-hidden="true"></span>
-        </summary>
-        <div class="nav-status-popover">
-          <strong>Workspace</strong>
-          <dl>
-            <div><dt>Status</dt><dd>Ready</dd></div>
-            <div><dt>Panels</dt><dd>{{ panels | length }}</dd></div>
-            <div><dt>Widgets</dt><dd>{{ widgets | length }}</dd></div>
-          </dl>
-        </div>
-      </details>
-    </div>
   </div>
   <div class="app-nav-actions">
     <div class="workspace-command-island appearance-command-island" aria-label="Appearance and environment">
       <details class="background-tone-menu">
       <summary class="background-tone-trigger" aria-label="Workspace background" title="Workspace background"><span class="background-tone-dot" aria-hidden="true"></span></summary>
       <div class="background-tone-popover">
-        <div class="background-tone-group background-tone-group-light" aria-label="Light backgrounds">
-          <span class="background-tone-label">Light</span>
-          <button type="button" class="background-tone-option" data-background-mode="light" data-background-tone="warm-white">Warm white</button>
-          <button type="button" class="background-tone-option" data-background-mode="light" data-background-tone="cool-white">Cool white</button>
-          <button type="button" class="background-tone-option" data-background-mode="light" data-background-tone="soft-grey">Soft grey</button>
-          <button type="button" class="background-tone-option" data-background-mode="light" data-background-tone="cool-grey">Cool grey</button>
-          <button type="button" class="background-tone-option" data-background-mode="light" data-background-tone="medium-cool-grey">Medium cool grey</button>
-          <button type="button" class="background-tone-option" data-background-mode="light" data-background-tone="darker-soft-grey">Darker soft grey</button>
-          <button type="button" class="background-tone-option" data-background-mode="light" data-background-tone="warm-grey">Warm grey</button>
-          <button type="button" class="background-tone-option" data-background-mode="light" data-background-tone="slate">Slate</button>
-          <button type="button" class="background-tone-option" data-background-mode="light" data-background-tone="slate-grey">Slate grey</button>
-          <button type="button" class="background-tone-option" data-background-mode="light" data-background-tone="graphite-light">Graphite light</button>
-          <button type="button" class="background-tone-option" data-background-mode="light" data-background-tone="graphite-grey">Graphite grey</button>
-          <button type="button" class="background-tone-option" data-background-mode="light" data-background-tone="light-blue-grey">Blue grey</button>
-          <button type="button" class="background-tone-option" data-background-mode="light" data-background-tone="muted-blue-grey">Muted blue grey</button>
-          <button type="button" class="background-tone-option" data-background-mode="light" data-background-tone="blue-slate">Blue slate</button>
-          <button type="button" class="background-tone-option" data-background-mode="light" data-background-tone="neutral-dim">Neutral dim</button>
-          <button type="button" class="background-tone-option" data-background-mode="light" data-background-tone="stone-slate">Stone slate</button>
-          <button type="button" class="background-tone-option" data-background-mode="light" data-background-tone="stone-grey">Stone grey</button>
-          <button type="button" class="background-tone-option" data-background-mode="light" data-background-tone="industrial-grey">Muted industrial grey</button>
-          <button type="button" class="background-tone-option" data-background-mode="light" data-background-tone="blue-mist">Blue mist</button>
-          <button type="button" class="background-tone-option" data-background-mode="light" data-background-tone="frosted-light">Frosted</button>
+        <div class="background-tone-group background-tone-group-bright" aria-label="Bright backgrounds">
+          <span class="background-tone-label">Bright</span>
+          <button type="button" class="background-tone-option" data-background-tone="warm-white">Warm white</button>
+          <button type="button" class="background-tone-option" data-background-tone="cool-white">Cool white</button>
+          <button type="button" class="background-tone-option" data-background-tone="soft-grey">Soft grey</button>
+          <button type="button" class="background-tone-option" data-background-tone="cool-grey">Cool grey</button>
+          <button type="button" class="background-tone-option" data-background-tone="medium-cool-grey">Medium cool grey</button>
+          <button type="button" class="background-tone-option" data-background-tone="darker-soft-grey">Darker soft grey</button>
+          <button type="button" class="background-tone-option" data-background-tone="warm-grey">Warm grey</button>
+          <button type="button" class="background-tone-option" data-background-tone="slate">Slate</button>
+          <button type="button" class="background-tone-option" data-background-tone="slate-grey">Slate grey</button>
+          <button type="button" class="background-tone-option" data-background-tone="graphite-light">Graphite light</button>
+          <button type="button" class="background-tone-option" data-background-tone="graphite-grey">Graphite grey</button>
+          <button type="button" class="background-tone-option" data-background-tone="light-blue-grey">Blue grey</button>
+          <button type="button" class="background-tone-option" data-background-tone="muted-blue-grey">Muted blue grey</button>
+          <button type="button" class="background-tone-option" data-background-tone="blue-slate">Blue slate</button>
+          <button type="button" class="background-tone-option" data-background-tone="neutral-dim">Neutral dim</button>
+          <button type="button" class="background-tone-option" data-background-tone="stone-slate">Stone slate</button>
+          <button type="button" class="background-tone-option" data-background-tone="stone-grey">Stone grey</button>
+          <button type="button" class="background-tone-option" data-background-tone="industrial-grey">Muted industrial grey</button>
+          <button type="button" class="background-tone-option" data-background-tone="blue-mist">Blue mist</button>
+          <button type="button" class="background-tone-option" data-background-tone="frosted-light">Frosted</button>
         </div>
-        <div class="background-tone-group background-tone-group-dark" aria-label="Dark backgrounds">
-          <span class="background-tone-label">Dark</span>
-          <button type="button" class="background-tone-option" data-background-mode="dark" data-background-tone="charcoal">Charcoal</button>
-          <button type="button" class="background-tone-option" data-background-mode="dark" data-background-tone="soft-charcoal">Soft charcoal</button>
-          <button type="button" class="background-tone-option" data-background-mode="dark" data-background-tone="graphite">Graphite</button>
-          <button type="button" class="background-tone-option" data-background-mode="dark" data-background-tone="soft-black">Soft black</button>
-          <button type="button" class="background-tone-option" data-background-mode="dark" data-background-tone="deep-navy">Deep navy</button>
-          <button type="button" class="background-tone-option" data-background-mode="dark" data-background-tone="muted-navy">Muted navy</button>
-          <button type="button" class="background-tone-option" data-background-mode="dark" data-background-tone="dark-blue-grey">Blue grey</button>
-          <button type="button" class="background-tone-option" data-background-mode="dark" data-background-tone="deep-slate">Deep slate</button>
-          <button type="button" class="background-tone-option" data-background-mode="dark" data-background-tone="dark-glass">Dark glass</button>
-          <button type="button" class="background-tone-option" data-background-mode="dark" data-background-tone="low-neon">Low neon</button>
-          <button type="button" class="background-tone-option" data-background-mode="dark" data-background-tone="midnight-blue">Midnight</button>
-          <button type="button" class="background-tone-option" data-background-mode="dark" data-background-tone="dark-frosted">Frosted</button>
+        <div class="background-tone-group background-tone-group-deep" aria-label="Deep backgrounds">
+          <span class="background-tone-label">Deep</span>
+          <button type="button" class="background-tone-option" data-background-tone="black">Black</button>
+          <button type="button" class="background-tone-option" data-background-tone="near-black">Near black</button>
+          <button type="button" class="background-tone-option" data-background-tone="soft-black">Soft black</button>
+          <button type="button" class="background-tone-option" data-background-tone="warm-near-black">Warm near black</button>
+          <button type="button" class="background-tone-option" data-background-tone="charcoal">Charcoal</button>
+          <button type="button" class="background-tone-option" data-background-tone="soft-charcoal">Soft charcoal</button>
+          <button type="button" class="background-tone-option" data-background-tone="graphite">Graphite</button>
+          <button type="button" class="background-tone-option" data-background-tone="gunmetal">Gunmetal</button>
+          <button type="button" class="background-tone-option" data-background-tone="dark-grey">Dark grey</button>
+          <button type="button" class="background-tone-option" data-background-tone="dark-blue-grey">Dark blue grey</button>
+          <button type="button" class="background-tone-option" data-background-tone="deep-navy">Deep navy</button>
+          <button type="button" class="background-tone-option" data-background-tone="desaturated-dark-blue">Desaturated dark blue</button>
+          <button type="button" class="background-tone-option" data-background-tone="muted-navy">Muted navy</button>
+          <button type="button" class="background-tone-option" data-background-tone="muted-midnight-blue">Muted midnight blue</button>
+          <button type="button" class="background-tone-option" data-background-tone="deep-slate">Deep slate</button>
+          <button type="button" class="background-tone-option" data-background-tone="cool-dark-steel">Cool dark steel</button>
+          <button type="button" class="background-tone-option" data-background-tone="dark-steel">Dark steel</button>
+          <button type="button" class="background-tone-option" data-background-tone="soft-cinema">Soft cinema</button>
+          <button type="button" class="background-tone-option" data-background-tone="dark-frosted">Frosted deep</button>
         </div>
       </div>
       </details>
-      <button class="theme-toggle" type="button" aria-label="Switch dashboard theme" title="Toggle dark mode">
-        <span class="theme-icon theme-icon-day" aria-hidden="true">☀</span>
-        <span class="theme-icon theme-icon-night" aria-hidden="true">☾</span>
-      </button>
       <button class="panel-reset-button restore-layout-button" type="button" data-layout-target="builder" aria-label="Restore default layout" title="Restore default layout">Restore</button>
-      <a class="cmd-btn cmd-btn-icon-only" href="/settings" aria-label="Configure" title="Configure"><span class="btn-icon btn-icon-settings" aria-hidden="true"></span></a>
     </div>
   </div>
 </header>

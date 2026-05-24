@@ -415,7 +415,7 @@ Avoid strict frame budgets initially. Prefer cleanup and bounded-work assertions
 - Avoid layout-affecting hover transitions.
 - Prefer active-interaction transition suppression.
 - Keep text/icon alignment stable across states.
-- Use theme tokens rather than hardcoded performance shortcuts.
+- Use shared material tokens rather than hardcoded performance shortcuts.
 
 ## Test Suite Performance
 

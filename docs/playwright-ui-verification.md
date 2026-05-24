@@ -2,7 +2,7 @@
 
 ## Purpose
 
-The dashboard relies heavily on visual interaction quality, animation, drag/resize previews, theme consistency, and spatial behavior that unit tests alone cannot verify.
+The dashboard relies heavily on visual interaction quality, animation, drag/resize previews, material consistency, and spatial behavior that unit tests alone cannot verify.
 
 Passing pytest is not sufficient proof that dashboard interactions visually work as intended.
 
@@ -106,15 +106,15 @@ Playwright coverage should assert:
 - Assert compact row span is restored.
 - Assert no overlaps are visible.
 
-## Theme Verification
+## Material And Background Verification
 
-Theme regressions are visual bugs.
+Material and background regressions are visual bugs.
 
-Verify in light and dark mode:
+Verify on the default background and at least one deep background:
 
 - Dashboard surfaces remain visible and readable.
 - Borders are subtle but visible.
-- Dark mode does not reintroduce neon or electric blue outlines.
+- Deep backgrounds do not trigger alternate component styling, neon edges, or electric outlines.
 - Hover, focus, active, and open states are consistent between panels and widgets.
 - Resize/drag placeholders, live clones, ghosts, menus, and toolbar controls remain visible.
 - Text and icons maintain contrast.
@@ -122,7 +122,7 @@ Verify in light and dark mode:
 Visual regression screenshots are required when changes affect:
 
 - Global tokens
-- Theme overrides
+- Shared material tokens
 - Dashboard surface borders or shadows
 - Toolbar/nav controls
 - Drag, resize, placeholder, or ghost styling
@@ -134,17 +134,17 @@ The top nav must feel connected to the dashboard, not like detached browser chro
 
 Verify:
 
-- The toolbar is readable in light mode.
-- The toolbar is readable in dark mode.
+- The toolbar is readable on the default background.
+- The toolbar is readable on a deep background.
 - Controls share the dashboard glass language.
 - Hover and focus feedback are visible but restrained.
 - Menus open above the dashboard and are not clipped.
-- Theme toggle, background controls, layout slot controls, add menu, reset/undo/group controls, status, and settings remain usable.
+- Background controls, layout slot controls, add menu, reset/undo/group controls, status, and settings remain usable.
 
 Playwright coverage should assert both behavior and visual state:
 
 - Menu open/close behavior.
-- Theme toggle state.
+- Background picker state.
 - Layout slot dropdown visibility.
 - Add menu visibility and options.
 - Computed backgrounds, borders, and shadows for key chrome elements.
@@ -225,8 +225,8 @@ def test_collapse_expand_pushdown(page):
 ```
 
 ```python
-def test_theme_interaction_screenshots(page):
-    # Capture light and dark screenshots for dashboard,
+def test_material_interaction_screenshots(page):
+    # Capture default and deep-background screenshots for dashboard,
     # toolbar, drag/resize preview states, and menus.
 ```
 

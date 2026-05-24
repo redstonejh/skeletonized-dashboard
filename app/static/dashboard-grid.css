@@ -122,6 +122,12 @@
   --panel-lock-border: rgba(37, 99, 235, .26);
   --panel-lock-glow: rgba(37, 99, 235, .18);
   --panel-drawer-bg: rgba(37, 99, 235, .18);
+  --panel-drawer-border: color-mix(in srgb, var(--panel-lock-fg) 42%, var(--line));
+  --panel-control-hover-border: currentColor;
+  --panel-control-rest-shadow: 0 8px 18px var(--panel-lock-glow), inset 0 1px 0 rgba(255, 255, 255, .18);
+  --panel-control-hover-shadow: 0 6px 14px color-mix(in srgb, var(--panel-lock-glow) 74%, transparent), inset 0 1px 0 var(--panel-hover-inset), inset 0 -1px 0 color-mix(in srgb, var(--panel-lock-fg) 12%, transparent);
+  --panel-control-active-shadow: 0 3px 8px color-mix(in srgb, var(--panel-lock-glow) 62%, transparent), inset 0 1px 0 color-mix(in srgb, var(--panel-hover-inset) 86%, transparent), inset 0 2px 5px color-mix(in srgb, var(--panel-lock-fg) 12%, rgba(15, 23, 42, .10));
+  --panel-drawer-shadow: 0 14px 32px rgba(15, 23, 42, .18), 0 4px 14px color-mix(in srgb, var(--panel-lock-glow) 62%, transparent), inset 0 1px 0 rgba(255, 255, 255, .16);
   position: absolute;
   top: 50%;
   right: var(--dashboard-control-inset, 18px);
@@ -160,8 +166,8 @@ body.layout-tools-active .widget-card:not(.widget-tools-open):not(:has(> .widget
   border: 1.5px solid var(--panel-lock-border, rgba(37, 99, 235, .24));
   border-radius: 24px;
   background: color-mix(in srgb, var(--surface-raised) 92%, var(--panel-lock-fg) 8%);
-  border-color: color-mix(in srgb, var(--panel-lock-fg) 42%, var(--line));
-  box-shadow: 0 14px 32px rgba(15, 23, 42, .18), 0 0 18px var(--panel-lock-glow, rgba(37, 99, 235, .16));
+  border-color: var(--panel-drawer-border);
+  box-shadow: var(--panel-drawer-shadow, 0 14px 32px rgba(15, 23, 42, .18));
   backdrop-filter: none;
   -webkit-backdrop-filter: none;
   visibility: hidden;
@@ -209,19 +215,19 @@ body.layout-tools-active .widget-card:not(.widget-tools-open):not(:has(> .widget
 .widget-card.db-panel-pinned::after {
   content: "";
   position: absolute;
-  top: 9px;
-  left: 9px;
+  top: 12px;
+  left: 12px;
   z-index: var(--z-dropdown);
   width: 7px;
   height: 7px;
-  border: 1.5px solid color-mix(in srgb, white 76%, var(--panel-accent, var(--blue)) 24%);
+  border: 1px solid color-mix(in srgb, var(--panel-accent, var(--blue)) 46%, rgba(15, 23, 42, .42));
   border-radius: 999px;
   background:
-    radial-gradient(circle at 35% 28%, rgba(255, 255, 255, .55), transparent 42%),
-    color-mix(in srgb, var(--surface-raised) 38%, var(--panel-accent, var(--blue)) 62%);
+    linear-gradient(180deg, rgba(255, 255, 255, .48), rgba(255, 255, 255, .14)),
+    color-mix(in srgb, var(--glass-surface-strong) 72%, var(--panel-accent, var(--blue)) 28%);
   box-shadow:
-    0 5px 12px rgba(15, 23, 42, .14),
-    inset 0 1px 0 rgba(255, 255, 255, .28);
+    0 1px 3px rgba(15, 23, 42, .12),
+    inset 0 1px 0 rgba(255, 255, 255, .24);
   pointer-events: none;
 }
 
@@ -728,6 +734,10 @@ body.layout-tools-active .widget-card:not(.widget-tools-open):not(:has(> .widget
   --panel-lock-fg: var(--blue);
   --panel-lock-border: rgba(37, 99, 235, .26);
   --panel-lock-glow: rgba(37, 99, 235, .18);
+  --panel-control-hover-border: currentColor;
+  --panel-control-rest-shadow: 0 8px 18px var(--panel-lock-glow), inset 0 1px 0 rgba(255, 255, 255, .18);
+  --panel-control-hover-shadow: 0 6px 14px color-mix(in srgb, var(--panel-lock-glow) 74%, transparent), inset 0 1px 0 var(--panel-hover-inset), inset 0 -1px 0 color-mix(in srgb, var(--panel-lock-fg) 12%, transparent);
+  --panel-control-active-shadow: 0 3px 8px color-mix(in srgb, var(--panel-lock-glow) 62%, transparent), inset 0 1px 0 color-mix(in srgb, var(--panel-hover-inset) 86%, transparent), inset 0 2px 5px color-mix(in srgb, var(--panel-lock-fg) 12%, rgba(15, 23, 42, .10));
   position: relative;
   display: inline-flex;
   align-items: center;
@@ -740,7 +750,7 @@ body.layout-tools-active .widget-card:not(.widget-tools-open):not(:has(> .widget
   border-radius: 999px;
   background: var(--panel-lock-bg);
   color: var(--panel-lock-fg);
-  box-shadow: 0 8px 18px var(--panel-lock-glow), inset 0 1px 0 rgba(255, 255, 255, .18);
+  box-shadow: var(--panel-control-rest-shadow);
   cursor: pointer;
   flex-shrink: 0;
   transition: transform .14s ease, border-color .16s ease, background .16s ease, box-shadow .16s ease;
@@ -748,18 +758,30 @@ body.layout-tools-active .widget-card:not(.widget-tools-open):not(:has(> .widget
 
 .panel-lock-toggle:hover,
 .panel-lock-toggle:focus-visible,
-.panel-lock-toggle:active,
 .panel-pin-toggle:hover,
-.panel-pin-toggle:focus-visible,
-.panel-pin-toggle:active {
-  transform: none;
+.panel-pin-toggle:focus-visible {
   background: color-mix(in srgb, var(--panel-lock-bg) 75%, var(--panel-hover-tint));
-  border-color: currentColor;
-  box-shadow: 0 14px 28px var(--panel-lock-glow), 0 0 22px var(--panel-lock-glow), inset 0 1px 0 var(--panel-hover-inset);
+  border-color: var(--panel-control-hover-border);
+  box-shadow: var(--panel-control-hover-shadow);
+}
+
+.panel-lock-toggle:hover,
+.panel-pin-toggle:hover {
+  transform: var(--pressable-hover-transform);
+}
+
+.panel-lock-toggle:active,
+.panel-pin-toggle:active,
+.panel-pin-toggle[aria-pressed="true"] {
+  transform: var(--pressable-active-transform);
+  background: color-mix(in srgb, var(--panel-lock-bg) 75%, var(--panel-hover-tint));
+  border-color: var(--panel-control-hover-border);
+  box-shadow: var(--panel-control-active-shadow);
 }
 
 .panel-lock-toggle:focus-visible,
 .panel-pin-toggle:focus-visible {
+  transform: var(--pressable-focus-transform);
   outline: 2px solid currentColor;
   outline-offset: 2px;
 }
@@ -792,27 +814,25 @@ body.layout-tools-active .widget-card:not(.widget-tools-open):not(:has(> .widget
 
 .pin-icon {
   display: block;
-  width: 14px;
-  height: 14px;
+  width: 16px;
+  height: 16px;
   background: currentColor;
-  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.9' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 15.5v4.5'/%3E%3Cpath d='M8.25 15.5h7.5'/%3E%3Cpath d='M9.35 6.2h5.3'/%3E%3Cpath d='M10.1 6.2 9.2 15.5h5.6l-.9-9.3'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.15' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 16.5V22'/%3E%3Cpath d='M5.5 16.5h13'/%3E%3Cpath d='M8 3h8'/%3E%3Cpath d='M9 3 8 12.2l-2.5 4.3h13L16 12.2 15 3'/%3E%3C/svg%3E");
   mask-repeat: no-repeat;
   mask-position: center;
   mask-size: contain;
-  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.9' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 15.5v4.5'/%3E%3Cpath d='M8.25 15.5h7.5'/%3E%3Cpath d='M9.35 6.2h5.3'/%3E%3Cpath d='M10.1 6.2 9.2 15.5h5.6l-.9-9.3'/%3E%3C/svg%3E");
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.15' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 16.5V22'/%3E%3Cpath d='M5.5 16.5h13'/%3E%3Cpath d='M8 3h8'/%3E%3Cpath d='M9 3 8 12.2l-2.5 4.3h13L16 12.2 15 3'/%3E%3C/svg%3E");
   -webkit-mask-repeat: no-repeat;
   -webkit-mask-position: center;
   -webkit-mask-size: contain;
 }
 
 .db-panel-pinned .panel-pin-toggle {
-  background:
-    linear-gradient(180deg, color-mix(in srgb, var(--surface-raised) 82%, var(--panel-lock-fg) 18%), color-mix(in srgb, var(--panel-lock-bg) 72%, transparent));
-  border-color: color-mix(in srgb, currentColor 58%, var(--panel-lock-border));
+  background: var(--panel-lock-bg);
+  border-color: color-mix(in srgb, currentColor 38%, var(--panel-lock-border));
   box-shadow:
-    0 10px 22px color-mix(in srgb, var(--panel-lock-glow) 58%, transparent),
-    inset 0 1px 0 var(--panel-hover-inset),
-    inset 0 -1px 0 color-mix(in srgb, currentColor 14%, transparent);
+    0 8px 18px var(--panel-lock-glow),
+    inset 0 1px 0 rgba(255, 255, 255, .18);
 }
 
 .db-panel-pinned {
@@ -822,20 +842,25 @@ body.layout-tools-active .widget-card:not(.widget-tools-open):not(:has(> .widget
 .db-panel-pinned::after {
   content: "";
   position: absolute;
-  top: 10px;
-  left: 10px;
+  top: 12px;
+  left: 12px;
   z-index: var(--z-dropdown);
   width: 7px;
   height: 7px;
-  border: 1.5px solid color-mix(in srgb, white 76%, var(--panel-accent, var(--blue)) 24%);
+  border: 1px solid color-mix(in srgb, var(--panel-accent, var(--blue)) 46%, rgba(15, 23, 42, .42));
   border-radius: 999px;
   background:
-    radial-gradient(circle at 35% 28%, rgba(255, 255, 255, .55), transparent 42%),
-    color-mix(in srgb, var(--surface-raised) 38%, var(--panel-accent, var(--blue)) 62%);
+    linear-gradient(180deg, rgba(255, 255, 255, .48), rgba(255, 255, 255, .14)),
+    color-mix(in srgb, var(--glass-surface-strong) 72%, var(--panel-accent, var(--blue)) 28%);
   box-shadow:
-    0 5px 12px rgba(15, 23, 42, .14),
-    inset 0 1px 0 rgba(255, 255, 255, .28);
+    0 1px 3px rgba(15, 23, 42, .12),
+    inset 0 1px 0 rgba(255, 255, 255, .24);
   pointer-events: none;
+}
+
+.db-panel-pinned::before {
+  content: none;
+  display: none;
 }
 
 .db-panel-pinned .panel-move-handle,
@@ -973,6 +998,12 @@ body.panel-interaction-active .dashboard-active-resize {
   --panel-lock-border: rgba(37, 99, 235, .26);
   --panel-lock-glow: rgba(37, 99, 235, .18);
   --panel-drawer-bg: rgba(37, 99, 235, .18);
+  --panel-drawer-border: color-mix(in srgb, var(--panel-lock-fg) 42%, var(--line));
+  --panel-control-hover-border: currentColor;
+  --panel-control-rest-shadow: 0 8px 18px var(--panel-lock-glow), inset 0 1px 0 rgba(255, 255, 255, .18);
+  --panel-control-hover-shadow: 0 6px 14px color-mix(in srgb, var(--panel-lock-glow) 74%, transparent), inset 0 1px 0 var(--panel-hover-inset), inset 0 -1px 0 color-mix(in srgb, var(--panel-lock-fg) 12%, transparent);
+  --panel-control-active-shadow: 0 3px 8px color-mix(in srgb, var(--panel-lock-glow) 62%, transparent), inset 0 1px 0 color-mix(in srgb, var(--panel-hover-inset) 86%, transparent), inset 0 2px 5px color-mix(in srgb, var(--panel-lock-fg) 12%, rgba(15, 23, 42, .10));
+  --panel-drawer-shadow: 0 14px 32px rgba(15, 23, 42, .18), 0 4px 14px color-mix(in srgb, var(--panel-lock-glow) 62%, transparent), inset 0 1px 0 rgba(255, 255, 255, .16);
   position: relative;
   display: inline-flex;
   align-items: center;
@@ -999,8 +1030,8 @@ body.layout-tools-active .db-panel:not(.db-panel-tools-open):not(:has(.panel-too
   border: 1.5px solid var(--panel-lock-border, rgba(37, 99, 235, .24));
   border-radius: 24px;
   background: color-mix(in srgb, var(--surface-raised) 92%, var(--panel-lock-fg) 8%);
-  border-color: color-mix(in srgb, var(--panel-lock-fg) 42%, var(--line));
-  box-shadow: 0 14px 32px rgba(15, 23, 42, .18), 0 0 18px var(--panel-lock-glow, rgba(37, 99, 235, .16));
+  border-color: var(--panel-drawer-border);
+  box-shadow: var(--panel-drawer-shadow, 0 14px 32px rgba(15, 23, 42, .18));
   backdrop-filter: none;
   -webkit-backdrop-filter: none;
   visibility: hidden;
@@ -1048,7 +1079,7 @@ body.layout-tools-active .db-panel:not(.db-panel-tools-open):not(:has(.panel-too
   border-radius: 999px;
   background: var(--panel-lock-bg);
   color: var(--panel-lock-fg);
-  box-shadow: 0 8px 18px var(--panel-lock-glow), inset 0 1px 0 rgba(255, 255, 255, .18);
+  box-shadow: var(--panel-control-rest-shadow);
   cursor: pointer;
   flex-shrink: 0;
   opacity: 1;
@@ -1075,25 +1106,33 @@ body.layout-tools-active .db-panel:not(.db-panel-tools-open):not(:has(.panel-too
 
 .panel-settings-toggle:hover,
 .panel-settings-toggle:focus-visible,
-.panel-settings-toggle:active,
 .db-panel-tools-open .panel-settings-toggle,
 .widget-tools-open .panel-settings-toggle,
 .panel-tool-button:hover,
-.panel-tool-button:focus-visible,
-.panel-tool-button:active {
-  transform: translateY(-1px);
+.panel-tool-button:focus-visible {
   background: color-mix(in srgb, var(--panel-lock-bg) 75%, var(--panel-hover-tint));
-  border-color: currentColor;
-  box-shadow: 0 14px 28px var(--panel-lock-glow), 0 0 22px var(--panel-lock-glow), inset 0 1px 0 var(--panel-hover-inset);
+  border-color: var(--panel-control-hover-border);
+  box-shadow: var(--panel-control-hover-shadow);
 }
 
+.panel-settings-toggle:hover,
+.panel-tool-button:hover {
+  transform: var(--pressable-hover-transform);
+}
+
+.db-panel-tools-open .panel-settings-toggle,
+.widget-tools-open .panel-settings-toggle,
 .panel-tool-button:active,
 .panel-settings-toggle:active {
-  transform: translateY(1px);
+  transform: var(--pressable-active-transform);
+  background: color-mix(in srgb, var(--panel-lock-bg) 75%, var(--panel-hover-tint));
+  border-color: var(--panel-control-hover-border);
+  box-shadow: var(--panel-control-active-shadow);
 }
 
 .panel-settings-toggle:focus-visible,
 .panel-tool-button:focus-visible {
+  transform: var(--pressable-focus-transform);
   outline: 2px solid currentColor;
   outline-offset: 2px;
 }
@@ -1120,21 +1159,25 @@ body.layout-tools-active .db-panel:not(.db-panel-tools-open):not(:has(.panel-too
 }
 
 .pin-icon {
-  width: 14px;
-  height: 14px;
-  min-width: 14px;
-  min-height: 14px;
-  opacity: .94;
-  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.9' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 15.5v4.5'/%3E%3Cpath d='M8.25 15.5h7.5'/%3E%3Cpath d='M9.35 6.2h5.3'/%3E%3Cpath d='M10.1 6.2 9.2 15.5h5.6l-.9-9.3'/%3E%3C/svg%3E");
-  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.9' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 15.5v4.5'/%3E%3Cpath d='M8.25 15.5h7.5'/%3E%3Cpath d='M9.35 6.2h5.3'/%3E%3Cpath d='M10.1 6.2 9.2 15.5h5.6l-.9-9.3'/%3E%3C/svg%3E");
+  opacity: .96;
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.15' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 16.5V22'/%3E%3Cpath d='M5.5 16.5h13'/%3E%3Cpath d='M8 3h8'/%3E%3Cpath d='M9 3 8 12.2l-2.5 4.3h13L16 12.2 15 3'/%3E%3C/svg%3E");
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.15' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 16.5V22'/%3E%3Cpath d='M5.5 16.5h13'/%3E%3Cpath d='M8 3h8'/%3E%3Cpath d='M9 3 8 12.2l-2.5 4.3h13L16 12.2 15 3'/%3E%3C/svg%3E");
   transition: opacity .16s ease, transform .16s ease;
 }
 
-.panel-pin-toggle:hover .pin-icon,
+.panel-pin-toggle:hover .pin-icon {
+  opacity: 1;
+  transform: translateY(.5px) scale(.98);
+}
+
+.panel-pin-toggle:active .pin-icon {
+  opacity: 1;
+  transform: translateY(1px) scale(.96);
+}
+
 .panel-pin-toggle:focus-visible .pin-icon,
 .db-panel-pinned .panel-pin-toggle .pin-icon {
   opacity: 1;
-  transform: translateY(-.5px);
 }
 
 .settings-icon {
@@ -1271,7 +1314,6 @@ body.layout-tools-active .db-panel:not(.db-panel-tools-open):not(:has(.panel-too
 .panel-color-swatch.is-selected {
   background: var(--swatch) !important;
   background-color: var(--swatch) !important;
-  transform: translateY(-1px) scale(1.04);
   border-color: color-mix(in srgb, var(--panel-accent, var(--swatch)) 62%, var(--panel-hover-tint));
   box-shadow:
     0 8px 16px rgba(15, 23, 42, .22),
@@ -1281,19 +1323,18 @@ body.layout-tools-active .db-panel:not(.db-panel-tools-open):not(:has(.panel-too
   outline: 0 !important;
 }
 
+.panel-color-swatch:hover {
+  transform: var(--pressable-hover-transform);
+}
+
+.panel-color-swatch:focus,
+.panel-color-swatch:focus-visible {
+  transform: var(--pressable-focus-transform);
+}
+
+.panel-color-swatch:active,
 .panel-color-swatch.is-selected {
-  transform: scale(1.08);
-}
-
-html[data-theme="dark"] .panel-color-menu {
-  background: color-mix(in srgb, #07111f 82%, var(--panel-accent, #2563eb) 18%);
-  backdrop-filter: blur(18px) saturate(1.2);
-  -webkit-backdrop-filter: blur(18px) saturate(1.2);
-  box-shadow: 0 22px 48px rgba(0, 0, 0, .54), 0 0 18px var(--panel-lock-glow, rgba(37, 99, 235, .14)), inset 0 1px 0 rgba(255, 255, 255, .12);
-}
-
-html[data-theme="dark"] .panel-color-label {
-  color: color-mix(in srgb, var(--panel-menu-fg, #f8fafc) 82%, #f8fafc);
+  transform: var(--pressable-active-transform);
 }
 
 .db-panel-custom-color {
@@ -1355,7 +1396,7 @@ html[data-theme="dark"] .panel-color-label {
 .db-panel-custom-color .panel-tool-drawer {
   background: color-mix(in srgb, var(--surface-raised) 92%, var(--panel-accent) 8%);
   border-color: rgba(var(--panel-accent-rgb), .42);
-  box-shadow: 0 14px 32px rgba(15, 23, 42, .18), 0 0 18px rgba(var(--panel-accent-rgb), .16);
+  box-shadow: var(--panel-drawer-shadow, 0 14px 32px rgba(15, 23, 42, .18));
 }
 
 .db-panel-placeholder {
@@ -1416,12 +1457,14 @@ html[data-theme="dark"] .panel-color-label {
 .panel-empty-state {
   margin: 0;
   padding: var(--panel-empty-pad-y) var(--panel-empty-pad-x);
-  border: 1.5px dashed color-mix(in srgb, var(--line) 78%, var(--panel-accent, var(--blue)) 22%);
+  border: 1.5px dashed color-mix(in srgb, var(--line) 58%, transparent);
   border-radius: calc(var(--radius-md) + 2px);
   background:
-    linear-gradient(180deg, color-mix(in srgb, var(--surface-soft) 72%, transparent), color-mix(in srgb, var(--surface) 84%, transparent));
-  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--glass-highlight) 72%, transparent);
+    linear-gradient(180deg, color-mix(in srgb, var(--glass-surface-strong) 38%, transparent), color-mix(in srgb, var(--glass-surface) 18%, transparent));
+  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--glass-highlight) 36%, transparent);
   text-align: center;
+  backdrop-filter: blur(10px) saturate(1.02);
+  -webkit-backdrop-filter: blur(10px) saturate(1.02);
 }
 
 .panel-empty-action {

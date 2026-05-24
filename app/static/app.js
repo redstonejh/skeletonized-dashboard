@@ -69,30 +69,24 @@ document.querySelectorAll(".range-custom").forEach((form) => {
 
 document.addEventListener("DOMContentLoaded", () => {
   const showToast = showGlobalToast;
-  const backgroundDefaults = {
-    light: "frosted-light",
-    dark: "charcoal",
-  };
-  const currentThemeMode = () => document.documentElement.dataset.theme === "dark" ? "dark" : "light";
-  const savedBackgroundTone = (mode = currentThemeMode()) => {
+  const backgroundDefault = "frosted-light";
+  const savedBackgroundTone = () => {
     try {
-      return localStorage.getItem(`dashboard-background-${mode}`) || backgroundDefaults[mode] || "";
+      return localStorage.getItem("dashboard-background") || backgroundDefault;
     } catch {
-      return backgroundDefaults[mode] || "";
+      return backgroundDefault;
     }
   };
   let previewBackgroundTone = null;
-  let previewBackgroundMode = null;
   const applyBackgroundTone = (tone = savedBackgroundTone(), options = {}) => {
-    const mode = currentThemeMode();
-    const selectedTone = options.preview ? savedBackgroundTone(mode) : tone;
+    const selectedTone = options.preview ? savedBackgroundTone() : tone;
     if (tone) {
       document.documentElement.dataset.background = tone;
     } else {
       delete document.documentElement.dataset.background;
     }
     document.querySelectorAll(".background-tone-option").forEach((button) => {
-      const selected = button.dataset.backgroundMode === mode && button.dataset.backgroundTone === selectedTone;
+      const selected = button.dataset.backgroundTone === selectedTone;
       button.classList.toggle("is-selected", selected);
       button.setAttribute("aria-pressed", selected.toString());
     });
@@ -101,53 +95,29 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   };
   const previewBackgroundOption = (button) => {
-    const mode = button?.dataset?.backgroundMode || currentThemeMode();
-    const tone = button?.dataset?.backgroundTone || backgroundDefaults[mode];
-    if (!tone || mode !== currentThemeMode()) return;
-    previewBackgroundMode = mode;
+    const tone = button?.dataset?.backgroundTone || backgroundDefault;
+    if (!tone) return;
     previewBackgroundTone = tone;
     applyBackgroundTone(tone, { preview: true });
   };
   const revertBackgroundPreview = () => {
     if (!previewBackgroundTone) return;
-    const mode = previewBackgroundMode || currentThemeMode();
     previewBackgroundTone = null;
-    previewBackgroundMode = null;
-    if (mode === currentThemeMode()) applyBackgroundTone(savedBackgroundTone(mode));
+    applyBackgroundTone(savedBackgroundTone());
   };
-  const applyTheme = (theme) => {
-    const dark = theme === "dark";
-    document.documentElement.dataset.theme = dark ? "dark" : "";
-    if (!dark) delete document.documentElement.dataset.theme;
-    document.querySelectorAll(".theme-toggle").forEach((button) => {
-      button.classList.toggle("is-dark", dark);
-      button.setAttribute("aria-label", dark ? "Switch to light mode" : "Switch to dark mode");
-      button.title = dark ? "Switch to light mode" : "Switch to dark mode";
-      button.setAttribute("aria-pressed", dark.toString());
-    });
-    applyBackgroundTone(savedBackgroundTone(dark ? "dark" : "light"));
-  };
-  let savedTheme = "";
-  try {
-    savedTheme = localStorage.getItem("dashboard-theme") || "";
-  } catch {
-    savedTheme = "";
-  }
-  applyTheme(savedTheme);
+  applyBackgroundTone(savedBackgroundTone());
   document.querySelectorAll(".background-tone-option").forEach((button) => {
     button.addEventListener("pointerenter", () => previewBackgroundOption(button));
     button.addEventListener("focus", () => previewBackgroundOption(button));
     button.addEventListener("click", (event) => {
       event.preventDefault();
       event.stopPropagation();
-      const mode = button.dataset.backgroundMode || currentThemeMode();
-      const tone = button.dataset.backgroundTone || backgroundDefaults[mode];
+      const tone = button.dataset.backgroundTone || backgroundDefault;
       previewBackgroundTone = null;
-      previewBackgroundMode = null;
       try {
-        localStorage.setItem(`dashboard-background-${mode}`, tone);
+        localStorage.setItem("dashboard-background", tone);
       } catch {}
-      if (mode === currentThemeMode()) applyBackgroundTone(tone);
+      applyBackgroundTone(tone);
       button.closest(".background-tone-menu")?.removeAttribute("open");
     });
   });
@@ -161,20 +131,6 @@ document.addEventListener("DOMContentLoaded", () => {
   document.querySelectorAll(".background-tone-menu").forEach((menu) => {
     menu.addEventListener("toggle", () => {
       if (!menu.open) revertBackgroundPreview();
-    });
-  });
-  document.querySelectorAll(".theme-toggle").forEach((button) => {
-    button.addEventListener("click", () => {
-      revertBackgroundPreview();
-      const nextTheme = document.documentElement.dataset.theme === "dark" ? "light" : "dark";
-      try {
-        if (nextTheme === "dark") {
-          localStorage.setItem("dashboard-theme", "dark");
-        } else {
-          localStorage.removeItem("dashboard-theme");
-        }
-      } catch {}
-      applyTheme(nextTheme);
     });
   });
 
@@ -865,7 +821,25 @@ document.addEventListener("DOMContentLoaded", () => {
     const gap = gridGapForLayout(layout);
     const measuredHeight = Number(item.dataset.savedHeight) || item.getBoundingClientRect().height || DASHBOARD_GRID_ROW_HEIGHT;
     const minRows = item.classList.contains("db-panel-placeholder") ? 1 : panelMinimumRows(item);
-    return Math.max(1, Math.round(Number(item.dataset.gridRowSpan) || gridRowsFromHeight(measuredHeight, gap, minRows)));
+    const explicitRows = Number(item.dataset.gridRowSpan);
+    const rows = Number.isFinite(explicitRows) && explicitRows > 0
+      ? explicitRows
+      : gridRowsFromHeight(measuredHeight, gap, minRows);
+    return Math.max(minRows, Math.round(rows));
+  };
+
+  const syncPanelRenderedHeightToFootprint = (panel, rowSpan = null) => {
+    if (!panel?.classList?.contains("db-panel") || panel.classList.contains("db-panel-placeholder")) return;
+    if (panel.classList.contains("db-panel-collapsed")) {
+      panel.style.height = "";
+      return;
+    }
+    const layout = panel.closest(".panel-layout");
+    const rows = Math.max(panelMinimumRows(panel), Math.round(Number(rowSpan) || gridItemRowSpan(panel)));
+    const height = gridHeightForRows(rows, gridGapForLayout(layout));
+    panel.dataset.gridRowSpan = String(rows);
+    panel.dataset.savedHeight = String(height);
+    panel.style.height = `${height}px`;
   };
 
   const applyPanelSpan = (panel, span) => {
@@ -901,6 +875,7 @@ document.addEventListener("DOMContentLoaded", () => {
     panel.dataset.gridRowSpan = String(rowSpan);
     panel.style.gridColumn = `${safeCol} / span ${safeSpan}`;
     panel.style.gridRow = `${safeRow} / span ${rowSpan}`;
+    syncPanelRenderedHeightToFootprint(panel, rowSpan);
   };
 
   const gridCellFromPoint = (layout, item, clientX, clientY) => {

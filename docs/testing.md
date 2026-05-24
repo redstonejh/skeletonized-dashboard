@@ -41,9 +41,9 @@ Playwright tests should cover:
 - Console errors
 - Network errors
 - CSS import failures
-- Theme persistence
-- Light and dark mode
-- At least two theme presets
+- Background selection persistence
+- Shared material consistency across light and deep background tones
+- At least two background presets
 - Mobile viewport behavior
 
 On failure, tests should preserve useful artifacts:
@@ -62,7 +62,7 @@ Required for each universal dashboard object:
 - Resize when capability allows it
 - Pin/unpin
 - Rename when capability allows it
-- Recolor or theme behavior
+- Recolor or background/material behavior
 - Delete/hide when capability allows it
 - Save layout
 - Load layout
@@ -133,9 +133,9 @@ When the canvas gains pan/zoom behavior, tests must cover:
 
 Capture screenshots for:
 
-- Dashboard light mode
-- Dashboard dark mode
-- At least two theme presets
+- Dashboard on the default background
+- Dashboard on a deep background
+- At least two background presets
 - Top toolbar
 - Timeframe command surface
 - Settings page and forms
@@ -143,7 +143,7 @@ Capture screenshots for:
 - Multiple workspace background presets
 - Panel hover/focus state
 - Widget hover/focus state
-- Dark-mode panel/widget menu parity
+- Panel/widget menu parity across background tones
 - Engineer Mode wiring
 - Mobile viewport
 

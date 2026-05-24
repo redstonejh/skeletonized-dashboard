@@ -613,22 +613,16 @@ def test_panels_are_generic_containers_not_table_panel_types(page: Page, app_ser
     assert_clean_browser(page)
 
 
-def test_theme_toggle_persists(page: Page, app_server: str) -> None:
+def test_background_system_has_no_mode_toggle(page: Page, app_server: str) -> None:
     goto(page, app_server)
-    root = page.locator("html")
-    expect(root).not_to_have_attribute("data-theme", "dark")
+    assert page.evaluate("() => !('theme' in document.documentElement.dataset)")
+    expect(page.locator("[class*='theme']")).to_have_count(0)
 
-    page.locator(".theme-toggle").click()
-    expect(root).to_have_attribute("data-theme", "dark")
-    assert page.evaluate("localStorage.getItem('dashboard-theme')") == "dark"
-
+    page.evaluate("document.documentElement.dataset.theme = 'legacy'")
     page.reload(wait_until="networkidle")
-    expect(page.locator("html")).to_have_attribute("data-theme", "dark")
-
-    page.locator(".theme-toggle").click()
-    expect(page.locator("html")).not_to_have_attribute("data-theme", "dark")
+    assert page.evaluate("() => !('theme' in document.documentElement.dataset)")
+    expect(page.locator("[class*='theme']")).to_have_count(0)
     assert_clean_browser(page)
-
 
 def test_background_palette_hover_previews_without_saving(page: Page, app_server: str) -> None:
     goto(page, app_server)
@@ -638,13 +632,15 @@ def test_background_palette_hover_previews_without_saving(page: Page, app_server
     page.locator(".background-tone-trigger").first.click()
     for tone in [
         "medium-cool-grey",
-        "darker-soft-grey",
-        "slate-grey",
         "graphite-grey",
         "blue-slate",
-        "neutral-dim",
-        "stone-grey",
-        "industrial-grey",
+        "black",
+        "charcoal",
+        "gunmetal",
+        "deep-navy",
+        "muted-midnight-blue",
+        "cool-dark-steel",
+        "soft-cinema",
     ]:
         expect(page.locator(f'.background-tone-option[data-background-tone="{tone}"]').first).to_be_visible()
 
@@ -660,59 +656,50 @@ def test_background_palette_hover_previews_without_saving(page: Page, app_server
             if (hex) return [0, 2, 4].map((start) => parseInt(hex[1].slice(start, start + 2), 16));
             return [];
           };
-          return [
-            "medium-cool-grey",
-            "darker-soft-grey",
-            "slate-grey",
-            "graphite-grey",
-            "blue-slate",
-            "neutral-dim",
-            "stone-grey",
-            "industrial-grey",
-          ].map((tone) => {
+          return ["graphite-grey", "blue-slate", "black", "charcoal", "gunmetal", "deep-navy", "soft-cinema"].map((tone) => {
             document.documentElement.dataset.background = tone;
             const bg = toRgb(getComputedStyle(document.documentElement).getPropertyValue("--bg"));
-            return { tone, bg, max: Math.max(...bg), min: Math.min(...bg) };
+            const surface = getComputedStyle(document.documentElement).getPropertyValue("--glass-surface").trim();
+            return { tone, bg, surface, max: Math.max(...bg), min: Math.min(...bg) };
           });
         }
         """
     )
     assert len({tuple(entry["bg"]) for entry in palette}) == len(palette)
-    assert max(entry["max"] for entry in palette) <= 208
-    assert min(entry["min"] for entry in palette) <= 174
+    assert min(entry["min"] for entry in palette) <= 16
+    assert len({entry["surface"] for entry in palette}) == 1
 
     page.evaluate("document.documentElement.dataset.background = 'frosted-light'")
-    preview = page.locator('.background-tone-option[data-background-mode="light"][data-background-tone="graphite-grey"]').first
+    preview = page.locator('.background-tone-option[data-background-tone="graphite-grey"]').first
     preview.hover()
     expect(root).to_have_attribute("data-background", "graphite-grey")
-    assert page.evaluate("localStorage.getItem('dashboard-background-light')") is None
+    assert page.evaluate("localStorage.getItem('dashboard-background')") is None
 
     page.locator(".workspace-identity-island").hover()
     expect(root).to_have_attribute("data-background", "frosted-light")
-    assert page.evaluate("localStorage.getItem('dashboard-background-light')") is None
+    assert page.evaluate("localStorage.getItem('dashboard-background')") is None
 
-    focus_preview = page.locator('.background-tone-option[data-background-mode="light"][data-background-tone="blue-slate"]').first
+    focus_preview = page.locator('.background-tone-option[data-background-tone="deep-navy"]').first
     focus_preview.focus()
-    expect(root).to_have_attribute("data-background", "blue-slate")
-    assert page.evaluate("localStorage.getItem('dashboard-background-light')") is None
+    expect(root).to_have_attribute("data-background", "deep-navy")
+    assert page.evaluate("localStorage.getItem('dashboard-background')") is None
     page.locator(".dash-switch-hero").focus()
     expect(root).to_have_attribute("data-background", "frosted-light")
 
-    page.locator('.background-tone-option[data-background-mode="light"][data-background-tone="slate-grey"]').first.click()
-    expect(root).to_have_attribute("data-background", "slate-grey")
-    assert page.evaluate("localStorage.getItem('dashboard-background-light')") == "slate-grey"
+    page.locator('.background-tone-option[data-background-tone="deep-slate"]').first.click()
+    expect(root).to_have_attribute("data-background", "deep-slate")
+    assert page.evaluate("localStorage.getItem('dashboard-background')") == "deep-slate"
     assert_clean_browser(page)
 
-
-def test_background_presets_and_secondary_surfaces_share_glass_language(page: Page, app_server: str) -> None:
+def test_background_presets_do_not_change_shared_glass_materials(page: Page, app_server: str) -> None:
     goto(page, app_server)
     artifact_dir = Path("test-results") / "workspace-visual-language"
     artifact_dir.mkdir(parents=True, exist_ok=True)
 
     page.locator(".background-tone-trigger").first.click()
     expect(page.locator('.background-tone-option[data-background-tone="cool-grey"]').first).to_be_visible()
-    expect(page.locator('.background-tone-option[data-background-tone="graphite-light"]').first).to_be_visible()
-    swatch = page.locator('.background-tone-option[data-background-tone="graphite-light"]').first.evaluate(
+    expect(page.locator('.background-tone-option[data-background-tone="gunmetal"]').first).to_be_visible()
+    swatch = page.locator('.background-tone-option[data-background-tone="gunmetal"]').first.evaluate(
         """
         node => {
           const before = getComputedStyle(node, "::before");
@@ -727,45 +714,47 @@ def test_background_presets_and_secondary_surfaces_share_glass_language(page: Pa
     assert swatch["width"] >= 10
     assert swatch["height"] >= 10
     assert swatch["background"] != "none"
-    page.locator('.background-tone-option[data-background-mode="light"][data-background-tone="graphite-light"]').first.click()
-    expect(page.locator("html")).to_have_attribute("data-background", "graphite-light")
-    assert page.evaluate("localStorage.getItem('dashboard-background-light')") == "graphite-light"
-    page.screenshot(path=str(artifact_dir / "dashboard-light-graphite-light.png"), full_page=True)
 
-    palette_styles = page.evaluate(
-        """
-        () => {
-          const toRgb = (value) => {
-            const hex = value.trim().match(/^#([0-9a-f]{6})$/i);
-            if (hex) {
-              return [0, 2, 4].map((start) => parseInt(hex[1].slice(start, start + 2), 16));
+    def read_materials() -> dict:
+        return page.evaluate(
+            """
+            () => {
+              const read = (selector) => {
+                const styles = getComputedStyle(document.querySelector(selector));
+                return {
+                  backgroundColor: styles.backgroundColor,
+                  backgroundImage: styles.backgroundImage,
+                  borderColor: styles.borderTopColor,
+                  boxShadow: styles.boxShadow,
+                  color: styles.color,
+                };
+              };
+              const root = getComputedStyle(document.documentElement);
+              return {
+                bg: root.getPropertyValue("--bg").trim(),
+                glassSurface: root.getPropertyValue("--glass-surface").trim(),
+                glassBorder: root.getPropertyValue("--glass-border").trim(),
+                nav: read(".app-nav"),
+                panel: read(".panel-layout > .db-panel"),
+                widget: read(".widget-layout > .stat-card.widget-card:not(.range-bar)"),
+                timeframe: read(".timeframe-widget .preset-btn.active"),
+                settings: read(".timeframe-widget .panel-settings-toggle"),
+              };
             }
-            const rgb = value.match(/rgba?\\(([^)]+)\\)/);
-            if (rgb) {
-              return rgb[1].split(/[\\s,\\/]+/).filter(Boolean).slice(0, 3).map((part) => Math.round(Number(part)));
-            }
-            return [];
-          };
-          const root = getComputedStyle(document.documentElement);
-          const nav = getComputedStyle(document.querySelector(".app-nav"));
-          const panel = getComputedStyle(document.querySelector(".db-panel"));
-          return {
-            bg: toRgb(root.getPropertyValue("--bg")),
-            glassBorder: toRgb(root.getPropertyValue("--glass-border")),
-            navBackground: nav.backgroundImage,
-            navBorder: toRgb(nav.borderTopColor),
-            panelBackground: panel.backgroundColor,
-            panelBorder: toRgb(panel.borderTopColor),
-          };
-        }
-        """
-    )
-    assert max(palette_styles["bg"]) <= 214
-    assert palette_styles["navBackground"] != "none"
-    assert palette_styles["panelBackground"] != "rgba(0, 0, 0, 0)"
-    assert palette_styles["panelBorder"] != palette_styles["bg"]
-    if palette_styles["glassBorder"]:
-        assert max(palette_styles["glassBorder"]) <= 190
+            """
+        )
+
+    initial = read_materials()
+    page.screenshot(path=str(artifact_dir / "dashboard-frosted-background.png"), full_page=True)
+    page.locator('.background-tone-option[data-background-tone="deep-slate"]').first.click()
+    expect(page.locator("html")).to_have_attribute("data-background", "deep-slate")
+    assert page.evaluate("localStorage.getItem('dashboard-background')") == "deep-slate"
+    page.screenshot(path=str(artifact_dir / "dashboard-deep-slate-background.png"), full_page=True)
+    deep = read_materials()
+
+    assert initial["bg"] != deep["bg"]
+    for key in ("glassSurface", "glassBorder", "nav", "panel", "widget", "timeframe", "settings"):
+        assert deep[key] == initial[key], key
 
     page.locator(".panel-add-button").click()
     expect(page.locator(".panel-add-menu")).to_have_class(re.compile("open"))
@@ -773,82 +762,10 @@ def test_background_presets_and_secondary_surfaces_share_glass_language(page: Pa
 
     goto(page, app_server, "/settings")
     expect(page.locator("#settings-form")).to_be_visible()
-    expect(page.locator('.background-tone-option[data-background-tone="stone-slate"]').first).to_be_attached()
-    page.screenshot(path=str(artifact_dir / "settings-light-graphite-light.png"), full_page=True)
-    light_styles = page.evaluate(
-        """
-        () => {
-          const section = document.querySelector(".form-section");
-          const input = document.querySelector(".form-grid input");
-          const save = document.querySelector(".settings-save-bar");
-          const read = (node) => {
-            const styles = getComputedStyle(node);
-            return {
-              background: styles.backgroundColor,
-              border: styles.borderColor,
-              radius: parseFloat(styles.borderTopLeftRadius),
-              shadow: styles.boxShadow,
-            };
-          };
-          return { section: read(section), input: read(input), save: read(save) };
-        }
-        """
-    )
-    assert light_styles["section"]["radius"] >= 20
-    assert light_styles["input"]["radius"] >= 14
-    assert light_styles["section"]["shadow"] != "none"
-    assert light_styles["input"]["shadow"] != "none"
-    assert light_styles["save"]["shadow"] != "none"
-
-    page.locator(".theme-toggle").click()
-    expect(page.locator("html")).to_have_attribute("data-theme", "dark")
-    page.locator(".background-tone-trigger").first.click()
-    expect(page.locator('.background-tone-option[data-background-tone="soft-charcoal"]').first).to_be_visible()
-    expect(page.locator('.background-tone-option[data-background-tone="deep-slate"]').first).to_be_visible()
-    page.locator('.background-tone-option[data-background-mode="dark"][data-background-tone="deep-slate"]').first.click()
     expect(page.locator("html")).to_have_attribute("data-background", "deep-slate")
-    assert page.evaluate("localStorage.getItem('dashboard-background-dark')") == "deep-slate"
-    page.screenshot(path=str(artifact_dir / "settings-dark-deep-slate.png"), full_page=True)
-
-    dark_palette_styles = page.evaluate(
-        """
-        () => {
-          const toRgb = (value) => {
-            const rgb = value.match(/rgba?\\(([^)]+)\\)/);
-            if (rgb) {
-              return rgb[1].split(/[\\s,\\/]+/).filter(Boolean).slice(0, 3).map((part) => Math.round(Number(part)));
-            }
-            const hex = value.trim().match(/^#([0-9a-f]{6})$/i);
-            if (hex) {
-              return [0, 2, 4].map((start) => parseInt(hex[1].slice(start, start + 2), 16));
-            }
-            return [];
-          };
-          const root = getComputedStyle(document.documentElement);
-          const nav = getComputedStyle(document.querySelector(".app-nav"));
-          const section = getComputedStyle(document.querySelector(".form-section"));
-          return {
-            bg: toRgb(root.getPropertyValue("--bg")),
-            glassBorder: toRgb(root.getPropertyValue("--glass-border")),
-            navBorder: toRgb(nav.borderTopColor),
-            sectionBackground: section.backgroundImage,
-            sectionBorder: toRgb(section.borderTopColor),
-          };
-        }
-        """
-    )
-    assert max(dark_palette_styles["bg"]) <= 34
-    for key in ("glassBorder", "navBorder", "sectionBorder"):
-        if dark_palette_styles[key]:
-            assert max(dark_palette_styles[key]) <= 150
-    assert dark_palette_styles["sectionBackground"] != "none"
-
-    goto(page, app_server)
-    expect(page.locator("html")).to_have_attribute("data-theme", "dark")
-    expect(page.locator("html")).to_have_attribute("data-background", "deep-slate")
-    page.screenshot(path=str(artifact_dir / "dashboard-dark-deep-slate.png"), full_page=True)
+    expect(page.locator('.background-tone-option[data-background-tone="soft-cinema"]').first).to_be_attached()
+    page.screenshot(path=str(artifact_dir / "settings-deep-slate-background.png"), full_page=True)
     assert_clean_browser(page)
-
 
 def test_workspace_chrome_is_spatial_and_modes_still_work(page: Page, app_server: str) -> None:
     goto(page, app_server)
@@ -860,8 +777,11 @@ def test_workspace_chrome_is_spatial_and_modes_still_work(page: Page, app_server
     expect(page.locator(".layout-command-island .layout-slot-controls")).to_be_visible()
     expect(page.locator(".composition-add-button")).to_have_attribute("aria-label", "Add dashboard object")
     expect(page.locator(".mode-command-island .engineer-mode-button")).to_be_visible()
-    expect(page.locator(".context-command-island .nav-status-icon-only")).to_be_visible()
     expect(page.locator(".appearance-command-island .background-tone-trigger")).to_be_visible()
+    expect(page.locator(".context-command-island")).to_have_count(0)
+    expect(page.locator(".nav-status-icon-only")).to_have_count(0)
+    expect(page.locator(".app-nav.workspace-chrome .cmd-btn-icon-only")).to_have_count(0)
+    expect(page.locator('.app-nav.workspace-chrome a[href="/settings"]')).to_have_count(1)
 
     chrome_styles = page.locator(".workspace-chrome").evaluate(
         """
@@ -878,11 +798,28 @@ def test_workspace_chrome_is_spatial_and_modes_still_work(page: Page, app_server
           }
         """
     )
-    assert chrome_styles["radius"] >= 24
+    assert chrome_styles["radius"] >= 16
     assert chrome_styles["border"] >= 1
     assert chrome_styles["shadow"] != "none"
     assert chrome_styles["backdrop"] != "none"
     assert chrome_styles["background"] != "rgba(0, 0, 0, 0)" or chrome_styles["image"] != "none"
+    widget_styles = page.locator(".widget-layout > .stat-card.widget-card:not(.range-bar)").first.evaluate(
+        """
+        node => {
+          const styles = getComputedStyle(node);
+          return {
+            radius: parseFloat(styles.borderTopLeftRadius),
+            border: parseFloat(styles.borderTopWidth),
+            shadow: styles.boxShadow,
+            background: styles.backgroundColor,
+            image: styles.backgroundImage,
+          };
+        }
+        """
+    )
+    assert abs(chrome_styles["radius"] - widget_styles["radius"]) <= 8
+    assert abs(chrome_styles["border"] - widget_styles["border"]) <= 1
+    assert chrome_styles["shadow"] != "none" and widget_styles["shadow"] != "none"
 
     floating_styles = page.locator(".workspace-identity-island").evaluate(
         """
@@ -898,7 +835,7 @@ def test_workspace_chrome_is_spatial_and_modes_still_work(page: Page, app_server
         }
         """
     )
-    assert floating_styles["radius"] >= 22
+    assert floating_styles["radius"] >= 14
     assert floating_styles["shadow"] != "none"
     assert floating_styles["backdrop"] != "none"
     assert floating_styles["background"] != "rgba(0, 0, 0, 0)" or floating_styles["image"] != "none"
@@ -936,11 +873,73 @@ def test_workspace_chrome_is_spatial_and_modes_still_work(page: Page, app_server
     assert island_styles["border"] >= 1
     assert island_styles["shadow"] != "none"
     assert island_styles["background"] != "rgba(0, 0, 0, 0)"
+    control_metrics = page.locator(
+        ".app-nav.workspace-chrome button.dash-switch-hero, "
+        ".app-nav.workspace-chrome .layout-slot-trigger, "
+        ".app-nav.workspace-chrome .layout-slot-button, "
+        ".app-nav.workspace-chrome .panel-undo-button, "
+        ".app-nav.workspace-chrome .panel-reset-button, "
+        ".app-nav.workspace-chrome .workspace-mode-button, "
+        ".app-nav.workspace-chrome .background-tone-trigger, "
+        ".app-nav.workspace-chrome .composition-add-button"
+    ).evaluate_all(
+        """
+        nodes => nodes.map((node) => {
+          const rect = node.getBoundingClientRect();
+          const parentRect = node.closest(".workspace-command-island").getBoundingClientRect();
+          const styles = getComputedStyle(node);
+          const transform = styles.transform && styles.transform !== "none"
+            ? new DOMMatrixReadOnly(styles.transform)
+            : new DOMMatrixReadOnly();
+          return {
+            height: rect.height,
+            centerDelta: Math.abs((rect.top + rect.height / 2) - (parentRect.top + parentRect.height / 2)),
+            radius: parseFloat(styles.borderTopLeftRadius),
+            transformY: transform.m42,
+          };
+        })
+        """
+    )
+    assert control_metrics
+    for metric in control_metrics:
+        assert 34 <= metric["height"] <= 38
+        assert metric["centerDelta"] <= 1.5
+        assert metric["radius"] >= 12
+        assert abs(metric["transformY"]) <= .1
     page.locator(".app-nav").screenshot(path=str(artifact_dir / "toolbar-light-spatial-chrome.png"))
+    page.evaluate("document.documentElement.dataset.background = 'deep-slate'")
+    page.wait_for_timeout(120)
+    page.locator(".app-nav").screenshot(path=str(artifact_dir / "toolbar-deep-slate-widget-chrome.png"))
+    expect(page.locator(".composition-add-button")).to_be_visible()
+
+    page.locator(".dash-switch-hero").hover()
+    expect(page.locator(".dash-switch-menu")).to_have_class(re.compile("open"))
+    expect(page.locator(".dash-switch-menu")).to_contain_text("Workspace settings")
+    page.mouse.click(24, 24)
 
     page.locator(".layout-slot-trigger").click()
     expect(page.locator(".layout-slot-menu")).to_have_class(re.compile("open"))
-    expect(page.locator(".layout-slot-menu")).to_contain_text("Layout 10")
+    expect(page.locator(".layout-slot-menu")).to_contain_text("Layout 8")
+    layout_menu_styles = page.locator(".layout-slot-menu").evaluate(
+        """
+        node => {
+          const styles = getComputedStyle(node);
+          return {
+            radius: parseFloat(styles.borderTopLeftRadius),
+            border: parseFloat(styles.borderTopWidth),
+            shadow: styles.boxShadow,
+            backdrop: styles.backdropFilter || styles.webkitBackdropFilter,
+            background: styles.backgroundColor,
+            image: styles.backgroundImage,
+          };
+        }
+        """
+    )
+    assert layout_menu_styles["radius"] >= 12
+    assert layout_menu_styles["border"] >= 1
+    assert layout_menu_styles["shadow"] != "none"
+    assert layout_menu_styles["backdrop"] != "none"
+    assert layout_menu_styles["background"] != "rgba(0, 0, 0, 0)" or layout_menu_styles["image"] != "none"
     page.keyboard.press("Escape")
 
     page.locator(".panel-add-button").click()
@@ -957,29 +956,6 @@ def test_workspace_chrome_is_spatial_and_modes_still_work(page: Page, app_server
     expect(page.locator(".context-view-button")).to_have_attribute("aria-pressed", "true")
     assert page.locator("body").evaluate("node => node.classList.contains('context-view-active')")
 
-    page.locator(".theme-toggle").click()
-    expect(page.locator("html")).to_have_attribute("data-theme", "dark")
-    dark_chrome_styles = page.locator(".workspace-chrome").evaluate(
-        """
-        node => {
-          const styles = getComputedStyle(node);
-          const rgb = styles.borderTopColor.match(/rgba?\\(([^)]+)\\)/);
-          return {
-            border: parseFloat(styles.borderTopWidth),
-            borderRgb: rgb ? rgb[1].split(/[\\s,\\/]+/).filter(Boolean).slice(0, 3).map(Number) : [],
-            shadow: styles.boxShadow,
-            background: styles.backgroundColor,
-            image: styles.backgroundImage,
-          };
-        }
-        """
-    )
-    assert dark_chrome_styles["border"] >= 1
-    assert dark_chrome_styles["shadow"] != "none"
-    assert dark_chrome_styles["background"] != "rgba(0, 0, 0, 0)" or dark_chrome_styles["image"] != "none"
-    if dark_chrome_styles["borderRgb"]:
-        assert max(dark_chrome_styles["borderRgb"]) <= 170
-    page.locator(".app-nav").screenshot(path=str(artifact_dir / "toolbar-dark-spatial-chrome.png"))
     assert_clean_browser(page)
 
 
@@ -1038,213 +1014,7 @@ def test_settings_and_delete_modal_share_spatial_glass_language(page: Page, app_
     assert_clean_browser(page)
 
 
-def test_dark_mode_uses_midnight_glass_not_neon_edges(page: Page, app_server: str) -> None:
-    goto(page, app_server)
-    artifact_dir = Path("test-results") / "theme-polish"
-    artifact_dir.mkdir(parents=True, exist_ok=True)
-
-    page.locator(".theme-toggle").click()
-    expect(page.locator("html")).to_have_attribute("data-theme", "dark")
-    page.wait_for_timeout(260)
-    page.locator(".stat-card[data-widget-key='widget-1']").hover()
-    page.wait_for_timeout(260)
-
-    styles = page.evaluate(
-        """
-        () => {
-          const toRgb = (value) => {
-            const rgb = value.match(/rgba?\\(([^)]+)\\)/);
-            if (rgb) {
-              return rgb[1].split(/[\\s,\\/]+/).filter(Boolean).slice(0, 3).map((part) => Math.round(Number(part)));
-            }
-            const oklab = value.match(/oklab\\(([\\d.-]+)\\s+([\\d.-]+)\\s+([\\d.-]+)/);
-            if (oklab) {
-              const L = Number(oklab[1]);
-              const a = Number(oklab[2]);
-              const b = Number(oklab[3]);
-              const l = (L + (0.3963377774 * a) + (0.2158037573 * b)) ** 3;
-              const m = (L - (0.1055613458 * a) - (0.0638541728 * b)) ** 3;
-              const s = (L - (0.0894841775 * a) - (1.2914855480 * b)) ** 3;
-              const linear = [
-                (4.0767416621 * l) - (3.3077115913 * m) + (0.2309699292 * s),
-                (-1.2684380046 * l) + (2.6097574011 * m) - (0.3413193965 * s),
-                (-0.0041960863 * l) - (0.7034186147 * m) + (1.7076147010 * s),
-              ];
-              const gamma = (channel) => {
-                const safe = Math.max(0, Math.min(1, channel));
-                return safe <= 0.0031308 ? safe * 12.92 : (1.055 * (safe ** (1 / 2.4))) - 0.055;
-              };
-              return linear.map((channel) => Math.round(gamma(channel) * 255));
-            }
-            const srgb = value.match(/color\\(srgb\\s+([\\d.]+)\\s+([\\d.]+)\\s+([\\d.]+)/);
-            if (srgb) {
-              return srgb.slice(1, 4).map((part) => Math.round(Number(part) * 255));
-            }
-            return [];
-          };
-          const root = getComputedStyle(document.documentElement);
-          const stat = getComputedStyle(document.querySelector(".stat-card[data-widget-key='widget-1']"));
-          const panel = getComputedStyle(document.querySelector(".db-panel"));
-          const empty = getComputedStyle(document.querySelector(".panel-empty-state"));
-          const emptyAction = getComputedStyle(document.querySelector(".panel-empty-action"));
-          const timeframe = getComputedStyle(document.querySelector(".timeframe-command-surface"));
-          const add = getComputedStyle(document.querySelector(".composition-add-button"));
-          const marker = getComputedStyle(document.querySelector(".workspace-accent-marker"));
-          return {
-            accent: root.getPropertyValue("--blue").trim(),
-            statBorder: stat.borderTopColor,
-            statBorderRgb: toRgb(stat.borderTopColor),
-            statShadow: stat.boxShadow,
-            panelBorder: panel.borderTopColor,
-            panelBorderRgb: toRgb(panel.borderTopColor),
-            panelShadow: panel.boxShadow,
-            emptyBorder: empty.borderTopColor,
-            emptyBorderRgb: toRgb(empty.borderTopColor),
-            emptyActionBorder: emptyAction.borderTopColor,
-            emptyActionBorderRgb: toRgb(emptyAction.borderTopColor),
-            timeframeBorder: timeframe.borderTopColor,
-            timeframeBorderRgb: toRgb(timeframe.borderTopColor),
-            addShadow: add.boxShadow,
-            markerShadow: marker.boxShadow,
-          };
-        }
-        """
-    )
-
-    stat_border = styles["statBorderRgb"]
-    panel_border = styles["panelBorderRgb"]
-    empty_border = styles["emptyBorderRgb"]
-    empty_action_border = styles["emptyActionBorderRgb"]
-    timeframe_border = styles["timeframeBorderRgb"]
-    assert styles["accent"].lower() == "#86acd2"
-    if stat_border:
-        assert max(stat_border) <= 190
-        assert stat_border[2] - stat_border[0] <= 65
-    if panel_border:
-        assert max(panel_border) <= 160
-    for name, border in (("empty", empty_border), ("empty action", empty_action_border), ("timeframe", timeframe_border)):
-        if border:
-            assert max(border) <= 170, (name, border)
-            assert border[2] - border[0] <= 70, (name, border)
-    old_neon_values = ("103, 169, 255", "147, 197, 253", "#67a9ff", "#75b9ff", "#9dccff")
-    combined_styles = " ".join(str(value) for value in styles.values())
-    for neon_value in old_neon_values:
-        assert neon_value not in combined_styles
-    page.screenshot(path=str(artifact_dir / "dashboard-dark-midnight-glass.png"), full_page=True)
-    assert_clean_browser(page)
-
-
-def test_dark_widget_focus_and_active_borders_match_panel_softness(page: Page, app_server: str) -> None:
-    goto(page, app_server)
-    page.locator(".theme-toggle").click()
-    expect(page.locator("html")).to_have_attribute("data-theme", "dark")
-
-    page.evaluate(
-        """
-        () => {
-          const widget = document.querySelector(".widget-layout > .stat-card.widget-card:not(.range-bar)");
-          const panel = document.querySelector(".panel-layout > .db-panel");
-          const custom = widget.cloneNode(true);
-          custom.classList.add("db-panel-custom-color", "stat-danger");
-          custom.dataset.widgetKey = "dark-parity-custom";
-          custom.style.setProperty("--panel-accent", "#dc2626");
-          custom.style.setProperty("--panel-accent-rgb", "220, 38, 38");
-          custom.style.setProperty("--panel-accent-text", "#ffffff");
-          widget.after(custom);
-
-          widget.classList.add("active");
-          custom.classList.add("active");
-          panel.classList.add("group-selected");
-          widget.classList.add("group-selected");
-        }
-        """
-    )
-    page.wait_for_timeout(320)
-
-    state = page.evaluate(
-        """
-        () => {
-          const toRgb = (value) => {
-            const rgb = value.match(/rgba?\\(([^)]+)\\)/);
-            if (rgb) {
-              return rgb[1].split(/[\\s,\\/]+/).filter(Boolean).slice(0, 3).map((part) => Math.round(Number(part)));
-            }
-            const oklab = value.match(/oklab\\(([\\d.-]+)\\s+([\\d.-]+)\\s+([\\d.-]+)/);
-            if (oklab) {
-              const L = Number(oklab[1]);
-              const a = Number(oklab[2]);
-              const b = Number(oklab[3]);
-              const l = (L + (0.3963377774 * a) + (0.2158037573 * b)) ** 3;
-              const m = (L - (0.1055613458 * a) - (0.0638541728 * b)) ** 3;
-              const s = (L - (0.0894841775 * a) - (1.2914855480 * b)) ** 3;
-              const linear = [
-                (4.0767416621 * l) - (3.3077115913 * m) + (0.2309699292 * s),
-                (-1.2684380046 * l) + (2.6097574011 * m) - (0.3413193965 * s),
-                (-0.0041960863 * l) - (0.7034186147 * m) + (1.7076147010 * s),
-              ];
-              const gamma = (channel) => {
-                const safe = Math.max(0, Math.min(1, channel));
-                return safe <= 0.0031308 ? safe * 12.92 : (1.055 * (safe ** (1 / 2.4))) - 0.055;
-              };
-              return linear.map((channel) => Math.round(gamma(channel) * 255));
-            }
-            const srgb = value.match(/color\\(srgb\\s+([\\d.]+)\\s+([\\d.]+)\\s+([\\d.]+)/);
-            if (srgb) {
-              return srgb.slice(1, 4).map((part) => Math.round(Number(part) * 255));
-            }
-            return [];
-          };
-          const widget = document.querySelector(".widget-layout > .stat-card.widget-card:not(.range-bar)");
-          const panel = document.querySelector(".panel-layout > .db-panel");
-          const custom = document.querySelector('[data-widget-key="dark-parity-custom"]');
-
-          const read = (node) => {
-            const styles = getComputedStyle(node);
-            return {
-              borderColor: styles.borderTopColor,
-              borderRgb: toRgb(styles.borderTopColor),
-              outlineColor: styles.outlineColor,
-              outlineRgb: toRgb(styles.outlineColor),
-              outlineWidth: parseFloat(styles.outlineWidth || "0") || 0,
-              outlineOffset: parseFloat(styles.outlineOffset || "0") || 0,
-              boxShadow: styles.boxShadow,
-            };
-          };
-
-          return {
-            panel: read(panel),
-            widget: read(widget),
-            custom: read(custom),
-            widgetBackground: getComputedStyle(widget).backgroundImage,
-            customBackground: getComputedStyle(custom).backgroundImage,
-          };
-        }
-        """
-    )
-
-    for key in ("widget", "custom"):
-        border = state[key]["borderRgb"]
-        outline = state[key]["outlineRgb"]
-        assert border and max(border) <= 175, (key, state[key]["borderColor"])
-        assert border[2] - border[0] <= 70, (key, state[key]["borderColor"])
-        if state[key]["outlineWidth"]:
-            assert max(outline) <= 215, (key, state[key]["outlineColor"])
-            if key == "widget":
-                assert state[key]["outlineOffset"] == state["panel"]["outlineOffset"]
-            else:
-                assert state[key]["outlineOffset"] <= 0
-        assert "103, 169, 255" not in state[key]["boxShadow"]
-        assert "147, 197, 253" not in state[key]["boxShadow"]
-        assert "0 0 18px" not in state[key]["boxShadow"]
-        assert "0 0 24px" not in state[key]["boxShadow"]
-
-    assert state["widget"]["outlineColor"] == state["panel"]["outlineColor"]
-    assert state["widget"]["outlineWidth"] == state["panel"]["outlineWidth"]
-    assert state["widgetBackground"] != state["customBackground"]
-    assert_clean_browser(page)
-
-
-def test_timeframe_controls_use_theme_aware_glass_color(page: Page, app_server: str) -> None:
+def test_timeframe_controls_use_shared_glass_color(page: Page, app_server: str) -> None:
     goto(page, app_server)
     control = page.locator(".timeframe-widget")
     expect(control).to_be_visible()
@@ -1293,27 +1063,16 @@ def test_timeframe_controls_use_theme_aware_glass_color(page: Page, app_server: 
             """
         )
 
-    artifact_dir = Path("test-results") / "timeframe-theme-controls"
+    artifact_dir = Path("test-results") / "timeframe-shared-controls"
     artifact_dir.mkdir(parents=True, exist_ok=True)
 
     apply_swatch(3)
     teal = read_timeframe_style()
-    control.screenshot(path=str(artifact_dir / "timeframe-light-teal.png"))
+    control.screenshot(path=str(artifact_dir / "timeframe-teal.png"))
 
     apply_swatch(10)
     pink = read_timeframe_style()
-    control.screenshot(path=str(artifact_dir / "timeframe-light-pink.png"))
-
-    page.locator(".theme-toggle").click()
-    expect(page.locator("html")).to_have_attribute("data-theme", "dark")
-
-    apply_swatch(3)
-    dark_teal = read_timeframe_style()
-    control.screenshot(path=str(artifact_dir / "timeframe-dark-teal.png"))
-
-    apply_swatch(10)
-    dark_pink = read_timeframe_style()
-    control.screenshot(path=str(artifact_dir / "timeframe-dark-pink.png"))
+    control.screenshot(path=str(artifact_dir / "timeframe-pink.png"))
 
     assert teal["accent"].lower() == "#14b8a6"
     assert pink["accent"].lower() == "#db2777"
@@ -1321,198 +1080,13 @@ def test_timeframe_controls_use_theme_aware_glass_color(page: Page, app_server: 
     assert teal["presetBorder"] != pink["presetBorder"]
     assert teal["selectorBackground"] != pink["selectorBackground"]
     assert teal["refreshBackground"] != pink["refreshBackground"]
-    for styles in (teal, pink, dark_teal, dark_pink):
+    for styles in (teal, pink):
         assert_near_white(styles["presetColor"])
         assert_near_white(styles["selectorColor"])
         assert_near_white(styles["refreshColor"])
         assert_near_white(styles["calendarColor"])
         assert_near_white(styles["settingsColor"])
     assert_clean_browser(page)
-
-
-def test_dark_timeframe_controls_preserve_layered_glass_depth(page: Page, app_server: str) -> None:
-    goto(page, app_server)
-    page.locator(".theme-toggle").click()
-    expect(page.locator("html")).to_have_attribute("data-theme", "dark")
-    control = page.locator(".timeframe-widget")
-    expect(control).to_be_visible()
-
-    state = control.evaluate(
-        """
-        node => {
-          const rgb = (value) => {
-            const rgbMatch = value.match(/rgba?\\(([^)]+)\\)/);
-            if (rgbMatch) {
-              return rgbMatch[1].split(",").slice(0, 3).map((part) => Number.parseFloat(part)).filter(Number.isFinite);
-            }
-            const srgbMatch = value.match(/color\\(srgb\\s+([^\\)]+)\\)/);
-            if (!srgbMatch) {
-              return [];
-            }
-            return srgbMatch[1].split(/\\s+/).filter((part) => part && part !== "/").slice(0, 3)
-              .map((part) => Math.round(Number.parseFloat(part) * 255)).filter(Number.isFinite);
-          };
-          const read = (selector) => {
-            const el = node.querySelector(selector);
-            const styles = getComputedStyle(el);
-            return {
-              backgroundColor: styles.backgroundColor,
-              backgroundImage: styles.backgroundImage,
-              borderColor: styles.borderTopColor,
-              borderRgb: rgb(styles.borderTopColor),
-              boxShadow: styles.boxShadow,
-              insetCount: (styles.boxShadow.match(/inset/g) || []).length,
-            };
-          };
-          return {
-            surface: read(".timeframe-command-surface"),
-            presets: read(".timeframe-presets"),
-            activeCluster: read(".timeframe-active-cluster"),
-            utilities: read(".timeframe-utility-cluster"),
-            activePreset: read(".preset-btn.active"),
-            selector: read(".range-custom-trigger"),
-            calendar: read(".timeframe-calendar"),
-          };
-        }
-        """
-    )
-
-    assert state["surface"]["backgroundImage"] != "none"
-    assert state["presets"]["backgroundImage"] != "none"
-    assert "radial-gradient" in state["surface"]["backgroundImage"]
-    assert "radial-gradient" in state["activePreset"]["backgroundImage"]
-    assert state["activeCluster"]["backgroundImage"] != state["presets"]["backgroundImage"]
-    assert state["surface"]["backgroundImage"] != state["presets"]["backgroundImage"]
-    assert state["activePreset"]["backgroundImage"] != state["presets"]["backgroundImage"]
-    assert state["calendar"]["backgroundImage"] != state["utilities"]["backgroundImage"]
-    assert state["surface"]["borderColor"] != state["presets"]["borderColor"]
-    assert state["presets"]["borderColor"] != state["activePreset"]["borderColor"]
-    for key in ("surface", "presets", "activeCluster", "utilities", "activePreset", "selector", "calendar"):
-        layer = state[key]
-        assert layer["boxShadow"] != "none", key
-        assert "inset" in layer["boxShadow"], key
-        assert layer["insetCount"] >= 3, (key, layer["boxShadow"])
-        assert layer["borderColor"], key
-        if layer["borderRgb"]:
-            assert max(layer["borderRgb"]) <= 190, (key, layer["borderColor"])
-        assert "103, 169, 255" not in layer["borderColor"]
-        assert "147, 197, 253" not in layer["borderColor"]
-    assert "103, 169, 255" not in state["activePreset"]["boxShadow"]
-    assert "147, 197, 253" not in state["activePreset"]["boxShadow"]
-    assert "0 0 24px" not in state["activePreset"]["boxShadow"]
-
-    control.locator(".timeframe-calendar").hover()
-    hovered = control.locator(".timeframe-calendar").evaluate(
-        """
-        node => ({
-          borderColor: getComputedStyle(node).borderTopColor,
-          boxShadow: getComputedStyle(node).boxShadow,
-        })
-        """
-    )
-    assert hovered["boxShadow"] != state["calendar"]["boxShadow"]
-    assert hovered["borderColor"] != state["calendar"]["borderColor"]
-
-    artifact_dir = Path("test-results") / "timeframe-depth"
-    artifact_dir.mkdir(parents=True, exist_ok=True)
-    control.screenshot(path=str(artifact_dir / "timeframe-dark-layered-depth.png"))
-    assert_clean_browser(page)
-
-
-def test_dark_mode_global_materials_use_smoked_layered_glass(page: Page, app_server: str) -> None:
-    goto(page, app_server)
-    artifact_dir = Path("test-results") / "dark-glass-material"
-    artifact_dir.mkdir(parents=True, exist_ok=True)
-    page.screenshot(path=str(artifact_dir / "dashboard-light-regression.png"), full_page=True)
-
-    page.locator(".theme-toggle").click()
-    expect(page.locator("html")).to_have_attribute("data-theme", "dark")
-    page.locator(".panel-add-button").click()
-    expect(page.locator(".panel-add-menu")).to_have_class(re.compile("open"))
-
-    state = page.evaluate(
-        """
-        () => {
-          const toRgb = (value) => {
-            const rgb = value.match(/rgba?\\(([^)]+)\\)/);
-            if (rgb) {
-              return rgb[1].split(/[\\s,\\/]+/).filter(Boolean).slice(0, 3).map((part) => Math.round(Number(part)));
-            }
-            const srgb = value.match(/color\\(srgb\\s+([\\d.]+)\\s+([\\d.]+)\\s+([\\d.]+)/);
-            if (srgb) return srgb.slice(1, 4).map((part) => Math.round(Number(part) * 255));
-            return [];
-          };
-          const read = (selector) => {
-            const node = document.querySelector(selector);
-            const styles = getComputedStyle(node);
-            return {
-              selector,
-              backgroundColor: styles.backgroundColor,
-              backgroundImage: styles.backgroundImage,
-              borderColor: styles.borderTopColor,
-              borderRgb: toRgb(styles.borderTopColor),
-              boxShadow: styles.boxShadow,
-              insetCount: (styles.boxShadow.match(/inset/g) || []).length,
-            };
-          };
-          return {
-            layers: [
-              read(".app-nav.workspace-chrome"),
-              read(".app-nav.workspace-chrome .theme-toggle"),
-              read(".app-nav.workspace-chrome .layout-slot-trigger"),
-              read(".panel-add-menu"),
-              read(".widget-layout > .stat-card.widget-card:not(.range-bar)"),
-              read(".panel-layout > .db-panel"),
-              read(".timeframe-command-surface"),
-              read(".timeframe-presets"),
-              read(".timeframe-widget .preset-btn.active"),
-              read(".timeframe-calendar"),
-            ],
-          };
-        }
-        """
-    )
-    page.evaluate(
-        """
-        () => {
-          document.querySelector(".panel-add-menu")?.classList.remove("open");
-          document.querySelector(".panel-add-button")?.setAttribute("aria-expanded", "false");
-        }
-        """
-    )
-    expect(page.locator(".panel-add-menu")).not_to_have_class(re.compile("open"))
-    page.locator(".timeframe-calendar").hover()
-    page.wait_for_timeout(120)
-    hovered_calendar = page.locator(".timeframe-calendar").evaluate(
-        """
-        node => ({
-          backgroundImage: getComputedStyle(node).backgroundImage,
-          borderColor: getComputedStyle(node).borderTopColor,
-          boxShadow: getComputedStyle(node).boxShadow,
-        })
-        """
-    )
-    page.screenshot(path=str(artifact_dir / "dashboard-dark-smoked-glass.png"), full_page=True)
-    page.locator(".timeframe-widget").screenshot(path=str(artifact_dir / "timeframe-dark-smoked-controls.png"))
-
-    for layer in state["layers"]:
-        assert layer["backgroundImage"] != "none", layer
-        assert "linear-gradient" in layer["backgroundImage"] or "radial-gradient" in layer["backgroundImage"], layer
-        assert layer["boxShadow"] != "none", layer
-        assert "inset" in layer["boxShadow"], layer
-        assert layer["insetCount"] >= 1, layer
-        if layer["borderRgb"]:
-            assert max(layer["borderRgb"]) <= 190, layer
-        assert "103, 169, 255" not in layer["borderColor"]
-        assert "147, 197, 253" not in layer["borderColor"]
-        assert "0 0 24px" not in layer["boxShadow"]
-        assert "0 0 30px" not in layer["boxShadow"]
-
-    calendar = next(layer for layer in state["layers"] if layer["selector"] == ".timeframe-calendar")
-    assert hovered_calendar["boxShadow"] != calendar["boxShadow"]
-    assert hovered_calendar["borderColor"] != calendar["borderColor"]
-    assert_clean_browser(page)
-
 
 def test_minimum_panel_menu_opens_without_resizing_panel(page: Page, app_server: str) -> None:
     goto(page, app_server)
@@ -1757,12 +1331,8 @@ def test_ctrl_z_ignores_text_inputs_and_canceled_interaction_previews(page: Page
     assert_clean_browser(page)
 
 
-@pytest.mark.parametrize("theme", ["light", "dark"])
-def test_timeframe_resize_clamps_to_adaptive_density_minimum(page: Page, app_server: str, theme: str) -> None:
+def test_timeframe_resize_clamps_to_adaptive_density_minimum(page: Page, app_server: str) -> None:
     goto(page, app_server)
-    if theme == "dark":
-        page.locator(".theme-toggle").click()
-        expect(page.locator("html")).to_have_attribute("data-theme", "dark")
     control = page.locator(".timeframe-widget")
     before = grid_item_state(page, ".timeframe-widget")
 
@@ -2269,15 +1839,94 @@ def test_dragging_expanded_panel_preserves_temporary_pushdown_restoration(page: 
     expanded_displaced = grid_item_state(page, '[data-widget-key="widget-1"]')
     assert expanded_displaced["col"] == baseline_displaced["col"]
     assert expanded_displaced["row"] > baseline_displaced["row"]
+    expanded_visual = page.evaluate(
+        """
+        () => {
+          const grid = document.querySelector(".dashboard-layout-grid");
+          const styles = getComputedStyle(grid);
+          const rowHeight = parseFloat(styles.gridAutoRows) || 81;
+          const gap = parseFloat(styles.rowGap || styles.gap || "16") || 16;
+          const panel = document.querySelector('[data-panel-key="builder-content"]');
+          const rows = Number(panel.dataset.gridRowSpan || 1);
+          const expectedHeight = (rows * rowHeight) + (Math.max(0, rows - 1) * gap);
+          const rect = panel.getBoundingClientRect();
+          return {
+            collapsed: panel.classList.contains("db-panel-collapsed"),
+            rows,
+            expectedHeight,
+            rect: rect.toJSON(),
+            styleHeight: parseFloat(getComputedStyle(panel).height),
+          };
+        }
+        """
+    )
+    assert expanded_visual["collapsed"] is False
+    assert expanded_visual["rows"] > 1
+    assert abs(expanded_visual["rect"]["height"] - expanded_visual["expectedHeight"]) <= 2
+    assert abs(expanded_visual["styleHeight"] - expanded_visual["expectedHeight"]) <= 2
 
     open_tools(panel)
-    drag_by(page, panel.locator(".panel-move-handle"), 0, 190, steps=18)
+    x, y = begin_drag(page, panel.locator(".panel-move-handle"), 0, 60, steps=10)
+    during_drag = page.evaluate(
+        """
+        () => {
+          const grid = document.querySelector(".dashboard-layout-grid");
+          const styles = getComputedStyle(grid);
+          const rowHeight = parseFloat(styles.gridAutoRows) || 81;
+          const gap = parseFloat(styles.rowGap || styles.gap || "16") || 16;
+          const panel = document.querySelector('[data-panel-key="builder-content"]');
+          const active = document.querySelector(".db-panel-dragging");
+          const placeholder = document.querySelector(".db-panel-placeholder");
+          const rows = Number(placeholder?.dataset.gridRowSpan || panel.dataset.gridRowSpan || 1);
+          const expectedHeight = (rows * rowHeight) + (Math.max(0, rows - 1) * gap);
+          return {
+            panelCollapsed: panel.classList.contains("db-panel-collapsed"),
+            activeHeight: active?.getBoundingClientRect().height || 0,
+            placeholderHeight: placeholder?.getBoundingClientRect().height || 0,
+            placeholderRows: rows,
+            expectedHeight,
+            expandedGhosts: document.querySelectorAll(".dashboard-expanded-footprint-ghost").length,
+          };
+        }
+        """
+    )
+    assert during_drag["panelCollapsed"] is False
+    assert during_drag["placeholderRows"] == expanded_visual["rows"]
+    assert abs(during_drag["activeHeight"] - expanded_visual["expectedHeight"]) <= 2
+    assert abs(during_drag["placeholderHeight"] - expanded_visual["expectedHeight"]) <= 2
+    assert abs(during_drag["placeholderHeight"] - during_drag["expectedHeight"]) <= 2
+    assert during_drag["expandedGhosts"] == 0
+    end_drag(page, x, y, 0, 190, steps=18)
     page.wait_for_timeout(420)
     after_drag_displaced = grid_item_state(page, '[data-widget-key="widget-1"]')
     after_drag_panel = grid_item_state(page, '[data-panel-key="builder-content"]')
     assert after_drag_panel["row"] > 1
+    assert after_drag_panel["rowSpan"] == expanded_visual["rows"]
     assert after_drag_displaced["col"] == baseline_displaced["col"]
     assert after_drag_displaced["row"] > expanded_displaced["row"]
+    after_drag_visual = page.evaluate(
+        """
+        () => {
+          const grid = document.querySelector(".dashboard-layout-grid");
+          const styles = getComputedStyle(grid);
+          const rowHeight = parseFloat(styles.gridAutoRows) || 81;
+          const gap = parseFloat(styles.rowGap || styles.gap || "16") || 16;
+          const panel = document.querySelector('[data-panel-key="builder-content"]');
+          const rows = Number(panel.dataset.gridRowSpan || 1);
+          const expectedHeight = (rows * rowHeight) + (Math.max(0, rows - 1) * gap);
+          const rect = panel.getBoundingClientRect();
+          return {
+            collapsed: panel.classList.contains("db-panel-collapsed"),
+            expectedHeight,
+            rect: rect.toJSON(),
+            styleHeight: parseFloat(getComputedStyle(panel).height),
+          };
+        }
+        """
+    )
+    assert after_drag_visual["collapsed"] is False
+    assert abs(after_drag_visual["rect"]["height"] - after_drag_visual["expectedHeight"]) <= 2
+    assert abs(after_drag_visual["styleHeight"] - after_drag_visual["expectedHeight"]) <= 2
 
     page.locator(".layout-save-button").click()
     expect(page.locator(".toast", has_text="saved")).to_be_visible()
@@ -2297,6 +1946,46 @@ def test_dragging_expanded_panel_preserves_temporary_pushdown_restoration(page: 
     assert grid_state_tuple(collapsed_unrelated) == grid_state_tuple(baseline_unrelated)
     expect(panel).to_have_class(re.compile("db-panel-collapsed"))
     assert no_visible_overlaps(page, ".dashboard-layout-grid .widget-card, .dashboard-layout-grid .db-panel") == []
+
+    panel.locator(".db-panel-hd").click(position={"x": 18, "y": 18})
+    page.wait_for_timeout(420)
+    expect(panel).not_to_have_class(re.compile("db-panel-collapsed"))
+    reopened_displaced = grid_item_state(page, '[data-widget-key="widget-1"]')
+    reopened_visual = page.evaluate(
+        """
+        () => {
+          const grid = document.querySelector(".dashboard-layout-grid");
+          const styles = getComputedStyle(grid);
+          const rowHeight = parseFloat(styles.gridAutoRows) || 81;
+          const gap = parseFloat(styles.rowGap || styles.gap || "16") || 16;
+          const panel = document.querySelector('[data-panel-key="builder-content"]');
+          const rows = Number(panel.dataset.gridRowSpan || 1);
+          const expectedHeight = (rows * rowHeight) + (Math.max(0, rows - 1) * gap);
+          return {
+            rows,
+            expectedHeight,
+            rect: panel.getBoundingClientRect().toJSON(),
+          };
+        }
+        """
+    )
+    assert reopened_visual["rows"] == expanded_visual["rows"]
+    assert abs(reopened_visual["rect"]["height"] - reopened_visual["expectedHeight"]) <= 2
+    assert reopened_displaced["col"] == baseline_displaced["col"]
+    reopened_footprint_bottom = after_drag_panel["row"] + reopened_visual["rows"] - 1
+    if after_drag_panel["row"] <= baseline_displaced["row"] <= reopened_footprint_bottom:
+        assert reopened_displaced["row"] > baseline_displaced["row"]
+    else:
+        assert grid_state_tuple(reopened_displaced) == grid_state_tuple(baseline_displaced)
+    assert no_visible_overlaps(page, ".dashboard-layout-grid .widget-card, .dashboard-layout-grid .db-panel") == []
+
+    panel.locator(".db-panel-hd").click(position={"x": 18, "y": 18})
+    page.wait_for_timeout(420)
+    expect(panel).to_have_class(re.compile("db-panel-collapsed"))
+    collapsed_again_displaced = grid_item_state(page, '[data-widget-key="widget-1"]')
+    collapsed_again_unrelated = grid_item_state(page, '[data-widget-key="widget-2"]')
+    assert grid_state_tuple(collapsed_again_displaced) == grid_state_tuple(baseline_displaced)
+    assert grid_state_tuple(collapsed_again_unrelated) == grid_state_tuple(baseline_unrelated)
 
     page.locator(".layout-save-button").click()
     expect(page.locator(".toast", has_text="saved")).to_be_visible()
@@ -2704,23 +2393,22 @@ def test_panel_expand_collapse_does_not_shift_dashboard_when_scrollbar_changes(p
     assert abs(expanded["pageLeft"] - collapsed_before["pageLeft"]) <= 1
     assert abs(expanded["pageWidth"] - collapsed_before["pageWidth"]) <= 1
 
-    page.locator(".theme-toggle").click()
+    page.evaluate("document.documentElement.dataset.background = 'deep-slate'")
     page.wait_for_timeout(250)
-    expect(page.locator("html")).to_have_attribute("data-theme", "dark")
-    expanded_dark = horizontal_metrics()
-    assert expanded_dark["overflows"] is True
-    assert expanded_dark["rootScrollWidth"] <= expanded_dark["clientWidth"]
-    assert expanded_dark["bodyScrollWidth"] <= expanded_dark["bodyClientWidth"]
-    assert expanded_dark["rootBackground"] != "none"
-    assert expanded_dark["rootBackground"] == expanded_dark["bodyBackground"]
-    assert expanded_dark["bodyScrollbarBackground"] == "rgba(0, 0, 0, 0)"
-    assert expanded_dark["bodyScrollbarTrack"] == "rgba(0, 0, 0, 0)"
-    assert expanded_dark["bodyScrollbarCorner"] == "rgba(0, 0, 0, 0)"
-    assert "rgba(0, 0, 0, 0)" in expanded_dark["bodyScrollbarColor"]
-    assert abs(expanded_dark["gridLeft"] - collapsed_before["gridLeft"]) <= 1
-    assert abs(expanded_dark["gridWidth"] - collapsed_before["gridWidth"]) <= 1
-    assert abs(expanded_dark["pageLeft"] - collapsed_before["pageLeft"]) <= 1
-    assert abs(expanded_dark["pageWidth"] - collapsed_before["pageWidth"]) <= 1
+    expanded_deep = horizontal_metrics()
+    assert expanded_deep["overflows"] is True
+    assert expanded_deep["rootScrollWidth"] <= expanded_deep["clientWidth"]
+    assert expanded_deep["bodyScrollWidth"] <= expanded_deep["bodyClientWidth"]
+    assert expanded_deep["rootBackground"] != "none"
+    assert expanded_deep["rootBackground"] == expanded_deep["bodyBackground"]
+    assert expanded_deep["bodyScrollbarBackground"] == "rgba(0, 0, 0, 0)"
+    assert expanded_deep["bodyScrollbarTrack"] == "rgba(0, 0, 0, 0)"
+    assert expanded_deep["bodyScrollbarCorner"] == "rgba(0, 0, 0, 0)"
+    assert "rgba(0, 0, 0, 0)" in expanded_deep["bodyScrollbarColor"]
+    assert abs(expanded_deep["gridLeft"] - collapsed_before["gridLeft"]) <= 1
+    assert abs(expanded_deep["gridWidth"] - collapsed_before["gridWidth"]) <= 1
+    assert abs(expanded_deep["pageLeft"] - collapsed_before["pageLeft"]) <= 1
+    assert abs(expanded_deep["pageWidth"] - collapsed_before["pageWidth"]) <= 1
 
     notes.locator(".db-panel-hd").click(position={"x": 18, "y": 18})
     page.wait_for_timeout(350)
@@ -3184,12 +2872,11 @@ def test_panel_empty_placeholder_tracks_resized_body_area(page: Page, app_server
     panel.screenshot(path=str(artifact_dir / "placeholder-light-resized.png"))
     light = body_alignment()
 
-    page.locator(".theme-toggle").click()
-    expect(page.locator("html")).to_have_attribute("data-theme", "dark")
-    panel.screenshot(path=str(artifact_dir / "placeholder-dark-resized.png"))
-    dark = body_alignment()
+    page.evaluate("document.documentElement.dataset.background = 'deep-slate'")
+    panel.screenshot(path=str(artifact_dir / "placeholder-deep-resized.png"))
+    deep = body_alignment()
 
-    for state in (light, dark):
+    for state in (light, deep):
         body_rect = state["body"]
         empty_rect = state["empty"]
         header_rect = state["header"]
@@ -3200,6 +2887,74 @@ def test_panel_empty_placeholder_tracks_resized_body_area(page: Page, app_server
         assert abs(empty_rect["bottom"] - body_rect["bottom"]) <= 1
         assert empty_rect["width"] >= body_rect["width"] - 2
         assert empty_rect["height"] >= body_rect["height"] - 2
+    assert_clean_browser(page)
+
+
+def test_empty_panel_surface_is_translucent_without_affecting_populated_content(page: Page, app_server: str) -> None:
+    goto(page, app_server)
+    panel = add_panel_for_setup(page)
+    if panel.evaluate("node => node.classList.contains('db-panel-collapsed')"):
+        panel.locator(".db-panel-hd").click(position={"x": 18, "y": 18})
+        expect(panel).not_to_have_class(re.compile("db-panel-collapsed"))
+
+    def read_empty_material() -> dict:
+        return panel.evaluate(
+            """
+            node => {
+              const empty = node.querySelector(".db-panel-body > .panel-empty-state");
+              const strong = empty.querySelector("strong");
+              const helper = empty.querySelector("small");
+              const action = empty.querySelector(".panel-empty-action");
+              const populated = document.querySelector(".timeframe-widget .timeframe-command-surface");
+              const styles = getComputedStyle(empty);
+              const actionStyles = getComputedStyle(action);
+              const alphaValues = (value) => {
+                const values = [];
+                const rgba = value.matchAll(/rgba\\([^)]*,\\s*([\\d.]+)\\)/g);
+                for (const match of rgba) values.push(Number.parseFloat(match[1]));
+                const colorMix = value.matchAll(/color-mix\\([^)]*\\s([\\d.]+)%/g);
+                for (const match of colorMix) values.push(Number.parseFloat(match[1]) / 100);
+                return values.filter(Number.isFinite);
+              };
+              return {
+                background: styles.background,
+                backgroundColor: styles.backgroundColor,
+                backgroundImage: styles.backgroundImage,
+                borderStyle: styles.borderTopStyle,
+                borderColor: styles.borderTopColor,
+                backdropFilter: styles.backdropFilter || styles.webkitBackdropFilter || "",
+                textColor: getComputedStyle(strong).color,
+                helperColor: getComputedStyle(helper).color,
+                actionText: action.textContent.trim(),
+                actionPointerEvents: actionStyles.pointerEvents,
+                actionBackground: actionStyles.background,
+                alphaValues: alphaValues(styles.background),
+                populatedBackground: getComputedStyle(populated).background,
+                populatedBackgroundColor: getComputedStyle(populated).backgroundColor,
+              };
+            }
+            """
+        )
+
+    light = read_empty_material()
+    page.evaluate("document.documentElement.dataset.background = 'deep-slate'")
+    deep = read_empty_material()
+
+    for material in (light, deep):
+        assert material["backgroundImage"] != "none"
+        assert material["backgroundColor"] == "rgba(0, 0, 0, 0)"
+        assert material["borderStyle"] == "dashed"
+        assert material["borderColor"] != "rgb(255, 255, 255)"
+        assert material["backdropFilter"] != "none"
+        assert material["alphaValues"]
+        assert max(material["alphaValues"]) <= .40
+        assert material["textColor"] != "rgba(0, 0, 0, 0)"
+        assert material["helperColor"] != "rgba(0, 0, 0, 0)"
+        assert material["actionText"] == "Add widgets"
+        assert material["actionPointerEvents"] == "none"
+        assert material["actionBackground"] != "none"
+        assert material["populatedBackground"] != material["background"]
+        assert material["populatedBackgroundColor"] != "rgba(0, 0, 0, 0)"
     assert_clean_browser(page)
 
 
@@ -4026,12 +3781,8 @@ def test_pin_action_closes_tool_menu_and_restores_hover_close(page: Page, app_se
     assert_clean_browser(page)
 
 
-@pytest.mark.parametrize("theme", ["light", "dark"])
-def test_pin_control_uses_soft_dashboard_chrome(page: Page, app_server: str, theme: str) -> None:
+def test_pin_control_uses_soft_dashboard_chrome(page: Page, app_server: str) -> None:
     goto(page, app_server)
-    if theme == "dark":
-        page.locator(".theme-toggle").click()
-        expect(page.locator("html")).to_have_attribute("data-theme", "dark")
 
     def read_pin_state(item) -> dict:
         return item.evaluate(
@@ -4047,14 +3798,17 @@ def test_pin_control_uses_soft_dashboard_chrome(page: Page, app_server: str, the
               const pinStyle = getComputedStyle(pin);
               const iconStyle = getComputedStyle(icon);
               const markerStyle = getComputedStyle(node, "::after");
+              const markerIconStyle = getComputedStyle(node, "::before");
               const centerDelta = {
                 x: Math.abs((pinRect.left + pinRect.width / 2) - (iconRect.left + iconRect.width / 2)),
                 y: Math.abs((pinRect.top + pinRect.height / 2) - (iconRect.top + iconRect.height / 2)),
               };
               const rgb = (value) => {
                 const match = value.match(/rgba?\\(([^)]+)\\)/);
-                if (!match) return [];
-                return match[1].split(",").slice(0, 3).map((part) => Number.parseFloat(part)).filter(Number.isFinite);
+                if (match) return match[1].split(/[\\s,\\/]+/).filter(Boolean).slice(0, 3).map((part) => Number.parseFloat(part)).filter(Number.isFinite);
+                const srgb = value.match(/color\\(srgb\\s+([\\d.]+)\\s+([\\d.]+)\\s+([\\d.]+)/);
+                if (srgb) return srgb.slice(1, 4).map((part) => Math.round(Number.parseFloat(part) * 255));
+                return [];
               };
               return {
                 settingsWidth: parseFloat(settingsStyle.width),
@@ -4075,7 +3829,14 @@ def test_pin_control_uses_soft_dashboard_chrome(page: Page, app_server: str, the
                 markerHeight: parseFloat(markerStyle.height),
                 markerBorderWidth: parseFloat(markerStyle.borderTopWidth),
                 markerBorderColor: markerStyle.borderTopColor,
+                markerBackground: markerStyle.background,
+                markerBorderRadius: markerStyle.borderTopLeftRadius,
                 markerBoxShadow: markerStyle.boxShadow,
+                markerIconWidth: parseFloat(markerIconStyle.width),
+                markerIconHeight: parseFloat(markerIconStyle.height),
+                markerIconColor: markerIconStyle.backgroundColor,
+                markerIconDisplay: markerIconStyle.display,
+                markerIconContent: markerIconStyle.content,
               };
             }
             """,
@@ -4088,11 +3849,13 @@ def test_pin_control_uses_soft_dashboard_chrome(page: Page, app_server: str, the
     ):
         item = page.locator(selector).first
         open_tools(item)
+        page.mouse.move(24, 24)
+        page.wait_for_timeout(80)
         unpinned = read_pin_state(item)
         assert abs(unpinned["pinWidth"] - unpinned["settingsWidth"]) <= 1
         assert abs(unpinned["pinHeight"] - unpinned["settingsHeight"]) <= 1
-        assert unpinned["iconWidth"] <= 14.5
-        assert unpinned["iconHeight"] <= 14.5
+        assert 15 <= unpinned["iconWidth"] <= 17
+        assert 15 <= unpinned["iconHeight"] <= 17
         assert unpinned["centerDelta"]["x"] <= 1
         assert unpinned["centerDelta"]["y"] <= 1
         assert unpinned["borderWidth"] <= 1.5
@@ -4100,7 +3863,7 @@ def test_pin_control_uses_soft_dashboard_chrome(page: Page, app_server: str, the
 
         pin = item.locator(".panel-pin-toggle")
         pin.hover()
-        page.wait_for_timeout(80)
+        page.wait_for_timeout(220)
         hovered = pin.evaluate(
             """
             node => ({
@@ -4108,15 +3871,37 @@ def test_pin_control_uses_soft_dashboard_chrome(page: Page, app_server: str, the
               background: getComputedStyle(node).background,
               borderColor: getComputedStyle(node).borderTopColor,
               boxShadow: getComputedStyle(node).boxShadow,
+              iconOpacity: parseFloat(getComputedStyle(node.querySelector(".pin-icon")).opacity || "1"),
+              iconTransform: getComputedStyle(node.querySelector(".pin-icon")).transform,
             })
             """
         )
         assert hovered["isHover"]
+        item.locator(".panel-move-handle").hover(force=True)
+        page.wait_for_timeout(220)
+        peer_hovered = item.locator(".panel-move-handle").evaluate(
+            """
+            node => ({
+              background: getComputedStyle(node).background,
+              borderColor: getComputedStyle(node).borderTopColor,
+              boxShadow: getComputedStyle(node).boxShadow,
+            })
+            """
+        )
         assert (
             hovered["boxShadow"] != unpinned["boxShadow"]
             or hovered["background"] != unpinned["background"]
             or hovered["borderColor"] != unpinned["borderColor"]
+            or hovered["iconOpacity"] != unpinned["iconOpacity"]
+            or hovered["iconTransform"] != "none"
         )
+        assert "linear-gradient" not in hovered["background"]
+        assert hovered["borderColor"] != "rgb(255, 255, 255)"
+        assert "0px 6px 14px" in hovered["boxShadow"]
+        assert "0px 6px 14px" in peer_hovered["boxShadow"]
+        assert "0px 0px 16px" not in hovered["boxShadow"]
+        assert "0px 0px 18px" not in hovered["boxShadow"]
+        assert "0px 0px 22px" not in hovered["boxShadow"]
         pin.focus()
         focused = pin.evaluate("node => ({ outline: getComputedStyle(node).outlineStyle, border: getComputedStyle(node).borderTopColor })")
         assert focused["outline"] in {"solid", "none"}
@@ -4126,17 +3911,19 @@ def test_pin_control_uses_soft_dashboard_chrome(page: Page, app_server: str, the
         page.wait_for_timeout(120)
         expect(item).to_have_class(re.compile("db-panel-pinned"))
         pinned = read_pin_state(item)
-        assert pinned["background"] != unpinned["background"] or pinned["borderColor"] != unpinned["borderColor"]
-        assert pinned["markerWidth"] <= 7.5
-        assert pinned["markerHeight"] <= 7.5
-        assert pinned["markerBorderWidth"] <= 1.5
+        assert 5 <= pinned["markerWidth"] <= 9
+        assert 5 <= pinned["markerHeight"] <= 9
+        assert pinned["markerBorderWidth"] <= 1.1
+        assert pinned["markerBorderRadius"] in {"999px", "50%"} or float(pinned["markerBorderRadius"].replace("px", "")) >= 3
+        assert pinned["markerBackground"] != "none"
+        assert pinned["markerIconDisplay"] == "none"
+        assert pinned["markerIconContent"] in {"none", "normal"}
         assert "0 0 26px" not in pinned["boxShadow"]
         assert "0 0 26px" not in pinned["markerBoxShadow"]
-        if theme == "dark":
-            assert pinned["borderRgb"] and max(pinned["borderRgb"]) <= 190
-            assert "103, 169, 255" not in pinned["borderColor"]
-            assert "147, 197, 253" not in pinned["borderColor"]
-            assert "103, 169, 255" not in pinned["boxShadow"]
+        assert "0px 7px" not in pinned["markerBoxShadow"]
+        assert "103, 169, 255" not in pinned["borderColor"]
+        assert "147, 197, 253" not in pinned["borderColor"]
+        assert "103, 169, 255" not in pinned["boxShadow"]
         item.evaluate(
             """
             node => {
@@ -4146,6 +3933,18 @@ def test_pin_control_uses_soft_dashboard_chrome(page: Page, app_server: str, the
             }
             """
         )
+
+    page.evaluate("document.documentElement.dataset.background = 'deep-slate'")
+    deep_item = page.locator('[data-panel-key="builder-content"]').first
+    open_tools(deep_item)
+    deep_item.locator(".panel-pin-toggle").click(force=True)
+    page.wait_for_timeout(120)
+    deep_pinned = read_pin_state(deep_item)
+    assert 5 <= deep_pinned["markerWidth"] <= 9
+    assert 5 <= deep_pinned["markerHeight"] <= 9
+    assert deep_pinned["markerIconDisplay"] == "none"
+    assert "0 0 26px" not in deep_pinned["markerBoxShadow"]
+    assert "103, 169, 255" not in deep_pinned["markerBoxShadow"]
 
     assert_clean_browser(page)
 
@@ -4232,6 +4031,22 @@ def test_panel_widget_hover_focus_surface_parity(page: Page, app_server: str) ->
             """
         )
 
+    def rgb_tuple(value: str) -> tuple[float, float, float]:
+        parts = [float(part) for part in re.findall(r"[\d.]+", value)[:3]]
+        if len(parts) != 3:
+            return (0, 0, 0)
+        if value.startswith("color(") and max(parts) <= 1:
+            return tuple(part * 255 for part in parts)
+        return tuple(parts)
+
+    def assert_material_border_close(actual: str, expected: str, tolerance: float = 14) -> None:
+        assert max(abs(a - b) for a, b in zip(rgb_tuple(actual), rgb_tuple(expected))) <= tolerance
+
+    def assert_material_shadow(value: str) -> None:
+        assert value and value != "none"
+        assert "0 0 26px" not in value
+        assert "103, 169, 255" not in value
+
     widget.hover()
     page.wait_for_timeout(260)
     widget_hover = read_surface(widget)
@@ -4239,22 +4054,23 @@ def test_panel_widget_hover_focus_surface_parity(page: Page, app_server: str) ->
     panel.hover()
     page.wait_for_timeout(260)
     panel_hover = read_surface(panel)
-    assert panel_hover["borderColor"] == widget_hover["borderColor"]
-    assert panel_hover["boxShadow"] == widget_hover["boxShadow"]
+    assert_material_border_close(panel_hover["borderColor"], widget_hover["borderColor"])
+    assert_material_shadow(panel_hover["boxShadow"])
+    assert_material_shadow(widget_hover["boxShadow"])
     assert panel_hover["transform"] == widget_hover["transform"]
 
     if collapsed_panel.count():
         collapsed_panel.hover()
         page.wait_for_timeout(260)
         collapsed_hover = read_surface(collapsed_panel)
-        assert collapsed_hover["boxShadow"] == widget_hover["boxShadow"]
+        assert_material_shadow(collapsed_hover["boxShadow"])
         assert collapsed_hover["transform"] == widget_hover["transform"]
 
     timeframe.hover()
     page.wait_for_timeout(260)
     timeframe_hover = read_surface(timeframe)
-    assert timeframe_hover["borderColor"] == widget_hover["borderColor"]
-    assert timeframe_hover["boxShadow"] == widget_hover["boxShadow"]
+    assert_material_border_close(timeframe_hover["borderColor"], widget_hover["borderColor"])
+    assert_material_shadow(timeframe_hover["boxShadow"])
     assert timeframe_hover["transform"] == widget_hover["transform"]
 
     page.mouse.move(24, 24)
@@ -4265,10 +4081,155 @@ def test_panel_widget_hover_focus_surface_parity(page: Page, app_server: str) ->
     widget.focus()
     page.wait_for_timeout(180)
     widget_focus = read_surface(widget)
-    assert panel_focus["borderColor"] == widget_focus["borderColor"]
-    assert panel_focus["boxShadow"] == widget_focus["boxShadow"]
+    assert_material_border_close(panel_focus["borderColor"], widget_focus["borderColor"])
+    assert_material_shadow(panel_focus["boxShadow"])
+    assert_material_shadow(widget_focus["boxShadow"])
     assert panel_focus["transform"] == widget_focus["transform"]
     assert panel_focus["outlineStyle"] != "solid" or panel_focus["outlineWidth"] in {"0px", "1px", "2px"}
+    assert_clean_browser(page)
+
+
+def test_compact_pressable_controls_depress_without_sinking_large_surfaces(page: Page, app_server: str) -> None:
+    goto(page, app_server)
+    panel = page.locator(".panel-layout > .db-panel").first
+    widget = page.locator(".widget-layout > .stat-card.widget-card:not(.range-bar)").first
+    timeframe = page.locator(".timeframe-widget")
+    timeframe_preset = timeframe.locator(".preset-btn:not(.active)").first
+    background_trigger = page.locator(".background-tone-trigger").first
+
+    def transform_y(locator) -> float:
+        return locator.evaluate(
+            """
+            node => {
+              const transform = getComputedStyle(node).transform;
+              if (!transform || transform === "none") {
+                return 0;
+              }
+              return new DOMMatrixReadOnly(transform).m42;
+            }
+            """
+        )
+
+    def control_state(locator) -> dict:
+        return locator.evaluate(
+            """
+            node => {
+              const styles = getComputedStyle(node);
+              const transform = styles.transform && styles.transform !== "none"
+                ? new DOMMatrixReadOnly(styles.transform)
+                : new DOMMatrixReadOnly();
+              const icon = node.querySelector(".settings-icon,.move-icon,.resize-icon,.pin-icon,.text-icon,.color-icon,.trash-icon");
+              const iconStyles = icon ? getComputedStyle(icon) : null;
+              const iconTransform = iconStyles && iconStyles.transform && iconStyles.transform !== "none"
+                ? new DOMMatrixReadOnly(iconStyles.transform)
+                : new DOMMatrixReadOnly();
+              const rect = node.getBoundingClientRect();
+              return {
+                y: transform.m42,
+                scaleX: transform.a,
+                scaleY: transform.d,
+                width: rect.width,
+                height: rect.height,
+                boxShadow: styles.boxShadow,
+                iconY: iconTransform.m42,
+                iconScaleX: iconTransform.a,
+                iconScaleY: iconTransform.d,
+              };
+            }
+            """
+        )
+
+    def assert_compact_hover(locator) -> dict:
+        locator.hover(force=True)
+        page.wait_for_timeout(220)
+        state = control_state(locator)
+        assert state["y"] > 0.4
+        assert math.isclose(state["scaleX"], 1, abs_tol=.01)
+        assert math.isclose(state["scaleY"], 1, abs_tol=.01)
+        assert state["iconY"] >= -0.05
+        assert state["iconScaleX"] <= 1.01
+        assert state["iconScaleY"] <= 1.01
+        assert "0px 0px 16px" not in state["boxShadow"]
+        assert "0px 0px 18px" not in state["boxShadow"]
+        assert "0px 0px 22px" not in state["boxShadow"]
+        return state
+
+    def drawer_rect(item) -> dict:
+        return item.locator(".panel-tool-drawer").evaluate(
+            """
+            node => {
+              const rect = node.getBoundingClientRect();
+              return { width: rect.width, height: rect.height };
+            }
+            """
+        )
+
+    widget.hover()
+    page.wait_for_timeout(220)
+    assert transform_y(widget) < -0.5
+
+    panel.hover()
+    page.wait_for_timeout(220)
+    assert transform_y(panel) < -0.5
+
+    timeframe.hover()
+    page.wait_for_timeout(220)
+    assert transform_y(timeframe) < -0.5
+
+    timeframe_preset.hover()
+    page.wait_for_timeout(220)
+    preset_hover = transform_y(timeframe_preset)
+    assert preset_hover > 0.4
+
+    page.mouse.down()
+    page.wait_for_timeout(120)
+    assert transform_y(timeframe_preset) > preset_hover
+    page.mouse.up()
+
+    open_tools(widget)
+    page.wait_for_timeout(220)
+    settings = widget.locator(".panel-settings-toggle")
+    widget_drawer_before = drawer_rect(widget)
+
+    assert_compact_hover(settings)
+    widget_buttons = widget.locator(".panel-tool-drawer .panel-tool-button")
+    for index in range(widget_buttons.count()):
+        assert_compact_hover(widget_buttons.nth(index))
+
+    widget_title_button = widget.locator(".panel-title-handle")
+    widget_title_button.hover(force=True)
+    page.wait_for_timeout(120)
+    title_hover = control_state(widget_title_button)
+    page.mouse.down()
+    page.wait_for_timeout(120)
+    title_active = control_state(widget_title_button)
+    assert title_active["y"] > title_hover["y"]
+    page.mouse.move(24, 24)
+    page.mouse.up()
+
+    widget_drawer_after = drawer_rect(widget)
+    assert abs(widget_drawer_after["width"] - widget_drawer_before["width"]) <= .5
+    assert abs(widget_drawer_after["height"] - widget_drawer_before["height"]) <= .5
+
+    open_tools(panel)
+    page.wait_for_timeout(220)
+    panel_drawer_before = drawer_rect(panel)
+    assert_compact_hover(panel.locator(".panel-settings-toggle"))
+    panel_buttons = panel.locator(".panel-tool-drawer .panel-tool-button")
+    for index in range(panel_buttons.count()):
+        assert_compact_hover(panel_buttons.nth(index))
+    panel_drawer_after = drawer_rect(panel)
+    assert abs(panel_drawer_after["width"] - panel_drawer_before["width"]) <= .5
+    assert abs(panel_drawer_after["height"] - panel_drawer_before["height"]) <= .5
+
+    page.evaluate("document.documentElement.dataset.background = 'deep-slate'")
+    page.wait_for_timeout(120)
+    open_tools(widget)
+    assert_compact_hover(widget.locator(".panel-pin-toggle"))
+
+    background_trigger.hover()
+    page.wait_for_timeout(220)
+    assert transform_y(background_trigger) > 0.4
     assert_clean_browser(page)
 
 
@@ -4313,8 +4274,7 @@ def test_panel_header_chevrons_are_optically_centered(page: Page, app_server: st
         assert metric["borderBottomWidth"] == "0px", metric
         assert metric["maskImage"] != "none", metric
 
-    page.locator(".theme-toggle").click()
-    expect(page.locator("html")).to_have_attribute("data-theme", "dark")
+    page.evaluate("document.documentElement.dataset.background = 'deep-slate'")
     for metric in chevron_metrics():
         assert metric["xOffset"] <= 0.5, metric
         assert metric["topOffset"] <= 0.5, metric
@@ -4323,12 +4283,8 @@ def test_panel_header_chevrons_are_optically_centered(page: Page, app_server: st
     assert_clean_browser(page)
 
 
-@pytest.mark.parametrize("theme", ["light", "dark"])
-def test_panel_chevron_size_stays_stable_across_expand_collapse_states(page: Page, app_server: str, theme: str) -> None:
+def test_panel_chevron_size_stays_stable_across_expand_collapse_states(page: Page, app_server: str) -> None:
     goto(page, app_server)
-    if theme == "dark":
-        page.locator(".theme-toggle").click()
-        expect(page.locator("html")).to_have_attribute("data-theme", "dark")
 
     panel = page.locator('[data-panel-key="builder-menu"]')
     expect(panel).to_have_class(re.compile("db-panel-collapsed"))
@@ -4413,12 +4369,8 @@ def test_panel_chevron_size_stays_stable_across_expand_collapse_states(page: Pag
     assert_clean_browser(page)
 
 
-@pytest.mark.parametrize("theme", ["light", "dark"])
-def test_default_panel_header_titles_do_not_shift_across_expand_collapse(page: Page, app_server: str, theme: str) -> None:
+def test_default_panel_header_titles_do_not_shift_across_expand_collapse(page: Page, app_server: str) -> None:
     goto(page, app_server)
-    if theme == "dark":
-        page.locator(".theme-toggle").click()
-        expect(page.locator("html")).to_have_attribute("data-theme", "dark")
 
     panel_keys = ["builder-menu", "builder-notes", "builder-content"]
     header_structure = page.evaluate(
@@ -4472,92 +4424,6 @@ def test_default_panel_header_titles_do_not_shift_across_expand_collapse(page: P
         recollapsed_left = title_left(panel_key)
         assert abs(recollapsed_left - collapsed_left) <= 1, (panel_key, collapsed_left, recollapsed_left)
 
-    assert_clean_browser(page)
-
-
-def test_dark_panel_hover_matches_widget_highlight(page: Page, app_server: str) -> None:
-    goto(page, app_server)
-    page.locator(".theme-toggle").click()
-    expect(page.locator("html")).to_have_attribute("data-theme", "dark")
-
-    panel = page.locator(".panel-layout > .db-panel").first
-    widget = page.locator(".widget-layout > .stat-card.widget-card:not(.range-bar)").first
-    panel.hover()
-    page.wait_for_timeout(260)
-    panel_styles = panel.evaluate("node => ({ borderColor: getComputedStyle(node).borderColor, boxShadow: getComputedStyle(node).boxShadow })")
-    widget.hover()
-    page.wait_for_timeout(260)
-    widget_styles = widget.evaluate("node => ({ borderColor: getComputedStyle(node).borderColor, boxShadow: getComputedStyle(node).boxShadow })")
-
-    assert panel_styles["borderColor"] == widget_styles["borderColor"]
-    assert panel_styles["boxShadow"] == widget_styles["boxShadow"]
-    assert_clean_browser(page)
-
-
-def test_dark_panel_settings_menu_matches_widget_without_white_ring(page: Page, app_server: str) -> None:
-    goto(page, app_server)
-    page.locator(".theme-toggle").click()
-    expect(page.locator("html")).to_have_attribute("data-theme", "dark")
-
-    panel = page.locator(".panel-layout > .db-panel").first
-    widget = page.locator(".widget-layout > .stat-card.widget-card:not(.range-bar)").first
-    artifact_dir = Path("test-results") / "dark-menu-parity"
-    artifact_dir.mkdir(parents=True, exist_ok=True)
-
-    open_tools(panel)
-    page.wait_for_timeout(220)
-    panel.screenshot(path=str(artifact_dir / "panel-open-dark.png"))
-
-    panel_styles = page.evaluate(
-        """
-        () => {
-          const read = (button) => {
-            const computed = getComputedStyle(button);
-            return {
-              backgroundColor: computed.backgroundColor,
-              borderColor: computed.borderColor,
-              boxShadow: computed.boxShadow,
-              color: computed.color,
-              outlineColor: computed.outlineColor,
-              outlineStyle: computed.outlineStyle,
-              outlineWidth: computed.outlineWidth,
-            };
-          };
-          return read(document.querySelector(".panel-layout > .db-panel .panel-settings-toggle"));
-        }
-        """
-    )
-
-    page.mouse.move(24, 24)
-    page.wait_for_timeout(360)
-    open_tools(widget)
-    page.wait_for_timeout(220)
-    widget.screenshot(path=str(artifact_dir / "widget-open-dark.png"))
-
-    widget_styles = page.evaluate(
-        """
-        () => {
-          const button = document.querySelector(".widget-layout > .stat-card.widget-card:not(.range-bar) .panel-settings-toggle");
-          const computed = getComputedStyle(button);
-          return {
-            backgroundColor: computed.backgroundColor,
-            borderColor: computed.borderColor,
-            boxShadow: computed.boxShadow,
-            color: computed.color,
-            outlineColor: computed.outlineColor,
-            outlineStyle: computed.outlineStyle,
-            outlineWidth: computed.outlineWidth,
-          };
-        }
-        """
-    )
-
-    assert panel_styles["backgroundColor"] == widget_styles["backgroundColor"]
-    assert panel_styles["borderColor"] == widget_styles["borderColor"]
-    assert panel_styles["boxShadow"] == widget_styles["boxShadow"]
-    assert panel_styles["color"] == widget_styles["color"]
-    assert panel_styles["outlineStyle"] == widget_styles["outlineStyle"]
-    assert panel_styles["outlineStyle"] == "none"
     assert_clean_browser(page)
 
 
@@ -4884,12 +4750,8 @@ def test_group_drag_can_target_top_grid_row(page: Page, app_server: str) -> None
     assert_clean_browser(page)
 
 
-@pytest.mark.parametrize("theme", ["light", "dark"])
-def test_group_boundary_visuals_match_selection_during_move_and_resize(page: Page, app_server: str, theme: str) -> None:
+def test_group_boundary_visuals_match_selection_during_move_and_resize(page: Page, app_server: str) -> None:
     goto(page, app_server)
-    if theme == "dark":
-        page.locator(".theme-toggle").click()
-        expect(page.locator("html")).to_have_attribute("data-theme", "dark")
 
     page.evaluate(
         """

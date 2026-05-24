@@ -28,7 +28,7 @@ The project has a strong vanilla JavaScript interaction foundation. Drag, resize
 
 ### High UX Ambition
 
-The dashboard is not only functional. It has a clear interaction personality: tactile, glassy, spatial, premium, and direct. The visual system treats jitter, flicker, clipping, misalignment, harsh outlines, and dark-mode drift as product bugs rather than cosmetic preferences.
+The dashboard is not only functional. It has a clear interaction personality: tactile, glassy, spatial, premium, and direct. The visual system treats jitter, flicker, clipping, misalignment, harsh outlines, and background-driven material drift as product bugs rather than cosmetic preferences.
 
 ### Drag Ghost Architecture
 
@@ -123,7 +123,7 @@ Risk signals:
 
 ### CSS Interaction-State Sprawl
 
-The CSS now contains many state classes for active, selected, grouped, dragging, resizing, tools-open, collapsed, pinned, dark mode, custom color, and preview surfaces. Without consolidation, visual fixes may accumulate as late overrides.
+The CSS now contains many state classes for active, selected, grouped, dragging, resizing, tools-open, collapsed, pinned, custom color, background tone, and preview surfaces. Without consolidation, visual fixes may accumulate as late overrides.
 
 Risk signals:
 
@@ -391,7 +391,7 @@ Stabilization goals:
 
 - Shared visual tokens for selected, active, preview, ghost, disabled, pinned, and missing states.
 - One visual language for panels, widgets, groups, anchors, and future context badges.
-- Light and dark parity.
+- Default and deep-background parity.
 - No layout shift from hover/focus/active states.
 
 Anti-patterns to avoid:
@@ -405,7 +405,7 @@ Anti-patterns to avoid:
 
 Current status:
 
-- Light and dark modes have strong custom polish.
+- Shared material polish is strong across default and deep backgrounds.
 - Background palettes and glass surfaces are configurable.
 - Recent work improved scrollbar/root background continuity.
 
@@ -835,7 +835,7 @@ Visual regressions are product regressions. Screenshot or computed-style asserti
 - Drag and resize previews.
 - Group boundaries.
 - Hover/focus states.
-- Light and dark material parity.
+- Material parity across background tones.
 - Scrollbar/root background seams.
 - Header/icon/control alignment.
 - Future anchors and context badges.
@@ -862,7 +862,7 @@ Tests should:
 
 Manual checks remain required for high-risk visual changes:
 
-- Light and dark mode.
+- Default and deep background tones.
 - Hover/focus/active.
 - Drag and resize feel.
 - Group interaction feel.
@@ -993,7 +993,7 @@ Likely future need:
 Desired outcome:
 
 - Less selector sprawl.
-- Fewer dark-mode emergency overrides.
+- Fewer background/material emergency overrides.
 - Shared selected/active/preview/ghost/missing state styling.
 
 ### Selection/Active State Coordination
@@ -1021,7 +1021,7 @@ Major overhaul work should wait until these are true:
 - Temporary displacement is never saved as committed layout.
 - Pinned item guarantees remain covered.
 - Selection state is clearly separated from hover/focus/context state.
-- Visual state tokens are coherent across light and dark themes.
+- Visual state tokens are coherent across background tones.
 - Navbar architecture is stabilized as global workspace chrome.
 - No conventional tab architecture has been introduced.
 - Spatial Anchors architecture is documented before implementation.

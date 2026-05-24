@@ -73,7 +73,7 @@ Graph data must react to inherited and wired context. Graph rendering should res
 - Supports placeholder/demo data.
 - Supports filtering from active context.
 - Uses existing table-content styling when rendered inside or near panels.
-- Must preserve readable spacing, alignment, and dark-mode contrast.
+- Must preserve readable spacing, alignment, and contrast across background tones.
 
 ### Calendar Widget
 

@@ -25,6 +25,8 @@
   --range-control-border: color-mix(in srgb, var(--range-control-accent) 54%, var(--panel-hover-tint));
   --range-control-active-border: color-mix(in srgb, var(--range-control-accent) 72%, var(--panel-hover-tint));
   --range-control-glow: color-mix(in srgb, var(--range-control-accent) 24%, transparent);
+  --timeframe-surface-border: color-mix(in srgb, var(--range-control-accent) 36%, var(--panel-hover-tint));
+  --timeframe-cluster-border: color-mix(in srgb, var(--range-control-accent) 28%, var(--panel-hover-tint));
   box-sizing: border-box;
   width: 100%;
   max-width: 100%;
@@ -69,7 +71,7 @@
   gap: 10px;
   max-width: 100%;
   padding: 6px;
-  border: 1.5px solid color-mix(in srgb, var(--range-control-accent) 36%, var(--panel-hover-tint));
+  border: 1.5px solid var(--timeframe-surface-border);
   border-radius: 999px;
   background: color-mix(in srgb, var(--surface-raised) 54%, var(--range-control-accent) 20%);
   box-shadow:
@@ -84,7 +86,7 @@
   align-items: center;
   gap: 6px;
   padding: 3px;
-  border: 1.5px solid color-mix(in srgb, var(--range-control-accent) 28%, var(--panel-hover-tint));
+  border: 1.5px solid var(--timeframe-cluster-border);
   border-radius: 999px;
   background: color-mix(in srgb, var(--surface-raised) 42%, var(--range-control-accent) 18%);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, .14);
@@ -281,13 +283,16 @@
   background: color-mix(in srgb, var(--range-control-bg) 75%, var(--panel-hover-tint));
   color: var(--range-button-fg);
   box-shadow: 0 14px 28px var(--range-control-glow), 0 0 22px var(--range-control-glow), inset 0 1px 0 var(--panel-hover-inset);
-  transform: translateY(-1px);
+}
+
+.range-icon-button:hover {
+  transform: var(--pressable-hover-transform);
 }
 
 .range-icon-button:active,
 .range-custom-trigger:active,
 .preset-btn:active {
-  transform: translateY(0);
+  transform: var(--pressable-active-transform);
 }
 
 .timeframe-refresh-icon,
@@ -453,12 +458,13 @@
 
 .preset-btn:hover {
   box-shadow: 0 14px 28px var(--range-control-glow), 0 0 22px var(--range-control-glow), inset 0 1px 0 var(--panel-hover-inset);
-  transform: translateY(-1px);
+  transform: var(--pressable-hover-transform);
 }
 
 .preset-btn.active {
   border-color: var(--range-control-active-border);
   box-shadow: 0 14px 28px var(--range-control-glow), 0 0 22px var(--range-control-glow), inset 0 1px 0 rgba(255, 255, 255, .28);
+  transform: var(--pressable-active-transform);
 }
 
 .range-custom {
@@ -517,11 +523,12 @@
 
 .range-custom-trigger:hover {
   box-shadow: 0 14px 28px var(--range-control-glow), 0 0 22px var(--range-control-glow), inset 0 1px 0 var(--panel-hover-inset);
-  transform: translateY(-1px);
+  transform: var(--pressable-hover-transform);
 }
 
 .range-custom-trigger.active {
   box-shadow: 0 14px 28px var(--range-control-glow), 0 0 22px var(--range-control-glow), inset 0 1px 0 rgba(255, 255, 255, .28);
+  transform: var(--pressable-active-transform);
 }
 
 .range-date-input {

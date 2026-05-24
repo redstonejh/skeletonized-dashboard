@@ -2,7 +2,7 @@
 
 ## Source Of Truth
 
-The current dashboard UI is the visual source of truth. Future work must preserve the existing Apple-glass inspired design language: translucent surfaces, soft gradients, rounded pill controls, compact spacing, subtle shadows, tactile hover states, and theme-aware color.
+The current dashboard UI is the visual source of truth. Future work must preserve the existing Apple-glass inspired design language: translucent surfaces, soft gradients, rounded pill controls, compact spacing, subtle shadows, tactile hover states, and token-driven color.
 
 Do not create a new aesthetic for the next major version.
 
@@ -14,20 +14,20 @@ Do not create a new aesthetic for the next major version.
 - Spatial
 - Direct-manipulation first
 - Calm, compact, and precise
-- Theme-aware across preset colors and light/dark mode
+- Consistent across preset colors and background tones
 
-## Theme Rules
+## Material Rules
 
-- Use existing CSS tokens and theme variables.
+- Use existing CSS tokens and shared material variables.
 - Do not hard-code blue.
-- New glass surfaces must inherit the active theme color.
-- Light and dark mode must have matching interaction quality.
-- Dark mode should feel like the same product at night: premium midnight glass, not cyberpunk, gaming UI, neon HUD, or electric terminal styling.
-- Dark-mode depth should come from layered translucency, blur, shadow hierarchy, subtle gradients, and soft inner highlights, not bright glowing outlines.
-- Dark borders should be low-saturation material rims. Avoid high-alpha electric blue strokes, saturated outer halos, and RGB-like edge lighting.
+- New glass surfaces must inherit the shared material system.
+- Background tones must not create alternate component material systems.
+- Deep backgrounds should feel like the same glass objects over a darker environment, not cyberpunk, gaming UI, neon HUD, or electric terminal styling.
+- Depth should come from layered translucency, blur, shadow hierarchy, subtle gradients, and soft inner highlights, not bright glowing outlines.
+- Borders should act as material rims. Avoid high-alpha electric blue strokes, saturated outer halos, and RGB-like edge lighting.
 - White or near-white foreground treatment is appropriate on theme-tinted glass controls when contrast requires it.
 - Avoid browser-default input styling in dashboard controls.
-- Keep accent color, background tone, and light/dark mode separate.
+- Keep accent color and background tone separate.
 - Settings pages, forms, dropdowns, popovers, dialogs, and utility panels must use the same glass surface, shadow, border, radius, and hover language as the dashboard.
 
 ## CSS Architecture
@@ -49,7 +49,7 @@ Rules:
 - Avoid `!important`.
 - Avoid duplicated rules.
 - Place component styles in the correct architecture file.
-- Theme overrides belong in `themes.css`.
+- Shared visual polish belongs in `themes.css`.
 - Grid movement and object state styles belong in `dashboard-grid.css`.
 
 ## Control Styling
@@ -57,7 +57,7 @@ Rules:
 Controls should match existing toolbar, panel, and widget controls:
 
 - Rounded pill geometry
-- Theme-aware translucent glass surface
+- Token-driven translucent glass surface
 - Soft inner highlight
 - Subtle border
 - Soft drop shadow
@@ -91,7 +91,7 @@ All secondary UI should share the same treatment:
 - Rounded 16px-18px containers
 - Pill or 12px menu items
 - Smooth open/close transition
-- Theme-aware hover/focus state
+- Token-driven hover/focus state
 - Correct z-index layering
 
 ## Workspace Chrome Direction
@@ -116,7 +116,7 @@ Avoid:
 
 Use spacing, opacity, hover states, and one shared glass surface to imply grouping. Menus may be richer floating glass surfaces, but the persistent chrome should breathe.
 
-Primary emphasis belongs to Dashboard, Add Widget, and Engineer Mode. Save, Load, Undo, Restore, Group, theme, background, and settings controls are secondary or utility actions. Do not let every button compete at the same weight.
+Primary emphasis belongs to Dashboard, Add Widget, and Engineer Mode. Save, Load, Undo, Restore, Group, background, and settings controls are secondary or utility actions. Do not let every button compete at the same weight.
 
 Details live in `docs/workspace-toolbar.md`.
 
@@ -140,7 +140,7 @@ Wiring visuals should be elegant and quiet:
 
 - Smooth lines
 - Soft glow
-- Theme-aware color
+- Token-driven color
 - Subtle animated affordance
 - Native-feeling connection handles
 - No harsh developer-node styling
@@ -175,8 +175,8 @@ Treat these as bugs:
 - Overflow clipping
 - Shadow inconsistency
 - Radius mismatch
-- Dark-mode behavior drift
-- Theme preset mismatch
+- Deep-background material drift
+- Background preset mismatch
 - Disorienting pan or zoom jumps
 - Zoom-level text clipping or unreadable controls
 - Context links that detach visually from their source or target under pan/zoom
@@ -192,7 +192,7 @@ Treat these as bugs:
 
 - Update toolbar and timeframe command surface using existing glass/pill patterns.
 - Reuse tokens and existing component classes where possible.
-- Add screenshots for light mode, dark mode, and at least two theme presets.
+- Add screenshots for default background, a deep background, and at least two background presets.
 
 ### Phase 6
 

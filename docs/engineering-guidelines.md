@@ -70,7 +70,7 @@ Recommended future platform modules:
 - Manage stacking through z-index tokens only: header, dropdown, popover, modal, drag ghost, and resize handle.
 - Preserve spacing rhythm between top bar, widget rows, panel grid gaps, tool drawers, popovers, and placeholders.
 - Responsive overrides should change layout constraints, not invent alternate visual systems.
-- Avoid duplicated rules. If the same selector appears in multiple files, confirm the later rule is a real theme/interaction override.
+- Avoid duplicated rules. If the same selector appears in multiple files, confirm the later rule is a real material or interaction override.
 - Avoid `!important`. Keep existing `!important` only where it protects an established interaction state.
 - Animations must not cause text jumps, hover resizing, accidental reflow, or transform-origin shifts.
 
@@ -147,7 +147,7 @@ For the multi-user version:
 ## Polish Standards
 
 - Maintain pixel alignment for grid columns, placeholders, icons, tool buttons, and resize handles.
-- Preserve consistent motion feel across hover, drag, resize, popover, modal, and theme transitions.
+- Preserve consistent motion feel across hover, drag, resize, popover, modal, and background transitions.
 - Preserve visual rhythm in panel padding, widget spacing, header controls, and empty states.
 - Treat flicker, jitter, clipping, subpixel drift, and accidental scrollbars as defects.
 - Tool drawers and menus must layer above panels without clipping or blocking unrelated controls.
@@ -173,7 +173,7 @@ For user-facing interaction changes, run:
 
 Also manually inspect any changed interaction for:
 
-- Light and dark theme behavior
+- Shared material behavior across default and deep background tones
 - Desktop and mobile viewport behavior
 - Hover stability
 - Drag and resize smoothness
