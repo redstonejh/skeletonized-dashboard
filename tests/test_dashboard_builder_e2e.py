@@ -701,6 +701,8 @@ def test_panels_are_generic_containers_not_table_panel_types(page: Page, app_ser
     expect(page.locator('.panel-add-action[data-panel-kind="panel"]')).to_have_count(1)
     expect(page.locator(".panel-add-menu")).not_to_contain_text("Context Panel")
     expect(page.locator('.widget-add-action[data-widget-kind="table"]')).to_have_count(1)
+    expect(page.locator('.widget-add-action[data-widget-kind="anchor"]')).to_have_count(1)
+    expect(page.locator('.divider-add-action[data-divider-kind="context-divider"]')).to_have_count(1)
 
     page.locator('.panel-add-action[data-panel-kind="panel"]').click()
     new_panel = page.locator('.panel-layout > .db-panel[data-custom-panel="true"]').last
@@ -884,7 +886,7 @@ def test_workspace_chrome_is_spatial_and_modes_still_work(page: Page, app_server
     expect(page.locator(".context-command-island")).to_have_count(0)
     expect(page.locator(".nav-status-icon-only")).to_have_count(0)
     expect(page.locator(".app-nav.workspace-chrome .cmd-btn-icon-only")).to_have_count(0)
-    expect(page.locator('.app-nav.workspace-chrome a[href="/settings"]')).to_have_count(1)
+    expect(page.locator('.app-nav.workspace-chrome a[href="/settings"]')).to_have_count(0)
 
     chrome_styles = page.locator(".workspace-chrome").evaluate(
         """
@@ -924,24 +926,25 @@ def test_workspace_chrome_is_spatial_and_modes_still_work(page: Page, app_server
     assert abs(chrome_styles["border"] - widget_styles["border"]) <= 1
     assert chrome_styles["shadow"] != "none" and widget_styles["shadow"] != "none"
 
-    floating_styles = page.locator(".workspace-identity-island").evaluate(
+    island_styles = page.locator(".app-nav.workspace-chrome .workspace-command-island").evaluate_all(
         """
-        node => {
+        nodes => nodes.map((node) => {
           const styles = getComputedStyle(node);
           return {
-            radius: parseFloat(styles.borderTopLeftRadius),
+            border: parseFloat(styles.borderTopWidth),
             shadow: styles.boxShadow,
-            backdrop: styles.backdropFilter || styles.webkitBackdropFilter,
             background: styles.backgroundColor,
             image: styles.backgroundImage,
           };
-        }
+        })
         """
     )
-    assert floating_styles["radius"] >= 14
-    assert floating_styles["shadow"] != "none"
-    assert floating_styles["backdrop"] != "none"
-    assert floating_styles["background"] != "rgba(0, 0, 0, 0)" or floating_styles["image"] != "none"
+    assert island_styles
+    for styles in island_styles:
+        assert styles["border"] == 0
+        assert styles["shadow"] == "none"
+        assert styles["background"] == "rgba(0, 0, 0, 0)"
+        assert styles["image"] == "none"
 
     add_styles = page.locator(".composition-add-button").evaluate(
         """
@@ -961,21 +964,45 @@ def test_workspace_chrome_is_spatial_and_modes_still_work(page: Page, app_server
     assert add_styles["shadow"] != "none"
     assert add_styles["backdrop"] != "none"
 
-    island_styles = page.locator(".layout-command-island").evaluate(
+    hover_contract = page.locator(".layout-command-island").evaluate(
         """
         node => {
-          const styles = getComputedStyle(node);
+          const read = (el) => {
+            const styles = getComputedStyle(el);
+            return { background: styles.backgroundColor, shadow: styles.boxShadow, transform: styles.transform };
+          };
           return {
-            border: parseFloat(styles.borderTopWidth),
-            shadow: styles.boxShadow,
-            background: styles.backgroundColor,
+            island: read(node),
+            save: read(node.querySelector(".layout-save-button")),
+            load: read(node.querySelector(".layout-load-button")),
           };
         }
         """
     )
-    assert island_styles["border"] >= 1
-    assert island_styles["shadow"] != "none"
-    assert island_styles["background"] != "rgba(0, 0, 0, 0)"
+    assert hover_contract["island"]["background"] == "rgba(0, 0, 0, 0)"
+    assert hover_contract["island"]["shadow"] == "none"
+    page.locator(".layout-save-button").hover()
+    page.wait_for_timeout(220)
+    button_hover_contract = page.locator(".layout-command-island").evaluate(
+        """
+        node => {
+          const read = (el) => {
+            const styles = getComputedStyle(el);
+            return { background: styles.backgroundColor, shadow: styles.boxShadow, transform: styles.transform };
+          };
+          return {
+            island: read(node),
+            save: read(node.querySelector(".layout-save-button")),
+            load: read(node.querySelector(".layout-load-button")),
+          };
+        }
+        """
+    )
+    assert button_hover_contract["island"] == hover_contract["island"]
+    assert button_hover_contract["save"]["background"] != hover_contract["save"]["background"]
+    assert button_hover_contract["load"]["background"] == hover_contract["load"]["background"]
+    page.mouse.move(24, 24)
+    page.wait_for_timeout(120)
     control_metrics = page.locator(
         ".app-nav.workspace-chrome button.dash-switch-hero, "
         ".app-nav.workspace-chrome .layout-slot-trigger, "
@@ -1009,15 +1036,36 @@ def test_workspace_chrome_is_spatial_and_modes_still_work(page: Page, app_server
         assert metric["centerDelta"] <= 1.5
         assert metric["radius"] >= 12
         assert abs(metric["transformY"]) <= .1
+    arrow_metrics = page.locator(".layout-slot-trigger").evaluate(
+        """
+        node => {
+          const label = node.querySelector(".layout-slot-label").getBoundingClientRect();
+          const arrow = node.querySelector(".layout-slot-arrow").getBoundingClientRect();
+          const rect = node.getBoundingClientRect();
+          return {
+            labelRight: label.right,
+            arrowLeft: arrow.left,
+            arrowRightInset: rect.right - arrow.right,
+            centerDelta: Math.abs((arrow.top + arrow.height / 2) - (rect.top + rect.height / 2)),
+          };
+        }
+        """
+    )
+    assert arrow_metrics["arrowLeft"] >= arrow_metrics["labelRight"] + 6
+    assert 8 <= arrow_metrics["arrowRightInset"] <= 16
+    assert arrow_metrics["centerDelta"] <= 2.5
     page.locator(".app-nav").screenshot(path=str(artifact_dir / "toolbar-light-spatial-chrome.png"))
     page.evaluate("document.documentElement.dataset.background = 'deep-slate'")
     page.wait_for_timeout(120)
     page.locator(".app-nav").screenshot(path=str(artifact_dir / "toolbar-deep-slate-widget-chrome.png"))
     expect(page.locator(".composition-add-button")).to_be_visible()
 
-    page.locator(".dash-switch-hero").hover()
+    page.locator(".dash-switch-hero").click()
     expect(page.locator(".dash-switch-menu")).to_have_class(re.compile("open"))
-    expect(page.locator(".dash-switch-menu")).to_contain_text("Workspace settings")
+    expect(page.locator(".dash-switch-menu")).not_to_contain_text("Workspace settings")
+    expect(page.locator(".dash-switch-menu")).not_to_contain_text("Configure environment")
+    expect(page.locator(".dash-switch-menu")).to_contain_text("Profile identity")
+    expect(page.locator(".dash-switch-menu")).to_contain_text("Sign out")
     page.mouse.click(24, 24)
 
     page.locator(".layout-slot-trigger").click()
@@ -1044,12 +1092,29 @@ def test_workspace_chrome_is_spatial_and_modes_still_work(page: Page, app_server
     assert layout_menu_styles["backdrop"] != "none"
     assert layout_menu_styles["background"] != "rgba(0, 0, 0, 0)" or layout_menu_styles["image"] != "none"
     page.keyboard.press("Escape")
+    expect(page.locator(".layout-slot-menu")).not_to_have_class(re.compile("open"))
 
     page.locator(".panel-add-button").click()
     expect(page.locator(".panel-add-menu")).to_have_class(re.compile("open"))
-    for label in ("Stat", "Stat + Filter", "Graph", "Table", "Calendar", "Panel"):
+    add_alignment = page.locator(".panel-add-picker").evaluate(
+        """
+        node => {
+          const button = node.querySelector(".panel-add-button").getBoundingClientRect();
+          const menu = node.querySelector(".panel-add-menu").getBoundingClientRect();
+          return {
+            centerDelta: Math.abs((button.left + button.width / 2) - (menu.left + menu.width / 2)),
+            topGap: menu.top - button.bottom,
+          };
+        }
+        """
+    )
+    assert add_alignment["centerDelta"] <= 1.5
+    assert 6 <= add_alignment["topGap"] <= 14
+    for label in ("Stat", "Stat + Filter", "Graph", "Table", "Calendar", "Anchor", "Panel", "Divider"):
         expect(page.locator(".panel-add-menu")).to_contain_text(label)
     expect(page.locator(".panel-add-menu")).not_to_contain_text("Context Panel")
+    page.mouse.click(24, 24)
+    expect(page.locator(".panel-add-menu")).not_to_have_class(re.compile("open"))
 
     page.locator(".engineer-mode-button").click()
     expect(page.locator(".engineer-mode-button")).to_have_attribute("aria-pressed", "true")
@@ -4694,6 +4759,22 @@ def test_panel_widget_hover_focus_surface_parity(page: Page, app_server: str) ->
         )
 
     def rgb_tuple(value: str) -> tuple[float, float, float]:
+        if value.startswith("oklab("):
+            parts = [float(part) for part in re.findall(r"-?[\d.]+", value)[:3]]
+            if len(parts) == 3:
+                l_value, a_value, b_value = parts
+                l_channel = (l_value + 0.3963377774 * a_value + 0.2158037573 * b_value) ** 3
+                m_channel = (l_value - 0.1055613458 * a_value - 0.0638541728 * b_value) ** 3
+                s_channel = (l_value - 0.0894841775 * a_value - 1.2914855480 * b_value) ** 3
+                linear = (
+                    +4.0767416621 * l_channel - 3.3077115913 * m_channel + 0.2309699292 * s_channel,
+                    -1.2684380046 * l_channel + 2.6097574011 * m_channel - 0.3413193965 * s_channel,
+                    -0.0041960863 * l_channel - 0.7034186147 * m_channel + 1.7076147010 * s_channel,
+                )
+                return tuple(
+                    255 * (12.92 * channel if channel <= 0.0031308 else 1.055 * (channel ** (1 / 2.4)) - 0.055)
+                    for channel in (min(1, max(0, channel)) for channel in linear)
+                )
         parts = [float(part) for part in re.findall(r"[\d.]+", value)[:3]]
         if len(parts) != 3:
             return (0, 0, 0)
@@ -4748,6 +4829,95 @@ def test_panel_widget_hover_focus_surface_parity(page: Page, app_server: str) ->
     assert_material_shadow(widget_focus["boxShadow"])
     assert panel_focus["transform"] == widget_focus["transform"]
     assert panel_focus["outlineStyle"] != "solid" or panel_focus["outlineWidth"] in {"0px", "1px", "2px"}
+    assert_clean_browser(page)
+
+
+def test_widget_hover_shadow_stays_subtle_and_neutral(page: Page, app_server: str) -> None:
+    goto(page, app_server)
+    widget = page.locator(".widget-layout > .stat-card.widget-card:not(.range-bar)").first
+
+    def read_shadow(locator) -> dict:
+        return locator.evaluate(
+            """
+            node => {
+              const computed = getComputedStyle(node);
+              const splitLayers = (value) => {
+                if (!value || value === "none") return [];
+                return value.split(/,(?![^()]*\\))/).map((raw) => {
+                  const color = raw.match(/rgba?\\(([^)]+)\\)/);
+                  const channels = color
+                    ? color[1].split(/[\\s,\\/]+/).filter(Boolean).map((part) => Number.parseFloat(part))
+                    : [];
+                  const lengths = raw
+                    .replace(/rgba?\\([^)]+\\)/, "")
+                    .replace(/inset/g, "")
+                    .trim()
+                    .split(/\\s+/)
+                    .map((part) => Number.parseFloat(part))
+                    .filter(Number.isFinite);
+                  return {
+                    raw,
+                    r: channels[0] ?? 0,
+                    g: channels[1] ?? 0,
+                    b: channels[2] ?? 0,
+                    alpha: channels[3] ?? 1,
+                    offsetY: lengths[1] ?? 0,
+                    blur: lengths[2] ?? 0,
+                    inset: raw.includes("inset"),
+                  };
+                });
+              };
+              return {
+                boxShadow: computed.boxShadow,
+                transform: computed.transform,
+                layers: splitLayers(computed.boxShadow),
+              };
+            }
+            """
+        )
+
+    def assert_shadow_is_restrained(state: dict, *, max_blur: float) -> None:
+        assert state["boxShadow"] and state["boxShadow"] != "none"
+        assert max(layer["blur"] for layer in state["layers"]) <= max_blur
+        saturated_layers = [
+            layer for layer in state["layers"]
+            if not layer["inset"]
+            and layer["alpha"] >= .11
+            and max(layer["r"], layer["g"], layer["b"]) - min(layer["r"], layer["g"], layer["b"]) > 70
+        ]
+        assert saturated_layers == []
+
+    widget.hover()
+    page.wait_for_timeout(260)
+    hovered = read_shadow(widget)
+    assert hovered["transform"] != "none"
+    assert_shadow_is_restrained(hovered, max_blur=24)
+
+    page.mouse.move(24, 24)
+    page.wait_for_timeout(80)
+    widget.evaluate(
+        """
+        node => {
+          node.classList.add("db-panel-custom-color", "active");
+          node.dataset.panelColor = "#dc2626";
+          node.style.setProperty("--panel-accent", "#dc2626");
+          node.style.setProperty("--panel-accent-rgb", "220, 38, 38");
+          node.style.setProperty("--panel-accent-text", "#7f1d1d");
+        }
+        """
+    )
+    widget.hover()
+    page.wait_for_timeout(260)
+    custom_hovered = read_shadow(widget)
+    assert_shadow_is_restrained(custom_hovered, max_blur=28)
+
+    page.mouse.move(24, 24)
+    page.evaluate("document.documentElement.dataset.background = 'deep-slate'")
+    expect(page.locator("html")).to_have_attribute("data-background", "deep-slate")
+    widget.hover()
+    page.wait_for_timeout(260)
+    deep_background_hovered = read_shadow(widget)
+    assert_shadow_is_restrained(deep_background_hovered, max_blur=28)
     assert_clean_browser(page)
 
 

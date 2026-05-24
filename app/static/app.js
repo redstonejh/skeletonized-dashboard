@@ -324,8 +324,7 @@ document.addEventListener("DOMContentLoaded", () => {
     switcherToggle.addEventListener("focus", openSwitcher);
     switcherToggle.addEventListener("click", (e) => {
       e.stopPropagation();
-      const open = switcherMenu.classList.toggle("open");
-      switcherToggle.setAttribute("aria-expanded", open.toString());
+      openSwitcher();
     });
     switcherMenu.addEventListener("mouseenter", openSwitcher);
     switcherMenu.addEventListener("mouseleave", scheduleCloseSwitcher);
@@ -4989,12 +4988,14 @@ document.addEventListener("DOMContentLoaded", () => {
   document.querySelectorAll(".layout-slot-picker").forEach((picker) => {
     const layoutKey = picker.dataset.layoutTarget || "default";
     const trigger = picker.querySelector(".layout-slot-trigger");
+    const triggerLabel = trigger?.querySelector(".layout-slot-label");
     const menu = picker.querySelector(".layout-slot-menu");
     const activeSlot = getActivePanelProfile(layoutKey);
     if (trigger) {
       trigger.dataset.layoutTarget = layoutKey;
       trigger.dataset.currentSlot = activeSlot;
-      trigger.textContent = `Layout ${activeSlot}`;
+      if (triggerLabel) triggerLabel.textContent = `Layout ${activeSlot}`;
+      else trigger.textContent = `Layout ${activeSlot}`;
     }
     menu?.querySelectorAll("[data-slot]").forEach((option) => {
       option.classList.toggle("is-active", option.dataset.slot === activeSlot);
@@ -5004,7 +5005,9 @@ document.addEventListener("DOMContentLoaded", () => {
         const slot = option.dataset.slot || "1";
         if (trigger) {
           trigger.dataset.currentSlot = slot;
-          trigger.textContent = `Layout ${slot}`;
+          const label = trigger.querySelector(".layout-slot-label");
+          if (label) label.textContent = `Layout ${slot}`;
+          else trigger.textContent = `Layout ${slot}`;
           trigger.setAttribute("aria-expanded", "false");
         }
         menu.classList.remove("open");
@@ -5020,9 +5023,13 @@ document.addEventListener("DOMContentLoaded", () => {
     const scheduleClose = () => {
       window.clearTimeout(closeTimer);
       closeTimer = window.setTimeout(() => {
-        menu?.classList.remove("open");
-        trigger?.setAttribute("aria-expanded", "false");
+        closeMenu();
       }, 140);
+    };
+    const closeMenu = () => {
+      window.clearTimeout(closeTimer);
+      menu?.classList.remove("open");
+      trigger?.setAttribute("aria-expanded", "false");
     };
     picker.addEventListener("mouseenter", openMenu);
     picker.addEventListener("mouseleave", scheduleClose);
@@ -5031,6 +5038,12 @@ document.addEventListener("DOMContentLoaded", () => {
       event.preventDefault();
       event.stopPropagation();
       openMenu();
+    });
+    document.addEventListener("pointerdown", (event) => {
+      if (!picker.contains(event.target)) closeMenu();
+    }, true);
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") closeMenu();
     });
   });
 
@@ -5091,9 +5104,13 @@ document.addEventListener("DOMContentLoaded", () => {
     const scheduleClose = () => {
       window.clearTimeout(closeTimer);
       closeTimer = window.setTimeout(() => {
-        menu?.classList.remove("open");
-        trigger?.setAttribute("aria-expanded", "false");
+        closeMenu();
       }, 140);
+    };
+    const closeMenu = () => {
+      window.clearTimeout(closeTimer);
+      menu?.classList.remove("open");
+      trigger?.setAttribute("aria-expanded", "false");
     };
     picker.addEventListener("mouseenter", openMenu);
     picker.addEventListener("mouseleave", scheduleClose);
@@ -5102,6 +5119,12 @@ document.addEventListener("DOMContentLoaded", () => {
       event.preventDefault();
       event.stopPropagation();
       openMenu();
+    });
+    document.addEventListener("pointerdown", (event) => {
+      if (!picker.contains(event.target)) closeMenu();
+    }, true);
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") closeMenu();
     });
   });
 
@@ -5147,6 +5170,43 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 
+  document.querySelectorAll(".divider-add-action").forEach((button) => {
+    button.addEventListener("click", () => {
+      const layoutKey = button.dataset.layoutTarget || "default";
+      const layout = document.querySelector(`.panel-layout[data-layout-key="${CSS.escape(layoutKey)}"]`);
+      if (!layout) return;
+      const selected = getActivePanelProfile(layoutKey);
+      savePanelLayouts(layout, selected);
+      syncDefaultDashboardGrid(layoutKey);
+      const key = `divider-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`;
+      const customCount = layout.querySelectorAll(':scope > .db-panel[data-dashboard-object-kind="divider"]').length;
+      const definition = {
+        key,
+        title: `Divider ${customCount + 1}`,
+        color: "#64748b",
+        span: 6,
+        minW: 2,
+      };
+      const divider = createCustomPanel(definition);
+      divider.dataset.dashboardObjectKind = button.dataset.dividerKind || "divider";
+      divider.dataset.defaultOrder = String([...layout.querySelectorAll(":scope > .db-panel")].length);
+      divider.classList.add("db-panel-collapsed", "dashboard-divider-placeholder");
+      divider.dataset.gridRowSpan = "1";
+      applyPanelSpan(divider, 6);
+      applyPanelColor(divider, definition.color);
+      applyPanelTitleColor(divider, "#ffffff");
+      const target = panelAddTarget(layout, divider);
+      applyPanelGridPosition(divider, target.col, target.row);
+      animatePanelReflow(layout, () => {
+        layout.appendChild(divider);
+        commitInsertedGridItemWithVerticalPushdown(layout, divider, target);
+      });
+      layout.__initPanel?.(divider);
+      savePanelLayouts(layout, selected);
+      showToast(`${definition.title} added.`);
+    });
+  });
+
   document.querySelectorAll(".widget-add-action").forEach((button) => {
     button.addEventListener("click", () => {
       const layoutKey = button.dataset.widgetTarget || "default";
@@ -5164,12 +5224,15 @@ document.addEventListener("DOMContentLoaded", () => {
       const nextColor =
         panelThemePresets.find((color) => !used.has(color.toLowerCase())) ||
         panelThemePresets[customCount % panelThemePresets.length];
-      const key = `widget-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`;
-      const title = `Widget ${customCount + 1}`;
-      const definition = { key, title, value: "0", color: nextColor, span: 1, type: "tracker" };
+      const kind = button.dataset.widgetKind || "widget";
+      const objectName = kind === "anchor" ? "Anchor" : "Widget";
+      const key = `${kind === "anchor" ? "anchor" : "widget"}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`;
+      const title = `${objectName} ${customCount + 1}`;
+      const definition = { key, title, value: "0", color: nextColor, span: kind === "anchor" ? 2 : 1, type: kind === "anchor" ? "anchor" : "tracker" };
       const widget = createCustomWidget(definition);
+      if (kind === "anchor") widget.dataset.dashboardObjectKind = "anchor";
       ensureWidgetTools(widget, nextColor);
-      applyWidgetSpan(widget, 1);
+      applyWidgetSpan(widget, definition.span);
       applyPanelColor(widget, nextColor);
       applyPanelTitleColor(widget, "#ffffff");
       animateWidgetReflow(layout, () => layout.appendChild(widget));

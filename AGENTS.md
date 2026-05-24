@@ -37,11 +37,16 @@ Before committing user-facing changes, run:
 .venv\Scripts\python.exe -m pytest -q
 ```
 
+For visual, styling, layout, animation, hover/focus, theme, glass-material, navbar, widget, panel, menu, or interaction-feel changes, also follow `docs/visual-ui-manual-inspection.md` before calling the work complete.
+
+Final responses for visual/UI work must include a `Manual browser inspection` section. If manual inspection cannot be performed, say why, list what was verified instead, and mark visual judgment as remaining risk.
+
 If a test cannot be run, document why in the final response and in any related bug report entry.
 
 ## Documentation To Check
 
 - `docs/engineering-guidelines.md`
+- `docs/visual-ui-manual-inspection.md`
 - `docs/bug-report.md`
 - `docs/drag-resize-audit.md`
 - `docs/css-audit.md`

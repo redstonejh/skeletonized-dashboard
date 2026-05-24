@@ -18,6 +18,7 @@ When modifying complex systems:
 3. Write or update a test.
 4. Apply the smallest correct fix.
 5. Run regression tests.
+6. For visual/UI work, manually inspect the result in a browser before calling it complete.
 
 ## Next Major Version Guardrails
 
@@ -172,6 +173,8 @@ For user-facing interaction changes, run:
 .venv\Scripts\python.exe -m pytest
 ```
 
+For visual, styling, layout, animation, hover/focus, theme, glass-material, navbar, widget, panel, menu, or interaction-feel changes, also follow `docs/visual-ui-manual-inspection.md`.
+
 Also manually inspect any changed interaction for:
 
 - Shared material behavior across default and deep background tones
@@ -181,3 +184,5 @@ Also manually inspect any changed interaction for:
 - Ghost-preview alignment
 - Popover/menu layering
 - Console and network errors
+
+Final responses for visual/UI work must include a `Manual browser inspection` section. If manual inspection cannot be performed, state why, list what was verified instead, and mark visual judgment as remaining risk.

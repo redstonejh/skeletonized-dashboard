@@ -72,11 +72,35 @@ Command:
 .venv\Scripts\python.exe -m pytest -q
 ```
 
-Latest result: 78 passed, 0 failed.
+Latest result: 79 passed, 0 failed.
 
 Previous discovery result: 6 passed, 3 failed.
 
-Passed coverage included app/dashboard/settings load, CSS imports, absence of mode toggle state, expanded background palette persistence, shared material invariance across deep background selection, workspace toolbar command-island screenshots, toolbar mode toggles, generic Add Widget menu options, shared timeframe controls, timeframe resize, timeframe minimum resize clamping, exact layout save/load round trips, small-panel menu overlays, panel placeholder/body sizing, adaptive panel content density, drag ghost creation, ordered drag reflow, local top insertion, reversible collision previews, suppression of underlying hover menus during drag, global widget/panel occupancy, pinned item protection, pin menu close behavior, sparse empty-space placement, grid-bound drag clamping, grid snapping alignment, collision/overlap checks, resize snapping, left-edge anchored resize, menu icon alignment, panel header chevron centering, panel/widget/timeframe hover-focus material coverage, group multi-selection, grouped drag, grouped proportional resize, pinned items inside groups, mixed widget/panel group transforms, group mode, layout save/load/reset, settings save, mobile overflow checks, console errors, and network errors.
+Passed coverage included app/dashboard/settings load, CSS imports, absence of mode toggle state, expanded background palette persistence, shared material invariance across deep background selection, workspace toolbar command-island screenshots, toolbar mode toggles, generic Add Widget menu options, shared timeframe controls, timeframe resize, timeframe minimum resize clamping, exact layout save/load round trips, small-panel menu overlays, panel placeholder/body sizing, adaptive panel content density, drag ghost creation, ordered drag reflow, local top insertion, reversible collision previews, suppression of underlying hover menus during drag, global widget/panel occupancy, pinned item protection, pin menu close behavior, sparse empty-space placement, grid-bound drag clamping, grid snapping alignment, collision/overlap checks, resize snapping, left-edge anchored resize, menu icon alignment, panel header chevron centering, panel/widget/timeframe hover-focus material coverage, restrained neutral widget hover shadows, group multi-selection, grouped drag, grouped proportional resize, pinned items inside groups, mixed widget/panel group transforms, group mode, layout save/load/reset, settings save, mobile overflow checks, console errors, and network errors.
+
+### BUG-085: Navbar Groups Hovered Like Plates Instead Of Individual Buttons
+
+- Status: Verified
+- Area: Top bar / navbar / menu styling
+- Severity: Medium
+- Environment: Dashboard workspace, navbar controls, identity menu, Layout menu, Add menu, default and deep background tones
+- Observed: Navbar command islands still rendered as separate underlay plates and inherited group-level hover motion. Hovering a grouped region could make the group feel active instead of only the actual button. The Layout arrow was drawn by an absolute pseudo-element that could drift into the label, the Add menu was left-anchored instead of visually originating from the add button, and the identity dropdown still framed the area as dashboard settings.
+- Expected: The navbar should read as one widget-like glass surface with individual neutral glass buttons sitting directly on it. Hover/press feedback belongs to the hovered button only, Layout arrow geometry should be explicit and aligned to the label, the Add menu should anchor to the plus control, and the identity dropdown should be profile/workspace identity oriented rather than a settings menu.
+- Suspected cause: Late workspace-chrome CSS gave every `.workspace-command-island` its own glass background, border, and hover/focus transforms. The Layout trigger relied on `::after` positioning relative to a mixed button/picker layout, and the dashboard switcher still included the legacy settings link.
+- Fix notes: Removed visible command-island plates by making navbar groups transparent flex organizers, neutralized group hover/focus transforms, retuned navbar buttons to calmer grey glass controls with restrained blue only on Add, replaced Layout/Dashboard arrows with explicit flex children, centered the Add dropdown on the plus button, removed the settings link from the identity dropdown, and added Anchor and Divider entries to the Add menu. Anchor creates a placeholder custom widget; Divider creates a placeholder divider-flavored panel until the future object architecture lands. Layout and Add menus now close through Escape or outside pointer-down so expanded controls do not linger over unrelated navbar options.
+- Validation: Updated `test_workspace_chrome_is_spatial_and_modes_still_work` to verify no settings link remains, command islands have no underlay material, hovering Save changes only Save and not its group or sibling, Layout arrow spacing is correct, Layout/Add menus have close paths, the Add menu is centered on the plus button, and Anchor/Divider appear in the Add menu. Updated generic panel/menu coverage to assert Anchor and Divider taxonomy entries are present. Targeted navbar/add/layout/background tests passed, and `.venv\Scripts\python.exe -m pytest -q` passed with 79 tests.
+
+### BUG-084: Widget Hover Shadow Read As Colored Floating Glow
+
+- Status: Verified
+- Area: Widgets / glass material / hover and focus polish
+- Severity: Medium
+- Environment: Dashboard workspace, default widgets, custom-color widgets, light and deep background tones
+- Observed: Widget hover/focus shadows were larger and more saturated than the surrounding glass language. Default widgets could inherit blue-tinted hover shadow, and active/custom-color widgets added accent-colored shadow layers that made the object read as a floating glow rather than a subtle material response.
+- Expected: Widget and panel bodies may keep a mild large-object hover presence, but the shadow should remain restrained, neutral, and physically believable. The hover/focus state should signal slight material activation without colored bloom, oversized spread, or artificial detachment from the workspace.
+- Suspected cause: `dashboard-grid.css` used a 30px neutral widget hover shadow and a blue stat-card hover layer, while active/custom-color widget rules in `themes.css` added high-blur accent shadows. Those cascaded into more dramatic colored elevation than the current glass system needs.
+- Fix notes: Reduced the default stat/widget hover shadow radius and opacity, replaced the blue hover layer with a neutral shadow, and removed accent-colored active/custom-color shadow blooms in favor of compact neutral depth plus the existing inset highlight. Layout, lift transform, borders, drag behavior, and compact-control interaction rules were unchanged.
+- Validation: Added `test_widget_hover_shadow_stays_subtle_and_neutral`, which reads rendered `box-shadow` layers and rejects excessive blur or saturated non-inset shadow layers for default hover, active custom-color hover, and the same custom widget over a deep background tone. Targeted hover/focus and compact-control tests passed, and `.venv\Scripts\python.exe -m pytest -q` passed with 79 tests.
 
 ### BUG-083: Click-Opened Object Settings Menu Used Static Drawer Offsets
 

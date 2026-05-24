@@ -1751,7 +1751,7 @@ body::-webkit-scrollbar-thumb:hover {
   border-color: color-mix(in srgb, var(--panel-accent) 62%, white) !important;
   box-shadow:
     var(--shadow-card),
-    0 0 0 1px rgba(var(--panel-accent-rgb), .10) !important;
+    0 0 0 1px rgba(var(--panel-accent-rgb), .07) !important;
 }
 
 .widget-layout > .widget-card.db-panel-custom-color:hover,
@@ -1760,8 +1760,8 @@ body::-webkit-scrollbar-thumb:hover {
   background: linear-gradient(90deg, rgba(var(--panel-accent-rgb), .58), rgba(var(--panel-accent-rgb), .34));
   border-color: color-mix(in srgb, var(--panel-accent) 78%, var(--panel-hover-tint)) !important;
   box-shadow:
-    0 14px 30px rgba(15, 23, 42, .14),
-    inset 0 1px 0 rgba(255, 255, 255, .22) !important;
+    0 10px 22px rgba(15, 23, 42, .10),
+    inset 0 1px 0 rgba(255, 255, 255, .20) !important;
 }
 
 .widget-layout > .widget-card.db-panel-custom-color.active {
@@ -1769,15 +1769,15 @@ body::-webkit-scrollbar-thumb:hover {
   outline-offset: 0;
   border-color: color-mix(in srgb, var(--panel-accent) 88%, var(--panel-hover-tint)) !important;
   box-shadow:
-    0 16px 34px rgba(15, 23, 42, .18),
-    0 10px 24px rgba(var(--panel-accent-rgb), .16) !important;
+    0 12px 26px rgba(15, 23, 42, .13),
+    inset 0 1px 0 rgba(255, 255, 255, .20) !important;
 }
 
 .widget-layout > .widget-card.db-panel-custom-color.active:hover {
   outline-color: color-mix(in srgb, var(--panel-accent) 92%, var(--panel-hover-tint));
   box-shadow:
-    0 18px 38px rgba(15, 23, 42, .22),
-    0 12px 28px rgba(var(--panel-accent-rgb), .18) !important;
+    0 13px 28px rgba(15, 23, 42, .14),
+    inset 0 1px 0 rgba(255, 255, 255, .22) !important;
 }
 
 .widget-layout > .widget-card.db-panel-custom-color:hover .stat-val,
@@ -3449,10 +3449,10 @@ body {
 .app-nav.workspace-chrome {
   --navbar-control-height: 36px;
   --navbar-control-radius: 14px;
-  --navbar-control-bg: color-mix(in srgb, var(--glass-surface-strong) 46%, transparent);
-  --navbar-control-hover-bg: color-mix(in srgb, var(--glass-surface-strong) 68%, var(--blue-soft));
-  --navbar-control-border: color-mix(in srgb, var(--line) 58%, rgba(255, 255, 255, .72));
-  --navbar-control-shadow: 0 6px 14px color-mix(in srgb, var(--blue) 8%, transparent), inset 0 1px 0 color-mix(in srgb, var(--glass-highlight) 62%, transparent);
+  --navbar-control-bg: color-mix(in srgb, var(--surface-soft) 64%, var(--glass-surface) 36%);
+  --navbar-control-hover-bg: color-mix(in srgb, var(--surface) 72%, var(--glass-surface-strong) 28%);
+  --navbar-control-border: color-mix(in srgb, var(--line) 72%, rgba(255, 255, 255, .62));
+  --navbar-control-shadow: 0 3px 8px rgba(15, 23, 42, .055), inset 0 1px 0 color-mix(in srgb, var(--glass-highlight) 58%, transparent);
   position: sticky;
   top: 12px;
   z-index: var(--z-header);
@@ -3511,32 +3511,31 @@ body {
   align-items: center;
   justify-content: center;
   gap: 6px;
-  min-height: 44px;
-  padding: 4px;
-  border: 1px solid color-mix(in srgb, var(--line-soft) 64%, transparent);
-  border-radius: calc(var(--radius-sm) + 2px);
-  background: color-mix(in srgb, var(--glass-surface-strong) 54%, transparent);
-  box-shadow:
-    inset 0 1px 0 color-mix(in srgb, var(--glass-highlight) 58%, transparent);
-  backdrop-filter: blur(16px) saturate(1.06);
-  -webkit-backdrop-filter: blur(16px) saturate(1.06);
+  min-height: var(--navbar-control-height);
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  opacity: 1;
+  transform: none;
+}
+
+.app-nav.workspace-chrome .workspace-command-island:hover,
+.app-nav.workspace-chrome .workspace-command-island:focus-within {
   opacity: 1;
   transform: none;
 }
 
 .app-nav.workspace-chrome .layout-slot-controls {
-  min-height: 0;
-  padding: 0;
-  border: 0;
-  background: transparent;
-  box-shadow: none;
-  backdrop-filter: none;
-  -webkit-backdrop-filter: none;
+  min-height: var(--navbar-control-height);
 }
 
 .app-nav.workspace-chrome .workspace-identity-island {
   justify-content: flex-start;
-  padding-inline: 6px;
+  padding-inline: 0;
 }
 
 .app-nav.workspace-chrome .workspace-accent-marker {
@@ -3546,7 +3545,7 @@ body {
   border-radius: 999px;
   background: color-mix(in srgb, var(--blue) 72%, var(--glass-surface-strong));
   box-shadow:
-    0 2px 5px color-mix(in srgb, var(--blue) 22%, transparent),
+    0 1px 3px color-mix(in srgb, var(--blue) 12%, transparent),
     inset 0 1px 0 color-mix(in srgb, var(--glass-highlight) 70%, transparent);
 }
 
@@ -3593,12 +3592,54 @@ body {
 
 .app-nav.workspace-chrome button.dash-switch-hero {
   max-width: 220px;
+  gap: 10px;
+  justify-content: space-between;
   padding-inline: 12px;
 }
 
 .app-nav.workspace-chrome .layout-slot-trigger {
-  min-width: 82px;
-  padding-inline: 11px;
+  position: relative;
+  min-width: 92px;
+  gap: 9px;
+  justify-content: space-between;
+  padding-inline: 13px 12px;
+}
+
+.app-nav.workspace-chrome .layout-slot-trigger::after {
+  content: none;
+  display: none;
+}
+
+.app-nav.workspace-chrome .dash-switch-label,
+.app-nav.workspace-chrome .layout-slot-label {
+  display: inline-block;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.app-nav.workspace-chrome .dash-switch-arrow,
+.app-nav.workspace-chrome .layout-slot-arrow {
+  display: inline-block;
+  flex: 0 0 auto;
+  width: 7px;
+  height: 7px;
+  margin-top: -3px;
+  border-right: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
+  border-radius: 1px;
+  background: transparent;
+  box-shadow: none;
+  opacity: .64;
+  transform: rotate(45deg);
+  transition: transform var(--motion-fast), opacity var(--motion-fast);
+}
+
+.app-nav.workspace-chrome .dash-switch-btn[aria-expanded="true"] .dash-switch-arrow,
+.app-nav.workspace-chrome .layout-slot-trigger[aria-expanded="true"] .layout-slot-arrow {
+  margin-top: 3px;
+  transform: rotate(225deg);
 }
 
 .app-nav.workspace-chrome .layout-slot-button,
@@ -3618,7 +3659,13 @@ body {
 }
 
 .app-nav.workspace-chrome .composition-add-button {
-  color: color-mix(in srgb, var(--blue) 76%, var(--ink-strong));
+  border-color: color-mix(in srgb, var(--blue) 22%, var(--navbar-control-border));
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--blue) 10%, var(--navbar-control-bg)), color-mix(in srgb, var(--blue) 6%, var(--navbar-control-bg)));
+  color: color-mix(in srgb, var(--blue) 70%, var(--ink-strong));
+  box-shadow:
+    0 4px 10px rgba(15, 23, 42, .06),
+    inset 0 1px 0 color-mix(in srgb, var(--glass-highlight) 62%, transparent);
   font-size: 21px;
   font-weight: 560;
 }
@@ -3642,13 +3689,13 @@ body {
 .app-nav.workspace-chrome .layout-slot-trigger:hover,
 .app-nav.workspace-chrome .workspace-mode-button:hover,
 .app-nav.workspace-chrome .composition-add-button:hover {
-  border-color: color-mix(in srgb, var(--blue) 18%, var(--line));
+  border-color: color-mix(in srgb, var(--blue) 14%, var(--line));
   background: var(--navbar-control-hover-bg);
   color: var(--ink-strong);
   box-shadow:
-    0 4px 10px color-mix(in srgb, var(--blue) 8%, transparent),
-    inset 0 1px 0 color-mix(in srgb, var(--glass-highlight) 70%, transparent),
-    inset 0 -1px 0 color-mix(in srgb, var(--blue) 10%, transparent);
+    0 2px 6px rgba(15, 23, 42, .055),
+    inset 0 1px 0 color-mix(in srgb, var(--glass-highlight) 64%, transparent),
+    inset 0 2px 5px rgba(15, 23, 42, .035);
   transform: var(--pressable-hover-transform);
 }
 
@@ -3703,6 +3750,18 @@ body {
   -webkit-backdrop-filter: blur(22px) saturate(1.12);
 }
 
+.app-nav.workspace-chrome .panel-add-menu {
+  top: calc(100% + 2px);
+  left: 50%;
+  min-width: 172px;
+  transform: translate(-50%, -4px) scale(.98);
+  transform-origin: top center;
+}
+
+.app-nav.workspace-chrome .panel-add-menu.open {
+  transform: translate(-50%, 0) scale(1);
+}
+
 .app-nav.workspace-chrome .layout-slot-menu {
   min-width: 140px;
   padding: 6px;
@@ -3710,12 +3769,45 @@ body {
 
 .app-nav.workspace-chrome .panel-add-action,
 .app-nav.workspace-chrome .widget-add-action,
+.app-nav.workspace-chrome .divider-add-action,
 .app-nav.workspace-chrome .layout-slot-menu button,
 .app-nav.workspace-chrome .dash-switch-opt {
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
   min-height: 34px;
+  width: 100%;
+  padding: 0 12px;
+  border: 1px solid transparent;
   border-radius: 12px;
   background: transparent;
   color: var(--ink);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 760;
+  line-height: 1;
+  text-align: left;
+  cursor: pointer;
+  transition: background var(--motion-fast), border-color var(--motion-fast), box-shadow var(--motion-fast), color var(--motion-fast), transform var(--motion-fast);
+}
+
+.app-nav.workspace-chrome .dash-switch-opt {
+  border: 0;
+  min-height: 48px;
+  padding-block: 7px;
+  align-items: center;
+}
+
+.app-nav.workspace-chrome .dash-switch-opt:disabled {
+  cursor: default;
+  opacity: .62;
+}
+
+.app-nav.workspace-chrome .dash-switch-opt:disabled:hover {
+  background: transparent;
+  color: var(--ink);
+  transform: none;
 }
 
 .app-nav.workspace-chrome .layout-slot-menu button:hover,
@@ -3723,6 +3815,7 @@ body {
 .app-nav.workspace-chrome .layout-slot-menu button.is-active,
 .app-nav.workspace-chrome .panel-add-action:hover,
 .app-nav.workspace-chrome .widget-add-action:hover,
+.app-nav.workspace-chrome .divider-add-action:hover,
 .app-nav.workspace-chrome .dash-switch-opt:hover,
 .app-nav.workspace-chrome .dash-switch-opt:focus-visible {
   background: color-mix(in srgb, var(--glass-surface-strong) 72%, var(--blue-soft));

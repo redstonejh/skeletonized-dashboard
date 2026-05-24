@@ -19,15 +19,18 @@
       <span class="workspace-accent-marker" aria-hidden="true"></span>
       <div class="dash-switcher">
       <button class="dash-switch-btn dash-switch-hero" type="button" id="dash-switcher-toggle" aria-haspopup="true" aria-expanded="false">
-        {{ dashboard.title }} <span class="dash-switch-arrow" aria-hidden="true">▾</span>
+        <span class="dash-switch-label">{{ dashboard.title }}</span><span class="dash-switch-arrow" aria-hidden="true"></span>
       </button>
       <div class="dash-switch-menu" id="dash-switch-menu">
         <a class="dash-switch-opt dash-switch-opt-active" href="/dashboard" aria-current="page">
           <span><strong>{{ dashboard.title }}</strong><small>Builder workspace</small></span>
         </a>
-        <a class="dash-switch-opt" href="/settings">
-          <span><strong>Workspace settings</strong><small>Configure environment</small></span>
-        </a>
+        <button class="dash-switch-opt dash-switch-profile" type="button" disabled>
+          <span><strong>Profile identity</strong><small>Account details will appear here</small></span>
+        </button>
+        <button class="dash-switch-opt dash-switch-profile" type="button" disabled>
+          <span><strong>Sign out</strong><small>Available with account sessions</small></span>
+        </button>
       </div>
       </div>
     </div>
@@ -36,7 +39,7 @@
     <div class="workspace-command-island layout-command-island" aria-label="Layout and persistence">
       <div class="layout-slot-controls" aria-label="Layout save slots">
         <div class="layout-slot-picker" data-layout-target="builder">
-          <button class="layout-slot-trigger" type="button" data-current-slot="1" aria-haspopup="true" aria-expanded="false">Layout 1</button>
+          <button class="layout-slot-trigger" type="button" data-current-slot="1" aria-haspopup="true" aria-expanded="false"><span class="layout-slot-label">Layout 1</span><span class="layout-slot-arrow" aria-hidden="true"></span></button>
           <div class="layout-slot-menu" role="menu">
             {% for slot in range(1, 11) %}<button type="button" role="menuitem" data-slot="{{ slot }}">Layout {{ slot }}</button>{% endfor %}
           </div>
@@ -56,8 +59,11 @@
         <button class="widget-add-action" type="button" data-widget-target="builder" data-widget-kind="graph">Graph</button>
         <button class="widget-add-action" type="button" data-widget-target="builder" data-widget-kind="table">Table</button>
         <button class="widget-add-action" type="button" data-widget-target="builder" data-widget-kind="calendar">Calendar</button>
+        <button class="widget-add-action" type="button" data-widget-target="builder" data-widget-kind="anchor">Anchor</button>
         <span class="panel-add-menu-label">Panels</span>
         <button class="panel-add-action" type="button" data-layout-target="builder" data-panel-kind="panel">Panel</button>
+        <span class="panel-add-menu-label">Dividers</span>
+        <button class="divider-add-action" type="button" data-layout-target="builder" data-divider-kind="context-divider">Divider</button>
       </div>
       </div>
     </div>

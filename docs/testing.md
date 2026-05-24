@@ -149,6 +149,16 @@ Capture screenshots for:
 
 Visual inconsistency counts as a bug and must be logged in `docs/bug-report.md`.
 
+## Manual Browser Inspection For Visual UI Work
+
+Automated tests and screenshots do not replace manual browser inspection for visual/UI changes.
+
+For any visual, styling, layout, animation, hover/focus, background, glass-material, navbar, widget, panel, menu, or interaction-feel change, follow `docs/visual-ui-manual-inspection.md` before calling the work complete.
+
+The final response for visual/UI work must include a `Manual browser inspection` section that records the page/workspace opened, elements inspected, states tested, backgrounds checked, visual result, and any remaining concerns.
+
+This is an added requirement. Keep the existing Playwright, screenshot, trace, and full-suite validation requirements in place.
+
 ## Performance Coverage
 
 Interaction performance is part of the dashboard UX contract. The dashboard should remain fluid without weakening protected drag, resize, collision, group, expand/collapse, or persistence behavior.
