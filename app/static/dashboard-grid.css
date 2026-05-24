@@ -117,7 +117,13 @@
 }
 
 .widget-tools {
-  --panel-lock-bg: rgba(37, 99, 235, .12);
+  --widget-control-bg: color-mix(in srgb, var(--glass-surface) 36%, rgba(37, 99, 235, .08));
+  --widget-control-hover-bg: color-mix(in srgb, var(--glass-surface) 48%, rgba(255, 255, 255, .18));
+  --widget-control-active-bg: color-mix(in srgb, var(--glass-surface) 44%, rgba(255, 255, 255, .20));
+  --widget-drawer-bg:
+    linear-gradient(180deg, color-mix(in srgb, var(--glass-surface-strong) 58%, transparent), color-mix(in srgb, var(--glass-surface) 42%, transparent)),
+    color-mix(in srgb, var(--panel-lock-fg) 7%, transparent);
+  --panel-lock-bg: var(--widget-control-bg);
   --panel-lock-fg: var(--blue);
   --panel-lock-border: rgba(37, 99, 235, .26);
   --panel-lock-glow: rgba(37, 99, 235, .18);
@@ -156,16 +162,16 @@ body.layout-tools-active .widget-card:not(.widget-tools-open):not(:has(> .widget
 
 .widget-tool-drawer {
   position: absolute;
-  top: -10px;
+  top: var(--dashboard-tool-drawer-top, -10px);
   left: auto;
-  right: 42px;
+  right: var(--dashboard-tool-drawer-right, 42px);
   display: grid;
   grid-template-columns: repeat(3, 34px);
   gap: 5px;
   padding: 6px;
   border: 1.5px solid var(--panel-lock-border, rgba(37, 99, 235, .24));
   border-radius: 24px;
-  background: color-mix(in srgb, var(--surface-raised) 92%, var(--panel-lock-fg) 8%);
+  background: var(--widget-drawer-bg, color-mix(in srgb, var(--surface-raised) 92%, var(--panel-lock-fg) 8%));
   border-color: var(--panel-drawer-border);
   box-shadow: var(--panel-drawer-shadow, 0 14px 32px rgba(15, 23, 42, .18));
   backdrop-filter: none;
@@ -199,6 +205,7 @@ body.layout-tools-active .widget-card:not(.widget-tools-open):not(:has(> .widget
 
 .widget-card .panel-settings-toggle,
 .widget-card .panel-tool-button {
+  background: var(--widget-control-bg, var(--panel-lock-bg));
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -229,6 +236,20 @@ body.layout-tools-active .widget-card:not(.widget-tools-open):not(:has(> .widget
     0 1px 3px rgba(15, 23, 42, .12),
     inset 0 1px 0 rgba(255, 255, 255, .24);
   pointer-events: none;
+}
+
+.widget-card .panel-settings-toggle:hover,
+.widget-card .panel-settings-toggle:focus-visible,
+.widget-card.widget-tools-open .panel-settings-toggle,
+.widget-card .panel-tool-button:hover,
+.widget-card .panel-tool-button:focus-visible {
+  background: var(--widget-control-hover-bg, color-mix(in srgb, var(--panel-lock-bg) 75%, var(--panel-hover-tint)));
+}
+
+.widget-card.widget-tools-open .panel-settings-toggle,
+.widget-card .panel-tool-button:active,
+.widget-card .panel-settings-toggle:active {
+  background: var(--widget-control-active-bg, color-mix(in srgb, var(--panel-lock-bg) 75%, var(--panel-hover-tint)));
 }
 
 .widget-card.db-panel-pinned .panel-move-handle,
@@ -911,6 +932,26 @@ body.panel-resize-active .widget-spacer {
   transition: none !important;
 }
 
+body.panel-interaction-active .widget-tools-open .panel-tool-drawer,
+body.panel-interaction-active .widget-tools:focus-within .panel-tool-drawer,
+body.panel-interaction-active .db-panel-tools-open .panel-tool-drawer,
+body.panel-interaction-active .panel-tools:focus-within .panel-tool-drawer,
+body.panel-resize-active .widget-tools-open .panel-tool-drawer,
+body.panel-resize-active .widget-tools:focus-within .panel-tool-drawer,
+body.panel-resize-active .db-panel-tools-open .panel-tool-drawer,
+body.panel-resize-active .panel-tools:focus-within .panel-tool-drawer {
+  visibility: hidden;
+  opacity: 0;
+  pointer-events: none;
+}
+
+body.panel-interaction-active .panel-color-menu-open,
+body.panel-resize-active .panel-color-menu-open {
+  visibility: hidden;
+  opacity: 0;
+  pointer-events: none;
+}
+
 body.panel-resize-active .db-panel-placeholder.dashboard-resize-preview,
 body.panel-resize-active .widget-placeholder.dashboard-resize-preview {
   transition:
@@ -1021,8 +1062,8 @@ body.layout-tools-active .db-panel:not(.db-panel-tools-open):not(:has(.panel-too
 
 .panel-tool-drawer {
   position: absolute;
-  top: -10px;
-  right: 42px;
+  top: var(--dashboard-tool-drawer-top, -10px);
+  right: var(--dashboard-tool-drawer-right, 42px);
   display: grid;
   grid-template-columns: repeat(3, 34px);
   gap: 5px;

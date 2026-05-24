@@ -94,8 +94,9 @@ Recommended future platform modules:
 - Minimize reflow during pointer movement. Avoid reading layout after writing styles in the same loop.
 - Keep animation synchronization consistent between the dragged item, placeholders, peers, and collision-reflowed items.
 - Avoid arbitrary timers for movement correctness. If a frame delay is needed to suppress a browser click after pointer movement, keep it local to that event handoff and document why.
-- Pinned items must block move/resize behavior consistently across widgets, panels, and group mode.
-- Pinned items reserve their grid cells globally. Other items must route around pinned cells and must never push, swap, overwrite, or reflow them.
+- Pinned items must block direct move/resize behavior consistently across widgets, panels, and group mode.
+- Pinned items reserve their grid cells globally during direct drag, resize, group, and drop interactions. Other direct interactions must route around pinned cells and must never push, swap, overwrite, or reflow them.
+- Panel expand/collapse is layout pressure, not direct manipulation. Expansion may temporarily displace pinned items in the panel footprint, but collapse must restore them to the captured expansion baseline and save/load must preserve that baseline.
 - Collapsed panels must keep layout state, height, row span, and aria state synchronized.
 - Save/load/reset must restore custom items, hidden items, colors, titles, spans, pin state, collapsed state, and grid position without desynced UI.
 

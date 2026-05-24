@@ -72,11 +72,47 @@ Command:
 .venv\Scripts\python.exe -m pytest -q
 ```
 
-Latest result: 72 passed, 0 failed.
+Latest result: 78 passed, 0 failed.
 
 Previous discovery result: 6 passed, 3 failed.
 
 Passed coverage included app/dashboard/settings load, CSS imports, absence of mode toggle state, expanded background palette persistence, shared material invariance across deep background selection, workspace toolbar command-island screenshots, toolbar mode toggles, generic Add Widget menu options, shared timeframe controls, timeframe resize, timeframe minimum resize clamping, exact layout save/load round trips, small-panel menu overlays, panel placeholder/body sizing, adaptive panel content density, drag ghost creation, ordered drag reflow, local top insertion, reversible collision previews, suppression of underlying hover menus during drag, global widget/panel occupancy, pinned item protection, pin menu close behavior, sparse empty-space placement, grid-bound drag clamping, grid snapping alignment, collision/overlap checks, resize snapping, left-edge anchored resize, menu icon alignment, panel header chevron centering, panel/widget/timeframe hover-focus material coverage, group multi-selection, grouped drag, grouped proportional resize, pinned items inside groups, mixed widget/panel group transforms, group mode, layout save/load/reset, settings save, mobile overflow checks, console errors, and network errors.
+
+### BUG-083: Click-Opened Object Settings Menu Used Static Drawer Offsets
+
+- Status: Fixed
+- Area: Panel controls / Widgets / menu positioning
+- Severity: Medium
+- Environment: Dashboard workspace, panel and widget settings menus opened by hover, direct click, or pointer click
+- Observed: Opening an object settings menu by directly clicking the settings icon could leave the drawer visually embedded in the panel header/chevron edge. The normal hover reveal path looked correct, but click-open exposed the static drawer offset relationship more clearly.
+- Expected: Hover-open and click-open use the same anchor, measurement, collision avoidance, and final transform. The drawer should clear the panel header edge, should not be clipped or embedded in the panel surface, and should behave consistently for panels and widgets near top/right/bottom placements.
+- Suspected cause: The drawer had only static CSS `top`/`right` offsets. There was no shared positioning pass, and the absolute drawer is positioned relative to the compact `.panel-tools`/`.widget-tools` anchor rather than the full panel/widget root. That made direct-click geometry depend on a stale static relationship to the header edge.
+- Fix notes: Added a shared `positionDashboardToolDrawer` helper used by the common panel/widget open functions. It measures the settings button, drawer, and actual offset parent, writes shared CSS custom properties for drawer top/right, clamps to the viewport, and keeps panel drawers clear of the header bottom edge. Hover, focus, click, drag-restore, and resize-restore now enter through the same open function and therefore share the same geometry.
+- Validation: Added `test_object_settings_click_and_hover_share_menu_geometry`, which opens panel and widget drawers via hover, direct JS click, and pointer click, compares final drawer geometry, verifies panel header clearance and settings-button separation, repeats near the top/right edge, and keeps submenu button coverage intact. Targeted menu/control tests passed, a transient far-down auto-scroll timeout passed on direct rerun, and `.venv\Scripts\python.exe -m pytest -q` passed with 78 tests.
+
+### BUG-082: Pinned Objects Blocked Panel Expansion Pressure
+
+- Status: Fixed
+- Area: Dashboard grid / panel expand-collapse / pinning
+- Severity: High
+- Environment: Dashboard workspace, pinned widgets and panels near a collapsed panel footprint
+- Observed: Opening a panel next to a pinned widget or panel could make the expanded panel visually collide with or cut into the pinned object. The system treated pinned cells as globally immovable, so the expansion solver excluded pinned objects from temporary pushdown.
+- Expected: Pinned means the user cannot directly drag or resize the object. It does not make the object immune to reversible layout pressure from panel expand/collapse. Opening a panel may temporarily displace pinned objects in the expansion path; closing the panel restores them to the captured pinned baseline; save/load while open preserves that baseline.
+- Suspected cause: `applyVerticalPanelExpansion` pre-reserved pinned objects as fixed occupancy and only pushed unpinned candidates. `relaxCollapsedExpansionDisplacement` also filtered pinned objects out of collapse restoration, so even if they were moved by another path they would not participate in baseline relaxation.
+- Fix notes: The panel expansion solver now treats all non-source dashboard items, including pinned widgets and panels, as pressure participants behind the expanded panel footprint. The collapse relaxation path now considers pinned items that exist in the expansion baseline. Direct drag, resize, group, and drop paths still reserve pinned cells and reject direct manipulation.
+- Validation: Added `test_panel_expand_temporarily_displaces_pinned_widget_then_restores_baseline`, which places a pinned widget and pinned panel in an opening panel's footprint, verifies the pinned widget cannot be directly dragged or resized, opens the panel and verifies both pinned objects are pushed without overlap, saves while open and confirms stored expansion baselines keep the pinned baseline rows, reloads, collapses, and verifies both pinned objects restore. Targeted expansion/pinning/save-load tests passed, and `.venv\Scripts\python.exe -m pytest -q` passed with 77 tests.
+
+### BUG-081: Far Lower Widget Drops Could Use An Upward Fallback Slot
+
+- Status: Fixed
+- Area: Dashboard grid / drag / edge auto-scroll / layout commit
+- Severity: High
+- Environment: Dashboard workspace, bottom-edge drag into far auto-expanded lower rows
+- Observed: A smallest widget could be dragged into newly revealed lower workspace rows, show a valid snapped preview, and then appear to return toward its starting/original area after release once the drop passed a deeper lower-row threshold. Panels did not show the same failure pattern.
+- Expected: Widgets and panels use the same authoritative lower-workspace row model. If the snapped preview can occupy an auto-expanded row, commit accepts that same row on the first release. Fallback-to-origin only happens for genuinely invalid placements.
+- Suspected cause: The widget active-drop path still used the older nearest sparse-slot fallback when the preferred active slot was blocked by immovable/pinned occupancy. Expanded panels already used the forward-only at-or-after fallback. That left widgets with a stale fallback path that could search back upward from the preview target instead of preserving the lower-row intent.
+- Fix notes: Routed widget active-drop resolution and the shared preview placeholder resolution through `nearestSparseSlotAtOrAfter`, matching the expanded-panel commit contract. The snapped preview, widget commit, and panel commit now resolve blocked lower rows from the target row forward instead of searching back toward earlier content. Pointer timing, auto-scroll velocity, snapping math, collision validation, ghost previews, and scroll-runway cleanup were not changed.
+- Validation: Added far-down Playwright coverage for small widgets at increasing depths, minimum-size timeframe widgets, larger widgets, and panels. The tests capture the snapped preview row/column before release and assert the committed item matches it, remains below the original workspace bottom, does not fallback to the origin, preserves widget/panel bounds parity, and leaves no auto-scroll artifacts or overlaps. Targeted edge auto-scroll and pinned-displacement tests passed, and `.venv\Scripts\python.exe -m pytest -q` passed with 76 tests.
 
 ### BUG-073: Dark Mode Had Become A Separate Material System
 
@@ -149,6 +185,30 @@ Passed coverage included app/dashboard/settings load, CSS imports, absence of mo
 - Suspected cause: Earlier navbar polish had treated the top bar as a special chrome layer, adding late overrides for atmospheric glow, island offsets, status popovers, and icon-only utilities instead of letting the same widget/control primitives own the surface.
 - Fix notes: Removed the visible standalone sync/status control and standalone settings icon from the navbar, moved the settings path into the workspace identity selector, and replaced the late navbar-specific visual override with one widget-like glass surface, shared command-island rhythm, consistent 36px compact controls, shared pressable depression states, and shared glass menu treatment for Layout/Add/identity/background popovers.
 - Validation: Updated `test_workspace_chrome_is_spatial_and_modes_still_work` to assert the sync/status and standalone settings icon are gone, the identity selector keeps one settings path, the navbar material is widget-like, controls are vertically centered and evenly sized, the Layout menu uses glass popover styling, default and `deep-slate` navbar screenshots render, and Add/Engineer/Context behaviors still work. Targeted workspace chrome, layout save/load, and background slices passed, and `.venv\Scripts\python.exe -m pytest -q` passed with 72 tests.
+
+### BUG-079: Open Settings Menus Obscured Active Drag And Resize Placement
+
+- Status: Verified
+- Area: Panel controls / widget controls / drag-resize visual cleanup
+- Severity: Medium
+- Environment: Dashboard workspace, open widget/panel settings drawers during drag and resize
+- Observed: If a widget or panel settings drawer was open when the user started moving or resizing that item, the drawer stayed visually present over the active placement surface. Attempts to hide it by closing the menu risked losing the user's open-menu state when the interaction ended.
+- Expected: The active item's settings/configuration drawer should hide immediately during drag or resize, without affecting grid measurements, collision, pointer flow, snapping, previews, or commit behavior, then restore to its prior open state when the interaction ends.
+- Suspected cause: Tool drawer visibility was controlled only by hover/open classes. Those classes were independent from the existing `panel-interaction-active` and `panel-resize-active` body states, so the drawer remained visible during the interaction and hover-close timers could race restoration afterward.
+- Fix notes: Reused the existing interaction body classes to hide open panel/widget drawers and color menus with `visibility`, `opacity`, and `pointer-events` only. Widget and panel tool handlers now remember whether the source drawer was open or the interaction began from the drawer, clear pending hover-close timers, and restore the same drawer after drag/resize cleanup. Follow-up click suppression prevents anchor-backed widget drags from triggering a dashboard filter reload on release.
+- Validation: Added `test_open_settings_menu_hides_during_drag_and_resize_then_restores` for widget drag and panel resize hide/restore behavior, and updated the live-resize coverage to account for restored panel menus before moving on to widget resize. Targeted drag/resize/menu coverage passed, and `.venv\Scripts\python.exe -m pytest -q` passed with 73 tests.
+
+### BUG-080: Widget Surface Buttons Read As Too Opaque For Widget Glass
+
+- Status: Verified
+- Area: Widget controls / glass material
+- Severity: Medium
+- Environment: Dashboard workspace, widget settings buttons, widget tool drawers, and compact widget action buttons on default and deep background tones
+- Observed: Widget controls inherited enough solid surface/accent mixing that settings buttons and submenu buttons felt pasted onto the widget rather than embedded into the same translucent glass body. The issue was most visible on custom-colored widgets where the control background was an opaque surface/accent mix.
+- Expected: Widget controls remain readable and tactile, but their fill should be more translucent and atmospheric than panel controls, preserving edge definition, icon readability, and compact pressable hover/active depression without adding glow or brighter borders.
+- Suspected cause: Widget custom-color control tokens used `surface-raised` plus accent color as an opaque background. The widget drawer also used a near-solid raised surface, and open/hover rules could route widget settings buttons back through the denser shared panel-control active fill.
+- Fix notes: Retuned widget control tokens to use glass/transparent mixes, added widget-specific hover/active control fills, softened widget drawer surfaces, and kept panel controls unchanged. Timeframe widget tool drawers now inherit the same translucent widget drawer material instead of forcing an opaque raised fill.
+- Validation: Added `test_widget_surface_controls_use_translucent_widget_glass` to verify widget settings/menu buttons and drawers stay translucent, readable, non-glowy, darker-rimmed, and less solid than panel controls on default and `deep-slate` backgrounds. Targeted widget material, compact-control, pin, timeframe, and shared background material slices passed, and `.venv\Scripts\python.exe -m pytest -q` passed with 74 tests.
 
 ### BUG-023: Secondary App Surfaces Felt Disconnected From Dashboard Glass Language
 

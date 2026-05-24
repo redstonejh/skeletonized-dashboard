@@ -62,6 +62,47 @@ def open_tools(item) -> None:
     expect(item.locator(".panel-tool-drawer")).to_be_visible()
 
 
+def force_open_tools_for_interaction(page: Page, item) -> None:
+    item.evaluate(
+        """
+        node => {
+          const isWidget = node.classList.contains("widget-card");
+          node.classList.add(isWidget ? "widget-tools-open" : "db-panel-tools-open");
+          node.querySelector(".panel-settings-toggle")?.setAttribute("aria-expanded", "true");
+          document.body.classList.add("layout-tools-active");
+        }
+        """
+    )
+    expect(item.locator(".panel-tool-drawer")).to_be_visible()
+    page.wait_for_function(
+        """
+        node => {
+          const drawer = node.querySelector(".panel-tool-drawer");
+          return Number(getComputedStyle(drawer).opacity) > .99 &&
+            drawer.getBoundingClientRect().width >= drawer.offsetWidth - .25;
+        }
+        """,
+        arg=item.element_handle(),
+    )
+
+
+def force_close_tools(item) -> None:
+    item.evaluate(
+        """
+        node => {
+          node.classList.remove("widget-tools-open", "db-panel-tools-open");
+          node.querySelector(".panel-settings-toggle")?.setAttribute("aria-expanded", "false");
+          node.querySelector(".panel-color-toggle")?.setAttribute("aria-expanded", "false");
+          document.querySelectorAll(".panel-color-menu-open").forEach(menu => menu.classList.remove("panel-color-menu-open"));
+          document.body.classList.toggle(
+            "layout-tools-active",
+            Boolean(document.querySelector(".widget-tools-open, .db-panel-tools-open"))
+          );
+        }
+        """
+    )
+
+
 def resize_cleanup_state(page: Page) -> dict:
     return page.evaluate(
         """
@@ -267,6 +308,68 @@ def move_pointer_to_bottom_edge(page: Page, x: float, start_y: float, x_delta: f
 def move_pointer_to_top_edge(page: Page, x: float, start_y: float, x_delta: float = 40, steps: int = 18) -> None:
     page.mouse.move(x + 12, start_y - 12, steps=4)
     page.mouse.move(x + x_delta, 8, steps=steps)
+
+
+def drag_to_auto_expanded_row(page: Page, item_selector: str, placeholder_selector: str, target_row: int, x_delta: float = 80) -> dict:
+    item = page.locator(item_selector)
+    item.scroll_into_view_if_needed()
+    page.wait_for_timeout(120)
+    before = grid_item_state(page, item_selector)
+    open_tools(item)
+    handle_box = item.locator(".panel-move-handle").bounding_box()
+    assert handle_box
+    x, y = box_center(handle_box)
+    page.mouse.move(x, y)
+    page.mouse.down()
+    move_pointer_to_bottom_edge(page, x, y, x_delta=x_delta, steps=20)
+    page.wait_for_function(
+        """
+        ([placeholderSelector, targetRow]) => {
+          const placeholder = document.querySelector(placeholderSelector);
+          return window.scrollY > 120 &&
+            document.body.classList.contains("dashboard-interaction-scroll-extended") &&
+            placeholder &&
+            Number(placeholder.dataset.gridRow || 0) >= targetRow;
+        }
+        """,
+        arg=[placeholder_selector, target_row + 3],
+        timeout=45000,
+    )
+    viewport = page.viewport_size or {"height": 560}
+    page.mouse.move(x + x_delta, viewport["height"] - 140, steps=4)
+    page.wait_for_function(
+        """
+        ([placeholderSelector, targetRow]) => {
+          const placeholder = document.querySelector(placeholderSelector);
+          return !document.body.classList.contains("dashboard-auto-scroll-active") &&
+            placeholder &&
+            Number(placeholder.dataset.gridRow || 0) >= targetRow;
+        }
+        """,
+        arg=[placeholder_selector, target_row],
+        timeout=10000,
+    )
+    preview = page.locator(placeholder_selector).evaluate(
+        """
+        node => ({
+          col: Number(node.dataset.gridCol || 0),
+          row: Number(node.dataset.gridRow || 0),
+          span: Number(node.dataset.currentSpan || node.dataset.defaultSpan || 0),
+          rowSpan: Number(node.dataset.gridRowSpan || 1),
+        })
+        """
+    )
+    drop_scroll_y = dashboard_scroll_state(page)["scrollY"]
+    page.mouse.up()
+    page.wait_for_timeout(420)
+    after = grid_item_state(page, item_selector)
+    return {
+        "before": before,
+        "preview": preview,
+        "after": after,
+        "dropScrollY": drop_scroll_y,
+        "afterScrollY": dashboard_scroll_state(page)["scrollY"],
+    }
 
 
 def close_dialog_if_open(page: Page) -> None:
@@ -1999,6 +2102,126 @@ def test_dragging_expanded_panel_preserves_temporary_pushdown_restoration(page: 
     assert_clean_browser(page)
 
 
+def test_panel_expand_temporarily_displaces_pinned_widget_then_restores_baseline(page: Page, app_server: str) -> None:
+    goto(page, app_server)
+    page.evaluate(
+        """
+        () => {
+          const grid = document.querySelector(".dashboard-layout-grid");
+          const styles = getComputedStyle(grid);
+          const rowHeight = parseFloat(styles.gridAutoRows) || 81;
+          const gap = parseFloat(styles.rowGap || styles.gap || "16") || 16;
+          const panelHeight = (rows) => (rows * rowHeight) + (Math.max(0, rows - 1) * gap);
+          const placeItem = (node, col, row, span, rowSpan = 1) => {
+            node.hidden = false;
+            node.classList.remove("group-selected");
+            node.dataset.gridCol = String(col);
+            node.dataset.gridRow = String(row);
+            node.dataset.currentSpan = String(span);
+            node.dataset.gridRowSpan = String(rowSpan);
+            node.style.gridColumn = `${col} / span ${span}`;
+            node.style.gridRow = `${row} / span ${rowSpan}`;
+          };
+          const placePanel = (node, col, row, span, rowSpan, collapsed) => {
+            placeItem(node, col, row, span, collapsed ? 1 : rowSpan);
+            node.dataset.savedHeight = String(panelHeight(rowSpan));
+            node.classList.toggle("db-panel-collapsed", collapsed);
+            node.querySelector(".db-panel-hd")?.setAttribute("aria-expanded", (!collapsed).toString());
+            node.style.height = collapsed ? "" : `${panelHeight(rowSpan)}px`;
+          };
+          const setPinned = (node, pinned) => {
+            node.classList.toggle("db-panel-pinned", pinned);
+            node.querySelector(".panel-pin-toggle")?.setAttribute("aria-pressed", String(pinned));
+          };
+          const sourcePanel = document.querySelector('[data-panel-key="builder-content"]');
+          const pinnedWidget = document.querySelector('[data-widget-key="widget-1"]');
+          const pinnedPanel = document.querySelector('[data-panel-key="builder-menu"]');
+          placePanel(sourcePanel, 1, 1, 2, 3, true);
+          placeItem(pinnedWidget, 1, 2, 1, 1);
+          setPinned(pinnedWidget, true);
+          placePanel(pinnedPanel, 2, 2, 1, 2, true);
+          setPinned(pinnedPanel, true);
+          document.querySelectorAll(".widget-layout > .widget-card, .panel-layout > .db-panel").forEach((node, index) => {
+            if ([sourcePanel, pinnedWidget, pinnedPanel].includes(node)) return;
+            setPinned(node, false);
+            if (node.classList.contains("db-panel")) {
+              placePanel(node, 5, 14 + index, 1, 2, true);
+            } else {
+              placeItem(node, 6, 14 + index, 1, 1);
+            }
+          });
+          document.body.classList.remove("group-transform-active");
+          window.scrollTo(0, 0);
+        }
+        """
+    )
+
+    panel = page.locator('[data-panel-key="builder-content"]')
+    pinned_widget = page.locator('[data-widget-key="widget-1"]')
+    pinned_panel = page.locator('[data-panel-key="builder-menu"]')
+    baseline_widget = grid_item_state(page, '[data-widget-key="widget-1"]')
+    baseline_panel = grid_item_state(page, '[data-panel-key="builder-menu"]')
+    expect(pinned_widget).to_have_class(re.compile("db-panel-pinned"))
+    expect(pinned_panel).to_have_class(re.compile("db-panel-pinned"))
+
+    open_tools(pinned_widget)
+    drag_by(page, pinned_widget.locator(".panel-move-handle"), 160, 0, steps=8)
+    page.wait_for_timeout(260)
+    after_drag_attempt = grid_item_state(page, '[data-widget-key="widget-1"]')
+    assert grid_state_tuple(after_drag_attempt) == grid_state_tuple(baseline_widget)
+    resize_box = pinned_widget.locator(".panel-resize-handle").bounding_box()
+    assert resize_box
+    rx, ry = box_center(resize_box)
+    page.mouse.move(rx, ry)
+    page.mouse.down()
+    page.mouse.move(rx + 240, ry + 4, steps=8)
+    page.mouse.up()
+    page.wait_for_timeout(260)
+    after_resize_attempt = grid_item_state(page, '[data-widget-key="widget-1"]')
+    assert grid_state_tuple(after_resize_attempt) == grid_state_tuple(baseline_widget)
+
+    panel.locator(".db-panel-hd").click(position={"x": 18, "y": 18})
+    page.wait_for_timeout(420)
+    expanded_widget = grid_item_state(page, '[data-widget-key="widget-1"]')
+    expanded_panel = grid_item_state(page, '[data-panel-key="builder-menu"]')
+    assert expanded_widget["col"] == baseline_widget["col"]
+    assert expanded_widget["row"] > baseline_widget["row"]
+    assert expanded_panel["col"] == baseline_panel["col"]
+    assert expanded_panel["row"] > baseline_panel["row"]
+    assert no_visible_overlaps(page, ".dashboard-layout-grid .widget-card, .dashboard-layout-grid .db-panel") == []
+
+    page.locator(".layout-save-button").click()
+    expect(page.locator(".toast", has_text="saved")).to_be_visible()
+    stored = page.evaluate(
+        """
+        () => ({
+          widget: JSON.parse(localStorage.getItem("dashboard-widget-six-grid-layout:1:builder:widget-1")),
+          panel: JSON.parse(localStorage.getItem("dashboard-panel-six-grid-layout:1:builder:builder-menu")),
+        })
+        """
+    )
+    assert stored["widget"]["gridRow"] == expanded_widget["row"]
+    assert int(stored["widget"]["expansionBaseline"]["gridRow"]) == baseline_widget["row"]
+    assert stored["panel"]["gridRow"] == expanded_panel["row"]
+    assert int(stored["panel"]["expansionBaseline"]["gridRow"]) == baseline_panel["row"]
+
+    page.reload(wait_until="networkidle")
+    page.wait_for_selector(".page")
+    panel = page.locator('[data-panel-key="builder-content"]')
+    expect(panel).not_to_have_class(re.compile("db-panel-collapsed"))
+    reloaded_widget = grid_item_state(page, '[data-widget-key="widget-1"]')
+    assert reloaded_widget["row"] == expanded_widget["row"]
+
+    panel.locator(".db-panel-hd").click(position={"x": 18, "y": 18})
+    page.wait_for_timeout(420)
+    collapsed_widget = grid_item_state(page, '[data-widget-key="widget-1"]')
+    collapsed_panel = grid_item_state(page, '[data-panel-key="builder-menu"]')
+    assert grid_state_tuple(collapsed_widget) == grid_state_tuple(baseline_widget)
+    assert grid_state_tuple(collapsed_panel) == grid_state_tuple(baseline_panel)
+    assert no_visible_overlaps(page, ".dashboard-layout-grid .widget-card, .dashboard-layout-grid .db-panel") == []
+    assert_clean_browser(page)
+
+
 @pytest.mark.parametrize("after_group_resize", [False, True])
 def test_panel_collapse_restores_local_pushdown_after_group_resize(page: Page, app_server: str, after_group_resize: bool) -> None:
     goto(page, app_server)
@@ -2556,9 +2779,10 @@ def test_resize_has_live_surface_and_grid_preview(page: Page, app_server: str) -
     expect(panel_preview).to_have_count(0)
     assert grid_alignment_error(page, '.panel-layout > .db-panel[data-panel-key="builder-notes"]') <= 3
     assert no_visible_overlaps(page, ".panel-layout > .db-panel") == []
+    force_close_tools(panel)
 
     widget = page.locator(".widget-layout > .stat-card.widget-card:not(.range-bar)").first
-    open_tools(widget)
+    force_open_tools_for_interaction(page, widget)
     widget_start = widget.bounding_box()
     assert widget_start
     widget_committed_span = widget.evaluate("node => Number(node.dataset.currentSpan || node.dataset.defaultSpan)")
@@ -2789,10 +3013,10 @@ def test_widget_resize_lifecycle_repeats_cancels_and_persists(page: Page, app_se
     page.wait_for_timeout(300)
     assert_no_resize_artifacts(page)
     assert grid_alignment_error(page, '.panel-layout > .db-panel[data-panel-key="builder-content"]') <= 3
+    force_close_tools(panel)
 
     widget.hover()
-    widget.evaluate("node => node.classList.add('widget-tools-open')")
-    expect(widget.locator(".panel-tool-drawer")).to_be_visible()
+    force_open_tools_for_interaction(page, widget)
     drag_by(page, widget.locator(".panel-resize-handle"), 180, 0, steps=10)
     page.wait_for_timeout(260)
     assert_no_resize_artifacts(page)
@@ -3459,6 +3683,117 @@ def test_edge_auto_scroll_commits_minimum_size_widget_to_lower_workspace(page: P
     assert_clean_browser(page)
 
 
+def test_edge_auto_scroll_widget_far_down_commits_preview_across_depths(page: Page, app_server: str) -> None:
+    page.set_viewport_size({"width": 1280, "height": 560})
+    goto(page, app_server)
+    prepare_edge_autoscroll_fixture(page)
+    original_bottom = max(
+        item["row"] + item["rowSpan"] - 1
+        for item in grid_item_states(
+            page,
+            ".dashboard-layout-grid .widget-card:not([hidden]), .panel-layout > .db-panel:not([hidden])",
+        )
+    )
+
+    for offset in (6, 34, 82):
+        prepare_edge_autoscroll_fixture(page)
+        result = drag_to_auto_expanded_row(
+            page,
+            '[data-widget-key="widget-1"]',
+            ".widget-placeholder",
+            original_bottom + offset,
+            x_delta=76,
+        )
+        before = result["before"]
+        preview = result["preview"]
+        after = result["after"]
+        assert preview["row"] >= original_bottom + offset
+        assert after["row"] == preview["row"]
+        assert after["col"] == preview["col"]
+        assert after["row"] != before["row"]
+        assert after["row"] > original_bottom
+        assert result["afterScrollY"] >= result["dropScrollY"] - 80
+        assert_no_auto_scroll_artifacts(page)
+        assert no_visible_overlaps(page, ".dashboard-layout-grid .widget-card, .dashboard-layout-grid .db-panel") == []
+
+    assert_clean_browser(page)
+
+
+def test_edge_auto_scroll_widget_and_panel_share_far_down_bounds(page: Page, app_server: str) -> None:
+    page.set_viewport_size({"width": 1280, "height": 560})
+    goto(page, app_server)
+    prepare_edge_autoscroll_fixture(page)
+    original_bottom = max(
+        item["row"] + item["rowSpan"] - 1
+        for item in grid_item_states(
+            page,
+            ".dashboard-layout-grid .widget-card:not([hidden]), .panel-layout > .db-panel:not([hidden])",
+        )
+    )
+    target_row = original_bottom + 28
+
+    page.evaluate(
+        """
+        () => {
+          const widget = document.querySelector(".timeframe-widget");
+          widget.dataset.currentSpan = widget.dataset.minW || "2";
+          widget.dataset.defaultSpan = widget.dataset.defaultSpan || "5";
+          widget.dataset.gridCol = "1";
+          widget.dataset.gridRow = "1";
+          widget.dataset.gridRowSpan = "1";
+          widget.style.gridColumn = "1 / span 2";
+          widget.style.gridRow = "1 / span 1";
+          window.scrollTo(0, 0);
+        }
+        """
+    )
+    minimum_widget_result = drag_to_auto_expanded_row(
+        page,
+        ".timeframe-widget",
+        ".widget-placeholder",
+        target_row,
+        x_delta=80,
+    )
+    assert minimum_widget_result["preview"]["span"] == minimum_widget_result["after"]["span"] == 2
+    assert minimum_widget_result["after"]["row"] == minimum_widget_result["preview"]["row"]
+    assert minimum_widget_result["after"]["col"] == minimum_widget_result["preview"]["col"]
+    assert minimum_widget_result["after"]["row"] >= target_row
+    assert minimum_widget_result["after"]["row"] > minimum_widget_result["before"]["row"]
+    assert_no_auto_scroll_artifacts(page)
+
+    prepare_edge_autoscroll_fixture(page)
+    widget_result = drag_to_auto_expanded_row(
+        page,
+        '[data-widget-key="builder-search"]',
+        ".widget-placeholder",
+        target_row,
+        x_delta=120,
+    )
+    assert widget_result["preview"]["span"] == widget_result["after"]["span"] == 4
+    assert widget_result["after"]["row"] == widget_result["preview"]["row"]
+    assert widget_result["after"]["col"] == widget_result["preview"]["col"]
+    assert widget_result["after"]["row"] >= target_row
+    assert widget_result["after"]["row"] > widget_result["before"]["row"]
+    assert_no_auto_scroll_artifacts(page)
+
+    prepare_edge_autoscroll_fixture(page)
+    panel_result = drag_to_auto_expanded_row(
+        page,
+        '[data-panel-key="builder-content"]',
+        ".db-panel-placeholder",
+        target_row,
+        x_delta=120,
+    )
+    assert panel_result["after"]["row"] == panel_result["preview"]["row"]
+    assert panel_result["after"]["col"] == panel_result["preview"]["col"]
+    assert panel_result["after"]["rowSpan"] == panel_result["preview"]["rowSpan"]
+    assert panel_result["after"]["row"] >= target_row
+    assert panel_result["after"]["row"] > panel_result["before"]["row"]
+    assert_no_auto_scroll_artifacts(page)
+    assert no_visible_overlaps(page, ".dashboard-layout-grid .widget-card, .dashboard-layout-grid .db-panel") == []
+    assert_clean_browser(page)
+
+
 def test_edge_auto_scroll_supports_panel_drag_cleanup(page: Page, app_server: str) -> None:
     page.set_viewport_size({"width": 1280, "height": 560})
     goto(page, app_server)
@@ -3736,7 +4071,7 @@ def test_drop_on_top_item_shifts_forward_without_wrapping_top_item_to_end(page: 
 
 def test_dragging_over_items_does_not_open_underlying_menus(page: Page, app_server: str) -> None:
     goto(page, app_server)
-    widget = page.locator(".widget-layout > .stat-card.widget-card:not(.range-bar)").first
+    widget = page.locator('.widget-layout:not([hidden]) > [data-widget-key="widget-1"]')
     panel = page.locator(".panel-layout > .db-panel").first
     open_tools(widget)
     page.wait_for_timeout(220)
@@ -3761,6 +4096,258 @@ def test_dragging_over_items_does_not_open_underlying_menus(page: Page, app_serv
     page.mouse.up()
     page.wait_for_timeout(260)
     expect(page.locator(".widget-dragging")).to_have_count(0)
+    assert_clean_browser(page)
+
+
+def test_open_settings_menu_hides_during_drag_and_resize_then_restores(page: Page, app_server: str) -> None:
+    goto(page, app_server)
+
+    def drawer_state(item) -> dict:
+        return item.evaluate(
+            """
+            node => {
+              const drawer = node.querySelector(".panel-tool-drawer");
+              const button = node.querySelector(".panel-settings-toggle");
+              const styles = getComputedStyle(drawer);
+              return {
+                open: node.classList.contains("widget-tools-open") || node.classList.contains("db-panel-tools-open"),
+                expanded: button?.getAttribute("aria-expanded"),
+                visibility: styles.visibility,
+                opacity: Number(styles.opacity),
+                pointerEvents: styles.pointerEvents,
+              };
+            }
+            """
+        )
+
+    def open_tools_by_hover(item) -> None:
+        item.locator(".panel-settings-toggle").hover(force=True)
+        expect(item.locator(".panel-tool-drawer")).to_be_visible()
+        expect(item.locator(".panel-settings-toggle")).to_have_attribute("aria-expanded", "true")
+        page.wait_for_function(
+            """
+            node => {
+              const drawer = node.querySelector(".panel-tool-drawer");
+              return Number(getComputedStyle(drawer).opacity) > .99 &&
+                drawer.getBoundingClientRect().width >= drawer.offsetWidth - .25;
+            }
+            """,
+            arg=item.element_handle(),
+        )
+
+    widget = page.locator('.widget-layout:not([hidden]) > [data-widget-key="widget-1"]')
+    open_tools_by_hover(widget)
+    before_drag = drawer_state(widget)
+    assert before_drag["open"] is True
+    assert before_drag["expanded"] == "true"
+    assert before_drag["visibility"] == "visible"
+    assert before_drag["opacity"] > .9
+
+    handle_box = widget.locator(".panel-move-handle").bounding_box()
+    assert handle_box
+    start_x, start_y = box_center(handle_box)
+    page.mouse.move(start_x, start_y)
+    page.mouse.down()
+    page.mouse.move(start_x + 92, start_y + 18, steps=10)
+    expect(page.locator(".widget-dragging")).to_have_count(1)
+    during_drag = drawer_state(widget)
+    assert during_drag["open"] is True
+    assert during_drag["expanded"] == "true"
+    assert during_drag["visibility"] == "hidden"
+    assert during_drag["opacity"] == 0
+    assert during_drag["pointerEvents"] == "none"
+
+    page.mouse.up()
+    page.wait_for_timeout(40)
+    expect(page.locator(".widget-dragging")).to_have_count(0)
+    after_drag = drawer_state(widget)
+    assert after_drag["open"] is True
+    assert after_drag["expanded"] == "true"
+    assert after_drag["visibility"] == "visible"
+    page.wait_for_function(
+        """
+        node => Number(getComputedStyle(node.querySelector(".panel-tool-drawer")).opacity) > .9
+        """,
+        arg=widget.element_handle(),
+    )
+    after_drag = drawer_state(widget)
+    assert after_drag["opacity"] > .9
+
+    panel = page.locator('.panel-layout > .db-panel[data-panel-key="builder-notes"]')
+    open_tools_by_hover(panel)
+    before_resize = drawer_state(panel)
+    assert before_resize["open"] is True
+    assert before_resize["expanded"] == "true"
+    assert before_resize["visibility"] == "visible"
+
+    resize_box = panel.locator(".panel-resize-handle").bounding_box()
+    assert resize_box
+    resize_x, resize_y = box_center(resize_box)
+    page.mouse.move(resize_x, resize_y)
+    page.mouse.down()
+    expect(page.locator(".dashboard-live-resize")).to_have_count(1)
+    during_resize = drawer_state(panel)
+    assert during_resize["open"] is True
+    assert during_resize["expanded"] == "true"
+    assert during_resize["visibility"] == "hidden"
+    assert during_resize["opacity"] == 0
+    assert during_resize["pointerEvents"] == "none"
+
+    page.mouse.move(resize_x + 120, resize_y + 80, steps=8)
+    page.mouse.up()
+    page.wait_for_timeout(320)
+    expect(page.locator(".dashboard-live-resize")).to_have_count(0)
+    after_resize = drawer_state(panel)
+    assert after_resize["open"] is True
+    assert after_resize["expanded"] == "true"
+    assert after_resize["visibility"] == "visible"
+    assert after_resize["opacity"] > .9
+    assert_clean_browser(page)
+
+
+def test_object_settings_click_and_hover_share_menu_geometry(page: Page, app_server: str) -> None:
+    goto(page, app_server)
+
+    def menu_geometry(item) -> dict:
+        return item.evaluate(
+            """
+            node => {
+              const drawer = node.querySelector(".panel-tool-drawer");
+              const settings = node.querySelector(".panel-settings-toggle");
+              const header = node.querySelector(".db-panel-hd");
+              const hostRect = node.getBoundingClientRect();
+              const drawerRect = drawer.getBoundingClientRect();
+              const settingsRect = settings.getBoundingClientRect();
+              const headerRect = header?.getBoundingClientRect() || hostRect;
+              const drawerStyle = getComputedStyle(drawer);
+              return {
+                drawer: drawerRect.toJSON(),
+                settings: settingsRect.toJSON(),
+                header: headerRect.toJSON(),
+                host: hostRect.toJSON(),
+                hasHeader: Boolean(header),
+                visibility: drawerStyle.visibility,
+                opacity: Number(drawerStyle.opacity),
+                transform: drawerStyle.transform,
+                pointerEvents: drawerStyle.pointerEvents,
+              };
+            }
+            """
+        )
+
+    def close_tools(item) -> None:
+        item.evaluate(
+            """
+            node => {
+              node.classList.remove("widget-tools-open", "db-panel-tools-open");
+              node.querySelector(".panel-settings-toggle")?.setAttribute("aria-expanded", "false");
+              if (!document.querySelector(".widget-tools-open, .db-panel-tools-open")) {
+                document.body.classList.remove("layout-tools-active");
+              }
+            }
+            """
+        )
+        page.mouse.move(16, 16)
+        page.wait_for_timeout(180)
+
+    def open_by_hover(item) -> dict:
+        item.locator(".panel-settings-toggle").hover(force=True)
+        expect(item.locator(".panel-tool-drawer")).to_be_visible()
+        page.wait_for_function(
+            """
+            node => {
+              const drawer = node.querySelector(".panel-tool-drawer");
+              return Number(getComputedStyle(drawer).opacity) > .99 &&
+                drawer.getBoundingClientRect().width >= drawer.offsetWidth - .25;
+            }
+            """,
+            arg=item.element_handle(),
+        )
+        return menu_geometry(item)
+
+    def open_by_click_without_hover(item) -> dict:
+        item.locator(".panel-settings-toggle").evaluate("node => node.click()")
+        expect(item.locator(".panel-tool-drawer")).to_be_visible()
+        page.wait_for_function(
+            """
+            node => {
+              const drawer = node.querySelector(".panel-tool-drawer");
+              return Number(getComputedStyle(drawer).opacity) > .99 &&
+                drawer.getBoundingClientRect().width >= drawer.offsetWidth - .25;
+            }
+            """,
+            arg=item.element_handle(),
+        )
+        return menu_geometry(item)
+
+    def open_by_pointer_click(item) -> dict:
+        item.locator(".panel-settings-toggle").click(force=True)
+        expect(item.locator(".panel-tool-drawer")).to_be_visible()
+        page.wait_for_function(
+            """
+            node => {
+              const drawer = node.querySelector(".panel-tool-drawer");
+              return Number(getComputedStyle(drawer).opacity) > .99 &&
+                drawer.getBoundingClientRect().width >= drawer.offsetWidth - .25;
+            }
+            """,
+            arg=item.element_handle(),
+        )
+        return menu_geometry(item)
+
+    def assert_equivalent_menu_geometry(hover_state: dict, click_state: dict) -> None:
+        assert click_state["visibility"] == "visible"
+        assert click_state["opacity"] > .9
+        assert click_state["pointerEvents"] == "auto"
+        assert abs(click_state["drawer"]["x"] - hover_state["drawer"]["x"]) <= 1.5
+        assert abs(click_state["drawer"]["y"] - hover_state["drawer"]["y"]) <= 1.5
+        assert abs(click_state["drawer"]["width"] - hover_state["drawer"]["width"]) <= .5
+        assert abs(click_state["drawer"]["height"] - hover_state["drawer"]["height"]) <= .5
+        assert click_state["drawer"]["bottom"] <= click_state["host"]["bottom"] + click_state["drawer"]["height"]
+        if click_state["hasHeader"]:
+            assert click_state["drawer"]["bottom"] <= click_state["header"]["bottom"] - 3
+        assert click_state["drawer"]["right"] <= click_state["settings"]["left"] - 4
+
+    panel = page.locator('[data-panel-key="builder-content"]')
+    widget = page.locator('[data-widget-key="widget-1"]')
+    for item in (panel, widget):
+        hover_state = open_by_hover(item)
+        close_tools(item)
+        click_state = open_by_click_without_hover(item)
+        assert_equivalent_menu_geometry(hover_state, click_state)
+        close_tools(item)
+        pointer_click_state = open_by_pointer_click(item)
+        assert_equivalent_menu_geometry(hover_state, pointer_click_state)
+        close_tools(item)
+
+    page.evaluate(
+        """
+        () => {
+          const place = (node, col, row, span, rowSpan = 1) => {
+            node.dataset.gridCol = String(col);
+            node.dataset.gridRow = String(row);
+            node.dataset.currentSpan = String(span);
+            node.dataset.gridRowSpan = String(rowSpan);
+            node.style.gridColumn = `${col} / span ${span}`;
+            node.style.gridRow = `${row} / span ${rowSpan}`;
+          };
+          place(document.querySelector('[data-panel-key="builder-content"]'), 5, 1, 2, 1);
+          place(document.querySelector('[data-widget-key="widget-1"]'), 6, 3, 1, 1);
+          window.scrollTo(0, 0);
+        }
+        """
+    )
+
+    for item in (panel, widget):
+        hover_state = open_by_hover(item)
+        close_tools(item)
+        click_state = open_by_click_without_hover(item)
+        assert_equivalent_menu_geometry(hover_state, click_state)
+        close_tools(item)
+        pointer_click_state = open_by_pointer_click(item)
+        assert_equivalent_menu_geometry(hover_state, pointer_click_state)
+        close_tools(item)
+
     assert_clean_browser(page)
 
 
@@ -3946,6 +4533,81 @@ def test_pin_control_uses_soft_dashboard_chrome(page: Page, app_server: str) -> 
     assert "0 0 26px" not in deep_pinned["markerBoxShadow"]
     assert "103, 169, 255" not in deep_pinned["markerBoxShadow"]
 
+    assert_clean_browser(page)
+
+
+def test_widget_surface_controls_use_translucent_widget_glass(page: Page, app_server: str) -> None:
+    goto(page, app_server)
+    widget = page.locator(".widget-layout > .stat-card.widget-card:not(.range-bar)").first
+    panel = page.locator(".panel-layout > .db-panel").first
+
+    def material_state(item) -> dict:
+        open_tools(item)
+        return item.evaluate(
+            """
+            node => {
+              const alphaFromColor = (value) => {
+                if (!value || value === "transparent") return 0;
+                const rgba = value.match(/rgba?\\(([^)]+)\\)/);
+                if (rgba) {
+                  const parts = rgba[1].split(/[\\s,\\/]+/).filter(Boolean);
+                  return parts.length >= 4 ? Number(parts[3]) : 1;
+                }
+                const slashAlpha = value.match(/\\/\\s*([\\d.]+)\\s*\\)/);
+                if (slashAlpha) return Number(slashAlpha[1]);
+                const color = value.match(/color\\([^/]+\\/\\s*([\\d.]+)\\s*\\)/);
+                if (color) return Number(color[1]);
+                return 1;
+              };
+              const alphaValues = (value) => [...String(value).matchAll(/(?:rgba?\\([^)]+\\)|color\\([^)]+\\))/g)]
+                .map((match) => alphaFromColor(match[0]))
+                .filter((alpha) => Number.isFinite(alpha));
+              const settings = node.querySelector(".panel-settings-toggle");
+              const button = node.querySelector(".panel-tool-button");
+              const drawer = node.querySelector(".panel-tool-drawer");
+              const icon = settings.querySelector(".settings-icon");
+              const settingsStyles = getComputedStyle(settings);
+              const buttonStyles = getComputedStyle(button);
+              const drawerStyles = getComputedStyle(drawer);
+              const iconStyles = getComputedStyle(icon);
+                return {
+                  settingsAlpha: alphaFromColor(settingsStyles.backgroundColor),
+                buttonAlpha: alphaFromColor(buttonStyles.backgroundColor),
+                drawerAlphas: alphaValues(`${drawerStyles.backgroundImage}, ${drawerStyles.backgroundColor}`),
+                settingsBorder: settingsStyles.borderTopColor,
+                buttonBorder: buttonStyles.borderTopColor,
+                settingsShadow: settingsStyles.boxShadow,
+                iconColor: iconStyles.backgroundColor,
+                iconOpacity: Number(iconStyles.opacity || "1"),
+              };
+            }
+            """
+        )
+
+    widget_default = material_state(widget)
+    panel_default = material_state(panel)
+
+    widget.locator(".panel-settings-toggle").hover(force=True)
+    page.wait_for_timeout(180)
+    widget_hover = material_state(widget)
+
+    page.evaluate("document.documentElement.dataset.background = 'deep-slate'")
+    page.wait_for_timeout(120)
+    widget_deep = material_state(widget)
+
+    for state in (widget_default, widget_hover, widget_deep):
+        assert .18 <= state["settingsAlpha"] <= .68
+        assert .18 <= state["buttonAlpha"] <= .68
+        assert state["drawerAlphas"]
+        assert max(state["drawerAlphas"]) <= .72
+        assert state["settingsBorder"] != "rgb(255, 255, 255)"
+        assert state["buttonBorder"] != "rgb(255, 255, 255)"
+        assert "0px 0px 22px" not in state["settingsShadow"]
+        assert state["iconColor"] != "rgba(0, 0, 0, 0)"
+        assert state["iconOpacity"] >= .9
+
+    assert widget_default["settingsAlpha"] < panel_default["settingsAlpha"]
+    assert widget_default["buttonAlpha"] < panel_default["buttonAlpha"]
     assert_clean_browser(page)
 
 
@@ -4577,8 +5239,7 @@ def test_group_drag_uses_composite_footprint_and_preserves_member_spacing(page: 
         """
     )
 
-    widget.evaluate("node => node.classList.add('widget-tools-open')")
-    expect(widget.locator(".panel-tool-drawer")).to_be_visible()
+    force_open_tools_for_interaction(page, widget)
     handle = widget.locator(".panel-move-handle")
     handle_box = handle.bounding_box()
     assert handle_box
@@ -5169,8 +5830,7 @@ def test_group_resize_composite_footprint_pushes_surrounding_items(page: Page, a
         "blocker": grid_item_state(page, '[data-panel-key="builder-notes"]'),
     }
 
-    table.evaluate("node => node.classList.add('db-panel-tools-open')")
-    expect(table.locator(".panel-tool-drawer")).to_be_visible()
+    open_tools(table)
     handle = table.locator(".panel-resize-handle")
     handle_box = handle.bounding_box()
     assert handle_box

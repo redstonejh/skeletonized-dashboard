@@ -1410,6 +1410,19 @@ body::-webkit-scrollbar-thumb:hover {
   box-shadow: var(--panel-control-active-shadow) !important;
 }
 
+.widget-card.db-panel-custom-color .panel-settings-toggle:hover,
+.widget-card.db-panel-custom-color .panel-tool-button:hover,
+.widget-card.db-panel-custom-color .panel-settings-toggle:focus-visible,
+.widget-card.db-panel-custom-color .panel-tool-button:focus-visible {
+  background: var(--widget-control-hover-bg) !important;
+}
+
+.widget-card.db-panel-custom-color .panel-settings-toggle:active,
+.widget-card.db-panel-custom-color .panel-tool-button:active,
+.widget-card.db-panel-custom-color.widget-tools-open .panel-settings-toggle {
+  background: var(--widget-control-active-bg) !important;
+}
+
 .db-panel.db-panel-custom-color .panel-tool-drawer {
   background: color-mix(in srgb, var(--surface-raised) 92%, var(--panel-accent) 8%) !important;
   border-color: rgba(var(--panel-accent-rgb), .46) !important;
@@ -1723,11 +1736,17 @@ body::-webkit-scrollbar-thumb:hover {
 .widget-layout > .widget-card.db-panel-custom-color.stat-danger,
 .widget-layout > .widget-card.db-panel-custom-color.stat-warn,
 .widget-layout > .widget-card.db-panel-custom-color.stat-purple {
-  --panel-lock-bg: color-mix(in srgb, var(--surface-raised) 62%, var(--panel-accent) 38%);
+  --panel-lock-bg: color-mix(in srgb, var(--glass-surface) 34%, rgba(var(--panel-accent-rgb), .16));
   --panel-lock-fg: var(--panel-accent-text);
-  --panel-lock-border: rgba(var(--panel-accent-rgb), .54);
-  --panel-lock-glow: rgba(var(--panel-accent-rgb), .24);
-  --panel-drawer-bg: rgba(var(--panel-accent-rgb), .24);
+  --panel-lock-border: color-mix(in srgb, var(--panel-accent) 34%, rgba(15, 23, 42, .36));
+  --panel-lock-glow: rgba(var(--panel-accent-rgb), .16);
+  --panel-drawer-bg: rgba(var(--panel-accent-rgb), .16);
+  --widget-control-bg: var(--panel-lock-bg);
+  --widget-control-hover-bg: color-mix(in srgb, var(--glass-surface) 46%, rgba(var(--panel-accent-rgb), .18));
+  --widget-control-active-bg: color-mix(in srgb, var(--glass-surface) 42%, rgba(var(--panel-accent-rgb), .20));
+  --widget-drawer-bg:
+    linear-gradient(180deg, color-mix(in srgb, var(--glass-surface-strong) 50%, transparent), color-mix(in srgb, var(--glass-surface) 36%, transparent)),
+    color-mix(in srgb, var(--panel-accent) 8%, transparent);
   background: linear-gradient(90deg, rgba(var(--panel-accent-rgb), .54), rgba(var(--panel-accent-rgb), .30));
   border-color: color-mix(in srgb, var(--panel-accent) 62%, white) !important;
   box-shadow:
@@ -1775,21 +1794,34 @@ body::-webkit-scrollbar-thumb:hover {
 
 .widget-card.db-panel-custom-color .panel-settings-toggle,
 .widget-card.db-panel-custom-color .panel-tool-button {
-  --panel-lock-bg: var(--panel-custom-control-bg, color-mix(in srgb, var(--surface-raised) 62%, var(--panel-accent) 38%)) !important;
+  --panel-lock-bg: var(--panel-custom-control-bg, color-mix(in srgb, var(--glass-surface) 34%, rgba(var(--panel-accent-rgb), .16))) !important;
   --panel-lock-fg: var(--panel-accent-text) !important;
-  --panel-lock-border: var(--panel-custom-control-border, rgba(var(--panel-accent-rgb), .54)) !important;
-  --panel-lock-glow: var(--panel-custom-control-shadow, rgba(var(--panel-accent-rgb), .24)) !important;
-  --panel-drawer-bg: rgba(var(--panel-accent-rgb), .24) !important;
+  --panel-lock-border: var(--panel-custom-control-border, color-mix(in srgb, var(--panel-accent) 34%, rgba(15, 23, 42, .36))) !important;
+  --panel-lock-glow: var(--panel-custom-control-shadow, rgba(var(--panel-accent-rgb), .16)) !important;
+  --panel-drawer-bg: rgba(var(--panel-accent-rgb), .16) !important;
   border-color: var(--panel-lock-border);
   box-shadow:
     var(--panel-control-rest-shadow);
 }
 
 .widget-card.db-panel-custom-color .widget-tool-drawer {
-  background: color-mix(in srgb, var(--surface-raised) 92%, var(--panel-accent) 8%);
-  border-color: var(--panel-custom-drawer-border, rgba(var(--panel-accent-rgb), .46));
+  background: var(--widget-drawer-bg);
+  border-color: var(--panel-custom-drawer-border, color-mix(in srgb, var(--panel-accent) 34%, rgba(15, 23, 42, .32)));
   box-shadow:
     var(--panel-drawer-shadow, 0 14px 32px rgba(15, 23, 42, .18));
+}
+
+.widget-card .panel-settings-toggle:hover,
+.widget-card .panel-tool-button:hover,
+.widget-card .panel-settings-toggle:focus-visible,
+.widget-card .panel-tool-button:focus-visible {
+  background: var(--widget-control-hover-bg) !important;
+}
+
+.widget-card .panel-settings-toggle:active,
+.widget-card .panel-tool-button:active,
+.widget-card.widget-tools-open .panel-settings-toggle {
+  background: var(--widget-control-active-bg) !important;
 }
 
 /* Dashboard top bar polish: match the soft widget/panel control language. */
