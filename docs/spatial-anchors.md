@@ -8,7 +8,7 @@ The dashboard should remain tabless. Navigation should happen inside one continu
 
 Spatial Anchors are floating viewport-fixed controls that act as contextual bookmarks into the larger dashboard world. Clicking an anchor smoothly moves the user back to a linked widget, panel, group, region, semantic context, or saved viewport while preserving the feeling of one continuous workspace.
 
-The current implementation is a minimal side-rail foundation: anchors can be created, default to the left viewport rail, be dragged between side rails, persist separately from grid layout, customize through widget-like controls, and navigate to either a linked divider or the top of the workspace. The full creation-from-selection, richer missing-target UI, keyboard repositioning, and contextual-state systems remain staged work.
+The current implementation is a minimal left-rail foundation: anchors can be created, reordered vertically on a fixed viewport rail, persist separately from grid layout, customize through widget-like controls, and navigate to either a linked divider or the top of the workspace. The full creation-from-selection, richer missing-target UI, keyboard repositioning, and contextual-state systems remain staged work.
 
 ## Concept Name
 
@@ -72,15 +72,15 @@ Visual qualities:
 
 Anchors should remain visually secondary to dashboard content while still being recognizable as part of the same widget material family.
 
-### Movement And Pinning
+### Rail Movement
 
-Anchors stay fixed to the viewport until the user moves them.
+Anchors stay fixed to the left viewport rail. Movement is a one-dimensional rail reorder, not freeform placement.
 
 Users should be able to:
 
-- Drag anchors to a preferred screen position.
-- Pin or lock an anchor's viewport position.
-- Unpin/reposition anchors without changing the linked target.
+- Drag anchors vertically to change their order.
+- See a live drag ghost that follows vertical pointer movement.
+- See a separate rail placeholder/reorder preview before release.
 - Temporarily hide or show the anchor layer.
 
 Anchor repositioning must not mutate dashboard grid layout.
@@ -116,7 +116,7 @@ The experience should feel like spatial teleportation/bookmarking inside one con
 ## Interaction Rules
 
 - Anchors are viewport-fixed.
-- Anchors can be repositioned by the user.
+- Anchors can be reordered vertically by the user.
 - Anchors should not block core dashboard interactions.
 - Anchors should avoid overlapping critical controls such as navbar controls, panel toolbars, resize handles, and drag handles.
 - Anchor navigation must be disabled or deferred during active drag, resize, group move, group resize, text editing, modal dialogs, or menu interactions.
@@ -125,6 +125,8 @@ The experience should feel like spatial teleportation/bookmarking inside one con
 - The same anchor should resolve to the same target and alignment unless the target moved or was deleted.
 - Escape may cancel active anchor repositioning or a pending anchor creation flow.
 - Anchor dragging should not be interpreted as dashboard drag.
+- Anchor dragging must not use dashboard grid snapping or widget/panel collision logic.
+- Anchor collision and reordering are scoped only to other anchors on the rail.
 - Dashboard drag/resize should suppress anchor hover/activation if pointer paths overlap.
 
 ## Context Inheritance
@@ -177,13 +179,15 @@ If a target is deleted, the anchor enters missing-target state rather than jumpi
 Current anchors:
 
 - render in `.workspace-anchor-layer`, outside widget and panel layouts;
-- use fixed side-rail placement with `side` and `offset` state, defaulting to the left rail;
-- persist in the `dashboard-floating-anchors:*` storage namespace;
+- use fixed left-rail placement with committed `railOrder` and derived vertical `offset` state;
+- participate in the shared live layout history and explicit layout save/load flow while persisting under the layout-scoped `dashboard-floating-anchors:*` key;
 - do not participate in grid collision, snapping, resizing, pinning, grouping, or panel collapse pressure;
-- only resolve same-rail overlap against other anchors;
+- use a dedicated one-dimensional rail interaction model with a live drag ghost, separate placeholder preview, and commit-on-release ordering;
+- only resolve ordering/collision against other anchors;
 - use existing workspace target metadata as a navigation hook;
 - can store an optional `linkedDividerId`;
 - navigate to the linked divider when present, or to the top of the workspace when unlinked;
+- resolve linked divider positions live on click by divider identity rather than storing divider coordinates;
 - reuse widget-style material, color, settings, and compact-control primitives instead of a separate anchor-only visual language.
 
 This keeps anchors on a raised navigation axis while widgets, panels, and dividers remain on the workspace layout axis.
@@ -200,6 +204,7 @@ Future anchor records should support:
   "targetType": "panel",
   "targetId": "builder-notes",
   "linkedDividerId": null,
+  "railOrder": 0,
   "viewportPosition": {
     "x": 24,
     "y": 180,
@@ -218,7 +223,6 @@ Future anchor records should support:
     "sourceId": "builder-notes",
     "label": "Notes"
   },
-  "pinned": true,
   "scope": "layout-profile",
   "createdFrom": "selection",
   "createdAt": "2026-05-23T00:00:00Z",
@@ -234,12 +238,12 @@ Recommended fields:
 - `targetType`: widget, panel, group, region, context, viewport, or coordinate.
 - `targetId`: stable target id where available.
 - `linkedDividerId`: optional divider link used by the current side-rail navigation foundation.
-- `viewportPosition`: fixed screen placement.
+- `railOrder`: committed vertical order on the viewport rail.
+- `viewportPosition`: derived screen placement for rendering and migration compatibility.
 - `targetSnapshot`: fallback world/grid position.
 - `alignment`: scroll alignment behavior.
 - `accent`: optional visual accent.
 - `context`: optional inherited context metadata.
-- `pinned`: whether the viewport placement is locked.
 - `scope`: profile, dashboard, workspace, or future user scope.
 - `createdFrom`: selection, current viewport, command, or restored data.
 

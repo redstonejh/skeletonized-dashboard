@@ -1714,7 +1714,8 @@ body::-webkit-scrollbar-thumb:hover {
 .widget-layout > .widget-card.db-panel-custom-color,
 .widget-layout > .widget-card.db-panel-custom-color.stat-danger,
 .widget-layout > .widget-card.db-panel-custom-color.stat-warn,
-.widget-layout > .widget-card.db-panel-custom-color.stat-purple {
+.widget-layout > .widget-card.db-panel-custom-color.stat-purple,
+.workspace-anchor-object.widget-card.db-panel-custom-color {
   --panel-lock-bg: color-mix(in srgb, var(--glass-surface) 34%, rgba(var(--panel-accent-rgb), .16));
   --panel-lock-fg: var(--panel-accent-text);
   --panel-lock-border: color-mix(in srgb, var(--panel-accent) 34%, rgba(15, 23, 42, .36));
@@ -1735,7 +1736,10 @@ body::-webkit-scrollbar-thumb:hover {
 
 .widget-layout > .widget-card.db-panel-custom-color:hover,
 .widget-layout > .widget-card.db-panel-custom-color:focus-visible,
-.widget-layout > .widget-card.db-panel-custom-color.active {
+.widget-layout > .widget-card.db-panel-custom-color.active,
+.workspace-anchor-object.widget-card.db-panel-custom-color:hover,
+.workspace-anchor-object.widget-card.db-panel-custom-color:focus-visible,
+.workspace-anchor-object.widget-card.db-panel-custom-color.active {
   background: linear-gradient(90deg, rgba(var(--panel-accent-rgb), .58), rgba(var(--panel-accent-rgb), .34));
   border-color: color-mix(in srgb, var(--panel-accent) 78%, var(--panel-hover-tint)) !important;
   box-shadow:
@@ -1743,7 +1747,8 @@ body::-webkit-scrollbar-thumb:hover {
     inset 0 1px 0 rgba(255, 255, 255, .20) !important;
 }
 
-.widget-layout > .widget-card.db-panel-custom-color.active {
+.widget-layout > .widget-card.db-panel-custom-color.active,
+.workspace-anchor-object.widget-card.db-panel-custom-color.active {
   outline: 3px solid color-mix(in srgb, var(--panel-accent) 82%, var(--panel-hover-tint));
   outline-offset: 0;
   border-color: color-mix(in srgb, var(--panel-accent) 88%, var(--panel-hover-tint)) !important;
@@ -1752,7 +1757,8 @@ body::-webkit-scrollbar-thumb:hover {
     inset 0 1px 0 rgba(255, 255, 255, .20) !important;
 }
 
-.widget-layout > .widget-card.db-panel-custom-color.active:hover {
+.widget-layout > .widget-card.db-panel-custom-color.active:hover,
+.workspace-anchor-object.widget-card.db-panel-custom-color.active:hover {
   outline-color: color-mix(in srgb, var(--panel-accent) 92%, var(--panel-hover-tint));
   box-shadow:
     0 13px 28px rgba(15, 23, 42, .14),
@@ -1762,30 +1768,45 @@ body::-webkit-scrollbar-thumb:hover {
 .widget-layout > .widget-card.db-panel-custom-color:hover .stat-val,
 .widget-layout > .widget-card.db-panel-custom-color:hover .stat-lbl,
 .widget-layout > .widget-card.db-panel-custom-color.active .stat-val,
-.widget-layout > .widget-card.db-panel-custom-color.active .stat-lbl {
+.widget-layout > .widget-card.db-panel-custom-color.active .stat-lbl,
+.workspace-anchor-object.widget-card.db-panel-custom-color:hover .stat-val,
+.workspace-anchor-object.widget-card.db-panel-custom-color:hover .stat-lbl,
+.workspace-anchor-object.widget-card.db-panel-custom-color.active .stat-val,
+.workspace-anchor-object.widget-card.db-panel-custom-color.active .stat-lbl {
   color: var(--panel-accent-text) !important;
 }
 
 .widget-layout > .widget-card.db-panel-custom-color .stat-val,
-.widget-layout > .widget-card.db-panel-custom-color .stat-lbl {
+.widget-layout > .widget-card.db-panel-custom-color .stat-lbl,
+.workspace-anchor-object.widget-card.db-panel-custom-color .stat-val,
+.workspace-anchor-object.widget-card.db-panel-custom-color .stat-lbl {
   color: var(--panel-accent-text) !important;
+}
+
+.widget-layout > .search-widget-card.db-panel-custom-color .range-search-label.stat-lbl,
+.widget-layout > .search-widget-card.db-panel-custom-color:hover .range-search-label.stat-lbl,
+.widget-layout > .search-widget-card.db-panel-custom-color.active .range-search-label.stat-lbl,
+.widget-layout > .search-widget-card.db-panel-custom-color.widget-tools-open .range-search-label.stat-lbl {
+  color: var(--range-search-fg) !important;
 }
 
 .widget-card.db-panel-custom-color .panel-settings-toggle,
 .widget-card.db-panel-custom-color .panel-tool-button {
-  --panel-lock-bg: var(--panel-custom-control-bg, color-mix(in srgb, var(--glass-surface) 34%, rgba(var(--panel-accent-rgb), .16))) !important;
+  --panel-lock-bg: var(--panel-custom-control-bg, color-mix(in srgb, var(--surface-raised) 62%, var(--panel-accent) 38%)) !important;
   --panel-lock-fg: var(--panel-accent-text) !important;
-  --panel-lock-border: var(--panel-custom-control-border, color-mix(in srgb, var(--panel-accent) 34%, rgba(15, 23, 42, .36))) !important;
-  --panel-lock-glow: var(--panel-custom-control-shadow, rgba(var(--panel-accent-rgb), .16)) !important;
-  --panel-drawer-bg: rgba(var(--panel-accent-rgb), .16) !important;
+  --panel-lock-border: var(--panel-custom-control-border, color-mix(in srgb, var(--panel-accent) 54%, rgba(15, 23, 42, .34))) !important;
+  --panel-lock-glow: var(--panel-custom-control-shadow, rgba(var(--panel-accent-rgb), .24)) !important;
+  --panel-drawer-bg: color-mix(in srgb, var(--surface-raised) 92%, var(--panel-accent) 8%) !important;
   border-color: var(--panel-lock-border);
   box-shadow:
     var(--panel-control-rest-shadow);
 }
 
 .widget-card.db-panel-custom-color .widget-tool-drawer {
-  background: var(--widget-drawer-bg);
-  border-color: var(--panel-custom-drawer-border, color-mix(in srgb, var(--panel-accent) 34%, rgba(15, 23, 42, .32)));
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--glass-surface-strong) 96%, var(--surface-raised)), color-mix(in srgb, var(--glass-surface-strong) 92%, var(--surface-soft))),
+    var(--panel-drawer-bg) !important;
+  border-color: var(--panel-custom-drawer-border, color-mix(in srgb, var(--panel-accent) 46%, rgba(15, 23, 42, .32)));
   box-shadow:
     var(--panel-drawer-shadow, 0 14px 32px rgba(15, 23, 42, .18));
 }

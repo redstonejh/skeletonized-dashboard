@@ -292,6 +292,7 @@ document.addEventListener("DOMContentLoaded", () => {
   dashboardSearchForms.forEach((form) => {
     const input = form.querySelector(".range-search-input");
     if (!input) return;
+    form.dataset.keywordSearchBound = "true";
     form.addEventListener("submit", (event) => {
       event.preventDefault();
       applyDashboardKeywordSearch(input);
@@ -510,6 +511,7 @@ document.addEventListener("DOMContentLoaded", () => {
       .filter((item) => includeLocked || item.dataset.locked !== "true");
   };
   const liveLayoutUndo = new Map();
+  const liveLayoutRedo = new Map();
   const liveLayoutUndoKey = (layoutKey, profile = getActivePanelProfile(layoutKey)) => `${profile}:${layoutKey}`;
   const undoTransientItemClasses = [
     "active",
@@ -521,6 +523,9 @@ document.addEventListener("DOMContentLoaded", () => {
     "group-transform-member",
     "db-panel-tools-open",
     "widget-tools-open",
+    "anchor-rail-source",
+    "anchor-dragging",
+    "anchor-rail-previewing",
   ];
   const sanitizeLayoutElementForUndo = (element) => {
     const clone = element.cloneNode(true);
@@ -529,10 +534,11 @@ document.addEventListener("DOMContentLoaded", () => {
     clone.style.removeProperty("left");
     clone.style.removeProperty("top");
     clone.style.removeProperty("width");
-    clone.querySelectorAll(".panel-settings-toggle, .panel-color-toggle").forEach((button) => {
+    clone.querySelectorAll(".panel-settings-toggle, .panel-color-toggle, .anchor-link-toggle").forEach((button) => {
       button.setAttribute("aria-expanded", "false");
     });
     clone.querySelectorAll(".panel-color-menu-open").forEach((menu) => menu.classList.remove("panel-color-menu-open"));
+    clone.querySelectorAll(".anchor-link-menu-open").forEach((menu) => menu.classList.remove("anchor-link-menu-open"));
     return clone.outerHTML;
   };
   const serializeLayoutElement = (element, keyName) => ({
@@ -561,11 +567,18 @@ document.addEventListener("DOMContentLoaded", () => {
           : serializeLayoutElement(item, "widgetKey")
       )),
     })),
+    anchors: [...document.querySelectorAll(`.workspace-anchor-layer[data-anchor-layout-key="${CSS.escape(layoutKey)}"]`)].map((layer) => ({
+      selector: `.workspace-anchor-layer[data-anchor-layout-key="${CSS.escape(layer.dataset.anchorLayoutKey || layoutKey)}"]`,
+      items: [...layer.querySelectorAll(":scope > .workspace-anchor-object:not(.workspace-anchor-drag-ghost)")].map((item) => (
+        serializeLayoutElement(item, "anchorKey")
+      )),
+    })),
     profile,
   });
   const liveLayoutUndoSignature = (snapshot) => JSON.stringify({
     panels: snapshot.panels,
     widgets: snapshot.widgets,
+    anchors: snapshot.anchors,
     profile: snapshot.profile,
   });
   const pushLiveLayoutUndo = (layoutKey, profile = getActivePanelProfile(layoutKey)) => {
@@ -577,18 +590,20 @@ document.addEventListener("DOMContentLoaded", () => {
     stack.push({ ...snapshot, signature });
     if (stack.length > 12) stack.shift();
     liveLayoutUndo.set(key, stack);
+    liveLayoutRedo.delete(key);
     return true;
   };
   const cleanupDashboardUndoArtifacts = () => {
     document.querySelectorAll(
-      ".dashboard-live-resize, .dashboard-resize-preview, .dashboard-expanded-footprint-ghost, .dashboard-group-boundary, .dashboard-group-member-preview, .widget-placeholder, .db-panel-placeholder"
+      ".dashboard-live-resize, .dashboard-resize-preview, .dashboard-expanded-footprint-ghost, .dashboard-group-boundary, .dashboard-group-member-preview, .widget-placeholder, .db-panel-placeholder, .workspace-anchor-drag-ghost, .workspace-anchor-rail-placeholder"
     ).forEach((node) => node.remove());
     document.body.classList.remove(
       "panel-interaction-active",
       "panel-resize-active",
       "group-transform-active",
       "dashboard-auto-scroll-active",
-      "dashboard-interaction-scroll-extended"
+      "dashboard-interaction-scroll-extended",
+      "anchor-rail-drag-active"
     );
     document.body.style.removeProperty("padding-bottom");
     document.documentElement.style.removeProperty("overflow-anchor");
@@ -599,6 +614,10 @@ document.addEventListener("DOMContentLoaded", () => {
     document.querySelectorAll(".dashboard-layout-grid").forEach((host) => host.style.removeProperty("overflow-anchor"));
     document.querySelectorAll(".dashboard-active-resize, .dashboard-resize-source, .group-transform-member").forEach((item) => {
       item.classList.remove("dashboard-active-resize", "dashboard-resize-source", "group-transform-member");
+    });
+    document.querySelectorAll(".anchor-rail-source, .anchor-dragging, .anchor-rail-previewing").forEach((item) => {
+      item.classList.remove("anchor-rail-source", "anchor-dragging", "anchor-rail-previewing");
+      item.style.removeProperty("--anchor-drag-x");
     });
   };
   const restoreLayoutItems = (layout, items, initItem) => {
@@ -615,6 +634,47 @@ document.addEventListener("DOMContentLoaded", () => {
       layout.appendChild(element);
       if (!item.rowBreak && !item.spacer) initItem?.(element);
     });
+  };
+  const restoreAnchorItems = (layer, items) => {
+    layer.replaceChildren();
+    items.forEach((item) => {
+      const template = document.createElement("template");
+      template.innerHTML = item.html;
+      const anchor = template.content.firstElementChild;
+      if (!anchor) return;
+      anchor.hidden = Boolean(item.hidden);
+      delete anchor.dataset.anchorInitialized;
+      anchor.classList.remove(...undoTransientItemClasses);
+      layer.appendChild(anchor);
+      syncAnchorNavigationTarget(anchor);
+      initFloatingAnchor(anchor, layer);
+    });
+    normalizeAnchorLayer(layer);
+  };
+  const restoreLiveLayoutSnapshot = (snapshot) => {
+    cleanupDashboardUndoArtifacts();
+    snapshot.widgets?.forEach((widgetSnapshot) => {
+      const layout = document.querySelector(widgetSnapshot.selector);
+      if (!layout) return;
+      layout.dataset.hiddenWidgetsDraft = widgetSnapshot.hiddenDraft;
+      restoreLayoutItems(layout, widgetSnapshot.items, layout.__initWidget);
+      cleanupWidgetRowBreaks(layout);
+    });
+    snapshot.panels?.forEach((panelSnapshot) => {
+      const layout = document.querySelector(panelSnapshot.selector);
+      if (!layout) return;
+      layout.dataset.hiddenPanelsDraft = panelSnapshot.hiddenDraft;
+      restoreLayoutItems(layout, panelSnapshot.items, layout.__initPanel);
+      cleanupPanelRowBreaks(layout);
+    });
+    snapshot.anchors?.forEach((anchorSnapshot) => {
+      const layer = document.querySelector(anchorSnapshot.selector);
+      if (!layer) return;
+      restoreAnchorItems(layer, anchorSnapshot.items);
+    });
+    restoreGroupSelection();
+    syncLayoutToolsActive();
+    cleanupDashboardUndoArtifacts();
   };
   const captureLayoutUndo = (layoutKey, profile = getActivePanelProfile(layoutKey)) => {
     if (layoutUndoCaptureLock) return;
@@ -634,30 +694,28 @@ document.addEventListener("DOMContentLoaded", () => {
     const liveKey = liveLayoutUndoKey(layoutKey, profile);
     const stack = liveLayoutUndo.get(liveKey) || [];
     if (stack.length > 1) {
-      cleanupDashboardUndoArtifacts();
-      stack.pop();
-      const undo = stack[stack.length - 1];
-      undo.widgets.forEach((snapshot) => {
-        const layout = document.querySelector(snapshot.selector);
-        if (!layout) return;
-        layout.dataset.hiddenWidgetsDraft = snapshot.hiddenDraft;
-        restoreLayoutItems(layout, snapshot.items, layout.__initWidget);
-        cleanupWidgetRowBreaks(layout);
-      });
-      undo.panels.forEach((snapshot) => {
-        const layout = document.querySelector(snapshot.selector);
-        if (!layout) return;
-        layout.dataset.hiddenPanelsDraft = snapshot.hiddenDraft;
-        restoreLayoutItems(layout, snapshot.items, layout.__initPanel);
-        cleanupPanelRowBreaks(layout);
-      });
-      restoreGroupSelection();
+      const current = stack.pop();
+      const redoStack = liveLayoutRedo.get(liveKey) || [];
+      redoStack.push(current);
+      liveLayoutRedo.set(liveKey, redoStack);
+      restoreLiveLayoutSnapshot(stack[stack.length - 1]);
       liveLayoutUndo.set(liveKey, stack);
-      syncLayoutToolsActive();
-      cleanupDashboardUndoArtifacts();
       return true;
     }
     return false;
+  };
+  const restoreLayoutRedo = (layoutKey, profile = getActivePanelProfile(layoutKey)) => {
+    const liveKey = liveLayoutUndoKey(layoutKey, profile);
+    const redoStack = liveLayoutRedo.get(liveKey) || [];
+    const redo = redoStack.pop();
+    if (!redo) return false;
+    const stack = liveLayoutUndo.get(liveKey) || [];
+    stack.push(redo);
+    if (stack.length > 12) stack.shift();
+    liveLayoutUndo.set(liveKey, stack);
+    liveLayoutRedo.set(liveKey, redoStack);
+    restoreLiveLayoutSnapshot(redo);
+    return true;
   };
   const panelDeleteDialog = document.getElementById("panel-delete-dialog");
   const panelDeleteMessage = document.getElementById("panel-delete-message");
@@ -669,33 +727,170 @@ document.addEventListener("DOMContentLoaded", () => {
     pendingPanelDelete = null;
     panelDeleteDialog?.close();
   };
-  const requestPanelDelete = ({ panel, layout, layoutKey, title, panels = null }) => {
-    const targets = panels?.length ? panels : [panel];
-    pendingPanelDelete = { type: "panel", panel, panels: targets, layout, layoutKey, title };
-    if (panelDeleteMessage) {
-      panelDeleteMessage.textContent = targets.length > 1
-        ? `Are you sure you want to delete ${targets.length} selected panels?`
-        : `Are you sure you want to delete "${title}" panel?`;
-    }
-    if (typeof panelDeleteDialog?.showModal === "function") {
-      panelDeleteDialog.showModal();
-    } else if (window.confirm(targets.length > 1 ? `Are you sure you want to delete ${targets.length} selected panels?` : `Are you sure you want to delete "${title}" panel?`)) {
-      panelDeleteConfirm?.click();
-    }
+  const workspaceDeleteKind = (item) => {
+    if (item?.classList?.contains("workspace-anchor-object")) return "anchor";
+    if (item?.dataset?.workspaceObjectType === "divider" || item?.classList?.contains("workspace-divider")) return "divider";
+    if (item?.classList?.contains("widget-card")) return "widget";
+    if (item?.classList?.contains("db-panel")) return "panel";
+    return "";
   };
-  const requestWidgetDelete = ({ widget, layout, layoutKey, title, widgets = null }) => {
-    const targets = widgets?.length ? widgets : [widget];
-    pendingPanelDelete = { type: "widget", widget, widgets: targets, layout, layoutKey, title };
+  const workspaceDeleteLayout = (item) => item?.closest?.(".widget-layout, .panel-layout, .workspace-anchor-layer");
+  const workspaceDeleteLayoutKey = (item) => {
+    const layout = workspaceDeleteLayout(item);
+    return layout?.dataset.widgetLayoutKey || layout?.dataset.layoutKey || layout?.dataset.anchorLayoutKey || "default";
+  };
+  const workspaceDeleteTitle = (item) => {
+    const kind = workspaceDeleteKind(item);
+    if (kind === "anchor") return item.querySelector(".workspace-anchor-label")?.textContent?.trim() || item.dataset.anchorTitle || "Anchor";
+    if (kind === "widget") return item.dataset.panelTitle || item.querySelector(".stat-lbl")?.textContent?.trim() || "Widget";
+    return item.dataset.panelTitle || item.querySelector(".db-panel-title")?.textContent?.trim() || (kind === "divider" ? "Divider" : "Panel");
+  };
+  const workspaceDeleteId = (item) => {
+    const kind = workspaceDeleteKind(item);
+    const key = kind === "anchor" ? item?.dataset?.anchorKey : kind === "widget" ? item?.dataset?.widgetKey : item?.dataset?.panelKey;
+    return key ? `${workspaceDeleteLayoutKey(item)}:${kind}:${key}` : "";
+  };
+  const defaultColorForWorkspaceObject = (item) =>
+    item?.querySelector?.(".panel-color-toggle")?.dataset.defaultTheme || "";
+  const normalizedColor = (color) => String(color || "").trim().toLowerCase();
+  const hasCustomWorkspaceColor = (item) => {
+    const current = normalizedColor(item?.dataset?.panelColor);
+    const fallback = normalizedColor(defaultColorForWorkspaceObject(item));
+    return Boolean(current && fallback && current !== fallback);
+  };
+  const hasRenamedWorkspaceObject = (item) => {
+    const kind = workspaceDeleteKind(item);
+    if (kind === "anchor") return Boolean(item?.dataset?.anchorTitleEdited === "true");
+    const title = item?.dataset?.panelTitle;
+    if (!title) return false;
+    const defaultTitle = item?.dataset?.defaultTitle || "";
+    return !defaultTitle || title.trim() !== defaultTitle.trim();
+  };
+  const panelHasConfiguredContent = (panel) => {
+    if (!panel || workspaceDeleteKind(panel) === "divider") return false;
+    const body = panel.querySelector(":scope > .db-panel-body");
+    if (!body || body.hidden) return false;
+    return [...body.children].some((child) => {
+      if (child.classList.contains("empty-state") || child.dataset.panelPlaceholder === "empty") return false;
+      return !child.hidden && child.textContent.trim();
+    });
+  };
+  const widgetHasConfiguredContent = (widget) => {
+    if (!widget) return false;
+    if (widget.dataset.widgetConfig) return true;
+    if (widget.dataset.dataSource || widget.dataset.filterConfig || widget.dataset.searchConfig) return true;
+    const searchValue = widget.querySelector(".search-widget-input")?.value?.trim();
+    if (searchValue) return true;
+    const value = widget.querySelector(".stat-val")?.textContent?.trim();
+    if (value && value !== "0" && widget.dataset.widgetType !== "controls") return true;
+    return false;
+  };
+  const dividerHasConfiguredContext = (divider) => {
+    if (!divider) return false;
+    return Boolean(
+      divider.dataset.regionConfig ||
+      divider.dataset.contextConfig ||
+      divider.dataset.contextLabel ||
+      divider.dataset.contextDescription
+    );
+  };
+  const workspaceObjectHasMeaningfulChanges = (item) => {
+    const kind = workspaceDeleteKind(item);
+    if (!kind) return true;
+    if (hasRenamedWorkspaceObject(item) || hasCustomWorkspaceColor(item)) return true;
+    if (kind === "anchor") return Boolean(item.dataset.linkedDividerId);
+    if (kind === "divider") return dividerHasConfiguredContext(item);
+    if (kind === "panel") return panelHasConfiguredContent(item);
+    if (kind === "widget") return widgetHasConfiguredContent(item);
+    return true;
+  };
+  const workspaceDeleteEntries = (targets) => {
+    const seen = new Set();
+    return [].concat(targets || [])
+      .filter((item) => item?.isConnected && !item.hidden)
+      .map((item) => ({ item, id: workspaceDeleteId(item), kind: workspaceDeleteKind(item), layout: workspaceDeleteLayout(item), layoutKey: workspaceDeleteLayoutKey(item), title: workspaceDeleteTitle(item) }))
+      .filter((entry) => entry.id && entry.kind && entry.layout && !seen.has(entry.id) && seen.add(entry.id));
+  };
+  const describeWorkspaceDeleteTargets = (entries) => {
+    if (entries.length > 1) return `${entries.length} selected objects`;
+    const entry = entries[0];
+    return `"${entry?.title || "this"}" ${entry?.kind || "object"}`;
+  };
+  const saveWorkspaceDeleteLayouts = (entries) => {
+    const touched = new Map();
+    entries.forEach((entry) => {
+      if (entry.kind === "anchor") {
+        normalizeAnchorLayer(entry.layout);
+        touched.set(`${entry.layoutKey}:anchor`, { layoutKey: entry.layoutKey, profile: getActivePanelProfile(entry.layoutKey) });
+      } else if (entry.kind === "widget") {
+        cleanupWidgetRowBreaks(entry.layout);
+        saveWidgetLayouts(entry.layout, getActivePanelProfile(entry.layoutKey), { history: false });
+        touched.set(`${entry.layoutKey}:grid`, { layoutKey: entry.layoutKey, profile: getActivePanelProfile(entry.layoutKey) });
+      } else {
+        cleanupPanelRowBreaks(entry.layout);
+        savePanelLayouts(entry.layout, getActivePanelProfile(entry.layoutKey), { history: false });
+        touched.set(`${entry.layoutKey}:grid`, { layoutKey: entry.layoutKey, profile: getActivePanelProfile(entry.layoutKey) });
+      }
+    });
+    [...new Map([...touched.values()].map((value) => [`${value.profile}:${value.layoutKey}`, value])).values()]
+      .forEach(({ layoutKey, profile }) => pushLiveLayoutUndo(layoutKey, profile));
+  };
+  const performWorkspaceObjectDelete = (entries) => {
+    const hiddenByLayout = new Map();
+    entries.forEach((entry) => {
+      if (entry.kind === "anchor") {
+        entry.item.remove();
+        return;
+      }
+      const hiddenKey = entry.kind === "widget" ? "hiddenWidgetsDraft" : "hiddenPanelsDraft";
+      const customKey = entry.kind === "widget" ? "customWidget" : "customPanel";
+      const itemKey = entry.kind === "widget" ? "widgetKey" : "panelKey";
+      const key = entry.item.dataset[itemKey];
+      if (!entry.item.dataset[customKey]) {
+        const cacheKey = `${entry.layoutKey}:${hiddenKey}`;
+        const hidden = hiddenByLayout.get(cacheKey) || readDraftList(entry.layout, hiddenKey);
+        if (key && !hidden.includes(key)) hidden.push(key);
+        hiddenByLayout.set(cacheKey, hidden);
+        entry.item.hidden = true;
+      } else {
+        entry.item.remove();
+      }
+    });
+    entries.forEach((entry) => {
+      groupSelection.delete(entry.item);
+      entry.item.classList.remove("group-selected");
+      groupSelectedIds.delete(groupItemId(entry.item));
+    });
+    hiddenByLayout.forEach((hidden, cacheKey) => {
+      const [layoutKey, hiddenKey] = cacheKey.split(":");
+      const entry = entries.find((candidate) => candidate.layoutKey === layoutKey && (candidate.kind === "widget" ? "hiddenWidgetsDraft" : "hiddenPanelsDraft") === hiddenKey);
+      writeDraftList(entry?.layout, hiddenKey, hidden);
+    });
+    saveWorkspaceDeleteLayouts(entries);
+    showToast(entries.length > 1 ? `${entries.length} objects deleted.` : `${entries[0].title} ${entries[0].kind} deleted.`);
+  };
+  const requestWorkspaceObjectDelete = ({ targets }) => {
+    const entries = workspaceDeleteEntries(targets);
+    if (!entries.length) return false;
+    const needsConfirmation = entries.some((entry) => workspaceObjectHasMeaningfulChanges(entry.item));
+    if (!needsConfirmation) {
+      performWorkspaceObjectDelete(entries);
+      return true;
+    }
+    pendingPanelDelete = { entries };
     if (panelDeleteMessage) {
-      panelDeleteMessage.textContent = targets.length > 1
-        ? `Are you sure you want to delete ${targets.length} selected widgets?`
-        : `Are you sure you want to delete "${title}" widget?`;
+      panelDeleteMessage.textContent = `Are you sure you want to delete ${describeWorkspaceDeleteTargets(entries)}?`;
     }
     if (typeof panelDeleteDialog?.showModal === "function") {
       panelDeleteDialog.showModal();
-    } else if (window.confirm(targets.length > 1 ? `Are you sure you want to delete ${targets.length} selected widgets?` : `Are you sure you want to delete "${title}" widget?`)) {
-      panelDeleteConfirm?.click();
+    } else {
+      performWorkspaceObjectDelete(entries);
     }
+    return true;
+  };
+  const requestPanelDelete = ({ panel, panels = null }) => requestWorkspaceObjectDelete({ targets: panels?.length ? panels : [panel] });
+  const requestWidgetDelete = ({ widget, layout, layoutKey, title, widgets = null }) => {
+    return requestWorkspaceObjectDelete({ targets: widgets?.length ? widgets : [widget] });
   };
   panelDeleteCancel?.addEventListener("click", closePanelDeleteDialog);
   panelDeleteClose?.addEventListener("click", closePanelDeleteDialog);
@@ -705,37 +900,7 @@ document.addEventListener("DOMContentLoaded", () => {
   });
   panelDeleteConfirm?.addEventListener("click", () => {
     if (!pendingPanelDelete) return;
-    const { layout, title, type } = pendingPanelDelete;
-    const targets = type === "widget"
-      ? (pendingPanelDelete.widgets?.length ? pendingPanelDelete.widgets : [pendingPanelDelete.widget])
-      : (pendingPanelDelete.panels?.length ? pendingPanelDelete.panels : [pendingPanelDelete.panel]);
-    const hiddenKey = type === "widget" ? "hiddenWidgetsDraft" : "hiddenPanelsDraft";
-    const customKey = type === "widget" ? "customWidget" : "customPanel";
-    const itemKey = type === "widget" ? "widgetKey" : "panelKey";
-    const hidden = readDraftList(layout, hiddenKey);
-    targets.forEach((target) => {
-      const key = target.dataset[itemKey];
-      if (!target.dataset[customKey] && !hidden.includes(key)) hidden.push(key);
-      groupSelection.delete(target);
-      target.classList.remove("group-selected");
-      groupSelectedIds.delete(groupItemId(target));
-      if (target.dataset[customKey]) {
-        target.remove();
-      } else {
-        target.hidden = true;
-      }
-    });
-    if (targets.some((target) => !target.dataset[customKey])) writeDraftList(layout, hiddenKey, hidden);
-    if (type === "widget") {
-      cleanupWidgetRowBreaks(layout);
-      saveWidgetLayouts(layout);
-    } else {
-      cleanupPanelRowBreaks(layout);
-      savePanelLayouts(layout);
-    }
-    showToast(targets.length > 1
-      ? `${targets.length} ${type === "widget" ? "widgets" : "panels"} deleted.`
-      : `${title} ${type === "widget" ? "widget" : "panel"} deleted.`);
+    performWorkspaceObjectDelete(pendingPanelDelete.entries || []);
     closePanelDeleteDialog();
   });
   const getPanelMinimumWidth = (panel) => {
@@ -1303,12 +1468,13 @@ document.addEventListener("DOMContentLoaded", () => {
     "#2563eb", "#0ea5e9", "#0891b2", "#14b8a6", "#16a34a", "#65a30d", "#ca8a04", "#d97706",
     "#dc2626", "#e11d48", "#db2777", "#9333ea", "#7c3aed", "#4f46e5", "#64748b", "#111827",
   ];
-  const panelToolButtonsMarkup = (theme = "#2563eb", includeDelete = true) => `
+  const panelToolButtonsMarkup = (theme = "#2563eb", includeDelete = true, options = {}) => `
         <button class="panel-tool-button panel-move-handle" type="button" aria-label="Move panel" title="Move panel"><span class="move-icon" aria-hidden="true"></span></button>
-        <button class="panel-tool-button panel-resize-handle" type="button" aria-label="Resize panel" title="Resize panel"><span class="resize-icon" aria-hidden="true"></span></button>
-        <button class="panel-tool-button panel-pin-toggle" type="button" aria-label="Pin panel" aria-pressed="false" title="Pin panel"><span class="pin-icon" aria-hidden="true"></span></button>
+        ${options.includeResize === false ? "" : '<button class="panel-tool-button panel-resize-handle" type="button" aria-label="Resize panel" title="Resize panel"><span class="resize-icon" aria-hidden="true"></span></button>'}
+        ${options.includePin === false ? "" : '<button class="panel-tool-button panel-pin-toggle" type="button" aria-label="Pin panel" aria-pressed="false" title="Pin panel"><span class="pin-icon" aria-hidden="true"></span></button>'}
         <button class="panel-tool-button panel-title-handle" type="button" aria-label="Rename panel" title="Rename panel"><span class="text-icon" aria-hidden="true"></span></button>
         <button class="panel-tool-button panel-color-toggle" type="button" aria-label="Panel colors" aria-expanded="false" title="Panel colors" data-default-theme="${theme}"><span class="color-icon" aria-hidden="true"></span></button>
+        ${options.extraButtons || ""}
         ${includeDelete ? '<button class="panel-tool-button panel-delete-handle" type="button" aria-label="Delete panel" title="Delete panel"><span class="trash-icon" aria-hidden="true"></span></button>' : ""}`;
 
   const createCustomPanel = (definition) => {
@@ -1372,7 +1538,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const persist = Boolean(options.persist);
     syncWorkspaceRegions(layout);
     if (!persist) {
-      pushLiveLayoutUndo(layoutKey, profile);
+      if (options.history !== false) pushLiveLayoutUndo(layoutKey, profile);
       return;
     }
     captureLayoutUndo(layoutKey, profile);
@@ -1679,14 +1845,29 @@ document.addEventListener("DOMContentLoaded", () => {
         </div>
       </div>`;
 
+  const searchWidgetMarkup = (definition) => {
+    const safeTitle = escapeHtml(definition.title || "Search");
+    return `
+      <div class="search-widget-content">
+        <div class="range-search search-widget-control" role="search" aria-label="${safeTitle}">
+          <input class="range-search-input search-widget-input" type="search" placeholder=" " autocomplete="off" aria-label="${safeTitle}">
+          <span class="range-search-label stat-lbl">${safeTitle}</span>
+        </div>
+      </div>`;
+  };
+
   const createCustomWidget = (definition) => {
     const safeTitle = escapeHtml(definition.title || "Widget");
     const isTimeframe = definition.type === "controls" || definition.dashboardObjectKind === "timeframe";
-    const widget = document.createElement(isTimeframe ? "nav" : "a");
+    const isSearch = definition.type === "search" || definition.dashboardObjectKind === "search";
+    const widget = document.createElement(isTimeframe ? "nav" : isSearch ? "div" : "a");
     widget.className = isTimeframe
       ? "range-bar widget-card timeframe-widget widget-card-custom"
-      : "stat-card widget-card widget-card-custom";
+      : `stat-card widget-card widget-card-custom${isSearch ? " search-widget-card" : ""}`;
     if (isTimeframe) {
+      widget.setAttribute("aria-label", definition.ariaLabel || safeTitle);
+    } else if (isSearch) {
+      widget.setAttribute("role", "group");
       widget.setAttribute("aria-label", definition.ariaLabel || safeTitle);
     } else {
       widget.href = definition.href || window.location.pathname + window.location.search;
@@ -1710,7 +1891,7 @@ document.addEventListener("DOMContentLoaded", () => {
       navigationTargetType: definition.navigationTargetType,
       navigationTargetId: definition.navigationTargetId,
     });
-    widget.innerHTML = isTimeframe ? timeframeWidgetMarkup() : `
+    widget.innerHTML = isTimeframe ? timeframeWidgetMarkup() : isSearch ? searchWidgetMarkup(definition) : `
       <span class="stat-val">${escapeHtml(definition.value || "0")}</span>
       <span class="stat-lbl">${safeTitle}</span>`;
     return widget;
@@ -1719,18 +1900,41 @@ document.addEventListener("DOMContentLoaded", () => {
   const anchorLayerForLayoutKey = (layoutKey = "default") =>
     document.querySelector(`.workspace-anchor-layer[data-anchor-layout-key="${CSS.escape(layoutKey)}"]`);
 
+  const ANCHOR_RAIL_START = 126;
+  const ANCHOR_RAIL_GAP = 8;
+
   const clampAnchorOffset = (offset, anchor = null) => {
     const height = Math.ceil(anchor?.getBoundingClientRect?.().height || 38);
-    const min = 126;
+    const min = ANCHOR_RAIL_START;
     const max = Math.max(min, window.innerHeight - height - 22);
     return Math.max(min, Math.min(max, Math.round(Number(offset) || min)));
   };
 
+  const anchorOrderValue = (anchor, fallback = 0) => {
+    const order = Number(anchor?.dataset?.anchorRailOrder);
+    if (Number.isFinite(order)) return order;
+    const offset = Number(anchor?.dataset?.anchorOffset);
+    return Number.isFinite(offset) ? offset : fallback;
+  };
+
+  const anchorRailAnchors = (layer) => [...layer.querySelectorAll(":scope > .workspace-anchor-object:not(.workspace-anchor-drag-ghost)")]
+    .sort((a, b) => anchorOrderValue(a) - anchorOrderValue(b));
+
+  const anchorRailOffsetsForOrder = (orderedAnchors) => {
+    const offsets = new Map();
+    let nextOffset = ANCHOR_RAIL_START;
+    orderedAnchors.forEach((anchor) => {
+      offsets.set(anchor, nextOffset);
+      nextOffset += Math.ceil(anchor.getBoundingClientRect().height || 81) + ANCHOR_RAIL_GAP;
+    });
+    return offsets;
+  };
+
   const anchorDefinitionFromElement = (anchor) => ({
     key: anchor.dataset.anchorKey,
-    title: anchor.dataset.anchorTitle || anchor.querySelector(".workspace-anchor-label")?.textContent?.trim() || "Anchor",
-    value: anchor.dataset.anchorGlyph || anchor.querySelector(".workspace-anchor-glyph")?.textContent?.trim() || "A",
-    side: anchor.dataset.anchorSide || "left",
+    title: anchor.dataset.anchorTitle || "Anchor",
+    side: "left",
+    railOrder: Number(anchor.dataset.anchorRailOrder) || 0,
     offset: Number(anchor.dataset.anchorOffset) || 148,
     color: anchor.dataset.panelColor || "#2563eb",
     linkedDividerId: anchor.dataset.linkedDividerId || null,
@@ -1754,47 +1958,41 @@ document.addEventListener("DOMContentLoaded", () => {
   };
 
   const applyAnchorPosition = (anchor) => {
-    const side = anchor.dataset.anchorSide === "right" ? "right" : "left";
-    const offset = clampAnchorOffset(anchor.dataset.anchorOffset, anchor);
-    anchor.dataset.anchorSide = side;
+    const offset = Math.max(ANCHOR_RAIL_START, Math.round(Number(anchor.dataset.anchorOffset) || ANCHOR_RAIL_START));
+    anchor.dataset.anchorSide = "left";
     anchor.dataset.anchorOffset = String(offset);
     anchor.style.setProperty("--anchor-offset", `${offset}px`);
   };
 
-  const normalizeAnchorRail = (layer, side) => {
-    const anchors = [...layer.querySelectorAll(`:scope > .workspace-anchor-object[data-anchor-side="${side}"]`)]
-      .sort((a, b) => (Number(a.dataset.anchorOffset) || 0) - (Number(b.dataset.anchorOffset) || 0));
-    const gap = 8;
-    let nextOffset = 126;
-    anchors.forEach((anchor) => {
-      const height = Math.ceil(anchor.getBoundingClientRect().height || 38);
-      const offset = Math.max(clampAnchorOffset(anchor.dataset.anchorOffset, anchor), nextOffset);
-      anchor.dataset.anchorOffset = String(offset);
-      anchor.style.setProperty("--anchor-offset", `${offset}px`);
-      nextOffset = offset + height + gap;
-    });
-    const last = anchors[anchors.length - 1];
-    if (!last) return;
-    const lastBottom = (Number(last.dataset.anchorOffset) || 0) + Math.ceil(last.getBoundingClientRect().height || 38);
-    const overflow = Math.max(0, lastBottom - (window.innerHeight - 22));
-    if (!overflow) return;
-    anchors.forEach((anchor) => {
-      const offset = clampAnchorOffset((Number(anchor.dataset.anchorOffset) || 126) - overflow, anchor);
-      anchor.dataset.anchorOffset = String(offset);
-      anchor.style.setProperty("--anchor-offset", `${offset}px`);
+  const commitAnchorRailOrder = (layer, orderedAnchors = anchorRailAnchors(layer)) => {
+    const offsets = anchorRailOffsetsForOrder(orderedAnchors);
+    orderedAnchors.forEach((anchor, index) => {
+      anchor.dataset.anchorSide = "left";
+      anchor.dataset.anchorRailOrder = String(index);
+      anchor.dataset.anchorOffset = String(offsets.get(anchor) || ANCHOR_RAIL_START);
+      applyAnchorPosition(anchor);
+      layer.appendChild(anchor);
     });
   };
 
   const normalizeAnchorLayer = (layer) => {
-    normalizeAnchorRail(layer, "left");
-    normalizeAnchorRail(layer, "right");
+    commitAnchorRailOrder(layer);
   };
 
   const anchorLinkedDividerTarget = (anchor) => {
     const dividerId = anchor?.dataset?.linkedDividerId || "";
-    return dividerId
-      ? document.querySelector(`.workspace-divider[data-panel-key="${CSS.escape(dividerId)}"]`)
-      : null;
+    if (!dividerId) return null;
+    const escapedDividerId = CSS.escape(dividerId);
+    return document.querySelector([
+      `.workspace-divider[data-panel-key="${escapedDividerId}"]`,
+      `.workspace-divider[data-workspace-region-id="${escapedDividerId}"]`,
+      `.workspace-divider[data-context-scope-id="${escapedDividerId}"]`,
+    ].join(", "));
+  };
+
+  const anchorTargetScrollTop = (target) => {
+    const currentScroll = window.scrollY || document.documentElement.scrollTop || 0;
+    return Math.max(0, Math.round(target.getBoundingClientRect().top + currentScroll - 96));
   };
 
   const syncAnchorNavigationTarget = (anchor) => {
@@ -1811,8 +2009,10 @@ document.addEventListener("DOMContentLoaded", () => {
       anchor.dataset.workspaceRegionId = "";
       anchor.dataset.contextScopeId = "";
     }
-    const label = anchor.querySelector(".workspace-anchor-meta");
-    if (label) label.textContent = target ? target.querySelector(".db-panel-title")?.textContent?.trim() || "Divider" : "Top";
+    const label = anchor.querySelector(".workspace-anchor-label");
+    const targetLabel = target ? target.querySelector(".db-panel-title")?.textContent?.trim() || "Divider" : "Top";
+    if (label) label.textContent = targetLabel;
+    anchor.setAttribute("aria-label", `${targetLabel} spatial anchor`);
   };
 
   const dividerOptionsForAnchor = (layoutKey = "builder") => [
@@ -1873,9 +2073,9 @@ document.addEventListener("DOMContentLoaded", () => {
     anchor.tabIndex = 0;
     anchor.dataset.anchorKey = key;
     anchor.dataset.anchorTitle = title;
-    anchor.dataset.anchorGlyph = definition.value || "A";
-    anchor.dataset.anchorSide = definition.side === "right" ? "right" : "left";
-    anchor.dataset.anchorOffset = String(definition.offset || 148);
+    anchor.dataset.anchorSide = "left";
+    anchor.dataset.anchorRailOrder = String(Number.isFinite(Number(definition.railOrder)) ? Number(definition.railOrder) : 0);
+    anchor.dataset.anchorOffset = String(definition.offset || ANCHOR_RAIL_START);
     if (definition.linkedDividerId) anchor.dataset.linkedDividerId = definition.linkedDividerId;
     anchor.dataset.workspaceObjectType = WORKSPACE_OBJECT_TYPES.anchor;
     anchor.dataset.dashboardObjectKind = "anchor";
@@ -1896,16 +2096,15 @@ document.addEventListener("DOMContentLoaded", () => {
     anchor.setAttribute("aria-label", `${title} spatial anchor`);
     anchor.innerHTML = `
       <span class="workspace-anchor-content">
-        <span class="workspace-anchor-glyph" aria-hidden="true">${escapeHtml(definition.value || "A")}</span>
-        <span class="workspace-anchor-copy">
-          <span class="workspace-anchor-label">${escapeHtml(title)}</span>
-          <span class="workspace-anchor-meta">Top</span>
-        </span>
+        <span class="workspace-anchor-label stat-lbl">Top</span>
       </span>
       <span class="widget-tools anchor-tools">
         <span class="panel-tool-drawer widget-tool-drawer anchor-tool-drawer" aria-label="Anchor tools">
-          <button class="panel-tool-button anchor-link-toggle" type="button" aria-label="Link anchor to divider" aria-expanded="false" title="Link anchor"><span class="anchor-link-icon" aria-hidden="true"></span></button>
-          <button class="panel-tool-button panel-color-toggle" type="button" aria-label="Anchor colors" aria-expanded="false" title="Anchor colors" data-default-theme="${definition.color || "#2563eb"}"><span class="color-icon" aria-hidden="true"></span></button>
+          ${panelToolButtonsMarkup(definition.color || "#2563eb", true, {
+            includeResize: false,
+            includePin: false,
+            extraButtons: '<button class="panel-tool-button anchor-link-toggle" type="button" aria-label="Link anchor to divider" aria-expanded="false" title="Link anchor"><span class="anchor-link-icon" aria-hidden="true"></span></button>',
+          })}
         </span>
         <button class="panel-settings-toggle widget-settings-toggle anchor-settings-toggle" type="button" aria-label="Anchor settings" aria-expanded="false" title="Anchor settings"><span class="settings-icon" aria-hidden="true"></span></button>
         <span class="anchor-link-menu" role="menu" aria-label="Anchor divider link"></span>
@@ -1916,10 +2115,14 @@ document.addEventListener("DOMContentLoaded", () => {
     return anchor;
   };
 
-  const saveFloatingAnchors = (layoutKey = "default", profile = getActivePanelProfile(layoutKey)) => {
+  const saveFloatingAnchors = (layoutKey = "default", profile = getActivePanelProfile(layoutKey), options = {}) => {
     const layer = anchorLayerForLayoutKey(layoutKey);
     if (!layer) return;
     normalizeAnchorLayer(layer);
+    if (!options.persist) {
+      if (options.history !== false) pushLiveLayoutUndo(layoutKey, profile);
+      return;
+    }
     try {
       localStorage.setItem(
         floatingAnchorsKey(layoutKey, profile),
@@ -1934,7 +2137,8 @@ document.addEventListener("DOMContentLoaded", () => {
         .filter((definition) => workspaceObjectTypeFromDefinition(definition, WORKSPACE_OBJECT_TYPES.widget) === WORKSPACE_OBJECT_TYPES.anchor)
         .map((definition, index) => ({
           ...definition,
-          side: definition.side || "left",
+          side: "left",
+          railOrder: Number.isFinite(Number(definition.railOrder)) ? Number(definition.railOrder) : index,
           offset: definition.offset || 148 + (index * 48),
           navigationTargetType: definition.navigationTargetType || (definition.linkedDividerId ? "divider" : "workspace-top"),
           navigationTargetId: definition.navigationTargetId || "",
@@ -1947,7 +2151,15 @@ document.addEventListener("DOMContentLoaded", () => {
   const loadFloatingAnchorDefinitions = (layoutKey, profile) => {
     try {
       const saved = JSON.parse(localStorage.getItem(floatingAnchorsKey(layoutKey, profile)) || "[]");
-      if (Array.isArray(saved) && saved.length) return saved;
+      if (Array.isArray(saved) && saved.length) {
+        return saved
+          .map((definition, index) => ({
+            ...definition,
+            side: "left",
+            railOrder: Number.isFinite(Number(definition.railOrder)) ? Number(definition.railOrder) : index,
+          }))
+          .sort((a, b) => Number(a.railOrder) - Number(b.railOrder));
+      }
     } catch {}
     return legacyAnchorDefinitions(layoutKey, profile);
   };
@@ -1959,8 +2171,8 @@ document.addEventListener("DOMContentLoaded", () => {
       syncAnchorNavigationTarget(anchor);
       saveFloatingAnchors(anchor.closest(".workspace-anchor-layer")?.dataset.anchorLayoutKey || "builder");
     }
-    const top = target ? target.getBoundingClientRect().top + window.scrollY - 96 : 0;
-    window.scrollTo({ top: Math.max(0, top), behavior: window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches ? "auto" : "smooth" });
+    const top = target ? anchorTargetScrollTop(target) : 0;
+    window.scrollTo({ top, behavior: window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches ? "auto" : "smooth" });
   };
 
   const initFloatingAnchor = (anchor, layer) => {
@@ -1971,19 +2183,24 @@ document.addEventListener("DOMContentLoaded", () => {
     let startX = 0;
     let startY = 0;
     let pointerOffsetY = 0;
+    let dragState = null;
     const layoutKey = layer.dataset.anchorLayoutKey || "default";
     anchor.__saveWidgetLayout = () => saveFloatingAnchors(layoutKey, getActivePanelProfile(layoutKey));
     const tools = anchor.querySelector(".anchor-tools");
     const settings = anchor.querySelector(".anchor-settings-toggle");
     const drawer = anchor.querySelector(".anchor-tool-drawer");
+    const moveHandle = anchor.querySelector(".panel-move-handle");
+    const titleButton = anchor.querySelector(".panel-title-handle");
     const colorToggle = anchor.querySelector(".panel-color-toggle");
+    const deleteButton = anchor.querySelector(".panel-delete-handle");
     const linkToggle = anchor.querySelector(".anchor-link-toggle");
     const linkMenu = anchor.querySelector(".anchor-link-menu");
     const colorMenu = buildPanelColorMenu(anchor, layer, colorToggle);
     const openTools = () => {
       if (!canOpenDashboardTools(anchor)) return;
       closeInactiveDashboardTools(anchor);
-      positionDashboardToolDrawer(anchor, settings, drawer);
+      drawer?.style.removeProperty("--dashboard-tool-drawer-top");
+      drawer?.style.removeProperty("--dashboard-tool-drawer-right");
       anchor.classList.add("widget-tools-open");
       settings?.setAttribute("aria-expanded", "true");
       syncLayoutToolsActive();
@@ -2007,6 +2224,107 @@ document.addEventListener("DOMContentLoaded", () => {
       }
       linkMenu.classList.toggle("anchor-link-menu-open", nextOpen);
       linkToggle.setAttribute("aria-expanded", String(nextOpen));
+    };
+    const startAnchorMove = (event) => {
+      if (event.button !== 0) return;
+      event.preventDefault();
+      event.stopPropagation();
+      startX = event.clientX;
+      startY = event.clientY;
+      pointerOffsetY = event.clientY - anchor.getBoundingClientRect().top;
+      dragging = false;
+      didDrag = false;
+      anchor.setPointerCapture?.(event.pointerId);
+    };
+
+    const previewIndexForPointer = (pointerY, peers) => {
+      for (let index = 0; index < peers.length; index += 1) {
+        const rect = peers[index].getBoundingClientRect();
+        if (pointerY < rect.top + rect.height / 2) return index;
+      }
+      return peers.length;
+    };
+
+    const orderedAnchorsWithSourceAt = (source, insertIndex) => {
+      const peers = anchorRailAnchors(layer).filter((candidate) => candidate !== source);
+      const ordered = [...peers];
+      ordered.splice(Math.max(0, Math.min(insertIndex, ordered.length)), 0, source);
+      return ordered;
+    };
+
+    const applyAnchorRailPreview = (state, pointerY) => {
+      const insertIndex = previewIndexForPointer(pointerY, state.peers);
+      const ordered = orderedAnchorsWithSourceAt(anchor, insertIndex);
+      const offsets = anchorRailOffsetsForOrder(ordered);
+      ordered.forEach((candidate) => {
+        if (candidate === anchor) return;
+        candidate.style.setProperty("--anchor-offset", `${offsets.get(candidate)}px`);
+        candidate.classList.add("anchor-rail-previewing");
+      });
+      state.placeholder.style.setProperty("--anchor-offset", `${offsets.get(anchor) || ANCHOR_RAIL_START}px`);
+      state.previewOrder = ordered;
+      state.previewIndex = insertIndex;
+    };
+
+    const beginAnchorRailDrag = (event) => {
+      closeTools();
+      const rect = anchor.getBoundingClientRect();
+      const ghost = anchor.cloneNode(true);
+      ghost.classList.remove("widget-tools-open");
+      ghost.classList.add("workspace-anchor-drag-ghost", "anchor-dragging");
+      ghost.removeAttribute("id");
+      ghost.removeAttribute("data-anchor-initialized");
+      ghost.setAttribute("aria-hidden", "true");
+      ghost.style.width = `${rect.width}px`;
+      ghost.style.height = `${rect.height}px`;
+      ghost.style.setProperty("--anchor-offset", `${rect.top}px`);
+      const placeholder = document.createElement("div");
+      placeholder.className = "workspace-anchor-rail-placeholder";
+      placeholder.style.width = `${rect.width}px`;
+      placeholder.style.height = `${rect.height}px`;
+      placeholder.style.setProperty("--anchor-offset", `${rect.top}px`);
+      layer.appendChild(placeholder);
+      layer.appendChild(ghost);
+      anchor.classList.add("anchor-rail-source", "anchor-dragging");
+      document.body.classList.add("anchor-rail-drag-active");
+      dragState = {
+        ghost,
+        placeholder,
+        peers: anchorRailAnchors(layer).filter((candidate) => candidate !== anchor),
+        previewOrder: anchorRailAnchors(layer),
+        previewIndex: Number(anchor.dataset.anchorRailOrder) || 0,
+      };
+      dragging = true;
+      didDrag = true;
+      updateAnchorRailDrag(event);
+    };
+
+    const updateAnchorRailDrag = (event) => {
+      if (!dragState) return;
+      event.preventDefault();
+      const ghostOffset = clampAnchorOffset(event.clientY - pointerOffsetY, anchor);
+      dragState.ghost.style.setProperty("--anchor-offset", `${ghostOffset}px`);
+      dragState.ghost.style.setProperty("--anchor-drag-x", "0px");
+      applyAnchorRailPreview(dragState, event.clientY);
+    };
+
+    const cleanupAnchorRailDrag = (commit) => {
+      const state = dragState;
+      dragState = null;
+      anchor.classList.remove("anchor-rail-source", "anchor-dragging");
+      document.body.classList.remove("anchor-rail-drag-active");
+      state?.ghost.remove();
+      state?.placeholder.remove();
+      anchorRailAnchors(layer).forEach((candidate) => {
+        candidate.classList.remove("anchor-rail-previewing");
+        candidate.style.removeProperty("--anchor-drag-x");
+      });
+      if (commit && state?.previewOrder?.length) {
+        commitAnchorRailOrder(layer, state.previewOrder);
+        saveFloatingAnchors(layoutKey, getActivePanelProfile(layoutKey));
+      } else {
+        commitAnchorRailOrder(layer);
+      }
     };
 
     tools?.addEventListener("click", (event) => {
@@ -2043,40 +2361,37 @@ document.addEventListener("DOMContentLoaded", () => {
       colorMenu?.classList.toggle("panel-color-menu-open", nextOpen);
       colorToggle.setAttribute("aria-expanded", String(nextOpen));
     });
+    titleButton?.addEventListener("click", (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      anchor.dataset.anchorTitle = anchor.dataset.anchorTitle || anchor.querySelector(".workspace-anchor-label")?.textContent?.trim() || "Anchor";
+      saveFloatingAnchors(layoutKey, getActivePanelProfile(layoutKey));
+      closeTools();
+    });
+    deleteButton?.addEventListener("click", (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      closeTools();
+      requestWorkspaceObjectDelete({ targets: [anchor] });
+    });
+    moveHandle?.addEventListener("pointerdown", startAnchorMove);
 
     anchor.addEventListener("pointerdown", (event) => {
-      if (event.button !== 0) return;
       if (event.target?.closest?.(".anchor-tools, .panel-color-menu, .anchor-link-menu")) return;
-      event.preventDefault();
-      startX = event.clientX;
-      startY = event.clientY;
-      pointerOffsetY = event.clientY - anchor.getBoundingClientRect().top;
-      dragging = false;
-      didDrag = false;
-      anchor.setPointerCapture?.(event.pointerId);
+      startAnchorMove(event);
     });
 
     anchor.addEventListener("pointermove", (event) => {
       if (event.buttons !== 1) return;
       const distance = Math.hypot(event.clientX - startX, event.clientY - startY);
       if (!dragging && distance < 4) return;
-      dragging = true;
-      didDrag = true;
-      event.preventDefault();
-      anchor.classList.add("anchor-dragging");
-      anchor.dataset.anchorSide = event.clientX < window.innerWidth / 2 ? "left" : "right";
-      anchor.dataset.anchorOffset = String(clampAnchorOffset(event.clientY - pointerOffsetY, anchor));
-      applyAnchorPosition(anchor);
-      normalizeAnchorLayer(layer);
+      if (!dragState) beginAnchorRailDrag(event);
+      updateAnchorRailDrag(event);
     });
 
     const finishDrag = (event) => {
       if (event.pointerId !== undefined) anchor.releasePointerCapture?.(event.pointerId);
-      anchor.classList.remove("anchor-dragging");
-      if (didDrag) {
-        normalizeAnchorLayer(layer);
-        saveFloatingAnchors(layoutKey, getActivePanelProfile(layoutKey));
-      }
+      if (dragState) cleanupAnchorRailDrag(event.type !== "pointercancel");
       dragging = false;
     };
 
@@ -4492,7 +4807,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const persist = Boolean(options.persist);
     syncWorkspaceRegions(layout);
     if (!persist) {
-      pushLiveLayoutUndo(layoutKey, profile);
+      if (options.history !== false) pushLiveLayoutUndo(layoutKey, profile);
       return;
     }
     captureLayoutUndo(layoutKey, profile);
@@ -5692,6 +6007,7 @@ document.addEventListener("DOMContentLoaded", () => {
       applyDashboardKeywordSearch(input);
     });
   };
+  bindDashboardKeywordForms();
 
   const updatePanelFromFetchedPanel = (panel, nextPanel) => {
     const nextTitle = nextPanel.querySelector(".db-panel-title");
@@ -5882,7 +6198,7 @@ document.addEventListener("DOMContentLoaded", () => {
       if (layout) savePanelLayouts(layout, selected, { persist: true });
       const widgetLayout = document.querySelector(`.widget-layout[data-widget-layout-key="${CSS.escape(layoutKey)}"]`);
       if (widgetLayout) saveWidgetLayouts(widgetLayout, selected, { persist: true });
-      saveFloatingAnchors(layoutKey, selected);
+      saveFloatingAnchors(layoutKey, selected, { persist: true });
       showToast(`Layout ${selected} saved.`);
     });
   });
@@ -6052,10 +6368,10 @@ document.addEventListener("DOMContentLoaded", () => {
           key: `anchor-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`,
           layoutKey,
           title,
-          value: "A",
           color: nextColor,
           side: "left",
-          offset: 148 + (customCount * 48),
+          railOrder: customCount,
+          offset: ANCHOR_RAIL_START,
           navigationTargetType: "workspace-top",
           navigationTargetId: "",
         });
@@ -6090,6 +6406,16 @@ document.addEventListener("DOMContentLoaded", () => {
           dashboardObjectKind: "timeframe",
           contextRole: "timeframe-control",
         },
+        search: {
+          objectName: "Search Bar",
+          title: "Search",
+          value: "",
+          span: 2,
+          minW: 2,
+          type: "search",
+          dashboardObjectKind: "search",
+          contextRole: "search-control",
+        },
       };
       const catalogDefinition = widgetCatalog[kind] || {
         objectName: "Widget",
@@ -6099,7 +6425,7 @@ document.addEventListener("DOMContentLoaded", () => {
         dashboardObjectKind: "widget",
         contextRole: "content",
       };
-      const title = `${catalogDefinition.objectName} ${customCount + 1}`;
+      const title = catalogDefinition.title || `${catalogDefinition.objectName} ${customCount + 1}`;
       const definition = {
         key,
         title,
@@ -6122,8 +6448,9 @@ document.addEventListener("DOMContentLoaded", () => {
         syncWorkspaceRegions(layout);
       });
       layout.__initWidget?.(widget);
+      bindDashboardKeywordForms(widget);
       saveWidgetLayouts(layout, selected);
-      showToast(`${title} added.`);
+      showToast(`${catalogDefinition.objectName || title} added.`);
     });
   });
 
@@ -6133,6 +6460,15 @@ document.addEventListener("DOMContentLoaded", () => {
       return false;
     }
     if (options.toast !== false) showToast("Layout change undone.");
+    return true;
+  };
+
+  const redoDashboardLayoutChange = (layoutKey, profile, options = {}) => {
+    if (!restoreLayoutRedo(layoutKey, profile)) {
+      if (options.toast !== false) showToast("No layout change to redo.", "warn");
+      return false;
+    }
+    if (options.toast !== false) showToast("Layout change redone.");
     return true;
   };
 
@@ -6152,14 +6488,35 @@ document.addEventListener("DOMContentLoaded", () => {
 
   document.addEventListener("keydown", (event) => {
     if (event.defaultPrevented) return;
-    if (!(event.ctrlKey || event.metaKey) || event.shiftKey || event.altKey) return;
-    if (event.key.toLowerCase() !== "z") return;
+    if (!(event.ctrlKey || event.metaKey) || event.altKey) return;
+    const key = event.key.toLowerCase();
+    const redoShortcut = key === "y" || (key === "z" && event.shiftKey);
+    const undoShortcut = key === "z" && !event.shiftKey;
+    if (!undoShortcut && !redoShortcut) return;
     if (isEditableUndoTarget(event.target)) return;
     const layoutKey = document.querySelector(".panel-layout")?.dataset.layoutKey || "default";
     const profile = getActivePanelProfile(layoutKey);
-    if (!undoDashboardLayoutChange(layoutKey, profile)) return;
+    const handled = redoShortcut
+      ? redoDashboardLayoutChange(layoutKey, profile)
+      : undoDashboardLayoutChange(layoutKey, profile);
+    if (!handled) return;
     event.preventDefault();
-  });
+  }, true);
+
+  document.addEventListener("keydown", (event) => {
+    if (event.defaultPrevented || event.key !== "Delete") return;
+    if (isEditableUndoTarget(event.target)) return;
+    if (panelDeleteDialog?.open) return;
+    const focusedObject = event.target?.closest?.(".workspace-anchor-object, .widget-layout > .widget-card, .panel-layout > .db-panel");
+    const selectedTargets = selectedGroupItems(null);
+    const targets = focusedObject && !focusedObject.classList.contains("group-selected")
+      ? [focusedObject]
+      : selectedTargets.length ? selectedTargets : [focusedObject].filter(Boolean);
+    if (!targets.length) return;
+    if (!requestWorkspaceObjectDelete({ targets })) return;
+    event.preventDefault();
+    event.stopPropagation();
+  }, true);
 
   document.querySelectorAll(".panel-reset-button").forEach((button) => {
     button.addEventListener("click", () => {
@@ -6167,6 +6524,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const profile = getActivePanelProfile(layoutKey);
       const layouts = [...document.querySelectorAll(`.panel-layout[data-layout-key="${CSS.escape(layoutKey)}"]`)];
       const widgetLayouts = [...document.querySelectorAll(`.widget-layout[data-widget-layout-key="${CSS.escape(layoutKey)}"]`)];
+      const anchorLayers = [...document.querySelectorAll(`.workspace-anchor-layer[data-anchor-layout-key="${CSS.escape(layoutKey)}"]`)];
       captureLayoutUndo(layoutKey, profile);
       widgetLayouts.forEach((layout) => {
         writeDraftList(layout, "hiddenWidgetsDraft", []);
@@ -6234,6 +6592,7 @@ document.addEventListener("DOMContentLoaded", () => {
       syncDefaultDashboardGrid(layoutKey, { force: true });
       widgetLayouts.filter((layout) => !layout.closest(".dashboard-layout-grid")).forEach((layout) => normalizeGridLayout(layout));
       layouts.filter((layout) => !layout.closest(".dashboard-layout-grid")).forEach((layout) => normalizeGridLayout(layout));
+      anchorLayers.forEach((layer) => layer.replaceChildren());
       showToast("Layout reset to default.");
       pushLiveLayoutUndo(layoutKey, profile);
     });

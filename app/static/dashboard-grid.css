@@ -90,7 +90,7 @@
 .workspace-anchor-layer {
   position: fixed;
   inset: 0;
-  z-index: calc(var(--z-header) - 1);
+  z-index: var(--z-object-control);
   pointer-events: none;
 }
 
@@ -100,23 +100,19 @@
   top: var(--anchor-offset, 148px);
   left: var(--anchor-left, auto);
   right: var(--anchor-right, auto);
-  display: grid;
+  display: flex;
   align-items: center;
-  width: 132px;
-  min-width: 132px;
-  max-width: 132px;
-  min-height: 64px;
-  padding: 10px 36px 10px 12px;
-  border: 1.5px solid color-mix(in srgb, var(--anchor-accent) 46%, var(--line));
-  border-radius: var(--radius-md);
+  width: min(156px, calc(100vw - 24px));
+  max-width: min(156px, calc(100vw - 24px));
+  min-height: var(--dashboard-grid-row-height, 81px);
+  padding: 14px 48px 14px 18px;
   color: var(--ink-strong);
   cursor: grab;
   font: inherit;
   pointer-events: auto;
   touch-action: none;
-  backdrop-filter: blur(18px) saturate(1.08);
-  -webkit-backdrop-filter: blur(18px) saturate(1.08);
   transition:
+    top var(--motion-grid),
     background var(--motion-fast),
     border-color var(--motion-fast),
     box-shadow var(--motion-fast),
@@ -132,7 +128,7 @@
 .workspace-anchor-object[data-anchor-side="right"] {
   --anchor-left: auto;
   --anchor-right: 12px;
-  padding: 10px 12px 10px 36px;
+  padding: 16px 18px 14px 48px;
 }
 
 .workspace-anchor-object:active,
@@ -140,56 +136,72 @@
   cursor: grabbing;
 }
 
-.workspace-anchor-content {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  min-width: 0;
+.anchor-rail-source {
+  opacity: 0;
   pointer-events: none;
 }
 
-.workspace-anchor-object .workspace-anchor-glyph {
-  display: inline-grid;
-  place-items: center;
-  width: 30px;
-  height: 30px;
-  border: 1.5px solid var(--panel-lock-border, color-mix(in srgb, var(--anchor-accent) 38%, rgba(15, 23, 42, .22)));
-  border-radius: 12px;
-  background: var(--widget-control-bg, var(--panel-lock-bg));
-  box-shadow: var(--panel-control-rest-shadow, var(--shadow-control));
-  flex: 0 0 auto;
-  font-size: 12px;
-  font-weight: 820;
-  line-height: 1;
+.workspace-anchor-drag-ghost {
+  z-index: var(--z-drag-ghost);
+  opacity: .96;
+  pointer-events: none;
+  transition: none;
+  transform: translate3d(var(--anchor-drag-x, 0), 0, 0) scale(1.006);
+  box-shadow:
+    0 26px 58px rgba(15, 23, 42, .24),
+    0 0 0 1px color-mix(in srgb, var(--panel-accent, var(--blue)) 34%, transparent),
+    inset 0 1px 0 rgba(255, 255, 255, .20);
 }
 
-.workspace-anchor-object .workspace-anchor-copy {
+.workspace-anchor-drag-ghost .anchor-tools {
+  display: none;
+}
+
+.workspace-anchor-rail-placeholder {
+  position: fixed;
+  top: var(--anchor-offset, 126px);
+  left: 12px;
+  z-index: calc(var(--z-object-control) - 1);
+  width: min(156px, calc(100vw - 24px));
+  min-height: var(--dashboard-grid-row-height, 81px);
+  border: 1.5px dashed color-mix(in srgb, var(--blue) 54%, var(--line));
+  border-radius: var(--radius-md);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, .20), rgba(255, 255, 255, .06)),
+    color-mix(in srgb, var(--surface) 72%, var(--blue) 16%);
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, .16),
+    0 12px 26px rgba(37, 99, 235, .12);
+  opacity: .58;
+  pointer-events: none;
+  transition: top var(--motion-grid), height var(--motion-fast);
+}
+
+body.anchor-rail-drag-active {
+  cursor: grabbing;
+}
+
+.workspace-anchor-content {
   display: flex;
-  flex-direction: column;
+  align-items: center;
+  flex: 1 1 auto;
   min-width: 0;
-  line-height: 1.05;
-  text-align: left;
+  min-height: 100%;
+  pointer-events: none;
 }
 
 .workspace-anchor-object .workspace-anchor-label {
-  max-width: 66px;
+  display: block;
+  max-width: 100%;
+  margin-top: 0;
   overflow: hidden;
-  font-size: 11px;
+  text-overflow: ellipsis;
+  text-transform: none;
+  white-space: nowrap;
+  font-size: 13px;
   font-weight: 820;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.workspace-anchor-object .workspace-anchor-meta {
-  max-width: 66px;
-  overflow: hidden;
-  color: color-mix(in srgb, var(--muted-strong) 74%, transparent);
-  font-size: 9px;
-  font-weight: 700;
-  line-height: 1.1;
-  text-overflow: ellipsis;
-  text-transform: uppercase;
-  white-space: nowrap;
+  line-height: 1.12;
+  letter-spacing: 0;
 }
 
 .workspace-anchor-object .anchor-tools {
@@ -206,13 +218,28 @@
 
 .workspace-anchor-object .anchor-tool-drawer {
   grid-template-columns: repeat(2, 34px);
-  right: 38px;
+  top: 50%;
+  right: auto;
+  left: calc(100% + 8px);
+  transform: translate(-10px, -50%) scale(.84);
+  transform-origin: center left;
+}
+
+.workspace-anchor-object.widget-tools-open .anchor-tool-drawer,
+.workspace-anchor-object .anchor-tools:focus-within .anchor-tool-drawer {
+  transform: translate(0, -50%) scale(1);
 }
 
 .workspace-anchor-object[data-anchor-side="right"] .anchor-tool-drawer {
-  left: 38px;
-  right: auto;
-  transform-origin: top left;
+  right: calc(100% + 8px);
+  left: auto;
+  transform: translate(10px, -50%) scale(.84);
+  transform-origin: center right;
+}
+
+.workspace-anchor-object[data-anchor-side="right"].widget-tools-open .anchor-tool-drawer,
+.workspace-anchor-object[data-anchor-side="right"] .anchor-tools:focus-within .anchor-tool-drawer {
+  transform: translate(0, -50%) scale(1);
 }
 
 .workspace-anchor-object .anchor-link-menu {
@@ -316,18 +343,18 @@
 }
 
 .widget-tools {
-  --widget-control-bg: color-mix(in srgb, var(--glass-surface) 36%, rgba(37, 99, 235, .08));
-  --widget-control-hover-bg: color-mix(in srgb, var(--glass-surface) 48%, rgba(255, 255, 255, .18));
-  --widget-control-active-bg: color-mix(in srgb, var(--glass-surface) 44%, rgba(255, 255, 255, .20));
+  --widget-control-bg: color-mix(in srgb, var(--surface-raised) 62%, var(--panel-accent, var(--blue)) 38%);
+  --widget-control-hover-bg: color-mix(in srgb, var(--widget-control-bg) 72%, var(--panel-hover-tint));
+  --widget-control-active-bg: color-mix(in srgb, var(--widget-control-bg) 68%, var(--panel-hover-tint));
   --widget-drawer-bg:
-    linear-gradient(180deg, color-mix(in srgb, var(--glass-surface-strong) 92%, var(--surface-raised)), color-mix(in srgb, var(--glass-surface) 88%, var(--surface-soft))),
-    color-mix(in srgb, var(--panel-lock-fg) 8%, var(--glass-surface));
+    linear-gradient(180deg, color-mix(in srgb, var(--glass-surface-strong) 96%, var(--surface-raised)), color-mix(in srgb, var(--glass-surface-strong) 92%, var(--surface-soft))),
+    color-mix(in srgb, var(--surface-raised) 92%, var(--panel-accent, var(--blue)) 8%);
   --panel-lock-bg: var(--widget-control-bg);
-  --panel-lock-fg: var(--blue);
-  --panel-lock-border: rgba(37, 99, 235, .26);
-  --panel-lock-glow: rgba(37, 99, 235, .18);
-  --panel-drawer-bg: rgba(37, 99, 235, .18);
-  --panel-drawer-border: color-mix(in srgb, var(--panel-lock-fg) 42%, var(--line));
+  --panel-lock-fg: var(--panel-accent-text, var(--blue));
+  --panel-lock-border: color-mix(in srgb, var(--panel-accent, var(--blue)) 54%, rgba(15, 23, 42, .34));
+  --panel-lock-glow: color-mix(in srgb, var(--panel-accent, var(--blue)) 24%, transparent);
+  --panel-drawer-bg: color-mix(in srgb, var(--surface-raised) 92%, var(--panel-accent, var(--blue)) 8%);
+  --panel-drawer-border: color-mix(in srgb, var(--panel-accent, var(--blue)) 46%, var(--line));
   --panel-control-hover-border: currentColor;
   --panel-control-rest-shadow: 0 8px 18px var(--panel-lock-glow), inset 0 1px 0 rgba(255, 255, 255, .18);
   --panel-control-hover-shadow: 0 6px 14px color-mix(in srgb, var(--panel-lock-glow) 74%, transparent), inset 0 1px 0 var(--panel-hover-inset), inset 0 -1px 0 color-mix(in srgb, var(--panel-lock-fg) 12%, transparent);
@@ -1330,7 +1357,7 @@ body.layout-tools-active .db-panel:not(.db-panel-tools-open):not(:has(.panel-too
   padding: 6px;
   border: 1.5px solid var(--panel-lock-border, rgba(37, 99, 235, .24));
   border-radius: 24px;
-  background: color-mix(in srgb, var(--surface-raised) 92%, var(--panel-lock-fg) 8%);
+  background: var(--panel-drawer-bg, color-mix(in srgb, var(--surface-raised) 92%, var(--panel-lock-fg) 8%));
   border-color: var(--panel-drawer-border);
   box-shadow: var(--panel-drawer-shadow, 0 14px 32px rgba(15, 23, 42, .18));
   backdrop-filter: none;
@@ -1677,11 +1704,18 @@ body.layout-tools-active .db-panel:not(.db-panel-tools-open):not(:has(.panel-too
 .db-panel-custom-color .panel-tools,
 .db-panel-custom-color .panel-settings-toggle,
 .db-panel-custom-color .panel-tool-button {
-  --panel-lock-bg: rgba(var(--panel-accent-rgb), .18);
+  --panel-lock-bg: color-mix(in srgb, var(--surface-raised) 62%, var(--panel-accent) 38%);
   --panel-lock-fg: var(--panel-accent-text);
-  --panel-lock-border: rgba(var(--panel-accent-rgb), .42);
-  --panel-lock-glow: rgba(var(--panel-accent-rgb), .22);
-  --panel-drawer-bg: rgba(var(--panel-accent-rgb), .24);
+  --panel-lock-border: color-mix(in srgb, var(--panel-accent) 54%, rgba(15, 23, 42, .34));
+  --panel-lock-glow: rgba(var(--panel-accent-rgb), .24);
+  --panel-drawer-bg: color-mix(in srgb, var(--surface-raised) 92%, var(--panel-accent) 8%);
+  --panel-drawer-border: color-mix(in srgb, var(--panel-accent) 46%, var(--line));
+  --widget-control-bg: var(--panel-lock-bg);
+  --widget-control-hover-bg: color-mix(in srgb, var(--panel-lock-bg) 72%, var(--panel-hover-tint));
+  --widget-control-active-bg: color-mix(in srgb, var(--panel-lock-bg) 68%, var(--panel-hover-tint));
+  --widget-drawer-bg:
+    linear-gradient(180deg, color-mix(in srgb, var(--glass-surface-strong) 96%, var(--surface-raised)), color-mix(in srgb, var(--glass-surface-strong) 92%, var(--surface-soft))),
+    var(--panel-drawer-bg);
 }
 
 .db-panel-custom-color > .db-panel-hd::before,

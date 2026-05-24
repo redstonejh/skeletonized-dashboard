@@ -72,11 +72,107 @@ Command:
 .venv\Scripts\python.exe -m pytest -q
 ```
 
-Latest result: 87 passed, 0 failed.
+Latest result: 90 passed, 0 failed.
 
 Previous discovery result: 6 passed, 3 failed.
 
-Passed coverage included app/dashboard/settings load, CSS imports, absence of mode toggle state, expanded background palette persistence, shared material invariance across deep background selection, workspace toolbar command-island screenshots, toolbar mode toggles, generic Add Widget menu options, shared timeframe controls, timeframe createability, timeframe resize, timeframe minimum resize clamping, exact layout save/load round trips, small-panel menu overlays, panel placeholder/body sizing, adaptive panel content density, drag ghost creation, ordered drag reflow, local top insertion, reversible collision previews, capability-gated panel previews for dividers/anchors/panels, suppression of underlying hover menus during drag, global widget/panel occupancy, pinned item protection, pin menu close behavior, sparse empty-space placement, grid-bound drag clamping, grid snapping alignment, collision/overlap checks, resize snapping, left-edge anchored resize, menu icon alignment, panel header chevron centering, panel/widget/timeframe hover-focus material coverage, restrained neutral widget hover shadows, group multi-selection, grouped drag, grouped proportional resize, pinned items inside groups, mixed widget/panel group transforms, group mode, layout save/load/reset, settings save, mobile overflow checks, console errors, and network errors.
+Passed coverage included app/dashboard/settings load, CSS imports, absence of mode toggle state, expanded background palette persistence, shared material invariance across deep background selection, workspace toolbar command-island screenshots, toolbar mode toggles, generic Add Widget menu options, search widget creation, shared timeframe controls, timeframe createability, timeframe resize, timeframe minimum resize clamping, exact layout save/load round trips, small-panel menu overlays, panel placeholder/body sizing, adaptive panel content density, drag ghost creation, ordered drag reflow, anchor rail ghost/placeholder reordering, local top insertion, reversible collision previews, capability-gated panel previews for dividers/anchors/panels, suppression of underlying hover menus during drag, global widget/panel occupancy, pinned item protection, pin menu close behavior, sparse empty-space placement, grid-bound drag clamping, grid snapping alignment, collision/overlap checks, resize snapping, left-edge anchored resize, menu icon alignment, panel header chevron centering, panel/widget/timeframe hover-focus material coverage, restrained neutral widget hover shadows, group multi-selection, grouped drag, grouped proportional resize, pinned items inside groups, mixed widget/panel group transforms, group mode, layout save/load/reset, settings save, mobile overflow checks, console errors, and network errors.
+
+### BUG-101: Delete Confirmation Did Not Distinguish Blank Objects From Configured Objects
+
+- Status: Verified
+- Area: Workspace objects / deletion / undo history
+- Severity: Medium
+- Environment: Dashboard workspace, panel/widget/divider/anchor delete controls and Delete key
+- Observed: Delete behavior was inconsistent by object family. Panel and widget menu deletes always opened the confirmation dialog, blank objects could require unnecessary confirmation, anchors bypassed the shared dialog, and keyboard Delete did not share one object-deletion decision path.
+- Expected: Blank/default workspace objects should delete immediately and create a normal undo checkpoint. Objects with meaningful user-authored changes should use the existing confirmation dialog. Menu buttons and Delete key should call the same central delete decision path for widgets, panels, dividers, anchors, search widgets, timeframe widgets, and future widget-like objects.
+- Suspected cause: Delete handling lived in separate panel, widget, and anchor branches. The code had no shared `hasMeaningfulChanges`/blank-object helper and no generic workspace-object delete request.
+- Fix notes: Added centralized workspace delete classification, title, layout, blank/default, and meaningful-change helpers. The shared delete request now handles immediate blank deletion, confirmation for meaningful objects, cancel preservation, confirm deletion, and one live history checkpoint for affected layout state. Anchor delete buttons now route through the same path, and Delete-key handling supports selected grid objects plus focused anchors/widgets/panels while ignoring editable inputs.
+- Validation: Added `test_smart_delete_confirms_only_meaningful_workspace_objects` for blank search-widget Delete, edited widget confirmation/cancel/confirm/undo, blank panel immediate Delete, content panel confirmation/cancel/confirm/undo, default divider immediate Delete, renamed divider confirmation/undo, default anchor menu delete without confirmation, and linked anchor keyboard confirmation/cancel/confirm/undo. Targeted delete/undo/anchor coverage passed, and `.venv\Scripts\python.exe -m pytest -q` passed with 90 tests.
+
+### BUG-100: Anchor Destination Labels Read As Tiny Metadata
+
+- Status: Verified
+- Area: Spatial anchors / typography / visual alignment
+- Severity: Low
+- Environment: Dashboard workspace, Anchor objects linked and unlinked on the left rail
+- Observed: Anchor destination labels such as `Top` and divider names were too small and sat high/left in the anchor body, making the widget-derived anchor surface feel visually empty.
+- Expected: Anchor destination text should read as the primary navigation title. It should be larger, slightly stronger, vertically centered in the anchor body, and leave balanced room for the settings control.
+- Suspected cause: Anchor labels reused the compact stat-label typography without enough anchor-specific composition, and the anchor body remained block-positioned inside a padded widget surface.
+- Fix notes: Kept the shared widget material and control styling, but made the anchor surface align its content with flex, centered the anchor content vertically, and promoted the destination label to a 13px/820-weight navigation label with ellipsis and unchanged settings-button clearance.
+- Validation: Updated anchor visual coverage to assert readable label size/weight, vertical centering, settings-button spacing, and matching behavior for both `Top` and linked divider labels. Targeted anchor coverage passed, and `.venv\Scripts\python.exe -m pytest -q` passed with 89 tests.
+
+### BUG-099: Anchors Bypassed Workspace History And Layout Ownership
+
+- Status: Verified
+- Area: Spatial anchors / undo-redo / layout persistence
+- Severity: High
+- Environment: Dashboard workspace, Anchor creation, deletion, divider linking, color edits, rail reorder, layout save/load
+- Observed: Anchor mutations were written directly to the floating-anchor storage namespace. They did not participate in the live layout undo stack, could not be redone, and could feel permanent even when panel/widget changes were still draft workspace state.
+- Expected: Anchors remain a special viewport-rail data type, but their committed state belongs to the same workspace history and saved layout model as panels, widgets, and dividers. Anchor creation, deletion, divider-link edits, color changes, and rail reorder commits should be undoable/redone. Explicit layout save/load should include anchors, with links persisted by divider id and resolved live on click.
+- Suspected cause: `saveFloatingAnchors` always persisted localStorage immediately, while panel/widget save helpers only push live undo snapshots until an explicit layout save. The live undo snapshot did not serialize anchor layers, and the history model had no redo stack.
+- Fix notes: Added anchors to live layout snapshots and restore. Added anchor cleanup to history artifact cleanup, restored anchor event handlers from snapshots, and changed routine anchor saves to push live history rather than localStorage. Explicit layout Save still persists anchors in the layout-scoped anchor key. Added in-memory redo support through `Ctrl+Y` / `Ctrl+Shift+Z`, and moved the global shortcut listener to capture phase so dashboard menu focus cannot block layout undo while editable inputs remain protected.
+- Validation: Added `test_anchors_join_layout_history_and_saved_layout_state` to cover anchor create undo/redo, link undo/redo, color undo/redo, rail reorder undo/redo, delete undo/redo, saved layout reload with anchors, linked anchor live divider navigation after reload, moved-divider live targeting, and deleted-divider fallback. Targeted `undo or anchor` and `anchor or save or load` slices passed, and `.venv\Scripts\python.exe -m pytest -q` passed with 89 tests.
+
+### BUG-098: Linked Anchors Could Navigate To Stale Divider Positions
+
+- Status: Verified
+- Area: Spatial anchors / divider navigation
+- Severity: Medium
+- Environment: Dashboard workspace, Anchor linked to a Context Divider whose rendered grid row changes after linking
+- Observed: A linked anchor could navigate as if the divider were still at its original link-time position after layout pressure or later placement changes moved the divider lower in the workspace.
+- Expected: Anchor links are semantic divider references. The anchor stores the divider identity, resolves the current divider element when clicked, measures its current rendered position, and scrolls there smoothly. Missing divider targets should fall back gracefully to the top of the workspace.
+- Suspected cause: Divider link resolution was too narrow and the navigation path did not make the live DOM measurement contract explicit, leaving room for stale target metadata to act like a physical navigation record.
+- Fix notes: Broadened anchor divider resolution to find the current divider DOM node by linked divider identity across panel key, workspace region id, or context scope id. Added a dedicated current-target scroll helper so anchor clicks measure the resolved divider at navigation time and never reuse link-time coordinates.
+- Validation: Updated `test_anchor_links_to_divider_or_workspace_top_and_persists` to link an anchor, verify initial divider navigation, move the linked divider lower after linking, and verify the same anchor scrolls to the divider's new rendered position. Targeted anchor coverage passed, and `.venv\Scripts\python.exe -m pytest -q` passed with 88 tests.
+
+### BUG-097: Anchors Used Offset-Based Freeform Drag Instead Of A Dedicated Rail Order
+
+- Status: Fixed
+- Area: Spatial anchors / rail interaction model
+- Severity: Medium
+- Environment: Dashboard workspace, multiple Anchor objects on the viewport rail
+- Observed: Anchor movement still behaved like freeform side-rail offset dragging. Pointer X could switch anchors between side rails, position was saved as loose pixel offset, and the interaction did not expose a separate live ghost versus reorder preview model.
+- Expected: Anchors should remain a special viewport-side data type on the left rail. Dragging should be vertical only, show a smooth live ghost, show a separate placeholder/reorder preview, collide only with other anchors, commit a simple rail order on release, and never enter dashboard grid snapping or widget/panel collision.
+- Suspected cause: The initial floating-anchor implementation reused a direct offset mutation model for quick side-rail placement instead of a one-dimensional rail ordering interaction.
+- Fix notes: Added committed `railOrder` persistence, left-only rail normalization, a cloned live drag ghost, a separate rail placeholder, preview-only anchor reordering during drag, and commit-on-release ordering. Anchor drag no longer changes side based on horizontal pointer position, no longer uses grid collision, and no longer exposes pin controls.
+- Validation: Updated Playwright anchor coverage to verify vertical-only rail dragging, ghost and placeholder presence, no grid participation, no accidental navigation on drag release, anchor-only reordering, reload persistence, and unchanged widget/panel drag/resize coverage. Targeted anchor/widget drag/resize slices passed, and `.venv\Scripts\python.exe -m pytest -q` passed with 88 tests.
+
+### BUG-096: Anchor Body Repeated Widget-Style Labels Instead Of Destination
+
+- Status: Fixed
+- Area: Spatial anchors / navigation label content
+- Severity: Low
+- Environment: Dashboard workspace, Anchor objects linked and unlinked from Context Dividers
+- Observed: Anchors visually inherited widget material but still displayed a large glyph, an anchor instance label such as `Anchor 5`, and a secondary target label such as `Top`. This made anchors feel like content widgets instead of compact navigation handles.
+- Expected: Anchor body text should communicate only the navigation destination. Unlinked anchors should show `Top`; linked anchors should show the linked divider title only. Settings/control buttons should remain available, and divider-linking behavior should not change.
+- Suspected cause: The first widget-inheritance pass reused stat-card value/label/meta markup wholesale instead of separating widget material inheritance from anchor destination content.
+- Fix notes: Removed the visible glyph and metadata markup from anchor bodies, made the visible anchor label derive from `syncAnchorNavigationTarget`, and kept `anchorTitle` as internal metadata only. The anchor body now renders one destination label while retaining the shared widget material surface and settings controls.
+- Validation: Updated anchor Playwright coverage to verify unlinked `Top`, linked divider-title-only body text, no glyph, no meta label, no `Anchor #` text, and settings/link controls still working. Targeted anchor coverage passed; full suite passed with `87 passed`. Manual inspection artifacts are in `test-results/manual-anchor-label-simplification/`.
+
+### BUG-095: Widget-Derived Tool Menus Were Too Transparent Beside Panel Menus
+
+- Status: Fixed
+- Area: Widget controls / anchor controls / timeframe controls / shared menu material
+- Severity: Medium
+- Environment: Dashboard workspace, widget settings menus, Anchor settings menu, Timeframe settings menu, default and deep-slate backgrounds
+- Observed: Panel tool drawers were readable, but widget-derived drawers used weaker translucent widget-only tokens. Their compact buttons and icons could look washed out on pale glass, and the same low-contrast menu treatment affected anchors and timeframe widgets because both inherit widget controls.
+- Expected: Normal widgets, anchors, and timeframe widgets should inherit the same readable compact menu treatment as panel menus: stronger glass/opaque drawer surface, readable borders/rims, readable icon contrast, compact button hover/press behavior, and no separate per-widget visual system. Anchors should keep anchor-specific behavior, include the normal widget controls except resize, and keep their divider-link control.
+- Suspected cause: `.widget-tools` and later `.widget-card.db-panel-custom-color` rules overrode shared panel control tokens with lower-alpha glass values, while timeframe carried a separate drawer fallback. Anchor markup only included link/color controls instead of the standard widget tool set.
+- Fix notes: Strengthened the shared widget tool variables to match the readable panel menu treatment, routed timeframe drawer styling back through the same widget drawer variables, and updated custom-color widget control overrides to use the same readable control/drawer values as panels. Made the shared tool-button markup configurable so anchors reuse normal widget controls with resize excluded and divider linking added as an anchor-specific extra. Added anchor-local move, pin, rename, color, divider-link, and delete handling while keeping anchors fixed to the navigation layer and outside grid resize/collision.
+- Validation: Updated widget/anchor Playwright coverage to verify readable drawer opacity, icon contrast, border/shadow, panel parity, timeframe inheritance, anchor inheritance, anchor controls present, and resize absent on anchors. Targeted menu/material, anchor, compact-control, object-geometry, navbar-layering, timeframe, and panel/widget menu parity slices passed. Manual browser inspection screenshots were captured under `test-results/manual-widget-menu-readability`, and `.venv\Scripts\python.exe -m pytest -q` passed with 87 tests.
+
+### BUG-094: Floating Anchors Fell Back To A Separate Mini-Tab Skin
+
+- Status: Fixed
+- Area: Spatial anchors / widget material inheritance / navigation layer
+- Severity: Medium
+- Environment: Dashboard workspace, Anchor objects created from the Add menu, default and deep-slate backgrounds
+- Observed: Anchors lived on the correct floating layer but still carried anchor-specific mini-card geometry and typography. The strongest custom widget material rules were scoped to `.widget-layout > .widget-card`, so floating anchors missed the final widget surface treatment and could read as a separate pale-blue side tab rather than a compact widget-like navigation object.
+- Expected: Anchors remain viewport-fixed navigation objects outside normal grid collision while visually inheriting the real widget card material, stat typography hierarchy, custom-color surface/rim/shadow treatment, and widget settings/control button language. Divider linking should remain in the widget-style anchor settings menu, with linked anchors scrolling to the divider and unlinked anchors scrolling to the workspace top.
+- Suspected cause: Anchor markup used custom `.workspace-anchor-*` typography and nodule styling, and late theme rules only targeted widgets that were direct children of `.widget-layout`. The anchor layer also sat just below the navbar, above object popovers, making it visually compete with workspace object menus.
+- Fix notes: Reworked anchor markup to use shared `stat-val` and `stat-lbl` typography, removed standalone anchor surface/glyph styling, routed floating anchors through the same custom widget material selectors, kept only anchor-specific fixed rail sizing/positioning, and placed the anchor layer below object popovers while still above resting workspace objects. The existing divider-link menu continues to use widget drawer/control tokens.
+- Validation: Updated `test_anchor_links_to_divider_or_workspace_top_and_persists` to compare anchor material, radius, gradient, shadow, typography, settings control dimensions, link menu styling, left-side default, scroll-to-divider, scroll-to-top fallback, persistence, and layering under object/navbar popovers. Targeted anchor, widget material, navbar layering, compact control, workspace chrome, background, and capability slices passed. Manual browser inspection screenshots were captured under `test-results/manual-anchor-widget-inheritance`, and `.venv\Scripts\python.exe -m pytest -q` passed with 87 tests.
 
 ### BUG-093: Anchors Looked Like Separate Side Pills And Lacked Divider Linking
 

@@ -97,9 +97,9 @@
 }
 
 .range-bar.widget-card .widget-tool-drawer {
-  background: var(--widget-drawer-bg, linear-gradient(180deg, color-mix(in srgb, var(--glass-surface-strong) 92%, var(--surface-raised)), color-mix(in srgb, var(--glass-surface) 88%, var(--surface-soft)))) !important;
-  border-color: var(--panel-drawer-border, color-mix(in srgb, var(--line) 76%, var(--panel-lock-fg) 24%)) !important;
-  box-shadow: 0 14px 32px rgba(15, 23, 42, .18) !important;
+  background: var(--widget-drawer-bg) !important;
+  border-color: var(--panel-drawer-border) !important;
+  box-shadow: var(--panel-drawer-shadow, 0 14px 32px rgba(15, 23, 42, .18)) !important;
 }
 
 .range-bar.widget-card .widget-tools .panel-settings-toggle,
@@ -238,6 +238,47 @@
 
 .range-search:focus-within::after {
   background: var(--range-search-fg);
+}
+
+.search-widget-card {
+  --range-control-accent: var(--panel-accent, var(--blue));
+  --range-control-fg: var(--panel-accent-text, var(--blue));
+  --range-button-fg: var(--panel-accent-text, #ffffff);
+  --search-widget-input-fg: #111827;
+  --range-search-fg: var(--search-widget-input-fg);
+  --range-search-muted: color-mix(in srgb, var(--search-widget-input-fg) 72%, transparent);
+  --range-control-bg: color-mix(in srgb, var(--surface-raised) 54%, var(--range-control-accent) 46%);
+  --range-control-border: color-mix(in srgb, var(--range-control-accent) 54%, var(--panel-hover-tint));
+  --range-control-active-border: color-mix(in srgb, var(--range-control-accent) 72%, var(--panel-hover-tint));
+  --range-control-glow: color-mix(in srgb, var(--range-control-accent) 24%, transparent);
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  padding-right: 58px;
+}
+
+.search-widget-content {
+  width: 100%;
+  min-width: 0;
+}
+
+.search-widget-card .search-widget-control {
+  width: 100%;
+  min-width: 0;
+  max-width: none;
+  flex: 1 1 auto;
+}
+
+.search-widget-card .range-search-label {
+  text-transform: none;
+  letter-spacing: 0;
+  color: var(--range-search-fg);
+  background: color-mix(in srgb, var(--surface-raised) 84%, var(--range-control-accent) 16%);
+}
+
+.search-widget-card .search-widget-input {
+  height: 38px;
+  font-weight: 720;
 }
 
 
