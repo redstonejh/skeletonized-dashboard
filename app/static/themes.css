@@ -1724,8 +1724,8 @@ body::-webkit-scrollbar-thumb:hover {
   --widget-control-hover-bg: color-mix(in srgb, var(--glass-surface) 46%, rgba(var(--panel-accent-rgb), .18));
   --widget-control-active-bg: color-mix(in srgb, var(--glass-surface) 42%, rgba(var(--panel-accent-rgb), .20));
   --widget-drawer-bg:
-    linear-gradient(180deg, color-mix(in srgb, var(--glass-surface-strong) 80%, transparent), color-mix(in srgb, var(--glass-surface) 68%, transparent)),
-    color-mix(in srgb, var(--panel-accent) 10%, transparent);
+    linear-gradient(180deg, color-mix(in srgb, var(--glass-surface-strong) 90%, var(--surface-raised)), color-mix(in srgb, var(--glass-surface) 84%, var(--surface-soft))),
+    color-mix(in srgb, var(--panel-accent) 8%, var(--glass-surface));
   background: linear-gradient(90deg, rgba(var(--panel-accent-rgb), .54), rgba(var(--panel-accent-rgb), .30));
   border-color: color-mix(in srgb, var(--panel-accent) 62%, white) !important;
   box-shadow:
@@ -2982,6 +2982,7 @@ body {
 .app-nav.workspace-chrome .dash-switch-menu,
 .app-nav.workspace-chrome .nav-status-popover,
 .app-nav.workspace-chrome .background-tone-popover {
+  z-index: var(--z-navbar-dropdown);
   border-color: color-mix(in srgb, var(--glass-border) 62%, transparent);
   background:
     linear-gradient(180deg, color-mix(in srgb, var(--glass-surface-strong) 88%, white), color-mix(in srgb, var(--glass-surface) 90%, transparent));
@@ -3750,7 +3751,9 @@ body {
 .app-nav.workspace-chrome .panel-add-menu,
 .app-nav.workspace-chrome .layout-slot-menu,
 .app-nav.workspace-chrome .dash-switch-menu,
+.app-nav.workspace-chrome .nav-status-popover,
 .app-nav.workspace-chrome .background-tone-popover {
+  z-index: var(--z-navbar-dropdown);
   border: 1px solid color-mix(in srgb, var(--line) 62%, rgba(255, 255, 255, .72));
   border-radius: var(--radius-sm);
   background:

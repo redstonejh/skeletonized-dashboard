@@ -45,6 +45,9 @@
   --z-dropdown: 1501;
   --z-popover: 1600;
   --z-modal: 1700;
+  --z-object-control: 1450;
+  --z-object-popover: 1480;
+  --z-navbar-dropdown: 1650;
   --z-drag-ghost: 90;
   --z-resize-handle: 121;
 }

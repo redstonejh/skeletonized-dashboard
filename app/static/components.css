@@ -97,8 +97,8 @@
 }
 
 .range-bar.widget-card .widget-tool-drawer {
-  background: var(--widget-drawer-bg, linear-gradient(180deg, color-mix(in srgb, var(--glass-surface-strong) 58%, transparent), color-mix(in srgb, var(--glass-surface) 42%, transparent))) !important;
-  border-color: color-mix(in srgb, var(--line) 62%, transparent) !important;
+  background: var(--widget-drawer-bg, linear-gradient(180deg, color-mix(in srgb, var(--glass-surface-strong) 92%, var(--surface-raised)), color-mix(in srgb, var(--glass-surface) 88%, var(--surface-soft)))) !important;
+  border-color: var(--panel-drawer-border, color-mix(in srgb, var(--line) 76%, var(--panel-lock-fg) 24%)) !important;
   box-shadow: 0 14px 32px rgba(15, 23, 42, .18) !important;
 }
 

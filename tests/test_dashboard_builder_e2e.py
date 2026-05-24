@@ -1223,6 +1223,8 @@ def test_spatial_workspace_objects_keep_anchors_on_floating_navigation_layer(pag
             anchorPosition: getComputedStyle(anchor).position,
             anchorTop: anchorRect.top,
             anchorTargetType: anchor?.dataset.navigationTargetType,
+            anchorRole: anchor?.getAttribute("role"),
+            anchorClass: anchor?.className || "",
             anchorInGridObjectList: gridObjects.includes("anchor"),
             anchorHasWidgetTools: Boolean(anchor?.querySelector(".widget-tools, .panel-tool-drawer")),
             contextModel: document.querySelector('.dashboard-layout-grid')?.dataset.workspaceContextModel,
@@ -1240,12 +1242,15 @@ def test_spatial_workspace_objects_keep_anchors_on_floating_navigation_layer(pag
     assert created_state["anchorKey"]
     assert created_state["anchorWidgetKey"] is None
     assert created_state["anchorInWidgetLayout"] is False
-    assert created_state["anchorSide"] in ("left", "right")
+    assert created_state["anchorSide"] == "left"
     assert created_state["anchorPosition"] == "fixed"
     assert created_state["anchorTop"] >= 100
-    assert created_state["anchorTargetType"] == "workspace-region"
+    assert created_state["anchorTargetType"] == "workspace-top"
+    assert created_state["anchorRole"] == "button"
+    assert "widget-card" in created_state["anchorClass"]
+    assert "db-panel-custom-color" in created_state["anchorClass"]
     assert created_state["anchorInGridObjectList"] is False
-    assert created_state["anchorHasWidgetTools"] is False
+    assert created_state["anchorHasWidgetTools"] is True
     assert created_state["contextModel"] == "workspace-context-v1"
 
     anchor_before_divider_drag = anchor.evaluate(
@@ -1349,6 +1354,7 @@ def test_spatial_workspace_objects_keep_anchors_on_floating_navigation_layer(pag
           return {
             dividerScope: divider?.dataset.contextScopeId,
             anchorTarget: anchor?.dataset.navigationTargetId,
+            anchorTargetType: anchor?.dataset.navigationTargetType,
             dividerRow: Number(divider?.dataset.gridRow) || 0,
             anchorSide: anchor?.dataset.anchorSide,
             anchorOffset: Number(anchor?.dataset.anchorOffset) || 0,
@@ -1365,7 +1371,132 @@ def test_spatial_workspace_objects_keep_anchors_on_floating_navigation_layer(pag
     assert persisted_state["leftAnchorCount"] >= 1
     assert persisted_state["anchorPosition"] == "fixed"
     assert persisted_state["anchorInWidgetLayout"] is False
-    assert persisted_state["anchorTarget"]
+    assert persisted_state["anchorTargetType"] == "workspace-top"
+    assert persisted_state["anchorTarget"] in ("", None)
+    assert_clean_browser(page)
+
+
+def test_anchor_links_to_divider_or_workspace_top_and_persists(page: Page, app_server: str) -> None:
+    goto(page, app_server)
+    page.evaluate("localStorage.clear()")
+    page.reload(wait_until="networkidle")
+    page.wait_for_selector(".page")
+
+    page.locator(".panel-add-button").click()
+    page.locator('.divider-add-action[data-divider-kind="context-divider"]').click()
+    divider = page.locator('.workspace-divider[data-workspace-object-type="divider"]').last
+    expect(divider).to_be_visible()
+    divider.evaluate(
+        """
+        node => {
+          node.dataset.gridCol = "1";
+          node.dataset.gridRow = "28";
+          node.dataset.currentSpan = "6";
+          node.dataset.gridRowSpan = "1";
+          node.style.gridColumn = "1 / span 6";
+          node.style.gridRow = "28 / span 1";
+        }
+        """
+    )
+
+    page.locator(".panel-add-button").click()
+    page.locator('.widget-add-action[data-widget-kind="anchor"]').click()
+    anchor = page.locator('.workspace-anchor-object[data-workspace-object-type="anchor"]').last
+    expect(anchor).to_be_visible()
+
+    default_state = anchor.evaluate(
+        """
+        node => ({
+          side: node.dataset.anchorSide,
+          targetType: node.dataset.navigationTargetType,
+          linkedDividerId: node.dataset.linkedDividerId || "",
+          position: getComputedStyle(node).position,
+          inGrid: Boolean(node.closest(".widget-layout, .panel-layout")),
+          background: getComputedStyle(node).backgroundColor,
+          border: getComputedStyle(node).borderTopColor,
+          shadow: getComputedStyle(node).boxShadow,
+          hasWidgetClass: node.classList.contains("widget-card"),
+          hasColorToggle: Boolean(node.querySelector(".panel-color-toggle")),
+        })
+        """
+    )
+    assert default_state["side"] == "left"
+    assert default_state["targetType"] == "workspace-top"
+    assert default_state["linkedDividerId"] == ""
+    assert default_state["position"] == "fixed"
+    assert default_state["inGrid"] is False
+    assert default_state["hasWidgetClass"] is True
+    assert default_state["hasColorToggle"] is True
+    assert default_state["background"] != "rgba(0, 0, 0, 0)"
+    assert default_state["border"] != "rgba(0, 0, 0, 0)"
+    assert default_state["shadow"] != "none"
+
+    page.evaluate("window.scrollTo(0, 900)")
+    page.wait_for_timeout(160)
+    anchor.click(position={"x": 24, "y": 24})
+    page.wait_for_function("() => window.scrollY < 20")
+
+    anchor.locator(".anchor-settings-toggle").click(force=True)
+    expect(anchor.locator(".anchor-tool-drawer")).to_be_visible()
+    anchor.locator(".panel-color-toggle").click(force=True)
+    expect(page.locator(".panel-color-menu-open")).to_be_visible()
+    page.locator(".panel-color-menu-open .panel-color-swatch").nth(3).click()
+    recolored = anchor.evaluate("node => node.dataset.panelColor")
+    assert recolored
+
+    anchor.locator(".anchor-link-toggle").click(force=True)
+    expect(anchor.locator(".anchor-link-menu")).to_have_class(re.compile("anchor-link-menu-open"))
+    divider_id = divider.evaluate("node => node.dataset.panelKey")
+    anchor.locator(f'.anchor-link-option[data-divider-id="{divider_id}"]').click(force=True)
+    linked_state = anchor.evaluate(
+        """
+        node => ({
+          linkedDividerId: node.dataset.linkedDividerId,
+          targetType: node.dataset.navigationTargetType,
+          targetId: node.dataset.navigationTargetId,
+          meta: node.querySelector(".workspace-anchor-meta")?.textContent?.trim(),
+        })
+        """
+    )
+    assert linked_state["linkedDividerId"] == divider_id
+    assert linked_state["targetType"] == "divider"
+    assert linked_state["targetId"]
+    assert linked_state["meta"].lower().startswith("divider")
+
+    page.evaluate("window.scrollTo(0, 0)")
+    anchor.click(position={"x": 24, "y": 24})
+    page.wait_for_function("() => window.scrollY > 350")
+
+    page.locator(".layout-save-button").click()
+    expect(page.locator(".toast", has_text="saved")).to_be_visible()
+    page.reload(wait_until="networkidle")
+    reloaded_anchor = page.locator('.workspace-anchor-object[data-workspace-object-type="anchor"]').last
+    expect(reloaded_anchor).to_be_visible()
+    persisted = reloaded_anchor.evaluate(
+        """
+        node => ({
+          side: node.dataset.anchorSide,
+          linkedDividerId: node.dataset.linkedDividerId,
+          targetType: node.dataset.navigationTargetType,
+          color: node.dataset.panelColor,
+        })
+        """
+    )
+    assert persisted["side"] == "left"
+    assert persisted["linkedDividerId"] == divider_id
+    assert persisted["targetType"] == "divider"
+    assert persisted["color"] == recolored
+
+    page.evaluate("window.scrollTo(0, 900)")
+    page.wait_for_timeout(120)
+    reloaded_anchor.evaluate("node => document.querySelector(`[data-panel-key='${node.dataset.linkedDividerId}']`)?.remove()")
+    reloaded_anchor.click(position={"x": 24, "y": 24})
+    page.wait_for_function("() => window.scrollY < 20")
+    fallback = reloaded_anchor.evaluate(
+        "node => ({ linkedDividerId: node.dataset.linkedDividerId || '', targetType: node.dataset.navigationTargetType })"
+    )
+    assert fallback["linkedDividerId"] == ""
+    assert fallback["targetType"] == "workspace-top"
     assert_clean_browser(page)
 
 
@@ -4679,14 +4810,12 @@ def test_pinned_items_are_not_displaced_by_drag(page: Page, app_server: str) -> 
     assert_clean_browser(page)
 
 
-def test_collision_reuses_nearest_valid_freed_slot_for_widgets_and_panels(page: Page, app_server: str) -> None:
+def test_collision_prefers_below_then_left_before_forward_for_widgets_and_panels(page: Page, app_server: str) -> None:
     goto(page, app_server)
     page.evaluate(
         """
         () => {
-          Object.keys(localStorage)
-            .filter((key) => key.startsWith("dashboard-"))
-            .forEach((key) => localStorage.removeItem(key));
+          localStorage.clear();
         }
         """
     )
@@ -4695,51 +4824,11 @@ def test_collision_reuses_nearest_valid_freed_slot_for_widgets_and_panels(page: 
     page.evaluate("window.scrollTo(0, 0)")
     page.mouse.move(24, 24)
 
-    def arrange_three_items(selector: str, key_attr: str) -> list[str]:
-        keys = page.locator(selector).evaluate_all(
-            """
-            (nodes, keyAttr) => nodes.slice(0, 3).map((node, index) => {
-              const key = node.dataset[keyAttr] || `${keyAttr}-${index}`;
-              node.dataset.currentSpan = "1";
-              node.dataset.defaultSpan = "1";
-              node.dataset.gridCol = String(index + 1);
-              node.dataset.gridRow = "1";
-              node.dataset.gridRowSpan = "1";
-              node.style.gridColumn = `${index + 1} / span 1`;
-              node.style.gridRow = "1 / span 1";
-              node.style.height = "";
-              node.classList.remove("db-panel-pinned", "widget-tools-open", "db-panel-tools-open");
-              if (node.classList.contains("db-panel")) {
-                node.classList.add("db-panel-collapsed");
-                node.querySelector(".db-panel-hd")?.setAttribute("aria-expanded", "false");
-              }
-              return key;
-            })
-            """,
-            key_attr,
-        )
-        assert len(keys) == 3
-        page.locator(selector).nth(3).evaluate(
-            """
-            node => {
-              node.dataset.currentSpan = "1";
-              node.dataset.defaultSpan = "1";
-              node.dataset.gridCol = "6";
-              node.dataset.gridRow = "4";
-              node.dataset.gridRowSpan = "1";
-              node.style.gridColumn = "6 / span 1";
-              node.style.gridRow = "4 / span 1";
-              node.classList.remove("db-panel-pinned", "widget-tools-open", "db-panel-tools-open");
-              if (node.classList.contains("db-panel")) {
-                node.classList.add("db-panel-collapsed");
-                node.querySelector(".db-panel-hd")?.setAttribute("aria-expanded", "false");
-              }
-            }
-            """
-        )
-        return keys
+    def ensure_item_count(selector: str, count: int, add_item) -> None:
+        while page.locator(selector).count() < count:
+            add_item(page)
 
-    def park_items(selector: str, start_row: int) -> None:
+    def park_all(selector: str, start_row: int) -> None:
         page.locator(selector).evaluate_all(
             """
             (nodes, startRow) => nodes.forEach((node, index) => {
@@ -4753,7 +4842,10 @@ def test_collision_reuses_nearest_valid_freed_slot_for_widgets_and_panels(page: 
               node.style.gridColumn = `${col} / span 1`;
               node.style.gridRow = `${row} / span 1`;
               node.style.height = "";
-              node.classList.remove("db-panel-pinned", "widget-tools-open", "db-panel-tools-open");
+              node.style.left = "";
+              node.style.top = "";
+              node.style.width = "";
+              node.classList.remove("db-panel-pinned", "widget-tools-open", "db-panel-tools-open", "widget-dragging", "db-panel-dragging", "dashboard-active-resize", "dashboard-live-resize", "dashboard-resize-source");
               if (node.classList.contains("db-panel")) {
                 node.classList.add("db-panel-collapsed");
                 node.querySelector(".db-panel-hd")?.setAttribute("aria-expanded", "false");
@@ -4763,28 +4855,93 @@ def test_collision_reuses_nearest_valid_freed_slot_for_widgets_and_panels(page: 
             start_row,
         )
 
-    add_panel_for_setup(page)
-    park_items(".widget-layout > .widget-card", 8)
-    widget_keys = arrange_three_items(".widget-layout > .widget-card:not(.range-bar)", "widgetKey")
-    park_items(".panel-layout > .db-panel", 6)
+    def arrange_case(selector: str, key_attr: str, positions: list[tuple[int, int]], park_start_row: int) -> list[str]:
+        keys = page.locator(selector).evaluate_all(
+            """
+            (nodes, payload) => nodes.map((node, index) => {
+              const position = payload.positions[index] ||
+                { col: (index % 6) + 1, row: payload.parkStartRow + Math.floor(index / 6) };
+              const key = node.dataset[payload.keyAttr] || `${payload.keyAttr}-${index}`;
+              node.dataset.currentSpan = "1";
+              node.dataset.defaultSpan = "1";
+              node.dataset.gridCol = String(position.col);
+              node.dataset.gridRow = String(position.row);
+              node.dataset.gridRowSpan = "1";
+              node.style.gridColumn = `${position.col} / span 1`;
+              node.style.gridRow = `${position.row} / span 1`;
+              node.style.height = "";
+              node.style.left = "";
+              node.style.top = "";
+              node.style.width = "";
+              node.classList.remove("db-panel-pinned", "widget-tools-open", "db-panel-tools-open", "widget-dragging", "db-panel-dragging", "dashboard-active-resize", "dashboard-live-resize", "dashboard-resize-source");
+              if (node.classList.contains("db-panel")) {
+                node.classList.add("db-panel-collapsed");
+                node.querySelector(".db-panel-hd")?.setAttribute("aria-expanded", "false");
+              }
+              return key;
+            })
+            """,
+            {
+                "positions": [{"col": col, "row": row} for col, row in positions],
+                "parkStartRow": park_start_row,
+                "keyAttr": key_attr,
+            },
+        )
+        assert len(keys) >= len(positions)
+        return keys
 
-    def drag_first_item_over_second(selector_prefix: str, keys: list[str], key_attr: str, placeholder_selector: str) -> None:
-        active_selector = f'[{key_attr}="{keys[0]}"]'
-        displaced_selector = f'[{key_attr}="{keys[1]}"]'
-        blocker_selector = f'[{key_attr}="{keys[2]}"]'
-        unrelated_selector = f"{selector_prefix}:nth-of-type(4)"
+    ensure_item_count(".widget-layout > .widget-card:not(.range-bar)", 4, add_widget_for_setup)
+    ensure_item_count(".panel-layout > .db-panel", 4, add_panel_for_setup)
+
+    def run_collision_case(
+        *,
+        selector: str,
+        key_attr: str,
+        data_attr: str,
+        placeholder_selector: str,
+        positions: list[tuple[int, int]],
+        target_index: int,
+        expected_displaced: tuple[int, int],
+        blocker_index: int,
+        park_row: int,
+    ) -> None:
+        page.evaluate(
+            """
+            () => {
+              window.scrollTo(0, 0);
+              document.body.classList.remove("panel-interaction-active", "panel-resize-active", "group-transform-active");
+            }
+            """
+        )
+        park_all(".widget-layout > .widget-card", 12)
+        park_all(".panel-layout > .db-panel", 18)
+        keys = arrange_case(selector, key_attr, positions, park_row)
+        active_selector = f'[{data_attr}="{keys[0]}"]'
+        displaced_selector = f'[{data_attr}="{keys[1]}"]'
+        blocker_selector = f'[{data_attr}="{keys[blocker_index]}"]'
+        unrelated_selector = f'[{data_attr}="{keys[-1]}"]'
         active = page.locator(active_selector)
         displaced = page.locator(displaced_selector)
         blocker_before = grid_item_state(page, blocker_selector)
-        unrelated_before = page.locator(selector_prefix).nth(3).evaluate(
+        unrelated_before = page.locator(unrelated_selector).evaluate(
             "node => ({ col: Number(node.dataset.gridCol), row: Number(node.dataset.gridRow) })"
         )
 
-        open_tools(active)
-        page.wait_for_timeout(120)
+        force_open_tools_for_interaction(page, active)
+        active.evaluate(
+            """
+            node => {
+              const isWidget = node.classList.contains("widget-card");
+              node.classList.add(isWidget ? "widget-tools-open" : "db-panel-tools-open");
+              node.querySelector(".panel-settings-toggle")?.setAttribute("aria-expanded", "true");
+              document.body.classList.remove("panel-interaction-active", "panel-resize-active", "group-transform-active");
+              document.body.classList.add("layout-tools-active");
+            }
+            """
+        )
         handle = active.locator(".panel-move-handle").bounding_box()
         active_box = active.bounding_box()
-        target_box = displaced.bounding_box()
+        target_box = page.locator(f'[{data_attr}="{keys[target_index]}"]').bounding_box()
         assert handle and active_box and target_box
         dx = (target_box["x"] + target_box["width"] / 2) - (active_box["x"] + active_box["width"] / 2)
         dy = (target_box["y"] + target_box["height"] / 2) - (active_box["y"] + active_box["height"] / 2)
@@ -4792,17 +4949,23 @@ def test_collision_reuses_nearest_valid_freed_slot_for_widgets_and_panels(page: 
         page.mouse.move(x, y)
         page.mouse.down()
         page.mouse.move(x + dx, y + dy, steps=14)
-        page.wait_for_function(
+        drag_debug = page.evaluate(
             """
-            ({ placeholderSelector }) => {
-              const placeholder = document.querySelector(placeholderSelector);
-              return placeholder && Number(placeholder.dataset.gridCol) === 2 && Number(placeholder.dataset.gridRow) === 1;
+            ({ activeSelector, placeholderSelector }) => {
+              const active = document.querySelector(activeSelector);
+              return {
+                body: document.body.className,
+                activeClass: active?.className || "",
+                placeholder: Boolean(document.querySelector(placeholderSelector)),
+                activePointer: active ? getComputedStyle(active).pointerEvents : "",
+              };
             }
             """,
-            arg={"placeholderSelector": placeholder_selector},
+            {"activeSelector": active_selector, "placeholderSelector": placeholder_selector},
         )
+        assert drag_debug["placeholder"], drag_debug
         preview_displaced = grid_item_state(page, displaced_selector)
-        assert (preview_displaced["col"], preview_displaced["row"]) == (1, 1)
+        assert (preview_displaced["col"], preview_displaced["row"]) == expected_displaced
         preview_blocker = grid_item_state(page, blocker_selector)
         assert (preview_blocker["col"], preview_blocker["row"]) == (blocker_before["col"], blocker_before["row"])
 
@@ -4810,17 +4973,56 @@ def test_collision_reuses_nearest_valid_freed_slot_for_widgets_and_panels(page: 
         page.wait_for_timeout(360)
         committed_active = grid_item_state(page, active_selector)
         committed_displaced = grid_item_state(page, displaced_selector)
-        committed_unrelated = page.locator(selector_prefix).nth(3).evaluate(
+        committed_unrelated = page.locator(unrelated_selector).evaluate(
             "node => ({ col: Number(node.dataset.gridCol), row: Number(node.dataset.gridRow) })"
         )
-        assert (committed_active["col"], committed_active["row"]) == (2, 1)
-        assert (committed_displaced["col"], committed_displaced["row"]) == (1, 1)
+        expected_active = positions[target_index]
+        assert (committed_active["col"], committed_active["row"]) == expected_active
+        assert (committed_displaced["col"], committed_displaced["row"]) == expected_displaced
+        assert (preview_displaced["col"], preview_displaced["row"]) == (committed_displaced["col"], committed_displaced["row"])
         assert committed_unrelated == unrelated_before
 
-    drag_first_item_over_second(".widget-layout > .widget-card:not(.range-bar)", widget_keys, "data-widget-key", ".widget-placeholder")
-    park_items(".widget-layout > .widget-card", 6)
-    panel_keys = arrange_three_items(".panel-layout > .db-panel", "panelKey")
-    drag_first_item_over_second(".panel-layout > .db-panel", panel_keys, "data-panel-key", ".db-panel-placeholder")
+    object_configs = [
+        {
+            "selector": ".widget-layout > .widget-card:not(.range-bar)",
+            "key_attr": "widgetKey",
+            "data_attr": "data-widget-key",
+            "placeholder_selector": ".widget-placeholder",
+            "park_row": 24,
+        },
+        {
+            "selector": ".panel-layout > .db-panel",
+            "key_attr": "panelKey",
+            "data_attr": "data-panel-key",
+            "placeholder_selector": ".db-panel-placeholder",
+            "park_row": 30,
+        },
+    ]
+
+    cases = [
+        {
+            "positions": [(1, 3), (2, 3), (3, 3), (6, 7)],
+            "target_index": 1,
+            "expected_displaced": (2, 4),
+            "blocker_index": 2,
+        },
+        {
+            "positions": [(1, 3), (2, 3), (2, 4), (6, 7)],
+            "target_index": 1,
+            "expected_displaced": (1, 3),
+            "blocker_index": 2,
+        },
+        {
+            "positions": [(2, 3), (1, 3), (1, 4), (6, 7)],
+            "target_index": 1,
+            "expected_displaced": (2, 3),
+            "blocker_index": 2,
+        },
+    ]
+
+    for config in object_configs:
+        for case in cases:
+            run_collision_case(**config, **case)
 
     assert no_visible_overlaps(page, ".dashboard-layout-grid .widget-card, .dashboard-layout-grid .db-panel") == []
     assert_clean_browser(page)
@@ -5430,6 +5632,12 @@ def test_widget_surface_controls_use_translucent_widget_glass(page: Page, app_se
 
     def material_state(item) -> dict:
         open_tools(item)
+        page.wait_for_function(
+            """
+            node => Number(getComputedStyle(node.querySelector(".panel-tool-drawer")).opacity) > .99
+            """,
+            arg=item.element_handle(),
+        )
         return item.evaluate(
             """
             node => {
@@ -5461,6 +5669,9 @@ def test_widget_surface_controls_use_translucent_widget_glass(page: Page, app_se
                   settingsAlpha: alphaFromColor(settingsStyles.backgroundColor),
                 buttonAlpha: alphaFromColor(buttonStyles.backgroundColor),
                 drawerAlphas: alphaValues(`${drawerStyles.backgroundImage}, ${drawerStyles.backgroundColor}`),
+                drawerOpacity: Number(drawerStyles.opacity || "1"),
+                drawerBorder: drawerStyles.borderTopColor,
+                drawerShadow: drawerStyles.boxShadow,
                 settingsBorder: settingsStyles.borderTopColor,
                 buttonBorder: buttonStyles.borderTopColor,
                 settingsShadow: settingsStyles.boxShadow,
@@ -5486,16 +5697,66 @@ def test_widget_surface_controls_use_translucent_widget_glass(page: Page, app_se
         assert .18 <= state["settingsAlpha"] <= .68
         assert .18 <= state["buttonAlpha"] <= .68
         assert state["drawerAlphas"]
-        assert .72 <= max(state["drawerAlphas"]) <= .9
+        assert .84 <= max(state["drawerAlphas"]) <= 1
         assert max(state["drawerAlphas"]) > max(state["settingsAlpha"], state["buttonAlpha"])
+        assert state["drawerOpacity"] >= .99
+        assert state["drawerBorder"] != "rgba(0, 0, 0, 0)"
+        assert state["drawerShadow"] != "none"
         assert state["settingsBorder"] != "rgb(255, 255, 255)"
         assert state["buttonBorder"] != "rgb(255, 255, 255)"
         assert "0px 0px 22px" not in state["settingsShadow"]
         assert state["iconColor"] != "rgba(0, 0, 0, 0)"
         assert state["iconOpacity"] >= .9
 
+    assert max(widget_default["drawerAlphas"]) >= max(panel_default["drawerAlphas"]) - .16
     assert widget_default["settingsAlpha"] < panel_default["settingsAlpha"]
     assert widget_default["buttonAlpha"] < panel_default["buttonAlpha"]
+    assert_clean_browser(page)
+
+
+def test_navbar_dropdowns_layer_above_object_controls(page: Page, app_server: str) -> None:
+    goto(page, app_server)
+    widget = page.locator(".widget-layout > .stat-card.widget-card:not(.range-bar)").first
+    panel = page.locator(".panel-layout > .db-panel").first
+    open_tools(widget)
+    open_tools(panel)
+
+    page.locator(".panel-add-button").click()
+    expect(page.locator(".panel-add-menu")).to_have_class(re.compile("open"))
+
+    layers = page.evaluate(
+        """
+        () => {
+          const z = (selector) => {
+            const node = document.querySelector(selector);
+            const value = node ? getComputedStyle(node).zIndex : "auto";
+            return value === "auto" ? 0 : Number(value);
+          };
+          return {
+            navbar: z(".app-nav.workspace-chrome"),
+            navbarDropdown: z(".app-nav.workspace-chrome .panel-add-menu"),
+            widgetOpen: z(".widget-layout > .widget-card.widget-tools-open"),
+            widgetControls: z(".widget-layout > .widget-card.widget-tools-open .widget-tools"),
+            panelOpen: z(".panel-layout > .db-panel.db-panel-tools-open"),
+            panelControls: z(".panel-layout > .db-panel.db-panel-tools-open .panel-tool-drawer"),
+          };
+        }
+        """
+    )
+
+    assert layers["widgetControls"] < layers["navbar"], layers
+    assert layers["panelControls"] < layers["navbar"], layers
+    assert layers["widgetOpen"] < layers["navbar"], layers
+    assert layers["panelOpen"] < layers["navbar"], layers
+    assert layers["navbarDropdown"] > layers["navbar"], layers
+
+    page.locator(".panel-add-button").click()
+    page.locator(".layout-slot-trigger").click()
+    expect(page.locator(".layout-slot-menu")).to_have_class(re.compile("open"))
+    layout_layer = page.locator(".layout-slot-menu").evaluate(
+        """node => Number(getComputedStyle(node).zIndex)"""
+    )
+    assert layout_layer == layers["navbarDropdown"]
     assert_clean_browser(page)
 
 

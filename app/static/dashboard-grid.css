@@ -100,21 +100,15 @@
   top: var(--anchor-offset, 148px);
   left: var(--anchor-left, auto);
   right: var(--anchor-right, auto);
-  display: inline-flex;
+  display: grid;
   align-items: center;
-  gap: 7px;
-  min-width: 42px;
-  max-width: 138px;
-  min-height: 38px;
-  padding: 5px 10px 5px 7px;
-  border: 1px solid color-mix(in srgb, var(--anchor-accent) 26%, var(--glass-border));
-  border-radius: 999px;
-  background:
-    linear-gradient(180deg, color-mix(in srgb, var(--glass-highlight) 34%, transparent), transparent 62%),
-    color-mix(in srgb, var(--glass-surface-strong) 72%, var(--anchor-accent) 10%);
-  box-shadow:
-    0 10px 22px rgba(15, 23, 42, .12),
-    inset 0 1px 0 color-mix(in srgb, var(--glass-highlight) 62%, transparent);
+  width: 132px;
+  min-width: 132px;
+  max-width: 132px;
+  min-height: 64px;
+  padding: 10px 36px 10px 12px;
+  border: 1.5px solid color-mix(in srgb, var(--anchor-accent) 46%, var(--line));
+  border-radius: var(--radius-md);
   color: var(--ink-strong);
   cursor: grab;
   font: inherit;
@@ -131,49 +125,38 @@
 }
 
 .workspace-anchor-object[data-anchor-side="left"] {
-  --anchor-left: 10px;
+  --anchor-left: 12px;
   --anchor-right: auto;
 }
 
 .workspace-anchor-object[data-anchor-side="right"] {
   --anchor-left: auto;
-  --anchor-right: 10px;
-  flex-direction: row-reverse;
-  padding: 5px 7px 5px 10px;
-}
-
-.workspace-anchor-object:hover,
-.workspace-anchor-object:focus-visible {
-  border-color: color-mix(in srgb, var(--anchor-accent) 34%, var(--glass-border));
-  background:
-    linear-gradient(180deg, color-mix(in srgb, var(--glass-highlight) 40%, transparent), transparent 62%),
-    color-mix(in srgb, var(--glass-surface-strong) 80%, var(--anchor-accent) 12%);
-  box-shadow:
-    0 9px 20px rgba(15, 23, 42, .13),
-    inset 0 1px 0 color-mix(in srgb, var(--glass-highlight) 68%, transparent),
-    inset 0 2px 5px rgba(15, 23, 42, .035);
-  transform: var(--pressable-hover-transform);
+  --anchor-right: 12px;
+  padding: 10px 12px 10px 36px;
 }
 
 .workspace-anchor-object:active,
 .workspace-anchor-object.anchor-dragging {
   cursor: grabbing;
-  transform: var(--pressable-active-transform);
+}
+
+.workspace-anchor-content {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  pointer-events: none;
 }
 
 .workspace-anchor-object .workspace-anchor-glyph {
   display: inline-grid;
   place-items: center;
-  width: 25px;
-  height: 25px;
-  border: 1px solid color-mix(in srgb, var(--anchor-accent) 34%, rgba(15, 23, 42, .20));
-  border-radius: 999px;
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, .34), rgba(255, 255, 255, .10)),
-    color-mix(in srgb, var(--glass-surface-strong) 70%, var(--anchor-accent) 16%);
-  box-shadow:
-    0 3px 7px rgba(15, 23, 42, .10),
-    inset 0 1px 0 rgba(255, 255, 255, .24);
+  width: 30px;
+  height: 30px;
+  border: 1.5px solid var(--panel-lock-border, color-mix(in srgb, var(--anchor-accent) 38%, rgba(15, 23, 42, .22)));
+  border-radius: 12px;
+  background: var(--widget-control-bg, var(--panel-lock-bg));
+  box-shadow: var(--panel-control-rest-shadow, var(--shadow-control));
   flex: 0 0 auto;
   font-size: 12px;
   font-weight: 820;
@@ -189,7 +172,7 @@
 }
 
 .workspace-anchor-object .workspace-anchor-label {
-  max-width: 82px;
+  max-width: 66px;
   overflow: hidden;
   font-size: 11px;
   font-weight: 820;
@@ -198,7 +181,7 @@
 }
 
 .workspace-anchor-object .workspace-anchor-meta {
-  max-width: 82px;
+  max-width: 66px;
   overflow: hidden;
   color: color-mix(in srgb, var(--muted-strong) 74%, transparent);
   font-size: 9px;
@@ -207,6 +190,100 @@
   text-overflow: ellipsis;
   text-transform: uppercase;
   white-space: nowrap;
+}
+
+.workspace-anchor-object .anchor-tools {
+  position: absolute;
+  top: 50%;
+  right: 8px;
+  transform: translateY(-50%);
+}
+
+.workspace-anchor-object[data-anchor-side="right"] .anchor-tools {
+  right: auto;
+  left: 8px;
+}
+
+.workspace-anchor-object .anchor-tool-drawer {
+  grid-template-columns: repeat(2, 34px);
+  right: 38px;
+}
+
+.workspace-anchor-object[data-anchor-side="right"] .anchor-tool-drawer {
+  left: 38px;
+  right: auto;
+  transform-origin: top left;
+}
+
+.workspace-anchor-object .anchor-link-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: var(--z-object-popover);
+  display: grid;
+  min-width: 154px;
+  gap: 5px;
+  padding: 6px;
+  border: 1px solid var(--panel-drawer-border, var(--glass-border));
+  border-radius: var(--radius-sm);
+  background: var(--widget-drawer-bg, color-mix(in srgb, var(--surface-raised) 92%, var(--panel-lock-fg) 8%));
+  box-shadow: var(--panel-drawer-shadow, var(--shadow-glass));
+  visibility: hidden;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(-4px) scale(.98);
+  transform-origin: top right;
+  transition: transform var(--motion-popover), opacity .14s ease, visibility 0s linear .18s;
+}
+
+.workspace-anchor-object[data-anchor-side="right"] .anchor-link-menu {
+  right: auto;
+  left: 0;
+  transform-origin: top left;
+}
+
+.workspace-anchor-object .anchor-link-menu-open {
+  visibility: visible;
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0) scale(1);
+  transition-delay: 0s;
+}
+
+.workspace-anchor-object .anchor-link-option {
+  min-height: 30px;
+  padding: 0 10px;
+  border: 1px solid color-mix(in srgb, var(--line) 62%, transparent);
+  border-radius: 10px;
+  background: var(--widget-control-bg, var(--panel-lock-bg));
+  color: var(--ink-strong);
+  font: inherit;
+  font-size: 11px;
+  font-weight: 760;
+  text-align: left;
+  cursor: pointer;
+  transition: transform var(--motion-fast), background var(--motion-fast), box-shadow var(--motion-fast), border-color var(--motion-fast);
+}
+
+.workspace-anchor-object .anchor-link-option:hover,
+.workspace-anchor-object .anchor-link-option:focus-visible {
+  transform: var(--pressable-hover-transform);
+  background: var(--widget-control-hover-bg, var(--panel-lock-bg));
+  box-shadow: var(--panel-control-hover-shadow, var(--shadow-control));
+}
+
+.workspace-anchor-object .anchor-link-option:active,
+.workspace-anchor-object .anchor-link-option[aria-pressed="true"] {
+  transform: var(--pressable-active-transform);
+  background: var(--widget-control-active-bg, var(--panel-lock-bg));
+  box-shadow: var(--panel-control-active-shadow, var(--shadow-control));
+}
+
+.workspace-anchor-object .anchor-link-empty {
+  padding: 2px 8px 4px;
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 720;
 }
 
 .widget-card.db-panel-custom-color {
@@ -243,8 +320,8 @@
   --widget-control-hover-bg: color-mix(in srgb, var(--glass-surface) 48%, rgba(255, 255, 255, .18));
   --widget-control-active-bg: color-mix(in srgb, var(--glass-surface) 44%, rgba(255, 255, 255, .20));
   --widget-drawer-bg:
-    linear-gradient(180deg, color-mix(in srgb, var(--glass-surface-strong) 82%, transparent), color-mix(in srgb, var(--glass-surface) 72%, transparent)),
-    color-mix(in srgb, var(--panel-lock-fg) 10%, transparent);
+    linear-gradient(180deg, color-mix(in srgb, var(--glass-surface-strong) 92%, var(--surface-raised)), color-mix(in srgb, var(--glass-surface) 88%, var(--surface-soft))),
+    color-mix(in srgb, var(--panel-lock-fg) 8%, var(--glass-surface));
   --panel-lock-bg: var(--widget-control-bg);
   --panel-lock-fg: var(--blue);
   --panel-lock-border: rgba(37, 99, 235, .26);
@@ -259,7 +336,7 @@
   position: absolute;
   top: 50%;
   right: var(--dashboard-control-inset, 18px);
-  z-index: var(--z-dropdown);
+  z-index: var(--z-object-control);
   display: inline-flex;
   align-items: center;
   gap: 8px;
@@ -271,7 +348,7 @@
 
 .widget-card.widget-tools-open,
 .widget-card:has(> .widget-tools:focus-within) {
-  z-index: var(--z-popover);
+  z-index: var(--z-object-popover);
 }
 
 body.layout-tools-active .widget-card:not(.widget-tools-open):not(:has(> .widget-tools:focus-within)) .widget-tools {
@@ -304,7 +381,7 @@ body.layout-tools-active .widget-card:not(.widget-tools-open):not(:has(> .widget
   transform: translate(14px, -6px) scale(.84);
   transform-origin: top right;
   transition: transform var(--motion-popover), opacity .14s ease, background .16s ease, border-color .16s ease, visibility 0s linear .18s;
-  z-index: var(--z-resize-handle);
+  z-index: var(--z-object-control);
 }
 
 .widget-tools-open .widget-tool-drawer,
@@ -346,7 +423,7 @@ body.layout-tools-active .widget-card:not(.widget-tools-open):not(:has(> .widget
   position: absolute;
   top: 12px;
   left: 12px;
-  z-index: var(--z-dropdown);
+  z-index: var(--z-object-control);
   width: 7px;
   height: 7px;
   border: 1px solid color-mix(in srgb, var(--panel-accent, var(--blue)) 46%, rgba(15, 23, 42, .42));
@@ -670,7 +747,7 @@ body.layout-tools-active .widget-card:not(.widget-tools-open):not(:has(> .widget
 .db-panel.db-panel-tools-open {
   overflow: visible;
   transform: none !important;
-  z-index: var(--z-popover);
+  z-index: var(--z-object-popover);
 }
 
 .db-panel.db-panel-tools-open > .db-panel-hd {
@@ -1047,7 +1124,7 @@ body.layout-tools-active .widget-card:not(.widget-tools-open):not(:has(> .widget
   position: absolute;
   top: 12px;
   left: 12px;
-  z-index: var(--z-dropdown);
+  z-index: var(--z-object-control);
   width: 7px;
   height: 7px;
   border: 1px solid color-mix(in srgb, var(--panel-accent, var(--blue)) 46%, rgba(15, 23, 42, .42));
@@ -1228,6 +1305,7 @@ body.panel-interaction-active .dashboard-active-resize {
   --panel-control-active-shadow: 0 3px 8px color-mix(in srgb, var(--panel-lock-glow) 62%, transparent), inset 0 1px 0 color-mix(in srgb, var(--panel-hover-inset) 86%, transparent), inset 0 2px 5px color-mix(in srgb, var(--panel-lock-fg) 12%, rgba(15, 23, 42, .10));
   --panel-drawer-shadow: 0 14px 32px rgba(15, 23, 42, .18), 0 4px 14px color-mix(in srgb, var(--panel-lock-glow) 62%, transparent), inset 0 1px 0 rgba(255, 255, 255, .16);
   position: relative;
+  z-index: var(--z-object-control);
   display: inline-flex;
   align-items: center;
   gap: 8px;
@@ -1263,7 +1341,7 @@ body.layout-tools-active .db-panel:not(.db-panel-tools-open):not(:has(.panel-too
   transform: translate(14px, -6px) scale(.84);
   transform-origin: top right;
   transition: transform var(--motion-popover), opacity .14s ease, background .16s ease, border-color .16s ease, visibility 0s linear .18s;
-  z-index: var(--z-resize-handle);
+  z-index: var(--z-object-control);
 }
 
 .db-panel-tools-open .panel-tool-drawer,
@@ -1365,6 +1443,7 @@ body.layout-tools-active .db-panel:not(.db-panel-tools-open):not(:has(.panel-too
 .resize-icon,
 .text-icon,
 .color-icon,
+.anchor-link-icon,
 .pin-icon,
 .trash-icon {
   display: block;
@@ -1435,6 +1514,11 @@ body.layout-tools-active .db-panel:not(.db-panel-tools-open):not(:has(.panel-too
   -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.15' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='13.5' cy='6.5' r='.5'/%3E%3Ccircle cx='17.5' cy='10.5' r='.5'/%3E%3Ccircle cx='8.5' cy='7.5' r='.5'/%3E%3Ccircle cx='6.5' cy='12.5' r='.5'/%3E%3Cpath d='M12 2C6.5 2 2 6 2 11.5 2 17 6.5 22 12 22h1.7a2.3 2.3 0 0 0 1.7-3.9 2.3 2.3 0 0 1 1.7-3.9H19a3 3 0 0 0 3-3C22 6.1 17.5 2 12 2z'/%3E%3C/svg%3E");
 }
 
+.anchor-link-icon {
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.15' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M10 13a5 5 0 0 0 7.1 0l2-2a5 5 0 0 0-7.1-7.1l-1.1 1.1'/%3E%3Cpath d='M14 11a5 5 0 0 0-7.1 0l-2 2a5 5 0 0 0 7.1 7.1l1.1-1.1'/%3E%3C/svg%3E");
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.15' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M10 13a5 5 0 0 0 7.1 0l2-2a5 5 0 0 0-7.1-7.1l-1.1 1.1'/%3E%3Cpath d='M14 11a5 5 0 0 0-7.1 0l-2 2a5 5 0 0 0 7.1 7.1l1.1-1.1'/%3E%3C/svg%3E");
+}
+
 .trash-icon {
   width: 16px;
   height: 16px;
@@ -1475,7 +1559,7 @@ body.layout-tools-active .db-panel:not(.db-panel-tools-open):not(:has(.panel-too
   pointer-events: none;
   transform: translateY(-6px);
   transition: opacity .14s ease, transform .16s ease, visibility 0s linear .16s;
-  z-index: var(--z-popover);
+  z-index: var(--z-object-popover);
 }
 
 .panel-color-menu-open {

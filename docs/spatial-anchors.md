@@ -8,7 +8,7 @@ The dashboard should remain tabless. Navigation should happen inside one continu
 
 Spatial Anchors are floating viewport-fixed controls that act as contextual bookmarks into the larger dashboard world. Clicking an anchor smoothly moves the user back to a linked widget, panel, group, region, semantic context, or saved viewport while preserving the feeling of one continuous workspace.
 
-The current implementation is a minimal side-rail foundation: anchors can be created, dragged between left/right viewport rails, persisted separately from grid layout, and activated to navigate to a target. The full management, creation-from-selection, missing-target, keyboard repositioning, and contextual-state systems remain staged work.
+The current implementation is a minimal side-rail foundation: anchors can be created, default to the left viewport rail, be dragged between side rails, persist separately from grid layout, customize through widget-like controls, and navigate to either a linked divider or the top of the workspace. The full creation-from-selection, richer missing-target UI, keyboard repositioning, and contextual-state systems remain staged work.
 
 ## Concept Name
 
@@ -58,19 +58,19 @@ The target is world-relative. The anchor's floating position is viewport-relativ
 
 ### Appearance
 
-Anchors should feel like quiet floating glass controls, not tabs or mini widgets.
+Anchors are behaviorally separate from widgets, but visually inherit the widget material system. They should feel like compact widget-like navigation objects attached to the side rail, not independent tab pills or generic sidebar controls.
 
 Visual qualities:
 
-- Compact icon-first control.
-- Soft neutral/slate glass surface.
-- Subtle border and shadow.
+- Compact widget-like glass surface.
+- Shared widget color/material customization where appropriate.
+- Subtle border and shadow from the shared glass/widget tokens.
 - Optional label reveal on hover or focus.
 - Optional accent tied to target or inherited context.
 - Clear but restrained missing-target state.
 - Calm current/near-target state.
 
-Anchors should remain visually secondary to dashboard content.
+Anchors should remain visually secondary to dashboard content while still being recognizable as part of the same widget material family.
 
 ### Movement And Pinning
 
@@ -177,11 +177,14 @@ If a target is deleted, the anchor enters missing-target state rather than jumpi
 Current anchors:
 
 - render in `.workspace-anchor-layer`, outside widget and panel layouts;
-- use fixed side-rail placement with `side` and `offset` state;
+- use fixed side-rail placement with `side` and `offset` state, defaulting to the left rail;
 - persist in the `dashboard-floating-anchors:*` storage namespace;
 - do not participate in grid collision, snapping, resizing, pinning, grouping, or panel collapse pressure;
 - only resolve same-rail overlap against other anchors;
-- use existing workspace target metadata as a navigation hook.
+- use existing workspace target metadata as a navigation hook;
+- can store an optional `linkedDividerId`;
+- navigate to the linked divider when present, or to the top of the workspace when unlinked;
+- reuse widget-style material, color, settings, and compact-control primitives instead of a separate anchor-only visual language.
 
 This keeps anchors on a raised navigation axis while widgets, panels, and dividers remain on the workspace layout axis.
 
@@ -196,6 +199,7 @@ Future anchor records should support:
   "icon": "sticky-note",
   "targetType": "panel",
   "targetId": "builder-notes",
+  "linkedDividerId": null,
   "viewportPosition": {
     "x": 24,
     "y": 180,
@@ -229,6 +233,7 @@ Recommended fields:
 - `icon`: generic icon key.
 - `targetType`: widget, panel, group, region, context, viewport, or coordinate.
 - `targetId`: stable target id where available.
+- `linkedDividerId`: optional divider link used by the current side-rail navigation foundation.
 - `viewportPosition`: fixed screen placement.
 - `targetSnapshot`: fallback world/grid position.
 - `alignment`: scroll alignment behavior.
@@ -246,7 +251,8 @@ Navigation should preserve orientation.
 
 Rules:
 
-- Smooth scroll to the resolved target.
+- Smooth scroll to the linked divider when one is configured.
+- Smooth scroll to the top of the workspace when the anchor is unlinked or its linked divider is deleted.
 - Center small targets when possible.
 - Align large targets near the top with navbar/header offset.
 - Preserve horizontal position unless horizontal correction is needed.
@@ -254,7 +260,7 @@ Rules:
 - Respect `prefers-reduced-motion`.
 - Do not trigger anchor navigation during drag/resize/group interactions.
 - Do not mutate grid placement while navigating.
-- If target is already visible, optionally pulse/highlight the target instead of moving dramatically.
+- If the linked target is already visible, optionally pulse/highlight the target instead of moving dramatically.
 - Long-distance navigation may use distance-aware duration, but should stay responsive.
 
 Reduced motion:
@@ -372,6 +378,9 @@ Future Playwright coverage should verify:
 - Creating an anchor from current viewport.
 - Anchor position persists independently from grid layout.
 - Clicking an anchor scrolls to the correct target.
+- Unlinked anchors scroll to the top of the workspace.
+- Divider-linked anchors scroll to the linked divider.
+- Deleting a linked divider falls back safely to top-of-workspace navigation.
 - Navbar/header offset is respected.
 - Target movement updates anchor resolution.
 - Target deletion enters missing-target state.
@@ -382,6 +391,7 @@ Future Playwright coverage should verify:
 - Anchors do not block critical dashboard controls.
 - Save/load profile behavior preserves or clearly scopes anchors.
 - Default and deep-background visual states remain coherent.
+- Anchors keep widget-like material and customization while staying outside normal grid collision.
 - Mobile viewport behavior remains usable.
 
 Manual verification should cover:

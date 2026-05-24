@@ -1283,6 +1283,9 @@ document.addEventListener("DOMContentLoaded", () => {
     panel.style.setProperty("--panel-accent", panel.dataset.panelColor);
     panel.style.setProperty("--panel-accent-rgb", `${rgb.r}, ${rgb.g}, ${rgb.b}`);
     panel.style.setProperty("--panel-accent-text", readableTextFor(rgb));
+    if (panel.classList.contains("workspace-anchor-object")) {
+      panel.style.setProperty("--anchor-accent", panel.dataset.panelColor);
+    }
   };
 
   const applyPanelTitleColor = (panel, color) => {
@@ -1727,15 +1730,16 @@ document.addEventListener("DOMContentLoaded", () => {
     key: anchor.dataset.anchorKey,
     title: anchor.dataset.anchorTitle || anchor.querySelector(".workspace-anchor-label")?.textContent?.trim() || "Anchor",
     value: anchor.dataset.anchorGlyph || anchor.querySelector(".workspace-anchor-glyph")?.textContent?.trim() || "A",
-    side: anchor.dataset.anchorSide || "right",
+    side: anchor.dataset.anchorSide || "left",
     offset: Number(anchor.dataset.anchorOffset) || 148,
     color: anchor.dataset.panelColor || "#2563eb",
+    linkedDividerId: anchor.dataset.linkedDividerId || null,
     workspaceObjectType: WORKSPACE_OBJECT_TYPES.anchor,
     dashboardObjectKind: "anchor",
     contextRole: anchor.dataset.contextRole || "navigation-reference",
     workspaceRegionId: anchor.dataset.workspaceRegionId || null,
     contextScopeId: anchor.dataset.contextScopeId || null,
-    navigationTargetType: anchor.dataset.navigationTargetType || "workspace-region",
+    navigationTargetType: anchor.dataset.navigationTargetType || (anchor.dataset.linkedDividerId ? "divider" : "workspace-top"),
     navigationTargetId: anchor.dataset.navigationTargetId || null,
   });
 
@@ -1750,7 +1754,7 @@ document.addEventListener("DOMContentLoaded", () => {
   };
 
   const applyAnchorPosition = (anchor) => {
-    const side = anchor.dataset.anchorSide === "left" ? "left" : "right";
+    const side = anchor.dataset.anchorSide === "right" ? "right" : "left";
     const offset = clampAnchorOffset(anchor.dataset.anchorOffset, anchor);
     anchor.dataset.anchorSide = side;
     anchor.dataset.anchorOffset = String(offset);
@@ -1786,24 +1790,99 @@ document.addEventListener("DOMContentLoaded", () => {
     normalizeAnchorRail(layer, "right");
   };
 
+  const anchorLinkedDividerTarget = (anchor) => {
+    const dividerId = anchor?.dataset?.linkedDividerId || "";
+    return dividerId
+      ? document.querySelector(`.workspace-divider[data-panel-key="${CSS.escape(dividerId)}"]`)
+      : null;
+  };
+
+  const syncAnchorNavigationTarget = (anchor) => {
+    const target = anchorLinkedDividerTarget(anchor);
+    if (target) {
+      anchor.dataset.navigationTargetType = "divider";
+      anchor.dataset.navigationTargetId = target.dataset.contextScopeId || target.dataset.workspaceRegionId || target.dataset.panelKey;
+      anchor.dataset.workspaceRegionId = target.dataset.workspaceRegionId || target.dataset.contextScopeId || "";
+      anchor.dataset.contextScopeId = target.dataset.contextScopeId || "";
+    } else {
+      delete anchor.dataset.linkedDividerId;
+      anchor.dataset.navigationTargetType = "workspace-top";
+      anchor.dataset.navigationTargetId = "";
+      anchor.dataset.workspaceRegionId = "";
+      anchor.dataset.contextScopeId = "";
+    }
+    const label = anchor.querySelector(".workspace-anchor-meta");
+    if (label) label.textContent = target ? target.querySelector(".db-panel-title")?.textContent?.trim() || "Divider" : "Top";
+  };
+
+  const dividerOptionsForAnchor = (layoutKey = "builder") => [
+    ...document.querySelectorAll(`.panel-layout[data-layout-key="${CSS.escape(layoutKey)}"] .workspace-divider[data-workspace-object-type="divider"]`)
+  ];
+
+  const refreshAnchorDividerMenu = (anchor, menu, layoutKey) => {
+    if (!anchor || !menu) return;
+    menu.replaceChildren();
+    const makeOption = ({ label, dividerId = "" }) => {
+      const option = document.createElement("button");
+      option.className = "anchor-link-option";
+      option.type = "button";
+      option.dataset.dividerId = dividerId;
+      option.setAttribute("aria-pressed", String((anchor.dataset.linkedDividerId || "") === dividerId));
+      option.textContent = label;
+      option.addEventListener("click", (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        if (dividerId) {
+          anchor.dataset.linkedDividerId = dividerId;
+        } else {
+          delete anchor.dataset.linkedDividerId;
+        }
+        syncAnchorNavigationTarget(anchor);
+        refreshAnchorDividerMenu(anchor, menu, layoutKey);
+        anchor.classList.remove("widget-tools-open");
+        anchor.querySelector(".anchor-settings-toggle")?.setAttribute("aria-expanded", "false");
+        menu.classList.remove("anchor-link-menu-open");
+        anchor.querySelector(".anchor-link-toggle")?.setAttribute("aria-expanded", "false");
+        syncLayoutToolsActive();
+        saveFloatingAnchors(layoutKey, getActivePanelProfile(layoutKey));
+      });
+      menu.appendChild(option);
+    };
+    makeOption({ label: "Top of workspace" });
+    dividerOptionsForAnchor(layoutKey).forEach((divider) => {
+      makeOption({
+        label: divider.querySelector(".db-panel-title")?.textContent?.trim() || "Divider",
+        dividerId: divider.dataset.panelKey || "",
+      });
+    });
+    if (menu.children.length === 1) {
+      const empty = document.createElement("span");
+      empty.className = "anchor-link-empty";
+      empty.textContent = "No dividers yet";
+      menu.appendChild(empty);
+    }
+  };
+
   const createFloatingAnchor = (definition = {}) => {
-    const anchor = document.createElement("button");
+    const anchor = document.createElement("div");
     const title = definition.title || "Anchor";
     const key = definition.key || `anchor-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`;
     const layoutKey = definition.layoutKey || "builder";
-    anchor.type = "button";
-    anchor.className = "workspace-anchor-object";
+    anchor.className = "workspace-anchor-object widget-card stat-card db-panel-custom-color";
+    anchor.setAttribute("role", "button");
+    anchor.tabIndex = 0;
     anchor.dataset.anchorKey = key;
     anchor.dataset.anchorTitle = title;
     anchor.dataset.anchorGlyph = definition.value || "A";
-    anchor.dataset.anchorSide = definition.side === "left" ? "left" : "right";
+    anchor.dataset.anchorSide = definition.side === "right" ? "right" : "left";
     anchor.dataset.anchorOffset = String(definition.offset || 148);
+    if (definition.linkedDividerId) anchor.dataset.linkedDividerId = definition.linkedDividerId;
     anchor.dataset.workspaceObjectType = WORKSPACE_OBJECT_TYPES.anchor;
     anchor.dataset.dashboardObjectKind = "anchor";
     anchor.dataset.contextRole = definition.contextRole || "navigation-reference";
     anchor.dataset.workspaceContextModel = WORKSPACE_CONTEXT_MODEL_VERSION;
-    anchor.dataset.navigationTargetType = definition.navigationTargetType || "workspace-region";
-    anchor.dataset.navigationTargetId = definition.navigationTargetId || definition.workspaceRegionId || workspaceRootRegionId(layoutKey);
+    anchor.dataset.navigationTargetType = definition.navigationTargetType || (definition.linkedDividerId ? "divider" : "workspace-top");
+    anchor.dataset.navigationTargetId = definition.navigationTargetId || "";
     if (definition.workspaceRegionId) anchor.dataset.workspaceRegionId = definition.workspaceRegionId;
     if (definition.contextScopeId) anchor.dataset.contextScopeId = definition.contextScopeId;
     ensureWorkspaceObjectMetadata(anchor, {
@@ -1811,17 +1890,28 @@ document.addEventListener("DOMContentLoaded", () => {
       workspaceObjectType: WORKSPACE_OBJECT_TYPES.anchor,
       dashboardObjectKind: "anchor",
       contextRole: definition.contextRole || "navigation-reference",
-      navigationTargetType: definition.navigationTargetType || "workspace-region",
-      navigationTargetId: definition.navigationTargetId || definition.workspaceRegionId || workspaceRootRegionId(layoutKey),
+      navigationTargetType: definition.navigationTargetType || (definition.linkedDividerId ? "divider" : "workspace-top"),
+      navigationTargetId: definition.navigationTargetId || "",
     });
     anchor.setAttribute("aria-label", `${title} spatial anchor`);
     anchor.innerHTML = `
-      <span class="workspace-anchor-glyph" aria-hidden="true">${escapeHtml(definition.value || "A")}</span>
-      <span class="workspace-anchor-copy">
-        <span class="workspace-anchor-label">${escapeHtml(title)}</span>
-        <span class="workspace-anchor-meta">Anchor</span>
+      <span class="workspace-anchor-content">
+        <span class="workspace-anchor-glyph" aria-hidden="true">${escapeHtml(definition.value || "A")}</span>
+        <span class="workspace-anchor-copy">
+          <span class="workspace-anchor-label">${escapeHtml(title)}</span>
+          <span class="workspace-anchor-meta">Top</span>
+        </span>
+      </span>
+      <span class="widget-tools anchor-tools">
+        <span class="panel-tool-drawer widget-tool-drawer anchor-tool-drawer" aria-label="Anchor tools">
+          <button class="panel-tool-button anchor-link-toggle" type="button" aria-label="Link anchor to divider" aria-expanded="false" title="Link anchor"><span class="anchor-link-icon" aria-hidden="true"></span></button>
+          <button class="panel-tool-button panel-color-toggle" type="button" aria-label="Anchor colors" aria-expanded="false" title="Anchor colors" data-default-theme="${definition.color || "#2563eb"}"><span class="color-icon" aria-hidden="true"></span></button>
+        </span>
+        <button class="panel-settings-toggle widget-settings-toggle anchor-settings-toggle" type="button" aria-label="Anchor settings" aria-expanded="false" title="Anchor settings"><span class="settings-icon" aria-hidden="true"></span></button>
+        <span class="anchor-link-menu" role="menu" aria-label="Anchor divider link"></span>
       </span>`;
     applyAnchorColor(anchor, definition.color || "#2563eb");
+    syncAnchorNavigationTarget(anchor);
     applyAnchorPosition(anchor);
     return anchor;
   };
@@ -1844,9 +1934,10 @@ document.addEventListener("DOMContentLoaded", () => {
         .filter((definition) => workspaceObjectTypeFromDefinition(definition, WORKSPACE_OBJECT_TYPES.widget) === WORKSPACE_OBJECT_TYPES.anchor)
         .map((definition, index) => ({
           ...definition,
-          side: definition.side || (index % 2 ? "left" : "right"),
+          side: definition.side || "left",
           offset: definition.offset || 148 + (index * 48),
-          navigationTargetId: definition.navigationTargetId || definition.workspaceRegionId || workspaceRootRegionId(layoutKey),
+          navigationTargetType: definition.navigationTargetType || (definition.linkedDividerId ? "divider" : "workspace-top"),
+          navigationTargetId: definition.navigationTargetId || "",
         }));
     } catch {
       return [];
@@ -1863,12 +1954,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const navigateToAnchorTarget = (anchor) => {
     if (isDashboardInteractionActive()) return;
-    const targetId = anchor.dataset.navigationTargetId;
-    const target = targetId
-      ? document.querySelector(`[data-workspace-region-id="${CSS.escape(targetId)}"], [data-context-scope-id="${CSS.escape(targetId)}"], [data-widget-key="${CSS.escape(targetId)}"], [data-panel-key="${CSS.escape(targetId)}"]`)
-      : null;
-    if (!target) return;
-    const top = target.getBoundingClientRect().top + window.scrollY - 96;
+    const target = anchorLinkedDividerTarget(anchor);
+    if (anchor.dataset.linkedDividerId && !target) {
+      syncAnchorNavigationTarget(anchor);
+      saveFloatingAnchors(anchor.closest(".workspace-anchor-layer")?.dataset.anchorLayoutKey || "builder");
+    }
+    const top = target ? target.getBoundingClientRect().top + window.scrollY - 96 : 0;
     window.scrollTo({ top: Math.max(0, top), behavior: window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches ? "auto" : "smooth" });
   };
 
@@ -1881,9 +1972,81 @@ document.addEventListener("DOMContentLoaded", () => {
     let startY = 0;
     let pointerOffsetY = 0;
     const layoutKey = layer.dataset.anchorLayoutKey || "default";
+    anchor.__saveWidgetLayout = () => saveFloatingAnchors(layoutKey, getActivePanelProfile(layoutKey));
+    const tools = anchor.querySelector(".anchor-tools");
+    const settings = anchor.querySelector(".anchor-settings-toggle");
+    const drawer = anchor.querySelector(".anchor-tool-drawer");
+    const colorToggle = anchor.querySelector(".panel-color-toggle");
+    const linkToggle = anchor.querySelector(".anchor-link-toggle");
+    const linkMenu = anchor.querySelector(".anchor-link-menu");
+    const colorMenu = buildPanelColorMenu(anchor, layer, colorToggle);
+    const openTools = () => {
+      if (!canOpenDashboardTools(anchor)) return;
+      closeInactiveDashboardTools(anchor);
+      positionDashboardToolDrawer(anchor, settings, drawer);
+      anchor.classList.add("widget-tools-open");
+      settings?.setAttribute("aria-expanded", "true");
+      syncLayoutToolsActive();
+    };
+    const closeTools = () => {
+      anchor.classList.remove("widget-tools-open");
+      settings?.setAttribute("aria-expanded", "false");
+      linkToggle?.setAttribute("aria-expanded", "false");
+      linkMenu?.classList.remove("anchor-link-menu-open");
+      colorToggle?.setAttribute("aria-expanded", "false");
+      colorMenu?.classList.remove("panel-color-menu-open");
+      syncLayoutToolsActive();
+    };
+    const toggleLinkMenu = () => {
+      if (!linkMenu || !linkToggle) return;
+      const nextOpen = !linkMenu.classList.contains("anchor-link-menu-open");
+      if (nextOpen) {
+        refreshAnchorDividerMenu(anchor, linkMenu, layoutKey);
+        colorMenu?.classList.remove("panel-color-menu-open");
+        colorToggle?.setAttribute("aria-expanded", "false");
+      }
+      linkMenu.classList.toggle("anchor-link-menu-open", nextOpen);
+      linkToggle.setAttribute("aria-expanded", String(nextOpen));
+    };
+
+    tools?.addEventListener("click", (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+    });
+    settings?.addEventListener("click", (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      if (anchor.classList.contains("widget-tools-open")) {
+        closeTools();
+      } else {
+        openTools();
+      }
+    });
+    linkToggle?.addEventListener("click", (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      openTools();
+      toggleLinkMenu();
+    });
+    colorToggle?.addEventListener("click", (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      openTools();
+      linkMenu?.classList.remove("anchor-link-menu-open");
+      linkToggle?.setAttribute("aria-expanded", "false");
+      const nextOpen = !colorMenu?.classList.contains("panel-color-menu-open");
+      if (nextOpen) {
+        syncPanelThemeVars(anchor, colorMenu);
+        colorToggle.__refreshPanelColorMenu?.();
+        positionPanelColorMenu(colorToggle, colorMenu);
+      }
+      colorMenu?.classList.toggle("panel-color-menu-open", nextOpen);
+      colorToggle.setAttribute("aria-expanded", String(nextOpen));
+    });
 
     anchor.addEventListener("pointerdown", (event) => {
       if (event.button !== 0) return;
+      if (event.target?.closest?.(".anchor-tools, .panel-color-menu, .anchor-link-menu")) return;
       event.preventDefault();
       startX = event.clientX;
       startY = event.clientY;
@@ -1920,6 +2083,7 @@ document.addEventListener("DOMContentLoaded", () => {
     anchor.addEventListener("pointerup", finishDrag);
     anchor.addEventListener("pointercancel", finishDrag);
     anchor.addEventListener("click", (event) => {
+      if (event.target?.closest?.(".anchor-tools, .panel-color-menu, .anchor-link-menu")) return;
       if (dragging || didDrag) {
         event.preventDefault();
         event.stopPropagation();
@@ -1927,6 +2091,17 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
       }
       navigateToAnchorTarget(anchor);
+    });
+    anchor.addEventListener("keydown", (event) => {
+      if (event.target?.closest?.(".anchor-tools, .panel-color-menu, .anchor-link-menu")) return;
+      if (event.key !== "Enter" && event.key !== " ") return;
+      event.preventDefault();
+      navigateToAnchorTarget(anchor);
+    });
+    document.addEventListener("pointerdown", (event) => {
+      if (!anchor.classList.contains("widget-tools-open")) return;
+      if (anchor.contains(event.target) || colorMenu?.contains(event.target)) return;
+      closeTools();
     });
   };
 
@@ -1939,7 +2114,8 @@ document.addEventListener("DOMContentLoaded", () => {
       const anchor = createFloatingAnchor({
         ...definition,
         layoutKey,
-        navigationTargetId: definition.navigationTargetId || definition.workspaceRegionId || workspaceRootRegionId(layoutKey),
+        navigationTargetType: definition.navigationTargetType || (definition.linkedDividerId ? "divider" : "workspace-top"),
+        navigationTargetId: definition.navigationTargetId || "",
       });
       layer.appendChild(anchor);
       initFloatingAnchor(anchor, layer);
@@ -3023,24 +3199,41 @@ document.addEventListener("DOMContentLoaded", () => {
     return candidates;
   };
 
+  const canPlaceLocalDisplacementBounds = (bounds, occupied, reserved = []) => (
+    canPlaceBounds(bounds, occupied) && canPlaceBounds(bounds, reserved)
+  );
+
+  const localBelowDisplacementSlot = (item, base, occupied, reserved = [], metrics = null) => {
+    const candidate = boundsAtGridSlot(item, base.col, base.row + base.rowSpan, metrics);
+    return canPlaceLocalDisplacementBounds(candidate, occupied, reserved) ? candidate : null;
+  };
+
+  const localLeftDisplacementSlot = (item, base, occupied, localVacancy = null, reserved = [], metrics = null) => {
+    const explicitPrevious = base.col > 1
+      ? boundsAtGridSlot(item, base.col - 1, base.row, metrics)
+      : null;
+    const leftVacancyCandidates = localVacancyCandidates(item, localVacancy, metrics)
+      .filter((candidate) => candidate.row === base.row && candidate.col < base.col)
+      .sort((a, b) => (
+        Math.abs(a.col - base.col) - Math.abs(b.col - base.col) ||
+        b.col - a.col
+      ));
+    return [explicitPrevious, ...leftVacancyCandidates]
+      .filter((candidate) => candidate && canPlaceLocalDisplacementBounds(candidate, occupied, reserved))[0] || null;
+  };
+
   const nearestLocalDisplacementSlot = (item, preferred, occupied, options = {}) => {
     const metrics = options.metrics || null;
     const base = boundsAtGridSlot(item, preferred?.col || 1, preferred?.row || 1, metrics);
+    const reserved = options.reserved || [];
+    const below = localBelowDisplacementSlot(item, base, occupied, reserved, metrics);
+    if (below) return below;
+    const left = localLeftDisplacementSlot(item, base, occupied, options.localVacancy, reserved, metrics);
+    if (left) return left;
     const fallback = options.fallback || nearestSparseSlotAtOrAfter(item, base, occupied, null, metrics);
-    const candidates = [
-      fallback,
-      ...localVacancyCandidates(item, options.localVacancy, metrics),
-    ].filter((candidate) => candidate && canPlaceBounds(candidate, occupied));
-    if (!candidates.length) return fallback;
-    const score = (bounds) => (
-      (Math.abs(bounds.row - base.row) * DASHBOARD_GRID_COLUMNS) +
-      Math.abs(bounds.col - base.col)
-    );
-    return candidates.sort((a, b) => (
-      score(a) - score(b) ||
-      a.row - b.row ||
-      a.col - b.col
-    ))[0];
+    return canPlaceBounds(fallback, occupied)
+      ? fallback
+      : nearestSparseSlotAtOrAfter(item, base, occupied, null, metrics);
   };
 
   const visualGridOrder = (items, metrics = null) => [...items].sort((a, b) => {
@@ -3183,13 +3376,16 @@ document.addEventListener("DOMContentLoaded", () => {
       .filter((item) => item !== activeItem && !item.classList.contains("db-panel-pinned"))
       .forEach((item) => {
         const current = gridBoundsForItem(item, metrics);
+        const reserved = items
+          .filter((other) => other !== activeItem && other !== item)
+          .map((other) => ({ item: other, bounds: gridBoundsForItem(other, metrics) }));
         const verticalFallback = options.verticalDisplacement
           ? verticalSlotAtOrAfter(item, current, occupied, null, metrics) || nearestSparseSlotAtOrAfter(item, current, occupied, null, metrics)
           : null;
         const bounds = canPlaceBounds(current, occupied)
           ? current
           : options.afterOnly
-            ? nearestLocalDisplacementSlot(item, current, occupied, { localVacancy, metrics, fallback: verticalFallback })
+            ? nearestLocalDisplacementSlot(item, current, occupied, { localVacancy, metrics, reserved, fallback: verticalFallback })
             : nearestSparseSlot(item, current, occupied, null, metrics);
         placements.set(item, bounds);
         occupied.push({ item, bounds });
@@ -3237,11 +3433,15 @@ document.addEventListener("DOMContentLoaded", () => {
     let movedItems = 0;
     visualGridOrder(movableItems).forEach((other) => {
       const current = gridBoundsForItem(other);
+      const reserved = items
+        .filter((item) => item !== other)
+        .map((item) => ({ item, bounds: gridBoundsForItem(item) }));
       const next = canPlaceBounds(current, occupied)
         ? current
         : nearestLocalDisplacementSlot(other, current, occupied, {
           localVacancy,
-          fallback: verticalSlotAtOrAfter(other, current, occupied) || nearestSparseSlotAtOrAfter(other, current, occupied),
+          reserved,
+          fallback: nearestSparseSlotAtOrAfter(other, current, occupied),
         });
       if (next.col !== current.col || next.row !== current.row) movedItems += 1;
       applyGridItemPosition(other, next.col, next.row);
@@ -3268,10 +3468,14 @@ document.addEventListener("DOMContentLoaded", () => {
     let movedItems = 0;
     visualGridOrder(items.filter((other) => !other.classList.contains("db-panel-pinned"))).forEach((other) => {
       const current = gridBoundsForItem(other);
+      const reserved = items
+        .filter((item) => item !== other)
+        .map((item) => ({ item, bounds: gridBoundsForItem(item) }));
       const next = canPlaceBounds(current, occupied)
         ? current
         : nearestLocalDisplacementSlot(other, current, occupied, {
           localVacancy,
+          reserved,
           fallback: verticalSlotAtOrAfter(other, current, occupied) || nearestSparseSlotAtOrAfter(other, current, occupied),
         });
       if (next.col !== current.col || next.row !== current.row) movedItems += 1;
@@ -5850,11 +6054,10 @@ document.addEventListener("DOMContentLoaded", () => {
           title,
           value: "A",
           color: nextColor,
-          side: customCount % 2 ? "left" : "right",
+          side: "left",
           offset: 148 + (customCount * 48),
-          workspaceRegionId: workspaceRootRegionId(layoutKey),
-          navigationTargetType: "workspace-region",
-          navigationTargetId: workspaceRootRegionId(layoutKey),
+          navigationTargetType: "workspace-top",
+          navigationTargetId: "",
         });
         layer.appendChild(anchor);
         initFloatingAnchor(anchor, layer);

@@ -72,11 +72,47 @@ Command:
 .venv\Scripts\python.exe -m pytest -q
 ```
 
-Latest result: 85 passed, 0 failed.
+Latest result: 87 passed, 0 failed.
 
 Previous discovery result: 6 passed, 3 failed.
 
 Passed coverage included app/dashboard/settings load, CSS imports, absence of mode toggle state, expanded background palette persistence, shared material invariance across deep background selection, workspace toolbar command-island screenshots, toolbar mode toggles, generic Add Widget menu options, shared timeframe controls, timeframe createability, timeframe resize, timeframe minimum resize clamping, exact layout save/load round trips, small-panel menu overlays, panel placeholder/body sizing, adaptive panel content density, drag ghost creation, ordered drag reflow, local top insertion, reversible collision previews, capability-gated panel previews for dividers/anchors/panels, suppression of underlying hover menus during drag, global widget/panel occupancy, pinned item protection, pin menu close behavior, sparse empty-space placement, grid-bound drag clamping, grid snapping alignment, collision/overlap checks, resize snapping, left-edge anchored resize, menu icon alignment, panel header chevron centering, panel/widget/timeframe hover-focus material coverage, restrained neutral widget hover shadows, group multi-selection, grouped drag, grouped proportional resize, pinned items inside groups, mixed widget/panel group transforms, group mode, layout save/load/reset, settings save, mobile overflow checks, console errors, and network errors.
+
+### BUG-093: Anchors Looked Like Separate Side Pills And Lacked Divider Linking
+
+- Status: Fixed
+- Area: Spatial anchors / navigation layer / workspace object taxonomy
+- Severity: Medium
+- Environment: Dashboard workspace, Anchor objects created from the Add menu, left/right side rail placement, divider navigation
+- Observed: Anchors had become behaviorally separate from grid widgets, but visually read as their own pill/tab component instead of inheriting the widget material system. New anchors also defaulted to the right rail, and there was no direct anchor setting for linking to a divider. Unlinked anchors still relied on workspace target metadata instead of providing the useful top-of-workspace fallback.
+- Expected: Anchors should remain outside normal widget/panel/divider collision while looking like compact widget-like navigation objects attached to the side rail. They should default to the left rail, reuse widget glass/material and customization primitives, optionally link to a divider from their settings menu, navigate smoothly to that divider, and fall back to the top of the workspace when unlinked or when the linked divider is gone.
+- Suspected cause: The first floating-anchor pass intentionally separated anchors from grid widgets, but it also introduced anchor-specific visual structure and target defaults. Anchor settings did not yet reuse widget customization controls, and link resolution did not carry a divider-specific persistence field.
+- Fix notes: Reworked floating anchor markup to render as a widget-card/custom-color surface with widget-style settings controls, color customization, compact pressable controls, and left-rail default placement. Added `linkedDividerId` persistence, a divider-link menu inside anchor settings, sync helpers that derive navigation metadata from the linked divider, smooth-scroll fallback to workspace top, and safe link clearing when a divider target is deleted. Anchor collision remains isolated to the anchor layer.
+- Validation: Updated anchor-layer coverage and added `test_anchor_links_to_divider_or_workspace_top_and_persists` to verify left default placement, fixed side-layer behavior, widget-like material/classes, color customization, divider linking, linked smooth-scroll navigation, unlinked top fallback, deleted-divider fallback, and save/load persistence. Manual browser inspection covered the anchor on default and deep-slate backgrounds, settings/color/link menus, linked divider navigation, fixed scroll behavior, and deleted-divider fallback. `.venv\Scripts\python.exe -m pytest -q` passed with 87 tests.
+
+### BUG-092: Widget Submenus Lost Readability And Navbar Dropdowns Shared Object Layers
+
+- Status: Fixed
+- Area: Theme / widget controls / navbar layering
+- Severity: Medium
+- Environment: Dashboard workspace, widget and panel object menus, navbar Add/Layout/Profile/Background dropdowns
+- Observed: Widget object settings drawers used a transparent-mixed background across the whole drawer surface, so the submenu shell faded into the widget/background more than the panel drawer. Open widget/panel controls also shared the same high popover layer family as navbar dropdowns, allowing object controls to visually compete with navbar menus.
+- Expected: Widget submenu containers should retain readable glass structure comparable to panel submenu containers, while only the individual compact button nodules remain softer/translucent. Navbar dropdowns should deterministically layer above workspace objects, object surface controls, and object submenus.
+- Suspected cause: The widget drawer material token reduced the entire drawer gradient by mixing with `transparent`, and the range widget carried a matching transparent fallback. Object-open z-index rules used generic dropdown/popover tokens that overlapped with navbar menu tokens instead of a clear workspace-object versus navbar-popover layer split.
+- Fix notes: Rebuilt `--widget-drawer-bg` as a stronger glass drawer surface that keeps the translucent material but no longer fades the whole container, aligned custom-color widget and range-widget drawer fallbacks with that shell, and added explicit `--z-object-control`, `--z-object-popover`, and `--z-navbar-dropdown` tokens. Widget/panel controls and color menus now sit in object layers below the navbar, while workspace navbar dropdowns use the navbar dropdown layer.
+- Validation: Updated `test_widget_surface_controls_use_translucent_widget_glass` to verify widget drawer readability, opacity, border, shadow, icon readability, and that drawer material is stronger than the compact buttons on default and deep backgrounds. Added `test_navbar_dropdowns_layer_above_object_controls` to verify open widget/panel controls remain below the navbar and Add/Layout dropdowns use the navbar dropdown layer. Targeted menu/chrome tests passed, the protected collision test was rerun after the layer adjustment, and `.venv\Scripts\python.exe -m pytest -q` passed with 86 tests.
+
+### BUG-091: Collision Resolution Skipped Local Left Fallback After Below Slot Check
+
+- Status: Fixed
+- Area: Dashboard grid / collision reflow / drag preview and drop commit
+- Severity: Medium
+- Environment: Widget and panel drag collision in the six-column dashboard grid
+- Observed: Local collision resolution had started preferring the below/current-column fallback, but the same resolver still treated nearby local-left and forward candidates as a distance-sorted pool in some paths. That could either choose left before a valid below slot or continue forward when below was blocked but a valid previous/left slot was open.
+- Expected: Displaced objects should use a deterministic local priority order: direct below/current-column when empty, then previous/left local slot when below is occupied, then the next valid forward slot. This should remain a local collision fix, not global auto-pack.
+- Suspected cause: `nearestLocalDisplacementSlot` mixed the row-major fallback with freed local vacancy candidates and sorted by distance. It also only checked candidates against already-processed occupied entries, so a "below" slot could appear available even when an unprocessed object already lived there.
+- Fix notes: Split local displacement target selection into explicit below and left helpers. Below and left candidates are now validated against both committed occupied entries and a reserved snapshot of other objects, so they are used only when truly empty. Only after both local candidates fail does the resolver use the normal row-major forward fallback. Preview and commit paths both call the same helper.
+- Validation: Reworked `test_collision_prefers_below_then_left_before_forward_for_widgets_and_panels` to cover below-slot reuse, previous/left-slot reuse when below is blocked, forward fallback when neither local option is available, preview/commit parity, no unrelated movement, and widget/panel parity. Targeted collision, expanded-panel, and protected group slices passed, and `.venv\Scripts\python.exe -m pytest -q` passed with 85 tests.
 
 ### BUG-090: Anchors And Dividers Inherited Expanded Panel Preview Affordances
 
