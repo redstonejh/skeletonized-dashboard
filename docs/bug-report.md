@@ -72,7 +72,7 @@ Command:
 .venv\Scripts\python.exe -m pytest -q
 ```
 
-Latest result: 68 passed, 0 failed.
+Latest result: 73 passed, 0 failed.
 
 Previous discovery result: 6 passed, 3 failed.
 
@@ -821,6 +821,31 @@ Passed coverage included app/dashboard/settings load, CSS imports, theme persist
 - Suspected cause: The previous minimum-size fix correctly introduced per-widget minimum span metadata, but it calibrated the timeframe floor to the comfortable/spacious control layout instead of the smallest usable adaptive layout.
 - Fix notes: Reduced the timeframe widget `data-min-w` and shared controls fallback from 4 columns to 3 columns. Added a span-3 compact density state for the timeframe command surface that tightens cluster gaps, surface padding, preset widths, selected-timeframe width, and icon button size while preserving usable hit areas and existing hover/focus treatment. Added the adaptive-density-first sizing rule to engineering and pre-overhaul architecture docs.
 - Validation: Updated `test_timeframe_resize_clamps_to_adaptive_density_minimum` for light and dark themes. The test resizes below the allowed floor, verifies the live snapped preview and final commit clamp at span 3, checks compact density values, asserts visible controls are not clipped or undersized, exercises hover/focus states, and verifies no overlaps. Updated group resize tests to use the new minimum. Targeted timeframe/group resize tests passed, and `.venv\Scripts\python.exe -m pytest -q` passed with 68 tests.
+
+### BUG-058: Dark Timeframe Controls Lost Layered Glass Depth
+
+- Status: Verified
+- Area: Widgets / theme / dark-mode material polish
+- Severity: Low
+- Environment: Dashboard workspace, dark theme, timeframe command widget
+- Observed: The dark-mode timeframe command surface read flatter and more recessed than the light-mode material. The outer pill, inner clusters, and individual controls used nearly the same dark override, so the ridged/inset container hierarchy disappeared.
+- Expected: Dark mode preserves the same material hierarchy as light mode under smoked-glass lighting: a distinct outer command surface, nested capsule clusters, and raised readable controls with subtle borders, soft inner highlights, restrained shadows, and no neon rim.
+- Suspected cause: A late dark-mode selector grouped `.timeframe-command-surface`, `.timeframe-presets`, `.timeframe-active-cluster`, and `.timeframe-utility-cluster` together with identical background, border, and shadow values, flattening the control stack.
+- Fix notes: Split the dark timeframe material rules by layer. The outer command surface now uses a deeper smoked-glass ridge with low-contrast slate border, inner clusters use a separate inset capsule treatment, the active cluster has a slightly stronger inner material, and individual timeframe controls keep their own raised hover/active/focus surfaces. Navbar styling and interaction behavior were not changed.
+- Screenshot: `test-results/timeframe-depth/timeframe-dark-layered-depth.png`
+- Validation: Added `test_dark_timeframe_controls_preserve_layered_glass_depth`, which verifies the dark outer surface, inner clusters, active cluster, and buttons have distinct backgrounds/borders, retain inset highlight/shadow structure, avoid electric blue edge colors, and still provide hover elevation. Targeted timeframe/theme tests passed, and `.venv\Scripts\python.exe -m pytest -q` passed with 69 tests.
+
+### BUG-059: Undo Skipped The Most Recent Committed Dashboard Change
+
+- Status: Verified
+- Area: Dashboard grid / undo / layout state
+- Severity: High
+- Environment: Dashboard workspace, keyboard undo and toolbar undo after drag, resize, grouped interactions, add panel, and expand/collapse
+- Observed: Undo did not reliably behave like Ctrl+Z for the last committed dashboard action. After some drag, resize, grouped, or add-panel flows, the first undo appeared to restore the wrong state, skip the most recent change, or do nothing.
+- Expected: Ctrl+Z/Cmd+Z and the undo button restore the previous committed dashboard state exactly one step at a time. Undo history records committed user actions, not live ghosts, snapped previews, hover/focus state, selected visuals, or temporary interaction surfaces.
+- Suspected cause: Shared dashboard interactions call `saveSharedGridLayouts`, which saves widget and panel layouts separately. Each save pushed a live undo snapshot, so one committed action could leave duplicate identical "after" states on the undo stack. The first undo popped only one duplicate and restored the same visible layout. Snapshots also included transient root item classes such as selected/tools-open/drag/resize state, and there was no document-level Ctrl+Z handler.
+- Fix notes: Added sanitized committed-state snapshots that strip transient interaction/selection/tool classes from captured root items, added snapshot signatures so duplicate committed states are ignored, and cleaned live resize/drag/group/auto-scroll artifacts before and after restore. Ctrl+Z/Cmd+Z now invokes dashboard undo only outside editable fields and prevents browser default only when a dashboard undo actually handles the shortcut. The existing stack remains a committed-state history rather than a pointermove/live-preview log.
+- Validation: Added undo regressions for widget move, widget resize, group move, group resize, add panel, expand/collapse, canceled drag preview exclusion, artifact cleanup, and input-field Ctrl+Z safety. Targeted undo tests passed, broader drag/resize/group/add/expand slices passed, and `.venv\Scripts\python.exe -m pytest -q` passed with 73 tests.
 
 ## Entry Template
  

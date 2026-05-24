@@ -551,9 +551,33 @@ document.addEventListener("DOMContentLoaded", () => {
   };
   const liveLayoutUndo = new Map();
   const liveLayoutUndoKey = (layoutKey, profile = getActivePanelProfile(layoutKey)) => `${profile}:${layoutKey}`;
+  const undoTransientItemClasses = [
+    "active",
+    "db-panel-dragging",
+    "widget-dragging",
+    "dashboard-active-resize",
+    "dashboard-resize-source",
+    "group-selected",
+    "group-transform-member",
+    "db-panel-tools-open",
+    "widget-tools-open",
+  ];
+  const sanitizeLayoutElementForUndo = (element) => {
+    const clone = element.cloneNode(true);
+    clone.classList.remove(...undoTransientItemClasses);
+    clone.removeAttribute("aria-selected");
+    clone.style.removeProperty("left");
+    clone.style.removeProperty("top");
+    clone.style.removeProperty("width");
+    clone.querySelectorAll(".panel-settings-toggle, .panel-color-toggle").forEach((button) => {
+      button.setAttribute("aria-expanded", "false");
+    });
+    clone.querySelectorAll(".panel-color-menu-open").forEach((menu) => menu.classList.remove("panel-color-menu-open"));
+    return clone.outerHTML;
+  };
   const serializeLayoutElement = (element, keyName) => ({
     key: element.dataset[keyName],
-    html: element.outerHTML,
+    html: sanitizeLayoutElementForUndo(element),
     hidden: element.hidden,
   });
   const captureLiveLayoutState = (layoutKey, profile = getActivePanelProfile(layoutKey)) => ({
@@ -579,12 +603,40 @@ document.addEventListener("DOMContentLoaded", () => {
     })),
     profile,
   });
+  const liveLayoutUndoSignature = (snapshot) => JSON.stringify({
+    panels: snapshot.panels,
+    widgets: snapshot.widgets,
+    profile: snapshot.profile,
+  });
   const pushLiveLayoutUndo = (layoutKey, profile = getActivePanelProfile(layoutKey)) => {
     const key = liveLayoutUndoKey(layoutKey, profile);
     const stack = liveLayoutUndo.get(key) || [];
-    stack.push(captureLiveLayoutState(layoutKey, profile));
+    const snapshot = captureLiveLayoutState(layoutKey, profile);
+    const signature = liveLayoutUndoSignature(snapshot);
+    if (stack[stack.length - 1]?.signature === signature) return false;
+    stack.push({ ...snapshot, signature });
     if (stack.length > 12) stack.shift();
     liveLayoutUndo.set(key, stack);
+    return true;
+  };
+  const cleanupDashboardUndoArtifacts = () => {
+    document.querySelectorAll(
+      ".dashboard-live-resize, .dashboard-resize-preview, .dashboard-expanded-footprint-ghost, .dashboard-group-boundary, .dashboard-group-member-preview, .widget-placeholder, .db-panel-placeholder"
+    ).forEach((node) => node.remove());
+    document.body.classList.remove(
+      "panel-interaction-active",
+      "panel-resize-active",
+      "group-transform-active",
+      "dashboard-auto-scroll-active",
+      "dashboard-interaction-scroll-extended"
+    );
+    document.body.style.removeProperty("padding-bottom");
+    document.documentElement.style.removeProperty("overflow-anchor");
+    document.body.style.removeProperty("overflow-anchor");
+    document.querySelectorAll(".dashboard-layout-grid").forEach((host) => host.style.removeProperty("overflow-anchor"));
+    document.querySelectorAll(".dashboard-active-resize, .dashboard-resize-source, .group-transform-member").forEach((item) => {
+      item.classList.remove("dashboard-active-resize", "dashboard-resize-source", "group-transform-member");
+    });
   };
   const restoreLayoutItems = (layout, items, initItem) => {
     layout.replaceChildren();
@@ -596,7 +648,7 @@ document.addEventListener("DOMContentLoaded", () => {
       if (!item.rowBreak && !item.spacer) element.hidden = Boolean(item.hidden);
       delete element.dataset.panelInitialized;
       delete element.dataset.widgetInitialized;
-      element.classList.remove("db-panel-tools-open", "widget-tools-open", "db-panel-dragging", "widget-dragging");
+      element.classList.remove(...undoTransientItemClasses);
       layout.appendChild(element);
       if (!item.rowBreak && !item.spacer) initItem?.(element);
     });
@@ -619,6 +671,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const liveKey = liveLayoutUndoKey(layoutKey, profile);
     const stack = liveLayoutUndo.get(liveKey) || [];
     if (stack.length > 1) {
+      cleanupDashboardUndoArtifacts();
       stack.pop();
       const undo = stack[stack.length - 1];
       undo.widgets.forEach((snapshot) => {
@@ -638,6 +691,7 @@ document.addEventListener("DOMContentLoaded", () => {
       restoreGroupSelection();
       liveLayoutUndo.set(liveKey, stack);
       syncLayoutToolsActive();
+      cleanupDashboardUndoArtifacts();
       return true;
     }
     return false;
@@ -4847,16 +4901,38 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 
+  const undoDashboardLayoutChange = (layoutKey, profile, options = {}) => {
+    if (!restoreLayoutUndo(layoutKey, profile)) {
+      if (options.toast !== false) showToast("No layout change to undo.", "warn");
+      return false;
+    }
+    if (options.toast !== false) showToast("Layout change undone.");
+    return true;
+  };
+
+  const isEditableUndoTarget = (target) => {
+    if (!target) return false;
+    if (target.isContentEditable) return true;
+    return Boolean(target.closest?.("input, textarea, select, [contenteditable='true'], [role='textbox']"));
+  };
+
   document.querySelectorAll(".panel-undo-button").forEach((button) => {
     button.addEventListener("click", () => {
       const layoutKey = button.dataset.layoutTarget || "default";
       const profile = getActivePanelProfile(layoutKey);
-      if (!restoreLayoutUndo(layoutKey, profile)) {
-        showToast("No layout change to undo.", "warn");
-        return;
-      }
-      showToast("Layout change undone.");
+      undoDashboardLayoutChange(layoutKey, profile);
     });
+  });
+
+  document.addEventListener("keydown", (event) => {
+    if (event.defaultPrevented) return;
+    if (!(event.ctrlKey || event.metaKey) || event.shiftKey || event.altKey) return;
+    if (event.key.toLowerCase() !== "z") return;
+    if (isEditableUndoTarget(event.target)) return;
+    const layoutKey = document.querySelector(".panel-layout")?.dataset.layoutKey || "default";
+    const profile = getActivePanelProfile(layoutKey);
+    if (!undoDashboardLayoutChange(layoutKey, profile)) return;
+    event.preventDefault();
   });
 
   document.querySelectorAll(".panel-reset-button").forEach((button) => {

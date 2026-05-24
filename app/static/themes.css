@@ -5313,15 +5313,78 @@ html[data-theme="dark"] .panel-empty-action {
     inset 0 1px 0 rgba(255, 255, 255, .055);
 }
 
-html[data-theme="dark"] .timeframe-command-surface,
+html[data-theme="dark"] .timeframe-command-surface {
+  border-color: color-mix(in srgb, var(--range-control-accent) 8%, rgba(106, 122, 148, .58));
+  background:
+    linear-gradient(180deg, rgba(36, 50, 73, .74), rgba(14, 23, 39, .82)),
+    color-mix(in srgb, var(--surface-raised) 82%, var(--range-control-accent) 7%);
+  box-shadow:
+    0 18px 44px rgba(0, 0, 0, .38),
+    0 1px 0 rgba(255, 255, 255, .045),
+    inset 0 1px 0 rgba(255, 255, 255, .078),
+    inset 0 -1px 0 rgba(0, 0, 0, .32);
+}
+
 html[data-theme="dark"] .timeframe-presets,
 html[data-theme="dark"] .timeframe-active-cluster,
 html[data-theme="dark"] .timeframe-utility-cluster {
-  border-color: color-mix(in srgb, var(--range-control-accent) 8%, rgba(92, 107, 131, .58));
-  background: color-mix(in srgb, var(--surface-raised) 92%, var(--range-control-accent) 5%);
+  border-color: color-mix(in srgb, var(--range-control-accent) 10%, rgba(92, 107, 131, .56));
+  background:
+    linear-gradient(180deg, rgba(27, 40, 60, .82), rgba(12, 21, 35, .80)),
+    color-mix(in srgb, var(--glass-surface) 86%, var(--range-control-accent) 5%);
   box-shadow:
-    0 14px 32px rgba(0, 0, 0, .24),
-    inset 0 1px 0 rgba(255, 255, 255, .055);
+    0 9px 20px rgba(0, 0, 0, .24),
+    inset 0 1px 0 rgba(255, 255, 255, .062),
+    inset 0 -1px 0 rgba(0, 0, 0, .30);
+}
+
+html[data-theme="dark"] .timeframe-active-cluster {
+  border-color: color-mix(in srgb, var(--range-control-accent) 13%, rgba(104, 120, 146, .58));
+  background:
+    linear-gradient(180deg, rgba(31, 45, 67, .86), rgba(15, 25, 42, .82)),
+    color-mix(in srgb, var(--glass-surface-strong) 80%, var(--range-control-accent) 7%);
+}
+
+html[data-theme="dark"] .timeframe-widget .preset-btn,
+html[data-theme="dark"] .timeframe-widget .range-custom-trigger,
+html[data-theme="dark"] .timeframe-widget .range-icon-button {
+  border-color: var(--range-control-border);
+  background:
+    linear-gradient(180deg, rgba(43, 58, 82, .76), rgba(22, 34, 52, .80)),
+    var(--range-control-bg);
+  box-shadow:
+    0 10px 22px rgba(0, 0, 0, .30),
+    inset 0 1px 0 rgba(255, 255, 255, .080),
+    inset 0 -1px 0 rgba(0, 0, 0, .26);
+}
+
+html[data-theme="dark"] .timeframe-widget .preset-btn:hover,
+html[data-theme="dark"] .timeframe-widget .preset-btn:focus-visible,
+html[data-theme="dark"] .timeframe-widget .range-custom-trigger:hover,
+html[data-theme="dark"] .timeframe-widget .range-custom-trigger:focus-visible,
+html[data-theme="dark"] .timeframe-widget .range-icon-button:hover,
+html[data-theme="dark"] .timeframe-widget .range-icon-button:focus-visible {
+  border-color: var(--range-control-active-border);
+  background:
+    linear-gradient(180deg, rgba(50, 67, 94, .78), rgba(26, 40, 60, .82)),
+    var(--range-control-active-bg);
+  box-shadow:
+    0 14px 30px rgba(0, 0, 0, .34),
+    0 0 14px var(--range-control-glow),
+    inset 0 1px 0 rgba(255, 255, 255, .092),
+    inset 0 -1px 0 rgba(0, 0, 0, .24);
+}
+
+html[data-theme="dark"] .timeframe-widget .preset-btn.active,
+html[data-theme="dark"] .timeframe-widget .range-custom-trigger.active {
+  border-color: var(--range-control-active-border);
+  background:
+    linear-gradient(180deg, rgba(47, 64, 90, .82), rgba(26, 40, 60, .84)),
+    var(--range-control-active-bg);
+  box-shadow:
+    0 14px 32px rgba(0, 0, 0, .36),
+    inset 0 1px 0 rgba(255, 255, 255, .094),
+    inset 0 -1px 0 rgba(var(--panel-accent-rgb, 134, 172, 210), .12);
 }
 
 html[data-theme="dark"] .app-nav.workspace-chrome .workspace-accent-marker {

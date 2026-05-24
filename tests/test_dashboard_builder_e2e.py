@@ -90,6 +90,48 @@ def assert_no_resize_artifacts(page: Page) -> None:
     }
 
 
+def assert_no_undo_artifacts(page: Page) -> None:
+    state = page.evaluate(
+        """
+        () => ({
+          liveResize: document.querySelectorAll(".dashboard-live-resize").length,
+          resizePreview: document.querySelectorAll(".dashboard-resize-preview").length,
+          expandedGhost: document.querySelectorAll(".dashboard-expanded-footprint-ghost").length,
+          groupBoundary: document.querySelectorAll(".dashboard-group-boundary").length,
+          memberPreview: document.querySelectorAll(".dashboard-group-member-preview").length,
+          dragPreview: document.querySelectorAll(".widget-placeholder, .db-panel-placeholder").length,
+          resizeSource: document.querySelectorAll(".dashboard-resize-source").length,
+          activeResize: document.querySelectorAll(".dashboard-active-resize").length,
+          bodyResize: document.body.classList.contains("panel-resize-active"),
+          bodyInteraction: document.body.classList.contains("panel-interaction-active"),
+          groupActive: document.body.classList.contains("group-transform-active"),
+          autoScroll: document.body.classList.contains("dashboard-auto-scroll-active"),
+          scrollExtended: document.body.classList.contains("dashboard-interaction-scroll-extended"),
+        })
+        """
+    )
+    assert state == {
+        "liveResize": 0,
+        "resizePreview": 0,
+        "expandedGhost": 0,
+        "groupBoundary": 0,
+        "memberPreview": 0,
+        "dragPreview": 0,
+        "resizeSource": 0,
+        "activeResize": 0,
+        "bodyResize": False,
+        "bodyInteraction": False,
+        "groupActive": False,
+        "autoScroll": False,
+        "scrollExtended": False,
+    }
+
+
+def press_dashboard_undo(page: Page) -> None:
+    page.keyboard.press("Control+Z")
+    page.wait_for_timeout(260)
+
+
 def dashboard_scroll_state(page: Page) -> dict:
     return page.evaluate(
         """
@@ -334,6 +376,10 @@ def grid_item_states(page: Page, selector: str) -> list[dict]:
         }))
         """
     )
+
+
+def grid_state_tuple(state: dict) -> tuple[int, int, int, int]:
+    return state["col"], state["row"], state["span"], state["rowSpan"]
 
 
 def occupied_grid_cells(page: Page, selector: str) -> list[str]:
@@ -1268,6 +1314,89 @@ def test_timeframe_controls_use_theme_aware_glass_color(page: Page, app_server: 
     assert_clean_browser(page)
 
 
+def test_dark_timeframe_controls_preserve_layered_glass_depth(page: Page, app_server: str) -> None:
+    goto(page, app_server)
+    page.locator(".theme-toggle").click()
+    expect(page.locator("html")).to_have_attribute("data-theme", "dark")
+    control = page.locator(".timeframe-widget")
+    expect(control).to_be_visible()
+
+    state = control.evaluate(
+        """
+        node => {
+          const rgb = (value) => {
+            const rgbMatch = value.match(/rgba?\\(([^)]+)\\)/);
+            if (rgbMatch) {
+              return rgbMatch[1].split(",").slice(0, 3).map((part) => Number.parseFloat(part)).filter(Number.isFinite);
+            }
+            const srgbMatch = value.match(/color\\(srgb\\s+([^\\)]+)\\)/);
+            if (!srgbMatch) {
+              return [];
+            }
+            return srgbMatch[1].split(/\\s+/).filter((part) => part && part !== "/").slice(0, 3)
+              .map((part) => Math.round(Number.parseFloat(part) * 255)).filter(Number.isFinite);
+          };
+          const read = (selector) => {
+            const el = node.querySelector(selector);
+            const styles = getComputedStyle(el);
+            return {
+              backgroundColor: styles.backgroundColor,
+              backgroundImage: styles.backgroundImage,
+              borderColor: styles.borderTopColor,
+              borderRgb: rgb(styles.borderTopColor),
+              boxShadow: styles.boxShadow,
+            };
+          };
+          return {
+            surface: read(".timeframe-command-surface"),
+            presets: read(".timeframe-presets"),
+            activeCluster: read(".timeframe-active-cluster"),
+            utilities: read(".timeframe-utility-cluster"),
+            activePreset: read(".preset-btn.active"),
+            selector: read(".range-custom-trigger"),
+            calendar: read(".timeframe-calendar"),
+          };
+        }
+        """
+    )
+
+    assert state["surface"]["backgroundImage"] != "none"
+    assert state["presets"]["backgroundImage"] != "none"
+    assert state["activeCluster"]["backgroundImage"] != state["presets"]["backgroundImage"]
+    assert state["surface"]["backgroundImage"] != state["presets"]["backgroundImage"]
+    assert state["surface"]["borderColor"] != state["presets"]["borderColor"]
+    assert state["presets"]["borderColor"] != state["activePreset"]["borderColor"]
+    for key in ("surface", "presets", "activeCluster", "utilities", "activePreset", "selector", "calendar"):
+        layer = state[key]
+        assert layer["boxShadow"] != "none", key
+        assert "inset" in layer["boxShadow"], key
+        assert layer["borderColor"], key
+        if layer["borderRgb"]:
+            assert max(layer["borderRgb"]) <= 190, (key, layer["borderColor"])
+        assert "103, 169, 255" not in layer["borderColor"]
+        assert "147, 197, 253" not in layer["borderColor"]
+    assert "103, 169, 255" not in state["activePreset"]["boxShadow"]
+    assert "147, 197, 253" not in state["activePreset"]["boxShadow"]
+    assert "0 0 24px" not in state["activePreset"]["boxShadow"]
+
+    control.locator(".timeframe-calendar").hover()
+    hovered = control.locator(".timeframe-calendar").evaluate(
+        """
+        node => ({
+          borderColor: getComputedStyle(node).borderTopColor,
+          boxShadow: getComputedStyle(node).boxShadow,
+        })
+        """
+    )
+    assert hovered["boxShadow"] != state["calendar"]["boxShadow"]
+    assert hovered["borderColor"] != state["calendar"]["borderColor"]
+
+    artifact_dir = Path("test-results") / "timeframe-depth"
+    artifact_dir.mkdir(parents=True, exist_ok=True)
+    control.screenshot(path=str(artifact_dir / "timeframe-dark-layered-depth.png"))
+    assert_clean_browser(page)
+
+
 def test_minimum_panel_menu_opens_without_resizing_panel(page: Page, app_server: str) -> None:
     goto(page, app_server)
     panel = page.locator('.panel-layout > .db-panel[data-panel-key="builder-menu"]')
@@ -1338,6 +1467,176 @@ def test_timeframe_widget_uses_shared_resize_system(page: Page, app_server: str)
     assert "span 5" not in after["gridColumn"]
     assert after["row"] >= 1
     assert no_visible_overlaps(page, ".dashboard-layout-grid .widget-card, .dashboard-layout-grid .db-panel") == []
+    assert_clean_browser(page)
+
+
+def test_ctrl_z_undoes_widget_move_and_resize_one_commit_at_a_time(page: Page, app_server: str) -> None:
+    goto(page, app_server)
+    widget = page.locator('[data-widget-key="widget-1"]')
+
+    before_move = grid_item_state(page, '[data-widget-key="widget-1"]')
+    open_tools(widget)
+    drag_by(page, widget.locator(".panel-move-handle"), 230, 170, steps=18)
+    page.wait_for_timeout(360)
+    moved = grid_item_state(page, '[data-widget-key="widget-1"]')
+    assert (moved["col"], moved["row"]) != (before_move["col"], before_move["row"])
+
+    press_dashboard_undo(page)
+    restored_move = grid_item_state(page, '[data-widget-key="widget-1"]')
+    assert grid_state_tuple(restored_move) == grid_state_tuple(before_move)
+    assert_no_undo_artifacts(page)
+
+    before_resize = grid_item_state(page, '[data-widget-key="widget-1"]')
+    open_tools(widget)
+    drag_by(page, widget.locator(".panel-resize-handle"), 260, 0, steps=16)
+    page.wait_for_timeout(360)
+    resized = grid_item_state(page, '[data-widget-key="widget-1"]')
+    assert resized["span"] != before_resize["span"]
+
+    press_dashboard_undo(page)
+    restored_resize = grid_item_state(page, '[data-widget-key="widget-1"]')
+    assert grid_state_tuple(restored_resize) == grid_state_tuple(before_resize)
+    assert_no_undo_artifacts(page)
+    assert_clean_browser(page)
+
+
+def test_ctrl_z_undoes_group_move_and_group_resize(page: Page, app_server: str) -> None:
+    goto(page, app_server)
+    widget = page.locator('[data-widget-key="widget-1"]')
+    panel = page.locator('[data-panel-key="builder-content"]')
+    page.locator(".layout-group-button").click()
+    widget.click(position={"x": 20, "y": 20}, force=True)
+    panel.click(position={"x": 20, "y": 20}, force=True)
+    expect(page.locator(".group-selected")).to_have_count(2)
+
+    before_move = {
+        "widget": grid_item_state(page, '[data-widget-key="widget-1"]'),
+        "panel": grid_item_state(page, '[data-panel-key="builder-content"]'),
+    }
+    open_tools(widget)
+    drag_by(page, widget.locator(".panel-move-handle"), 0, 220, steps=18)
+    page.wait_for_timeout(360)
+    moved = {
+        "widget": grid_item_state(page, '[data-widget-key="widget-1"]'),
+        "panel": grid_item_state(page, '[data-panel-key="builder-content"]'),
+    }
+    assert moved["widget"]["row"] != before_move["widget"]["row"]
+    assert moved["panel"]["row"] - before_move["panel"]["row"] == moved["widget"]["row"] - before_move["widget"]["row"]
+
+    press_dashboard_undo(page)
+    restored_move = {
+        "widget": grid_item_state(page, '[data-widget-key="widget-1"]'),
+        "panel": grid_item_state(page, '[data-panel-key="builder-content"]'),
+    }
+    assert grid_state_tuple(restored_move["widget"]) == grid_state_tuple(before_move["widget"])
+    assert grid_state_tuple(restored_move["panel"]) == grid_state_tuple(before_move["panel"])
+    assert_no_undo_artifacts(page)
+    expect(page.locator(".group-selected")).to_have_count(2)
+
+    before_resize = {
+        "widget": grid_item_state(page, '[data-widget-key="widget-1"]'),
+        "panel": grid_item_state(page, '[data-panel-key="builder-content"]'),
+    }
+    open_tools(widget)
+    drag_by(page, widget.locator(".panel-resize-handle"), 300, 80, steps=18)
+    page.wait_for_timeout(360)
+    resized = {
+        "widget": grid_item_state(page, '[data-widget-key="widget-1"]'),
+        "panel": grid_item_state(page, '[data-panel-key="builder-content"]'),
+    }
+    assert (
+        resized["widget"]["span"],
+        resized["panel"]["span"],
+        resized["panel"]["rowSpan"],
+    ) != (
+        before_resize["widget"]["span"],
+        before_resize["panel"]["span"],
+        before_resize["panel"]["rowSpan"],
+    )
+
+    press_dashboard_undo(page)
+    restored_resize = {
+        "widget": grid_item_state(page, '[data-widget-key="widget-1"]'),
+        "panel": grid_item_state(page, '[data-panel-key="builder-content"]'),
+    }
+    assert grid_state_tuple(restored_resize["widget"]) == grid_state_tuple(before_resize["widget"])
+    assert grid_state_tuple(restored_resize["panel"]) == grid_state_tuple(before_resize["panel"])
+    assert_no_undo_artifacts(page)
+    assert_clean_browser(page)
+
+
+def test_ctrl_z_undoes_add_panel_and_expand_collapse(page: Page, app_server: str) -> None:
+    goto(page, app_server)
+    initial_count = page.locator(".panel-layout > .db-panel").count()
+    add_panel_for_setup(page)
+    expect(page.locator(".panel-layout > .db-panel")).to_have_count(initial_count + 1)
+
+    press_dashboard_undo(page)
+    expect(page.locator(".panel-layout > .db-panel")).to_have_count(initial_count)
+    assert_no_undo_artifacts(page)
+
+    panel_selector = '[data-panel-key="builder-menu"]'
+    before_toggle = grid_item_state(page, panel_selector)
+    before_collapsed = page.locator(panel_selector).evaluate("node => node.classList.contains('db-panel-collapsed')")
+    page.locator(f"{panel_selector} .db-panel-hd").click(position={"x": 18, "y": 18})
+    page.wait_for_timeout(360)
+    after_collapsed = page.locator(panel_selector).evaluate("node => node.classList.contains('db-panel-collapsed')")
+    assert after_collapsed != before_collapsed
+
+    press_dashboard_undo(page)
+    restored_toggle = grid_item_state(page, panel_selector)
+    restored_collapsed = page.locator(panel_selector).evaluate("node => node.classList.contains('db-panel-collapsed')")
+    assert restored_collapsed == before_collapsed
+    assert grid_state_tuple(restored_toggle) == grid_state_tuple(before_toggle)
+    assert_no_undo_artifacts(page)
+    assert_clean_browser(page)
+
+
+def test_ctrl_z_ignores_text_inputs_and_canceled_interaction_previews(page: Page, app_server: str) -> None:
+    goto(page, app_server)
+    initial_count = page.locator(".panel-layout > .db-panel").count()
+    add_panel_for_setup(page)
+    expect(page.locator(".panel-layout > .db-panel")).to_have_count(initial_count + 1)
+
+    page.evaluate(
+        """
+        () => {
+          const input = document.createElement("input");
+          input.id = "undo-input-safety";
+          input.value = "";
+          document.body.appendChild(input);
+          input.focus();
+        }
+        """
+    )
+    page.keyboard.type("typed text")
+    page.keyboard.press("Control+Z")
+    page.wait_for_timeout(180)
+    expect(page.locator(".panel-layout > .db-panel")).to_have_count(initial_count + 1)
+    assert page.locator("#undo-input-safety").input_value() in {"", "typed text"}
+
+    page.locator("#undo-input-safety").evaluate("node => node.remove()")
+    press_dashboard_undo(page)
+    expect(page.locator(".panel-layout > .db-panel")).to_have_count(initial_count)
+
+    widget = page.locator('[data-widget-key="widget-1"]')
+    before_drag = grid_item_state(page, '[data-widget-key="widget-1"]')
+    open_tools(widget)
+    handle_box = widget.locator(".panel-move-handle").bounding_box()
+    assert handle_box
+    x, y = box_center(handle_box)
+    page.mouse.move(x, y)
+    page.mouse.down()
+    page.mouse.move(x + 180, y + 160, steps=12)
+    expect(page.locator(".widget-placeholder")).to_have_count(1)
+    page.keyboard.press("Escape")
+    page.wait_for_timeout(260)
+    assert grid_state_tuple(grid_item_state(page, '[data-widget-key="widget-1"]')) == grid_state_tuple(before_drag)
+    assert_no_undo_artifacts(page)
+
+    press_dashboard_undo(page)
+    assert grid_state_tuple(grid_item_state(page, '[data-widget-key="widget-1"]')) == grid_state_tuple(before_drag)
+    assert_no_undo_artifacts(page)
     assert_clean_browser(page)
 
 
