@@ -87,42 +87,123 @@
   border-color: color-mix(in srgb, var(--panel-accent, var(--blue)) 34%, var(--line));
 }
 
+.workspace-anchor-layer {
+  position: fixed;
+  inset: 0;
+  z-index: calc(var(--z-header) - 1);
+  pointer-events: none;
+}
+
 .workspace-anchor-object {
   --anchor-accent: var(--panel-accent, var(--blue));
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
-  grid-template-rows: auto auto;
+  position: fixed;
+  top: var(--anchor-offset, 148px);
+  left: var(--anchor-left, auto);
+  right: var(--anchor-right, auto);
+  display: inline-flex;
   align-items: center;
-  column-gap: 12px;
-  row-gap: 2px;
-  padding-right: 58px;
+  gap: 7px;
+  min-width: 42px;
+  max-width: 138px;
+  min-height: 38px;
+  padding: 5px 10px 5px 7px;
+  border: 1px solid color-mix(in srgb, var(--anchor-accent) 26%, var(--glass-border));
+  border-radius: 999px;
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--glass-highlight) 34%, transparent), transparent 62%),
+    color-mix(in srgb, var(--glass-surface-strong) 72%, var(--anchor-accent) 10%);
+  box-shadow:
+    0 10px 22px rgba(15, 23, 42, .12),
+    inset 0 1px 0 color-mix(in srgb, var(--glass-highlight) 62%, transparent);
+  color: var(--ink-strong);
+  cursor: grab;
+  font: inherit;
+  pointer-events: auto;
+  touch-action: none;
+  backdrop-filter: blur(18px) saturate(1.08);
+  -webkit-backdrop-filter: blur(18px) saturate(1.08);
+  transition:
+    background var(--motion-fast),
+    border-color var(--motion-fast),
+    box-shadow var(--motion-fast),
+    color var(--motion-fast),
+    transform var(--motion-fast);
+}
+
+.workspace-anchor-object[data-anchor-side="left"] {
+  --anchor-left: 10px;
+  --anchor-right: auto;
+}
+
+.workspace-anchor-object[data-anchor-side="right"] {
+  --anchor-left: auto;
+  --anchor-right: 10px;
+  flex-direction: row-reverse;
+  padding: 5px 7px 5px 10px;
+}
+
+.workspace-anchor-object:hover,
+.workspace-anchor-object:focus-visible {
+  border-color: color-mix(in srgb, var(--anchor-accent) 34%, var(--glass-border));
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--glass-highlight) 40%, transparent), transparent 62%),
+    color-mix(in srgb, var(--glass-surface-strong) 80%, var(--anchor-accent) 12%);
+  box-shadow:
+    0 9px 20px rgba(15, 23, 42, .13),
+    inset 0 1px 0 color-mix(in srgb, var(--glass-highlight) 68%, transparent),
+    inset 0 2px 5px rgba(15, 23, 42, .035);
+  transform: var(--pressable-hover-transform);
+}
+
+.workspace-anchor-object:active,
+.workspace-anchor-object.anchor-dragging {
+  cursor: grabbing;
+  transform: var(--pressable-active-transform);
 }
 
 .workspace-anchor-object .workspace-anchor-glyph {
-  grid-row: 1 / span 2;
   display: inline-grid;
   place-items: center;
-  width: 32px;
-  height: 32px;
-  border: 1px solid color-mix(in srgb, var(--anchor-accent) 42%, rgba(15, 23, 42, .36));
+  width: 25px;
+  height: 25px;
+  border: 1px solid color-mix(in srgb, var(--anchor-accent) 34%, rgba(15, 23, 42, .20));
   border-radius: 999px;
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, .42), rgba(255, 255, 255, .12)),
-    color-mix(in srgb, var(--glass-surface-strong) 68%, var(--anchor-accent) 20%);
+    linear-gradient(180deg, rgba(255, 255, 255, .34), rgba(255, 255, 255, .10)),
+    color-mix(in srgb, var(--glass-surface-strong) 70%, var(--anchor-accent) 16%);
   box-shadow:
-    0 4px 10px rgba(15, 23, 42, .12),
+    0 3px 7px rgba(15, 23, 42, .10),
     inset 0 1px 0 rgba(255, 255, 255, .24);
-  font-size: 13px;
+  flex: 0 0 auto;
+  font-size: 12px;
+  font-weight: 820;
   line-height: 1;
 }
 
-.workspace-anchor-object .workspace-anchor-meta {
+.workspace-anchor-object .workspace-anchor-copy {
+  display: flex;
+  flex-direction: column;
   min-width: 0;
+  line-height: 1.05;
+  text-align: left;
+}
+
+.workspace-anchor-object .workspace-anchor-label {
+  max-width: 82px;
   overflow: hidden;
-  color: color-mix(in srgb, var(--panel-accent-text, var(--muted-strong)) 78%, transparent);
   font-size: 11px;
+  font-weight: 820;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.workspace-anchor-object .workspace-anchor-meta {
+  max-width: 82px;
+  overflow: hidden;
+  color: color-mix(in srgb, var(--muted-strong) 74%, transparent);
+  font-size: 9px;
   font-weight: 700;
-  line-height: 1.15;
+  line-height: 1.1;
   text-overflow: ellipsis;
   text-transform: uppercase;
   white-space: nowrap;
@@ -162,8 +243,8 @@
   --widget-control-hover-bg: color-mix(in srgb, var(--glass-surface) 48%, rgba(255, 255, 255, .18));
   --widget-control-active-bg: color-mix(in srgb, var(--glass-surface) 44%, rgba(255, 255, 255, .20));
   --widget-drawer-bg:
-    linear-gradient(180deg, color-mix(in srgb, var(--glass-surface-strong) 58%, transparent), color-mix(in srgb, var(--glass-surface) 42%, transparent)),
-    color-mix(in srgb, var(--panel-lock-fg) 7%, transparent);
+    linear-gradient(180deg, color-mix(in srgb, var(--glass-surface-strong) 82%, transparent), color-mix(in srgb, var(--glass-surface) 72%, transparent)),
+    color-mix(in srgb, var(--panel-lock-fg) 10%, transparent);
   --panel-lock-bg: var(--widget-control-bg);
   --panel-lock-fg: var(--blue);
   --panel-lock-border: rgba(37, 99, 235, .26);

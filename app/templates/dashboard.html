@@ -16,18 +16,20 @@
 <header class="app-nav workspace-chrome">
   <div class="app-nav-brand-group">
     <div class="workspace-command-island workspace-identity-island" aria-label="Workspace identity">
-      <span class="workspace-accent-marker" aria-hidden="true"></span>
       <div class="dash-switcher">
-      <button class="dash-switch-btn dash-switch-hero" type="button" id="dash-switcher-toggle" aria-haspopup="true" aria-expanded="false">
-        <span class="dash-switch-label">{{ dashboard.title }}</span><span class="dash-switch-arrow" aria-hidden="true"></span>
+      <button class="dash-switch-btn dash-switch-hero" type="button" id="dash-switcher-toggle" aria-haspopup="true" aria-expanded="false" aria-label="Open account and workspace menu">
+        <span class="dash-identity-copy">
+          <span class="dash-identity-name">Workspace User</span>
+          <span class="dash-identity-email">user@example.com</span>
+        </span>
       </button>
       <div class="dash-switch-menu" id="dash-switch-menu">
-        <a class="dash-switch-opt dash-switch-opt-active" href="/dashboard" aria-current="page">
-          <span><strong>{{ dashboard.title }}</strong><small>Builder workspace</small></span>
-        </a>
-        <button class="dash-switch-opt dash-switch-profile" type="button" disabled>
-          <span><strong>Profile identity</strong><small>Account details will appear here</small></span>
+        <button class="dash-switch-opt dash-switch-profile dash-switch-opt-active" type="button" disabled>
+          <span><strong>Workspace User</strong><small>user@example.com</small></span>
         </button>
+        <a class="dash-switch-opt" href="/dashboard" aria-current="page">
+          <span><strong>{{ dashboard.title }}</strong><small>Current workspace</small></span>
+        </a>
         <button class="dash-switch-opt dash-switch-profile" type="button" disabled>
           <span><strong>Sign out</strong><small>Available with account sessions</small></span>
         </button>
@@ -129,6 +131,8 @@
     </div>
   </div>
 </header>
+
+<div class="workspace-anchor-layer" data-anchor-layout-key="builder" aria-label="Spatial anchors"></div>
 
 <div class="dashboard-layout-grid" data-dashboard-layout-key="builder">
   <div class="stat-band widget-layout" data-widget-layout-key="builder">

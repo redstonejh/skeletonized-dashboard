@@ -11,7 +11,7 @@ This document defines the major object classes in the spatial workspace. The goa
 | Widget | Yes | No | It is content | Yes, if capable | Yes | Current |
 | Panel | Yes | No | Future container | Yes | Yes | Current |
 | Context Divider | Yes | No | No | Yes, zone scope | Yes | Foundation implemented |
-| Spatial Anchor | Transitional grid seed | Future | No | References context | It navigates | Foundation implemented |
+| Spatial Anchor | No | Yes | No | References context | It navigates | Floating navigation layer implemented |
 | Group selection | Composite of occupants | No | No | Temporary now | Yes, future | Current temporary |
 | Persistent group | Composite record | No | No | Possible | Yes | Future |
 | Spatial Context Zone | Derived from dividers | No | No | Yes | Yes | Future |
@@ -164,13 +164,15 @@ Purpose:
 Interaction model:
 
 - Activate to navigate.
-- Future reposition/pin in viewport space.
+- Reposition in viewport side-rail space.
 - Suppressed during protected dashboard interactions.
 
 Footprint behavior:
 
-- Current foundation uses a grid-resident anchor seed so creation, persistence, and contextual ownership can be proven through the existing shared object system.
-- Future final form should move active navigation anchors to viewport-fixed records.
+- Does not occupy normal dashboard grid cells.
+- Does not push or get pushed by widgets, panels, or dividers.
+- Uses side/offset placement in a floating navigation layer.
+- Only other anchors participate in anchor rail collision.
 
 Resize rules:
 
@@ -196,8 +198,10 @@ Current implementation:
 
 - Uses `data-workspace-object-type="anchor"`.
 - Stores navigation target metadata.
-- Inherits committed region membership.
-- Reuses widget-class interaction plumbing as a temporary compatibility layer, without treating anchors as content widgets semantically.
+- Renders under `.workspace-anchor-layer`, outside `.widget-layout` and `.panel-layout`.
+- Persists through anchor-specific storage instead of widget/panel layout.
+- Uses fixed left/right side rails with local anchor-to-anchor spacing.
+- Does not reuse widget drag, resize, menu, pin, grouping, collision, or grid persistence plumbing.
 
 Navigation role:
 

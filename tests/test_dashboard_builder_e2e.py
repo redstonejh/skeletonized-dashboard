@@ -879,6 +879,11 @@ def test_workspace_chrome_is_spatial_and_modes_still_work(page: Page, app_server
 
     expect(page.locator(".workspace-chrome")).to_be_visible()
     expect(page.locator(".workspace-identity-island .dash-switch-hero")).to_be_visible()
+    expect(page.locator(".workspace-identity-island .workspace-accent-marker")).to_have_count(0)
+    expect(page.locator(".workspace-identity-island .dash-switch-arrow")).to_have_count(0)
+    expect(page.locator(".dash-switch-hero")).to_contain_text("Workspace User")
+    expect(page.locator(".dash-switch-hero")).to_contain_text("user@example.com")
+    expect(page.locator(".dash-switch-hero")).not_to_contain_text("Dashboard")
     expect(page.locator(".layout-command-island .layout-slot-controls")).to_be_visible()
     expect(page.locator(".composition-add-button")).to_have_attribute("aria-label", "Add dashboard object")
     expect(page.locator(".mode-command-island .engineer-mode-button")).to_be_visible()
@@ -963,6 +968,22 @@ def test_workspace_chrome_is_spatial_and_modes_still_work(page: Page, app_server
     assert add_styles["radius"] >= 20
     assert add_styles["shadow"] != "none"
     assert add_styles["backdrop"] != "none"
+    identity_metrics = page.locator(".dash-switch-hero").evaluate(
+        """
+        node => {
+          const rect = node.getBoundingClientRect();
+          const styles = getComputedStyle(node);
+          return {
+            width: rect.width,
+            height: rect.height,
+            radius: parseFloat(styles.borderTopLeftRadius),
+          };
+        }
+        """
+    )
+    assert 118 <= identity_metrics["width"] <= 170
+    assert 34 <= identity_metrics["height"] <= 38
+    assert identity_metrics["radius"] >= 12
 
     hover_contract = page.locator(".layout-command-island").evaluate(
         """
@@ -1064,7 +1085,9 @@ def test_workspace_chrome_is_spatial_and_modes_still_work(page: Page, app_server
     expect(page.locator(".dash-switch-menu")).to_have_class(re.compile("open"))
     expect(page.locator(".dash-switch-menu")).not_to_contain_text("Workspace settings")
     expect(page.locator(".dash-switch-menu")).not_to_contain_text("Configure environment")
-    expect(page.locator(".dash-switch-menu")).to_contain_text("Profile identity")
+    expect(page.locator(".dash-switch-menu")).to_contain_text("Workspace User")
+    expect(page.locator(".dash-switch-menu")).to_contain_text("user@example.com")
+    expect(page.locator(".dash-switch-menu")).to_contain_text("Current workspace")
     expect(page.locator(".dash-switch-menu")).to_contain_text("Sign out")
     page.mouse.click(24, 24)
 
@@ -1127,7 +1150,7 @@ def test_workspace_chrome_is_spatial_and_modes_still_work(page: Page, app_server
     assert_clean_browser(page)
 
 
-def test_spatial_workspace_objects_create_persist_and_share_grid_model(page: Page, app_server: str) -> None:
+def test_spatial_workspace_objects_keep_anchors_on_floating_navigation_layer(page: Page, app_server: str) -> None:
     goto(page, app_server)
 
     page.locator(".panel-add-button").click()
@@ -1140,13 +1163,16 @@ def test_spatial_workspace_objects_create_persist_and_share_grid_model(page: Pag
     page.locator('.widget-add-action[data-widget-kind="anchor"]').click()
     anchor = page.locator('.workspace-anchor-object[data-workspace-object-type="anchor"]').last
     expect(anchor).to_be_visible()
-    expect(anchor.locator(".stat-lbl")).to_contain_text("Anchor")
+    expect(anchor.locator(".workspace-anchor-label")).to_contain_text("Anchor")
 
     created_state = page.evaluate(
         """
         () => {
           const divider = document.querySelector('.workspace-divider[data-workspace-object-type="divider"]');
           const anchor = document.querySelector('.workspace-anchor-object[data-workspace-object-type="anchor"]');
+          const anchorRect = anchor.getBoundingClientRect();
+          const gridObjects = [...document.querySelectorAll('.widget-layout > .widget-card, .panel-layout > .db-panel')]
+            .map((node) => node.dataset.workspaceObjectType || node.dataset.dashboardObjectKind || "");
           return {
             dividerType: divider?.dataset.workspaceObjectType,
             dividerRole: divider?.dataset.contextRole,
@@ -1156,8 +1182,15 @@ def test_spatial_workspace_objects_create_persist_and_share_grid_model(page: Pag
             dividerRows: divider?.dataset.gridRowSpan,
             anchorType: anchor?.dataset.workspaceObjectType,
             anchorKind: anchor?.dataset.dashboardObjectKind,
-            anchorRegion: anchor?.dataset.workspaceRegionId,
+            anchorKey: anchor?.dataset.anchorKey,
+            anchorWidgetKey: anchor?.dataset.widgetKey || null,
+            anchorInWidgetLayout: Boolean(anchor?.closest(".widget-layout")),
+            anchorSide: anchor?.dataset.anchorSide,
+            anchorPosition: getComputedStyle(anchor).position,
+            anchorTop: anchorRect.top,
             anchorTargetType: anchor?.dataset.navigationTargetType,
+            anchorInGridObjectList: gridObjects.includes("anchor"),
+            anchorHasWidgetTools: Boolean(anchor?.querySelector(".widget-tools, .panel-tool-drawer")),
             contextModel: document.querySelector('.dashboard-layout-grid')?.dataset.workspaceContextModel,
           };
         }
@@ -1170,58 +1203,135 @@ def test_spatial_workspace_objects_create_persist_and_share_grid_model(page: Pag
     assert created_state["dividerRows"] == "1"
     assert created_state["anchorType"] == "anchor"
     assert created_state["anchorKind"] == "anchor"
-    assert created_state["anchorRegion"]
+    assert created_state["anchorKey"]
+    assert created_state["anchorWidgetKey"] is None
+    assert created_state["anchorInWidgetLayout"] is False
+    assert created_state["anchorSide"] in ("left", "right")
+    assert created_state["anchorPosition"] == "fixed"
+    assert created_state["anchorTop"] >= 100
     assert created_state["anchorTargetType"] == "workspace-region"
+    assert created_state["anchorInGridObjectList"] is False
+    assert created_state["anchorHasWidgetTools"] is False
     assert created_state["contextModel"] == "workspace-context-v1"
 
+    anchor_before_divider_drag = anchor.evaluate(
+        "node => ({ side: node.dataset.anchorSide, offset: Number(node.dataset.anchorOffset) || 0 })"
+    )
     divider_row_before = int(divider.evaluate("node => Number(node.dataset.gridRow) || 1"))
     open_tools(divider)
     drag_by(page, divider.locator(".panel-move-handle"), 0, 260, steps=16)
     divider_row_after = int(divider.evaluate("node => Number(node.dataset.gridRow) || 1"))
     assert divider_row_after > divider_row_before
+    anchor_after_divider_drag = anchor.evaluate(
+        "node => ({ side: node.dataset.anchorSide, offset: Number(node.dataset.anchorOffset) || 0 })"
+    )
+    assert anchor_after_divider_drag == anchor_before_divider_drag
 
-    anchor_span_before = int(anchor.evaluate("node => Number(node.dataset.currentSpan) || Number(node.dataset.defaultSpan) || 1"))
-    force_open_tools_for_interaction(page, anchor)
-    drag_by(page, anchor.locator(".panel-resize-handle"), 180, 0, steps=10)
-    anchor_span_after = int(anchor.evaluate("node => Number(node.dataset.currentSpan) || Number(node.dataset.defaultSpan) || 1"))
-    assert anchor_span_after >= anchor_span_before
-
-    page.evaluate(
+    anchor_box = anchor.bounding_box()
+    assert anchor_box
+    page.mouse.move(anchor_box["x"] + anchor_box["width"] / 2, anchor_box["y"] + anchor_box["height"] / 2)
+    page.mouse.down()
+    page.mouse.move(18, anchor_box["y"] + 170, steps=14)
+    page.mouse.up()
+    page.wait_for_timeout(180)
+    moved_anchor = anchor.evaluate(
         """
-        () => {
-          const divider = document.querySelector('.workspace-divider[data-workspace-object-type="divider"]');
-          const anchor = document.querySelector('.workspace-anchor-object[data-workspace-object-type="anchor"]');
-          const row = (Number(divider.dataset.gridRow) || 1) + 1;
-          anchor.dataset.gridCol = "1";
-          anchor.dataset.gridRow = String(row);
-          anchor.dataset.currentSpan = "2";
-          anchor.style.gridColumn = "1 / span 2";
-          anchor.style.gridRow = `${row} / span 1`;
-        }
+        node => ({
+          side: node.dataset.anchorSide,
+          offset: Number(node.dataset.anchorOffset),
+          position: getComputedStyle(node).position,
+          gridCol: node.dataset.gridCol || null,
+          gridRow: node.dataset.gridRow || null,
+          top: node.getBoundingClientRect().top,
+        })
         """
     )
-    page.locator(".layout-save-button").click()
-    page.reload(wait_until="networkidle")
-    expect(page.locator('.workspace-divider[data-workspace-object-type="divider"]')).to_have_count(1)
-    expect(page.locator('.workspace-anchor-object[data-workspace-object-type="anchor"]')).to_have_count(1)
-    persisted_state = page.evaluate(
+    assert moved_anchor["side"] == "left"
+    assert moved_anchor["offset"] > 180
+    assert moved_anchor["position"] == "fixed"
+    assert moved_anchor["gridCol"] is None
+    assert moved_anchor["gridRow"] is None
+
+    page.locator(".panel-add-button").click()
+    page.locator('.widget-add-action[data-widget-kind="anchor"]').click()
+    anchors = page.locator('.workspace-anchor-object[data-workspace-object-type="anchor"]')
+    expect(anchors).to_have_count(2)
+    second_anchor = anchors.nth(1)
+    first_after_move_box = anchor.bounding_box()
+    second_box = second_anchor.bounding_box()
+    assert first_after_move_box and second_box
+    page.mouse.move(second_box["x"] + second_box["width"] / 2, second_box["y"] + second_box["height"] / 2)
+    page.mouse.down()
+    page.mouse.move(18, first_after_move_box["y"] + first_after_move_box["height"] / 2, steps=14)
+    page.mouse.up()
+    page.wait_for_timeout(180)
+    rail_state = page.evaluate(
         """
         () => {
-          const divider = document.querySelector('.workspace-divider[data-workspace-object-type="divider"]');
-          const anchor = document.querySelector('.workspace-anchor-object[data-workspace-object-type="anchor"]');
+          const anchors = [...document.querySelectorAll('.workspace-anchor-object[data-workspace-object-type="anchor"]')];
           return {
-            dividerScope: divider?.dataset.contextScopeId,
-            anchorRegion: anchor?.dataset.workspaceRegionId,
-            anchorTarget: anchor?.dataset.navigationTargetId,
-            dividerRow: Number(divider?.dataset.gridRow) || 0,
-            anchorRow: Number(anchor?.dataset.gridRow) || 0,
+            anchors: anchors.map((anchor) => {
+              const rect = anchor.getBoundingClientRect();
+              return {
+                key: anchor.dataset.anchorKey,
+                side: anchor.dataset.anchorSide,
+                offset: Number(anchor.dataset.anchorOffset) || 0,
+                top: rect.top,
+                bottom: rect.bottom,
+                left: rect.left,
+                right: rect.right,
+              };
+            }),
+            gridAnchorCount: document.querySelectorAll('.widget-layout > .workspace-anchor-object, .panel-layout > .workspace-anchor-object').length,
           };
         }
         """
     )
-    assert persisted_state["anchorRow"] == persisted_state["dividerRow"] + 1
-    assert persisted_state["anchorRegion"] == persisted_state["dividerScope"]
-    assert persisted_state["anchorTarget"] == persisted_state["dividerScope"]
+    left_rail = [entry for entry in rail_state["anchors"] if entry["side"] == "left"]
+    assert rail_state["gridAnchorCount"] == 0
+    assert len(left_rail) >= 2
+    for index, current in enumerate(left_rail):
+        for other in left_rail[index + 1 :]:
+            overlap = min(current["bottom"], other["bottom"]) - max(current["top"], other["top"])
+            assert overlap <= 1
+
+    before_scroll_top = anchor.evaluate("node => node.getBoundingClientRect().top")
+    page.evaluate("window.scrollTo(0, 900)")
+    page.wait_for_timeout(180)
+    after_scroll_top = anchor.evaluate("node => node.getBoundingClientRect().top")
+    assert abs(after_scroll_top - before_scroll_top) <= 2
+    page.evaluate("window.scrollTo(0, 0)")
+
+    page.locator(".layout-save-button").click()
+    page.reload(wait_until="networkidle")
+    expect(page.locator('.workspace-divider[data-workspace-object-type="divider"]')).to_have_count(1)
+    expect(page.locator('.workspace-anchor-object[data-workspace-object-type="anchor"]')).to_have_count(2)
+    persisted_state = page.evaluate(
+        """
+        () => {
+          const divider = document.querySelector('.workspace-divider[data-workspace-object-type="divider"]');
+          const anchors = [...document.querySelectorAll('.workspace-anchor-object[data-workspace-object-type="anchor"]')];
+          const anchor = anchors[0];
+          return {
+            dividerScope: divider?.dataset.contextScopeId,
+            anchorTarget: anchor?.dataset.navigationTargetId,
+            dividerRow: Number(divider?.dataset.gridRow) || 0,
+            anchorSide: anchor?.dataset.anchorSide,
+            anchorOffset: Number(anchor?.dataset.anchorOffset) || 0,
+            anchorPosition: getComputedStyle(anchor).position,
+            anchorInWidgetLayout: Boolean(anchor?.closest(".widget-layout")),
+            anchorCount: anchors.length,
+            leftAnchorCount: anchors.filter((node) => node.dataset.anchorSide === "left").length,
+          };
+        }
+        """
+    )
+    assert persisted_state["anchorCount"] == 2
+    assert persisted_state["anchorSide"] == "left"
+    assert persisted_state["leftAnchorCount"] >= 1
+    assert persisted_state["anchorPosition"] == "fixed"
+    assert persisted_state["anchorInWidgetLayout"] is False
+    assert persisted_state["anchorTarget"]
     assert_clean_browser(page)
 
 
@@ -2206,12 +2316,16 @@ def test_dragging_expanded_panel_preserves_temporary_pushdown_restoration(page: 
 
     panel.locator(".db-panel-hd").click(position={"x": 18, "y": 18})
     page.wait_for_timeout(420)
+    collapsed_panel = grid_item_state(page, '[data-panel-key="builder-content"]')
     collapsed_displaced = grid_item_state(page, '[data-widget-key="widget-1"]')
     collapsed_unrelated = grid_item_state(page, '[data-widget-key="widget-2"]')
-    assert grid_state_tuple(collapsed_displaced) == grid_state_tuple(baseline_displaced)
+    assert collapsed_displaced["col"] == baseline_displaced["col"]
+    assert collapsed_displaced["row"] >= collapsed_panel["row"] + collapsed_panel["rowSpan"]
+    assert collapsed_displaced["row"] <= after_drag_displaced["row"]
     assert grid_state_tuple(collapsed_unrelated) == grid_state_tuple(baseline_unrelated)
     expect(panel).to_have_class(re.compile("db-panel-collapsed"))
     assert no_visible_overlaps(page, ".dashboard-layout-grid .widget-card, .dashboard-layout-grid .db-panel") == []
+    local_restored_displaced = collapsed_displaced
 
     panel.locator(".db-panel-hd").click(position={"x": 18, "y": 18})
     page.wait_for_timeout(420)
@@ -2239,10 +2353,10 @@ def test_dragging_expanded_panel_preserves_temporary_pushdown_restoration(page: 
     assert abs(reopened_visual["rect"]["height"] - reopened_visual["expectedHeight"]) <= 2
     assert reopened_displaced["col"] == baseline_displaced["col"]
     reopened_footprint_bottom = after_drag_panel["row"] + reopened_visual["rows"] - 1
-    if after_drag_panel["row"] <= baseline_displaced["row"] <= reopened_footprint_bottom:
-        assert reopened_displaced["row"] > baseline_displaced["row"]
+    if after_drag_panel["row"] <= local_restored_displaced["row"] <= reopened_footprint_bottom:
+        assert reopened_displaced["row"] > local_restored_displaced["row"]
     else:
-        assert grid_state_tuple(reopened_displaced) == grid_state_tuple(baseline_displaced)
+        assert grid_state_tuple(reopened_displaced) == grid_state_tuple(local_restored_displaced)
     assert no_visible_overlaps(page, ".dashboard-layout-grid .widget-card, .dashboard-layout-grid .db-panel") == []
 
     panel.locator(".db-panel-hd").click(position={"x": 18, "y": 18})
@@ -2250,7 +2364,7 @@ def test_dragging_expanded_panel_preserves_temporary_pushdown_restoration(page: 
     expect(panel).to_have_class(re.compile("db-panel-collapsed"))
     collapsed_again_displaced = grid_item_state(page, '[data-widget-key="widget-1"]')
     collapsed_again_unrelated = grid_item_state(page, '[data-widget-key="widget-2"]')
-    assert grid_state_tuple(collapsed_again_displaced) == grid_state_tuple(baseline_displaced)
+    assert grid_state_tuple(collapsed_again_displaced) == grid_state_tuple(local_restored_displaced)
     assert grid_state_tuple(collapsed_again_unrelated) == grid_state_tuple(baseline_unrelated)
 
     page.locator(".layout-save-button").click()
@@ -2259,8 +2373,105 @@ def test_dragging_expanded_panel_preserves_temporary_pushdown_restoration(page: 
     page.wait_for_selector(".page")
     reloaded_displaced = grid_item_state(page, '[data-widget-key="widget-1"]')
     reloaded_unrelated = grid_item_state(page, '[data-widget-key="widget-2"]')
-    assert grid_state_tuple(reloaded_displaced) == grid_state_tuple(baseline_displaced)
+    assert grid_state_tuple(reloaded_displaced) == grid_state_tuple(local_restored_displaced)
     assert grid_state_tuple(reloaded_unrelated) == grid_state_tuple(baseline_unrelated)
+    assert no_visible_overlaps(page, ".dashboard-layout-grid .widget-card, .dashboard-layout-grid .db-panel") == []
+    assert_clean_browser(page)
+
+
+def test_closing_moved_expanded_panel_preserves_displaced_panel_order(page: Page, app_server: str) -> None:
+    goto(page, app_server)
+    page.evaluate(
+        """
+        () => {
+          const grid = document.querySelector(".dashboard-layout-grid");
+          const styles = getComputedStyle(grid);
+          const rowHeight = parseFloat(styles.gridAutoRows) || 81;
+          const gap = parseFloat(styles.rowGap || styles.gap || "16") || 16;
+          const panelHeight = (rows) => (rows * rowHeight) + (Math.max(0, rows - 1) * gap);
+          const placePanel = (node, col, row, span, rowSpan, collapsed) => {
+            node.hidden = false;
+            node.classList.remove("db-panel-pinned", "group-selected", "db-panel-tools-open");
+            node.dataset.gridCol = String(col);
+            node.dataset.gridRow = String(row);
+            node.dataset.currentSpan = String(span);
+            node.dataset.gridRowSpan = String(collapsed ? 1 : rowSpan);
+            node.dataset.savedHeight = String(panelHeight(rowSpan));
+            node.style.gridColumn = `${col} / span ${span}`;
+            node.style.gridRow = `${row} / span ${collapsed ? 1 : rowSpan}`;
+            node.classList.toggle("db-panel-collapsed", collapsed);
+            node.querySelector(".db-panel-hd")?.setAttribute("aria-expanded", (!collapsed).toString());
+            node.style.height = collapsed ? "" : `${panelHeight(rowSpan)}px`;
+          };
+          const placeWidget = (node, col, row) => {
+            node.hidden = false;
+            node.classList.remove("db-panel-pinned", "group-selected", "widget-tools-open");
+            node.dataset.gridCol = String(col);
+            node.dataset.gridRow = String(row);
+            node.dataset.currentSpan = "1";
+            node.dataset.defaultSpan = "1";
+            node.dataset.gridRowSpan = "1";
+            node.style.gridColumn = `${col} / span 1`;
+            node.style.gridRow = `${row} / span 1`;
+            node.style.height = "";
+          };
+          const moving = document.querySelector('[data-panel-key="builder-menu"]');
+          const displaced = document.querySelector('[data-panel-key="builder-notes"]');
+          const unrelated = document.querySelector('[data-panel-key="builder-content"]');
+          placePanel(moving, 1, 1, 2, 5, true);
+          placePanel(displaced, 1, 2, 2, 2, true);
+          placePanel(unrelated, 4, 2, 2, 2, true);
+          document.querySelectorAll(".panel-layout > .db-panel").forEach((node, index) => {
+            if ([moving, displaced, unrelated].includes(node)) return;
+            placePanel(node, 6, 18 + index, 1, 2, true);
+          });
+          document.querySelectorAll(".widget-layout > .widget-card").forEach((node, index) => {
+            placeWidget(node, 6, 26 + index);
+          });
+          document.body.classList.remove("group-transform-active");
+          window.scrollTo(0, 0);
+        }
+        """
+    )
+
+    moving = page.locator('[data-panel-key="builder-menu"]')
+    displaced = page.locator('[data-panel-key="builder-notes"]')
+    unrelated = page.locator('[data-panel-key="builder-content"]')
+    baseline_displaced = grid_item_state(page, '[data-panel-key="builder-notes"]')
+    baseline_unrelated = grid_item_state(page, '[data-panel-key="builder-content"]')
+    assert baseline_displaced["row"] == 2
+
+    moving.locator(".db-panel-hd").click(position={"x": 18, "y": 18})
+    page.wait_for_timeout(380)
+    expanded_moving = grid_item_state(page, '[data-panel-key="builder-menu"]')
+    expanded_displaced = grid_item_state(page, '[data-panel-key="builder-notes"]')
+    assert expanded_moving["rowSpan"] >= 5
+    assert expanded_displaced["row"] > baseline_displaced["row"]
+    assert expanded_displaced["row"] > expanded_moving["row"] + expanded_moving["rowSpan"] - 1
+
+    open_tools(moving)
+    x, y = begin_drag(page, moving.locator(".panel-move-handle"), 0, 110, steps=12)
+    end_drag(page, x, y, 0, 210, steps=18)
+    page.wait_for_timeout(460)
+
+    moved_open = grid_item_state(page, '[data-panel-key="builder-menu"]')
+    moved_displaced = grid_item_state(page, '[data-panel-key="builder-notes"]')
+    assert moved_open["row"] > expanded_moving["row"]
+    assert moved_displaced["row"] > moved_open["row"] + moved_open["rowSpan"] - 1
+    assert grid_state_tuple(grid_item_state(page, '[data-panel-key="builder-content"]')) == grid_state_tuple(baseline_unrelated)
+
+    page.locator('[data-panel-key="builder-menu"] .db-panel-hd').click(position={"x": 18, "y": 18})
+    page.wait_for_timeout(460)
+
+    collapsed_moving = grid_item_state(page, '[data-panel-key="builder-menu"]')
+    collapsed_displaced = grid_item_state(page, '[data-panel-key="builder-notes"]')
+    collapsed_unrelated = grid_item_state(page, '[data-panel-key="builder-content"]')
+    expect(moving).to_have_class(re.compile("db-panel-collapsed"))
+    assert collapsed_displaced["col"] == baseline_displaced["col"]
+    assert collapsed_displaced["row"] > collapsed_moving["row"]
+    assert collapsed_displaced["row"] >= collapsed_moving["row"] + collapsed_moving["rowSpan"]
+    assert collapsed_displaced["row"] <= moved_displaced["row"]
+    assert grid_state_tuple(collapsed_unrelated) == grid_state_tuple(baseline_unrelated)
     assert no_visible_overlaps(page, ".dashboard-layout-grid .widget-card, .dashboard-layout-grid .db-panel") == []
     assert_clean_browser(page)
 
@@ -4154,6 +4365,153 @@ def test_pinned_items_are_not_displaced_by_drag(page: Page, app_server: str) -> 
     assert_clean_browser(page)
 
 
+def test_collision_reuses_nearest_valid_freed_slot_for_widgets_and_panels(page: Page, app_server: str) -> None:
+    goto(page, app_server)
+    page.evaluate(
+        """
+        () => {
+          Object.keys(localStorage)
+            .filter((key) => key.startsWith("dashboard-"))
+            .forEach((key) => localStorage.removeItem(key));
+        }
+        """
+    )
+    page.reload(wait_until="networkidle")
+    page.wait_for_selector(".page")
+    page.evaluate("window.scrollTo(0, 0)")
+    page.mouse.move(24, 24)
+
+    def arrange_three_items(selector: str, key_attr: str) -> list[str]:
+        keys = page.locator(selector).evaluate_all(
+            """
+            (nodes, keyAttr) => nodes.slice(0, 3).map((node, index) => {
+              const key = node.dataset[keyAttr] || `${keyAttr}-${index}`;
+              node.dataset.currentSpan = "1";
+              node.dataset.defaultSpan = "1";
+              node.dataset.gridCol = String(index + 1);
+              node.dataset.gridRow = "1";
+              node.dataset.gridRowSpan = "1";
+              node.style.gridColumn = `${index + 1} / span 1`;
+              node.style.gridRow = "1 / span 1";
+              node.style.height = "";
+              node.classList.remove("db-panel-pinned", "widget-tools-open", "db-panel-tools-open");
+              if (node.classList.contains("db-panel")) {
+                node.classList.add("db-panel-collapsed");
+                node.querySelector(".db-panel-hd")?.setAttribute("aria-expanded", "false");
+              }
+              return key;
+            })
+            """,
+            key_attr,
+        )
+        assert len(keys) == 3
+        page.locator(selector).nth(3).evaluate(
+            """
+            node => {
+              node.dataset.currentSpan = "1";
+              node.dataset.defaultSpan = "1";
+              node.dataset.gridCol = "6";
+              node.dataset.gridRow = "4";
+              node.dataset.gridRowSpan = "1";
+              node.style.gridColumn = "6 / span 1";
+              node.style.gridRow = "4 / span 1";
+              node.classList.remove("db-panel-pinned", "widget-tools-open", "db-panel-tools-open");
+              if (node.classList.contains("db-panel")) {
+                node.classList.add("db-panel-collapsed");
+                node.querySelector(".db-panel-hd")?.setAttribute("aria-expanded", "false");
+              }
+            }
+            """
+        )
+        return keys
+
+    def park_items(selector: str, start_row: int) -> None:
+        page.locator(selector).evaluate_all(
+            """
+            (nodes, startRow) => nodes.forEach((node, index) => {
+              const col = (index % 6) + 1;
+              const row = startRow + Math.floor(index / 6);
+              node.dataset.currentSpan = "1";
+              node.dataset.defaultSpan = "1";
+              node.dataset.gridCol = String(col);
+              node.dataset.gridRow = String(row);
+              node.dataset.gridRowSpan = "1";
+              node.style.gridColumn = `${col} / span 1`;
+              node.style.gridRow = `${row} / span 1`;
+              node.style.height = "";
+              node.classList.remove("db-panel-pinned", "widget-tools-open", "db-panel-tools-open");
+              if (node.classList.contains("db-panel")) {
+                node.classList.add("db-panel-collapsed");
+                node.querySelector(".db-panel-hd")?.setAttribute("aria-expanded", "false");
+              }
+            })
+            """,
+            start_row,
+        )
+
+    add_panel_for_setup(page)
+    park_items(".widget-layout > .widget-card", 8)
+    widget_keys = arrange_three_items(".widget-layout > .widget-card:not(.range-bar)", "widgetKey")
+    park_items(".panel-layout > .db-panel", 6)
+
+    def drag_first_item_over_second(selector_prefix: str, keys: list[str], key_attr: str, placeholder_selector: str) -> None:
+        active_selector = f'[{key_attr}="{keys[0]}"]'
+        displaced_selector = f'[{key_attr}="{keys[1]}"]'
+        blocker_selector = f'[{key_attr}="{keys[2]}"]'
+        unrelated_selector = f"{selector_prefix}:nth-of-type(4)"
+        active = page.locator(active_selector)
+        displaced = page.locator(displaced_selector)
+        blocker_before = grid_item_state(page, blocker_selector)
+        unrelated_before = page.locator(selector_prefix).nth(3).evaluate(
+            "node => ({ col: Number(node.dataset.gridCol), row: Number(node.dataset.gridRow) })"
+        )
+
+        open_tools(active)
+        page.wait_for_timeout(120)
+        handle = active.locator(".panel-move-handle").bounding_box()
+        active_box = active.bounding_box()
+        target_box = displaced.bounding_box()
+        assert handle and active_box and target_box
+        dx = (target_box["x"] + target_box["width"] / 2) - (active_box["x"] + active_box["width"] / 2)
+        dy = (target_box["y"] + target_box["height"] / 2) - (active_box["y"] + active_box["height"] / 2)
+        x, y = box_center(handle)
+        page.mouse.move(x, y)
+        page.mouse.down()
+        page.mouse.move(x + dx, y + dy, steps=14)
+        page.wait_for_function(
+            """
+            ({ placeholderSelector }) => {
+              const placeholder = document.querySelector(placeholderSelector);
+              return placeholder && Number(placeholder.dataset.gridCol) === 2 && Number(placeholder.dataset.gridRow) === 1;
+            }
+            """,
+            arg={"placeholderSelector": placeholder_selector},
+        )
+        preview_displaced = grid_item_state(page, displaced_selector)
+        assert (preview_displaced["col"], preview_displaced["row"]) == (1, 1)
+        preview_blocker = grid_item_state(page, blocker_selector)
+        assert (preview_blocker["col"], preview_blocker["row"]) == (blocker_before["col"], blocker_before["row"])
+
+        page.mouse.up()
+        page.wait_for_timeout(360)
+        committed_active = grid_item_state(page, active_selector)
+        committed_displaced = grid_item_state(page, displaced_selector)
+        committed_unrelated = page.locator(selector_prefix).nth(3).evaluate(
+            "node => ({ col: Number(node.dataset.gridCol), row: Number(node.dataset.gridRow) })"
+        )
+        assert (committed_active["col"], committed_active["row"]) == (2, 1)
+        assert (committed_displaced["col"], committed_displaced["row"]) == (1, 1)
+        assert committed_unrelated == unrelated_before
+
+    drag_first_item_over_second(".widget-layout > .widget-card:not(.range-bar)", widget_keys, "data-widget-key", ".widget-placeholder")
+    park_items(".widget-layout > .widget-card", 6)
+    panel_keys = arrange_three_items(".panel-layout > .db-panel", "panelKey")
+    drag_first_item_over_second(".panel-layout > .db-panel", panel_keys, "data-panel-key", ".db-panel-placeholder")
+
+    assert no_visible_overlaps(page, ".dashboard-layout-grid .widget-card, .dashboard-layout-grid .db-panel") == []
+    assert_clean_browser(page)
+
+
 def test_sparse_empty_space_drop_is_preserved(page: Page, app_server: str) -> None:
     goto(page, app_server)
     widget = page.locator(".widget-layout > .stat-card.widget-card:not(.range-bar)").nth(2)
@@ -4814,7 +5172,8 @@ def test_widget_surface_controls_use_translucent_widget_glass(page: Page, app_se
         assert .18 <= state["settingsAlpha"] <= .68
         assert .18 <= state["buttonAlpha"] <= .68
         assert state["drawerAlphas"]
-        assert max(state["drawerAlphas"]) <= .72
+        assert .72 <= max(state["drawerAlphas"]) <= .9
+        assert max(state["drawerAlphas"]) > max(state["settingsAlpha"], state["buttonAlpha"])
         assert state["settingsBorder"] != "rgb(255, 255, 255)"
         assert state["buttonBorder"] != "rgb(255, 255, 255)"
         assert "0px 0px 22px" not in state["settingsShadow"]
@@ -6482,7 +6841,10 @@ def test_settings_save_updates_dashboard_title(page: Page, app_server: str) -> N
 
     page.locator("#settings-dashboard-btn").click()
     page.wait_for_url(re.compile(r"/dashboard$"))
-    expect(page.locator(".dash-switch-hero")).to_contain_text("QA Dashboard")
+    expect(page.locator(".dash-switch-hero")).to_contain_text("Workspace User")
+    page.locator(".dash-switch-hero").click()
+    expect(page.locator(".dash-switch-menu")).to_have_class(re.compile("open"))
+    expect(page.locator(".dash-switch-menu")).to_contain_text("QA Dashboard")
     assert_clean_browser(page)
 
 

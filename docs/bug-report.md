@@ -72,11 +72,23 @@ Command:
 .venv\Scripts\python.exe -m pytest -q
 ```
 
-Latest result: 79 passed, 0 failed.
+Latest result: 83 passed, 0 failed.
 
 Previous discovery result: 6 passed, 3 failed.
 
 Passed coverage included app/dashboard/settings load, CSS imports, absence of mode toggle state, expanded background palette persistence, shared material invariance across deep background selection, workspace toolbar command-island screenshots, toolbar mode toggles, generic Add Widget menu options, shared timeframe controls, timeframe resize, timeframe minimum resize clamping, exact layout save/load round trips, small-panel menu overlays, panel placeholder/body sizing, adaptive panel content density, drag ghost creation, ordered drag reflow, local top insertion, reversible collision previews, suppression of underlying hover menus during drag, global widget/panel occupancy, pinned item protection, pin menu close behavior, sparse empty-space placement, grid-bound drag clamping, grid snapping alignment, collision/overlap checks, resize snapping, left-edge anchored resize, menu icon alignment, panel header chevron centering, panel/widget/timeframe hover-focus material coverage, restrained neutral widget hover shadows, group multi-selection, grouped drag, grouped proportional resize, pinned items inside groups, mixed widget/panel group transforms, group mode, layout save/load/reset, settings save, mobile overflow checks, console errors, and network errors.
+
+### BUG-086: Closing A Moved Expanded Panel Let Displaced Objects Cross Above It
+
+- Status: Fixed
+- Area: Dashboard grid / panel expand-collapse / temporary displacement restoration
+- Severity: High
+- Environment: Dashboard workspace, expanded panel moved while open, neighboring panel or widget displaced below it
+- Observed: After an expanded panel was moved downward and pushed a lower object farther down, collapsing the moved panel could restore that lower object all the way to its original baseline row, even if that row was now above the moved source panel.
+- Expected: Collapse restoration should relax temporary displacement upward only within the correct local relationship. If an object is currently below the collapsed source panel in overlapping columns, it may move upward but must remain below the source panel.
+- Suspected cause: `relaxCollapsedExpansionDisplacement` restored candidates toward their captured expansion baseline without applying a source-panel ordering boundary. The solver treated the displaced object as free to occupy any available baseline row, which was effectively a local auto-pack across the moved panel.
+- Fix notes: Collapse relaxation now computes the collapsed source panel bounds and applies a local minimum row for candidates that are currently below it and share columns. Those objects still restore upward as much as possible, but their target row is clamped below the collapsed source panel. Unrelated objects and non-overlapping columns are left on the existing baseline restoration path.
+- Validation: Added `test_closing_moved_expanded_panel_preserves_displaced_panel_order` and updated expanded-panel drag restoration coverage for the new local-order contract. Targeted expand/collapse tests, full group behavior slice, and `.venv\Scripts\python.exe -m pytest -q` passed with 83 tests.
 
 ### BUG-085: Navbar Groups Hovered Like Plates Instead Of Individual Buttons
 

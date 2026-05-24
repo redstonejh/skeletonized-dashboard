@@ -2,13 +2,13 @@
 
 ## Purpose
 
-Spatial Anchors are a future navigation layer for the dashboard workspace.
+Spatial Anchors are the floating navigation layer for the dashboard workspace.
 
 The dashboard should remain tabless. Navigation should happen inside one continuous spatial dashboard/grid rather than through conventional tabs, pages, or route-like switches.
 
 Spatial Anchors are floating viewport-fixed controls that act as contextual bookmarks into the larger dashboard world. Clicking an anchor smoothly moves the user back to a linked widget, panel, group, region, semantic context, or saved viewport while preserving the feeling of one continuous workspace.
 
-This is an architecture plan only. Do not implement placeholder UI, fake controls, or tab-like navigation without a follow-up implementation task.
+The current implementation is a minimal side-rail foundation: anchors can be created, dragged between left/right viewport rails, persisted separately from grid layout, and activated to navigate to a target. The full management, creation-from-selection, missing-target, keyboard repositioning, and contextual-state systems remain staged work.
 
 ## Concept Name
 
@@ -171,6 +171,19 @@ The anchor should usually resolve by target id. Coordinate snapshots are fallbac
 If a target moves, the anchor follows the target by id.
 
 If a target is deleted, the anchor enters missing-target state rather than jumping to stale coordinates without explanation.
+
+### Current Implementation Shape
+
+Current anchors:
+
+- render in `.workspace-anchor-layer`, outside widget and panel layouts;
+- use fixed side-rail placement with `side` and `offset` state;
+- persist in the `dashboard-floating-anchors:*` storage namespace;
+- do not participate in grid collision, snapping, resizing, pinning, grouping, or panel collapse pressure;
+- only resolve same-rail overlap against other anchors;
+- use existing workspace target metadata as a navigation hook.
+
+This keeps anchors on a raised navigation axis while widgets, panels, and dividers remain on the workspace layout axis.
 
 ## Persistence Model
 
@@ -391,22 +404,21 @@ Manual verification should cover:
 
 ### Stage 2: Persistence Foundation
 
-- Add anchor records separate from dashboard grid items.
-- Define local storage/API payload shape.
+- Add anchor records separate from dashboard grid items. Initial local storage foundation is implemented.
+- Define local storage/API payload shape. Initial side/offset/target record shape is implemented.
 - Add migration/version handling if anchors become part of layout profiles.
 
 ### Stage 3: Read-Only Rendering Prototype
 
-- Render anchors from seeded data.
-- No creation UI yet.
+- Render anchors from saved data. Initial rendering is implemented.
 - Verify visual language, viewport placement, and keyboard focus.
 
 ### Stage 4: Navigation Resolver
 
 - Resolve targets by id first.
 - Use snapshot fallback.
-- Implement scroll alignment and reduced motion.
-- Suppress navigation during protected interactions.
+- Implement scroll alignment and reduced motion. Initial target-id scroll is implemented.
+- Suppress navigation during protected interactions. Initial suppression is implemented.
 
 ### Stage 5: Creation Flow
 
@@ -416,7 +428,7 @@ Manual verification should cover:
 
 ### Stage 6: Repositioning And Pinning
 
-- Drag anchors in viewport space.
+- Drag anchors in viewport side-rail space. Initial pointer repositioning is implemented.
 - Support pin/lock state.
 - Add keyboard repositioning.
 - Avoid critical control overlap.

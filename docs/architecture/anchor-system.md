@@ -26,16 +26,18 @@ It is not:
 
 ## Current Foundation
 
-The first implementation creates an anchor as a grid-resident workspace object with `data-workspace-object-type="anchor"`. This is a deliberate seed state, not the final anchor architecture.
+The current implementation renders anchors in a dedicated floating navigation layer, not in the dashboard grid. Anchors use `data-workspace-object-type="anchor"` but live under `.workspace-anchor-layer`, persist through the `dashboard-floating-anchors:*` storage namespace, and stay out of widget/panel/divider collision and reflow.
 
 Current anchors:
 
-- participate in the shared grid, selection, drag, resize, menu, pin, grouping, and save/load systems;
+- are viewport-fixed left/right side-rail controls;
+- can be dragged between the left and right rail;
+- resolve collisions only against other anchors in the same rail;
 - store `navigationTargetType` and `navigationTargetId` metadata;
-- inherit the committed workspace region produced by the region assignment pass;
-- render as lightweight glass anchor objects, not browser bookmarks or tabs.
+- navigate to their stored target id when activated;
+- render as lightweight glass anchor objects, not browser bookmarks, tabs, or mini widgets.
 
-Future viewport-fixed anchors should be extracted into independent navigation records once camera/viewport ownership exists. Until then, grid-resident anchors prove creation, identity, persistence, and contextual ownership without introducing a parallel interaction stack.
+This is still a foundation, not the full anchor system. Target management, keyboard repositioning, missing-target states, current/near indicators, and full anchor management are intentionally deferred.
 
 ## Coordinate Spaces
 
@@ -117,6 +119,8 @@ Persist:
 - Scope.
 
 Store separately from grid item layout.
+
+Current persistence stores side, offset, label/glyph, accent, context metadata, and target metadata separately from widget and panel layout. Save/load should never turn anchors into grid occupants.
 
 ## Visual Role
 
