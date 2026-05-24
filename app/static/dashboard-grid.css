@@ -209,15 +209,19 @@ body.layout-tools-active .widget-card:not(.widget-tools-open):not(:has(> .widget
 .widget-card.db-panel-pinned::after {
   content: "";
   position: absolute;
-  top: 8px;
-  left: 8px;
+  top: 9px;
+  left: 9px;
   z-index: var(--z-dropdown);
-  width: 8px;
-  height: 8px;
-  border: 2px solid rgba(255, 255, 255, .88);
+  width: 7px;
+  height: 7px;
+  border: 1.5px solid color-mix(in srgb, white 76%, var(--panel-accent, var(--blue)) 24%);
   border-radius: 999px;
-  background: var(--panel-accent, var(--blue));
-  box-shadow: 0 0 0 2px rgba(15, 23, 42, .10), 0 0 10px color-mix(in srgb, var(--panel-accent, var(--blue)) 42%, transparent);
+  background:
+    radial-gradient(circle at 35% 28%, rgba(255, 255, 255, .55), transparent 42%),
+    color-mix(in srgb, var(--surface-raised) 38%, var(--panel-accent, var(--blue)) 62%);
+  box-shadow:
+    0 5px 12px rgba(15, 23, 42, .14),
+    inset 0 1px 0 rgba(255, 255, 255, .28);
   pointer-events: none;
 }
 
@@ -788,23 +792,27 @@ body.layout-tools-active .widget-card:not(.widget-tools-open):not(:has(> .widget
 
 .pin-icon {
   display: block;
-  width: 16px;
-  height: 16px;
+  width: 14px;
+  height: 14px;
   background: currentColor;
-  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.25' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 17v5'/%3E%3Cpath d='M5 17h14'/%3E%3Cpath d='M7 17 9 4h6l2 13'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.9' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 15.5v4.5'/%3E%3Cpath d='M8.25 15.5h7.5'/%3E%3Cpath d='M9.35 6.2h5.3'/%3E%3Cpath d='M10.1 6.2 9.2 15.5h5.6l-.9-9.3'/%3E%3C/svg%3E");
   mask-repeat: no-repeat;
   mask-position: center;
   mask-size: contain;
-  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.25' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 17v5'/%3E%3Cpath d='M5 17h14'/%3E%3Cpath d='M7 17 9 4h6l2 13'/%3E%3C/svg%3E");
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.9' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 15.5v4.5'/%3E%3Cpath d='M8.25 15.5h7.5'/%3E%3Cpath d='M9.35 6.2h5.3'/%3E%3Cpath d='M10.1 6.2 9.2 15.5h5.6l-.9-9.3'/%3E%3C/svg%3E");
   -webkit-mask-repeat: no-repeat;
   -webkit-mask-position: center;
   -webkit-mask-size: contain;
 }
 
 .db-panel-pinned .panel-pin-toggle {
-  background: color-mix(in srgb, var(--panel-lock-bg) 56%, var(--panel-hover-tint));
-  border-color: currentColor;
-  box-shadow: 0 14px 30px var(--panel-lock-glow), 0 0 26px var(--panel-lock-glow), inset 0 1px 0 var(--panel-hover-inset);
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--surface-raised) 82%, var(--panel-lock-fg) 18%), color-mix(in srgb, var(--panel-lock-bg) 72%, transparent));
+  border-color: color-mix(in srgb, currentColor 58%, var(--panel-lock-border));
+  box-shadow:
+    0 10px 22px color-mix(in srgb, var(--panel-lock-glow) 58%, transparent),
+    inset 0 1px 0 var(--panel-hover-inset),
+    inset 0 -1px 0 color-mix(in srgb, currentColor 14%, transparent);
 }
 
 .db-panel-pinned {
@@ -814,15 +822,19 @@ body.layout-tools-active .widget-card:not(.widget-tools-open):not(:has(> .widget
 .db-panel-pinned::after {
   content: "";
   position: absolute;
-  top: 9px;
-  left: 9px;
+  top: 10px;
+  left: 10px;
   z-index: var(--z-dropdown);
-  width: 8px;
-  height: 8px;
-  border: 2px solid rgba(255, 255, 255, .88);
+  width: 7px;
+  height: 7px;
+  border: 1.5px solid color-mix(in srgb, white 76%, var(--panel-accent, var(--blue)) 24%);
   border-radius: 999px;
-  background: var(--panel-accent, var(--blue));
-  box-shadow: 0 0 0 2px rgba(15, 23, 42, .10), 0 0 10px color-mix(in srgb, var(--panel-accent, var(--blue)) 42%, transparent);
+  background:
+    radial-gradient(circle at 35% 28%, rgba(255, 255, 255, .55), transparent 42%),
+    color-mix(in srgb, var(--surface-raised) 38%, var(--panel-accent, var(--blue)) 62%);
+  box-shadow:
+    0 5px 12px rgba(15, 23, 42, .14),
+    inset 0 1px 0 rgba(255, 255, 255, .28);
   pointer-events: none;
 }
 
@@ -1105,6 +1117,24 @@ body.layout-tools-active .db-panel:not(.db-panel-tools-open):not(:has(.panel-too
   -webkit-mask-repeat: no-repeat;
   -webkit-mask-position: center;
   -webkit-mask-size: contain;
+}
+
+.pin-icon {
+  width: 14px;
+  height: 14px;
+  min-width: 14px;
+  min-height: 14px;
+  opacity: .94;
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.9' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 15.5v4.5'/%3E%3Cpath d='M8.25 15.5h7.5'/%3E%3Cpath d='M9.35 6.2h5.3'/%3E%3Cpath d='M10.1 6.2 9.2 15.5h5.6l-.9-9.3'/%3E%3C/svg%3E");
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.9' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 15.5v4.5'/%3E%3Cpath d='M8.25 15.5h7.5'/%3E%3Cpath d='M9.35 6.2h5.3'/%3E%3Cpath d='M10.1 6.2 9.2 15.5h5.6l-.9-9.3'/%3E%3C/svg%3E");
+  transition: opacity .16s ease, transform .16s ease;
+}
+
+.panel-pin-toggle:hover .pin-icon,
+.panel-pin-toggle:focus-visible .pin-icon,
+.db-panel-pinned .panel-pin-toggle .pin-icon {
+  opacity: 1;
+  transform: translateY(-.5px);
 }
 
 .settings-icon {

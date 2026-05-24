@@ -633,6 +633,9 @@ document.addEventListener("DOMContentLoaded", () => {
     document.body.style.removeProperty("padding-bottom");
     document.documentElement.style.removeProperty("overflow-anchor");
     document.body.style.removeProperty("overflow-anchor");
+    document.documentElement.style.removeProperty("overscroll-behavior-y");
+    document.body.style.removeProperty("overscroll-behavior-y");
+    document.documentElement.style.removeProperty("scroll-behavior");
     document.querySelectorAll(".dashboard-layout-grid").forEach((host) => host.style.removeProperty("overflow-anchor"));
     document.querySelectorAll(".dashboard-active-resize, .dashboard-resize-source, .group-transform-member").forEach((item) => {
       item.classList.remove("dashboard-active-resize", "dashboard-resize-source", "group-transform-member");
@@ -824,7 +827,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const gridItemMinimumSpan = (item) => {
     const explicit = Number(item?.dataset?.minW || item?.dataset?.minSpan);
     if (Number.isFinite(explicit) && explicit > 0) return Math.max(1, Math.min(6, Math.ceil(explicit)));
-    if (item?.dataset?.widgetType === "controls" || item?.classList?.contains("timeframe-widget")) return 3;
+    if (item?.dataset?.widgetType === "controls" || item?.classList?.contains("timeframe-widget")) return 2;
     return 1;
   };
 
@@ -1562,6 +1565,8 @@ document.addEventListener("DOMContentLoaded", () => {
     let lastClientX = 0;
     let lastClientY = 0;
     let lastEvent = null;
+    let currentVelocity = 0;
+    let scrollRemainderY = 0;
     let extensionHeight = 0;
     let extensionTargetHeight = 0;
     let originalBodyPaddingBottom = null;
@@ -1569,8 +1574,14 @@ document.addEventListener("DOMContentLoaded", () => {
     const originalRootOverflowAnchor = document.documentElement.style.overflowAnchor || "";
     const originalBodyOverflowAnchor = document.body.style.overflowAnchor || "";
     const originalHostOverflowAnchor = host?.style?.overflowAnchor || "";
+    const originalRootOverscrollBehaviorY = document.documentElement.style.overscrollBehaviorY || "";
+    const originalBodyOverscrollBehaviorY = document.body.style.overscrollBehaviorY || "";
+    const originalRootScrollBehavior = document.documentElement.style.scrollBehavior || "";
     document.documentElement.style.overflowAnchor = "none";
     document.body.style.overflowAnchor = "none";
+    document.documentElement.style.overscrollBehaviorY = "none";
+    document.body.style.overscrollBehaviorY = "none";
+    document.documentElement.style.scrollBehavior = "auto";
     if (host?.style) host.style.overflowAnchor = "none";
 
     const maxScrollY = () => Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
@@ -1580,10 +1591,11 @@ document.addEventListener("DOMContentLoaded", () => {
       return Math.max(0, Math.min(1, (edgeZone - distance) / activeRange));
     };
     const bottomEdgePressure = () => edgePressure(window.innerHeight - lastClientY);
+    const topEdgePressure = () => edgePressure(lastClientY);
     const hasEdgePressure = () => (lastClientY < edgeZone && window.scrollY > 0) || bottomEdgePressure() > 0;
-    const velocityForPointer = () => {
+    const targetVelocityForPointer = () => {
       if (lastClientY < edgeZone && window.scrollY > 0) {
-        const pressure = edgePressure(lastClientY);
+        const pressure = topEdgePressure();
         if (!pressure) return 0;
         return -(minVelocity + ((maxVelocity - minVelocity) * pressure * pressure * pressure));
       }
@@ -1594,6 +1606,12 @@ document.addEventListener("DOMContentLoaded", () => {
         return minVelocity + ((maxVelocity - minVelocity) * pressure * pressure * pressure);
       }
       return 0;
+    };
+    const smoothVelocityForFrame = (targetVelocity, deltaMs) => {
+      const smoothing = 1 - Math.exp(-Math.max(8, Math.min(50, deltaMs)) / 86);
+      currentVelocity += (targetVelocity - currentVelocity) * smoothing;
+      if (!targetVelocity && Math.abs(currentVelocity) < 2) currentVelocity = 0;
+      return currentVelocity;
     };
     const ensureExtension = (deltaMs = 16.7) => {
       const bottomDistance = window.innerHeight - lastClientY;
@@ -1620,6 +1638,8 @@ document.addEventListener("DOMContentLoaded", () => {
       frame = null;
       startTimer = null;
       document.body.classList.remove("dashboard-auto-scroll-active");
+      currentVelocity = 0;
+      scrollRemainderY = 0;
     };
     const removeExtension = () => {
       if (originalBodyPaddingBottom) {
@@ -1648,6 +1668,21 @@ document.addEventListener("DOMContentLoaded", () => {
           host.style.removeProperty("overflow-anchor");
         }
       }
+      if (originalRootOverscrollBehaviorY) {
+        document.documentElement.style.overscrollBehaviorY = originalRootOverscrollBehaviorY;
+      } else {
+        document.documentElement.style.removeProperty("overscroll-behavior-y");
+      }
+      if (originalBodyOverscrollBehaviorY) {
+        document.body.style.overscrollBehaviorY = originalBodyOverscrollBehaviorY;
+      } else {
+        document.body.style.removeProperty("overscroll-behavior-y");
+      }
+      if (originalRootScrollBehavior) {
+        document.documentElement.style.scrollBehavior = originalRootScrollBehavior;
+      } else {
+        document.documentElement.style.removeProperty("scroll-behavior");
+      }
     };
     const tick = (frameTime = performance.now()) => {
       frame = null;
@@ -1655,14 +1690,22 @@ document.addEventListener("DOMContentLoaded", () => {
       const deltaMs = lastFrameTime ? Math.min(50, Math.max(8, frameTime - lastFrameTime)) : 16.7;
       lastFrameTime = frameTime;
       ensureExtension(deltaMs);
-      const velocity = velocityForPointer();
-      if (!velocity) {
+      const targetVelocity = targetVelocityForPointer();
+      if (!targetVelocity) {
         stopFrame();
         return;
       }
+      const velocity = smoothVelocityForFrame(targetVelocity, deltaMs);
       const before = window.scrollY || document.documentElement.scrollTop || 0;
-      window.scrollBy(0, velocity * (deltaMs / 1000));
+      const requestedDelta = (velocity * (deltaMs / 1000)) + scrollRemainderY;
+      const boundedDelta = requestedDelta < 0
+        ? Math.max(requestedDelta, -before)
+        : Math.min(requestedDelta, maxScrollY() - before);
+      window.scrollBy(0, boundedDelta);
       const after = window.scrollY || document.documentElement.scrollTop || 0;
+      const actualDelta = after - before;
+      const atScrollLimit = (boundedDelta < 0 && after <= 0) || (boundedDelta > 0 && after >= maxScrollY() - .5);
+      scrollRemainderY = atScrollLimit ? 0 : Math.max(-1.5, Math.min(1.5, boundedDelta - actualDelta));
       if (Math.abs(after - before) > 0.1) {
         onScrollFrame?.(lastEvent, {
           clientX: lastClientX,
@@ -1672,7 +1715,7 @@ document.addEventListener("DOMContentLoaded", () => {
           scrollY: after,
         });
       }
-      if (!stopped && velocityForPointer()) {
+      if (!stopped && targetVelocityForPointer()) {
         document.body.classList.add("dashboard-auto-scroll-active");
         frame = window.requestAnimationFrame(tick);
       } else {
@@ -1682,13 +1725,13 @@ document.addEventListener("DOMContentLoaded", () => {
     };
     const ensureFrame = () => {
       if (frame != null || startTimer != null || stopped) return;
-      if (!velocityForPointer() && !hasEdgePressure()) {
+      if (!targetVelocityForPointer() && !hasEdgePressure()) {
         stopFrame();
         return;
       }
       startTimer = window.setTimeout(() => {
         startTimer = null;
-        if (stopped || (!velocityForPointer() && !hasEdgePressure())) {
+        if (stopped || (!targetVelocityForPointer() && !hasEdgePressure())) {
           stopFrame();
           return;
         }
@@ -1705,10 +1748,13 @@ document.addEventListener("DOMContentLoaded", () => {
         lastClientY = event.clientY;
         ensureFrame();
       },
-      stop() {
+      clearExtension() {
+        removeExtension();
+      },
+      stop(options = {}) {
         stopped = true;
         stopFrame();
-        removeExtension();
+        if (!options.preserveExtension) removeExtension();
         if (activeInteractionAutoScroll === controller) activeInteractionAutoScroll = null;
       },
     };
@@ -1753,7 +1799,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const finish = (finishEvent = null, canceled = false) => {
       if (ended) return;
       ended = true;
-      autoScroll.stop();
+      autoScroll.stop({ preserveExtension: !canceled });
       removeListeners();
       releasePointer();
       document.body.classList.remove("panel-interaction-active");
@@ -1763,6 +1809,7 @@ document.addEventListener("DOMContentLoaded", () => {
         onEnd?.(finishEvent, canceled);
       } finally {
         onCleanup?.(finishEvent, canceled);
+        autoScroll.clearExtension();
         if (activeResizeLifecycle?.finish === finish) activeResizeLifecycle = null;
       }
     };
@@ -2379,6 +2426,42 @@ document.addEventListener("DOMContentLoaded", () => {
       .filter((item) => !excluded.has(item) && !item.classList.contains("widget-dragging") && !item.classList.contains("db-panel-dragging") && !item.classList.contains("dashboard-live-resize") && !item.classList.contains("dashboard-resize-source") && !item.classList.contains("dashboard-group-source") && !item.classList.contains("dashboard-group-member-preview"));
   };
 
+  const committedWorkspaceNaturalHeight = (layout) => {
+    const items = globalGridItems(layout, { includePlaceholders: false });
+    const maxBottom = items.reduce((bottom, item) => Math.max(bottom, gridBoundsForItem(item).bottom), 1);
+    return gridHeightForRows(maxBottom, gridGapForLayout(layout));
+  };
+
+  const clearCommittedWorkspaceScrollFloor = (layout) => {
+    const host = gridHostForLayout(layout);
+    if (!host?.dataset?.committedScrollFloor) return;
+    host.style.removeProperty("min-height");
+    delete host.dataset.committedScrollFloor;
+  };
+
+  const syncCommittedWorkspaceScrollFloor = (layout, { preserveViewport = false, scrollY = null } = {}) => {
+    const host = gridHostForLayout(layout);
+    if (!host?.classList?.contains("dashboard-layout-grid")) return;
+    const naturalHeight = committedWorkspaceNaturalHeight(layout);
+    if (!preserveViewport) {
+      clearCommittedWorkspaceScrollFloor(layout);
+      return;
+    }
+    const currentScrollY = window.scrollY || document.documentElement.scrollTop || 0;
+    const targetScrollY = Number.isFinite(scrollY) ? Math.max(0, scrollY) : currentScrollY;
+    const desiredViewportBottom = targetScrollY + window.innerHeight + 16;
+    const hostTop = host.getBoundingClientRect().top + currentScrollY;
+    const requiredHeight = Math.max(0, desiredViewportBottom - hostTop);
+    if (requiredHeight > naturalHeight + 1) {
+      host.dataset.committedScrollFloor = "true";
+      host.style.minHeight = `${Math.ceil(requiredHeight)}px`;
+    } else {
+      clearCommittedWorkspaceScrollFloor(layout);
+    }
+    const maxScrollY = Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
+    window.scrollTo(0, Math.min(targetScrollY, maxScrollY));
+  };
+
   const boundsAtGridSlot = (item, col, row) => {
     const span = gridItemSpan(item);
     const rowSpan = gridItemRowSpan(item);
@@ -2640,6 +2723,34 @@ document.addEventListener("DOMContentLoaded", () => {
       applyGridItemPosition(other, next.col, next.row);
       occupied.push({ item: other, bounds: next });
     });
+    return { bounds: activeBounds, movedItems };
+  };
+
+  const commitExpandedPanelDropSlot = (layout, item, preferredTarget) => {
+    const target = preferredTarget || gridBoundsForItem(item);
+    let activeBounds = boundsAtGridSlot(item, target.col, target.row);
+    const items = globalGridItems(layout, { includePlaceholders: false, exclude: [item] });
+    const pinned = items
+      .filter((other) => other.classList.contains("db-panel-pinned"))
+      .map((other) => ({ item: other, bounds: gridBoundsForItem(other) }));
+
+    if (!canPlaceBounds(activeBounds, pinned)) {
+      activeBounds = nearestSparseSlotAtOrAfter(item, activeBounds, pinned);
+    }
+
+    applyGridItemPosition(item, activeBounds.col, activeBounds.row);
+    const occupied = [...pinned, { item, bounds: activeBounds }];
+    let movedItems = 0;
+    visualGridOrder(items.filter((other) => !other.classList.contains("db-panel-pinned"))).forEach((other) => {
+      const current = gridBoundsForItem(other);
+      const next = canPlaceBounds(current, occupied)
+        ? current
+        : verticalSlotAtOrAfter(other, current, occupied) || nearestSparseSlotAtOrAfter(other, current, occupied);
+      if (next.col !== current.col || next.row !== current.row) movedItems += 1;
+      applyGridItemPosition(other, next.col, next.row);
+      occupied.push({ item: other, bounds: next });
+    });
+
     return { bounds: activeBounds, movedItems };
   };
 
@@ -3040,7 +3151,8 @@ document.addEventListener("DOMContentLoaded", () => {
       const dragRect = groupLive?.groupRect || rect;
       const minLeft = gridRect.left;
       const maxLeft = Math.max(minLeft, gridRect.right - dragRect.width);
-      const minTop = Math.max(0, gridRect.top);
+      const scrollingTowardTop = moveEvent.clientY < 104 && (window.scrollY || document.documentElement.scrollTop || 0) > 0;
+      const minTop = scrollingTowardTop ? Math.min(0, gridRect.top) : Math.max(0, gridRect.top);
       const visibleBottom = Math.max(gridRect.bottom, window.innerHeight - 16);
       const maxTop = Math.max(minTop, visibleBottom - Math.min(dragRect.height, window.innerHeight - 32));
       const nextLeft = Math.max(minLeft, Math.min(maxLeft, moveEvent.clientX - offsetX));
@@ -3066,67 +3178,87 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const onUp = (upEvent) => {
       const canceled = upEvent?.type === "pointercancel";
-      autoScroll.stop();
+      const releaseScrollY = window.scrollY || document.documentElement.scrollTop || 0;
+      const releaseUsedExtendedWorkspace = dragging && placeholder && !canceled && document.body.classList.contains("dashboard-interaction-scroll-extended");
+      let committedExtendedWorkspaceScrollY = null;
+      autoScroll.stop({ preserveExtension: dragging && placeholder && !canceled });
       document.body.classList.remove("panel-interaction-active");
       document.body.classList.remove("panel-resize-active");
-      if (dragging && placeholder) {
-        if (!groupDrag) {
-          item.classList.remove(draggingClass);
-          item.style.left = "";
-          item.style.top = "";
-          item.style.width = "";
-          if (item.classList.contains("db-panel")) item.style.height = "";
-        }
-        expandedFootprintGhost?.remove();
-        expandedFootprintGhost = null;
-        if (canceled) {
-          restoreGridLayoutSnapshot(startSnapshot);
-          placeholder.remove();
-          groupLive?.clear();
-          onCancel?.();
-        } else {
-          const finalCell = {
-            col: Number(placeholder.dataset.gridCol) || originalCell.col,
-            row: Number(placeholder.dataset.gridRow) || originalCell.row,
-          };
-          let result;
-          if (groupDrag) {
+      try {
+        if (dragging && placeholder) {
+          if (!groupDrag) {
+            item.classList.remove(draggingClass);
+            item.style.left = "";
+            item.style.top = "";
+            item.style.width = "";
+            if (item.classList.contains("db-panel")) item.style.height = "";
+          }
+          expandedFootprintGhost?.remove();
+          expandedFootprintGhost = null;
+          if (canceled) {
             restoreGridLayoutSnapshot(startSnapshot);
-            applyGroupFootprintBounds(placeholder, groupDrag.footprintLayout, {
-              ...groupBoxBounds(groupDrag.groupBox),
-              col: finalCell.col,
-              row: finalCell.row,
-            });
-            resolveSparseGridLayout(layout, placeholder, finalCell, { afterOnly: true });
-            const resolvedCell = {
-              col: Number(placeholder.dataset.gridCol) || finalCell.col,
-              row: Number(placeholder.dataset.gridRow) || finalCell.row,
-            };
-            const delta = {
-              deltaCol: resolvedCell.col - groupDrag.groupBox.col,
-              deltaRow: resolvedCell.row - groupDrag.groupBox.row,
-            };
-            applyGroupDelta(
-              groupDrag.items.map((groupItem) => ({
-                item: groupItem,
-                sourceItem: groupItem,
-                startBounds: groupDrag.startBounds.get(groupItem),
-              })).filter((entry) => entry.startBounds),
-              delta
-            );
             placeholder.remove();
             groupLive?.clear();
-            result = {
-              bounds: boundsAtGridSlot(item, (groupDrag.startBounds.get(item)?.col || originalCell.col) + delta.deltaCol, (groupDrag.startBounds.get(item)?.row || originalCell.row) + delta.deltaRow),
-              movedItems: groupDrag.items.length - 1,
-            };
+            onCancel?.();
           } else {
-            restoreGridLayoutSnapshot(startSnapshot, { exclude: [item] });
-            placeholder.remove();
-            result = commitActiveDropSlot(layout, item, finalCell);
+            const finalCell = {
+              col: Number(placeholder.dataset.gridCol) || originalCell.col,
+              row: Number(placeholder.dataset.gridRow) || originalCell.row,
+            };
+            let result;
+            if (groupDrag) {
+              restoreGridLayoutSnapshot(startSnapshot);
+              applyGroupFootprintBounds(placeholder, groupDrag.footprintLayout, {
+                ...groupBoxBounds(groupDrag.groupBox),
+                col: finalCell.col,
+                row: finalCell.row,
+              });
+              resolveSparseGridLayout(layout, placeholder, finalCell, { afterOnly: true });
+              const resolvedCell = {
+                col: Number(placeholder.dataset.gridCol) || finalCell.col,
+                row: Number(placeholder.dataset.gridRow) || finalCell.row,
+              };
+              const delta = {
+                deltaCol: resolvedCell.col - groupDrag.groupBox.col,
+                deltaRow: resolvedCell.row - groupDrag.groupBox.row,
+              };
+              applyGroupDelta(
+                groupDrag.items.map((groupItem) => ({
+                  item: groupItem,
+                  sourceItem: groupItem,
+                  startBounds: groupDrag.startBounds.get(groupItem),
+                })).filter((entry) => entry.startBounds),
+                delta
+              );
+              placeholder.remove();
+              groupLive?.clear();
+              result = {
+                bounds: boundsAtGridSlot(item, (groupDrag.startBounds.get(item)?.col || originalCell.col) + delta.deltaCol, (groupDrag.startBounds.get(item)?.row || originalCell.row) + delta.deltaRow),
+                movedItems: groupDrag.items.length - 1,
+              };
+            } else {
+              restoreGridLayoutSnapshot(startSnapshot, { exclude: [item] });
+              placeholder.remove();
+              result = item.classList.contains("db-panel") && !item.classList.contains("db-panel-collapsed")
+                ? commitExpandedPanelDropSlot(layout, item, finalCell)
+                : commitActiveDropSlot(layout, item, finalCell);
+            }
+            const finalBounds = result.bounds;
+            committedExtendedWorkspaceScrollY = releaseUsedExtendedWorkspace ? releaseScrollY : null;
+            syncCommittedWorkspaceScrollFloor(layout, {
+              preserveViewport: committedExtendedWorkspaceScrollY !== null,
+              scrollY: committedExtendedWorkspaceScrollY,
+            });
+            onCommit?.({ moved: finalBounds.col !== originalCell.col || finalBounds.row !== originalCell.row || result.movedItems > 0 });
           }
-          const finalBounds = result.bounds;
-          onCommit?.({ moved: finalBounds.col !== originalCell.col || finalBounds.row !== originalCell.row || result.movedItems > 0 });
+        }
+      } finally {
+        autoScroll.clearExtension();
+        if (committedExtendedWorkspaceScrollY !== null) {
+          syncCommittedWorkspaceScrollFloor(layout, {
+            preserveViewport: true,
+            scrollY: committedExtendedWorkspaceScrollY,
+          });
         }
       }
       if (groupDrag) {
@@ -3557,6 +3689,9 @@ document.addEventListener("DOMContentLoaded", () => {
           groupFootprint.footprint.remove();
           previewEntries.forEach((entry) => clearLiveResizeSurface(entry.member, entry.live));
         }, source);
+        syncCommittedWorkspaceScrollFloor(layout, {
+          preserveViewport: document.body.classList.contains("dashboard-interaction-scroll-extended"),
+        });
         onCommit?.();
       }
     };
@@ -3985,6 +4120,9 @@ document.addEventListener("DOMContentLoaded", () => {
               applyOrderedGridLayout(layout);
             }, widget);
             saveSharedGridLayouts(layout);
+            syncCommittedWorkspaceScrollFloor(layout, {
+              preserveViewport: document.body.classList.contains("dashboard-interaction-scroll-extended"),
+            });
           }
         };
         beginResizeLifecycle({
@@ -4519,6 +4657,9 @@ document.addEventListener("DOMContentLoaded", () => {
               applyOrderedGridLayout(layout);
             }, panel);
             saveSharedGridLayouts(layout);
+            syncCommittedWorkspaceScrollFloor(layout, {
+              preserveViewport: document.body.classList.contains("dashboard-interaction-scroll-extended"),
+            });
           }
         };
 

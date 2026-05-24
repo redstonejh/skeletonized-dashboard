@@ -195,10 +195,26 @@ def assert_smooth_auto_scroll_motion(samples: list[dict]) -> None:
     ]
     positive_scroll = [delta for delta in scroll_deltas if delta > 0.25]
     positive_extension = [delta for delta in extension_deltas if delta > 0.25]
-    assert len(positive_scroll) >= 4, samples
-    assert max(positive_scroll) < 44, samples
+    assert_shared_edge_scroll_motion(samples, 1)
     if positive_extension:
         assert max(positive_extension) < 72, samples
+
+
+def assert_shared_edge_scroll_motion(samples: list[dict], direction: int) -> None:
+    scroll_deltas = [
+        samples[index + 1]["scrollY"] - samples[index]["scrollY"]
+        for index in range(len(samples) - 1)
+    ]
+    directional = [delta * direction for delta in scroll_deltas]
+    active = [delta for delta in directional if delta > 0.25]
+    assert len(active) >= 6, samples
+    assert all(delta >= -0.1 for delta in directional), samples
+    assert max(active) < 44, samples
+    assert max(active) <= max(12, sum(active) * 0.42), samples
+
+
+def assert_smooth_upward_auto_scroll_motion(samples: list[dict]) -> None:
+    assert_shared_edge_scroll_motion(samples, -1)
 
 
 def prepare_edge_autoscroll_fixture(page: Page) -> None:
@@ -1345,6 +1361,7 @@ def test_dark_timeframe_controls_preserve_layered_glass_depth(page: Page, app_se
               borderColor: styles.borderTopColor,
               borderRgb: rgb(styles.borderTopColor),
               boxShadow: styles.boxShadow,
+              insetCount: (styles.boxShadow.match(/inset/g) || []).length,
             };
           };
           return {
@@ -1362,14 +1379,19 @@ def test_dark_timeframe_controls_preserve_layered_glass_depth(page: Page, app_se
 
     assert state["surface"]["backgroundImage"] != "none"
     assert state["presets"]["backgroundImage"] != "none"
+    assert "radial-gradient" in state["surface"]["backgroundImage"]
+    assert "radial-gradient" in state["activePreset"]["backgroundImage"]
     assert state["activeCluster"]["backgroundImage"] != state["presets"]["backgroundImage"]
     assert state["surface"]["backgroundImage"] != state["presets"]["backgroundImage"]
+    assert state["activePreset"]["backgroundImage"] != state["presets"]["backgroundImage"]
+    assert state["calendar"]["backgroundImage"] != state["utilities"]["backgroundImage"]
     assert state["surface"]["borderColor"] != state["presets"]["borderColor"]
     assert state["presets"]["borderColor"] != state["activePreset"]["borderColor"]
     for key in ("surface", "presets", "activeCluster", "utilities", "activePreset", "selector", "calendar"):
         layer = state[key]
         assert layer["boxShadow"] != "none", key
         assert "inset" in layer["boxShadow"], key
+        assert layer["insetCount"] >= 3, (key, layer["boxShadow"])
         assert layer["borderColor"], key
         if layer["borderRgb"]:
             assert max(layer["borderRgb"]) <= 190, (key, layer["borderColor"])
@@ -1394,6 +1416,101 @@ def test_dark_timeframe_controls_preserve_layered_glass_depth(page: Page, app_se
     artifact_dir = Path("test-results") / "timeframe-depth"
     artifact_dir.mkdir(parents=True, exist_ok=True)
     control.screenshot(path=str(artifact_dir / "timeframe-dark-layered-depth.png"))
+    assert_clean_browser(page)
+
+
+def test_dark_mode_global_materials_use_smoked_layered_glass(page: Page, app_server: str) -> None:
+    goto(page, app_server)
+    artifact_dir = Path("test-results") / "dark-glass-material"
+    artifact_dir.mkdir(parents=True, exist_ok=True)
+    page.screenshot(path=str(artifact_dir / "dashboard-light-regression.png"), full_page=True)
+
+    page.locator(".theme-toggle").click()
+    expect(page.locator("html")).to_have_attribute("data-theme", "dark")
+    page.locator(".panel-add-button").click()
+    expect(page.locator(".panel-add-menu")).to_have_class(re.compile("open"))
+
+    state = page.evaluate(
+        """
+        () => {
+          const toRgb = (value) => {
+            const rgb = value.match(/rgba?\\(([^)]+)\\)/);
+            if (rgb) {
+              return rgb[1].split(/[\\s,\\/]+/).filter(Boolean).slice(0, 3).map((part) => Math.round(Number(part)));
+            }
+            const srgb = value.match(/color\\(srgb\\s+([\\d.]+)\\s+([\\d.]+)\\s+([\\d.]+)/);
+            if (srgb) return srgb.slice(1, 4).map((part) => Math.round(Number(part) * 255));
+            return [];
+          };
+          const read = (selector) => {
+            const node = document.querySelector(selector);
+            const styles = getComputedStyle(node);
+            return {
+              selector,
+              backgroundColor: styles.backgroundColor,
+              backgroundImage: styles.backgroundImage,
+              borderColor: styles.borderTopColor,
+              borderRgb: toRgb(styles.borderTopColor),
+              boxShadow: styles.boxShadow,
+              insetCount: (styles.boxShadow.match(/inset/g) || []).length,
+            };
+          };
+          return {
+            layers: [
+              read(".app-nav.workspace-chrome"),
+              read(".app-nav.workspace-chrome .theme-toggle"),
+              read(".app-nav.workspace-chrome .layout-slot-trigger"),
+              read(".panel-add-menu"),
+              read(".widget-layout > .stat-card.widget-card:not(.range-bar)"),
+              read(".panel-layout > .db-panel"),
+              read(".timeframe-command-surface"),
+              read(".timeframe-presets"),
+              read(".timeframe-widget .preset-btn.active"),
+              read(".timeframe-calendar"),
+            ],
+          };
+        }
+        """
+    )
+    page.evaluate(
+        """
+        () => {
+          document.querySelector(".panel-add-menu")?.classList.remove("open");
+          document.querySelector(".panel-add-button")?.setAttribute("aria-expanded", "false");
+        }
+        """
+    )
+    expect(page.locator(".panel-add-menu")).not_to_have_class(re.compile("open"))
+    page.locator(".timeframe-calendar").hover()
+    page.wait_for_timeout(120)
+    hovered_calendar = page.locator(".timeframe-calendar").evaluate(
+        """
+        node => ({
+          backgroundImage: getComputedStyle(node).backgroundImage,
+          borderColor: getComputedStyle(node).borderTopColor,
+          boxShadow: getComputedStyle(node).boxShadow,
+        })
+        """
+    )
+    page.screenshot(path=str(artifact_dir / "dashboard-dark-smoked-glass.png"), full_page=True)
+    page.locator(".timeframe-widget").screenshot(path=str(artifact_dir / "timeframe-dark-smoked-controls.png"))
+
+    for layer in state["layers"]:
+        assert layer["backgroundImage"] != "none", layer
+        assert "linear-gradient" in layer["backgroundImage"] or "radial-gradient" in layer["backgroundImage"], layer
+        assert layer["boxShadow"] != "none", layer
+        assert "inset" in layer["boxShadow"], layer
+        assert layer["insetCount"] >= 1, layer
+        if layer["borderRgb"]:
+            assert max(layer["borderRgb"]) <= 190, layer
+        assert "103, 169, 255" not in layer["borderColor"]
+        assert "147, 197, 253" not in layer["borderColor"]
+        assert "0 0 24px" not in layer["boxShadow"]
+        assert "0 0 30px" not in layer["boxShadow"]
+
+    calendar = next(layer for layer in state["layers"] if layer["selector"] == ".timeframe-calendar")
+    assert hovered_calendar["boxShadow"] != calendar["boxShadow"]
+    assert hovered_calendar["borderColor"] != calendar["borderColor"]
     assert_clean_browser(page)
 
 
@@ -1660,7 +1777,7 @@ def test_timeframe_resize_clamps_to_adaptive_density_minimum(page: Page, app_ser
     preview = page.locator(".dashboard-resize-preview.widget-placeholder")
     expect(preview).to_have_count(1)
     preview_span = preview.evaluate("node => Number(node.dataset.currentSpan || node.dataset.defaultSpan || 0)")
-    assert preview_span == 3
+    assert preview_span == 2
     page.mouse.up()
     page.wait_for_timeout(350)
 
@@ -1701,13 +1818,13 @@ def test_timeframe_resize_clamps_to_adaptive_density_minimum(page: Page, app_ser
     )
 
     assert before["span"] == 5
-    assert state["span"] == state["minW"] == 3
-    assert state["gridColumn"] == "span 3"
-    assert state["surfaceGap"] <= 6
-    assert state["presetMinWidth"] <= 54
-    assert state["selectorMinWidth"] <= 88
-    assert state["iconWidth"] >= 32
-    assert state["iconHeight"] >= 32
+    assert state["span"] == state["minW"] == 2
+    assert state["gridColumn"] == "span 2"
+    assert state["surfaceGap"] <= 4
+    assert state["presetMinWidth"] <= 46
+    assert state["selectorMinWidth"] <= 74
+    assert state["iconWidth"] >= 30
+    assert state["iconHeight"] >= 30
     assert state["clipped"] == []
     control.locator(".preset-btn").first.hover()
     hovered = control.locator(".preset-btn").first.evaluate("node => getComputedStyle(node).boxShadow")
@@ -2086,6 +2203,109 @@ def test_panel_expand_uses_vertical_pushdown_not_sideways_reflow(page: Page, app
     assert collapsed["tableRow"] == setup["tableRow"]
     assert abs(collapsed["tableRect"]["left"] - setup["table"]["left"]) <= 3
     assert abs(collapsed["tableRect"]["top"] - setup["table"]["top"]) <= 3
+    assert no_visible_overlaps(page, ".dashboard-layout-grid .widget-card, .dashboard-layout-grid .db-panel") == []
+    assert_clean_browser(page)
+
+
+def test_dragging_expanded_panel_preserves_temporary_pushdown_restoration(page: Page, app_server: str) -> None:
+    goto(page, app_server)
+    page.evaluate(
+        """
+        () => {
+          const grid = document.querySelector(".dashboard-layout-grid");
+          const styles = getComputedStyle(grid);
+          const rowHeight = parseFloat(styles.gridAutoRows) || 81;
+          const gap = parseFloat(styles.rowGap || styles.gap || "16") || 16;
+          const panelHeight = (rows) => (rows * rowHeight) + (Math.max(0, rows - 1) * gap);
+          const setItem = (node, col, row, span, rowSpan = 1) => {
+            node.hidden = false;
+            node.classList.remove("db-panel-pinned", "group-selected");
+            node.dataset.gridCol = String(col);
+            node.dataset.gridRow = String(row);
+            node.dataset.currentSpan = String(span);
+            node.dataset.gridRowSpan = String(rowSpan);
+            node.style.gridColumn = `${col} / span ${span}`;
+            node.style.gridRow = `${row} / span ${rowSpan}`;
+          };
+          const setPanel = (node, col, row, span, rowSpan, collapsed) => {
+            setItem(node, col, row, span, collapsed ? 1 : rowSpan);
+            node.dataset.savedHeight = String(panelHeight(rowSpan));
+            node.classList.toggle("db-panel-collapsed", collapsed);
+            node.querySelector(".db-panel-hd")?.setAttribute("aria-expanded", (!collapsed).toString());
+            node.style.height = collapsed ? "" : `${panelHeight(rowSpan)}px`;
+          };
+          const movingPanel = document.querySelector('[data-panel-key="builder-content"]');
+          const displacedWidget = document.querySelector('[data-widget-key="widget-1"]');
+          const otherWidget = document.querySelector('[data-widget-key="widget-2"]');
+          const otherPanel = document.querySelector('[data-panel-key="builder-menu"]');
+          setPanel(movingPanel, 1, 1, 2, 3, true);
+          setItem(displacedWidget, 1, 2, 1, 1);
+          setItem(otherWidget, 5, 2, 1, 1);
+          setPanel(otherPanel, 4, 8, 2, 2, true);
+          document.querySelectorAll(".widget-layout > .widget-card, .panel-layout > .db-panel").forEach((node, index) => {
+            if ([movingPanel, displacedWidget, otherWidget, otherPanel].includes(node)) return;
+            if (node.classList.contains("db-panel")) {
+              setPanel(node, 6, 16 + index, 1, 2, true);
+            } else {
+              setItem(node, 6, 16 + index, 1, 1);
+            }
+          });
+          document.body.classList.remove("group-transform-active");
+          window.scrollTo(0, 0);
+        }
+        """
+    )
+
+    panel = page.locator('[data-panel-key="builder-content"]')
+    displaced = page.locator('[data-widget-key="widget-1"]')
+    unrelated = page.locator('[data-widget-key="widget-2"]')
+    baseline_displaced = grid_item_state(page, '[data-widget-key="widget-1"]')
+    baseline_unrelated = grid_item_state(page, '[data-widget-key="widget-2"]')
+    assert baseline_displaced["col"] == 1
+    assert baseline_displaced["row"] == 2
+
+    panel.locator(".db-panel-hd").click(position={"x": 18, "y": 18})
+    page.wait_for_timeout(360)
+    expanded_displaced = grid_item_state(page, '[data-widget-key="widget-1"]')
+    assert expanded_displaced["col"] == baseline_displaced["col"]
+    assert expanded_displaced["row"] > baseline_displaced["row"]
+
+    open_tools(panel)
+    drag_by(page, panel.locator(".panel-move-handle"), 0, 190, steps=18)
+    page.wait_for_timeout(420)
+    after_drag_displaced = grid_item_state(page, '[data-widget-key="widget-1"]')
+    after_drag_panel = grid_item_state(page, '[data-panel-key="builder-content"]')
+    assert after_drag_panel["row"] > 1
+    assert after_drag_displaced["col"] == baseline_displaced["col"]
+    assert after_drag_displaced["row"] > expanded_displaced["row"]
+
+    page.locator(".layout-save-button").click()
+    expect(page.locator(".toast", has_text="saved")).to_be_visible()
+    page.reload(wait_until="networkidle")
+    page.wait_for_selector(".page")
+    panel = page.locator('[data-panel-key="builder-content"]')
+    expect(panel).not_to_have_class(re.compile("db-panel-collapsed"))
+    loaded_expanded_displaced = grid_item_state(page, '[data-widget-key="widget-1"]')
+    assert loaded_expanded_displaced["col"] == baseline_displaced["col"]
+    assert loaded_expanded_displaced["row"] == after_drag_displaced["row"]
+
+    panel.locator(".db-panel-hd").click(position={"x": 18, "y": 18})
+    page.wait_for_timeout(420)
+    collapsed_displaced = grid_item_state(page, '[data-widget-key="widget-1"]')
+    collapsed_unrelated = grid_item_state(page, '[data-widget-key="widget-2"]')
+    assert grid_state_tuple(collapsed_displaced) == grid_state_tuple(baseline_displaced)
+    assert grid_state_tuple(collapsed_unrelated) == grid_state_tuple(baseline_unrelated)
+    expect(panel).to_have_class(re.compile("db-panel-collapsed"))
+    assert no_visible_overlaps(page, ".dashboard-layout-grid .widget-card, .dashboard-layout-grid .db-panel") == []
+
+    page.locator(".layout-save-button").click()
+    expect(page.locator(".toast", has_text="saved")).to_be_visible()
+    page.reload(wait_until="networkidle")
+    page.wait_for_selector(".page")
+    reloaded_displaced = grid_item_state(page, '[data-widget-key="widget-1"]')
+    reloaded_unrelated = grid_item_state(page, '[data-widget-key="widget-2"]')
+    assert grid_state_tuple(reloaded_displaced) == grid_state_tuple(baseline_displaced)
+    assert grid_state_tuple(reloaded_unrelated) == grid_state_tuple(baseline_unrelated)
     assert no_visible_overlaps(page, ".dashboard-layout-grid .widget-card, .dashboard-layout-grid .db-panel") == []
     assert_clean_browser(page)
 
@@ -3165,6 +3385,113 @@ def test_edge_auto_scroll_supports_widget_drag_resize_and_upward_drag(page: Page
     assert_clean_browser(page)
 
 
+def test_edge_auto_scroll_upward_is_smooth_and_keeps_navbar_stable(page: Page, app_server: str) -> None:
+    page.set_viewport_size({"width": 1280, "height": 560})
+    goto(page, app_server)
+    prepare_edge_autoscroll_fixture(page)
+
+    lower_widget = page.locator('[data-widget-key="widget-2"]')
+    lower_widget.scroll_into_view_if_needed()
+    page.wait_for_timeout(160)
+    start_scroll = dashboard_scroll_state(page)["scrollY"]
+    assert start_scroll > 500
+    nav_before = page.locator(".app-nav").evaluate("node => node.getBoundingClientRect().toJSON()")
+
+    open_tools(lower_widget)
+    handle_box = lower_widget.locator(".panel-move-handle").bounding_box()
+    assert handle_box
+    x, y = box_center(handle_box)
+    page.mouse.move(x, y)
+    page.mouse.down()
+    move_pointer_to_top_edge(page, x, y, x_delta=42, steps=18)
+    page.wait_for_function(
+        f"""
+        () => window.scrollY < {start_scroll - 45} &&
+          document.body.classList.contains("dashboard-auto-scroll-active") &&
+          document.querySelector(".widget-placeholder")
+        """
+    )
+    motion = sample_auto_scroll_motion(page)
+    assert_smooth_upward_auto_scroll_motion(motion)
+    nav_during = page.locator(".app-nav").evaluate("node => node.getBoundingClientRect().toJSON()")
+    assert abs(nav_during["x"] - nav_before["x"]) <= 1
+    assert abs(nav_during["y"] - nav_before["y"]) <= 1
+    assert abs(nav_during["height"] - nav_before["height"]) <= 1
+    assert dashboard_scroll_state(page)["rootHorizontalOverflow"] is False
+    assert dashboard_scroll_state(page)["bodyHorizontalOverflow"] is False
+
+    page.wait_for_function(
+        """
+        () => window.scrollY <= 12 &&
+          Number(document.querySelector(".widget-placeholder")?.dataset.gridRow || 0) === 1
+        """,
+        timeout=12000,
+    )
+    page.mouse.up()
+    page.wait_for_timeout(420)
+    after = grid_item_state(page, '[data-widget-key="widget-2"]')
+    assert after["row"] == 1
+    assert_no_auto_scroll_artifacts(page)
+    assert_clean_browser(page)
+
+
+def test_edge_auto_scroll_supports_group_drag_upward(page: Page, app_server: str) -> None:
+    page.set_viewport_size({"width": 1280, "height": 560})
+    goto(page, app_server)
+    prepare_edge_autoscroll_fixture(page)
+
+    page.locator(".layout-group-button").click()
+    widget = page.locator('[data-widget-key="widget-2"]')
+    panel = page.locator('[data-panel-key="builder-notes"]')
+    widget.scroll_into_view_if_needed()
+    page.wait_for_timeout(160)
+    start_scroll = dashboard_scroll_state(page)["scrollY"]
+    assert start_scroll > 500
+    widget.click(position={"x": 18, "y": 18}, force=True)
+    panel.click(position={"x": 18, "y": 18}, force=True)
+    expect(page.locator(".group-selected")).to_have_count(2)
+
+    before = {
+        "widget": grid_item_state(page, '[data-widget-key="widget-2"]'),
+        "panel": grid_item_state(page, '[data-panel-key="builder-notes"]'),
+    }
+    open_tools(widget)
+    handle_box = widget.locator(".panel-move-handle").bounding_box()
+    assert handle_box
+    x, y = box_center(handle_box)
+    page.mouse.move(x, y)
+    page.mouse.down()
+    move_pointer_to_top_edge(page, x, y, x_delta=42, steps=18)
+    page.wait_for_function(
+        f"""
+        () => window.scrollY < {start_scroll - 45} &&
+          document.body.classList.contains("dashboard-auto-scroll-active") &&
+          document.querySelector(".dashboard-group-footprint")
+        """
+    )
+    motion = sample_auto_scroll_motion(page)
+    assert_smooth_upward_auto_scroll_motion(motion)
+    page.wait_for_function(
+        """
+        () => window.scrollY <= 12 &&
+          Number(document.querySelector(".dashboard-group-footprint")?.dataset.gridRow || 0) === 1
+        """,
+        timeout=12000,
+    )
+    page.mouse.up()
+    page.wait_for_timeout(420)
+    after = {
+        "widget": grid_item_state(page, '[data-widget-key="widget-2"]'),
+        "panel": grid_item_state(page, '[data-panel-key="builder-notes"]'),
+    }
+    assert after["widget"]["row"] == 1
+    assert after["panel"]["row"] - after["widget"]["row"] == before["panel"]["row"] - before["widget"]["row"]
+    assert_no_auto_scroll_artifacts(page)
+    expect(page.locator(".dashboard-group-live-shell")).to_have_count(0)
+    expect(page.locator(".dashboard-group-footprint")).to_have_count(0)
+    assert_clean_browser(page)
+
+
 def test_edge_auto_scroll_extends_temporary_workspace_for_deep_drag(page: Page, app_server: str) -> None:
     page.set_viewport_size({"width": 1280, "height": 560})
     goto(page, app_server)
@@ -3205,6 +3532,175 @@ def test_edge_auto_scroll_extends_temporary_workspace_for_deep_drag(page: Page, 
     assert after["row"] >= preview_row - 1
     assert after["row"] > before["row"]
     assert_no_auto_scroll_artifacts(page)
+    assert_clean_browser(page)
+
+
+def test_edge_auto_scroll_drop_commits_newly_revealed_lower_rows(page: Page, app_server: str) -> None:
+    page.set_viewport_size({"width": 1280, "height": 560})
+    goto(page, app_server)
+    prepare_edge_autoscroll_fixture(page)
+
+    original_bottom = max(
+        item["row"] + item["rowSpan"] - 1
+        for item in grid_item_states(
+            page,
+            ".dashboard-layout-grid .widget-card:not([hidden]), .panel-layout > .db-panel:not([hidden])",
+        )
+    )
+    widget = page.locator('[data-widget-key="widget-1"]')
+    before = grid_item_state(page, '[data-widget-key="widget-1"]')
+    open_tools(widget)
+    handle_box = widget.locator(".panel-move-handle").bounding_box()
+    assert handle_box
+    x, y = box_center(handle_box)
+    page.mouse.move(x, y)
+    page.mouse.down()
+    move_pointer_to_bottom_edge(page, x, y, x_delta=72)
+    page.wait_for_function(
+        """
+        ([bottom]) => {
+          const placeholder = document.querySelector(".widget-placeholder");
+          return window.scrollY > 180 &&
+            document.body.classList.contains("dashboard-interaction-scroll-extended") &&
+            placeholder &&
+            Number(placeholder.dataset.gridRow || 0) >= bottom + 8;
+        }
+        """,
+        arg=[original_bottom],
+    )
+    viewport = page.viewport_size or {"height": 560}
+    page.mouse.move(x + 72, viewport["height"] - 140, steps=4)
+    page.wait_for_function(
+        """
+        ([bottom]) => {
+          const placeholder = document.querySelector(".widget-placeholder");
+          return !document.body.classList.contains("dashboard-auto-scroll-active") &&
+            placeholder &&
+            Number(placeholder.dataset.gridRow || 0) >= bottom + 5;
+        }
+        """,
+        arg=[original_bottom],
+    )
+    preview = page.locator(".widget-placeholder").evaluate(
+        """
+        node => ({
+          col: Number(node.dataset.gridCol || 0),
+          row: Number(node.dataset.gridRow || 0),
+        })
+        """
+    )
+    assert preview["row"] >= original_bottom + 5
+    drop_scroll_y = dashboard_scroll_state(page)["scrollY"]
+    page.mouse.up()
+    page.wait_for_timeout(420)
+
+    after = grid_item_state(page, '[data-widget-key="widget-1"]')
+    after_scroll_y = dashboard_scroll_state(page)["scrollY"]
+    assert after["row"] == preview["row"]
+    assert after["col"] == preview["col"]
+    assert after["row"] > before["row"]
+    assert after["row"] > original_bottom
+    assert after_scroll_y >= drop_scroll_y - 80
+    scroll_state = dashboard_scroll_state(page)
+    assert scroll_state["rootHorizontalOverflow"] is False
+    assert scroll_state["bodyHorizontalOverflow"] is False
+    assert_no_auto_scroll_artifacts(page)
+
+    page.locator(".layout-save-button").click()
+    expect(page.locator(".toast", has_text="saved")).to_be_visible()
+    page.reload(wait_until="networkidle")
+    reloaded = grid_item_state(page, '[data-widget-key="widget-1"]')
+    assert reloaded["row"] == preview["row"]
+    assert reloaded["col"] == preview["col"]
+    assert no_visible_overlaps(page, ".dashboard-layout-grid .widget-card, .dashboard-layout-grid .db-panel") == []
+    assert_clean_browser(page)
+
+
+def test_edge_auto_scroll_commits_minimum_size_widget_to_lower_workspace(page: Page, app_server: str) -> None:
+    page.set_viewport_size({"width": 1280, "height": 560})
+    goto(page, app_server)
+
+    page.evaluate(
+        """
+        () => {
+          const widget = document.querySelector(".timeframe-widget");
+          widget.dataset.currentSpan = widget.dataset.minW || "2";
+          widget.dataset.defaultSpan = widget.dataset.defaultSpan || "5";
+          widget.dataset.gridCol = "1";
+          widget.dataset.gridRow = "1";
+          widget.dataset.gridRowSpan = "1";
+          widget.style.gridColumn = "1 / span 2";
+          widget.style.gridRow = "1 / span 1";
+          window.scrollTo(0, 0);
+        }
+        """
+    )
+    original_bottom = max(
+        item["row"] + item["rowSpan"] - 1
+        for item in grid_item_states(
+            page,
+            ".dashboard-layout-grid .widget-card:not([hidden]), .panel-layout > .db-panel:not([hidden])",
+        )
+    )
+    control = page.locator(".timeframe-widget")
+    before = grid_item_state(page, ".timeframe-widget")
+    assert before["span"] == 2
+    open_tools(control)
+    handle_box = control.locator(".panel-move-handle").bounding_box()
+    assert handle_box
+    x, y = box_center(handle_box)
+    page.mouse.move(x, y)
+    page.mouse.down()
+    move_pointer_to_bottom_edge(page, x, y, x_delta=80)
+    page.wait_for_function(
+        """
+        ([bottom]) => {
+          const placeholder = document.querySelector(".widget-placeholder");
+          return window.scrollY > 90 &&
+            document.body.classList.contains("dashboard-interaction-scroll-extended") &&
+            placeholder &&
+            Number(placeholder.dataset.currentSpan || placeholder.dataset.defaultSpan || 0) === 2 &&
+            Number(placeholder.dataset.gridRow || 0) >= bottom + 10;
+        }
+        """,
+        arg=[original_bottom],
+    )
+    page.wait_for_function('document.body.classList.contains("dashboard-auto-scroll-active")')
+    preview = page.locator(".widget-placeholder").evaluate(
+        """
+        node => ({
+          col: Number(node.dataset.gridCol || 0),
+          row: Number(node.dataset.gridRow || 0),
+          span: Number(node.dataset.currentSpan || node.dataset.defaultSpan || 0),
+        })
+        """
+    )
+    assert preview["row"] >= original_bottom + 10
+    drop_scroll_y = dashboard_scroll_state(page)["scrollY"]
+    page.mouse.up()
+    page.wait_for_timeout(420)
+
+    after = grid_item_state(page, ".timeframe-widget")
+    after_scroll_y = dashboard_scroll_state(page)["scrollY"]
+    assert after["span"] == preview["span"] == 2
+    assert after["col"] == preview["col"]
+    assert after["row"] >= preview["row"]
+    assert after["row"] <= preview["row"] + 1
+    assert after["row"] > before["row"]
+    assert after["row"] > original_bottom
+    assert after_scroll_y >= drop_scroll_y - 80
+    assert_no_auto_scroll_artifacts(page)
+    assert dashboard_scroll_state(page)["rootHorizontalOverflow"] is False
+    assert dashboard_scroll_state(page)["bodyHorizontalOverflow"] is False
+
+    page.locator(".layout-save-button").click()
+    expect(page.locator(".toast", has_text="saved")).to_be_visible()
+    page.reload(wait_until="networkidle")
+    reloaded = grid_item_state(page, ".timeframe-widget")
+    assert reloaded["span"] == 2
+    assert reloaded["col"] == after["col"]
+    assert reloaded["row"] == after["row"]
+    assert no_visible_overlaps(page, ".dashboard-layout-grid .widget-card, .dashboard-layout-grid .db-panel") == []
     assert_clean_browser(page)
 
 
@@ -3527,6 +4023,130 @@ def test_pin_action_closes_tool_menu_and_restores_hover_close(page: Page, app_se
     page.mouse.move(24, 24)
     page.wait_for_timeout(360)
     expect(widget).not_to_have_class(re.compile("widget-tools-open"))
+    assert_clean_browser(page)
+
+
+@pytest.mark.parametrize("theme", ["light", "dark"])
+def test_pin_control_uses_soft_dashboard_chrome(page: Page, app_server: str, theme: str) -> None:
+    goto(page, app_server)
+    if theme == "dark":
+        page.locator(".theme-toggle").click()
+        expect(page.locator("html")).to_have_attribute("data-theme", "dark")
+
+    def read_pin_state(item) -> dict:
+        return item.evaluate(
+            """
+            node => {
+              const settings = node.querySelector(".panel-settings-toggle");
+              const pin = node.querySelector(".panel-pin-toggle");
+              const icon = pin.querySelector(".pin-icon");
+              const settingsRect = settings.getBoundingClientRect();
+              const pinRect = pin.getBoundingClientRect();
+              const iconRect = icon.getBoundingClientRect();
+              const settingsStyle = getComputedStyle(settings);
+              const pinStyle = getComputedStyle(pin);
+              const iconStyle = getComputedStyle(icon);
+              const markerStyle = getComputedStyle(node, "::after");
+              const centerDelta = {
+                x: Math.abs((pinRect.left + pinRect.width / 2) - (iconRect.left + iconRect.width / 2)),
+                y: Math.abs((pinRect.top + pinRect.height / 2) - (iconRect.top + iconRect.height / 2)),
+              };
+              const rgb = (value) => {
+                const match = value.match(/rgba?\\(([^)]+)\\)/);
+                if (!match) return [];
+                return match[1].split(",").slice(0, 3).map((part) => Number.parseFloat(part)).filter(Number.isFinite);
+              };
+              return {
+                settingsWidth: parseFloat(settingsStyle.width),
+                settingsHeight: parseFloat(settingsStyle.height),
+                pinWidth: parseFloat(pinStyle.width),
+                pinHeight: parseFloat(pinStyle.height),
+                iconWidth: iconRect.width,
+                iconHeight: iconRect.height,
+                centerDelta,
+                borderWidth: parseFloat(pinStyle.borderTopWidth),
+                borderColor: pinStyle.borderTopColor,
+                borderRgb: rgb(pinStyle.borderTopColor),
+                background: pinStyle.background,
+                boxShadow: pinStyle.boxShadow,
+                outlineStyle: pinStyle.outlineStyle,
+                iconOpacity: parseFloat(iconStyle.opacity || "1"),
+                markerWidth: parseFloat(markerStyle.width),
+                markerHeight: parseFloat(markerStyle.height),
+                markerBorderWidth: parseFloat(markerStyle.borderTopWidth),
+                markerBorderColor: markerStyle.borderTopColor,
+                markerBoxShadow: markerStyle.boxShadow,
+              };
+            }
+            """,
+        )
+
+    for selector in (
+        '[data-panel-key="builder-content"]',
+        '[data-panel-key="builder-menu"]',
+        ".widget-layout > .stat-card.widget-card:not(.range-bar)",
+    ):
+        item = page.locator(selector).first
+        open_tools(item)
+        unpinned = read_pin_state(item)
+        assert abs(unpinned["pinWidth"] - unpinned["settingsWidth"]) <= 1
+        assert abs(unpinned["pinHeight"] - unpinned["settingsHeight"]) <= 1
+        assert unpinned["iconWidth"] <= 14.5
+        assert unpinned["iconHeight"] <= 14.5
+        assert unpinned["centerDelta"]["x"] <= 1
+        assert unpinned["centerDelta"]["y"] <= 1
+        assert unpinned["borderWidth"] <= 1.5
+        assert unpinned["iconOpacity"] >= .9
+
+        pin = item.locator(".panel-pin-toggle")
+        pin.hover()
+        page.wait_for_timeout(80)
+        hovered = pin.evaluate(
+            """
+            node => ({
+              isHover: node.matches(":hover"),
+              background: getComputedStyle(node).background,
+              borderColor: getComputedStyle(node).borderTopColor,
+              boxShadow: getComputedStyle(node).boxShadow,
+            })
+            """
+        )
+        assert hovered["isHover"]
+        assert (
+            hovered["boxShadow"] != unpinned["boxShadow"]
+            or hovered["background"] != unpinned["background"]
+            or hovered["borderColor"] != unpinned["borderColor"]
+        )
+        pin.focus()
+        focused = pin.evaluate("node => ({ outline: getComputedStyle(node).outlineStyle, border: getComputedStyle(node).borderTopColor })")
+        assert focused["outline"] in {"solid", "none"}
+        assert focused["border"]
+
+        pin.click(force=True)
+        page.wait_for_timeout(120)
+        expect(item).to_have_class(re.compile("db-panel-pinned"))
+        pinned = read_pin_state(item)
+        assert pinned["background"] != unpinned["background"] or pinned["borderColor"] != unpinned["borderColor"]
+        assert pinned["markerWidth"] <= 7.5
+        assert pinned["markerHeight"] <= 7.5
+        assert pinned["markerBorderWidth"] <= 1.5
+        assert "0 0 26px" not in pinned["boxShadow"]
+        assert "0 0 26px" not in pinned["markerBoxShadow"]
+        if theme == "dark":
+            assert pinned["borderRgb"] and max(pinned["borderRgb"]) <= 190
+            assert "103, 169, 255" not in pinned["borderColor"]
+            assert "147, 197, 253" not in pinned["borderColor"]
+            assert "103, 169, 255" not in pinned["boxShadow"]
+        item.evaluate(
+            """
+            node => {
+              node.classList.remove("db-panel-pinned", "db-panel-tools-open", "widget-tools-open");
+              node.querySelector(".panel-pin-toggle")?.setAttribute("aria-pressed", "false");
+              node.querySelector(".panel-settings-toggle")?.setAttribute("aria-expanded", "false");
+            }
+            """
+        )
+
     assert_clean_browser(page)
 
 
@@ -4459,9 +5079,9 @@ def test_group_resize_is_proportional_and_minimum_aware(page: Page, app_server: 
           const timeframe = document.querySelector('[data-widget-key="builder-search"]');
           const stat = document.querySelector('[data-widget-key="widget-1"]');
           const panel = document.querySelector('[data-panel-key="builder-content"]');
-          timeframe.dataset.minW = "3";
+          timeframe.dataset.minW = "2";
           place(timeframe, 1, 1, 6);
-          place(stat, 1, 4, 2);
+          place(stat, 1, 4, 3);
           place(panel, 4, 4, 3, 3);
           panel.style.height = "275px";
           panel.dataset.savedHeight = "275";
@@ -4497,7 +5117,7 @@ def test_group_resize_is_proportional_and_minimum_aware(page: Page, app_server: 
         """
     )
 
-    assert sizes["timeframe"] == sizes["timeframeMin"] == 3
+    assert sizes["timeframe"] == sizes["timeframeMin"] == 2
     assert sizes["stat"] >= 1
     assert sizes["panel"] >= 1
     assert len({sizes["timeframe"], sizes["stat"], sizes["panel"]}) > 1
@@ -4523,7 +5143,7 @@ def test_group_resize_uses_live_clones_snapped_previews_and_collapsed_ghost(page
           const timeframe = document.querySelector('[data-widget-key="builder-search"]');
           const stat = document.querySelector('[data-widget-key="widget-1"]');
           const panel = document.querySelector('[data-panel-key="builder-content"]');
-          timeframe.dataset.minW = "3";
+          timeframe.dataset.minW = "2";
           place(timeframe, 1, 1, 6);
           place(stat, 1, 4, 2);
           place(panel, 4, 4, 3, 1);
@@ -4640,7 +5260,7 @@ def test_group_resize_uses_live_clones_snapped_previews_and_collapsed_ghost(page
         "panel": grid_item_state(page, '[data-panel-key="builder-content"]'),
     }
 
-    assert after["timeframe"]["span"] >= 3
+    assert after["timeframe"]["span"] >= 2
     assert after["stat"]["span"] >= 1
     assert after["panel"]["rowSpan"] == 1
     assert_no_resize_artifacts(page)

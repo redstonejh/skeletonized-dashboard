@@ -318,12 +318,14 @@ Design:
 
 - Pointermove handlers update the helper with the latest viewport pointer position.
 - The helper computes vertical scroll velocity from pointer distance to the top or bottom viewport edge.
-- Velocity increases gradually closer to the edge with a cubic ramp and a short dwell before scrolling starts.
+- Velocity increases gradually closer to either edge with one shared cubic pressure curve, a short dwell before scrolling starts, and per-frame velocity easing so scroll motion ramps in pixels rather than stepping by grid rows.
 - Velocity is time-based, not frame-count based, so headless or high-refresh browsers cannot turn the loop into runaway page movement.
 - The helper only writes `window.scrollBy(0, velocity * deltaTime)` inside animation frames.
 - A transient `dashboard-auto-scroll-active` body class exists only while the scroll loop is running.
 - A transient `dashboard-interaction-scroll-extended` body class and temporary body padding create a removable workspace runway while dragging/resizing near the bottom edge.
 - The runway grows toward a target height in bounded requestAnimationFrame increments, so scrollable space expands in pixels instead of appearing as one large row-sized jump.
+- Successful releases stop the RAF scroll loop first but preserve the temporary runway until the drag/resize commit path has accepted the final snapped row/span. Canceled interactions clear it immediately.
+- Successful lower-workspace drops also reconcile the committed dashboard host height before clearing the temporary runway, using the release scroll position as the preservation target. This prevents minimum-footprint widgets from committing to a valid lower grid row while the browser scrolls the viewport upward during placeholder cleanup.
 - Scroll anchoring is disabled only during the active interaction on the root, body, and active dashboard host so placeholder/reflow movement does not cause browser-driven scroll jumps.
 - Reduced-motion users receive a lower maximum velocity.
 - Cleanup is owned by the drag and resize interaction lifecycles and runs on pointerup, pointercancel, Escape/window blur where those lifecycle paths exist, and cancellation/error cleanup. Cleanup removes the scroll loop, active classes, temporary padding, and overflow-anchor overrides.
@@ -335,12 +337,15 @@ Behavior constraints:
 - Resize paths include scroll delta in their vertical resize math so bottom-edge auto-scroll expands into newly revealed dashboard space instead of freezing at the original viewport pointer delta.
 - Grid rects are still read through existing helpers, so scrolling naturally updates viewport-relative grid conversion without storing stale rects.
 - Temporary workspace extension is removed after interaction end; no permanent blank area is introduced unless the committed item layout itself creates it.
+- The snapped placeholder or resize footprint remains the source of truth for final commit, including rows that only became reachable because the temporary runway existed during the interaction.
 - No save/load work runs during the auto-scroll loop.
 
 Regression coverage:
 
 - Widget drag bottom auto-scroll and top auto-scroll.
 - Deep widget drag into temporary workspace extension.
+- Widget drop into newly revealed lower rows with save/reload persistence.
+- Minimum-size widget drop into newly revealed lower rows with save/reload persistence.
 - Smooth scroll/runway frame cadence during deep widget drag, panel resize, and group drag.
 - Panel drag bottom auto-scroll and runway cleanup.
 - Widget resize bottom auto-scroll.

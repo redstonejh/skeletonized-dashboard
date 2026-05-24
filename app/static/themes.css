@@ -4889,6 +4889,37 @@ html[data-theme="dark"] {
   --shadow-glass: 0 24px 58px rgba(0, 0, 0, .40), inset 0 1px 0 var(--glass-highlight);
   --shadow-control: 0 12px 28px rgba(0, 0, 0, .28), inset 0 1px 0 var(--glass-highlight);
   --panel-hover-inset: rgba(255, 255, 255, .06);
+  --dark-glass-border: rgba(102, 118, 144, .40);
+  --dark-glass-border-hover: rgba(126, 144, 170, .48);
+  --dark-glass-highlight: rgba(255, 255, 255, .072);
+  --dark-glass-panel-bg:
+    radial-gradient(ellipse at 18% 0%, rgba(255, 255, 255, .070), transparent 48%),
+    radial-gradient(ellipse at 88% 12%, rgba(134, 172, 210, .050), transparent 46%),
+    linear-gradient(180deg, rgba(31, 43, 63, .84), rgba(13, 22, 36, .88));
+  --dark-glass-surface-bg:
+    radial-gradient(ellipse at 22% 0%, rgba(255, 255, 255, .088), transparent 50%),
+    linear-gradient(180deg, rgba(37, 50, 72, .82), rgba(16, 27, 44, .88));
+  --dark-glass-inset-bg:
+    radial-gradient(ellipse at 50% 0%, rgba(255, 255, 255, .064), transparent 60%),
+    linear-gradient(180deg, rgba(26, 39, 60, .88), rgba(10, 18, 31, .82));
+  --dark-glass-control-bg:
+    radial-gradient(ellipse at 50% 0%, rgba(255, 255, 255, .090), transparent 58%),
+    linear-gradient(180deg, rgba(42, 56, 80, .80), rgba(18, 30, 48, .84));
+  --dark-glass-control-hover-bg:
+    radial-gradient(ellipse at 50% 0%, rgba(255, 255, 255, .112), transparent 58%),
+    linear-gradient(180deg, rgba(49, 65, 92, .84), rgba(22, 36, 56, .88));
+  --dark-glass-control-active-bg:
+    radial-gradient(ellipse at 50% 0%, rgba(255, 255, 255, .118), transparent 58%),
+    linear-gradient(180deg, rgba(51, 68, 96, .86), rgba(24, 39, 60, .90));
+  --dark-glass-shadow:
+    0 24px 58px rgba(0, 0, 0, .40),
+    inset 0 1px 0 var(--dark-glass-highlight),
+    inset 0 0 0 1px rgba(255, 255, 255, .024);
+  --dark-glass-control-shadow:
+    0 12px 26px rgba(0, 0, 0, .28),
+    inset 0 1px 0 rgba(255, 255, 255, .086),
+    inset 0 0 0 1px rgba(255, 255, 255, .024),
+    inset 0 -2px 0 rgba(0, 0, 0, .20);
 }
 
 html[data-theme="dark"] ::selection {
@@ -4912,8 +4943,8 @@ html[data-theme="dark"] .panel-color-menu,
 html[data-theme="dark"] .background-tone-popover,
 html[data-theme="dark"] .widget-tool-drawer,
 html[data-theme="dark"] .panel-tool-drawer {
-  border-color: rgba(92, 107, 131, .46);
-  box-shadow: var(--shadow-glass);
+  border-color: var(--dark-glass-border);
+  box-shadow: var(--dark-glass-shadow);
   outline-color: rgba(192, 207, 226, .045);
 }
 
@@ -4921,15 +4952,13 @@ html[data-theme="dark"] .stat-card,
 html[data-theme="dark"] .db-panel,
 html[data-theme="dark"] .range-bar {
   background:
-    linear-gradient(180deg, rgba(25, 35, 53, .88), rgba(15, 24, 40, .88)),
+    var(--dark-glass-panel-bg),
     var(--glass-surface);
 }
 
 html[data-theme="dark"] .stat-card,
 html[data-theme="dark"] .db-panel {
-  box-shadow:
-    0 24px 58px rgba(0, 0, 0, .42),
-    inset 0 1px 0 rgba(255, 255, 255, .045);
+  box-shadow: var(--dark-glass-shadow);
 }
 
 html[data-theme="dark"] .stat-card:hover,
@@ -4937,17 +4966,18 @@ html[data-theme="dark"] .db-panel:hover,
 html[data-theme="dark"] .db-panel:focus-within,
 html[data-theme="dark"] .range-bar.widget-card:hover,
 html[data-theme="dark"] .range-bar.widget-card:focus-within {
-  border-color: rgba(126, 144, 170, .56);
+  border-color: var(--dark-glass-border-hover);
   box-shadow:
     0 28px 66px rgba(0, 0, 0, .46),
-    inset 0 1px 0 rgba(255, 255, 255, .06);
+    inset 0 1px 0 rgba(255, 255, 255, .075),
+    inset 0 0 0 1px rgba(255, 255, 255, .028);
 }
 
 html[data-theme="dark"] .stat-card.active,
 html[data-theme="dark"] .widget-card.active,
 html[data-theme="dark"] .widget-card.db-panel-custom-color.active,
 html[data-theme="dark"] .db-panel.db-panel-custom-color:focus-within {
-  border-color: color-mix(in srgb, var(--panel-accent, var(--blue)) 34%, rgba(128, 145, 170, .56));
+  border-color: color-mix(in srgb, var(--panel-accent, var(--blue)) 8%, var(--dark-glass-border-hover));
   box-shadow:
     0 28px 66px rgba(0, 0, 0, .46),
     0 0 0 1px color-mix(in srgb, var(--panel-accent, var(--blue)) 13%, transparent),
@@ -4956,31 +4986,50 @@ html[data-theme="dark"] .db-panel.db-panel-custom-color:focus-within {
 
 html[data-theme="dark"] .widget-card.db-panel-custom-color,
 html[data-theme="dark"] .db-panel.db-panel-custom-color {
-  background: color-mix(in srgb, #121c2d 90%, var(--panel-accent, var(--blue)) 10%) !important;
-  border-color: color-mix(in srgb, var(--panel-accent, var(--blue)) 24%, rgba(94, 108, 132, .58)) !important;
+  background:
+    radial-gradient(ellipse at 18% 0%, rgba(255, 255, 255, .064), transparent 48%),
+    radial-gradient(ellipse at 86% 14%, rgba(var(--panel-accent-rgb, 134, 172, 210), .080), transparent 48%),
+    linear-gradient(180deg, color-mix(in srgb, #1e2b42 90%, var(--panel-accent, var(--blue)) 10%), color-mix(in srgb, #0e1828 90%, var(--panel-accent, var(--blue)) 10%)) !important;
+  border-color: color-mix(in srgb, var(--panel-accent, var(--blue)) 16%, var(--dark-glass-border)) !important;
   box-shadow:
-    0 24px 58px rgba(0, 0, 0, .44),
-    0 0 0 1px rgba(var(--panel-accent-rgb, 134, 172, 210), .055),
-    inset 0 1px 0 rgba(255, 255, 255, .045) !important;
+    var(--dark-glass-shadow),
+    0 0 0 1px rgba(var(--panel-accent-rgb, 134, 172, 210), .035) !important;
 }
 
 html[data-theme="dark"] .widget-card.db-panel-custom-color:hover,
 html[data-theme="dark"] .db-panel.db-panel-custom-color:hover,
 html[data-theme="dark"] .db-panel.db-panel-custom-color:focus-within {
-  background: color-mix(in srgb, #142033 88%, var(--panel-accent, var(--blue)) 12%) !important;
-  border-color: color-mix(in srgb, var(--panel-accent, var(--blue)) 32%, rgba(122, 138, 164, .62)) !important;
+  background:
+    radial-gradient(ellipse at 18% 0%, rgba(255, 255, 255, .076), transparent 48%),
+    radial-gradient(ellipse at 86% 14%, rgba(var(--panel-accent-rgb, 134, 172, 210), .092), transparent 48%),
+    linear-gradient(180deg, color-mix(in srgb, #233149 88%, var(--panel-accent, var(--blue)) 12%), color-mix(in srgb, #111d30 88%, var(--panel-accent, var(--blue)) 12%)) !important;
+  border-color: color-mix(in srgb, var(--panel-accent, var(--blue)) 22%, var(--dark-glass-border-hover)) !important;
   box-shadow:
     0 28px 66px rgba(0, 0, 0, .46),
-    0 0 0 1px rgba(var(--panel-accent-rgb, 134, 172, 210), .075),
-    inset 0 1px 0 rgba(255, 255, 255, .06) !important;
+    0 0 0 1px rgba(var(--panel-accent-rgb, 134, 172, 210), .040),
+    inset 0 1px 0 rgba(255, 255, 255, .074),
+    inset 0 0 0 1px rgba(255, 255, 255, .026) !important;
 }
 
 html[data-theme="dark"] .widget-card.db-panel-pinned::after,
 html[data-theme="dark"] .db-panel.db-panel-pinned::after {
-  border-color: rgba(232, 238, 246, .54);
+  border-color: rgba(170, 185, 204, .48);
+  background:
+    radial-gradient(circle at 35% 28%, rgba(255, 255, 255, .26), transparent 44%),
+    color-mix(in srgb, #1d2c44 46%, var(--panel-accent, var(--blue)) 54%);
   box-shadow:
-    0 0 0 2px rgba(0, 0, 0, .24),
-    0 6px 14px rgba(0, 0, 0, .26);
+    0 6px 14px rgba(0, 0, 0, .28),
+    inset 0 1px 0 rgba(255, 255, 255, .10);
+}
+
+html[data-theme="dark"] .db-panel-pinned .panel-pin-toggle {
+  background:
+    linear-gradient(180deg, rgba(38, 52, 74, .78), rgba(18, 29, 47, .82));
+  border-color: rgba(142, 160, 186, .50);
+  box-shadow:
+    0 12px 26px rgba(0, 0, 0, .30),
+    inset 0 1px 0 rgba(255, 255, 255, .075),
+    inset 0 -1px 0 rgba(134, 172, 210, .10);
 }
 
 html[data-theme="dark"] .widget-placeholder,
@@ -5018,12 +5067,10 @@ html[data-theme="dark"] .background-tone-option,
 html[data-theme="dark"] .range-custom-trigger,
 html[data-theme="dark"] .preset-btn,
 html[data-theme="dark"] .range-icon-button {
-  border-color: rgba(92, 107, 131, .48);
-  background: color-mix(in srgb, var(--glass-surface-strong) 76%, transparent);
+  border-color: var(--dark-glass-border);
+  background: var(--dark-glass-control-bg);
   color: var(--muted-strong);
-  box-shadow:
-    0 12px 28px rgba(0, 0, 0, .26),
-    inset 0 1px 0 rgba(255, 255, 255, .055);
+  box-shadow: var(--dark-glass-control-shadow);
   outline-color: rgba(192, 207, 226, .04);
 }
 
@@ -5063,12 +5110,14 @@ html[data-theme="dark"] .preset-btn:hover,
 html[data-theme="dark"] .preset-btn:focus-visible,
 html[data-theme="dark"] .range-icon-button:hover,
 html[data-theme="dark"] .range-icon-button:focus-visible {
-  border-color: rgba(132, 148, 174, .58);
-  background: color-mix(in srgb, var(--glass-surface-strong) 82%, rgba(134, 172, 210, .10));
+  border-color: var(--dark-glass-border-hover);
+  background: var(--dark-glass-control-hover-bg);
   color: #e5edf7;
   box-shadow:
     0 16px 36px rgba(0, 0, 0, .32),
-    inset 0 1px 0 rgba(255, 255, 255, .07);
+    inset 0 1px 0 rgba(255, 255, 255, .095),
+    inset 0 0 0 1px rgba(255, 255, 255, .028),
+    inset 0 -2px 0 rgba(0, 0, 0, .18);
 }
 
 html[data-theme="dark"] .workspace-mode-button[aria-pressed="true"],
@@ -5076,15 +5125,16 @@ html[data-theme="dark"] .layout-group-button[aria-pressed="true"],
 html[data-theme="dark"] .background-tone-option.is-selected,
 html[data-theme="dark"] .preset-btn.active,
 html[data-theme="dark"] .range-custom-trigger.active {
-  border-color: rgba(142, 160, 186, .62);
+  border-color: color-mix(in srgb, var(--blue) 16%, var(--dark-glass-border-hover));
   background:
-    linear-gradient(180deg, rgba(43, 58, 80, .68), rgba(26, 38, 58, .72)),
-    color-mix(in srgb, var(--blue) 10%, transparent);
+    var(--dark-glass-control-active-bg),
+    color-mix(in srgb, var(--blue) 7%, transparent);
   color: #edf4fb;
   box-shadow:
     0 16px 38px rgba(0, 0, 0, .34),
-    inset 0 1px 0 rgba(255, 255, 255, .075),
-    inset 0 -1px 0 rgba(134, 172, 210, .16);
+    inset 0 1px 0 rgba(255, 255, 255, .10),
+    inset 0 0 0 1px rgba(255, 255, 255, .030),
+    inset 0 -1px 0 rgba(134, 172, 210, .12);
 }
 
 html[data-theme="dark"] .range-bar.widget-card {
@@ -5095,7 +5145,7 @@ html[data-theme="dark"] .range-bar.widget-card {
   --range-control-bg: color-mix(in srgb, var(--surface-raised) 88%, var(--range-control-accent) 12%);
   --range-control-border: color-mix(in srgb, var(--range-control-accent) 24%, rgba(92, 107, 131, .56));
   --range-control-active-bg: color-mix(in srgb, var(--surface-raised) 84%, var(--range-control-accent) 16%);
-  --range-control-active-border: color-mix(in srgb, var(--range-control-accent) 34%, rgba(142, 160, 186, .64));
+  --range-control-active-border: color-mix(in srgb, var(--range-control-accent) 14%, var(--dark-glass-border-hover));
   --range-control-glow: rgba(var(--panel-accent-rgb, 134, 172, 210), .035);
 }
 
@@ -5314,48 +5364,53 @@ html[data-theme="dark"] .panel-empty-action {
 }
 
 html[data-theme="dark"] .timeframe-command-surface {
-  border-color: color-mix(in srgb, var(--range-control-accent) 8%, rgba(106, 122, 148, .58));
+  border-color: color-mix(in srgb, var(--range-control-accent) 3%, var(--dark-glass-border));
   background:
-    linear-gradient(180deg, rgba(36, 50, 73, .74), rgba(14, 23, 39, .82)),
-    color-mix(in srgb, var(--surface-raised) 82%, var(--range-control-accent) 7%);
+    var(--dark-glass-surface-bg),
+    color-mix(in srgb, var(--surface-raised) 88%, var(--range-control-accent) 4%);
   box-shadow:
-    0 18px 44px rgba(0, 0, 0, .38),
+    0 24px 54px rgba(0, 0, 0, .46),
     0 1px 0 rgba(255, 255, 255, .045),
-    inset 0 1px 0 rgba(255, 255, 255, .078),
-    inset 0 -1px 0 rgba(0, 0, 0, .32);
+    inset 0 1px 0 rgba(255, 255, 255, .112),
+    inset 0 0 0 1px rgba(255, 255, 255, .030),
+    inset 0 -12px 22px rgba(0, 0, 0, .22);
 }
 
 html[data-theme="dark"] .timeframe-presets,
 html[data-theme="dark"] .timeframe-active-cluster,
 html[data-theme="dark"] .timeframe-utility-cluster {
-  border-color: color-mix(in srgb, var(--range-control-accent) 10%, rgba(92, 107, 131, .56));
+  border-color: color-mix(in srgb, var(--range-control-accent) 5%, var(--dark-glass-border));
   background:
-    linear-gradient(180deg, rgba(27, 40, 60, .82), rgba(12, 21, 35, .80)),
-    color-mix(in srgb, var(--glass-surface) 86%, var(--range-control-accent) 5%);
+    var(--dark-glass-inset-bg),
+    color-mix(in srgb, var(--glass-surface) 90%, var(--range-control-accent) 3%);
   box-shadow:
-    0 9px 20px rgba(0, 0, 0, .24),
-    inset 0 1px 0 rgba(255, 255, 255, .062),
-    inset 0 -1px 0 rgba(0, 0, 0, .30);
+    0 10px 22px rgba(0, 0, 0, .28),
+    inset 0 1px 0 rgba(255, 255, 255, .075),
+    inset 0 0 0 1px rgba(255, 255, 255, .025),
+    inset 0 -8px 16px rgba(0, 0, 0, .24);
 }
 
 html[data-theme="dark"] .timeframe-active-cluster {
-  border-color: color-mix(in srgb, var(--range-control-accent) 13%, rgba(104, 120, 146, .58));
+  border-color: color-mix(in srgb, var(--range-control-accent) 8%, var(--dark-glass-border-hover));
   background:
-    linear-gradient(180deg, rgba(31, 45, 67, .86), rgba(15, 25, 42, .82)),
-    color-mix(in srgb, var(--glass-surface-strong) 80%, var(--range-control-accent) 7%);
+    radial-gradient(ellipse at 50% 0%, rgba(255, 255, 255, .078), transparent 60%),
+    linear-gradient(180deg, rgba(31, 45, 68, .90), rgba(13, 24, 40, .86)),
+    color-mix(in srgb, var(--glass-surface-strong) 86%, var(--range-control-accent) 4%);
 }
 
 html[data-theme="dark"] .timeframe-widget .preset-btn,
 html[data-theme="dark"] .timeframe-widget .range-custom-trigger,
 html[data-theme="dark"] .timeframe-widget .range-icon-button {
   border-color: var(--range-control-border);
-  background:
-    linear-gradient(180deg, rgba(43, 58, 82, .76), rgba(22, 34, 52, .80)),
-    var(--range-control-bg);
+  background-color: color-mix(in srgb, var(--surface-raised) 78%, var(--range-control-accent) 8%);
+  background-image:
+    var(--dark-glass-control-bg);
   box-shadow:
-    0 10px 22px rgba(0, 0, 0, .30),
-    inset 0 1px 0 rgba(255, 255, 255, .080),
-    inset 0 -1px 0 rgba(0, 0, 0, .26);
+    0 12px 24px rgba(0, 0, 0, .34),
+    0 1px 0 rgba(255, 255, 255, .038),
+    inset 0 1px 0 rgba(255, 255, 255, .105),
+    inset 0 0 0 1px rgba(255, 255, 255, .026),
+    inset 0 -2px 0 rgba(0, 0, 0, .24);
 }
 
 html[data-theme="dark"] .timeframe-widget .preset-btn:hover,
@@ -5365,26 +5420,68 @@ html[data-theme="dark"] .timeframe-widget .range-custom-trigger:focus-visible,
 html[data-theme="dark"] .timeframe-widget .range-icon-button:hover,
 html[data-theme="dark"] .timeframe-widget .range-icon-button:focus-visible {
   border-color: var(--range-control-active-border);
-  background:
-    linear-gradient(180deg, rgba(50, 67, 94, .78), rgba(26, 40, 60, .82)),
-    var(--range-control-active-bg);
+  background-color: color-mix(in srgb, var(--surface-raised) 74%, var(--range-control-accent) 10%);
+  background-image:
+    var(--dark-glass-control-hover-bg);
   box-shadow:
-    0 14px 30px rgba(0, 0, 0, .34),
-    0 0 14px var(--range-control-glow),
-    inset 0 1px 0 rgba(255, 255, 255, .092),
-    inset 0 -1px 0 rgba(0, 0, 0, .24);
+    0 16px 32px rgba(0, 0, 0, .38),
+    inset 0 1px 0 rgba(255, 255, 255, .120),
+    inset 0 0 0 1px rgba(255, 255, 255, .030),
+    inset 0 -2px 0 rgba(0, 0, 0, .22);
 }
 
 html[data-theme="dark"] .timeframe-widget .preset-btn.active,
 html[data-theme="dark"] .timeframe-widget .range-custom-trigger.active {
   border-color: var(--range-control-active-border);
-  background:
-    linear-gradient(180deg, rgba(47, 64, 90, .82), rgba(26, 40, 60, .84)),
-    var(--range-control-active-bg);
+  background-color: color-mix(in srgb, var(--surface-raised) 78%, var(--range-control-accent) 14%);
+  background-image:
+    var(--dark-glass-control-active-bg);
   box-shadow:
-    0 14px 32px rgba(0, 0, 0, .36),
-    inset 0 1px 0 rgba(255, 255, 255, .094),
-    inset 0 -1px 0 rgba(var(--panel-accent-rgb, 134, 172, 210), .12);
+    0 16px 34px rgba(0, 0, 0, .40),
+    inset 0 1px 0 rgba(255, 255, 255, .118),
+    inset 0 0 0 1px rgba(255, 255, 255, .030),
+    inset 0 -2px 0 rgba(var(--panel-accent-rgb, 134, 172, 210), .10);
+}
+
+html[data-theme="dark"] .range-bar.widget-card.timeframe-widget .preset-btn.active,
+html[data-theme="dark"] .range-bar.widget-card.timeframe-widget .range-custom-trigger.active {
+  background-color: rgba(31, 45, 67, .94);
+  background-image:
+    var(--dark-glass-control-active-bg);
+  box-shadow:
+    0 16px 34px rgba(0, 0, 0, .40),
+    inset 0 1px 0 rgba(255, 255, 255, .118),
+    inset 0 0 0 1px rgba(255, 255, 255, .030),
+    inset 0 -2px 0 rgba(134, 172, 210, .10);
+}
+
+html[data-theme="dark"] .range-bar.widget-card.timeframe-widget .preset-btn:not(.active),
+html[data-theme="dark"] .range-bar.widget-card.timeframe-widget .range-custom-trigger:not(.active),
+html[data-theme="dark"] .range-bar.widget-card.timeframe-widget .range-icon-button {
+  background-color: rgba(23, 36, 56, .92);
+  background-image:
+    var(--dark-glass-control-bg);
+  box-shadow:
+    0 12px 24px rgba(0, 0, 0, .34),
+    inset 0 1px 0 rgba(255, 255, 255, .105),
+    inset 0 0 0 1px rgba(255, 255, 255, .026),
+    inset 0 -2px 0 rgba(0, 0, 0, .24);
+}
+
+html[data-theme="dark"] .range-bar.widget-card.timeframe-widget .preset-btn:not(.active):hover,
+html[data-theme="dark"] .range-bar.widget-card.timeframe-widget .preset-btn:not(.active):focus-visible,
+html[data-theme="dark"] .range-bar.widget-card.timeframe-widget .range-custom-trigger:not(.active):hover,
+html[data-theme="dark"] .range-bar.widget-card.timeframe-widget .range-custom-trigger:not(.active):focus-visible,
+html[data-theme="dark"] .range-bar.widget-card.timeframe-widget .range-icon-button:hover,
+html[data-theme="dark"] .range-bar.widget-card.timeframe-widget .range-icon-button:focus-visible {
+  background-color: rgba(28, 43, 65, .94);
+  background-image:
+    var(--dark-glass-control-hover-bg);
+  box-shadow:
+    0 16px 32px rgba(0, 0, 0, .38),
+    inset 0 1px 0 rgba(255, 255, 255, .120),
+    inset 0 0 0 1px rgba(255, 255, 255, .030),
+    inset 0 -2px 0 rgba(0, 0, 0, .22);
 }
 
 html[data-theme="dark"] .app-nav.workspace-chrome .workspace-accent-marker {
@@ -5398,6 +5495,61 @@ html[data-theme="dark"] .app-nav.workspace-chrome .composition-add-button {
   box-shadow:
     0 22px 54px rgba(0, 0, 0, .34),
     inset 0 1px 0 rgba(255, 255, 255, .055);
+}
+
+/* Pin control material: subtle workspace-state affordance, not a status badge. */
+.db-panel-pinned .panel-pin-toggle,
+.db-panel.db-panel-custom-color.db-panel-pinned .panel-pin-toggle,
+.widget-card.db-panel-pinned .panel-pin-toggle,
+.widget-card.db-panel-custom-color.db-panel-pinned .panel-pin-toggle {
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--surface-raised) 84%, var(--panel-lock-fg) 16%), color-mix(in srgb, var(--panel-lock-bg) 72%, transparent)) !important;
+  border-color: color-mix(in srgb, currentColor 56%, var(--panel-lock-border)) !important;
+  box-shadow:
+    0 10px 22px color-mix(in srgb, var(--panel-lock-glow) 50%, transparent),
+    inset 0 1px 0 var(--panel-hover-inset),
+    inset 0 -1px 0 color-mix(in srgb, currentColor 12%, transparent) !important;
+}
+
+.panel-pin-toggle:hover,
+.panel-pin-toggle:focus-visible,
+.db-panel.db-panel-custom-color .panel-pin-toggle:hover,
+.db-panel.db-panel-custom-color .panel-pin-toggle:focus-visible,
+.widget-card.db-panel-custom-color .panel-pin-toggle:hover,
+.widget-card.db-panel-custom-color .panel-pin-toggle:focus-visible {
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--surface-raised) 88%, var(--panel-lock-fg) 12%), color-mix(in srgb, var(--panel-lock-bg) 68%, var(--panel-hover-tint))) !important;
+  border-color: color-mix(in srgb, currentColor 52%, var(--panel-lock-border)) !important;
+  box-shadow:
+    0 12px 24px color-mix(in srgb, var(--panel-lock-glow) 56%, transparent),
+    inset 0 1px 0 var(--panel-hover-inset) !important;
+}
+
+html[data-theme="dark"] .db-panel-pinned .panel-pin-toggle,
+html[data-theme="dark"] .db-panel.db-panel-custom-color.db-panel-pinned .panel-pin-toggle,
+html[data-theme="dark"] .widget-card.db-panel-pinned .panel-pin-toggle,
+html[data-theme="dark"] .widget-card.db-panel-custom-color.db-panel-pinned .panel-pin-toggle {
+  background:
+    linear-gradient(180deg, rgba(38, 52, 74, .78), rgba(18, 29, 47, .82)) !important;
+  border-color: rgba(142, 160, 186, .50) !important;
+  box-shadow:
+    0 12px 26px rgba(0, 0, 0, .30),
+    inset 0 1px 0 rgba(255, 255, 255, .075),
+    inset 0 -1px 0 rgba(134, 172, 210, .10) !important;
+}
+
+html[data-theme="dark"] .panel-pin-toggle:hover,
+html[data-theme="dark"] .panel-pin-toggle:focus-visible,
+html[data-theme="dark"] .db-panel.db-panel-custom-color .panel-pin-toggle:hover,
+html[data-theme="dark"] .db-panel.db-panel-custom-color .panel-pin-toggle:focus-visible,
+html[data-theme="dark"] .widget-card.db-panel-custom-color .panel-pin-toggle:hover,
+html[data-theme="dark"] .widget-card.db-panel-custom-color .panel-pin-toggle:focus-visible {
+  background:
+    linear-gradient(180deg, rgba(43, 58, 80, .82), rgba(22, 34, 52, .86)) !important;
+  border-color: rgba(142, 160, 186, .52) !important;
+  box-shadow:
+    0 14px 30px rgba(0, 0, 0, .32),
+    inset 0 1px 0 rgba(255, 255, 255, .075) !important;
 }
 
 /* Focused top-nav polish: visible dashboard-glass toolbar, not a redesign. */
@@ -5553,14 +5705,14 @@ html[data-theme="dark"] .app-nav.workspace-chrome .composition-add-button {
 }
 
 html[data-theme="dark"] .app-nav.workspace-chrome {
-  border: 1.5px solid var(--glass-border);
+  border: 1.5px solid var(--dark-glass-border);
   background:
-    radial-gradient(circle at 14% 0%, rgba(134, 172, 210, .08) 0 38%, transparent 62%),
-    linear-gradient(180deg, color-mix(in srgb, var(--glass-surface-strong) 88%, var(--surface-raised)), color-mix(in srgb, var(--glass-surface) 82%, var(--surface)));
+    radial-gradient(circle at 14% 0%, rgba(134, 172, 210, .055) 0 38%, transparent 62%),
+    var(--dark-glass-panel-bg);
   box-shadow:
-    var(--shadow-glass),
+    var(--dark-glass-shadow),
     0 2px 12px rgba(0, 0, 0, .22),
-    inset 0 1px 0 var(--glass-highlight);
+    inset 0 1px 0 var(--dark-glass-highlight);
 }
 
 html[data-theme="dark"] .app-nav.workspace-chrome::before {
@@ -5569,18 +5721,19 @@ html[data-theme="dark"] .app-nav.workspace-chrome::before {
 }
 
 html[data-theme="dark"] .app-nav.workspace-chrome .workspace-command-island {
-  border-color: rgba(82, 96, 118, .52);
-  background: rgba(23, 34, 54, .62);
+  border-color: color-mix(in srgb, var(--dark-glass-border) 82%, transparent);
+  background: var(--dark-glass-inset-bg);
   box-shadow:
     0 12px 28px rgba(0, 0, 0, .24),
-    inset 0 1px 0 rgba(255, 255, 255, .045);
+    inset 0 1px 0 rgba(255, 255, 255, .060),
+    inset 0 0 0 1px rgba(255, 255, 255, .022);
 }
 
 html[data-theme="dark"] .app-nav.workspace-chrome .workspace-identity-island,
 html[data-theme="dark"] .app-nav.workspace-chrome .layout-command-island,
 html[data-theme="dark"] .app-nav.workspace-chrome .appearance-command-island {
-  border-color: rgba(92, 107, 131, .54);
-  background: rgba(27, 40, 62, .68);
+  border-color: color-mix(in srgb, var(--dark-glass-border) 88%, transparent);
+  background: var(--dark-glass-surface-bg);
 }
 
 html[data-theme="dark"] .app-nav.workspace-chrome button.dash-switch-hero,
@@ -5593,10 +5746,13 @@ html[data-theme="dark"] .app-nav.workspace-chrome .theme-toggle,
 html[data-theme="dark"] .app-nav.workspace-chrome .background-tone-trigger,
 html[data-theme="dark"] .app-nav.workspace-chrome .nav-status-icon-only,
 html[data-theme="dark"] .app-nav.workspace-chrome .cmd-btn-icon-only {
-  border-color: transparent;
-  background: transparent;
+  border-color: color-mix(in srgb, var(--dark-glass-border) 58%, transparent);
+  background: var(--dark-glass-control-bg);
   color: #c7d4e5;
-  box-shadow: none;
+  box-shadow:
+    0 8px 18px rgba(0, 0, 0, .20),
+    inset 0 1px 0 rgba(255, 255, 255, .060),
+    inset 0 0 0 1px rgba(255, 255, 255, .020);
 }
 
 html[data-theme="dark"] .app-nav.workspace-chrome button.dash-switch-hero,
@@ -5605,9 +5761,10 @@ html[data-theme="dark"] .app-nav.workspace-chrome .layout-slot-trigger {
 }
 
 html[data-theme="dark"] .app-nav.workspace-chrome .composition-add-button {
-  border-color: rgba(122, 138, 164, .46);
+  border-color: color-mix(in srgb, var(--blue) 10%, var(--dark-glass-border-hover));
   background:
     radial-gradient(circle at 34% 24%, rgba(255, 255, 255, .13), transparent 38%),
+    var(--dark-glass-control-active-bg),
     color-mix(in srgb, rgba(35, 49, 72, .88) 86%, var(--blue) 14%);
   color: #dbe7f5;
   box-shadow:
@@ -5635,27 +5792,31 @@ html[data-theme="dark"] .app-nav.workspace-chrome .nav-status-icon-only:hover,
 html[data-theme="dark"] .app-nav.workspace-chrome .nav-status-icon-only:focus-visible,
 html[data-theme="dark"] .app-nav.workspace-chrome .cmd-btn-icon-only:hover,
 html[data-theme="dark"] .app-nav.workspace-chrome .cmd-btn-icon-only:focus-visible {
-  border-color: rgba(126, 144, 170, .46);
-  background: rgba(35, 49, 72, .72);
+  border-color: var(--dark-glass-border-hover);
+  background: var(--dark-glass-control-hover-bg);
   color: #f6f9fd;
   box-shadow:
     0 12px 28px rgba(0, 0, 0, .28),
-    inset 0 1px 0 rgba(255, 255, 255, .065);
+    inset 0 1px 0 rgba(255, 255, 255, .088),
+    inset 0 0 0 1px rgba(255, 255, 255, .026);
 }
 
 html[data-theme="dark"] .app-nav.workspace-chrome .composition-add-button:hover,
 html[data-theme="dark"] .app-nav.workspace-chrome .composition-add-button:focus-visible,
 html[data-theme="dark"] .app-nav.workspace-chrome .panel-add-picker:focus-within .composition-add-button {
-  border-color: rgba(142, 160, 186, .54);
+  border-color: color-mix(in srgb, var(--blue) 12%, var(--dark-glass-border-hover));
   background:
     radial-gradient(circle at 34% 24%, rgba(255, 255, 255, .15), transparent 38%),
+    var(--dark-glass-control-active-bg),
     color-mix(in srgb, rgba(39, 55, 80, .90) 84%, var(--blue) 16%);
 }
 
 html[data-theme="dark"] .app-nav.workspace-chrome .workspace-mode-button[aria-pressed="true"],
 html[data-theme="dark"] .app-nav.workspace-chrome .layout-group-button[aria-pressed="true"] {
-  border-color: rgba(126, 144, 170, .50);
-  background: color-mix(in srgb, rgba(35, 49, 72, .78) 88%, var(--blue) 12%);
+  border-color: color-mix(in srgb, var(--blue) 14%, var(--dark-glass-border-hover));
+  background:
+    var(--dark-glass-control-active-bg),
+    color-mix(in srgb, rgba(35, 49, 72, .78) 88%, var(--blue) 12%);
   color: #f6f9fd;
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, .06),
@@ -5667,25 +5828,32 @@ html[data-theme="dark"] .app-nav.workspace-chrome .layout-slot-menu,
 html[data-theme="dark"] .app-nav.workspace-chrome .dash-switch-menu,
 html[data-theme="dark"] .app-nav.workspace-chrome .nav-status-popover,
 html[data-theme="dark"] .app-nav.workspace-chrome .background-tone-popover {
-  border-color: var(--glass-border);
+  border-color: var(--dark-glass-border);
   background:
-    linear-gradient(180deg, color-mix(in srgb, var(--glass-surface-strong) 94%, var(--surface-raised)), color-mix(in srgb, var(--glass-surface-strong) 88%, var(--surface)));
+    var(--dark-glass-surface-bg),
+    var(--glass-surface);
   box-shadow:
-    var(--shadow-glass),
-    inset 0 1px 0 var(--glass-highlight);
+    var(--dark-glass-shadow),
+    inset 0 1px 0 var(--dark-glass-highlight);
 }
 
 /* Dark widget/panel parity: keep colored identity without neon outer rims. */
+html[data-theme="dark"] .panel-layout > .db-panel:not(.db-panel-custom-color),
+html[data-theme="dark"] .widget-layout > .stat-card.widget-card:not(.db-panel-custom-color) {
+  background:
+    var(--dark-glass-panel-bg),
+    var(--glass-surface) !important;
+}
+
 html[data-theme="dark"] .panel-layout > .db-panel,
 html[data-theme="dark"] .widget-layout > .stat-card.widget-card,
 html[data-theme="dark"] .widget-layout > .widget-card.db-panel-custom-color,
 html[data-theme="dark"] .widget-layout > .widget-card.stat-danger,
 html[data-theme="dark"] .widget-layout > .widget-card.stat-warn,
 html[data-theme="dark"] .widget-layout > .widget-card.stat-purple {
-  border-color: #5c6b83 !important;
+  border-color: var(--dark-glass-border) !important;
   box-shadow:
-    0 24px 58px rgba(0, 0, 0, .42),
-    inset 0 1px 0 rgba(255, 255, 255, .045) !important;
+    var(--dark-glass-shadow) !important;
   outline-color: rgba(192, 207, 226, .045);
 }
 
@@ -5702,10 +5870,11 @@ html[data-theme="dark"] .widget-layout > .widget-card.db-panel-custom-color:hove
 html[data-theme="dark"] .widget-layout > .widget-card.db-panel-custom-color:focus-visible,
 html[data-theme="dark"] .widget-layout > .widget-card.db-panel-custom-color:focus-within,
 html[data-theme="dark"] .widget-layout > .widget-card.db-panel-custom-color.widget-tools-open {
-  border-color: #7e8c9e !important;
+  border-color: var(--dark-glass-border-hover) !important;
   box-shadow:
     0 28px 66px rgba(0, 0, 0, .46),
-    inset 0 1px 0 rgba(255, 255, 255, .06) !important;
+    inset 0 1px 0 rgba(255, 255, 255, .074),
+    inset 0 0 0 1px rgba(255, 255, 255, .026) !important;
 }
 
 html[data-theme="dark"] .widget-layout > .stat-card.widget-card.active,
@@ -5713,16 +5882,16 @@ html[data-theme="dark"] .widget-layout > .widget-card.db-panel-custom-color.acti
 html[data-theme="dark"] .widget-layout > .widget-card.stat-danger.active,
 html[data-theme="dark"] .widget-layout > .widget-card.stat-warn.active,
 html[data-theme="dark"] .widget-layout > .widget-card.stat-purple.active {
-  border-color: #6f7886 !important;
-  border-top-color: #6f7886 !important;
-  border-right-color: #6f7886 !important;
-  border-bottom-color: #6f7886 !important;
-  border-left-color: #6f7886 !important;
+  border-color: var(--dark-glass-border-hover) !important;
+  border-top-color: var(--dark-glass-border-hover) !important;
+  border-right-color: var(--dark-glass-border-hover) !important;
+  border-bottom-color: var(--dark-glass-border-hover) !important;
+  border-left-color: var(--dark-glass-border-hover) !important;
   outline: 2px solid rgba(174, 190, 211, .30) !important;
   outline-offset: -3px !important;
   box-shadow:
     0 28px 66px rgba(0, 0, 0, .46),
-    inset 0 1px 0 rgba(255, 255, 255, .06),
+    inset 0 1px 0 rgba(255, 255, 255, .074),
     inset 0 0 0 1px rgba(255, 255, 255, .035) !important;
 }
 
@@ -5731,7 +5900,7 @@ html[data-theme="dark"] .panel-layout > .db-panel.group-selected {
   outline: 1.5px solid rgba(174, 190, 211, .34) !important;
   outline-offset: 5px !important;
   box-shadow:
-    var(--shadow-card),
+    var(--dark-glass-shadow),
     inset 0 0 0 1px rgba(255, 255, 255, .035) !important;
 }
 
@@ -5740,7 +5909,7 @@ html[data-theme="dark"] .widget-layout > .widget-card.db-panel-custom-color.acti
   outline: 1.5px solid rgba(174, 190, 211, .34) !important;
   outline-offset: 5px !important;
   box-shadow:
-    var(--shadow-card),
+    var(--dark-glass-shadow),
     inset 0 1px 0 rgba(255, 255, 255, .06),
     inset 0 0 0 1px rgba(255, 255, 255, .035) !important;
 }

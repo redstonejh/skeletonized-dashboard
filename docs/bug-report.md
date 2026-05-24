@@ -72,7 +72,7 @@ Command:
 .venv\Scripts\python.exe -m pytest -q
 ```
 
-Latest result: 73 passed, 0 failed.
+Latest result: 80 passed, 0 failed.
 
 Previous discovery result: 6 passed, 3 failed.
 
@@ -846,6 +846,115 @@ Passed coverage included app/dashboard/settings load, CSS imports, theme persist
 - Suspected cause: Shared dashboard interactions call `saveSharedGridLayouts`, which saves widget and panel layouts separately. Each save pushed a live undo snapshot, so one committed action could leave duplicate identical "after" states on the undo stack. The first undo popped only one duplicate and restored the same visible layout. Snapshots also included transient root item classes such as selected/tools-open/drag/resize state, and there was no document-level Ctrl+Z handler.
 - Fix notes: Added sanitized committed-state snapshots that strip transient interaction/selection/tool classes from captured root items, added snapshot signatures so duplicate committed states are ignored, and cleaned live resize/drag/group/auto-scroll artifacts before and after restore. Ctrl+Z/Cmd+Z now invokes dashboard undo only outside editable fields and prevents browser default only when a dashboard undo actually handles the shortcut. The existing stack remains a committed-state history rather than a pointermove/live-preview log.
 - Validation: Added undo regressions for widget move, widget resize, group move, group resize, add panel, expand/collapse, canceled drag preview exclusion, artifact cleanup, and input-field Ctrl+Z safety. Targeted undo tests passed, broader drag/resize/group/add/expand slices passed, and `.venv\Scripts\python.exe -m pytest -q` passed with 73 tests.
+
+### BUG-060: Upward Edge Auto-Scroll Felt Rigid And Made Sticky Navbar Bounce
+
+- Status: Verified
+- Area: Dashboard grid / drag-resize / edge auto-scroll / toolbar stability
+- Severity: Medium
+- Environment: Dashboard workspace, constrained viewport, upward top-edge drag from scrolled dashboard
+- Observed: Bottom-edge drag and resize auto-scroll felt smooth, but dragging a widget or group toward the top edge from a scrolled dashboard could feel rigid and tile-stepped. The sticky workspace navbar could visibly shift as the document approached the top scroll boundary.
+- Expected: Upward edge auto-scroll uses the same smooth requestAnimationFrame model as downward auto-scroll. The live drag shell remains pointer-continuous, the snapped footprint may update by grid row, the navbar remains visually stable, top-row placement remains reachable, and no stale auto-scroll/temporary runway state remains after release.
+- Suspected cause: The upward branch used the shared velocity loop, but it still delegated top-boundary clamping to the browser by requesting negative scroll deltas that could exceed the remaining scroll distance. During the same top-edge interaction, the live dragged surface was clamped to viewport top while the document moved underneath it, making the visual shell feel stuck while the snapped footprint advanced by rows. Scroll boundary behavior was not explicitly suppressed during the active interaction.
+- Fix notes: Bounded upward scroll deltas before calling `scrollBy`, added a gentle top-distance brake near `scrollY = 0`, temporarily suppresses vertical overscroll and smooth-scroll behavior for the interaction lifetime, and relaxes the live drag surface's top clamp only while actively auto-scrolling upward so the lifted object remains pointer-continuous. Downward workspace-extension behavior was left intact.
+- Validation: Added `test_edge_auto_scroll_upward_is_smooth_and_keeps_navbar_stable` and `test_edge_auto_scroll_supports_group_drag_upward`, covering upward frame cadence, navbar x/y/height stability within 1px, top-row preview/commit, grouped upward drag, stale artifact cleanup, and no horizontal overflow. Targeted edge-scroll tests, drag/group/resize/undo slices, and `.venv\Scripts\python.exe -m pytest -q` passed with 75 tests.
+
+### BUG-061: Dragging Expanded Panels Permanently Displaced Nearby Objects
+
+- Status: Verified
+- Area: Dashboard grid / drag / expand-collapse / layout state
+- Severity: High
+- Environment: Dashboard workspace, expanded panel drag followed by collapse and save/reload
+- Observed: Dragging an open/expanded panel could make nearby objects move out of the way, but those objects could remain permanently shifted after the panel was dropped and later collapsed. In some cases the displaced object moved sideways, so collapse restoration no longer recognized it as an expansion-displaced item that should relax upward.
+- Expected: Expanded-footprint pressure during panel movement is temporary layout pressure. It may affect live preview and collision while the panel is open, but collapse should release affected nearby objects upward when their prior valid cells are available. Only the moved panel's final position and unavoidable collision resolution should commit; unrelated objects should not globally repack or remain scrambled.
+- Suspected cause: Expanded panel drag used the generic `commitActiveDropSlot` collision path. When the expanded footprint overlapped another item, that generic resolver could move the displaced item sideways into the nearest same-row sparse slot. Collapse restoration intentionally only relaxes items that remain in their baseline column, so the sideways escape converted temporary expanded-footprint displacement into permanent committed layout drift.
+- Fix notes: Added an expanded-panel-specific drop commit path that keeps the expanded panel's final footprint collision-aware but resolves affected movable neighbors with vertical-only downstream pushdown. This preserves baseline columns for expansion-displaced items, allowing the existing local collapse relaxation to pull them back upward when the panel collapses. Generic collapsed/single-item drag behavior and downward auto-scroll runway behavior were not changed.
+- Validation: Added `test_dragging_expanded_panel_preserves_temporary_pushdown_restoration`, which expands a panel, records the affected widget and unrelated object, drags the expanded panel over the widget, asserts the widget remains in its baseline column during temporary pushdown, saves/reloads while still expanded, collapses the loaded-expanded panel, verifies the widget and unrelated object return to their prior valid positions, saves/reloads again, and checks the stable collapsed layout persists. Targeted expanded-panel drag/collapse, add-panel, group, edge-scroll, and undo slices passed. During full-suite validation, unrelated transient Playwright/browser failures (`net::ERR_NO_BUFFER_SPACE` on reload and a group top-row drag timing miss) each passed on direct rerun. The final `.venv\Scripts\python.exe -m pytest -q` passed with 76 tests.
+
+### BUG-062: Timeframe Adaptive Minimum Was Still One Column Too Conservative
+
+- Status: Verified
+- Area: Widgets / resize / adaptive density
+- Severity: Low
+- Environment: Dashboard workspace, timeframe widget resize, light and dark themes
+- Observed: The previous adaptive-density fix reduced the timeframe widget minimum to three grid columns, but the rendered controls still had enough unused horizontal comfort space to remain usable one grid column smaller.
+- Expected: The timeframe widget minimum represents the smallest still usable adaptive layout, not a comfortable spacious layout. Controls should remain visible, readable, clickable, and unclipped at the new floor, with compact spacing and wrapping used before increasing the footprint.
+- Suspected cause: The runtime floor remained encoded in both `data-min-w` and the shared `gridItemMinimumSpan` controls fallback, and the CSS density ladder stopped at span 3 rather than defining an explicit denser span-2 state.
+- Fix notes: Reduced the timeframe controls minimum from span 3 to span 2 in both the template metadata and the shared `gridItemMinimumSpan` controls fallback. Added an explicit span-2 dense-minimum CSS state that tightens command-surface gaps, cluster padding, preset widths, selected-timeframe width, icon button size, and reserved tool spacing while retaining visible controls, wrapping, and hover/focus behavior. Group resize fixtures were updated so proportional scaling can actually reach the new timeframe floor without another selected member's minimum stopping the scale first.
+- Validation: Updated `test_timeframe_resize_clamps_to_adaptive_density_minimum` for light and dark themes to verify the snapped resize preview and final commit clamp at span 2, controls remain visible/unclipped, compact values activate, hover/focus remains usable, and no overlaps appear. Updated grouped resize minimum coverage for the new floor. Targeted timeframe tests passed, targeted timeframe/group resize tests passed, and `.venv\Scripts\python.exe -m pytest -q` passed with 76 tests.
+
+### BUG-063: Dark Timeframe Controls Still Read Too Flat Against Light-Mode Depth
+
+- Status: Verified
+- Area: Theme / dark mode / timeframe widget material
+- Severity: Low
+- Environment: Dashboard workspace, dark theme, timeframe command widget
+- Observed: The dark-mode timeframe command group had the correct structure but still read flatter and more recessed than the light-mode ridged glass material. Generic dark active/hover button styles could also override the timeframe-specific button shadow stack, leaving active controls with only a single inset highlight.
+- Expected: Dark mode uses the same material hierarchy as light mode under smoked-glass lighting: protruding outer command surface, distinct inset/ridged clusters, individually raised buttons, subtle low-contrast borders, restrained highlights, and no neon edge/glow.
+- Suspected cause: The dark overrides separated the surface, clusters, and controls, but several layers used similar dark values and modest shadows. The active button cascade was not specific enough to keep the timeframe-specific layered shadow/background over the shared button active rule.
+- Fix notes: Reworked the dark timeframe material stack without touching navbar styling. The outer command surface now uses a stronger smoked-glass ridge with a top radial highlight, deeper lower inset, and low-contrast slate border. The preset, active, and utility clusters now read as separate inset capsules. Individual timeframe buttons, refresh/calendar icon controls, and active/focus states now carry their own raised dark-glass background images and multi-inset shadow stack. Added more specific timeframe button selectors so shared active/hover button rules cannot flatten the control elevation.
+- Screenshot: `test-results/timeframe-depth/timeframe-dark-layered-depth.png`
+- Validation: Strengthened `test_dark_timeframe_controls_preserve_layered_glass_depth` to assert radial highlight layers, distinct wrapper/cluster/button backgrounds, distinct borders, multiple inset shadows, restrained border brightness, no electric-blue edge colors, and hover elevation. Targeted timeframe visual/resize tests passed, and `.venv\Scripts\python.exe -m pytest -q` passed with 76 tests.
+
+### BUG-064: Pin Control Looked Like A Harsh Utility Toggle
+
+- Status: Verified
+- Area: Controls / pinning / visual system
+- Severity: Low
+- Environment: Dashboard workspace, panel and widget tool drawers, light and dark themes
+- Observed: The pin icon used a heavier generic pushpin mask, the pinned control state relied on a louder glow, and the pinned corner marker read more like a bright status/debug badge than an integrated workspace-state affordance.
+- Expected: Pinning remains understandable but visually quiet. The pin button should share the 34px glass control primitive, use softer icon weight and sizing, show hover/focus and active states without harsh outlines or neon glow, and keep pinned markers subtle in both light and dark mode.
+- Suspected cause: The pin glyph and pinned-state marker were older utility/status styling while later settings, resize, and timeframe controls had moved toward softer glass materials. Custom-color panel overrides also used broad `!important` tool-button rules that could flatten pin-specific active styling.
+- Fix notes: Replaced the pin mask with a smaller, lighter rounded glyph, softened the pinned button material, reduced the pinned marker size and glow, added dark smoked-glass pinned button/marker overrides, and added final pin-specific selectors so custom-color panel/widget chrome cannot override the refined state. Pin classes, ARIA state, and behavior logic were not changed.
+- Validation: Added `test_pin_control_uses_soft_dashboard_chrome` for light and dark themes. The test checks pin/settings control sizing parity, icon centering and scale, hover/focus feedback, pinned/unpinned visual distinction, subdued pinned marker sizing, dark-mode non-neon borders, and coverage across expanded panel, collapsed panel, and widget controls. Targeted pin/pinned/layout tests passed, and `.venv\Scripts\python.exe -m pytest -q` passed with 78 tests.
+
+### BUG-065: Bottom Edge Drop Could Lose Newly Revealed Workspace Placement
+
+- Status: Verified
+- Area: Dashboard grid / drag / edge auto-scroll / layout commit
+- Severity: High
+- Environment: Dashboard workspace, bottom-edge drag into temporary lower runway
+- Observed: Dragging near the bottom edge could smoothly reveal temporary lower workspace rows and show the snapped placeholder in that new area, but releasing the pointer could make the page/item appear to jump back toward the earlier content area instead of preserving the previewed lower placement.
+- Expected: The snapped placeholder row/column shown at release is the drop source of truth. The committed item should accept rows revealed during the active interaction, the page should not collapse back before commit, and save/reload should preserve the lower placement.
+- Suspected cause: The shared auto-scroll cleanup removed the temporary body runway immediately at pointerup, before drag and resize commit callbacks applied the final grid state. Removing the runway could shrink the document and clamp `scrollY` against the old height during the same release frame, so the committed placement and visible viewport no longer lined up with the live preview.
+- Fix notes: Split the auto-scroll lifecycle into stopping the RAF loop and clearing the temporary runway. Successful drag/drop and resize releases now stop scrolling while preserving the runway through the commit path, then clear it after the committed grid state has accepted the final row/span. Canceled interactions still clear the runway immediately. The snapped placeholder/footprint remains the commit source; no new placement engine or permanent spacer was added.
+- Validation: Added `test_edge_auto_scroll_drop_commits_newly_revealed_lower_rows`, which drags a widget beyond the original dashboard content into the temporary lower runway, captures the placeholder row/column and release scroll position, verifies the committed item matches the preview without viewport collapse, saves/reloads, and checks the lower placement persists without overlap or stale auto-scroll artifacts. Targeted edge-scroll drag, panel drag, group drag, and deep-workspace tests passed. A first full-suite run had one unrelated transient focus color serialization failure that passed on direct rerun; the final `.venv\Scripts\python.exe -m pytest -q` passed with 79 tests.
+
+### BUG-066: Upward Edge Auto-Scroll Still Felt Choppy
+
+- Status: Verified
+- Area: Dashboard grid / drag-resize / edge auto-scroll / motion quality
+- Severity: Medium
+- Environment: Dashboard workspace, constrained viewport, upward and downward edge drag
+- Observed: Bottom-edge auto-scroll was generally smoother, but upward auto-scroll still felt rigid and visually choppy. Dragging toward the top edge could look less continuous than the live ghost, and the two directions did not feel like one motion system.
+- Expected: Top and bottom edge auto-scroll share the same requestAnimationFrame model, eased velocity ramp, capped speed, pixel-delta scrolling, navbar stability, preview/commit agreement, and cleanup behavior.
+- Suspected cause: The upward path still carried direction-specific braking near the top boundary while the downward path used the main edge-pressure curve. That made the top-edge velocity collapse into smaller per-frame deltas as the document approached the top, which could be perceived as rigid/stuttered movement. The previous tests only bounded maximum jump size and did not require enough progressive same-direction frames.
+- Fix notes: Removed the upward-only top brake and unified both directions behind one target-velocity calculation using the same cubic edge-pressure curve. Added per-frame velocity easing inside the shared RAF loop so scroll speed ramps smoothly toward the target while still stopping immediately when the pointer leaves the edge zone. Existing bounded scroll deltas, overscroll suppression, scroll anchoring suppression, and deferred runway cleanup remain in place for navbar stability and preview/commit agreement.
+- Validation: Strengthened edge auto-scroll sampling with a shared smoothness assertion for upward and downward movement. The tests now require progressive same-direction scroll over multiple frames, reject row-sized jumps, keep navbar geometry stable during upward drag, verify top-row placement, verify lower-runway drop commit/persistence, and check stale class/spacer cleanup. Targeted `edge_auto_scroll` tests passed, and `.venv\Scripts\python.exe -m pytest -q` passed with 79 tests.
+
+### BUG-067: Dark Mode Material Read As Outlined Panels Instead Of Smoked Glass
+
+- Status: Verified
+- Area: Theme / dark mode / glass material system
+- Severity: Medium
+- Environment: Dashboard workspace, dark theme, timeframe controls, nav controls, widgets, panels, menus, and group visuals
+- Observed: Light mode surfaces read as layered frosted glass, but dark mode surfaces could read as harsh outlined rectangles, flat dark pills, glowing HUD controls, or cutouts against the background. The timeframe command buttons exposed the mismatch most clearly: their structure was correct, but several late dark overrides flattened controls or made active borders too blue/bright.
+- Expected: Dark mode should use the same depth hierarchy as light mode under smoked-glass lighting: restrained borders, internal haze, soft inset highlights, layered controls, readable active states, and no neon/electric outlines.
+- Suspected cause: Dark theme refinements had accumulated as component-specific overrides. Some later rules replaced gradient glass with solid or transparent backgrounds, and active/focus borders mixed too much accent color into the edge, making borders define the object instead of supporting the material.
+- Fix notes: Added shared dark smoked-glass material tokens in `themes.css` for panel surfaces, inset clusters, controls, hover controls, active controls, borders, highlights, and shadows. Repointed global dark surfaces, nav controls, dropdown menus, widget cards, panels, group selection surfaces, and timeframe control layers to those tokens. Timeframe buttons now use the shared dark glass control material while keeping their existing compact sizing and behavior. Light mode rules were not changed.
+- Validation: Added `test_dark_mode_global_materials_use_smoked_layered_glass`, which captures light/dark screenshots and verifies navbar controls, add menu, widget card, panel, timeframe command surface, timeframe clusters, active timeframe preset, and icon controls use gradient glass layers, inset highlights, restrained border brightness, non-neon shadows, and hover state changes. Strengthened dark/timeframe coverage passed with `dark`, `timeframe`, pin, and hover/focus slices, and `.venv\Scripts\python.exe -m pytest -q` passed with 80 tests.
+
+### BUG-068: Minimum-Size Widgets Appeared To Teleport After Lower-Workspace Drop
+
+- Status: Verified
+- Area: Dashboard grid / drag / edge auto-scroll / layout commit
+- Severity: High
+- Environment: Dashboard workspace, minimum-span timeframe/widget drag into bottom-edge temporary runway
+- Observed: The lower-workspace drop fix worked for panels and larger widgets, but a widget at its minimum footprint could still appear to jump back toward the original content area after being dropped below the initial dashboard bounds. The snapped placeholder showed a valid lower row and the committed grid data accepted that row, but the viewport moved upward during release.
+- Expected: Minimum-size widgets use the same drop contract as larger widgets and panels. The snapped placeholder row/column at release is the commit source of truth, newly revealed lower rows are valid, the viewport should not collapse away from the dropped item, and save/reload should preserve the lower placement.
+- Suspected cause: This was not a separate minimum-size placement resolver rejecting the row. The one-row footprint committed correctly, but placeholder removal and restoration during pointerup let browser scroll anchoring adjust `scrollY` before the temporary lower runway was cleared. Larger items naturally left enough committed document height to mask the adjustment; minimum-size widgets exposed the scroll-position side effect.
+- Fix notes: The drag commit path now captures the release scroll position when the temporary lower runway was active, commits from the snapped placeholder, reconciles a minimal committed dashboard host scroll floor before clearing the body runway, and reapplies the release scroll target after cleanup. Normal drops clear any prior committed scroll floor, canceled interactions still remove only transient runway state, and the shared row/column commit path remains unchanged for all item sizes.
+- Validation: Added `test_edge_auto_scroll_commits_minimum_size_widget_to_lower_workspace`, which forces the timeframe widget to its minimum span, drags it into newly revealed lower rows while auto-scroll is active, verifies the committed span/column/lower row match the preview contract, verifies the viewport does not collapse upward, checks cleanup/no horizontal overflow, saves/reloads, and asserts the lower minimum-size placement persists. Targeted `edge_auto_scroll` tests passed, and `.venv\Scripts\python.exe -m pytest -q` passed with 81 tests.
 
 ## Entry Template
  

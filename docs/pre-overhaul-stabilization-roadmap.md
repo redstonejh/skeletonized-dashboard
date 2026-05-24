@@ -645,6 +645,8 @@ Architecture concerns:
 
 - Minimum footprints should be based on the smallest usable adaptive layout, not the most spacious visual state.
 - Dense widgets should exhaust compact spacing, adaptive padding, intelligent wrapping, and condensed control modes before escalating their required grid span.
+- The sizing ladder should be explicit: normal density, compact density, dense-minimum density, then a larger required footprint only when controls would clip, lose readable labels, or fall below usable hit areas.
+- Button-heavy widgets, toolbar-like widgets, context anchors, and future navigation controls should prefer reduced gaps, shorter labels, wrapping, and local truncation before raising `minW` or `minH`.
 - Density changes must not shift controls unexpectedly.
 - Header/control geometry should remain stable unless intentionally designed.
 - Density state should not corrupt saved layout.

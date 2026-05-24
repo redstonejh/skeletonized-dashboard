@@ -8,11 +8,79 @@ A local FastAPI app for creating and arranging dashboard panels and widgets from
 - Add panel and add widget controls
 - Move, resize, pin, rename, recolor, collapse, and delete controls
 - Group mode for selecting and moving multiple panels or widgets
-- Ghost placement previews, grid snapping, collision handling, and reflow animation
+- Smooth live ghosts, snapped footprints, grid snapping, collision handling, edge auto-scroll, and reflow animation
 - Layout save/load slots, reset to default, draft edits, and undo
 - Generic search/filter shell across visible dashboard content
 - SQLite tables for neutral dashboard, panel, widget, and layout profile records
 - Generic JSON API endpoints for dashboard state and persistence
+
+## Product Direction
+
+The project is evolving from a configurable dashboard into a continuous spatial workspace. The long-term model is tabless: users should remain inside one large dashboard surface and navigate through spatial context, anchors, grouping, and saved regions rather than switching between conventional tabs or pages.
+
+Current architectural principles:
+
+- Panels are generic layout containers, not inherent content types.
+- Tables, notes, menus, charts, calendars, filters, and dense controls should be modeled as widgets or future panel content.
+- Movement and resizing should feel spatial, pointer-continuous, and visually reversible.
+- Snapping should assist placement without making live motion feel rigid.
+- Grouped objects should behave as composite spatial objects during drag, resize, preview, collision, and commit.
+- Temporary layout pressure from drag, resize, expansion, and edge-scroll previews must remain separate from committed layout state.
+- Dense widgets should prefer adaptive density before increasing their minimum grid footprint.
+- Light and dark themes should share one layered glass material system under different lighting conditions.
+
+## Roadmap
+
+The upcoming work is intentionally staged around stabilization first, then larger architecture. See `docs/pre-overhaul-stabilization-roadmap.md` for the detailed pre-overhaul checklist.
+
+### Near-Term Stabilization
+
+- Keep drag, resize, collision, snapping, ghost previews, pinning, collapse, undo, and save/load deterministic under repeated interaction.
+- Continue tightening edge auto-scroll so newly reachable grid rows remain smooth, preview-accurate, and commit-safe.
+- Preserve local collision behavior and avoid global repacking during add, drag, resize, expand, collapse, and grouped operations.
+- Strengthen Playwright coverage for visual cleanup, stale interaction classes, save/reload persistence, grouped behavior, and compact widget sizing.
+- Continue refining dark-mode smoked glass so controls, panels, widgets, menus, and selection surfaces share one coherent material hierarchy.
+
+### Spatial Navigation And Context
+
+- Floating Spatial Anchors: viewport-fixed controls that act as spatial bookmarks into dashboard regions, panels, groups, widgets, or saved viewports.
+- Context Dividers: elegant horizontal glass boundaries that define ambient dashboard zones without becoming normal panels.
+- Context Inheritance: widgets, panels, groups, anchors, and future controls inherit local spatial context before falling back to global workspace context.
+- Tabless Navigation: the navbar should stay minimal and should not become the primary navigation model; future navigation should scroll or focus the continuous workspace.
+- Saved Viewports And Workspace States: named spatial positions, density arrangements, and context-aware snapshots that help users return to meaningful regions.
+
+### Future Interaction Systems
+
+- Composite group interactions with shared visual language, local collision, proportional resize, and stable member relationships.
+- Region-aware placement that understands context zones without scrambling unrelated dashboard items.
+- Richer undo/redo transaction boundaries for committed dashboard actions while excluding live previews and transient surfaces.
+- Accessibility-first keyboard support for anchors, groups, dividers, panels, widgets, and major dashboard commands.
+- Reduced-motion equivalents for cinematic scroll, drag, resize, collapse, and anchor navigation.
+
+### Future Widget And Panel Architecture
+
+- Widget-inside-panel support, with panels remaining generic containers.
+- Table, notes, menu, chart, calendar, search, filter, timeframe, and control widgets as composable content types.
+- Adaptive-density sizing rules for dense information and control widgets.
+- Semantic panel relationships and contextual grouping without encoding content type into panel identity.
+- Future widget marketplace or registry concepts, if needed, should remain context-neutral and data-source neutral.
+
+### Performance And Scale
+
+- Measure pointermove hot paths, DOM reads/writes, collision cost, reflow cost, paint cost, and save/load serialization before optimizing.
+- Batch live interaction writes through requestAnimationFrame where practical.
+- Keep live visual transforms separate from committed grid layout writes.
+- Limit collision/reflow work to affected local regions where possible.
+- Explore virtualization or partial rendering only after the dashboard can exceed current practical DOM limits.
+- Keep Playwright tests meaningful while using targeted slices during development and full-suite runs before completion.
+
+### Non-Goals For Now
+
+- No conventional tab/page architecture for primary navigation.
+- No frontend-only authentication, sharing, or permissions.
+- No product-specific monitoring, security, vendor, incident, ranking, or notification concepts.
+- No fake widget insertion inside panels until nested widget behavior is implemented for real.
+- No global auto-pack behavior that silently rewrites intentional dashboard space.
 
 ## Routes
 
@@ -80,6 +148,10 @@ Before changing dashboard behavior, read:
 - `docs/engineering-guidelines.md`
 - `docs/drag-resize-audit.md`
 - `docs/bug-report.md`
+- `docs/performance-stabilization-plan.md`
+- `docs/pre-overhaul-stabilization-roadmap.md`
+- `docs/spatial-anchors.md`
+- `docs/context-divider-architecture.md`
 
 Protected behaviors include:
 

@@ -363,10 +363,21 @@
   padding-right: 46px;
 }
 
+.timeframe-widget[data-current-span="2"],
+.timeframe-widget[data-default-span="2"]:not([data-current-span]) {
+  padding-right: 42px;
+}
+
 .timeframe-widget[data-current-span="3"] .timeframe-command-surface,
 .timeframe-widget[data-default-span="3"]:not([data-current-span]) .timeframe-command-surface {
   gap: 6px;
   padding: 4px;
+}
+
+.timeframe-widget[data-current-span="2"] .timeframe-command-surface,
+.timeframe-widget[data-default-span="2"]:not([data-current-span]) .timeframe-command-surface {
+  gap: 4px;
+  padding: 3px;
 }
 
 .timeframe-widget[data-current-span="3"] .timeframe-presets,
@@ -379,11 +390,28 @@
   padding: 2px;
 }
 
+.timeframe-widget[data-current-span="2"] .timeframe-presets,
+.timeframe-widget[data-current-span="2"] .timeframe-active-cluster,
+.timeframe-widget[data-current-span="2"] .timeframe-utility-cluster,
+.timeframe-widget[data-default-span="2"]:not([data-current-span]) .timeframe-presets,
+.timeframe-widget[data-default-span="2"]:not([data-current-span]) .timeframe-active-cluster,
+.timeframe-widget[data-default-span="2"]:not([data-current-span]) .timeframe-utility-cluster {
+  gap: 3px;
+  padding: 2px;
+}
+
 .timeframe-widget[data-current-span="3"] .preset-btn,
 .timeframe-widget[data-default-span="3"]:not([data-current-span]) .preset-btn {
   min-width: 54px;
   padding: 0 10px;
   font-size: 11px;
+}
+
+.timeframe-widget[data-current-span="2"] .preset-btn,
+.timeframe-widget[data-default-span="2"]:not([data-current-span]) .preset-btn {
+  min-width: 46px;
+  padding: 0 7px;
+  font-size: 10.5px;
 }
 
 .timeframe-widget[data-current-span="3"] .range-custom-trigger,
@@ -393,12 +421,27 @@
   font-size: 11px;
 }
 
+.timeframe-widget[data-current-span="2"] .range-custom-trigger,
+.timeframe-widget[data-default-span="2"]:not([data-current-span]) .range-custom-trigger {
+  min-width: 74px;
+  padding: 0 9px;
+  font-size: 10.5px;
+}
+
 .timeframe-widget[data-current-span="3"] .range-icon-button,
 .timeframe-widget[data-default-span="3"]:not([data-current-span]) .range-icon-button {
   width: 32px;
   height: 32px;
   min-width: 32px;
   min-height: 32px;
+}
+
+.timeframe-widget[data-current-span="2"] .range-icon-button,
+.timeframe-widget[data-default-span="2"]:not([data-current-span]) .range-icon-button {
+  width: 30px;
+  height: 30px;
+  min-width: 30px;
+  min-height: 30px;
 }
 
 .preset-btn:hover,
