@@ -36,7 +36,7 @@
   margin-top: 0;
   padding-right: 52px;
   justify-content: flex-start;
-  cursor: default;
+  cursor: pointer;
 }
 
 .range-bar.widget-card:hover {
@@ -216,14 +216,20 @@
 
 .range-search:hover .range-search-input {
   border-color: var(--range-control-active-border);
-  box-shadow: 0 14px 28px var(--range-control-glow), 0 0 22px var(--range-control-glow), inset 0 1px 0 var(--panel-hover-inset);
+  box-shadow:
+    0 5px 12px color-mix(in srgb, var(--range-control-glow) 58%, transparent),
+    inset 0 1px 0 var(--panel-hover-inset),
+    inset 0 2px 5px color-mix(in srgb, var(--range-control-accent) 8%, rgba(15, 23, 42, .06));
   background: color-mix(in srgb, var(--range-control-bg) 75%, var(--panel-hover-tint));
 }
 
 .range-search-input:focus {
   outline: none;
   border-color: var(--range-control-active-border);
-  box-shadow: 0 14px 28px var(--range-control-glow), 0 0 22px var(--range-control-glow), inset 0 1px 0 var(--panel-hover-inset);
+  box-shadow:
+    0 5px 12px color-mix(in srgb, var(--range-control-glow) 58%, transparent),
+    inset 0 1px 0 var(--panel-hover-inset),
+    inset 0 2px 5px color-mix(in srgb, var(--range-control-accent) 8%, rgba(15, 23, 42, .06));
 }
 
 .range-search:focus-within::before {
@@ -282,7 +288,10 @@
   border-color: var(--range-control-active-border);
   background: color-mix(in srgb, var(--range-control-bg) 75%, var(--panel-hover-tint));
   color: var(--range-button-fg);
-  box-shadow: 0 14px 28px var(--range-control-glow), 0 0 22px var(--range-control-glow), inset 0 1px 0 var(--panel-hover-inset);
+  box-shadow:
+    0 5px 12px color-mix(in srgb, var(--range-control-glow) 58%, transparent),
+    inset 0 1px 0 var(--panel-hover-inset),
+    inset 0 2px 5px color-mix(in srgb, var(--range-control-accent) 8%, rgba(15, 23, 42, .06));
 }
 
 .range-icon-button:hover {
@@ -381,8 +390,8 @@
 
 .timeframe-widget[data-current-span="2"] .timeframe-command-surface,
 .timeframe-widget[data-default-span="2"]:not([data-current-span]) .timeframe-command-surface {
-  gap: 4px;
-  padding: 3px;
+  gap: 3px;
+  padding: 2px;
 }
 
 .timeframe-widget[data-current-span="3"] .timeframe-presets,
@@ -401,8 +410,8 @@
 .timeframe-widget[data-default-span="2"]:not([data-current-span]) .timeframe-presets,
 .timeframe-widget[data-default-span="2"]:not([data-current-span]) .timeframe-active-cluster,
 .timeframe-widget[data-default-span="2"]:not([data-current-span]) .timeframe-utility-cluster {
-  gap: 3px;
-  padding: 2px;
+  gap: 2px;
+  padding: 1px;
 }
 
 .timeframe-widget[data-current-span="3"] .preset-btn,
@@ -414,9 +423,9 @@
 
 .timeframe-widget[data-current-span="2"] .preset-btn,
 .timeframe-widget[data-default-span="2"]:not([data-current-span]) .preset-btn {
-  min-width: 46px;
-  padding: 0 7px;
-  font-size: 10.5px;
+  min-width: 42px;
+  padding: 0 5px;
+  font-size: 10px;
 }
 
 .timeframe-widget[data-current-span="3"] .range-custom-trigger,
@@ -428,9 +437,9 @@
 
 .timeframe-widget[data-current-span="2"] .range-custom-trigger,
 .timeframe-widget[data-default-span="2"]:not([data-current-span]) .range-custom-trigger {
-  min-width: 74px;
-  padding: 0 9px;
-  font-size: 10.5px;
+  min-width: 68px;
+  padding: 0 7px;
+  font-size: 10px;
 }
 
 .timeframe-widget[data-current-span="3"] .range-icon-button,
@@ -457,13 +466,19 @@
 }
 
 .preset-btn:hover {
-  box-shadow: 0 14px 28px var(--range-control-glow), 0 0 22px var(--range-control-glow), inset 0 1px 0 var(--panel-hover-inset);
+  box-shadow:
+    0 5px 12px color-mix(in srgb, var(--range-control-glow) 58%, transparent),
+    inset 0 1px 0 var(--panel-hover-inset),
+    inset 0 2px 5px color-mix(in srgb, var(--range-control-accent) 8%, rgba(15, 23, 42, .06));
   transform: var(--pressable-hover-transform);
 }
 
 .preset-btn.active {
   border-color: var(--range-control-active-border);
-  box-shadow: 0 14px 28px var(--range-control-glow), 0 0 22px var(--range-control-glow), inset 0 1px 0 rgba(255, 255, 255, .28);
+  box-shadow:
+    0 3px 8px color-mix(in srgb, var(--range-control-glow) 52%, transparent),
+    inset 0 1px 0 rgba(255, 255, 255, .28),
+    inset 0 2px 6px color-mix(in srgb, var(--range-control-accent) 12%, rgba(15, 23, 42, .08));
   transform: var(--pressable-active-transform);
 }
 
@@ -522,12 +537,18 @@
 }
 
 .range-custom-trigger:hover {
-  box-shadow: 0 14px 28px var(--range-control-glow), 0 0 22px var(--range-control-glow), inset 0 1px 0 var(--panel-hover-inset);
+  box-shadow:
+    0 5px 12px color-mix(in srgb, var(--range-control-glow) 58%, transparent),
+    inset 0 1px 0 var(--panel-hover-inset),
+    inset 0 2px 5px color-mix(in srgb, var(--range-control-accent) 8%, rgba(15, 23, 42, .06));
   transform: var(--pressable-hover-transform);
 }
 
 .range-custom-trigger.active {
-  box-shadow: 0 14px 28px var(--range-control-glow), 0 0 22px var(--range-control-glow), inset 0 1px 0 rgba(255, 255, 255, .28);
+  box-shadow:
+    0 3px 8px color-mix(in srgb, var(--range-control-glow) 52%, transparent),
+    inset 0 1px 0 rgba(255, 255, 255, .28),
+    inset 0 2px 6px color-mix(in srgb, var(--range-control-accent) 12%, rgba(15, 23, 42, .08));
   transform: var(--pressable-active-transform);
 }
 
@@ -701,10 +722,18 @@
 .confirm-dialog-btn:focus-visible,
 .confirm-dialog-close:hover,
 .confirm-dialog-close:focus-visible {
-  transform: translateY(-1px);
+  transform: var(--pressable-hover-transform);
   border-color: #bfdbfe;
   background: var(--surface-soft);
-  box-shadow: 0 8px 18px rgba(37, 99, 235, .12);
+  box-shadow:
+    0 5px 12px rgba(15, 23, 42, .08),
+    inset 0 1px 0 rgba(255, 255, 255, .24),
+    inset 0 2px 5px rgba(37, 99, 235, .06);
+}
+
+.confirm-dialog-btn:active,
+.confirm-dialog-close:active {
+  transform: var(--pressable-active-transform);
 }
 
 .confirm-dialog-danger {
@@ -718,7 +747,10 @@
 .confirm-dialog-danger:focus-visible {
   border-color: #fecaca;
   background: var(--red-hover);
-  box-shadow: 0 10px 24px rgba(220, 38, 38, .28), 0 0 18px rgba(248, 113, 113, .14);
+  box-shadow:
+    0 5px 12px rgba(220, 38, 38, .22),
+    inset 0 1px 0 rgba(255, 255, 255, .20),
+    inset 0 2px 5px rgba(127, 29, 29, .12);
 }
 
 .esc-feed {

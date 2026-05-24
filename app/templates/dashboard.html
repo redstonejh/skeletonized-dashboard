@@ -41,7 +41,7 @@
     <div class="workspace-command-island layout-command-island" aria-label="Layout and persistence">
       <div class="layout-slot-controls" aria-label="Layout save slots">
         <div class="layout-slot-picker" data-layout-target="builder">
-          <button class="layout-slot-trigger" type="button" data-current-slot="1" aria-haspopup="true" aria-expanded="false"><span class="layout-slot-label">Layout 1</span><span class="layout-slot-arrow" aria-hidden="true"></span></button>
+          <button class="layout-slot-trigger" type="button" data-current-slot="1" aria-haspopup="true" aria-expanded="false"><span class="layout-slot-label">Layout 1</span></button>
           <div class="layout-slot-menu" role="menu">
             {% for slot in range(1, 11) %}<button type="button" role="menuitem" data-slot="{{ slot }}">Layout {{ slot }}</button>{% endfor %}
           </div>
@@ -57,6 +57,7 @@
       <div class="panel-add-menu">
         <span class="panel-add-menu-label">Widgets</span>
         <button class="widget-add-action" type="button" data-widget-target="builder" data-widget-kind="stat">Stat</button>
+        <button class="widget-add-action" type="button" data-widget-target="builder" data-widget-kind="timeframe">Timeframe</button>
         <button class="widget-add-action" type="button" data-widget-target="builder" data-widget-kind="stat-filter">Stat + Filter</button>
         <button class="widget-add-action" type="button" data-widget-target="builder" data-widget-kind="graph">Graph</button>
         <button class="widget-add-action" type="button" data-widget-target="builder" data-widget-kind="table">Table</button>
@@ -102,6 +103,18 @@
           <button type="button" class="background-tone-option" data-background-tone="industrial-grey">Muted industrial grey</button>
           <button type="button" class="background-tone-option" data-background-tone="blue-mist">Blue mist</button>
           <button type="button" class="background-tone-option" data-background-tone="frosted-light">Frosted</button>
+        </div>
+        <div class="background-tone-group background-tone-group-grey" aria-label="Grey backgrounds">
+          <span class="background-tone-label">Greys</span>
+          <button type="button" class="background-tone-option" data-background-tone="very-pale-grey">Very pale grey</button>
+          <button type="button" class="background-tone-option" data-background-tone="pale-cool-grey">Pale cool grey</button>
+          <button type="button" class="background-tone-option" data-background-tone="pale-warm-grey">Pale warm grey</button>
+          <button type="button" class="background-tone-option" data-background-tone="medium-soft-grey">Medium soft grey</button>
+          <button type="button" class="background-tone-option" data-background-tone="medium-grey">Medium grey</button>
+          <button type="button" class="background-tone-option" data-background-tone="neutral-grey">Neutral grey</button>
+          <button type="button" class="background-tone-option" data-background-tone="charcoal-grey">Charcoal grey</button>
+          <button type="button" class="background-tone-option" data-background-tone="deep-grey">Deep grey</button>
+          <button type="button" class="background-tone-option" data-background-tone="near-black-grey">Near-black grey</button>
         </div>
         <div class="background-tone-group background-tone-group-deep" aria-label="Deep backgrounds">
           <span class="background-tone-label">Deep</span>

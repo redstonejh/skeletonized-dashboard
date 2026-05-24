@@ -72,11 +72,59 @@ Command:
 .venv\Scripts\python.exe -m pytest -q
 ```
 
-Latest result: 83 passed, 0 failed.
+Latest result: 85 passed, 0 failed.
 
 Previous discovery result: 6 passed, 3 failed.
 
-Passed coverage included app/dashboard/settings load, CSS imports, absence of mode toggle state, expanded background palette persistence, shared material invariance across deep background selection, workspace toolbar command-island screenshots, toolbar mode toggles, generic Add Widget menu options, shared timeframe controls, timeframe resize, timeframe minimum resize clamping, exact layout save/load round trips, small-panel menu overlays, panel placeholder/body sizing, adaptive panel content density, drag ghost creation, ordered drag reflow, local top insertion, reversible collision previews, suppression of underlying hover menus during drag, global widget/panel occupancy, pinned item protection, pin menu close behavior, sparse empty-space placement, grid-bound drag clamping, grid snapping alignment, collision/overlap checks, resize snapping, left-edge anchored resize, menu icon alignment, panel header chevron centering, panel/widget/timeframe hover-focus material coverage, restrained neutral widget hover shadows, group multi-selection, grouped drag, grouped proportional resize, pinned items inside groups, mixed widget/panel group transforms, group mode, layout save/load/reset, settings save, mobile overflow checks, console errors, and network errors.
+Passed coverage included app/dashboard/settings load, CSS imports, absence of mode toggle state, expanded background palette persistence, shared material invariance across deep background selection, workspace toolbar command-island screenshots, toolbar mode toggles, generic Add Widget menu options, shared timeframe controls, timeframe createability, timeframe resize, timeframe minimum resize clamping, exact layout save/load round trips, small-panel menu overlays, panel placeholder/body sizing, adaptive panel content density, drag ghost creation, ordered drag reflow, local top insertion, reversible collision previews, capability-gated panel previews for dividers/anchors/panels, suppression of underlying hover menus during drag, global widget/panel occupancy, pinned item protection, pin menu close behavior, sparse empty-space placement, grid-bound drag clamping, grid snapping alignment, collision/overlap checks, resize snapping, left-edge anchored resize, menu icon alignment, panel header chevron centering, panel/widget/timeframe hover-focus material coverage, restrained neutral widget hover shadows, group multi-selection, grouped drag, grouped proportional resize, pinned items inside groups, mixed widget/panel group transforms, group mode, layout save/load/reset, settings save, mobile overflow checks, console errors, and network errors.
+
+### BUG-090: Anchors And Dividers Inherited Expanded Panel Preview Affordances
+
+- Status: Fixed
+- Area: Workspace object taxonomy / drag preview / divider headers / anchor layer
+- Severity: Medium
+- Environment: Dashboard workspace, Divider and Anchor objects created from the Add menu, divider move/resize preview, anchor rail movement
+- Observed: Divider objects reused panel shell classes for grid participation, so drag/resize preview logic treated them like collapsed expandable panels and could show a large open-panel-style footprint. Divider headers also rendered a leftover leading status dot from panel accordion/header assumptions. Anchors were classified separately visually but did not receive the same explicit capability metadata as grid objects.
+- Expected: Only openable/expandable panels should use expanded panel footprint previews or render accordion/status affordances. Dividers should remain one-row semantic surfaces without panel content ghosts or header dots. Anchors should remain floating navigation objects outside normal grid collision and should not create grid previews.
+- Suspected cause: Preview and sizing helpers checked broad panel-shell conditions such as `.db-panel`, `.db-panel-collapsed`, or panel content defaults instead of asking explicit object capabilities. Divider markup still included a `workspace-divider-node` even after dividers became a distinct object type, and floating anchor creation bypassed the shared metadata sync.
+- Fix notes: Added centralized workspace object capability metadata (`canExpand`, `isOpenable`, `hasExpandedFootprint`, `participatesInGridCollision`, `hasPanelContentArea`, `usesPanelHeader`, `usesAnchorLayer`, `usesDividerSurface`). Panel row-span, minimum-height, expanded-footprint, drag, resize, and header affordance paths now derive from those capabilities. Floating anchors now sync the same metadata, and divider markup no longer renders the inherited status node.
+- Validation: Added `test_object_capabilities_gate_panel_previews_and_affordances` to verify divider/anchor/panel capability metadata, absence of divider status dots and accordion aria affordances, no expanded ghost during divider move/resize, no grid placeholder during anchor movement, and normal collapsed-panel expanded preview behavior. Targeted capability, anchor/divider, and full group behavior slices passed, and `.venv\Scripts\python.exe -m pytest -q` passed with 85 tests.
+
+### BUG-089: Navbar Controls And Background Greys Needed More Material Separation
+
+- Status: Fixed
+- Area: Navbar / dropdowns / background selector
+- Severity: Medium
+- Environment: Dashboard workspace chrome, Layout menu, Add menu, profile/background dropdowns
+- Observed: Navbar control nodules and dropdown buttons were too close to the bright navbar surface, the Layout selector still carried a visual arrow, the Add menu opened centered under the plus control instead of aligning to the trigger edge, and adding more grey background options made the palette too tall for reliable lower-option selection.
+- Expected: Navbar buttons and dropdown items should read as neutral grey glass nodules on the navbar surface, Layout should remain clickable without an arrow, the Add menu should use the same trigger-edge anchoring logic as other dropdowns, dropdown buttons should keep compact-control depression hover, and grey background choices should span from pale grey to near-black without changing component materials.
+- Suspected cause: The final workspace chrome layer still used pale surface-derived navbar tokens, transparent dropdown menu buttons, centered Add-menu positioning, and the older Layout arrow child. The background popover had no internal max-height/scroll behavior before the grey palette expanded.
+- Fix notes: Retuned the shared navbar control tokens toward neutral grey, gave dropdown buttons the same neutral nodule material at rest, removed the Layout arrow markup and centered the label, anchored the Add menu by left edge to the plus trigger, made the background popover internally scrollable, and added grey-only background tokens/options from very pale grey through near-black grey.
+- Validation: Updated workspace chrome/background tests to assert the arrow is gone, Layout label is centered, Add menu left edge aligns with the plus trigger, dropdown buttons have visible nodule material, new grey tones appear, and background choices preserve shared glass tokens. Targeted `background or workspace_chrome or compact_pressable_controls` coverage passed, manual browser inspection screenshots were captured under `test-results/manual-navbar-grey-polish`, and `.venv\Scripts\python.exe -m pytest -q` passed with 84 tests.
+
+### BUG-088: Compact Controls Still Had Legacy Lift And Glow Physics
+
+- Status: Fixed
+- Area: Compact controls / hover physics / timeframe / navbar menus / object menus
+- Severity: Medium
+- Environment: Dashboard workspace, timeframe controls, widget/panel tool drawers, navbar buttons, Layout/Add/profile dropdowns, confirm dialogs
+- Observed: Several compact pressable controls still used older hover language after the large-object/compact-control split. Timeframe buttons and legacy search controls carried larger glow-like hover shadows, confirm dialog buttons lifted upward, and navbar dropdown/Add/profile menu controls did not all share the same final depression coverage.
+- Expected: Widgets, panels, dividers, and other large workspace objects may keep a subtle spatial hover lift, but compact controls should settle inward on hover, press deeper on active, keep focus-visible distinct, and avoid glow, scale-up, icon float, or layout shift.
+- Suspected cause: The shared pressable transform tokens existed, but older component rules still defined hover shadows and transforms before later workspace chrome rules. The shared selector list also missed some dropdown/profile/add menu entries.
+- Fix notes: Reused the existing `--pressable-hover-transform`, `--pressable-active-transform`, and `--pressable-focus-transform` tokens; reduced timeframe/control hover shadows to restrained contact shadows; changed confirm dialog buttons from lift to depression; and added a final compact-control normalization layer for Layout, Add, profile/workspace, background, timeframe, and dialog controls without touching large object hover rules.
+- Validation: Expanded `test_compact_pressable_controls_depress_without_sinking_large_surfaces` to cover navbar controls, Layout menu buttons, Add menu entries, profile/workspace dropdown options, disabled profile rows, and focus settling. Targeted compact/workspace/timeframe/widget-material coverage passed, manual browser inspection screenshots were captured under `test-results/manual-interaction-physics`, and `.venv\Scripts\python.exe -m pytest -q` passed with 84 tests.
+
+### BUG-087: Timeframe Command Surface Was Not Createable As A Widget Type
+
+- Status: Fixed
+- Area: Widgets / timeframe command surface / add menu / adaptive density
+- Severity: Medium
+- Environment: Dashboard workspace, Add object menu, timeframe controls, widget move/resize/save/load
+- Observed: The default timeframe surface visually looked like a widget and partially used the widget shell, but it was not exposed as a createable widget type. Custom widget creation only rendered stat-style anchors, and the timeframe shell still used a default cursor that made it feel less like the other movable widgets.
+- Expected: Timeframe is a first-class widget type. It should be createable from the Add menu, render through the widget factory, receive the shared widget tools, move/resize/persist through the same widget lifecycle, and use adaptive density for its internal controls.
+- Suspected cause: The original timeframe command surface was hard-coded in the dashboard template while the Add menu and custom widget factory only knew how to create generic stat widgets. The timeframe component styling also kept an older `cursor: default` shell value.
+- Fix notes: Added a Timeframe entry to the Add menu, added a timeframe renderer path to `createCustomWidget`, gave custom timeframe widgets the same `widget-card` lifecycle metadata as other widgets, and set the timeframe shell cursor to match normal widget affordance. Timeframe preset, selector, refresh, and calendar controls continue to use the shared compact pressable depression rules.
+- Validation: Added `test_timeframe_widget_is_createable_and_uses_widget_system` to verify createability, widget metadata, shared tools, move, adaptive resize to span 2, compact control density, pressable hover transforms, save/load persistence, and rendered controls. Targeted timeframe/control tests passed, scrollbar-change setup was updated to respect the timeframe widget's valid footprint, and `.venv\Scripts\python.exe -m pytest -q` passed with 84 tests.
 
 ### BUG-086: Closing A Moved Expanded Panel Let Displaced Objects Cross Above It
 

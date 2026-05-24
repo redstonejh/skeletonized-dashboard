@@ -736,9 +736,18 @@ def test_background_palette_hover_previews_without_saving(page: Page, app_server
 
     page.locator(".background-tone-trigger").first.click()
     for tone in [
+        "very-pale-grey",
+        "pale-cool-grey",
+        "pale-warm-grey",
         "medium-cool-grey",
+        "medium-soft-grey",
+        "medium-grey",
+        "neutral-grey",
         "graphite-grey",
         "blue-slate",
+        "charcoal-grey",
+        "deep-grey",
+        "near-black-grey",
         "black",
         "charcoal",
         "gunmetal",
@@ -761,7 +770,7 @@ def test_background_palette_hover_previews_without_saving(page: Page, app_server
             if (hex) return [0, 2, 4].map((start) => parseInt(hex[1].slice(start, start + 2), 16));
             return [];
           };
-          return ["graphite-grey", "blue-slate", "black", "charcoal", "gunmetal", "deep-navy", "soft-cinema"].map((tone) => {
+          return ["very-pale-grey", "medium-grey", "neutral-grey", "charcoal-grey", "near-black-grey", "graphite-grey", "blue-slate", "black", "charcoal", "gunmetal", "deep-navy", "soft-cinema"].map((tone) => {
             document.documentElement.dataset.background = tone;
             const bg = toRgb(getComputedStyle(document.documentElement).getPropertyValue("--bg"));
             const surface = getComputedStyle(document.documentElement).getPropertyValue("--glass-surface").trim();
@@ -930,6 +939,22 @@ def test_workspace_chrome_is_spatial_and_modes_still_work(page: Page, app_server
     assert abs(chrome_styles["radius"] - widget_styles["radius"]) <= 8
     assert abs(chrome_styles["border"] - widget_styles["border"]) <= 1
     assert chrome_styles["shadow"] != "none" and widget_styles["shadow"] != "none"
+    navbar_button_material = page.locator(".layout-save-button").evaluate(
+        """
+        node => {
+          const styles = getComputedStyle(node);
+          return {
+            background: styles.backgroundColor,
+            image: styles.backgroundImage,
+            border: styles.borderTopColor,
+            shadow: styles.boxShadow,
+          };
+        }
+        """
+    )
+    assert navbar_button_material["background"] != "rgba(0, 0, 0, 0)" or navbar_button_material["image"] != "none"
+    assert navbar_button_material["border"] != "rgba(0, 0, 0, 0)"
+    assert navbar_button_material["shadow"] != "none"
 
     island_styles = page.locator(".app-nav.workspace-chrome .workspace-command-island").evaluate_all(
         """
@@ -1057,24 +1082,22 @@ def test_workspace_chrome_is_spatial_and_modes_still_work(page: Page, app_server
         assert metric["centerDelta"] <= 1.5
         assert metric["radius"] >= 12
         assert abs(metric["transformY"]) <= .1
-    arrow_metrics = page.locator(".layout-slot-trigger").evaluate(
+    expect(page.locator(".layout-slot-arrow")).to_have_count(0)
+    layout_label_metrics = page.locator(".layout-slot-trigger").evaluate(
         """
         node => {
           const label = node.querySelector(".layout-slot-label").getBoundingClientRect();
-          const arrow = node.querySelector(".layout-slot-arrow").getBoundingClientRect();
           const rect = node.getBoundingClientRect();
           return {
-            labelRight: label.right,
-            arrowLeft: arrow.left,
-            arrowRightInset: rect.right - arrow.right,
-            centerDelta: Math.abs((arrow.top + arrow.height / 2) - (rect.top + rect.height / 2)),
+            centerDelta: Math.abs((label.left + label.width / 2) - (rect.left + rect.width / 2)),
+            rightInset: rect.right - label.right,
+            leftInset: label.left - rect.left,
           };
         }
         """
     )
-    assert arrow_metrics["arrowLeft"] >= arrow_metrics["labelRight"] + 6
-    assert 8 <= arrow_metrics["arrowRightInset"] <= 16
-    assert arrow_metrics["centerDelta"] <= 2.5
+    assert layout_label_metrics["centerDelta"] <= 1.5
+    assert abs(layout_label_metrics["rightInset"] - layout_label_metrics["leftInset"]) <= 2
     page.locator(".app-nav").screenshot(path=str(artifact_dir / "toolbar-light-spatial-chrome.png"))
     page.evaluate("document.documentElement.dataset.background = 'deep-slate'")
     page.wait_for_timeout(120)
@@ -1098,6 +1121,10 @@ def test_workspace_chrome_is_spatial_and_modes_still_work(page: Page, app_server
         """
         node => {
           const styles = getComputedStyle(node);
+          const firstButton = node.querySelector("button");
+          const firstStyles = getComputedStyle(firstButton);
+          const firstRect = firstButton.getBoundingClientRect();
+          firstButton.dispatchEvent(new MouseEvent("mouseenter", { bubbles: true }));
           return {
             radius: parseFloat(styles.borderTopLeftRadius),
             border: parseFloat(styles.borderTopWidth),
@@ -1105,6 +1132,9 @@ def test_workspace_chrome_is_spatial_and_modes_still_work(page: Page, app_server
             backdrop: styles.backdropFilter || styles.webkitBackdropFilter,
             background: styles.backgroundColor,
             image: styles.backgroundImage,
+            buttonBackground: firstStyles.backgroundColor,
+            buttonBorder: firstStyles.borderTopColor,
+            buttonHeight: firstRect.height,
           };
         }
         """
@@ -1114,26 +1144,30 @@ def test_workspace_chrome_is_spatial_and_modes_still_work(page: Page, app_server
     assert layout_menu_styles["shadow"] != "none"
     assert layout_menu_styles["backdrop"] != "none"
     assert layout_menu_styles["background"] != "rgba(0, 0, 0, 0)" or layout_menu_styles["image"] != "none"
+    assert layout_menu_styles["buttonBackground"] != "rgba(0, 0, 0, 0)"
+    assert layout_menu_styles["buttonBorder"] != "rgba(0, 0, 0, 0)"
+    assert layout_menu_styles["buttonHeight"] >= 32
     page.keyboard.press("Escape")
     expect(page.locator(".layout-slot-menu")).not_to_have_class(re.compile("open"))
 
     page.locator(".panel-add-button").click()
     expect(page.locator(".panel-add-menu")).to_have_class(re.compile("open"))
+    page.wait_for_timeout(220)
     add_alignment = page.locator(".panel-add-picker").evaluate(
         """
         node => {
           const button = node.querySelector(".panel-add-button").getBoundingClientRect();
           const menu = node.querySelector(".panel-add-menu").getBoundingClientRect();
           return {
-            centerDelta: Math.abs((button.left + button.width / 2) - (menu.left + menu.width / 2)),
+            leftDelta: Math.abs(button.left - menu.left),
             topGap: menu.top - button.bottom,
           };
         }
         """
     )
-    assert add_alignment["centerDelta"] <= 1.5
+    assert add_alignment["leftDelta"] <= 1.5
     assert 6 <= add_alignment["topGap"] <= 14
-    for label in ("Stat", "Stat + Filter", "Graph", "Table", "Calendar", "Anchor", "Panel", "Divider"):
+    for label in ("Stat", "Timeframe", "Stat + Filter", "Graph", "Table", "Calendar", "Anchor", "Panel", "Divider"):
         expect(page.locator(".panel-add-menu")).to_contain_text(label)
     expect(page.locator(".panel-add-menu")).not_to_contain_text("Context Panel")
     page.mouse.click(24, 24)
@@ -1335,6 +1369,168 @@ def test_spatial_workspace_objects_keep_anchors_on_floating_navigation_layer(pag
     assert_clean_browser(page)
 
 
+def test_object_capabilities_gate_panel_previews_and_affordances(page: Page, app_server: str) -> None:
+    goto(page, app_server)
+
+    page.locator(".panel-add-button").click()
+    page.locator('.divider-add-action[data-divider-kind="context-divider"]').click()
+    divider = page.locator('.workspace-divider[data-workspace-object-type="divider"]').last
+    expect(divider).to_be_visible()
+
+    page.locator(".panel-add-button").click()
+    page.locator('.widget-add-action[data-widget-kind="anchor"]').click()
+    anchor = page.locator('.workspace-anchor-object[data-workspace-object-type="anchor"]').last
+    expect(anchor).to_be_visible()
+
+    capability_state = page.evaluate(
+        """
+        () => {
+          const divider = document.querySelector('.workspace-divider[data-workspace-object-type="divider"]');
+          const anchor = document.querySelector('.workspace-anchor-object[data-workspace-object-type="anchor"]');
+          const panel = document.querySelector('.panel-layout > .db-panel[data-panel-key="builder-menu"]');
+          const dividerHeader = divider?.querySelector(".workspace-divider-surface");
+          const panelHeader = panel?.querySelector(".db-panel-hd");
+          const pick = (node) => ({
+            canExpand: node?.dataset.canExpand,
+            isOpenable: node?.dataset.isOpenable,
+            hasExpandedFootprint: node?.dataset.hasExpandedFootprint,
+            participatesInGridCollision: node?.dataset.participatesInGridCollision,
+            hasPanelContentArea: node?.dataset.hasPanelContentArea,
+            usesPanelHeader: node?.dataset.usesPanelHeader,
+            usesAnchorLayer: node?.dataset.usesAnchorLayer,
+            usesDividerSurface: node?.dataset.usesDividerSurface,
+          });
+          return {
+            divider: pick(divider),
+            anchor: pick(anchor),
+            panel: pick(panel),
+            dividerDotCount: divider?.querySelectorAll(".workspace-divider-node").length,
+            dividerHeaderRole: dividerHeader?.getAttribute("role"),
+            dividerHeaderTabIndex: dividerHeader?.getAttribute("tabindex"),
+            dividerHeaderExpanded: dividerHeader?.getAttribute("aria-expanded"),
+            panelHeaderRole: panelHeader?.getAttribute("role"),
+            panelHeaderTabIndex: panelHeader?.getAttribute("tabindex"),
+            panelHeaderExpanded: panelHeader?.getAttribute("aria-expanded"),
+          };
+        }
+        """
+    )
+    assert capability_state["divider"] == {
+        "canExpand": "false",
+        "isOpenable": "false",
+        "hasExpandedFootprint": "false",
+        "participatesInGridCollision": "true",
+        "hasPanelContentArea": "false",
+        "usesPanelHeader": "true",
+        "usesAnchorLayer": "false",
+        "usesDividerSurface": "true",
+    }
+    assert capability_state["anchor"] == {
+        "canExpand": "false",
+        "isOpenable": "false",
+        "hasExpandedFootprint": "false",
+        "participatesInGridCollision": "false",
+        "hasPanelContentArea": "false",
+        "usesPanelHeader": "false",
+        "usesAnchorLayer": "true",
+        "usesDividerSurface": "false",
+    }
+    assert capability_state["panel"]["canExpand"] == "true"
+    assert capability_state["panel"]["isOpenable"] == "true"
+    assert capability_state["panel"]["hasExpandedFootprint"] == "true"
+    assert capability_state["panel"]["hasPanelContentArea"] == "true"
+    assert capability_state["dividerDotCount"] == 0
+    assert capability_state["dividerHeaderRole"] is None
+    assert capability_state["dividerHeaderTabIndex"] is None
+    assert capability_state["dividerHeaderExpanded"] is None
+    assert capability_state["panelHeaderRole"] == "button"
+    assert capability_state["panelHeaderTabIndex"] == "0"
+    assert capability_state["panelHeaderExpanded"] in ("true", "false")
+
+    open_tools(divider)
+    divider_move_box = divider.locator(".panel-move-handle").bounding_box()
+    assert divider_move_box
+    x, y = box_center(divider_move_box)
+    page.mouse.move(x, y)
+    page.mouse.down()
+    page.mouse.move(x, y + 220, steps=14)
+    page.wait_for_timeout(160)
+    expect(page.locator(".dashboard-expanded-footprint-ghost")).to_have_count(0)
+    expect(page.locator(".db-panel-placeholder")).to_have_count(1)
+    assert page.locator(".db-panel-placeholder").evaluate("node => Number(node.dataset.gridRowSpan || 0)") == 1
+    page.mouse.up()
+    page.wait_for_timeout(240)
+    expect(page.locator(".dashboard-expanded-footprint-ghost")).to_have_count(0)
+    expect(page.locator(".db-panel-placeholder")).to_have_count(0)
+
+    open_tools(divider)
+    divider_resize_box = divider.locator(".panel-resize-handle").bounding_box()
+    assert divider_resize_box
+    rx, ry = box_center(divider_resize_box)
+    page.mouse.move(rx, ry)
+    page.mouse.down()
+    page.mouse.move(rx - 180, ry, steps=12)
+    page.wait_for_timeout(160)
+    expect(page.locator(".dashboard-expanded-footprint-ghost")).to_have_count(0)
+    expect(page.locator(".dashboard-resize-preview.db-panel-placeholder")).to_have_count(1)
+    assert page.locator(".dashboard-resize-preview.db-panel-placeholder").evaluate(
+        "node => Number(node.dataset.gridRowSpan || 0)"
+    ) == 1
+    page.mouse.up()
+    page.wait_for_timeout(240)
+    expect(page.locator(".dashboard-resize-preview.db-panel-placeholder")).to_have_count(0)
+
+    anchor_box = anchor.bounding_box()
+    assert anchor_box
+    ax, ay = box_center(anchor_box)
+    page.mouse.move(ax, ay)
+    page.mouse.down()
+    page.mouse.move(18, ay + 160, steps=14)
+    page.wait_for_timeout(160)
+    expect(page.locator(".dashboard-expanded-footprint-ghost")).to_have_count(0)
+    expect(page.locator(".db-panel-placeholder, .widget-placeholder, .dashboard-resize-preview")).to_have_count(0)
+    page.mouse.up()
+    page.wait_for_timeout(180)
+
+    panel = page.locator('.panel-layout > .db-panel[data-panel-key="builder-menu"]')
+    page.evaluate(
+        """
+        node => {
+          node.classList.add("db-panel-collapsed");
+          node.dataset.gridRowSpan = "1";
+          node.style.height = "";
+          node.querySelector(".db-panel-hd")?.setAttribute("aria-expanded", "false");
+        }
+        """,
+        arg=panel.element_handle(),
+    )
+    open_tools(panel)
+    panel_move_box = panel.locator(".panel-move-handle").bounding_box()
+    assert panel_move_box
+    px, py = box_center(panel_move_box)
+    page.mouse.move(px, py)
+    page.mouse.down()
+    page.mouse.move(px, py + 160, steps=12)
+    page.wait_for_timeout(160)
+    expect(page.locator(".dashboard-expanded-footprint-ghost")).to_have_count(1)
+    panel_ghost_state = page.locator(".dashboard-expanded-footprint-ghost").evaluate(
+        """
+        node => {
+          const source = document.querySelector('.panel-layout > .db-panel[data-panel-key="builder-menu"]');
+          return {
+            ghostHeight: node.getBoundingClientRect().height,
+            sourceHeight: source.getBoundingClientRect().height,
+          };
+        }
+        """
+    )
+    assert panel_ghost_state["ghostHeight"] > panel_ghost_state["sourceHeight"] + 40
+    page.mouse.up()
+    page.wait_for_timeout(240)
+    expect(page.locator(".dashboard-expanded-footprint-ghost")).to_have_count(0)
+    assert_clean_browser(page)
+
+
 def test_settings_and_delete_modal_share_spatial_glass_language(page: Page, app_server: str) -> None:
     page.goto(f"{app_server}/settings")
     expect(page.locator(".settings-nav")).to_be_visible()
@@ -1463,6 +1659,110 @@ def test_timeframe_controls_use_shared_glass_color(page: Page, app_server: str) 
         assert_near_white(styles["calendarColor"])
         assert_near_white(styles["settingsColor"])
     assert_clean_browser(page)
+
+
+def test_timeframe_widget_is_createable_and_uses_widget_system(page: Page, app_server: str) -> None:
+    goto(page, app_server)
+
+    page.locator(".panel-add-button").click()
+    expect(page.locator('.widget-add-action[data-widget-kind="timeframe"]')).to_have_count(1)
+    page.locator('.widget-add-action[data-widget-kind="timeframe"]').click()
+
+    timeframe_widgets = page.locator('.widget-layout > .timeframe-widget[data-widget-type="controls"]')
+    expect(timeframe_widgets).to_have_count(2)
+    created = timeframe_widgets.last
+    expect(created).to_be_visible()
+    expect(created.locator(".timeframe-command-surface")).to_be_visible()
+    expect(created.locator(".preset-btn", has_text="Today")).to_have_count(1)
+    expect(created.locator(".preset-btn", has_text="7 days")).to_have_count(1)
+    expect(created.locator(".preset-btn", has_text="30 days")).to_have_count(1)
+    expect(created.locator(".range-custom-trigger")).to_contain_text("This week")
+    expect(created.locator(".timeframe-refresh")).to_have_count(1)
+    expect(created.locator(".timeframe-calendar")).to_have_count(1)
+
+    widget_state = created.evaluate(
+        """
+        node => ({
+          tag: node.tagName.toLowerCase(),
+          widgetType: node.dataset.widgetType,
+          objectType: node.dataset.workspaceObjectType,
+          objectKind: node.dataset.dashboardObjectKind,
+          contextRole: node.dataset.contextRole,
+          minW: Number(node.dataset.minW || 0),
+          span: Number(node.dataset.currentSpan || node.dataset.defaultSpan || 0),
+          hasTools: Boolean(node.querySelector(".widget-tools")),
+          cursor: getComputedStyle(node).cursor,
+        })
+        """
+    )
+    assert widget_state == {
+        "tag": "nav",
+        "widgetType": "controls",
+        "objectType": "widget",
+        "objectKind": "timeframe",
+        "contextRole": "timeframe-control",
+        "minW": 2,
+        "span": 5,
+        "hasTools": True,
+        "cursor": "pointer",
+    }
+
+    before = grid_item_state(page, ".widget-layout > .timeframe-widget:last-of-type")
+    open_tools(created)
+    drag_by(page, created.locator(".panel-move-handle"), 0, 170, steps=16)
+    page.wait_for_timeout(320)
+    moved = grid_item_state(page, ".widget-layout > .timeframe-widget:last-of-type")
+    assert moved["row"] > before["row"]
+
+    open_tools(created)
+    handle_box = created.locator(".panel-resize-handle").bounding_box()
+    assert handle_box
+    x, y = box_center(handle_box)
+    page.mouse.move(x, y)
+    page.mouse.down()
+    page.mouse.move(x - 900, y, steps=18)
+    page.wait_for_timeout(120)
+    preview = page.locator(".dashboard-resize-preview.widget-placeholder")
+    expect(preview).to_have_count(1)
+    assert preview.evaluate("node => Number(node.dataset.currentSpan || node.dataset.defaultSpan || 0)") == 2
+    page.mouse.up()
+    page.wait_for_timeout(350)
+
+    resized = created.evaluate(
+        """
+        node => {
+          const surface = node.querySelector(".timeframe-command-surface");
+          const preset = node.querySelector(".preset-btn");
+          const selector = node.querySelector(".range-custom-trigger");
+          return {
+            span: Number(node.dataset.currentSpan || node.dataset.defaultSpan || 0),
+            surfaceGap: parseFloat(getComputedStyle(surface).gap),
+            presetMinWidth: parseFloat(getComputedStyle(preset).minWidth),
+            selectorMinWidth: parseFloat(getComputedStyle(selector).minWidth),
+          };
+        }
+        """
+    )
+    assert resized["span"] == 2
+    assert resized["surfaceGap"] <= 4
+    assert resized["presetMinWidth"] <= 46
+    assert resized["selectorMinWidth"] <= 74
+
+    created.locator(".preset-btn:not(.active)").first.hover()
+    hover_transform = created.locator(".preset-btn:not(.active)").first.evaluate("node => getComputedStyle(node).transform")
+    created.locator(".range-custom-trigger").hover()
+    selector_transform = created.locator(".range-custom-trigger").evaluate("node => getComputedStyle(node).transform")
+    assert hover_transform != "none"
+    assert selector_transform != "none"
+
+    page.locator(".layout-save-button").click()
+    page.reload(wait_until="networkidle")
+    expect(page.locator('.widget-layout > .timeframe-widget[data-custom-widget="true"][data-widget-type="controls"]')).to_have_count(1)
+    persisted = page.locator('.widget-layout > .timeframe-widget[data-custom-widget="true"][data-widget-type="controls"]').last
+    assert grid_item_state(page, '.widget-layout > .timeframe-widget[data-custom-widget="true"][data-widget-type="controls"]')["span"] == 2
+    expect(persisted.locator(".timeframe-command-surface")).to_be_visible()
+    assert_clean_browser(page)
+
 
 def test_minimum_panel_menu_opens_without_resizing_panel(page: Page, app_server: str) -> None:
     goto(page, app_server)
@@ -2877,7 +3177,7 @@ def test_loaded_expanded_panels_restore_pushdown_on_collapse(page: Page, app_ser
 
 
 def test_panel_expand_collapse_does_not_shift_dashboard_when_scrollbar_changes(page: Page, app_server: str) -> None:
-    page.set_viewport_size({"width": 1100, "height": 620})
+    page.set_viewport_size({"width": 1100, "height": 700})
     goto(page, app_server)
 
     setup = page.evaluate(
@@ -2899,7 +3199,21 @@ def test_panel_expand_collapse_does_not_shift_dashboard_when_scrollbar_changes(p
             }
           };
           const widgets = [...document.querySelectorAll(".widget-layout > .widget-card")];
-          widgets.forEach((node, index) => setGrid(node, 1 + index, 1, 1));
+          let nextWidgetCol = 1;
+          let nextWidgetRow = 1;
+          widgets.forEach((node, index) => {
+            node.hidden = index > 1;
+            if (node.hidden) return;
+            const span = node.classList.contains("timeframe-widget")
+              ? Math.max(Number(node.dataset.minW || 2), Number(node.dataset.defaultSpan || 5))
+              : 1;
+            if (nextWidgetCol + span - 1 > 6) {
+              nextWidgetRow += 1;
+              nextWidgetCol = 1;
+            }
+            setGrid(node, nextWidgetCol, nextWidgetRow, span);
+            nextWidgetCol += span;
+          });
           const notes = document.querySelector('[data-panel-key="builder-notes"]');
           const menu = document.querySelector('[data-panel-key="builder-menu"]');
           const table = document.querySelector('[data-panel-key="builder-content"]');
@@ -2908,9 +3222,9 @@ def test_panel_expand_collapse_does_not_shift_dashboard_when_scrollbar_changes(p
             node.querySelector(".db-panel-hd")?.setAttribute("aria-expanded", "false");
             node.style.height = "";
           });
-          setGrid(notes, 1, 3, 2, 1, 760);
-          setGrid(menu, 3, 3, 2, 1, 260);
-          setGrid(table, 5, 3, 2, 1, 260);
+          setGrid(notes, 1, 2, 2, 1, 760);
+          setGrid(menu, 3, 2, 2, 1, 260);
+          setGrid(table, 5, 2, 2, 1, 260);
           window.scrollTo(0, 0);
           const rootStyles = getComputedStyle(document.documentElement);
           return {
@@ -5508,6 +5822,15 @@ def test_compact_pressable_controls_depress_without_sinking_large_surfaces(page:
         assert "0px 0px 22px" not in state["boxShadow"]
         return state
 
+    def assert_disabled_static(locator) -> None:
+        before = control_state(locator)
+        locator.hover(force=True)
+        page.wait_for_timeout(160)
+        after = control_state(locator)
+        assert abs(after["y"]) <= 0.05
+        assert math.isclose(after["scaleX"], before["scaleX"], abs_tol=.01)
+        assert math.isclose(after["scaleY"], before["scaleY"], abs_tol=.01)
+
     def drawer_rect(item) -> dict:
         return item.locator(".panel-tool-drawer").evaluate(
             """
@@ -5575,6 +5898,48 @@ def test_compact_pressable_controls_depress_without_sinking_large_surfaces(page:
     panel_drawer_after = drawer_rect(panel)
     assert abs(panel_drawer_after["width"] - panel_drawer_before["width"]) <= .5
     assert abs(panel_drawer_after["height"] - panel_drawer_before["height"]) <= .5
+
+    layout_trigger = page.locator(".layout-slot-trigger")
+    assert_compact_hover(layout_trigger)
+    page.mouse.move(24, 24)
+    layout_trigger.focus()
+    page.wait_for_timeout(120)
+    assert abs(control_state(layout_trigger)["y"]) <= 0.05
+
+    for selector in [
+        ".layout-save-button",
+        ".layout-load-button",
+        ".panel-undo-button",
+        ".layout-group-button",
+        ".engineer-mode-button",
+        ".context-view-button",
+        ".composition-add-button",
+        ".restore-layout-button",
+    ]:
+        assert_compact_hover(page.locator(selector))
+
+    layout_trigger.click()
+    expect(page.locator(".layout-slot-menu")).to_have_class(re.compile("open"))
+    assert_compact_hover(page.locator(".layout-slot-menu button").first)
+    page.mouse.click(24, 24)
+    page.wait_for_timeout(120)
+
+    page.locator(".composition-add-button").click()
+    expect(page.locator(".panel-add-menu")).to_have_class(re.compile("open"))
+    assert_compact_hover(page.locator('.widget-add-action[data-widget-kind="timeframe"]'))
+    assert_compact_hover(page.locator('.panel-add-action[data-panel-kind="panel"]'))
+    assert_compact_hover(page.locator('.divider-add-action[data-divider-kind="context-divider"]'))
+    page.mouse.click(24, 24)
+    page.wait_for_timeout(120)
+
+    page.locator(".dash-switch-hero").click()
+    expect(page.locator(".dash-switch-menu")).to_have_class(re.compile("open"))
+    assert_compact_hover(page.locator(".dash-switch-opt:not(:disabled)").first)
+    disabled_profile = page.locator(".dash-switch-opt:disabled").first
+    expect(disabled_profile).to_be_visible()
+    assert_disabled_static(disabled_profile)
+    page.mouse.click(24, 24)
+    page.wait_for_timeout(120)
 
     page.evaluate("document.documentElement.dataset.background = 'deep-slate'")
     page.wait_for_timeout(120)

@@ -816,6 +816,48 @@ document.addEventListener("DOMContentLoaded", () => {
     divider: "divider",
     anchor: "anchor",
   });
+  const WORKSPACE_OBJECT_CAPABILITIES = Object.freeze({
+    [WORKSPACE_OBJECT_TYPES.widget]: Object.freeze({
+      canExpand: false,
+      isOpenable: false,
+      hasExpandedFootprint: false,
+      participatesInGridCollision: true,
+      hasPanelContentArea: false,
+      usesPanelHeader: false,
+      usesAnchorLayer: false,
+      usesDividerSurface: false,
+    }),
+    [WORKSPACE_OBJECT_TYPES.panel]: Object.freeze({
+      canExpand: true,
+      isOpenable: true,
+      hasExpandedFootprint: true,
+      participatesInGridCollision: true,
+      hasPanelContentArea: true,
+      usesPanelHeader: true,
+      usesAnchorLayer: false,
+      usesDividerSurface: false,
+    }),
+    [WORKSPACE_OBJECT_TYPES.divider]: Object.freeze({
+      canExpand: false,
+      isOpenable: false,
+      hasExpandedFootprint: false,
+      participatesInGridCollision: true,
+      hasPanelContentArea: false,
+      usesPanelHeader: true,
+      usesAnchorLayer: false,
+      usesDividerSurface: true,
+    }),
+    [WORKSPACE_OBJECT_TYPES.anchor]: Object.freeze({
+      canExpand: false,
+      isOpenable: false,
+      hasExpandedFootprint: false,
+      participatesInGridCollision: false,
+      hasPanelContentArea: false,
+      usesPanelHeader: false,
+      usesAnchorLayer: true,
+      usesDividerSurface: false,
+    }),
+  });
   const WORKSPACE_CONTEXT_MODEL_VERSION = "workspace-context-v1";
   const escapeHtml = (value) => String(value || "").replace(/[&<>"']/g, (char) => ({
     "&": "&amp;",
@@ -837,6 +879,16 @@ document.addEventListener("DOMContentLoaded", () => {
     if (rawType === WORKSPACE_OBJECT_TYPES.divider || rawType === "context-divider") return WORKSPACE_OBJECT_TYPES.divider;
     if (item?.classList?.contains("db-panel")) return WORKSPACE_OBJECT_TYPES.panel;
     return WORKSPACE_OBJECT_TYPES.widget;
+  };
+  const workspaceObjectCapabilities = (item) => (
+    WORKSPACE_OBJECT_CAPABILITIES[workspaceObjectType(item)] ||
+    WORKSPACE_OBJECT_CAPABILITIES[WORKSPACE_OBJECT_TYPES.widget]
+  );
+  const syncWorkspaceCapabilityMetadata = (item) => {
+    if (!item) return;
+    Object.entries(workspaceObjectCapabilities(item)).forEach(([key, value]) => {
+      item.dataset[key] = String(Boolean(value));
+    });
   };
   const workspaceObjectKey = (item) => item?.dataset?.anchorKey || item?.dataset?.widgetKey || item?.dataset?.panelKey || "";
   const workspaceRootRegionId = (layoutKey) => `${layoutKey}:region:root`;
@@ -873,6 +925,7 @@ document.addEventListener("DOMContentLoaded", () => {
       item.dataset.dashboardObjectKind = metadata.dashboardObjectKind || item.dataset.dashboardObjectKind || "widget";
       item.dataset.contextRole = metadata.contextRole || item.dataset.contextRole || "content";
     }
+    syncWorkspaceCapabilityMetadata(item);
   };
   const workspaceObjectPersistence = (item) => ({
     workspaceObjectType: workspaceObjectType(item),
@@ -931,6 +984,7 @@ document.addEventListener("DOMContentLoaded", () => {
   };
 
   const panelMinimumRows = (panel, metrics = null) => {
+    if (!workspaceObjectCapabilities(panel).hasPanelContentArea) return 1;
     if (panel.classList.contains("db-panel-collapsed")) return 1;
     if (metrics?.panelMinimumRows?.has(panel)) return metrics.panelMinimumRows.get(panel);
     const layout = panel.closest(".panel-layout");
@@ -940,11 +994,13 @@ document.addEventListener("DOMContentLoaded", () => {
   };
 
   const panelExpandedMinimumRows = (panel, layout = panel.closest(".panel-layout"), metrics = null) => (
+    !workspaceObjectCapabilities(panel).hasExpandedFootprint ? 1 :
     gridRowsFromHeight(getPanelMinimumHeight(panel), metrics?.gap ?? gridGapForLayout(layout), 1)
   );
 
   const gridItemRowSpan = (item, metrics = null) => {
     if (item.classList.contains("widget-card") || item.classList.contains("widget-placeholder")) return 1;
+    if (!workspaceObjectCapabilities(item).hasPanelContentArea && !item.classList.contains("db-panel-placeholder")) return 1;
     if (item.classList.contains("db-panel-collapsed")) return 1;
     if (item.classList.contains("db-panel-placeholder") && Number(item.dataset.gridRowSpan) === 1) return 1;
     const layout = item.closest(".panel-layout");
@@ -960,6 +1016,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const syncPanelRenderedHeightToFootprint = (panel, rowSpan = null) => {
     if (!panel?.classList?.contains("db-panel") || panel.classList.contains("db-panel-placeholder")) return;
+    if (!workspaceObjectCapabilities(panel).hasPanelContentArea) {
+      panel.dataset.gridRowSpan = "1";
+      panel.style.height = "";
+      return;
+    }
     if (panel.classList.contains("db-panel-collapsed")) {
       panel.style.height = "";
       return;
@@ -1272,7 +1333,6 @@ document.addEventListener("DOMContentLoaded", () => {
     });
     const headerMarkup = isDivider ? `
       <div class="db-panel-hd db-panel-hd-items workspace-divider-surface">
-        <span class="workspace-divider-node" aria-hidden="true"></span>
         <span class="db-panel-title">${safeTitle}</span>
         <span class="db-panel-count">Region</span>
         <div class="panel-tools">
@@ -1598,17 +1658,42 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   };
 
+  const timeframeWidgetMarkup = () => `
+      <div class="timeframe-command-surface">
+        <div class="range-controls timeframe-controls">
+          <div class="range-presets timeframe-presets" role="group" aria-label="Timeframe presets">
+            <a class="preset-btn active" href="/dashboard">Today</a>
+            <a class="preset-btn" href="/dashboard">7 days</a>
+            <a class="preset-btn" href="/dashboard">30 days</a>
+          </div>
+        </div>
+        <div class="timeframe-active-cluster">
+          <button class="range-custom-trigger timeframe-selector" type="button" aria-label="Selected timeframe" title="Selected timeframe">This week</button>
+        </div>
+        <div class="range-search timeframe-range timeframe-utility-cluster" role="group" aria-label="Timeframe utilities">
+          <button class="range-icon-button timeframe-refresh" type="button" aria-label="Refresh timeframe" title="Refresh timeframe"><span class="timeframe-refresh-icon" aria-hidden="true"></span></button>
+          <button class="range-icon-button timeframe-calendar" type="button" aria-label="Open date range" title="Open date range"><span class="timeframe-calendar-icon" aria-hidden="true"></span></button>
+        </div>
+      </div>`;
+
   const createCustomWidget = (definition) => {
     const safeTitle = escapeHtml(definition.title || "Widget");
-    const widget = document.createElement("a");
-    widget.className = "stat-card widget-card widget-card-custom";
-    widget.href = definition.href || window.location.pathname + window.location.search;
+    const isTimeframe = definition.type === "controls" || definition.dashboardObjectKind === "timeframe";
+    const widget = document.createElement(isTimeframe ? "nav" : "a");
+    widget.className = isTimeframe
+      ? "range-bar widget-card timeframe-widget widget-card-custom"
+      : "stat-card widget-card widget-card-custom";
+    if (isTimeframe) {
+      widget.setAttribute("aria-label", definition.ariaLabel || safeTitle);
+    } else {
+      widget.href = definition.href || window.location.pathname + window.location.search;
+    }
     widget.dataset.widgetKey = definition.key;
     widget.dataset.widgetType = definition.type || "tracker";
-    widget.dataset.defaultSpan = String(definition.span || 3);
+    widget.dataset.defaultSpan = String(definition.span || (isTimeframe ? 5 : 3));
     if (definition.gridCol) widget.dataset.gridCol = String(definition.gridCol);
     if (definition.gridRow) widget.dataset.gridRow = String(definition.gridRow);
-    if (definition.minW) widget.dataset.minW = String(definition.minW);
+    if (definition.minW || isTimeframe) widget.dataset.minW = String(definition.minW || 2);
     if (definition.minH) widget.dataset.minH = String(definition.minH);
     if (definition.locked) widget.dataset.locked = "true";
     if (definition.resizable === false) widget.dataset.resizable = "false";
@@ -1617,10 +1702,12 @@ document.addEventListener("DOMContentLoaded", () => {
     ensureWorkspaceObjectMetadata(widget, {
       ...definition,
       workspaceObjectType: WORKSPACE_OBJECT_TYPES.widget,
-      dashboardObjectKind: definition.dashboardObjectKind || "widget",
-      contextRole: definition.contextRole || "content",
+      dashboardObjectKind: definition.dashboardObjectKind || (isTimeframe ? "timeframe" : "widget"),
+      contextRole: definition.contextRole || (isTimeframe ? "timeframe-control" : "content"),
+      navigationTargetType: definition.navigationTargetType,
+      navigationTargetId: definition.navigationTargetId,
     });
-    widget.innerHTML = `
+    widget.innerHTML = isTimeframe ? timeframeWidgetMarkup() : `
       <span class="stat-val">${escapeHtml(definition.value || "0")}</span>
       <span class="stat-lbl">${safeTitle}</span>`;
     return widget;
@@ -1719,6 +1806,14 @@ document.addEventListener("DOMContentLoaded", () => {
     anchor.dataset.navigationTargetId = definition.navigationTargetId || definition.workspaceRegionId || workspaceRootRegionId(layoutKey);
     if (definition.workspaceRegionId) anchor.dataset.workspaceRegionId = definition.workspaceRegionId;
     if (definition.contextScopeId) anchor.dataset.contextScopeId = definition.contextScopeId;
+    ensureWorkspaceObjectMetadata(anchor, {
+      ...definition,
+      workspaceObjectType: WORKSPACE_OBJECT_TYPES.anchor,
+      dashboardObjectKind: "anchor",
+      contextRole: definition.contextRole || "navigation-reference",
+      navigationTargetType: definition.navigationTargetType || "workspace-region",
+      navigationTargetId: definition.navigationTargetId || definition.workspaceRegionId || workspaceRootRegionId(layoutKey),
+    });
     anchor.setAttribute("aria-label", `${title} spatial anchor`);
     anchor.innerHTML = `
       <span class="workspace-anchor-glyph" aria-hidden="true">${escapeHtml(definition.value || "A")}</span>
@@ -2263,6 +2358,7 @@ document.addEventListener("DOMContentLoaded", () => {
   };
 
   const expandedPanelFootprintRows = (panel, layout, proposedRows = null, metrics = null) => {
+    if (!workspaceObjectCapabilities(panel).hasExpandedFootprint) return 1;
     const gap = metrics?.gap ?? gridGapForLayout(layout);
     const minRows = panelExpandedMinimumRows(panel, layout, metrics);
     const candidateRows = Number(proposedRows);
@@ -2285,6 +2381,7 @@ document.addEventListener("DOMContentLoaded", () => {
   };
 
   const createExpandedFootprintGhost = (panel, layout, rect, proposedRows = null, metrics = null) => {
+    if (!workspaceObjectCapabilities(panel).hasExpandedFootprint) return null;
     if (!panel?.classList?.contains("db-panel-collapsed")) return null;
     const ghost = document.createElement("div");
     ghost.className = "dashboard-expanded-footprint-ghost";
@@ -3564,7 +3661,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const nextCell = gridCellFromPoint(layout, groupDrag ? placeholder : item, clientX, clientY, metrics);
       if (targetCell && targetCell.col === nextCell.col && targetCell.row === nextCell.row) return;
       targetCell = nextCell;
-      const expandedPanelDrag = !groupDrag && item.classList.contains("db-panel") && !item.classList.contains("db-panel-collapsed");
+      const expandedPanelDrag = !groupDrag && workspaceObjectCapabilities(item).hasExpandedFootprint && !item.classList.contains("db-panel-collapsed");
       const localVacancy = groupDrag
         ? groupBoxBounds(groupDrag.groupBox)
         : expandedPanelDrag
@@ -3692,9 +3789,9 @@ document.addEventListener("DOMContentLoaded", () => {
             } else {
               restoreGridLayoutSnapshot(startSnapshot, { exclude: [item] });
               placeholder.remove();
-              const expandedPanelDrag = item.classList.contains("db-panel") && !item.classList.contains("db-panel-collapsed");
+              const expandedPanelDrag = workspaceObjectCapabilities(item).hasExpandedFootprint && !item.classList.contains("db-panel-collapsed");
               const localVacancy = expandedPanelDrag ? null : boundsAtGridSlot(item, originalCell.col, originalCell.row, dragMetrics);
-              result = item.classList.contains("db-panel") && !item.classList.contains("db-panel-collapsed")
+              result = expandedPanelDrag
                 ? commitExpandedPanelDropSlot(layout, item, finalCell, { localVacancy })
                 : commitActiveDropSlot(layout, item, finalCell, { localVacancy });
             }
@@ -4815,6 +4912,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const settingsButton = panel.querySelector(".panel-settings-toggle");
       const panelTools = panel.querySelector(".panel-tools");
       const panelToolDrawer = panel.querySelector(".panel-tool-drawer");
+      const capabilities = workspaceObjectCapabilities(panel);
       if (panelToolDrawer && !panelToolDrawer.querySelector(".panel-delete-handle")) {
         panelToolDrawer.insertAdjacentHTML("beforeend", '<button class="panel-tool-button panel-delete-handle" type="button" aria-label="Delete panel" title="Delete panel"><span class="trash-icon" aria-hidden="true"></span></button>');
       }
@@ -5026,15 +5124,18 @@ document.addEventListener("DOMContentLoaded", () => {
         requestPanelDelete({ panel, panels: targets, layout, layoutKey, title });
       });
 
-      header.setAttribute("role", "button");
-      header.setAttribute("tabindex", "0");
-      header.setAttribute("aria-expanded", (!panel.classList.contains("db-panel-collapsed")).toString());
-      if (workspaceObjectType(panel) === WORKSPACE_OBJECT_TYPES.divider) {
-        header.setAttribute("aria-expanded", "false");
-        header.setAttribute("aria-disabled", "true");
+      if (capabilities.canExpand) {
+        header.setAttribute("role", "button");
+        header.setAttribute("tabindex", "0");
+        header.setAttribute("aria-expanded", (!panel.classList.contains("db-panel-collapsed")).toString());
+      } else {
+        header.removeAttribute("role");
+        header.removeAttribute("tabindex");
+        header.removeAttribute("aria-expanded");
+        header.removeAttribute("aria-disabled");
       }
       const togglePanel = () => {
-        if (workspaceObjectType(panel) === WORKSPACE_OBJECT_TYPES.divider) return;
+        if (!capabilities.canExpand) return;
         if (panel.classList.contains("db-panel-title-editing")) return;
         if (movedDuringPointer) {
           movedDuringPointer = false;
@@ -5068,7 +5169,7 @@ document.addEventListener("DOMContentLoaded", () => {
             applyVerticalPanelExpansion(layout, panel);
           }
         }, panel);
-        header.setAttribute("aria-expanded", (!collapsed).toString());
+        if (capabilities.canExpand) header.setAttribute("aria-expanded", (!collapsed).toString());
         savePanelLayouts(layout);
       };
       header.addEventListener("click", (event) => {
@@ -5775,19 +5876,38 @@ document.addEventListener("DOMContentLoaded", () => {
       const nextColor =
         panelThemePresets.find((color) => !used.has(color.toLowerCase())) ||
         panelThemePresets[customCount % panelThemePresets.length];
-      const objectName = "Widget";
       const key = `widget-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`;
-      const title = `${objectName} ${customCount + 1}`;
+      const widgetCatalog = {
+        timeframe: {
+          objectName: "Timeframe",
+          value: "A",
+          span: 5,
+          minW: 2,
+          type: "controls",
+          dashboardObjectKind: "timeframe",
+          contextRole: "timeframe-control",
+        },
+      };
+      const catalogDefinition = widgetCatalog[kind] || {
+        objectName: "Widget",
+        value: "0",
+        span: 1,
+        type: "tracker",
+        dashboardObjectKind: "widget",
+        contextRole: "content",
+      };
+      const title = `${catalogDefinition.objectName} ${customCount + 1}`;
       const definition = {
         key,
         title,
-        value: "0",
+        value: catalogDefinition.value,
         color: nextColor,
-        span: 1,
-        type: "tracker",
+        span: catalogDefinition.span,
+        minW: catalogDefinition.minW,
+        type: catalogDefinition.type,
         workspaceObjectType: WORKSPACE_OBJECT_TYPES.widget,
-        dashboardObjectKind: "widget",
-        contextRole: "content",
+        dashboardObjectKind: catalogDefinition.dashboardObjectKind,
+        contextRole: catalogDefinition.contextRole,
       };
       const widget = createCustomWidget(definition);
       ensureWidgetTools(widget, nextColor);

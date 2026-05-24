@@ -2379,12 +2379,16 @@ body {
   display: grid;
   gap: 10px;
   width: min(376px, calc(100vw - 24px));
+  max-height: min(660px, calc(100vh - 124px));
   padding: 12px;
   border: 1.5px solid var(--glass-border);
   border-radius: 18px;
   opacity: 0;
   visibility: hidden;
   pointer-events: none;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
   transform: translateY(-6px) scale(.96);
   transform-origin: top right;
   transition:
@@ -2565,6 +2569,60 @@ body {
   --tone-swatch-start: #edf2f8;
   --tone-swatch-end: #f7faff;
   --tone-swatch-border: rgba(148, 163, 184, .50);
+}
+
+.background-tone-option[data-background-tone="very-pale-grey"] {
+  --tone-swatch-start: #f1f3f5;
+  --tone-swatch-end: #fafbfc;
+  --tone-swatch-border: rgba(148, 163, 184, .42);
+}
+
+.background-tone-option[data-background-tone="pale-cool-grey"] {
+  --tone-swatch-start: #e4e9ef;
+  --tone-swatch-end: #f3f6f9;
+  --tone-swatch-border: rgba(130, 145, 164, .52);
+}
+
+.background-tone-option[data-background-tone="pale-warm-grey"] {
+  --tone-swatch-start: #e8e5df;
+  --tone-swatch-end: #f6f4f0;
+  --tone-swatch-border: rgba(148, 137, 122, .50);
+}
+
+.background-tone-option[data-background-tone="medium-soft-grey"] {
+  --tone-swatch-start: #c8ced5;
+  --tone-swatch-end: #e0e5ea;
+  --tone-swatch-border: rgba(100, 111, 124, .66);
+}
+
+.background-tone-option[data-background-tone="medium-grey"] {
+  --tone-swatch-start: #9fa6ad;
+  --tone-swatch-end: #bdc3ca;
+  --tone-swatch-border: rgba(75, 84, 94, .74);
+}
+
+.background-tone-option[data-background-tone="neutral-grey"] {
+  --tone-swatch-start: #8b929a;
+  --tone-swatch-end: #aeb4bb;
+  --tone-swatch-border: rgba(68, 76, 86, .76);
+}
+
+.background-tone-option[data-background-tone="charcoal-grey"] {
+  --tone-swatch-start: #333941;
+  --tone-swatch-end: #4a515a;
+  --tone-swatch-border: rgba(82, 91, 102, .70);
+}
+
+.background-tone-option[data-background-tone="deep-grey"] {
+  --tone-swatch-start: #1f2329;
+  --tone-swatch-end: #303640;
+  --tone-swatch-border: rgba(76, 84, 96, .66);
+}
+
+.background-tone-option[data-background-tone="near-black-grey"] {
+  --tone-swatch-start: #0e1014;
+  --tone-swatch-end: #181b21;
+  --tone-swatch-border: rgba(66, 73, 84, .62);
 }
 
 .background-tone-option[data-background-tone="charcoal"] {
@@ -3404,10 +3462,10 @@ body {
 .app-nav.workspace-chrome {
   --navbar-control-height: 36px;
   --navbar-control-radius: 14px;
-  --navbar-control-bg: color-mix(in srgb, var(--surface-soft) 64%, var(--glass-surface) 36%);
-  --navbar-control-hover-bg: color-mix(in srgb, var(--surface) 72%, var(--glass-surface-strong) 28%);
-  --navbar-control-border: color-mix(in srgb, var(--line) 72%, rgba(255, 255, 255, .62));
-  --navbar-control-shadow: 0 3px 8px rgba(15, 23, 42, .055), inset 0 1px 0 color-mix(in srgb, var(--glass-highlight) 58%, transparent);
+  --navbar-control-bg: color-mix(in srgb, #d7dde5 72%, var(--glass-surface) 28%);
+  --navbar-control-hover-bg: color-mix(in srgb, #cfd6df 76%, var(--glass-surface-strong) 24%);
+  --navbar-control-border: color-mix(in srgb, #aeb8c4 78%, rgba(255, 255, 255, .44));
+  --navbar-control-shadow: 0 4px 9px rgba(15, 23, 42, .075), inset 0 1px 0 color-mix(in srgb, var(--glass-highlight) 54%, transparent);
   position: sticky;
   top: 12px;
   z-index: var(--z-header);
@@ -3546,10 +3604,10 @@ body {
 
 .app-nav.workspace-chrome .layout-slot-trigger {
   position: relative;
-  min-width: 92px;
-  gap: 9px;
-  justify-content: space-between;
-  padding-inline: 13px 12px;
+  min-width: 82px;
+  gap: 0;
+  justify-content: center;
+  padding-inline: 14px;
 }
 
 .app-nav.workspace-chrome .layout-slot-trigger::after {
@@ -3594,27 +3652,6 @@ body {
   color: color-mix(in srgb, var(--muted-strong) 72%, transparent);
   font-size: 9.5px;
   font-weight: 680;
-}
-
-.app-nav.workspace-chrome .layout-slot-arrow {
-  display: inline-block;
-  flex: 0 0 auto;
-  width: 7px;
-  height: 7px;
-  margin-top: -3px;
-  border-right: 2px solid currentColor;
-  border-bottom: 2px solid currentColor;
-  border-radius: 1px;
-  background: transparent;
-  box-shadow: none;
-  opacity: .64;
-  transform: rotate(45deg);
-  transition: transform var(--motion-fast), opacity var(--motion-fast);
-}
-
-.app-nav.workspace-chrome .layout-slot-trigger[aria-expanded="true"] .layout-slot-arrow {
-  margin-top: 3px;
-  transform: rotate(225deg);
 }
 
 .app-nav.workspace-chrome .layout-slot-button,
@@ -3664,7 +3701,7 @@ body {
 .app-nav.workspace-chrome .layout-slot-trigger:hover,
 .app-nav.workspace-chrome .workspace-mode-button:hover,
 .app-nav.workspace-chrome .composition-add-button:hover {
-  border-color: color-mix(in srgb, var(--blue) 14%, var(--line));
+  border-color: color-mix(in srgb, #98a4b2 76%, rgba(255, 255, 255, .40));
   background: var(--navbar-control-hover-bg);
   color: var(--ink-strong);
   box-shadow:
@@ -3726,15 +3763,16 @@ body {
 }
 
 .app-nav.workspace-chrome .panel-add-menu {
-  top: calc(100% + 2px);
-  left: 50%;
+  top: calc(100% + 8px);
+  left: 0;
   min-width: 172px;
-  transform: translate(-50%, -4px) scale(.98);
-  transform-origin: top center;
+  margin-top: 0;
+  transform: translateY(-4px) scale(.98);
+  transform-origin: top left;
 }
 
 .app-nav.workspace-chrome .panel-add-menu.open {
-  transform: translate(-50%, 0) scale(1);
+  transform: translateY(0) scale(1);
 }
 
 .app-nav.workspace-chrome .layout-slot-menu {
@@ -3754,10 +3792,13 @@ body {
   min-height: 34px;
   width: 100%;
   padding: 0 12px;
-  border: 1px solid transparent;
+  border: 1px solid color-mix(in srgb, #aeb8c4 52%, transparent);
   border-radius: 12px;
-  background: transparent;
+  background: color-mix(in srgb, #d9dfe7 58%, var(--glass-surface) 42%);
   color: var(--ink);
+  box-shadow:
+    0 2px 5px rgba(15, 23, 42, .055),
+    inset 0 1px 0 color-mix(in srgb, var(--glass-highlight) 48%, transparent);
   font: inherit;
   font-size: 12px;
   font-weight: 760;
@@ -3768,7 +3809,7 @@ body {
 }
 
 .app-nav.workspace-chrome .dash-switch-opt {
-  border: 0;
+  border: 1px solid color-mix(in srgb, #aeb8c4 46%, transparent);
   min-height: 48px;
   padding-block: 7px;
   align-items: center;
@@ -3780,7 +3821,7 @@ body {
 }
 
 .app-nav.workspace-chrome .dash-switch-opt:disabled:hover {
-  background: transparent;
+  background: color-mix(in srgb, #d9dfe7 58%, var(--glass-surface) 42%);
   color: var(--ink);
   transform: none;
 }
@@ -3793,8 +3834,13 @@ body {
 .app-nav.workspace-chrome .divider-add-action:hover,
 .app-nav.workspace-chrome .dash-switch-opt:hover,
 .app-nav.workspace-chrome .dash-switch-opt:focus-visible {
-  background: color-mix(in srgb, var(--glass-surface-strong) 72%, var(--blue-soft));
+  border-color: color-mix(in srgb, #98a4b2 72%, rgba(255, 255, 255, .38));
+  background: color-mix(in srgb, #ccd4dd 72%, var(--glass-surface-strong) 28%);
   color: var(--ink-strong);
+  box-shadow:
+    0 5px 12px rgba(15, 23, 42, .08),
+    inset 0 1px 0 color-mix(in srgb, var(--glass-highlight) 54%, transparent),
+    inset 0 2px 5px rgba(15, 23, 42, .04);
   transform: var(--pressable-hover-transform);
 }
 
@@ -3827,5 +3873,90 @@ body {
   .app-nav.workspace-chrome .layout-slot-controls {
     flex-wrap: wrap;
   }
+}
+
+/* Final compact-control interaction normalization. Keep large workspace objects on their own hover language. */
+.app-nav.workspace-chrome .layout-slot-menu button:hover,
+.app-nav.workspace-chrome .panel-add-action:hover,
+.app-nav.workspace-chrome .widget-add-action:hover,
+.app-nav.workspace-chrome .divider-add-action:hover,
+.app-nav.workspace-chrome .dash-switch-opt:hover,
+.app-nav.workspace-chrome .background-tone-option:hover,
+.panel-add-action:hover,
+.widget-add-action:hover,
+.divider-add-action:hover,
+.layout-slot-menu button:hover,
+.dash-switch-opt:hover,
+.background-tone-option:hover,
+.preset-btn:hover,
+.range-custom-trigger:hover,
+.range-icon-button:hover,
+.confirm-dialog-btn:hover,
+.confirm-dialog-close:hover {
+  box-shadow:
+    0 5px 12px rgba(15, 23, 42, .08),
+    inset 0 1px 0 color-mix(in srgb, var(--glass-highlight) 58%, transparent),
+    inset 0 2px 5px rgba(15, 23, 42, .04);
+  transform: var(--pressable-hover-transform);
+}
+
+.app-nav.workspace-chrome .layout-slot-menu button:focus-visible,
+.app-nav.workspace-chrome .panel-add-action:focus-visible,
+.app-nav.workspace-chrome .widget-add-action:focus-visible,
+.app-nav.workspace-chrome .divider-add-action:focus-visible,
+.app-nav.workspace-chrome .dash-switch-opt:focus-visible,
+.app-nav.workspace-chrome .background-tone-option:focus-visible,
+.panel-add-action:focus-visible,
+.widget-add-action:focus-visible,
+.divider-add-action:focus-visible,
+.layout-slot-menu button:focus-visible,
+.dash-switch-opt:focus-visible,
+.background-tone-option:focus-visible,
+.preset-btn:focus-visible,
+.range-custom-trigger:focus-visible,
+.range-icon-button:focus-visible,
+.confirm-dialog-btn:focus-visible,
+.confirm-dialog-close:focus-visible {
+  box-shadow:
+    0 5px 12px rgba(15, 23, 42, .08),
+    inset 0 1px 0 color-mix(in srgb, var(--glass-highlight) 58%, transparent),
+    inset 0 2px 5px rgba(15, 23, 42, .04);
+  transform: var(--pressable-focus-transform);
+}
+
+.app-nav.workspace-chrome .layout-slot-menu button:active,
+.app-nav.workspace-chrome .layout-slot-menu button.is-active,
+.app-nav.workspace-chrome .panel-add-action:active,
+.app-nav.workspace-chrome .widget-add-action:active,
+.app-nav.workspace-chrome .divider-add-action:active,
+.app-nav.workspace-chrome .dash-switch-opt:active,
+.app-nav.workspace-chrome .background-tone-option:active,
+.panel-add-action:active,
+.widget-add-action:active,
+.divider-add-action:active,
+.layout-slot-menu button:active,
+.layout-slot-menu button.is-active,
+.dash-switch-opt:active,
+.background-tone-option:active,
+.preset-btn:active,
+.preset-btn.active,
+.range-custom-trigger:active,
+.range-custom-trigger.active,
+.range-icon-button:active,
+.confirm-dialog-btn:active,
+.confirm-dialog-close:active {
+  box-shadow:
+    0 3px 8px rgba(15, 23, 42, .09),
+    inset 0 1px 0 color-mix(in srgb, var(--glass-highlight) 46%, transparent),
+    inset 0 2px 6px rgba(15, 23, 42, .07);
+  transform: var(--pressable-active-transform);
+}
+
+.app-nav.workspace-chrome .dash-switch-opt:disabled,
+.app-nav.workspace-chrome .dash-switch-opt:disabled:hover,
+.app-nav.workspace-chrome .dash-switch-opt:disabled:active,
+button:disabled:hover,
+button[aria-disabled="true"]:hover {
+  transform: none;
 }
 

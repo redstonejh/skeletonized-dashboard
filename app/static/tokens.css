@@ -154,6 +154,51 @@ html[data-background="frosted-light"] {
   --bg-end: #f7faff;
 }
 
+html[data-background="very-pale-grey"] {
+  --bg: #f1f3f5;
+  --bg-end: #fafbfc;
+}
+
+html[data-background="pale-cool-grey"] {
+  --bg: #e4e9ef;
+  --bg-end: #f3f6f9;
+}
+
+html[data-background="pale-warm-grey"] {
+  --bg: #e8e5df;
+  --bg-end: #f6f4f0;
+}
+
+html[data-background="medium-soft-grey"] {
+  --bg: #c8ced5;
+  --bg-end: #e0e5ea;
+}
+
+html[data-background="medium-grey"] {
+  --bg: #9fa6ad;
+  --bg-end: #bdc3ca;
+}
+
+html[data-background="neutral-grey"] {
+  --bg: #8b929a;
+  --bg-end: #aeb4bb;
+}
+
+html[data-background="charcoal-grey"] {
+  --bg: #333941;
+  --bg-end: #4a515a;
+}
+
+html[data-background="deep-grey"] {
+  --bg: #1f2329;
+  --bg-end: #303640;
+}
+
+html[data-background="near-black-grey"] {
+  --bg: #0e1014;
+  --bg-end: #181b21;
+}
+
 html[data-background="black"] {
   --bg: #030406;
   --bg-end: #090b0f;

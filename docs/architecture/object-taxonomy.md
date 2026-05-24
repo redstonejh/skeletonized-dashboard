@@ -23,6 +23,7 @@ Purpose:
 
 - Render functional content or compact controls.
 - Emit, consume, or display context when configured.
+- Includes command-surface widget types such as timeframe controls; these are widgets, not special toolbar components.
 
 Interaction model:
 

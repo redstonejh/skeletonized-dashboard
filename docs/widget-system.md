@@ -85,6 +85,8 @@ Graph data must react to inherited and wired context. Graph rendering should res
 ### Timeframe Widget
 
 - Reusable command-surface widget for dashboard time context.
+- First-class widget type, available through the dashboard Add menu.
+- Uses the shared widget shell, widget controls, drag/resize affordances, save/load persistence, and adaptive density rules.
 - Supports configurable preset count, labels, ranges, refresh behavior, and layout mode.
 - Example presets: Today, 7 Days, 30 Days, This Week, Last Quarter, Custom, Live, Refresh Interval.
 - Supports compact mode, dropdown mode, and segmented-pill mode.
@@ -93,6 +95,7 @@ Graph data must react to inherited and wired context. Graph rendering should res
 - Can participate in Engineer Mode wiring as a context source.
 - Must remain theme-aware and avoid stretched toolbar composition.
 - Default layout should be compact and modular, with grouped glass control clusters.
+- Internal preset, selector, refresh, and calendar controls are compact pressable controls and should depress on hover/active while the outer widget body keeps large-object hover presence.
 
 ### Search Widget
 
