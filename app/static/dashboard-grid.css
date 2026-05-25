@@ -92,6 +92,49 @@
   border-color: color-mix(in srgb, var(--panel-accent, var(--blue)) 34%, var(--line));
 }
 
+.widget-card.widget-conditional-style {
+  --conditional-accent-resolved: var(--conditional-accent, var(--panel-accent, var(--blue)));
+  --conditional-accent-rgb-resolved: var(--conditional-accent-rgb, var(--panel-accent-rgb, 37, 99, 235));
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--glass-surface-strong) 72%, transparent), color-mix(in srgb, var(--glass-surface) 42%, transparent)),
+    color-mix(in srgb, var(--surface) 78%, var(--conditional-accent-resolved) 18%);
+  border-color: color-mix(in srgb, var(--conditional-accent-resolved) 58%, var(--line));
+  box-shadow:
+    var(--workspace-lod-shadow, var(--shadow-soft)),
+    0 0 0 1px rgba(var(--conditional-accent-rgb-resolved), .12);
+}
+
+.widget-card.widget-conditional-style .stat-val,
+.widget-card.widget-conditional-style .stat-lbl {
+  color: var(--conditional-text, var(--panel-accent-text, inherit));
+}
+
+.widget-card.widget-conditional-style[data-conditional-rim-state="success"] {
+  border-color: color-mix(in srgb, #16a34a 62%, var(--line));
+  box-shadow: var(--workspace-lod-shadow, var(--shadow-soft)), 0 0 0 1px rgba(22, 163, 74, .16);
+}
+
+.widget-card.widget-conditional-style[data-conditional-rim-state="warning"] {
+  border-color: color-mix(in srgb, #f59e0b 64%, var(--line));
+  box-shadow: var(--workspace-lod-shadow, var(--shadow-soft)), 0 0 0 1px rgba(245, 158, 11, .18);
+}
+
+.widget-card.widget-conditional-style[data-conditional-rim-state="error"] {
+  border-color: color-mix(in srgb, #dc2626 66%, var(--line));
+  box-shadow: var(--workspace-lod-shadow, var(--shadow-soft)), 0 0 0 1px rgba(220, 38, 38, .16);
+}
+
+.widget-card.widget-conditional-style[style*="--conditional-background-tint"] {
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--glass-surface-strong) 72%, transparent), color-mix(in srgb, var(--glass-surface) 42%, transparent)),
+    var(--conditional-background-tint),
+    color-mix(in srgb, var(--surface) 82%, var(--conditional-accent-resolved) 12%);
+}
+
+.widget-card[data-conditional-visibility="muted"] {
+  opacity: .68;
+}
+
 .workspace-anchor-layer {
   position: fixed;
   inset: 0;
@@ -185,6 +228,162 @@ body:not(.engineer-mode-active) .workspace-engineer-overlay-layer {
 .workspace-engineer-object-chip[data-object-type="divider"],
 .workspace-engineer-object-outline[data-object-type="divider"] {
   border-color: color-mix(in srgb, #f59e0b 58%, transparent);
+}
+
+.workspace-relationship-svg {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.workspace-relationship-path {
+  fill: none;
+  stroke: color-mix(in srgb, #93c5fd 48%, transparent);
+  stroke-width: 1.35;
+  stroke-linecap: round;
+  opacity: .42;
+  filter: drop-shadow(0 0 7px color-mix(in srgb, #93c5fd 22%, transparent));
+  vector-effect: non-scaling-stroke;
+}
+
+.workspace-relationship-path[data-relationship-state="active"] {
+  opacity: .64;
+  stroke-width: 1.75;
+  stroke-dasharray: 8 12;
+  animation: workspace-relationship-flow 2.8s linear infinite;
+}
+
+.workspace-relationship-path[data-relationship-type="context"] {
+  stroke: color-mix(in srgb, #60a5fa 46%, transparent);
+}
+
+.workspace-relationship-path[data-relationship-type="filter"] {
+  stroke: color-mix(in srgb, #14b8a6 44%, transparent);
+}
+
+.workspace-relationship-path[data-relationship-type="query"] {
+  stroke: color-mix(in srgb, #a78bfa 42%, transparent);
+}
+
+.workspace-relationship-path[data-relationship-type="containment"] {
+  stroke: color-mix(in srgb, #f59e0b 42%, transparent);
+}
+
+.workspace-relationship-path[data-relationship-type="operator"] {
+  stroke: color-mix(in srgb, #f472b6 44%, transparent);
+}
+
+.workspace-relationship-path[data-relationship-type="semantic"] {
+  stroke: color-mix(in srgb, #22c55e 42%, transparent);
+}
+
+.workspace-operator-node,
+.workspace-style-rule-node {
+  position: fixed;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 32px;
+  translate: -50% -50%;
+  border: 1.5px solid color-mix(in srgb, #f472b6 48%, var(--line));
+  border-radius: 999px;
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--glass-surface-strong) 82%, transparent), color-mix(in srgb, var(--glass-surface) 54%, transparent)),
+    color-mix(in srgb, #3b0764 48%, transparent);
+  color: color-mix(in srgb, #fdf4ff 94%, transparent);
+  box-shadow:
+    0 14px 28px rgba(15, 23, 42, .18),
+    inset 0 1px 0 color-mix(in srgb, var(--glass-highlight) 44%, transparent);
+  font-size: 11px;
+  font-weight: 850;
+  letter-spacing: .02em;
+  backdrop-filter: blur(12px) saturate(1.06);
+  -webkit-backdrop-filter: blur(12px) saturate(1.06);
+  pointer-events: none;
+}
+
+.workspace-style-rule-node {
+  width: auto;
+  min-width: 54px;
+  max-width: 132px;
+  height: 28px;
+  padding-inline: 10px;
+  border-color: color-mix(in srgb, #22c55e 48%, var(--line));
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--glass-surface-strong) 82%, transparent), color-mix(in srgb, var(--glass-surface) 54%, transparent)),
+    color-mix(in srgb, #052e16 54%, transparent);
+  color: color-mix(in srgb, #f0fdf4 94%, transparent);
+  font-size: 10px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.workspace-style-rule-node[data-style-rule-active="true"] {
+  border-color: color-mix(in srgb, #22c55e 70%, var(--line));
+  box-shadow:
+    0 14px 28px rgba(15, 23, 42, .18),
+    0 0 0 3px color-mix(in srgb, #22c55e 12%, transparent),
+    inset 0 1px 0 color-mix(in srgb, var(--glass-highlight) 48%, transparent);
+}
+
+.workspace-logic-toolbox {
+  position: fixed;
+  right: 16px;
+  bottom: 16px;
+  z-index: 4;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px;
+  border: 1.5px solid color-mix(in srgb, #f472b6 34%, var(--line));
+  border-radius: calc(var(--radius-md) + 2px);
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--glass-surface-strong) 84%, transparent), color-mix(in srgb, var(--glass-surface) 58%, transparent)),
+    color-mix(in srgb, #020617 72%, transparent);
+  box-shadow:
+    0 18px 38px rgba(15, 23, 42, .18),
+    inset 0 1px 0 color-mix(in srgb, var(--glass-highlight) 42%, transparent);
+  backdrop-filter: blur(12px) saturate(1.06);
+  -webkit-backdrop-filter: blur(12px) saturate(1.06);
+  pointer-events: auto;
+}
+
+.workspace-logic-toolbox strong {
+  color: color-mix(in srgb, #fdf4ff 92%, transparent);
+  font-size: 11px;
+  font-weight: 820;
+}
+
+.workspace-logic-toolbox button {
+  min-width: 36px;
+  height: 28px;
+  border: 1px solid color-mix(in srgb, #f472b6 36%, var(--line));
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--glass-surface-strong) 76%, transparent);
+  color: color-mix(in srgb, #fdf4ff 92%, transparent);
+  font-size: 10px;
+  font-weight: 820;
+  cursor: pointer;
+  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--glass-highlight) 42%, transparent);
+}
+
+.workspace-logic-toolbox button:hover,
+.workspace-logic-toolbox button:focus-visible {
+  background: color-mix(in srgb, #f472b6 20%, var(--glass-surface-strong));
+  border-color: color-mix(in srgb, #f472b6 58%, var(--line));
+}
+
+.workspace-logic-toolbox button:active {
+  transform: var(--pressable-active-transform);
+}
+
+@keyframes workspace-relationship-flow {
+  from { stroke-dashoffset: 0; }
+  to { stroke-dashoffset: -20; }
 }
 
 .workspace-engineer-diagnostics {

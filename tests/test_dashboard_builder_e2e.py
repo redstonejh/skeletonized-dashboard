@@ -5340,6 +5340,346 @@ def test_engineer_mode_infrastructure_centralizes_debug_overlays(page: Page, app
     assert_clean_browser(page)
 
 
+def test_engineer_mode_relationship_links_and_logic_graph_are_gated_and_persisted(page: Page, app_server: str) -> None:
+    goto(page, app_server)
+    page.evaluate("localStorage.clear()")
+    page.reload(wait_until="networkidle")
+    page.wait_for_selector(".page")
+
+    normal_state = page.evaluate(
+        """
+        () => {
+          const attempted = window.dashboardRelationshipRuntime.addRelationship("builder", {
+            id: "normal-mode-link",
+            sourceId: "widget-1",
+            targetId: "widget-2",
+            type: "query"
+          });
+          return {
+            attempted,
+            graph: window.dashboardRelationshipRuntime.getGraph("builder"),
+            links: document.querySelectorAll(".workspace-relationship-svg").length,
+            toolbox: document.querySelectorAll(".workspace-logic-toolbox").length,
+          };
+        }
+        """
+    )
+    assert normal_state["attempted"] is None
+    assert normal_state["graph"] == {"version": 1, "relationships": [], "operators": [], "styleRules": []}
+    assert normal_state["links"] == 0
+    assert normal_state["toolbox"] == 0
+
+    page.locator(".engineer-mode-button").click()
+    expect(page.locator(".engineer-mode-button")).to_have_attribute("aria-pressed", "true")
+    page.evaluate(
+        """
+        () => {
+          window.dashboardRelationshipRuntime.setGraph("builder", {
+            version: 1,
+            relationships: [{
+              id: "query-link-widget-1-widget-2",
+              sourceId: "widget-1",
+              targetId: "widget-2",
+              type: "query",
+              visualState: "active",
+              label: "Query dependency"
+            }],
+            operators: [{
+              id: "operator-and-test",
+              operatorType: "AND",
+              inputs: ["widget-1"],
+              outputs: ["widget-2"],
+              x: window.scrollX + 720,
+              y: window.scrollY + 280
+            }]
+          });
+        }
+        """
+    )
+    page.wait_for_function(
+        """
+        () => document.querySelectorAll('.workspace-relationship-path').length >= 3 &&
+          document.querySelector('.workspace-operator-node[data-operator-type="AND"]') &&
+          document.querySelector('.workspace-logic-toolbox')
+        """
+    )
+
+    engineer_state = page.evaluate(
+        """
+        () => {
+          const snapshot = window.dashboardPersistenceRuntime.snapshot("builder", "1");
+          const validation = window.dashboardPersistenceRuntime.validate("builder", "1");
+          const link = document.querySelector('.workspace-relationship-path[data-relationship-type="query"]');
+          const operator = document.querySelector('.workspace-operator-node[data-operator-type="AND"]');
+          const overlay = document.querySelector('.workspace-engineer-overlay-layer');
+          return {
+            pathCount: document.querySelectorAll(".workspace-relationship-path").length,
+            activeCount: document.querySelectorAll('.workspace-relationship-path[data-relationship-state="active"]').length,
+            toolboxVisible: Boolean(document.querySelector(".workspace-logic-toolbox")),
+            operatorText: operator?.textContent?.trim() || "",
+            pointerEvents: getComputedStyle(overlay).pointerEvents,
+            queryType: link?.dataset.relationshipType || "",
+            snapshotRelationships: snapshot.relationships,
+            snapshotOperators: snapshot.operators,
+            validationOk: validation.ok,
+            validationCodes: validation.diagnostics.map((entry) => entry.code),
+            derivedCount: window.dashboardRelationshipRuntime.relationships("builder").length,
+            conditions: window.dashboardRelationshipRuntime.operatorConditions("builder"),
+          };
+        }
+        """
+    )
+    assert engineer_state["pathCount"] >= 3
+    assert engineer_state["activeCount"] >= 1
+    assert engineer_state["toolboxVisible"] is True
+    assert engineer_state["operatorText"] == "AND"
+    assert engineer_state["pointerEvents"] == "none"
+    assert engineer_state["queryType"] == "query"
+    assert engineer_state["snapshotRelationships"][0]["id"] == "query-link-widget-1-widget-2"
+    assert engineer_state["snapshotOperators"][0]["id"] == "operator-and-test"
+    assert engineer_state["validationOk"] is True
+    assert "invalid-logical-operator" not in engineer_state["validationCodes"]
+    assert engineer_state["derivedCount"] >= 3
+    assert engineer_state["conditions"] == [{
+        "id": "operator-and-test",
+        "operator": "and",
+        "inputs": ["widget-1"],
+        "outputs": ["widget-2"],
+    }]
+
+    page.locator(".widget-card[data-widget-key='widget-1'] .panel-settings-toggle").first.click(force=True)
+    assert page.locator(".widget-card[data-widget-key='widget-1']").evaluate("node => node.classList.contains('widget-tools-open')")
+
+    page.locator(".engineer-mode-button").click()
+    expect(page.locator(".engineer-mode-button")).to_have_attribute("aria-pressed", "false")
+    page.wait_for_function("() => document.querySelector('.workspace-engineer-overlay-layer')?.hidden === true")
+    hidden_logic = page.evaluate(
+        """
+        () => ({
+          links: document.querySelectorAll(".workspace-relationship-path").length,
+          toolbox: document.querySelectorAll(".workspace-logic-toolbox").length,
+          graph: window.dashboardRelationshipRuntime.getGraph("builder")
+        })
+        """
+    )
+    assert hidden_logic["links"] == 0
+    assert hidden_logic["toolbox"] == 0
+    assert hidden_logic["graph"]["relationships"][0]["id"] == "query-link-widget-1-widget-2"
+
+    press_dashboard_undo(page)
+    undone = page.evaluate("() => window.dashboardRelationshipRuntime.getGraph('builder')")
+    assert undone == {"version": 1, "relationships": [], "operators": [], "styleRules": []}
+    press_dashboard_redo(page)
+    redone = page.evaluate("() => window.dashboardRelationshipRuntime.getGraph('builder')")
+    assert redone["relationships"][0]["id"] == "query-link-widget-1-widget-2"
+    assert redone["operators"][0]["operatorType"] == "AND"
+    assert_clean_browser(page)
+
+
+def test_engineer_mode_style_rules_apply_persist_and_hide_logic(page: Page, app_server: str) -> None:
+    goto(page, app_server)
+    page.evaluate("localStorage.clear()")
+    page.reload(wait_until="networkidle")
+    page.wait_for_selector(".page")
+    stat = page.locator('.widget-card[data-widget-key="widget-1"]').first
+    expect(stat).to_be_visible()
+
+    page.evaluate(
+        """
+        () => {
+          const widget = document.querySelector('[data-widget-key="widget-1"]');
+          widget.dataset.widgetConfig = JSON.stringify({
+            label: "Profit",
+            metric: "sum",
+            valueField: "profit",
+            format: "number"
+          });
+          const engine = window.dashboardContextEngine;
+          engine.setDataSources("builder", [{
+            id: "style-source",
+            name: "Style Rule Source",
+            kind: "manual",
+            config: { rows: [{ profit: -12, label: "Loss" }] }
+          }]);
+          engine.setWorkspaceContexts("builder", [{
+            id: "builder:region:root",
+            name: "Style Rule Context",
+            dataSourceId: "style-source",
+            semanticMapping: { valueField: "profit", labelField: "label" }
+          }]);
+          engine.refresh("builder");
+        }
+        """
+    )
+    expect(stat.locator(".stat-val")).to_have_text("-12")
+
+    normal_attempt = page.evaluate(
+        """
+        () => window.dashboardRelationshipRuntime.addStyleRule("builder", {
+          id: "normal-style-attempt",
+          targetObjectId: "widget-1",
+          condition: { type: "comparison", left: "metric.value", operator: "<", right: 0 },
+          effects: [{ property: "accentColor", value: "#dc2626" }]
+        })
+        """
+    )
+    assert normal_attempt is None
+
+    page.locator(".engineer-mode-button").click()
+    expect(page.locator(".engineer-mode-button")).to_have_attribute("aria-pressed", "true")
+    page.evaluate(
+        """
+        () => {
+          window.dashboardRelationshipRuntime.setGraph("builder", {
+            version: 1,
+            styleRules: [
+              {
+                id: "profit-negative-red",
+                targetObjectId: "widget-1",
+                label: "Profit < 0",
+                condition: { type: "comparison", left: "metric.value", operator: "<", right: 0 },
+                effects: [
+                  { property: "accentColor", value: "#dc2626" },
+                  { property: "rimState", value: "error" }
+                ]
+              },
+              {
+                id: "profit-positive-green",
+                targetObjectId: "widget-1",
+                label: "Profit > 0",
+                condition: { type: "comparison", left: "metric.value", operator: ">", right: 0 },
+                effects: [
+                  { property: "accentColor", value: "#16a34a" },
+                  { property: "rimState", value: "success" }
+                ]
+              }
+            ]
+          });
+        }
+        """
+    )
+    page.wait_for_function(
+        """
+        () => document.querySelector('[data-widget-key="widget-1"]')?.dataset.activeStyleRuleIds === "profit-negative-red" &&
+          document.querySelector('.workspace-style-rule-node[data-style-rule-id="profit-negative-red"]') &&
+          document.querySelectorAll('.workspace-relationship-path').length >= 2
+        """
+    )
+    negative_state = stat.evaluate(
+        """
+        node => {
+          const snapshot = window.dashboardPersistenceRuntime.snapshot("builder", "1");
+          const validation = window.dashboardPersistenceRuntime.validate("builder", "1");
+          return {
+            activeRules: node.dataset.activeStyleRuleIds,
+            rimState: node.dataset.conditionalRimState,
+            accent: node.style.getPropertyValue("--conditional-accent").trim(),
+            classed: node.classList.contains("widget-conditional-style"),
+            styleRules: snapshot.styleRules.map((rule) => rule.id),
+            validationOk: validation.ok,
+            styleNodeCount: document.querySelectorAll(".workspace-style-rule-node").length,
+            activeLinks: document.querySelectorAll('.workspace-relationship-path[data-relationship-state="active"]').length,
+          };
+        }
+        """
+    )
+    assert negative_state["activeRules"] == "profit-negative-red"
+    assert negative_state["rimState"] == "error"
+    assert negative_state["accent"] == "#dc2626"
+    assert negative_state["classed"] is True
+    assert negative_state["styleRules"] == ["profit-negative-red", "profit-positive-green"]
+    assert negative_state["validationOk"] is True
+    assert negative_state["styleNodeCount"] >= 2
+    assert negative_state["activeLinks"] >= 2
+
+    page.locator(".engineer-mode-button").click()
+    expect(page.locator(".engineer-mode-button")).to_have_attribute("aria-pressed", "false")
+    page.wait_for_function("() => document.querySelector('.workspace-engineer-overlay-layer')?.hidden === true")
+    hidden_state = stat.evaluate(
+        """
+        node => ({
+          activeRules: node.dataset.activeStyleRuleIds,
+          classed: node.classList.contains("widget-conditional-style"),
+          styleNodes: document.querySelectorAll(".workspace-style-rule-node").length,
+          links: document.querySelectorAll(".workspace-relationship-path").length,
+        })
+        """
+    )
+    assert hidden_state == {
+        "activeRules": "profit-negative-red",
+        "classed": True,
+        "styleNodes": 0,
+        "links": 0,
+    }
+
+    press_dashboard_undo(page)
+    page.wait_for_function("() => !document.querySelector('[data-widget-key=\"widget-1\"]')?.classList.contains('widget-conditional-style')")
+    undone = page.evaluate("() => window.dashboardRelationshipRuntime.getGraph('builder')")
+    assert undone["styleRules"] == []
+
+    press_dashboard_redo(page)
+    page.wait_for_function("() => document.querySelector('[data-widget-key=\"widget-1\"]')?.dataset.activeStyleRuleIds === 'profit-negative-red'")
+
+    page.evaluate(
+        """
+        () => {
+          const engine = window.dashboardContextEngine;
+          engine.setDataSources("builder", [{
+            id: "style-source",
+            name: "Style Rule Source",
+            kind: "manual",
+            config: { rows: [{ profit: 9, label: "Gain" }] }
+          }]);
+          window.dashboardQueryRuntime.invalidate();
+          engine.refresh("builder");
+        }
+        """
+    )
+    page.wait_for_function("() => document.querySelector('[data-widget-key=\"widget-1\"]')?.dataset.activeStyleRuleIds === 'profit-positive-green'")
+    positive_state = stat.evaluate(
+        """
+        node => ({
+          value: node.querySelector(".stat-val")?.textContent || "",
+          activeRules: node.dataset.activeStyleRuleIds,
+          rimState: node.dataset.conditionalRimState,
+          accent: node.style.getPropertyValue("--conditional-accent").trim(),
+        })
+        """
+    )
+    assert positive_state == {
+        "value": "9",
+        "activeRules": "profit-positive-green",
+        "rimState": "success",
+        "accent": "#16a34a",
+    }
+
+    page.evaluate(
+        """
+        () => {
+          window.dashboardContextEngine.setWorkspaceContexts("builder", [{
+            id: "builder:region:root",
+            name: "No source",
+            semanticMapping: { valueField: "profit" }
+          }]);
+          window.dashboardQueryRuntime.invalidate();
+          window.dashboardContextEngine.refresh("builder");
+        }
+        """
+    )
+    expect(stat).to_contain_text("Needs data source")
+    safe_missing_data = stat.evaluate(
+        """
+        node => ({
+          activeRules: node.dataset.activeStyleRuleIds || "",
+          classed: node.classList.contains("widget-conditional-style"),
+          graphRuleCount: window.dashboardRelationshipRuntime.getGraph("builder").styleRules.length,
+        })
+        """
+    )
+    assert safe_missing_data == {"activeRules": "", "classed": False, "graphRuleCount": 2}
+    assert_clean_browser(page)
+
+
 def test_anchor_links_to_divider_or_workspace_top_and_persists(page: Page, app_server: str) -> None:
     goto(page, app_server)
     page.evaluate("localStorage.clear()")

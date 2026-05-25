@@ -54,6 +54,7 @@ Engineer Mode is an advanced visual wiring mode.
 - Links are drawn with subtle theme-aware lines.
 - Selected links can be deleted.
 - Context propagation stays active after Engineer Mode is turned off.
+- Experimental computational logic may be inspectable here over time, including hidden StyleRule, event, signal, or simulation wiring that remains invisible in Normal Mode.
 
 Engineer Mode should feel native to the dashboard, not like a separate node editor bolted on top.
 
@@ -125,6 +126,20 @@ Engineer Mode should feel native to the dashboard, not like a separate node edit
 - Make panels, groups, context scopes, and Engineer Mode links spatially coherent.
 - Avoid tab-based organization as the primary navigation model.
 - See `docs/spatial-workspace.md`.
+
+### Future Phase: Hidden Computational Easter Eggs
+
+The workspace architecture may eventually support playful hidden computational or simulation behaviors as emergent configurations of the real platform systems. These are not primary product features and should not compete with core architecture stability.
+
+Possible examples include Conway's Game of Life, tiny playable games, reactive pixel grids, signal-flow simulations, programmable visual logic systems, miniature redstone-like computational behaviors, hidden simulation widgets, or playful ambient workspace states.
+
+Architectural guardrails:
+
+- Reuse the real logical operators, event bus, context inheritance, conditional styling, widget interaction, and visual-state output systems.
+- Avoid building a separate toy engine that bypasses workspace state, undo/redo, save/load, or Engineer Mode visibility.
+- Keep the behavior spatial, physically understandable, and consistent with the workspace's logic philosophy.
+- Keep Normal Mode professional and uncluttered; discovery and editing should live in Engineer or experimental tooling.
+- Treat this as a long-term emergent capability, deferred behind desktop interaction stability, panel containment, context inheritance, widget runtime maturity, and performance work.
 
 ### Future Phase: Authentication, Permissions, And Sharing
 

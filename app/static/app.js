@@ -266,6 +266,13 @@ document.addEventListener("DOMContentLoaded", () => {
       const layoutKey = layout.dataset.layoutKey || "default";
       refreshResolvedContextDebug(layoutKey, getActivePanelProfile(layoutKey));
     });
+    if (!isEngineerMode()) {
+      const layer = document.querySelector(".workspace-engineer-overlay-layer");
+      if (layer) {
+        layer.replaceChildren();
+        layer.hidden = true;
+      }
+    }
     refreshWorkspaceMiniMaps();
     refreshEngineerOverlays();
     refreshWorkspaceMetaWidgets();
@@ -511,6 +518,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const dataSourcesPrefix = "dashboard-data-sources:";
   const workspaceContextsPrefix = "dashboard-workspace-contexts:";
   const workspaceAssetsPrefix = "dashboard-assets:";
+  const workspaceLogicGraphPrefix = "dashboard-workspace-logic-graph:";
   const persistedWorkspacePrefix = "dashboard-persisted-workspace:";
   const layoutUndoPrefix = "dashboard-layout-undo:";
   const PERSISTED_WORKSPACE_VERSION = 1;
@@ -543,6 +551,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const dataSourcesKey = (layoutKey, profile = getActivePanelProfile(layoutKey)) => `${dataSourcesPrefix}${profile}:${layoutKey}`;
   const workspaceContextsKey = (layoutKey, profile = getActivePanelProfile(layoutKey)) => `${workspaceContextsPrefix}${profile}:${layoutKey}`;
   const workspaceAssetsKey = (layoutKey, profile = getActivePanelProfile(layoutKey)) => `${workspaceAssetsPrefix}${profile}:${layoutKey}`;
+  const workspaceLogicGraphKey = (layoutKey, profile = getActivePanelProfile(layoutKey)) => `${workspaceLogicGraphPrefix}${profile}:${layoutKey}`;
   const persistedWorkspaceKey = (layoutKey, profile = getActivePanelProfile(layoutKey)) => `${persistedWorkspacePrefix}${profile}:${layoutKey}`;
   const layoutUndoKey = (layoutKey, profile = getActivePanelProfile(layoutKey)) => `${layoutUndoPrefix}${profile}:${layoutKey}`;
   let layoutUndoCaptureLock = false;
@@ -557,6 +566,7 @@ document.addEventListener("DOMContentLoaded", () => {
     `${dataSourcesPrefix}${profile}:${layoutKey}`,
     `${workspaceContextsPrefix}${profile}:${layoutKey}`,
     `${workspaceAssetsPrefix}${profile}:${layoutKey}`,
+    `${workspaceLogicGraphPrefix}${profile}:${layoutKey}`,
     `${persistedWorkspacePrefix}${profile}:${layoutKey}`,
   ];
   const layoutStorageKeys = (layoutKey, profile = getActivePanelProfile(layoutKey)) => {
@@ -893,6 +903,7 @@ document.addEventListener("DOMContentLoaded", () => {
     })),
     dataSources: localStorage.getItem(dataSourcesKey(layoutKey, profile)) || "[]",
     workspaceContexts: localStorage.getItem(workspaceContextsKey(layoutKey, profile)) || "[]",
+    workspaceLogicGraph: localStorage.getItem(workspaceLogicGraphKey(layoutKey, profile)) || "",
     profile,
   });
   const liveLayoutUndoSignature = (snapshot) => JSON.stringify({
@@ -901,6 +912,7 @@ document.addEventListener("DOMContentLoaded", () => {
     anchors: snapshot.anchors,
     dataSources: snapshot.dataSources,
     workspaceContexts: snapshot.workspaceContexts,
+    workspaceLogicGraph: snapshot.workspaceLogicGraph,
     profile: snapshot.profile,
   });
   const pushLiveLayoutUndo = (layoutKey, profile = getActivePanelProfile(layoutKey)) => {
@@ -991,6 +1003,10 @@ document.addEventListener("DOMContentLoaded", () => {
       "builder";
     if (snapshot.dataSources != null) localStorage.setItem(dataSourcesKey(layoutKeyForSnapshot, snapshot.profile), snapshot.dataSources);
     if (snapshot.workspaceContexts != null) localStorage.setItem(workspaceContextsKey(layoutKeyForSnapshot, snapshot.profile), snapshot.workspaceContexts);
+    if (snapshot.workspaceLogicGraph != null) {
+      if (snapshot.workspaceLogicGraph) localStorage.setItem(workspaceLogicGraphKey(layoutKeyForSnapshot, snapshot.profile), snapshot.workspaceLogicGraph);
+      else localStorage.removeItem(workspaceLogicGraphKey(layoutKeyForSnapshot, snapshot.profile));
+    }
     snapshot.widgets?.forEach((widgetSnapshot) => {
       const layout = document.querySelector(widgetSnapshot.selector);
       if (!layout) return;
@@ -1012,6 +1028,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
     restoreGroupSelection();
     refreshResolvedContextDebug(layoutKeyForSnapshot, snapshot.profile);
+    refreshEngineerOverlays();
     syncLayoutToolsActive();
     cleanupDashboardUndoArtifacts();
   };
@@ -2373,6 +2390,397 @@ document.addEventListener("DOMContentLoaded", () => {
     };
   };
 
+  const WORKSPACE_RELATIONSHIP_TYPES = Object.freeze({
+    context: "context",
+    filter: "filter",
+    query: "query",
+    containment: "containment",
+    operator: "operator",
+    semantic: "semantic",
+  });
+  const LOGICAL_OPERATOR_TYPES = Object.freeze({
+    and: "AND",
+    or: "OR",
+    not: "NOT",
+  });
+  const STYLE_RULE_EFFECT_PROPERTIES = Object.freeze({
+    accentColor: "accentColor",
+    textColor: "textColor",
+    backgroundTint: "backgroundTint",
+    rimState: "rimState",
+    iconState: "iconState",
+    visibility: "visibility",
+  });
+  const LOGIC_COMPARISON_OPERATORS = new Set(["<", ">", "=", "!=", "<=", ">="]);
+  const relationshipId = () => `relationship-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
+  const operatorNodeId = () => `operator-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
+  const styleRuleId = () => `style-rule-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
+  const styleRuleGraphId = (id) => `style-rule:${String(id || "")}`;
+  const styleRuleIdFromGraphId = (id) => String(id || "").startsWith("style-rule:") ? String(id).slice("style-rule:".length) : "";
+  const normalizeRelationshipType = (type) => (
+    Object.values(WORKSPACE_RELATIONSHIP_TYPES).includes(type) ? type : WORKSPACE_RELATIONSHIP_TYPES.semantic
+  );
+  const normalizeLogicalOperatorType = (type) => {
+    const normalized = String(type || "AND").toUpperCase();
+    return Object.values(LOGICAL_OPERATOR_TYPES).includes(normalized) ? normalized : LOGICAL_OPERATOR_TYPES.and;
+  };
+  const normalizeWorkspaceRelationship = (relationship = {}) => ({
+    id: String(relationship.id || relationshipId()),
+    sourceId: String(relationship.sourceId || ""),
+    targetId: String(relationship.targetId || ""),
+    type: normalizeRelationshipType(relationship.type),
+    visualState: String(relationship.visualState || "ambient"),
+    label: String(relationship.label || ""),
+    metadata: relationship.metadata && typeof relationship.metadata === "object" ? { ...relationship.metadata } : {},
+  });
+  const normalizeLogicalOperatorNode = (node = {}) => ({
+    id: String(node.id || operatorNodeId()),
+    operatorType: normalizeLogicalOperatorType(node.operatorType),
+    inputs: Array.isArray(node.inputs) ? node.inputs.map(String).filter(Boolean) : [],
+    outputs: Array.isArray(node.outputs) ? node.outputs.map(String).filter(Boolean) : [],
+    x: Number.isFinite(Number(node.x)) ? Number(node.x) : Math.round(window.scrollX + (window.innerWidth * .5)),
+    y: Number.isFinite(Number(node.y)) ? Number(node.y) : Math.round(window.scrollY + (window.innerHeight * .42)),
+    label: String(node.label || node.operatorType || "AND"),
+    collapsed: Boolean(node.collapsed),
+  });
+  const normalizeLogicExpression = (expression = {}) => {
+    if (!expression || typeof expression !== "object") {
+      return { type: "comparison", left: "metric.value", operator: ">", right: Number.POSITIVE_INFINITY };
+    }
+    const type = String(expression.type || "comparison").toLowerCase();
+    if (type === "and") {
+      return {
+        type,
+        inputs: Array.isArray(expression.inputs) ? expression.inputs.map(normalizeLogicExpression) : [],
+      };
+    }
+    if (type === "or") {
+      return {
+        type,
+        inputs: Array.isArray(expression.inputs) ? expression.inputs.map(normalizeLogicExpression) : [],
+      };
+    }
+    if (type === "not") {
+      return {
+        type,
+        input: normalizeLogicExpression(expression.input || {}),
+      };
+    }
+    const operator = LOGIC_COMPARISON_OPERATORS.has(expression.operator) ? expression.operator : "=";
+    return {
+      type: "comparison",
+      left: String(expression.left || "metric.value"),
+      operator,
+      right: expression.right,
+    };
+  };
+  const normalizeStyleRuleEffect = (effect = {}) => {
+    const property = Object.values(STYLE_RULE_EFFECT_PROPERTIES).includes(effect.property)
+      ? effect.property
+      : STYLE_RULE_EFFECT_PROPERTIES.accentColor;
+    return {
+      property,
+      value: effect.value,
+    };
+  };
+  const normalizeStyleRule = (rule = {}) => ({
+    id: String(rule.id || styleRuleId()),
+    targetObjectId: String(rule.targetObjectId || ""),
+    condition: normalizeLogicExpression(rule.condition || {}),
+    effects: Array.isArray(rule.effects) ? rule.effects.map(normalizeStyleRuleEffect) : [],
+    label: String(rule.label || ""),
+    enabled: rule.enabled !== false,
+    metadata: rule.metadata && typeof rule.metadata === "object" ? { ...rule.metadata } : {},
+  });
+  const normalizeWorkspaceLogicGraph = (graph = {}) => ({
+    version: 1,
+    relationships: Array.isArray(graph.relationships)
+      ? graph.relationships.map(normalizeWorkspaceRelationship).filter((relationship) => relationship.sourceId && relationship.targetId)
+      : [],
+    operators: Array.isArray(graph.operators)
+      ? graph.operators.map(normalizeLogicalOperatorNode).filter((node) => node.id)
+      : [],
+    styleRules: Array.isArray(graph.styleRules)
+      ? graph.styleRules.map(normalizeStyleRule).filter((rule) => rule.id && rule.targetObjectId && rule.effects.length)
+      : [],
+  });
+  const loadWorkspaceLogicGraph = (layoutKey = "builder", profile = getActivePanelProfile(layoutKey)) =>
+    normalizeWorkspaceLogicGraph(readJsonStore(workspaceLogicGraphKey(layoutKey, profile), { version: 1, relationships: [], operators: [], styleRules: [] }));
+  const saveWorkspaceLogicGraph = (layoutKey = "builder", graph = {}, profile = getActivePanelProfile(layoutKey), options = {}) => {
+    const normalized = normalizeWorkspaceLogicGraph(graph);
+    writeJsonStore(workspaceLogicGraphKey(layoutKey, profile), normalized);
+    if (options.history !== false) pushLiveLayoutUndo(layoutKey, profile);
+    if (options.event !== false) {
+      emitWorkspaceEvent({
+        type: "logic-graph-changed",
+        source: "logic-graph",
+        layoutKey,
+        label: "Workspace logic graph changed",
+        payload: {
+          profile,
+          relationshipCount: normalized.relationships.length,
+          operatorCount: normalized.operators.length,
+          styleRuleCount: normalized.styleRules.length,
+        },
+      });
+    }
+    refreshResolvedContextDebug(layoutKey, profile);
+    refreshEngineerOverlays();
+    return normalized;
+  };
+  const workspaceElementByGraphId = (id, layoutKey = "builder") => {
+    const key = String(id || "");
+    if (!key) return null;
+    const escaped = CSS.escape(key);
+    return document.querySelector(`.widget-layout[data-widget-layout-key="${CSS.escape(layoutKey)}"] .widget-card[data-widget-key="${escaped}"]`) ||
+      document.querySelector(`.panel-layout[data-layout-key="${CSS.escape(layoutKey)}"] .db-panel[data-panel-key="${escaped}"]`) ||
+      document.querySelector(`.workspace-anchor-layer[data-anchor-layout-key="${CSS.escape(layoutKey)}"] .workspace-anchor-object[data-anchor-key="${escaped}"]`) ||
+      document.querySelector(`.panel-layout[data-layout-key="${CSS.escape(layoutKey)}"] .db-panel[data-context-scope-id="${escaped}"], .panel-layout[data-layout-key="${CSS.escape(layoutKey)}"] .db-panel[data-workspace-region-id="${escaped}"]`) ||
+      null;
+  };
+  const graphIdForWorkspaceElement = (item) => workspaceObjectKey(item);
+  const addUniqueRelationship = (relationships, relationship) => {
+    const normalized = normalizeWorkspaceRelationship(relationship);
+    if (!normalized.sourceId || !normalized.targetId || normalized.sourceId === normalized.targetId) return;
+    const key = `${normalized.sourceId}->${normalized.targetId}:${normalized.type}`;
+    if (relationships.some((entry) => `${entry.sourceId}->${entry.targetId}:${entry.type}` === key)) return;
+    relationships.push(normalized);
+  };
+  const dividerKeyForRegion = (regionId, layoutKey = "builder") =>
+    committedDividerRegionEntries(layoutKey).find((entry) => entry.regionId === regionId)?.key || "";
+  const activeStyleRuleIdsForTarget = (targetId, layoutKey = "builder") => {
+    const element = workspaceElementByGraphId(targetId, layoutKey);
+    if (!element?.dataset?.activeStyleRuleIds) return new Set();
+    return new Set(String(element.dataset.activeStyleRuleIds).split(",").map((id) => id.trim()).filter(Boolean));
+  };
+  const deriveWorkspaceRelationships = (layoutKey = "builder", graph = loadWorkspaceLogicGraph(layoutKey)) => {
+    const relationships = [];
+    (graph.relationships || []).forEach((relationship) => addUniqueRelationship(relationships, relationship));
+
+    const items = allCommittedWorkspaceGridItems(layoutKey);
+    items.forEach((item) => {
+      const itemId = graphIdForWorkspaceElement(item);
+      if (!itemId || workspaceObjectType(item) === WORKSPACE_OBJECT_TYPES.divider) return;
+      const regionId = regionIdForWorkspaceItem(item);
+      const dividerKey = regionId === workspaceRootRegionId(layoutKey) ? "" : dividerKeyForRegion(regionId, layoutKey);
+      if (dividerKey) {
+        addUniqueRelationship(relationships, {
+          id: `derived-context-${dividerKey}-${itemId}`,
+          sourceId: dividerKey,
+          targetId: itemId,
+          type: WORKSPACE_RELATIONSHIP_TYPES.context,
+          visualState: "ambient",
+          label: "Context inheritance",
+        });
+      }
+    });
+
+    document.querySelectorAll(`.panel-layout[data-layout-key="${CSS.escape(layoutKey)}"] > .db-panel:not([hidden])`).forEach((panel) => {
+      const panelId = panel.dataset.panelKey || "";
+      if (!panelId) return;
+      panelChildWidgets(panel).forEach((child) => {
+        const childId = child.dataset.widgetKey || "";
+        addUniqueRelationship(relationships, {
+          id: `derived-containment-${panelId}-${childId}`,
+          sourceId: panelId,
+          targetId: childId,
+          type: WORKSPACE_RELATIONSHIP_TYPES.containment,
+          visualState: "ambient",
+          label: "Panel containment",
+        });
+      });
+    });
+
+    const widgets = [...document.querySelectorAll(`.widget-layout[data-widget-layout-key="${CSS.escape(layoutKey)}"] > .widget-card:not([hidden]), .panel-layout[data-layout-key="${CSS.escape(layoutKey)}"] .panel-internal-widget-grid > .widget-card:not([hidden])`)];
+    const filterTypes = ["filter", "filter-control", "stat-filter", "search", "timeframe"];
+    const filters = widgets.filter((widget) => filterTypes.some((type) => String(widget.dataset.widgetDefinition || widget.dataset.widgetType || "").includes(type)));
+    filters.forEach((filterWidget) => {
+      const sourceId = filterWidget.dataset.widgetKey || "";
+      const regionId = regionIdForWorkspaceItem(filterWidget);
+      widgets.forEach((targetWidget) => {
+        const targetId = targetWidget.dataset.widgetKey || "";
+        if (!sourceId || !targetId || targetWidget === filterWidget || regionIdForWorkspaceItem(targetWidget) !== regionId) return;
+        if (filterTypes.some((type) => String(targetWidget.dataset.widgetDefinition || targetWidget.dataset.widgetType || "").includes(type))) return;
+        addUniqueRelationship(relationships, {
+          id: `derived-filter-${sourceId}-${targetId}`,
+          sourceId,
+          targetId,
+          type: WORKSPACE_RELATIONSHIP_TYPES.filter,
+          visualState: filterWidget.dataset.widgetRuntimeStatus === "ready" ? "active" : "ambient",
+          label: "Filter propagation",
+        });
+      });
+    });
+
+    graph.operators.forEach((operator) => {
+      operator.inputs.forEach((sourceId) => addUniqueRelationship(relationships, {
+        id: `derived-operator-input-${sourceId}-${operator.id}`,
+        sourceId,
+        targetId: operator.id,
+        type: WORKSPACE_RELATIONSHIP_TYPES.operator,
+        visualState: "ambient",
+        label: `${operator.operatorType} input`,
+      }));
+      operator.outputs.forEach((targetId) => addUniqueRelationship(relationships, {
+        id: `derived-operator-output-${operator.id}-${targetId}`,
+        sourceId: operator.id,
+        targetId,
+        type: WORKSPACE_RELATIONSHIP_TYPES.operator,
+        visualState: "active",
+        label: `${operator.operatorType} output`,
+      }));
+    });
+
+    graph.styleRules.forEach((rule) => {
+      const ruleNodeId = styleRuleGraphId(rule.id);
+      const activeIds = activeStyleRuleIdsForTarget(rule.targetObjectId, layoutKey);
+      const state = activeIds.has(rule.id) ? "active" : "ambient";
+      addUniqueRelationship(relationships, {
+        id: `derived-style-data-${rule.targetObjectId}-${rule.id}`,
+        sourceId: rule.targetObjectId,
+        targetId: ruleNodeId,
+        type: WORKSPACE_RELATIONSHIP_TYPES.query,
+        visualState: state,
+        label: "Style rule input",
+      });
+      addUniqueRelationship(relationships, {
+        id: `derived-style-effect-${rule.id}-${rule.targetObjectId}`,
+        sourceId: ruleNodeId,
+        targetId: rule.targetObjectId,
+        type: WORKSPACE_RELATIONSHIP_TYPES.semantic,
+        visualState: state,
+        label: "Conditional style effect",
+      });
+    });
+
+    return relationships;
+  };
+  const styleRuleEndpointPoint = (id, layoutKey, styleRules = []) => {
+    const ruleId = styleRuleIdFromGraphId(id);
+    if (!ruleId) return null;
+    const rule = styleRules.find((entry) => entry.id === ruleId);
+    if (!rule) return null;
+    const target = workspaceElementByGraphId(rule.targetObjectId, layoutKey);
+    if (!target || !target.isConnected || target.hidden) return null;
+    const rect = target.getBoundingClientRect();
+    if (rect.width <= 0 || rect.height <= 0) return null;
+    return {
+      x: rect.left + Math.min(rect.width - 18, Math.max(18, rect.width * .72)),
+      y: rect.top - 18,
+      kind: "style-rule",
+    };
+  };
+  const relationshipEndpointPoint = (id, layoutKey, operators = [], styleRules = []) => {
+    const operator = operators.find((node) => node.id === id);
+    if (operator) {
+      return {
+        x: operator.x - window.scrollX,
+        y: operator.y - window.scrollY,
+        kind: "operator",
+      };
+    }
+    const styleRulePoint = styleRuleEndpointPoint(id, layoutKey, styleRules);
+    if (styleRulePoint) return styleRulePoint;
+    const element = workspaceElementByGraphId(id, layoutKey);
+    if (!element || !element.isConnected || element.hidden) return null;
+    const rect = element.getBoundingClientRect();
+    if (rect.width <= 0 || rect.height <= 0) return null;
+    return {
+      x: rect.left + (rect.width / 2),
+      y: rect.top + (rect.height / 2),
+      kind: workspaceObjectType(element),
+    };
+  };
+  const createRelationshipSvgElement = (name, attrs = {}) => {
+    const node = document.createElementNS("http://www.w3.org/2000/svg", name);
+    Object.entries(attrs).forEach(([key, value]) => node.setAttribute(key, String(value)));
+    return node;
+  };
+  const renderWorkspaceRelationships = (layer, layoutKey = "builder") => {
+    const graph = loadWorkspaceLogicGraph(layoutKey);
+    const relationships = deriveWorkspaceRelationships(layoutKey, graph);
+    const svg = createRelationshipSvgElement("svg", {
+      class: "workspace-relationship-svg",
+      "aria-hidden": "true",
+      width: window.innerWidth,
+      height: window.innerHeight,
+      viewBox: `0 0 ${window.innerWidth} ${window.innerHeight}`,
+    });
+    relationships.forEach((relationship) => {
+      const source = relationshipEndpointPoint(relationship.sourceId, layoutKey, graph.operators, graph.styleRules);
+      const target = relationshipEndpointPoint(relationship.targetId, layoutKey, graph.operators, graph.styleRules);
+      if (!source || !target) return;
+      const min = -120;
+      const maxX = window.innerWidth + 120;
+      const maxY = window.innerHeight + 120;
+      if ((source.x < min && target.x < min) || (source.x > maxX && target.x > maxX) || (source.y < min && target.y < min) || (source.y > maxY && target.y > maxY)) return;
+      const dx = Math.max(80, Math.abs(target.x - source.x) * .42);
+      const direction = target.x >= source.x ? 1 : -1;
+      const c1x = source.x + (dx * direction);
+      const c2x = target.x - (dx * direction);
+      const path = createRelationshipSvgElement("path", {
+        class: "workspace-relationship-path",
+        "data-relationship-type": relationship.type,
+        "data-relationship-state": relationship.visualState || "ambient",
+        d: `M ${source.x.toFixed(1)} ${source.y.toFixed(1)} C ${c1x.toFixed(1)} ${source.y.toFixed(1)}, ${c2x.toFixed(1)} ${target.y.toFixed(1)}, ${target.x.toFixed(1)} ${target.y.toFixed(1)}`,
+      });
+      svg.appendChild(path);
+    });
+    layer.appendChild(svg);
+
+    graph.operators.forEach((operator) => {
+      const top = operator.y - window.scrollY;
+      const left = operator.x - window.scrollX;
+      if (top < -80 || top > window.innerHeight + 80 || left < -120 || left > window.innerWidth + 120) return;
+      const node = document.createElement("div");
+      node.className = "workspace-operator-node";
+      node.dataset.operatorType = operator.operatorType;
+      node.dataset.operatorId = operator.id;
+      node.style.left = `${Math.round(left)}px`;
+      node.style.top = `${Math.round(top)}px`;
+      node.textContent = operator.operatorType;
+      layer.appendChild(node);
+    });
+    graph.styleRules.forEach((rule) => {
+      const point = styleRuleEndpointPoint(styleRuleGraphId(rule.id), layoutKey, graph.styleRules);
+      if (!point) return;
+      if (point.y < -80 || point.y > window.innerHeight + 80 || point.x < -120 || point.x > window.innerWidth + 120) return;
+      const node = document.createElement("div");
+      node.className = "workspace-style-rule-node";
+      node.dataset.styleRuleId = rule.id;
+      node.dataset.targetObjectId = rule.targetObjectId;
+      node.dataset.styleRuleActive = activeStyleRuleIdsForTarget(rule.targetObjectId, layoutKey).has(rule.id) ? "true" : "false";
+      node.style.left = `${Math.round(point.x)}px`;
+      node.style.top = `${Math.round(point.y)}px`;
+      node.textContent = rule.label || "Style";
+      layer.appendChild(node);
+    });
+  };
+  const renderWorkspaceLogicToolbox = (layer, layoutKey = "builder") => {
+    const toolbox = document.createElement("section");
+    toolbox.className = "workspace-logic-toolbox";
+    toolbox.setAttribute("aria-label", "Logical operator tools");
+    toolbox.innerHTML = `
+      <strong>Logic</strong>
+      ${Object.values(LOGICAL_OPERATOR_TYPES).map((type) => `<button type="button" data-operator-type="${type}">${type}</button>`).join("")}
+    `;
+    toolbox.querySelectorAll("button[data-operator-type]").forEach((button) => {
+      button.addEventListener("click", (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        const type = button.dataset.operatorType || "AND";
+        const graph = loadWorkspaceLogicGraph(layoutKey);
+        const operator = normalizeLogicalOperatorNode({
+          operatorType: type,
+          x: window.scrollX + Math.round(window.innerWidth * .5),
+          y: window.scrollY + Math.round(window.innerHeight * .36),
+        });
+        saveWorkspaceLogicGraph(layoutKey, { ...graph, operators: [...graph.operators, operator] }, getActivePanelProfile(layoutKey));
+      });
+    });
+    layer.appendChild(toolbox);
+  };
+
   const clampMinimapValue = (value, min, max) => Math.max(min, Math.min(max, value));
   const createMinimapSvgElement = (name, attrs = {}) => {
     const node = document.createElementNS("http://www.w3.org/2000/svg", name);
@@ -2630,6 +3038,8 @@ document.addEventListener("DOMContentLoaded", () => {
       }, {});
     const anchors = document.querySelectorAll(`.workspace-anchor-layer[data-anchor-layout-key="${CSS.escape(layoutKey)}"] > .workspace-anchor-object:not([hidden])`).length;
     const panelChildren = document.querySelectorAll(`.panel-layout[data-layout-key="${CSS.escape(layoutKey)}"] .panel-internal-widget-grid > .widget-card:not([hidden])`).length;
+    const graph = loadWorkspaceLogicGraph(layoutKey);
+    const relationships = deriveWorkspaceRelationships(layoutKey, graph);
     const panel = document.createElement("section");
     panel.className = "workspace-engineer-diagnostics";
     panel.setAttribute("aria-label", "Engineer diagnostics");
@@ -2637,6 +3047,7 @@ document.addEventListener("DOMContentLoaded", () => {
       <strong>Engineer Mode</strong>
       <span>events ${workspaceEvents.length} | query cache ${queryStats.cache} | inflight ${queryStats.inflight}</span>
       <span>anchors ${anchors} | panel children ${panelChildren}</span>
+      <span>relationships ${relationships.length} | operators ${graph.operators.length}</span>
       <span>LOD ${Object.entries(lodCounts).map(([key, value]) => `${key}:${value}`).join(" ") || "none"}</span>
       <ol>${events.map((event) => `<li>${escapeHtml(event.type)}</li>`).join("")}</ol>
     `;
@@ -2651,6 +3062,8 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!isEngineerMode()) return;
     const layoutKey = document.querySelector(".panel-layout")?.dataset.layoutKey || "builder";
     renderEngineerRegionBands(layer, layoutKey);
+    renderWorkspaceRelationships(layer, layoutKey);
+    renderWorkspaceLogicToolbox(layer, layoutKey);
     renderEngineerObjectChips(layer, layoutKey);
     renderEngineerDiagnosticsPanel(layer, layoutKey);
   };
@@ -3034,6 +3447,193 @@ document.addEventListener("DOMContentLoaded", () => {
     if (panel.classList.contains("workspace-anchor-object")) {
       panel.style.setProperty("--anchor-accent", panel.dataset.panelColor);
     }
+  };
+
+  const styleRulePathValue = (source, path) => {
+    if (!path) return undefined;
+    const parts = String(path).split(".").filter(Boolean);
+    return parts.reduce((value, part) => {
+      if (value == null) return undefined;
+      if (part === "length" && Array.isArray(value)) return value.length;
+      return value?.[part];
+    }, source);
+  };
+
+  const numericMetricValueForWidget = ({ config = {}, data = {}, resolvedContext = {} } = {}) => {
+    const rows = Array.isArray(data?.rows) ? data.rows : [];
+    const total = Number.isFinite(Number(data?.total)) ? Number(data.total) : rows.length;
+    const metric = ["count", "sum", "avg", "min", "max"].includes(config.metric) ? config.metric : "count";
+    if (metric === "count") return total;
+    const mapping = resolvedContext?.semanticMapping || data?.semanticMapping || {};
+    const valueField = config.valueField || mapping.valueField;
+    if (!valueField) return undefined;
+    const values = rows.map((row) => {
+      const raw = row?.[valueField];
+      if (typeof raw === "number") return Number.isFinite(raw) ? raw : null;
+      if (typeof raw === "string" && raw.trim()) {
+        const parsed = Number(raw.replace(/[$,%\s,]/g, ""));
+        return Number.isFinite(parsed) ? parsed : null;
+      }
+      return null;
+    }).filter((value) => value != null);
+    if (!values.length) return undefined;
+    if (metric === "sum") return values.reduce((sum, value) => sum + value, 0);
+    if (metric === "avg") return values.reduce((sum, value) => sum + value, 0) / values.length;
+    if (metric === "min") return Math.min(...values);
+    if (metric === "max") return Math.max(...values);
+    return total;
+  };
+
+  const styleRuleEnvironmentForWidget = (widget, options = {}) => {
+    const definition = options.definition || widgetDefinitionForElement(widget);
+    const instance = options.instance || widgetInstanceFromElement(widget, definition);
+    const resolvedContext = options.resolvedContext || resolveWorkspaceContextForItem(widget);
+    const data = options.data || managedQueryStateForWidget(widget)?.data || null;
+    const status = options.status || widget.dataset.widgetRuntimeStatus || managedQueryStateForWidget(widget)?.status || "empty";
+    const rows = Array.isArray(data?.rows) ? data.rows : [];
+    const total = Number.isFinite(Number(data?.total)) ? Number(data.total) : rows.length;
+    return {
+      widget,
+      definition,
+      instance,
+      config: instance?.config || {},
+      context: resolvedContext || {},
+      resolvedContext: resolvedContext || {},
+      data: {
+        ...(data || {}),
+        rows,
+        total,
+      },
+      rows,
+      status,
+      metric: {
+        value: numericMetricValueForWidget({ config: instance?.config || {}, data: data || {}, resolvedContext: resolvedContext || {} }),
+      },
+      constants: {},
+    };
+  };
+
+  const logicOperandValue = (operand, environment) => {
+    if (operand && typeof operand === "object" && !Array.isArray(operand)) {
+      if (operand.type === "path") return styleRulePathValue(environment, operand.path);
+      if (operand.type === "constant") return operand.value;
+      if (operand.type === "context") return styleRulePathValue(environment.context, operand.path);
+      if (operand.type === "config") return styleRulePathValue(environment.config, operand.path);
+      if (operand.type === "data") return styleRulePathValue(environment.data, operand.path);
+    }
+    if (typeof operand !== "string") return operand;
+    const trimmed = operand.trim();
+    const pathLike = /^(metric|data|rows|status|config|context|resolvedContext|widget|instance|definition)\b/.test(trimmed);
+    return pathLike ? styleRulePathValue(environment, trimmed) : operand;
+  };
+
+  const compareLogicValues = (left, operator, right) => {
+    const leftNumber = typeof left === "number" ? left : Number(left);
+    const rightNumber = typeof right === "number" ? right : Number(right);
+    const numeric = Number.isFinite(leftNumber) && Number.isFinite(rightNumber);
+    if (operator === "<") return numeric ? leftNumber < rightNumber : String(left) < String(right);
+    if (operator === ">") return numeric ? leftNumber > rightNumber : String(left) > String(right);
+    if (operator === "<=") return numeric ? leftNumber <= rightNumber : String(left) <= String(right);
+    if (operator === ">=") return numeric ? leftNumber >= rightNumber : String(left) >= String(right);
+    if (operator === "!=") return left !== right && String(left) !== String(right);
+    return left === right || String(left) === String(right);
+  };
+
+  const evaluateLogicExpression = (expression, environment) => {
+    const normalized = normalizeLogicExpression(expression);
+    if (normalized.type === "and") return normalized.inputs.length > 0 && normalized.inputs.every((entry) => evaluateLogicExpression(entry, environment));
+    if (normalized.type === "or") return normalized.inputs.some((entry) => evaluateLogicExpression(entry, environment));
+    if (normalized.type === "not") return !evaluateLogicExpression(normalized.input, environment);
+    const left = logicOperandValue(normalized.left, environment);
+    const right = logicOperandValue(normalized.right, environment);
+    if (left == null || right == null) return false;
+    return compareLogicValues(left, normalized.operator, right);
+  };
+
+  const clearConditionalStyleForWidget = (widget) => {
+    if (!widget) return;
+    widget.classList.remove("widget-conditional-style");
+    [
+      "--conditional-accent",
+      "--conditional-accent-rgb",
+      "--conditional-text",
+      "--conditional-background-tint",
+    ].forEach((property) => widget.style.removeProperty(property));
+    delete widget.dataset.conditionalRimState;
+    delete widget.dataset.conditionalIconState;
+    delete widget.dataset.conditionalVisibility;
+    delete widget.dataset.activeStyleRuleIds;
+    delete widget.dataset.conditionalPanelAccentApplied;
+    if (widget.dataset.panelColor && hexToRgb(widget.dataset.panelColor)) {
+      applyPanelColor(widget, widget.dataset.panelColor);
+    } else {
+      widget.style.removeProperty("--panel-accent");
+      widget.style.removeProperty("--panel-accent-rgb");
+      widget.style.removeProperty("--panel-accent-text");
+    }
+  };
+
+  const applyConditionalStyleEffects = (widget, effects = []) => {
+    effects.forEach((effect) => {
+      const property = effect.property;
+      const value = effect.value;
+      if (property === STYLE_RULE_EFFECT_PROPERTIES.accentColor) {
+        const rgb = hexToRgb(value);
+        if (!rgb) return;
+        widget.style.setProperty("--conditional-accent", `#${String(value).replace("#", "")}`);
+        widget.style.setProperty("--conditional-accent-rgb", `${rgb.r}, ${rgb.g}, ${rgb.b}`);
+        widget.style.setProperty("--conditional-text", readableTextFor(rgb));
+        widget.style.setProperty("--panel-accent", `#${String(value).replace("#", "")}`);
+        widget.style.setProperty("--panel-accent-rgb", `${rgb.r}, ${rgb.g}, ${rgb.b}`);
+        widget.style.setProperty("--panel-accent-text", readableTextFor(rgb));
+        widget.dataset.conditionalPanelAccentApplied = "true";
+      } else if (property === STYLE_RULE_EFFECT_PROPERTIES.textColor) {
+        widget.style.setProperty("--conditional-text", String(value || ""));
+      } else if (property === STYLE_RULE_EFFECT_PROPERTIES.backgroundTint) {
+        const rgb = hexToRgb(value);
+        if (rgb) {
+          widget.style.setProperty("--conditional-background-tint", `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, .16)`);
+        } else if (value) {
+          widget.style.setProperty("--conditional-background-tint", String(value));
+        }
+      } else if (property === STYLE_RULE_EFFECT_PROPERTIES.rimState) {
+        widget.dataset.conditionalRimState = String(value || "");
+      } else if (property === STYLE_RULE_EFFECT_PROPERTIES.iconState) {
+        widget.dataset.conditionalIconState = String(value || "");
+      } else if (property === STYLE_RULE_EFFECT_PROPERTIES.visibility) {
+        widget.dataset.conditionalVisibility = String(value || "");
+      }
+    });
+  };
+
+  const applyStyleRulesForWidget = (widget, options = {}) => {
+    if (!widget?.classList?.contains("widget-card") || widget.classList.contains("workspace-anchor-object")) return [];
+    const layoutKey = activeLayoutKeyForItem(widget);
+    const graph = loadWorkspaceLogicGraph(layoutKey, getActivePanelProfile(layoutKey));
+    const targetId = widget.dataset.widgetKey || "";
+    const rules = graph.styleRules.filter((rule) => rule.enabled !== false && rule.targetObjectId === targetId);
+    if (!rules.length) {
+      clearConditionalStyleForWidget(widget);
+      return [];
+    }
+    const environment = styleRuleEnvironmentForWidget(widget, options);
+    const activeRules = [];
+    rules.forEach((rule) => {
+      try {
+        if (evaluateLogicExpression(rule.condition, environment)) activeRules.push(rule);
+      } catch {
+        // Broken logic should never break a widget render.
+      }
+    });
+    if (!activeRules.length) {
+      clearConditionalStyleForWidget(widget);
+      return [];
+    }
+    clearConditionalStyleForWidget(widget);
+    widget.classList.add("widget-conditional-style");
+    activeRules.forEach((rule) => applyConditionalStyleEffects(widget, rule.effects));
+    widget.dataset.activeStyleRuleIds = activeRules.map((rule) => rule.id).join(",");
+    return activeRules;
   };
 
   const applyPanelTitleColor = (panel, color) => {
@@ -3593,6 +4193,13 @@ document.addEventListener("DOMContentLoaded", () => {
       status: options.status || "empty",
     }) || definition.render({ instance: renderInstance, definition, resolvedContext: options.resolvedContext || null, data: options.data, status: options.status || "empty" });
     setWidgetRuntimeContent(widget, html);
+    applyStyleRulesForWidget(widget, {
+      definition,
+      instance: renderInstance,
+      resolvedContext: options.resolvedContext || null,
+      data: options.data,
+      status: options.status || "empty",
+    });
   };
   const settingFieldOptionRecord = (option) => {
     if (option && typeof option === "object") {
@@ -10342,11 +10949,13 @@ document.addEventListener("DOMContentLoaded", () => {
     const widgets = [...rootWidgets, ...childWidgets];
     const anchorLayer = anchorLayerForLayoutKey(layoutKey);
     const anchors = anchorLayer ? anchorRailAnchors(anchorLayer).map(canonicalAnchorInstanceForPersistence) : [];
+    const logicGraph = loadWorkspaceLogicGraph(layoutKey, profile);
     const objects = [
       ...widgets.map((widget) => ({ id: widget.id, type: WORKSPACE_OBJECT_TYPES.widget, layoutDomain: widget.layoutDomain, parentId: widget.parentPanelId || null })),
       ...panels.map((panel) => ({ id: panel.id, type: WORKSPACE_OBJECT_TYPES.panel, layoutDomain: panel.layoutDomain, parentId: null })),
       ...dividers.map((divider) => ({ id: divider.id, type: WORKSPACE_OBJECT_TYPES.divider, layoutDomain: divider.layoutDomain, parentId: null })),
       ...anchors.map((anchor) => ({ id: anchor.id, type: WORKSPACE_OBJECT_TYPES.anchor, layoutDomain: anchor.layoutDomain, parentId: null })),
+      ...logicGraph.operators.map((operator) => ({ id: operator.id, type: "logical-operator", layoutDomain: "logic-overlay", parentId: null })),
     ];
     return {
       version: PERSISTED_WORKSPACE_VERSION,
@@ -10360,6 +10969,9 @@ document.addEventListener("DOMContentLoaded", () => {
       anchors,
       contexts: loadWorkspaceContexts(layoutKey, profile),
       dataSources: loadDataSources(layoutKey, profile),
+      relationships: logicGraph.relationships,
+      operators: logicGraph.operators,
+      styleRules: logicGraph.styleRules,
       assets: loadAssets(layoutKey, profile),
       assetReferences: widgets.flatMap(assetReferencesFromWidget),
     };
@@ -10390,6 +11002,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const dividerIds = new Set((snapshot.dividers || []).map((divider) => divider.id).filter(Boolean));
     const assetIds = new Set((snapshot.assets || []).map((asset) => asset.id).filter(Boolean));
     const contextIds = new Set();
+    const operatorIds = new Set();
     const widgetTypes = knownWidgetRuntimeTypes();
     (snapshot.widgets || []).forEach((widget) => {
       addId(WORKSPACE_OBJECT_TYPES.widget, widget.id);
@@ -10437,6 +11050,57 @@ document.addEventListener("DOMContentLoaded", () => {
         addDiagnostic("warning", "temporary-asset-reference", "Temporary blob URLs are not durable saved asset references.", asset.id, "asset");
       }
     });
+    (snapshot.operators || []).forEach((operator) => {
+      addId("logical-operator", operator.id);
+      operatorIds.add(operator.id);
+      if (!Object.values(LOGICAL_OPERATOR_TYPES).includes(operator.operatorType)) {
+        addDiagnostic("error", "invalid-logical-operator", `Unsupported logical operator "${operator.operatorType}".`, operator.id, "logical-operator");
+      }
+    });
+    const relationshipEndpointIds = new Set([
+      ...(snapshot.widgets || []).map((widget) => widget.id),
+      ...(snapshot.panels || []).map((panel) => panel.id),
+      ...(snapshot.dividers || []).map((divider) => divider.id),
+      ...(snapshot.anchors || []).map((anchor) => anchor.id),
+      ...operatorIds,
+      ...(snapshot.contexts || []).map((context) => context.id),
+    ].filter(Boolean));
+    (snapshot.relationships || []).forEach((relationship) => {
+      addId("relationship", relationship.id);
+      if (!relationship.sourceId || !relationship.targetId) {
+        addDiagnostic("error", "relationship-missing-endpoint", "Relationship must include both sourceId and targetId.", relationship.id, "relationship");
+      }
+      if (relationship.type && !Object.values(WORKSPACE_RELATIONSHIP_TYPES).includes(relationship.type)) {
+        addDiagnostic("error", "invalid-relationship-type", `Unsupported relationship type "${relationship.type}".`, relationship.id, "relationship");
+      }
+      if (relationship.sourceId && !relationshipEndpointIds.has(relationship.sourceId)) {
+        addDiagnostic("warning", "missing-relationship-source", `Relationship source "${relationship.sourceId}" is not present in persisted objects.`, relationship.id, "relationship");
+      }
+      if (relationship.targetId && !relationshipEndpointIds.has(relationship.targetId)) {
+        addDiagnostic("warning", "missing-relationship-target", `Relationship target "${relationship.targetId}" is not present in persisted objects.`, relationship.id, "relationship");
+      }
+    });
+    const styleRuleProperties = new Set(Object.values(STYLE_RULE_EFFECT_PROPERTIES));
+    (snapshot.styleRules || []).forEach((rule) => {
+      addId("style-rule", rule.id);
+      if (!rule.targetObjectId) {
+        addDiagnostic("error", "style-rule-missing-target", "Style rule must include a target object id.", rule.id, "style-rule");
+      } else if (!relationshipEndpointIds.has(rule.targetObjectId)) {
+        addDiagnostic("warning", "missing-style-rule-target", `Style rule target "${rule.targetObjectId}" is not present in persisted objects.`, rule.id, "style-rule");
+      }
+      if (!rule.condition || typeof rule.condition !== "object") {
+        addDiagnostic("error", "style-rule-missing-condition", "Style rule must include a logic condition.", rule.id, "style-rule");
+      }
+      if (!Array.isArray(rule.effects) || !rule.effects.length) {
+        addDiagnostic("error", "style-rule-missing-effects", "Style rule must include at least one visual effect.", rule.id, "style-rule");
+      } else {
+        rule.effects.forEach((effect) => {
+          if (!styleRuleProperties.has(effect.property)) {
+            addDiagnostic("error", "invalid-style-rule-effect", `Unsupported style effect "${effect.property}".`, rule.id, "style-rule");
+          }
+        });
+      }
+    });
     currentTransientPersistenceWarnings(snapshot.layoutKey).forEach((warning) => diagnostics.push(warning));
     const errors = diagnostics.filter((entry) => entry.severity === "error");
     const warnings = diagnostics.filter((entry) => entry.severity !== "error");
@@ -10479,6 +11143,119 @@ document.addEventListener("DOMContentLoaded", () => {
     validate: (layoutKey = "builder", profile = getActivePanelProfile(layoutKey)) =>
       validatePersistedWorkspaceSnapshot(currentPersistedWorkspaceSnapshot(layoutKey, profile)),
     validateSnapshot: validatePersistedWorkspaceSnapshot,
+  };
+
+  const logicEditAllowed = (options = {}) => isEngineerMode() || options.force === true;
+  const normalizedOperatorCondition = (operator) => ({
+    id: operator.id,
+    operator: String(operator.operatorType || "AND").toLowerCase(),
+    inputs: [...(operator.inputs || [])],
+    outputs: [...(operator.outputs || [])],
+  });
+  window.dashboardRelationshipRuntime = {
+    types: () => ({ ...WORKSPACE_RELATIONSHIP_TYPES }),
+    operatorTypes: () => ({ ...LOGICAL_OPERATOR_TYPES }),
+    getGraph: (layoutKey = "builder", profile = getActivePanelProfile(layoutKey)) => loadWorkspaceLogicGraph(layoutKey, profile),
+    setGraph: (layoutKey = "builder", graph = {}, profile = getActivePanelProfile(layoutKey), options = {}) => {
+      if (!logicEditAllowed(options)) return loadWorkspaceLogicGraph(layoutKey, profile);
+      return saveWorkspaceLogicGraph(layoutKey, graph, profile, options);
+    },
+    relationships: (layoutKey = "builder", options = {}) => {
+      const graph = loadWorkspaceLogicGraph(layoutKey, options.profile || getActivePanelProfile(layoutKey));
+      return options.derived === false ? graph.relationships : deriveWorkspaceRelationships(layoutKey, graph);
+    },
+    addRelationship: (layoutKey = "builder", relationship = {}, profile = getActivePanelProfile(layoutKey), options = {}) => {
+      if (!logicEditAllowed(options)) return null;
+      const graph = loadWorkspaceLogicGraph(layoutKey, profile);
+      const next = normalizeWorkspaceRelationship(relationship);
+      const relationships = graph.relationships.filter((entry) => entry.id !== next.id);
+      relationships.push(next);
+      saveWorkspaceLogicGraph(layoutKey, { ...graph, relationships }, profile, options);
+      return next;
+    },
+    removeRelationship: (layoutKey = "builder", relationshipId = "", profile = getActivePanelProfile(layoutKey), options = {}) => {
+      if (!logicEditAllowed(options)) return false;
+      const graph = loadWorkspaceLogicGraph(layoutKey, profile);
+      const relationships = graph.relationships.filter((entry) => entry.id !== relationshipId);
+      if (relationships.length === graph.relationships.length) return false;
+      saveWorkspaceLogicGraph(layoutKey, { ...graph, relationships }, profile, options);
+      return true;
+    },
+    styleRules: (layoutKey = "builder", profile = getActivePanelProfile(layoutKey)) =>
+      loadWorkspaceLogicGraph(layoutKey, profile).styleRules,
+    addStyleRule: (layoutKey = "builder", rule = {}, profile = getActivePanelProfile(layoutKey), options = {}) => {
+      if (!logicEditAllowed(options)) return null;
+      const graph = loadWorkspaceLogicGraph(layoutKey, profile);
+      const next = normalizeStyleRule(rule);
+      if (!next.targetObjectId || !next.effects.length) return null;
+      const styleRules = graph.styleRules.filter((entry) => entry.id !== next.id);
+      styleRules.push(next);
+      saveWorkspaceLogicGraph(layoutKey, { ...graph, styleRules }, profile, options);
+      return next;
+    },
+    updateStyleRule: (layoutKey = "builder", ruleId = "", patch = {}, profile = getActivePanelProfile(layoutKey), options = {}) => {
+      if (!logicEditAllowed(options)) return null;
+      const graph = loadWorkspaceLogicGraph(layoutKey, profile);
+      const styleRules = graph.styleRules.map((rule) => rule.id === ruleId
+        ? normalizeStyleRule({ ...rule, ...patch, id: rule.id })
+        : rule);
+      const updated = styleRules.find((rule) => rule.id === ruleId) || null;
+      if (!updated) return null;
+      saveWorkspaceLogicGraph(layoutKey, { ...graph, styleRules }, profile, options);
+      return updated;
+    },
+    removeStyleRule: (layoutKey = "builder", ruleId = "", profile = getActivePanelProfile(layoutKey), options = {}) => {
+      if (!logicEditAllowed(options)) return false;
+      const graph = loadWorkspaceLogicGraph(layoutKey, profile);
+      const styleRules = graph.styleRules.filter((rule) => rule.id !== ruleId);
+      if (styleRules.length === graph.styleRules.length) return false;
+      saveWorkspaceLogicGraph(layoutKey, { ...graph, styleRules }, profile, options);
+      return true;
+    },
+    evaluateStyleRulesForWidget: (widget, options = {}) => {
+      const node = typeof widget === "string" ? document.querySelector(widget) : widget;
+      return node ? applyStyleRulesForWidget(node, options).map((rule) => rule.id) : [];
+    },
+    addOperator: (layoutKey = "builder", operator = {}, profile = getActivePanelProfile(layoutKey), options = {}) => {
+      if (!logicEditAllowed(options)) return null;
+      const graph = loadWorkspaceLogicGraph(layoutKey, profile);
+      const node = normalizeLogicalOperatorNode(operator);
+      saveWorkspaceLogicGraph(layoutKey, { ...graph, operators: [...graph.operators, node] }, profile, options);
+      return node;
+    },
+    updateOperator: (layoutKey = "builder", operatorId = "", patch = {}, profile = getActivePanelProfile(layoutKey), options = {}) => {
+      if (!logicEditAllowed(options)) return null;
+      const graph = loadWorkspaceLogicGraph(layoutKey, profile);
+      const operators = graph.operators.map((operator) => operator.id === operatorId
+        ? normalizeLogicalOperatorNode({ ...operator, ...patch, id: operator.id })
+        : operator);
+      const updated = operators.find((operator) => operator.id === operatorId) || null;
+      if (!updated) return null;
+      saveWorkspaceLogicGraph(layoutKey, { ...graph, operators }, profile, options);
+      return updated;
+    },
+    connectOperator: (layoutKey = "builder", operatorId = "", { inputs = [], outputs = [] } = {}, profile = getActivePanelProfile(layoutKey), options = {}) => {
+      if (!logicEditAllowed(options)) return null;
+      const graph = loadWorkspaceLogicGraph(layoutKey, profile);
+      const operators = graph.operators.map((operator) => operator.id === operatorId
+        ? normalizeLogicalOperatorNode({
+          ...operator,
+          inputs: [...new Set([...(operator.inputs || []), ...inputs.map(String).filter(Boolean)])],
+          outputs: [...new Set([...(operator.outputs || []), ...outputs.map(String).filter(Boolean)])],
+        })
+        : operator);
+      const updated = operators.find((operator) => operator.id === operatorId) || null;
+      if (!updated) return null;
+      saveWorkspaceLogicGraph(layoutKey, { ...graph, operators }, profile, options);
+      return updated;
+    },
+    operatorConditions: (layoutKey = "builder", profile = getActivePanelProfile(layoutKey)) =>
+      loadWorkspaceLogicGraph(layoutKey, profile).operators.map(normalizedOperatorCondition),
+    refresh: (layoutKey = "builder") => {
+      refreshResolvedContextDebug(layoutKey, getActivePanelProfile(layoutKey));
+      refreshEngineerOverlays();
+      return deriveWorkspaceRelationships(layoutKey, loadWorkspaceLogicGraph(layoutKey));
+    },
   };
 
   const selectedWorkspaceObjectSummary = () => {

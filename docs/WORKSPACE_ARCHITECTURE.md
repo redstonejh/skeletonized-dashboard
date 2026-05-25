@@ -62,6 +62,16 @@ The widget runtime also owns adaptive visual density through `resolveWidgetDensi
 
 Events describe what happened; they are not canonical state and are not persisted with layouts. The bus currently emits object creation/deletion/move/resize, panel open/collapse, widget panel-containment transitions, anchor link/reorder/delete, divider movement/context changes, context updates, query start/success/failure, save/load completion, and undo/redo. Activity Feed and Engineer/debug surfaces consume the same bus so future AI/context tooling can subscribe without coupling directly to widget, query, or history internals.
 
+## Relationship Graph And Logical Operators
+
+Workspace computational relationships live in a persisted sidecar graph exposed through `window.dashboardRelationshipRuntime`. The graph stores `relationships`, `operators`, and `styleRules` by stable object ids rather than DOM nodes. Relationships support `context`, `filter`, `query`, `containment`, `operator`, and `semantic` types; logical operators currently support `AND`, `OR`, and `NOT` nodes with normalized input/output ids.
+
+Style rules evaluate logic expressions against widget query results, resolved context, widget config, and constants, then apply temporary visual effects such as accent color, text color, background tint, rim state, icon state, or future visibility state. Style rules are persisted and undoable, but their computed CSS variables/classes are ephemeral render state and must not be copied into widget config or layout geometry.
+
+The graph is state, not layout. It is included in save/load snapshots and undo/redo checkpoints, but it does not participate in dashboard grid collision, panel internal grid collision, anchor rail positioning, or object placement. Runtime-derived Engineer links may be calculated from committed context inheritance, panel containment, filter propagation, operator chains, and style-rule data/effect flow, but those derived links are not saved as separate layout objects.
+
+Relationship links, operator tools, and style-rule nodes are hidden in normal mode. Engineer Mode reveals a low-opacity relationship overlay and a compact logical-operator toolbox; normal widgets may still consume the resulting logic internally when the layer is hidden. The overlay is rendered from committed layout state, uses `pointer-events: none` for links, and must remain visually subtle rather than becoming a node-editor surface.
+
 ## Engineer Mode Infrastructure
 
 `window.dashboardEngineerMode` is the centralized Engineer Mode store. The Engineer button is the only normal UI control that toggles the mode, while the runtime exposes `isEnabled()`, `getState()`, `set(enabled)`, `toggle()`, `onChange(listener)`, and `refresh()` for tests and developer tooling.
@@ -111,6 +121,9 @@ The top-level layout state owns:
 - `anchors`;
 - `contexts`;
 - `dataSources`;
+- `relationships`;
+- `operators`;
+- `styleRules`;
 - optional `assets`.
 
 The sidecar stores committed layout ownership only. Root widgets use the global workspace grid, panel-contained widgets use `parentPanelId` plus panel-local coordinates, anchors use rail position/order and `linkedDividerId`, and dividers/context regions use semantic ids rather than cached pixels.
@@ -126,6 +139,8 @@ Media and document widgets use a separate asset registry exposed as `window.dash
 ## Intentionally Deferred
 
 The architecture intentionally does not include a heavy context editor UI, backend data-source execution, server-side permissions, product-specific widgets, or mobile/responsive architecture changes. Those systems can be added later without changing the foundational taxonomy, layout-domain ownership, widget runtime contract, or context inheritance backbone.
+
+Hidden computational easter eggs are also deferred. The workspace may eventually allow playful simulation-like behaviors, such as reactive pixel grids, signal-flow experiments, or tiny redstone-like visual logic systems, but only as emergent configurations of the real logic graph, event bus, context inheritance, conditional styling, widget runtime, and visual-state systems. They should remain hidden in Engineer/experimental tooling, never clutter Normal Mode, and should not introduce a separate toy engine that bypasses canonical workspace state.
 
 ### Compact Workspace Mode
 

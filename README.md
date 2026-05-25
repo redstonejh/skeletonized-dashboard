@@ -49,6 +49,7 @@ The upcoming work is intentionally staged around stabilization first, then large
 - Activity Feed, AI Assistant placeholder, and Engineer-gated Context Inspector widgets are now registry-backed workspace meta widgets that consume resolved workspace/context state without dashboard-renderer special cases.
 - Workspace infrastructure now includes centralized query lifecycle/caching, schema-driven widget settings, asset references for rich media, adaptive density tiers, a structured workspace event bus, and centralized Engineer Mode diagnostics for context, layout, ownership, cache, event, and LOD visibility.
 - Viewport-aware pseudo-LOD is now centralized around shared visual tiers and overscan rules, with focused/selected/dragged/resized objects promoted to full fidelity, anchor rail objects classified separately, and far-offscreen hover/material effects reduced without changing layout correctness.
+- Engineer Mode now exposes a persisted relationship graph with subtle spatial links for context, filter, query, containment, semantic, operator, and conditional-style relationships. Foundational AND/OR/NOT logical operator nodes and StyleRule nodes are hidden from normal mode, while normal widgets still apply the computed visual results.
 
 ### Near-Term Stabilization
 
@@ -71,6 +72,7 @@ The upcoming work is intentionally staged around stabilization first, then large
 - Composite group interactions with shared visual language, local collision, proportional resize, and stable member relationships.
 - Region-aware placement that understands context zones without scrambling unrelated dashboard items.
 - Richer undo/redo transaction boundaries for committed dashboard actions while excluding live previews and transient surfaces.
+- Hidden computational easter eggs may eventually emerge from the real logic, context, event, conditional-style, and spatial computation systems. Examples could include tiny simulations, reactive pixel grids, signal-flow experiments, or redstone-like visual logic behaviors, but these should remain optional Engineer/experimental configurations rather than primary product features.
 - Compact Workspace Mode as a separate constrained-viewport interaction contract, with single-column layout behavior, collapsed workspace chrome, simplified interactions, compressed anchor rail/drawer behavior, responsive density scaling, and progressive disclosure. This is intentionally not desktop scaled down.
 - Accessibility-first keyboard support for anchors, groups, dividers, panels, widgets, and major dashboard commands.
 - Reduced-motion equivalents for cinematic scroll, drag, resize, collapse, and anchor navigation.
@@ -100,6 +102,7 @@ The upcoming work is intentionally staged around stabilization first, then large
 - No fake widget insertion inside panels until nested widget behavior is implemented for real.
 - No global auto-pack behavior that silently rewrites intentional dashboard space.
 - No compact/mobile workspace mode until desktop interaction laws, panel containment, context inheritance, widget runtime architecture, and performance systems are stable.
+- No separate toy/simulation engine for hidden easter eggs; playful computational behavior should reuse the real workspace logic/event/context infrastructure if it is ever explored.
 
 ## Routes
 
