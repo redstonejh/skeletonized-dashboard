@@ -738,6 +738,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const workspaceDeleteLayout = (item) => item?.closest?.(".widget-layout, .panel-layout, .workspace-anchor-layer");
   const workspaceDeleteLayoutKey = (item) => {
     const layout = workspaceDeleteLayout(item);
+    if (isPanelInternalWidgetLayout(layout)) return gridItemLayoutKey(layout);
     return layout?.dataset.widgetLayoutKey || layout?.dataset.layoutKey || layout?.dataset.anchorLayoutKey || "default";
   };
   const workspaceDeleteTitle = (item) => {
@@ -773,6 +774,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!body || body.hidden) return false;
     return [...body.children].some((child) => {
       if (child.classList.contains("empty-state") || child.dataset.panelPlaceholder === "empty") return false;
+      if (child.classList.contains("panel-internal-widget-grid")) return Boolean(child.querySelector(":scope > .widget-card"));
       return !child.hidden && child.textContent.trim();
     });
   };
@@ -847,6 +849,11 @@ document.addEventListener("DOMContentLoaded", () => {
       const customKey = entry.kind === "widget" ? "customWidget" : "customPanel";
       const itemKey = entry.kind === "widget" ? "widgetKey" : "panelKey";
       const key = entry.item.dataset[itemKey];
+      if (entry.kind === "widget" && isPanelInternalWidgetLayout(entry.layout)) {
+        entry.item.remove();
+        updatePanelChildEmptyState(panelForInternalWidgetLayout(entry.layout));
+        return;
+      }
       if (!entry.item.dataset[customKey]) {
         const cacheKey = `${entry.layoutKey}:${hiddenKey}`;
         const hidden = hiddenByLayout.get(cacheKey) || readDraftList(entry.layout, hiddenKey);
@@ -922,7 +929,10 @@ document.addEventListener("DOMContentLoaded", () => {
   const DASHBOARD_GRID_COLUMNS = 6;
   const DASHBOARD_GRID_ROW_HEIGHT = 81;
 
-  const gridHostForLayout = (layout) => layout?.closest?.(".dashboard-layout-grid") || layout;
+  const isPanelInternalWidgetLayout = (layout) => layout?.classList?.contains("panel-internal-widget-grid");
+  const panelForInternalWidgetLayout = (layout) => layout?.closest?.(".db-panel");
+  const gridHostForLayout = (layout) => isPanelInternalWidgetLayout(layout) ? layout : (layout?.closest?.(".dashboard-layout-grid") || layout);
+  const isPanelInternalGridItem = (item) => Boolean(item?.closest?.(".panel-internal-widget-grid"));
 
   const gridRectForLayout = (layout) => {
     const host = gridHostForLayout(layout);
@@ -941,6 +951,9 @@ document.addEventListener("DOMContentLoaded", () => {
   const createGridMetrics = (layout) => {
     const rect = gridRectForLayout(layout);
     const gap = gridGapForLayout(layout);
+    const host = gridHostForLayout(layout);
+    const computed = window.getComputedStyle(host || layout);
+    const rowHeight = parseFloat(computed.getPropertyValue("--dashboard-grid-row-height")) || DASHBOARD_GRID_ROW_HEIGHT;
     const width = Math.max(1, rect.width);
     const columnWidth = (width - (gap * (DASHBOARD_GRID_COLUMNS - 1))) / DASHBOARD_GRID_COLUMNS;
     return {
@@ -950,7 +963,8 @@ document.addEventListener("DOMContentLoaded", () => {
       width,
       columnWidth,
       columnStep: Math.max(1, columnWidth + gap),
-      rowStep: DASHBOARD_GRID_ROW_HEIGHT + gap,
+      rowHeight,
+      rowStep: rowHeight + gap,
       panelMinimumRows: new WeakMap(),
     };
   };
@@ -1133,7 +1147,12 @@ document.addEventListener("DOMContentLoaded", () => {
     return 1;
   };
 
-  const gridItemLayoutKey = (layout) => layout?.dataset.widgetLayoutKey || layout?.dataset.layoutKey || "default";
+  const gridItemLayoutKey = (layout) => {
+    if (isPanelInternalWidgetLayout(layout)) {
+      return panelForInternalWidgetLayout(layout)?.closest?.(".panel-layout")?.dataset.layoutKey || "default";
+    }
+    return layout?.dataset.widgetLayoutKey || layout?.dataset.layoutKey || "default";
+  };
 
   const saveSharedGridLayouts = (layout) => {
     const host = gridHostForLayout(layout);
@@ -1244,8 +1263,9 @@ document.addEventListener("DOMContentLoaded", () => {
     const itemWidth = (columnWidth * safeSpan) + (Math.max(0, safeSpan - 1) * gap);
     const col = Math.round((clientX - layoutRect.left - (itemWidth / 2)) / (columnWidth + gap)) + 1;
     const rowSpan = isWidgetGridItem(item) ? 1 : gridItemRowSpan(item, metrics);
-    const itemHeight = isWidgetGridItem(item) ? DASHBOARD_GRID_ROW_HEIGHT : gridHeightForRows(rowSpan, gap);
-    const row = Math.round((clientY - layoutRect.top - (itemHeight / 2)) / (DASHBOARD_GRID_ROW_HEIGHT + gap)) + 1;
+    const rowHeight = metrics?.rowHeight || DASHBOARD_GRID_ROW_HEIGHT;
+    const itemHeight = isWidgetGridItem(item) ? rowHeight : gridHeightForRows(rowSpan, gap);
+    const row = Math.round((clientY - layoutRect.top - (itemHeight / 2)) / (rowHeight + gap)) + 1;
     return {
       col: Math.max(1, Math.min(7 - safeSpan, col)),
       row: Math.max(1, row),
@@ -1570,6 +1590,7 @@ document.addEventListener("DOMContentLoaded", () => {
           breakBefore: panel.previousElementSibling?.classList.contains("db-panel-row-break") || false,
           expansionBaseline,
           expansionActive,
+          childWidgets: serializePanelChildWidgets(panel),
           ...workspaceObjectPersistence(panel),
         }));
       } catch {}
@@ -1587,6 +1608,7 @@ document.addEventListener("DOMContentLoaded", () => {
         minW: Number(panel.dataset.minW) || null,
         locked: panel.dataset.locked === "true",
         resizable: panel.dataset.resizable === "false" ? false : true,
+        childWidgets: serializePanelChildWidgets(panel),
         ...workspaceObjectPersistence(panel),
       }));
     try {
@@ -1773,11 +1795,11 @@ document.addEventListener("DOMContentLoaded", () => {
       ? ".panel-layout > .db-panel, .panel-layout > .db-panel-placeholder, .widget-layout > .widget-card, .widget-layout > .widget-placeholder"
       : ":scope > .db-panel, :scope > .db-panel-placeholder";
     const items = [...host.querySelectorAll(selector)]
-      .filter((item) => item !== excludeItem && !item.classList.contains("db-panel-dragging") && !item.classList.contains("widget-dragging"));
+      .filter((item) => item !== excludeItem && (host === layout || !isPanelInternalGridItem(item)) && !item.classList.contains("db-panel-dragging") && !item.classList.contains("widget-dragging"));
     const before = new Map(items.map((item) => [item, item.getBoundingClientRect()]));
     update();
     const afterItems = [...host.querySelectorAll(selector)]
-      .filter((item) => item !== excludeItem && !item.classList.contains("db-panel-dragging") && !item.classList.contains("widget-dragging"));
+      .filter((item) => item !== excludeItem && (host === layout || !isPanelInternalGridItem(item)) && !item.classList.contains("db-panel-dragging") && !item.classList.contains("widget-dragging"));
     afterItems.forEach((item) => {
       const first = before.get(item);
       if (!first) return;
@@ -1803,11 +1825,11 @@ document.addEventListener("DOMContentLoaded", () => {
       ? ".widget-layout > .widget-card, .widget-layout > .widget-placeholder, .widget-layout > .widget-spacer, .panel-layout > .db-panel, .panel-layout > .db-panel-placeholder"
       : ":scope > .widget-card, :scope > .widget-placeholder, :scope > .widget-spacer";
     const items = [...host.querySelectorAll(selector)]
-      .filter((item) => item !== excludeItem && !item.classList.contains("widget-dragging") && !item.classList.contains("db-panel-dragging"));
+      .filter((item) => item !== excludeItem && (host === layout || !isPanelInternalGridItem(item)) && !item.classList.contains("widget-dragging") && !item.classList.contains("db-panel-dragging"));
     const before = new Map(items.map((item) => [item, item.getBoundingClientRect()]));
     update();
     const afterItems = [...host.querySelectorAll(selector)]
-      .filter((item) => item !== excludeItem && !item.classList.contains("widget-dragging") && !item.classList.contains("db-panel-dragging"));
+      .filter((item) => item !== excludeItem && (host === layout || !isPanelInternalGridItem(item)) && !item.classList.contains("widget-dragging") && !item.classList.contains("db-panel-dragging"));
     afterItems.forEach((item) => {
       const first = before.get(item);
       if (!first) return;
@@ -1896,6 +1918,87 @@ document.addEventListener("DOMContentLoaded", () => {
       <span class="stat-val">${escapeHtml(definition.value || "0")}</span>
       <span class="stat-lbl">${safeTitle}</span>`;
     return widget;
+  };
+
+  const panelChildWidgets = (panel) => [
+    ...panel.querySelectorAll(":scope > .db-panel-body .panel-internal-widget-grid > .widget-card:not(.workspace-anchor-object):not([hidden])")
+  ];
+
+  const sanitizePanelChildWidgetClone = (widget) => {
+    const clone = widget.cloneNode(true);
+    delete clone.dataset.widgetInitialized;
+    clone.classList.remove(...undoTransientItemClasses);
+    clone.classList.remove(
+      "widget-tools-open",
+      "widget-dragging",
+      "dashboard-active-resize",
+      "dashboard-live-resize",
+      "dashboard-resize-source",
+      "group-selected",
+      "group-transform-member"
+    );
+    clone.removeAttribute("hidden");
+    clone.style.removeProperty("left");
+    clone.style.removeProperty("top");
+    clone.style.removeProperty("width");
+    clone.style.removeProperty("position");
+    clone.querySelector(".panel-settings-toggle")?.setAttribute("aria-expanded", "false");
+    clone.querySelector(".panel-color-toggle")?.setAttribute("aria-expanded", "false");
+    clone.querySelectorAll(".panel-color-menu-open").forEach((menu) => menu.classList.remove("panel-color-menu-open"));
+    return clone;
+  };
+
+  const serializePanelChildWidgets = (panel) => panelChildWidgets(panel).map((widget) => ({
+    key: widget.dataset.widgetKey || "",
+    html: sanitizePanelChildWidgetClone(widget).outerHTML,
+  }));
+
+  const updatePanelChildEmptyState = (panel) => {
+    const body = panel?.querySelector(":scope > .db-panel-body");
+    if (!body) return;
+    const hasChildren = Boolean(body.querySelector(".panel-internal-widget-grid > .widget-card"));
+    body.querySelector(":scope > .panel-empty-state")?.toggleAttribute("hidden", hasChildren);
+    const count = panel.querySelector(":scope > .db-panel-hd .db-panel-count");
+    if (count) count.textContent = String(panelChildWidgets(panel).length);
+  };
+
+  const ensurePanelInternalWidgetGrid = (panel) => {
+    const body = panel?.querySelector(":scope > .db-panel-body");
+    if (!body) return null;
+    let grid = body.querySelector(":scope > .panel-internal-widget-grid");
+    if (!grid) {
+      grid = document.createElement("div");
+      grid.className = "panel-internal-widget-grid widget-layout";
+      grid.dataset.widgetLayoutKey = `${groupItemLayoutKey(panel)}:panel:${panel.dataset.panelKey || "panel"}`;
+      grid.dataset.panelContainerKey = panel.dataset.panelKey || "";
+      body.appendChild(grid);
+    }
+    updatePanelChildEmptyState(panel);
+    return grid;
+  };
+
+  const restorePanelChildWidgets = (panel, definitions = []) => {
+    if (!workspaceObjectCapabilities(panel).hasPanelContentArea) return;
+    const grid = ensurePanelInternalWidgetGrid(panel);
+    if (!grid) return;
+    grid.replaceChildren();
+    definitions.forEach((definition) => {
+      const template = document.createElement("template");
+      template.innerHTML = definition?.html || "";
+      const widget = template.content.firstElementChild;
+      if (!widget?.classList?.contains("widget-card")) return;
+      const key = widget.dataset.widgetKey || definition.key || "";
+      if (key) {
+        document.querySelectorAll(`.widget-layout:not(.panel-internal-widget-grid) > .widget-card[data-widget-key="${CSS.escape(key)}"]`)
+          .forEach((duplicate) => duplicate.remove());
+      }
+      widget.dataset.panelChildWidget = "true";
+      widget.dataset.parentPanelKey = panel.dataset.panelKey || "";
+      delete widget.dataset.widgetInitialized;
+      widget.classList.remove(...undoTransientItemClasses);
+      grid.appendChild(widget);
+    });
+    updatePanelChildEmptyState(panel);
   };
 
   const anchorLayerForLayoutKey = (layoutKey = "default") =>
@@ -3131,6 +3234,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const snapshotGridLayout = (layout) => new Map(
     [...gridHostForLayout(layout).querySelectorAll(".widget-layout > .widget-card, .panel-layout > .db-panel")]
+      .filter((item) => gridHostForLayout(layout) === layout || !isPanelInternalGridItem(item))
       .map((item) => [item, {
         gridCol: item.dataset.gridCol,
         gridRow: item.dataset.gridRow,
@@ -3284,7 +3388,7 @@ document.addEventListener("DOMContentLoaded", () => {
         ? ":scope > .widget-card:not([hidden]), :scope > .widget-placeholder"
         : ":scope > .db-panel:not([hidden]), :scope > .db-panel-placeholder";
     return [...host.querySelectorAll(selector)]
-      .filter((item) => !item.classList.contains("widget-dragging") && !item.classList.contains("db-panel-dragging"));
+      .filter((item) => (host === layout || !isPanelInternalGridItem(item)) && !item.classList.contains("widget-dragging") && !item.classList.contains("db-panel-dragging"));
   };
 
   const applyLocalCollisionLayout = (layout, activeItems, options = {}) => {
@@ -3597,7 +3701,7 @@ document.addEventListener("DOMContentLoaded", () => {
       ? ".widget-layout > .widget-card:not([hidden]), .widget-layout > .widget-placeholder, .panel-layout > .db-panel:not([hidden]), .panel-layout > .db-panel-placeholder"
       : ".widget-layout > .widget-card:not([hidden]), .panel-layout > .db-panel:not([hidden])";
     return [...host.querySelectorAll(selector)]
-      .filter((item) => !excluded.has(item) && !item.classList.contains("workspace-anchor-object") && !item.classList.contains("widget-dragging") && !item.classList.contains("db-panel-dragging") && !item.classList.contains("dashboard-live-resize") && !item.classList.contains("dashboard-resize-source") && !item.classList.contains("dashboard-group-source") && !item.classList.contains("dashboard-group-member-preview"));
+      .filter((item) => !excluded.has(item) && (host === layout || !isPanelInternalGridItem(item)) && !item.classList.contains("workspace-anchor-object") && !item.classList.contains("widget-dragging") && !item.classList.contains("db-panel-dragging") && !item.classList.contains("dashboard-live-resize") && !item.classList.contains("dashboard-resize-source") && !item.classList.contains("dashboard-group-source") && !item.classList.contains("dashboard-group-member-preview"));
   };
 
   const committedWorkspaceNaturalHeight = (layout) => {
@@ -3906,6 +4010,60 @@ document.addEventListener("DOMContentLoaded", () => {
           ? current
           : options.afterOnly
             ? nearestLocalDisplacementSlot(item, current, occupied, { localVacancy, metrics, reserved, fallback: verticalFallback })
+            : nearestSparseSlot(item, current, occupied, null, metrics);
+        placements.set(item, bounds);
+        occupied.push({ item, bounds });
+      });
+
+    placements.forEach((bounds, item) => applyGridItemPosition(item, bounds.col, bounds.row));
+    return placements;
+  };
+
+  const resolveSparseGridLayoutForActiveItems = (layout, activeItems = [], options = {}) => {
+    const metrics = options.metrics || null;
+    const activeList = visualGridOrder([].concat(activeItems || []).filter((item) => item?.isConnected), metrics);
+    if (!activeList.length) return new Map();
+    const activeSet = new Set(activeList);
+    const excluded = new Set([].concat(options.exclude || []).filter(Boolean));
+    const items = globalGridItems(layout, { includePlaceholders: true, exclude: [...excluded, ...activeList] });
+    const allItems = [...activeList, ...items];
+    const placements = new Map();
+    const occupied = [];
+    items
+      .filter((item) => item.classList.contains("db-panel-pinned"))
+      .forEach((item) => {
+        const bounds = gridBoundsForItem(item, metrics);
+        placements.set(item, bounds);
+        occupied.push({ item, bounds });
+      });
+
+    activeList.forEach((item) => {
+      const target = gridBoundsForItem(item, metrics);
+      let bounds = boundsAtGridSlot(item, target.col, target.row, metrics);
+      if (!canPlaceBounds(bounds, occupied)) {
+        bounds = options.afterOnly
+          ? nearestSparseSlotAtOrAfter(item, bounds, occupied, null, metrics)
+          : nearestSparseSlot(item, bounds, occupied, null, metrics);
+      }
+      placements.set(item, bounds);
+      occupied.push({ item, bounds });
+    });
+
+    visualGridOrder(items, metrics)
+      .filter((item) => !activeSet.has(item) && !item.classList.contains("db-panel-pinned"))
+      .forEach((item) => {
+        const current = gridBoundsForItem(item, metrics);
+        const reserved = allItems
+          .filter((other) => other !== item && !excluded.has(other))
+          .map((other) => ({ item: other, bounds: gridBoundsForItem(other, metrics) }));
+        const bounds = canPlaceBounds(current, occupied)
+          ? current
+          : options.afterOnly
+            ? nearestLocalDisplacementSlot(item, current, occupied, {
+              metrics,
+              reserved,
+              fallback: verticalSlotAtOrAfter(item, current, occupied, null, metrics) || nearestSparseSlotAtOrAfter(item, current, occupied, null, metrics),
+            })
             : nearestSparseSlot(item, current, occupied, null, metrics);
         placements.set(item, bounds);
         occupied.push({ item, bounds });
@@ -4235,7 +4393,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const host = gridHostForLayout(layout);
     const selector = ".widget-layout > .widget-card, .widget-layout > .widget-placeholder, .panel-layout > .db-panel, .panel-layout > .db-panel-placeholder";
     return [...host.querySelectorAll(selector)]
-      .filter((item) => item !== excludeItem && !item.classList.contains("widget-dragging") && !item.classList.contains("db-panel-dragging"));
+      .filter((item) => item !== excludeItem && (host === layout || !isPanelInternalGridItem(item)) && !item.classList.contains("widget-dragging") && !item.classList.contains("db-panel-dragging"));
   };
 
   const animateOrderedGridReflow = (layout, update, excludeItem = null, options = {}) => {
@@ -4266,6 +4424,79 @@ document.addEventListener("DOMContentLoaded", () => {
     const siblings = orderedGridItems(layout, { includePlaceholders: true, exclude: [item, ...excludeItems] });
     const reference = siblings[Math.max(0, Math.min(index, siblings.length))] || null;
     layout.insertBefore(item, reference);
+  };
+
+  const openPanelDropContainerAt = (clientX, clientY, draggedWidget) => {
+    const panels = [...document.querySelectorAll(".panel-layout > .db-panel:not([hidden])")]
+      .filter((panel) => panel.isConnected)
+      .filter((panel) => panel !== draggedWidget)
+      .filter((panel) => !panel.classList.contains("db-panel-collapsed"))
+      .filter((panel) => !panel.classList.contains("db-panel-dragging"))
+      .filter((panel) => workspaceObjectCapabilities(panel).hasPanelContentArea);
+    const dragRect = draggedWidget?.getBoundingClientRect?.() || null;
+    return panels.find((panel) => {
+      const body = panel.querySelector(":scope > .db-panel-body");
+      if (!body || body.offsetParent === null) return false;
+      const rect = body.getBoundingClientRect();
+      const pointerInside = clientX >= rect.left && clientX <= rect.right && clientY >= rect.top && clientY <= rect.bottom;
+      const draggedOverlaps = dragRect &&
+        dragRect.left < rect.right &&
+        dragRect.right > rect.left &&
+        dragRect.top < rect.bottom &&
+        dragRect.bottom > rect.top;
+      return pointerInside || draggedOverlaps;
+    }) || null;
+  };
+
+  const panelDropBodyRect = (panel) => panel?.querySelector?.(":scope > .db-panel-body")?.getBoundingClientRect?.() || null;
+  const rectMovedMeaningfully = (a, b, threshold = 12) => (
+    !a || !b ||
+    Math.abs(a.left - b.left) > threshold ||
+    Math.abs(a.top - b.top) > threshold ||
+    Math.abs(a.width - b.width) > threshold ||
+    Math.abs(a.height - b.height) > threshold
+  );
+
+  const animateAbsorbedWidgetIntoPanel = (widget, fromRect) => {
+    if (!widget || !fromRect) return;
+    const toRect = widget.getBoundingClientRect();
+    const dx = fromRect.left - toRect.left;
+    const dy = fromRect.top - toRect.top;
+    if (Math.abs(dx) < 1 && Math.abs(dy) < 1) return;
+    widget.animate(
+      [
+        { transform: `translate(${Math.round(dx)}px, ${Math.round(dy)}px) scale(1.006)`, opacity: .94 },
+        { transform: "translate(0, 0) scale(1)", opacity: 1 },
+      ],
+      { duration: 280, easing: "cubic-bezier(.2, .8, .2, 1)" }
+    );
+  };
+
+  const absorbWidgetIntoPanel = ({ widget, sourceLayout, panel, clientX, clientY, fromRect }) => {
+    const internalGrid = ensurePanelInternalWidgetGrid(panel);
+    if (!internalGrid) return null;
+    const widgetKey = widget.dataset.widgetKey || "";
+    if (widgetKey && !widget.dataset.customWidget) {
+      const hidden = readDraftList(sourceLayout, "hiddenWidgetsDraft");
+      if (!hidden.includes(widgetKey)) hidden.push(widgetKey);
+      writeDraftList(sourceLayout, "hiddenWidgetsDraft", hidden);
+    }
+    const clone = sanitizePanelChildWidgetClone(widget);
+    clone.dataset.panelChildWidget = "true";
+    clone.dataset.parentPanelKey = panel.dataset.panelKey || "";
+    delete clone.dataset.widgetInitialized;
+    if (!clone.dataset.gridRowSpan) clone.dataset.gridRowSpan = "1";
+    applyWidgetSpan(clone, Math.max(gridItemMinimumSpan(clone), Math.min(DASHBOARD_GRID_COLUMNS, Number(widget.dataset.currentSpan) || Number(widget.dataset.defaultSpan) || 1)));
+    widget.remove();
+    internalGrid.appendChild(clone);
+    const metrics = createGridMetrics(internalGrid);
+    const target = gridCellFromPoint(internalGrid, clone, clientX, clientY, metrics);
+    applyWidgetGridPosition(clone, target.col, target.row);
+    resolveSparseGridLayout(internalGrid, clone, target, { metrics });
+    initWidgetLayout(internalGrid);
+    updatePanelChildEmptyState(panel);
+    animateAbsorbedWidgetIntoPanel(clone, fromRect);
+    return clone;
   };
 
   const orderedInsertionIndexFromPoint = (layout, placeholder, activeItem, clientX, clientY) => {
@@ -4318,6 +4549,19 @@ document.addEventListener("DOMContentLoaded", () => {
     let expandedFootprintGhost = null;
     let dragMetrics = null;
     let reflowItems = null;
+    const canAbsorbIntoPanel = (
+      item.classList.contains("widget-card") &&
+      !item.classList.contains("workspace-anchor-object") &&
+      layout.classList.contains("widget-layout") &&
+      !isPanelInternalWidgetLayout(layout)
+    );
+    const absorption = {
+      panel: null,
+      timer: null,
+      stableX: 0,
+      stableY: 0,
+      rect: null,
+    };
     const originalCell = {
       col: Number(item.dataset.gridCol) || 1,
       row: Number(item.dataset.gridRow) || 1,
@@ -4365,7 +4609,10 @@ document.addEventListener("DOMContentLoaded", () => {
         placeholder.dataset.gridRowSpan = String(gridItemRowSpan(item));
         placeholder.style.gridColumn = item.style.gridColumn || `span ${placeholder.dataset.currentSpan}`;
         placeholder.style.gridRow = item.style.gridRow || "";
-        placeholder.style.height = `${Math.max(DASHBOARD_GRID_ROW_HEIGHT, rect.height)}px`;
+        const placeholderMinHeight = isPanelInternalWidgetLayout(layout)
+          ? Math.max(1, rect.height)
+          : DASHBOARD_GRID_ROW_HEIGHT;
+        placeholder.style.height = `${Math.max(placeholderMinHeight, rect.height)}px`;
         layout.insertBefore(placeholder, item);
         item.classList.add(draggingClass);
         item.style.width = `${rect.width}px`;
@@ -4381,6 +4628,86 @@ document.addEventListener("DOMContentLoaded", () => {
       reflowItems = reflowItemsForLayout(layout, item);
       closeInactiveDashboardTools(item);
       onStart?.();
+    };
+
+    const clearAbsorptionCandidate = () => {
+      if (absorption.timer) {
+        window.clearTimeout(absorption.timer);
+        absorption.timer = null;
+      }
+      absorption.panel?.classList?.remove("panel-absorption-receptive");
+      absorption.panel = null;
+      absorption.rect = null;
+    };
+
+    const completePanelAbsorption = () => {
+      if (ended || !dragging || !placeholder || !absorption.panel || groupDrag) return;
+      const panel = absorption.panel;
+      const bodyRect = panelDropBodyRect(panel);
+      if (
+        !panel.isConnected ||
+        panel.classList.contains("db-panel-collapsed") ||
+        rectMovedMeaningfully(absorption.rect, bodyRect) ||
+        !bodyRect ||
+        absorption.stableX < bodyRect.left ||
+        absorption.stableX > bodyRect.right ||
+        absorption.stableY < bodyRect.top ||
+        absorption.stableY > bodyRect.bottom
+      ) {
+        clearAbsorptionCandidate();
+        return;
+      }
+      ended = true;
+      const fromRect = item.getBoundingClientRect();
+      autoScroll.stop();
+      removeListeners();
+      releasePointer();
+      document.body.classList.remove("panel-interaction-active", "panel-resize-active");
+      clearAbsorptionCandidate();
+      restoreGridLayoutSnapshot(startSnapshot, { exclude: [item] });
+      placeholder.remove();
+      expandedFootprintGhost?.remove();
+      expandedFootprintGhost = null;
+      item.classList.remove(draggingClass);
+      item.style.left = "";
+      item.style.top = "";
+      item.style.width = "";
+      const absorbed = absorbWidgetIntoPanel({
+        widget: item,
+        sourceLayout: layout,
+        panel,
+        clientX: absorption.stableX,
+        clientY: absorption.stableY,
+        fromRect,
+      });
+      autoScroll.clearExtension();
+      if (absorbed) {
+        onCommit?.({ moved: true, absorbed: true });
+      } else {
+        onCancel?.();
+      }
+      onEnd?.(true);
+    };
+
+    const updatePanelAbsorptionCandidate = (moveEvent) => {
+      if (!canAbsorbIntoPanel || groupDrag || !dragging || !placeholder) return;
+      const panel = openPanelDropContainerAt(moveEvent.clientX, moveEvent.clientY, item);
+      const bodyRect = panelDropBodyRect(panel);
+      if (!panel || !bodyRect) {
+        clearAbsorptionCandidate();
+        return;
+      }
+      const resetTimer = panel !== absorption.panel ||
+        rectMovedMeaningfully(absorption.rect, bodyRect) ||
+        Math.hypot(moveEvent.clientX - absorption.stableX, moveEvent.clientY - absorption.stableY) > 8;
+      if (!resetTimer) return;
+      clearAbsorptionCandidate();
+      absorption.panel = panel;
+      absorption.stableX = moveEvent.clientX;
+      absorption.stableY = moveEvent.clientY;
+      absorption.rect = bodyRect;
+      panel.classList.add("panel-absorption-receptive");
+      absorption.timer = window.setTimeout(completePanelAbsorption, 1500);
     };
 
     const movePreview = (clientX, clientY, metrics = null) => {
@@ -4446,10 +4773,15 @@ document.addEventListener("DOMContentLoaded", () => {
           width: rect.width,
         });
       }
+      if (canAbsorbIntoPanel && openPanelDropContainerAt(moveEvent.clientX, moveEvent.clientY, item)) {
+        updatePanelAbsorptionCandidate(moveEvent);
+        return;
+      }
       const previewRect = groupDrag && groupLive
         ? { left: nextLeft, top: nextTop, width: dragRect.width, height: dragRect.height }
         : item.getBoundingClientRect();
       movePreview(previewRect.left + (previewRect.width / 2), previewRect.top + (previewRect.height / 2), currentMetrics);
+      updatePanelAbsorptionCandidate(moveEvent);
     };
 
     const removeListeners = () => {
@@ -4480,6 +4812,7 @@ document.addEventListener("DOMContentLoaded", () => {
       autoScroll.stop({ preserveExtension: dragging && placeholder && !canceled });
       removeListeners();
       releasePointer();
+      clearAbsorptionCandidate();
       document.body.classList.remove("panel-interaction-active");
       document.body.classList.remove("panel-resize-active");
       try {
@@ -4620,6 +4953,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const candidates = [{ edge: layoutRect.bottom, priority: 1 }];
     document.querySelectorAll(".widget-layout > .widget-card:not([hidden]), .panel-layout > .db-panel:not([hidden])").forEach((target) => {
       if (target === item) return;
+      if (gridHostForLayout(layout) !== layout && isPanelInternalGridItem(target)) return;
       const targetRect = target.getBoundingClientRect();
       candidates.push({ edge: targetRect.bottom, priority: 2 });
       candidates.push({ edge: targetRect.top, priority: 3 });
@@ -4669,6 +5003,38 @@ document.addEventListener("DOMContentLoaded", () => {
     footprint.style.gridColumn = `${col} / span ${span}`;
     footprint.style.gridRow = `${row} / span ${rowSpan}`;
     footprint.style.height = `${gridHeightForRows(rowSpan, metrics?.gap ?? gridGapForLayout(layout))}px`;
+  };
+
+  const groupResizePanelRowSpan = (start, groupBox, scaleY, minRows = 1) => {
+    const relRow = Math.max(0, start.row - groupBox.row);
+    const relBottomExclusive = relRow + Math.max(1, start.rowSpan);
+    const scaledSizeRows = Math.round(start.rowSpan * scaleY);
+    const scaledBottomRows = Math.floor(relBottomExclusive * scaleY) - relRow;
+    return Math.max(minRows, scaledSizeRows, scaledBottomRows, 1);
+  };
+
+  const commitGroupResizeFromPreviews = (entries, layout) => {
+    entries.forEach((entry) => {
+      const { member, preview } = entry;
+      const col = Number(preview.dataset.gridCol) || Number(member.dataset.gridCol) || 1;
+      const row = Number(preview.dataset.gridRow) || Number(member.dataset.gridRow) || 1;
+      const span = Number(preview.dataset.currentSpan) || Number(preview.dataset.defaultSpan) || Number(member.dataset.currentSpan) || 1;
+      const rowSpan = Number(preview.dataset.gridRowSpan) || 1;
+      if (isWidgetGridItem(member)) {
+        applyWidgetSpan(member, span);
+        applyWidgetGridPosition(member, col, row);
+        return;
+      }
+      applyPanelSpan(member, span);
+      if (member.classList.contains("db-panel-collapsed")) {
+        member.dataset.gridRowSpan = "1";
+        member.style.height = "";
+      } else {
+        const memberLayout = groupItemLayout(member) || layout;
+        applyPanelHeight(member, gridHeightForRows(rowSpan, gridGapForLayout(memberLayout)));
+      }
+      applyPanelGridPosition(member, col, row);
+    });
   };
 
   const createGroupFootprint = (layout, groupBox, className = "") => {
@@ -4786,7 +5152,7 @@ document.addEventListener("DOMContentLoaded", () => {
       let nextRow = Math.max(1, groupBox.row + relRow);
       let nextRowSpan = isWidgetGridItem(sourceItem)
         ? 1
-        : Math.max(panelMinimumRows(sourceItem), Math.round(start.rowSpan * safeScaleY));
+        : groupResizePanelRowSpan(start, groupBox, safeScaleY, panelMinimumRows(sourceItem));
       let desired = {
         col: nextCol,
         row: nextRow,
@@ -4924,9 +5290,17 @@ document.addEventListener("DOMContentLoaded", () => {
         const left = groupStartRect.left + ((startRect.left - groupStartRect.left) * scaleX);
         const top = groupStartRect.top - scrollDeltaY + (startRect.top - groupStartRect.top);
         const width = Math.max(gridItemPixelWidthForSpan(entry.memberLayout, gridItemMinimumSpan(entry.member), entry.memberMetrics), startRect.width * scaleX);
+        const liveRows = isWidgetGridItem(entry.member) || entry.member.classList.contains("db-panel-collapsed")
+          ? 1
+          : groupResizePanelRowSpan(
+            startBounds.get(entry.member),
+            groupBox,
+            scaleY,
+            panelMinimumRows(entry.member, entry.memberMetrics)
+          );
         const height = isWidgetGridItem(entry.member) || entry.member.classList.contains("db-panel-collapsed")
           ? startRect.height
-          : Math.max(getPanelMinimumHeight(entry.member), startRect.height * scaleY);
+          : Math.max(getPanelMinimumHeight(entry.member), gridHeightForRows(liveRows, entry.memberMetrics.gap));
         updateLiveResizeSurface(entry.live, width, height, left, top);
         liveBounds.left = Math.min(liveBounds.left, left);
         liveBounds.top = Math.min(liveBounds.top, top);
@@ -4969,10 +5343,14 @@ document.addEventListener("DOMContentLoaded", () => {
           span: nextCols,
           rowSpan: nextRows,
         }, metricsForLayout(groupFootprint.footprintLayout));
-        resolveSparseGridLayout(layout, groupFootprint.footprint, { col: groupBox.col, row: groupBox.row }, { afterOnly: true, metrics: layoutMetrics });
         applyGroupResizeLayout(layout, previewMembers, previewStartBounds, groupBox, nextCols / startWidth, nextRows / startHeight, {
           sourceForMember: sourceForPreview,
           collision: false,
+        });
+        resolveSparseGridLayoutForActiveItems(layout, previewMembers, {
+          afterOnly: true,
+          metrics: layoutMetrics,
+          exclude: [groupFootprint.footprint],
         });
       }, source, { items: reflowItems });
     };
@@ -4982,7 +5360,6 @@ document.addEventListener("DOMContentLoaded", () => {
         restoreGridLayoutSnapshot(resizeStartSnapshot);
       } else {
         animateOrderedGridReflow(layout, () => {
-          previewEntries.forEach((entry) => entry.preview.remove());
           previewEntries.forEach((entry) => entry.expandedGhost?.remove());
           restoreGridLayoutSnapshot(resizeStartSnapshot);
           applyGroupFootprintBounds(groupFootprint.footprint, groupFootprint.footprintLayout, {
@@ -4991,19 +5368,17 @@ document.addEventListener("DOMContentLoaded", () => {
             span: previewCols,
             rowSpan: previewRows,
           }, metricsForLayout(groupFootprint.footprintLayout));
-          resolveSparseGridLayout(layout, groupFootprint.footprint, { col: groupBox.col, row: groupBox.row }, { afterOnly: true, metrics: layoutMetrics });
-          const resolvedCol = Number(groupFootprint.footprint.dataset.gridCol) || groupBox.col;
-          const resolvedRow = Number(groupFootprint.footprint.dataset.gridRow) || groupBox.row;
-          const commitGroupBox = {
-            ...groupBox,
-            col: resolvedCol,
-            row: resolvedRow,
-            right: resolvedCol + startWidth - 1,
-            bottom: resolvedRow + startHeight - 1,
-          };
-          applyGroupResizeLayout(layout, members, startBounds, commitGroupBox, previewCols / startWidth, previewRows / startHeight, {
+          applyGroupResizeLayout(layout, previewMembers, previewStartBounds, groupBox, previewCols / startWidth, previewRows / startHeight, {
+            sourceForMember: sourceForPreview,
             collision: false,
           });
+          resolveSparseGridLayoutForActiveItems(layout, previewMembers, {
+            afterOnly: true,
+            metrics: layoutMetrics,
+            exclude: [groupFootprint.footprint],
+          });
+          commitGroupResizeFromPreviews(previewEntries, layout);
+          previewEntries.forEach((entry) => entry.preview.remove());
           groupFootprint.footprint.remove();
           previewEntries.forEach((entry) => clearLiveResizeSurface(entry.member, entry.live));
         }, source, { items: reflowItems });
@@ -5039,6 +5414,14 @@ document.addEventListener("DOMContentLoaded", () => {
   };
 
   const saveWidgetLayouts = (layout, profile = getActivePanelProfile(layout.dataset.widgetLayoutKey || "default"), options = {}) => {
+    if (isPanelInternalWidgetLayout(layout)) {
+      const panel = panelForInternalWidgetLayout(layout);
+      const panelLayout = panel?.closest?.(".panel-layout");
+      if (!panel || !panelLayout) return;
+      updatePanelChildEmptyState(panel);
+      savePanelLayouts(panelLayout, getActivePanelProfile(panelLayout.dataset.layoutKey || "default"), options);
+      return;
+    }
     const layoutKey = layout.dataset.widgetLayoutKey || "default";
     const persist = Boolean(options.persist);
     syncWorkspaceRegions(layout);
@@ -5101,23 +5484,28 @@ document.addEventListener("DOMContentLoaded", () => {
   };
 
   const initWidgetLayout = (layout) => {
-    const layoutKey = layout.dataset.widgetLayoutKey || "default";
+    const internalLayout = isPanelInternalWidgetLayout(layout);
+    const layoutKey = internalLayout ? gridItemLayoutKey(layout) : (layout.dataset.widgetLayoutKey || "default");
     const profile = getActivePanelProfile(layoutKey);
     let customDefinitions = [];
-    try {
-      customDefinitions = JSON.parse(localStorage.getItem(customWidgetsKey(layoutKey, profile)) || "[]");
-    } catch {
-      customDefinitions = [];
+    if (!internalLayout) {
+      try {
+        customDefinitions = JSON.parse(localStorage.getItem(customWidgetsKey(layoutKey, profile)) || "[]");
+      } catch {
+        customDefinitions = [];
+      }
     }
     customDefinitions
       .filter((definition) => workspaceObjectTypeFromDefinition(definition, WORKSPACE_OBJECT_TYPES.widget) !== WORKSPACE_OBJECT_TYPES.anchor)
       .filter((definition) => definition?.key && !layout.querySelector(`:scope > .widget-card[data-widget-key="${CSS.escape(definition.key)}"]`))
       .forEach((definition) => layout.appendChild(createCustomWidget(definition)));
     let hiddenWidgets = [];
-    try {
-      hiddenWidgets = JSON.parse(localStorage.getItem(hiddenWidgetsKey(layoutKey, profile)) || "[]");
-    } catch {
-      hiddenWidgets = [];
+    if (!internalLayout) {
+      try {
+        hiddenWidgets = JSON.parse(localStorage.getItem(hiddenWidgetsKey(layoutKey, profile)) || "[]");
+      } catch {
+        hiddenWidgets = [];
+      }
     }
     writeDraftList(layout, "hiddenWidgetsDraft", hiddenWidgets);
     hiddenWidgets.forEach((key) => {
@@ -5132,9 +5520,11 @@ document.addEventListener("DOMContentLoaded", () => {
       widget.dataset.defaultTitle = widget.querySelector(".stat-lbl")?.textContent?.trim() || "Widget";
       ensureWidgetTools(widget);
       let saved = null;
-      try {
-        saved = JSON.parse(localStorage.getItem(widgetStorageKey(layoutKey, key, profile)) || "null");
-      } catch {}
+      if (!internalLayout) {
+        try {
+          saved = JSON.parse(localStorage.getItem(widgetStorageKey(layoutKey, key, profile)) || "null");
+        } catch {}
+      }
       savedByWidget.set(widget, saved);
       markLoadedExpansionBaseline(widget, saved?.expansionBaseline);
       ensureWorkspaceObjectMetadata(widget, {
@@ -5179,7 +5569,7 @@ document.addEventListener("DOMContentLoaded", () => {
     let defaultRow = 1;
     [...layout.querySelectorAll(":scope > .widget-card:not(.workspace-anchor-object)")].forEach((widget) => {
       if (widget.dataset.gridCol && widget.dataset.gridRow) return;
-      if (layout.closest(".dashboard-layout-grid")) return;
+      if (!internalLayout && layout.closest(".dashboard-layout-grid")) return;
       const span = Number(widget.dataset.currentSpan) || Number(widget.dataset.defaultSpan) || 1;
       if (defaultCol + span - 1 > 6) {
         defaultRow += 1;
@@ -5188,7 +5578,7 @@ document.addEventListener("DOMContentLoaded", () => {
       applyWidgetGridPosition(widget, defaultCol, defaultRow);
       defaultCol += span;
     });
-    if (layout.closest(".dashboard-layout-grid")) {
+    if (!internalLayout && layout.closest(".dashboard-layout-grid")) {
       syncDefaultDashboardGrid(layoutKey);
     } else {
       normalizeGridLayout(layout);
@@ -5625,6 +6015,7 @@ document.addEventListener("DOMContentLoaded", () => {
         panel.dataset.panelTitle = saved.title;
         titleEl.textContent = saved.title;
       }
+      restorePanelChildWidgets(panel, saved?.childWidgets || []);
     });
 
     panels
@@ -5678,6 +6069,8 @@ document.addEventListener("DOMContentLoaded", () => {
       const colorToggle = panel.querySelector(".panel-color-toggle");
       const deleteButton = panel.querySelector(".panel-delete-handle");
       if (!header || !body) return;
+      const internalWidgetGrid = capabilities.hasPanelContentArea ? ensurePanelInternalWidgetGrid(panel) : null;
+      if (internalWidgetGrid) initWidgetLayout(internalWidgetGrid);
       const colorMenu = buildPanelColorMenu(panel, layout, colorToggle);
       pinButton?.setAttribute("aria-pressed", panel.classList.contains("db-panel-pinned").toString());
       let movedDuringPointer = false;
@@ -6817,6 +7210,8 @@ document.addEventListener("DOMContentLoaded", () => {
             delete panel.dataset.panelColor;
             delete panel.dataset.panelTitleColor;
             delete panel.dataset.panelTitle;
+            panel.querySelector(":scope > .db-panel-body > .panel-internal-widget-grid")?.remove();
+            updatePanelChildEmptyState(panel);
             panel.style.left = "";
             panel.style.top = "";
             panel.style.width = "";

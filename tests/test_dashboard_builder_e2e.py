@@ -542,6 +542,7 @@ def grid_item_state(page: Page, selector: str) -> dict:
             top: rect.top,
             right: rect.right,
             bottom: rect.bottom,
+            height: Math.round(rect.height),
           };
         }
         """
@@ -880,6 +881,129 @@ def test_search_bar_widget_uses_normal_widget_creation_and_controls(page: Page, 
     expect(anchor).to_be_visible()
     expect(anchor.locator(".workspace-anchor-label")).to_have_text("Top")
     expect(page.locator(".timeframe-widget .timeframe-command-surface")).to_be_visible()
+    assert_clean_browser(page)
+
+
+def test_widget_absorbs_into_open_panel_after_stable_hover_and_round_trips(page: Page, app_server: str) -> None:
+    goto(page, app_server)
+    page.evaluate(
+        """
+        () => {
+          const grid = document.querySelector(".dashboard-layout-grid");
+          const gap = parseFloat(getComputedStyle(grid).rowGap || "16") || 16;
+          const place = (node, col, row, span, rowSpan = 1) => {
+            node.hidden = false;
+            node.dataset.gridCol = String(col);
+            node.dataset.gridRow = String(row);
+            node.dataset.currentSpan = String(span);
+            node.dataset.gridRowSpan = String(rowSpan);
+            node.style.gridColumn = `${col} / span ${span}`;
+            node.style.gridRow = `${row} / span ${rowSpan}`;
+            if (node.classList.contains("db-panel")) {
+              node.classList.remove("db-panel-collapsed");
+              const height = (rowSpan * 81) + (Math.max(0, rowSpan - 1) * gap);
+              node.dataset.savedHeight = String(height);
+              node.style.height = `${height}px`;
+              node.querySelector(".db-panel-hd")?.setAttribute("aria-expanded", "true");
+            }
+          };
+          document.querySelectorAll(".panel-internal-widget-grid").forEach((node) => node.remove());
+          place(document.querySelector('[data-widget-key="widget-1"]'), 1, 1, 1, 1);
+          place(document.querySelector('[data-widget-key="widget-2"]'), 6, 1, 1, 1);
+          place(document.querySelector('[data-panel-key="builder-content"]'), 2, 4, 4, 4);
+          place(document.querySelector('[data-panel-key="builder-menu"]'), 1, 10, 2, 2);
+          place(document.querySelector('[data-panel-key="builder-notes"]'), 4, 10, 2, 2);
+        }
+        """
+    )
+
+    widget = page.locator('.widget-layout[data-widget-layout-key="builder"] > .widget-card[data-widget-key="widget-1"]')
+    panel = page.locator('[data-panel-key="builder-content"]')
+    open_tools(widget)
+    handle_box = widget.locator(".panel-move-handle").bounding_box()
+    body_box = panel.locator(".db-panel-body").bounding_box()
+    assert handle_box and body_box
+    start_x, start_y = box_center(handle_box)
+    target_x = body_box["x"] + body_box["width"] * 0.42
+    target_y = body_box["y"] + body_box["height"] * 0.52
+    page.mouse.move(start_x, start_y)
+    page.mouse.down()
+    page.mouse.move(target_x, target_y, steps=16)
+    body_box = panel.locator(".db-panel-body").bounding_box()
+    assert body_box
+    target_x = body_box["x"] + body_box["width"] * 0.5
+    target_y = body_box["y"] + body_box["height"] * 0.5
+    page.mouse.move(target_x, target_y, steps=8)
+    expect(panel).to_have_class(re.compile("panel-absorption-receptive"))
+    page.wait_for_timeout(1750)
+    page.mouse.up()
+
+    internal_widget = panel.locator('.panel-internal-widget-grid > .widget-card[data-widget-key="widget-1"]')
+    expect(internal_widget).to_be_visible()
+    expect(page.locator('.widget-layout[data-widget-layout-key="builder"]:not(.panel-internal-widget-grid) > .widget-card[data-widget-key="widget-1"]')).to_have_count(0)
+    expect(panel.locator(".panel-empty-state")).to_be_hidden()
+    expect(panel).not_to_have_class(re.compile("panel-absorption-receptive"))
+    assert_no_undo_artifacts(page)
+
+    press_dashboard_undo(page)
+    expect(panel.locator('.panel-internal-widget-grid > .widget-card[data-widget-key="widget-1"]')).to_have_count(0)
+    expect(page.locator('.widget-layout[data-widget-layout-key="builder"] > .widget-card[data-widget-key="widget-1"]')).to_be_visible()
+
+    press_dashboard_redo(page)
+    expect(panel.locator('.panel-internal-widget-grid > .widget-card[data-widget-key="widget-1"]')).to_be_visible()
+    page.locator(".layout-save-button").click()
+    expect(page.locator(".toast", has_text="saved")).to_be_visible()
+    page.reload(wait_until="networkidle")
+    panel = page.locator('[data-panel-key="builder-content"]')
+    expect(panel.locator('.panel-internal-widget-grid > .widget-card[data-widget-key="widget-1"]')).to_be_visible()
+    expect(page.locator('.widget-layout[data-widget-layout-key="builder"]:not(.panel-internal-widget-grid) > .widget-card[data-widget-key="widget-1"]')).to_have_count(0)
+    assert_clean_browser(page)
+
+
+def test_widget_hover_over_collapsed_panel_does_not_absorb(page: Page, app_server: str) -> None:
+    goto(page, app_server)
+    page.evaluate(
+        """
+        () => {
+          const place = (node, col, row, span, rowSpan = 1) => {
+            node.hidden = false;
+            node.dataset.gridCol = String(col);
+            node.dataset.gridRow = String(row);
+            node.dataset.currentSpan = String(span);
+            node.dataset.gridRowSpan = String(rowSpan);
+            node.style.gridColumn = `${col} / span ${span}`;
+            node.style.gridRow = `${row} / span ${rowSpan}`;
+          };
+          document.querySelectorAll(".panel-internal-widget-grid").forEach((node) => node.remove());
+          place(document.querySelector('[data-widget-key="widget-2"]'), 1, 1, 1, 1);
+          const panel = document.querySelector('[data-panel-key="builder-menu"]');
+          place(panel, 2, 4, 3, 1);
+          panel.classList.add("db-panel-collapsed");
+          panel.style.height = "";
+          panel.querySelector(".db-panel-hd")?.setAttribute("aria-expanded", "false");
+        }
+        """
+    )
+
+    widget = page.locator('.widget-layout[data-widget-layout-key="builder"] > .widget-card[data-widget-key="widget-2"]')
+    panel = page.locator('[data-panel-key="builder-menu"]')
+    open_tools(widget)
+    handle_box = widget.locator(".panel-move-handle").bounding_box()
+    panel_box = panel.bounding_box()
+    assert handle_box and panel_box
+    start_x, start_y = box_center(handle_box)
+    target_x = panel_box["x"] + panel_box["width"] * 0.5
+    target_y = panel_box["y"] + panel_box["height"] * 0.5
+    page.mouse.move(start_x, start_y)
+    page.mouse.down()
+    page.mouse.move(target_x, target_y, steps=12)
+    page.wait_for_timeout(1700)
+    page.mouse.up()
+
+    expect(panel).not_to_have_class(re.compile("panel-absorption-receptive"))
+    expect(panel.locator('.panel-internal-widget-grid > .widget-card[data-widget-key="widget-2"]')).to_have_count(0)
+    expect(page.locator('.widget-layout[data-widget-layout-key="builder"] > .widget-card[data-widget-key="widget-2"]')).to_be_visible()
+    assert_no_undo_artifacts(page)
     assert_clean_browser(page)
 
 
@@ -2523,10 +2647,12 @@ def test_ctrl_z_undoes_group_move_and_group_resize(page: Page, app_server: str) 
         resized["widget"]["span"],
         resized["panel"]["span"],
         resized["panel"]["rowSpan"],
+        resized["panel"]["height"],
     ) != (
         before_resize["widget"]["span"],
         before_resize["panel"]["span"],
         before_resize["panel"]["rowSpan"],
+        before_resize["panel"]["height"],
     )
 
     press_dashboard_undo(page)
@@ -2536,6 +2662,7 @@ def test_ctrl_z_undoes_group_move_and_group_resize(page: Page, app_server: str) 
     }
     assert grid_state_tuple(restored_resize["widget"]) == grid_state_tuple(before_resize["widget"])
     assert grid_state_tuple(restored_resize["panel"]) == grid_state_tuple(before_resize["panel"])
+    assert restored_resize["panel"]["height"] == before_resize["panel"]["height"]
     assert_no_undo_artifacts(page)
     assert_clean_browser(page)
 
@@ -8337,6 +8464,105 @@ def test_group_resize_composite_footprint_pushes_surrounding_items(page: Page, a
     assert_clean_browser(page)
 
 
+def test_group_resize_expanded_ghost_is_visual_only_for_collision(page: Page, app_server: str) -> None:
+    goto(page, app_server)
+    page.evaluate(
+        """
+        () => {
+          const grid = document.querySelector(".dashboard-layout-grid");
+          const gap = parseFloat(getComputedStyle(grid).rowGap || "16") || 16;
+          const place = (node, col, row, span, rowSpan = 1, collapsed = false) => {
+            node.classList.toggle("db-panel-collapsed", collapsed);
+            node.dataset.gridCol = String(col);
+            node.dataset.gridRow = String(row);
+            node.dataset.currentSpan = String(span);
+            node.dataset.gridRowSpan = String(collapsed ? 1 : rowSpan);
+            node.style.gridColumn = `${col} / span ${span}`;
+            node.style.gridRow = `${row} / span ${collapsed ? 1 : rowSpan}`;
+            const height = (rowSpan * 81) + (Math.max(0, rowSpan - 1) * gap);
+            node.dataset.savedHeight = String(height);
+            node.style.height = collapsed ? "" : `${height}px`;
+          };
+          const widget = document.querySelector('[data-widget-key="widget-1"]');
+          widget.dataset.gridCol = "1";
+          widget.dataset.gridRow = "1";
+          widget.dataset.currentSpan = "2";
+          widget.dataset.gridRowSpan = "1";
+          widget.style.gridColumn = "1 / span 2";
+          widget.style.gridRow = "1 / span 1";
+          place(document.querySelector('[data-panel-key="builder-menu"]'), 1, 4, 2, 5, true);
+          place(document.querySelector('[data-panel-key="builder-notes"]'), 1, 6, 2, 3, false);
+          place(document.querySelector('[data-panel-key="builder-content"]'), 4, 6, 2, 3, false);
+        }
+        """
+    )
+
+    page.locator(".layout-group-button").click()
+    widget = page.locator('[data-widget-key="widget-1"]')
+    collapsed = page.locator('[data-panel-key="builder-menu"]')
+    blocker = page.locator('[data-panel-key="builder-notes"]')
+    widget.click(position={"x": 20, "y": 20}, force=True)
+    collapsed.click(position={"x": 20, "y": 20}, force=True)
+    expect(page.locator(".group-selected")).to_have_count(2)
+
+    before_blocker = grid_item_state(page, '[data-panel-key="builder-notes"]')
+    before_collapsed = grid_item_state(page, '[data-panel-key="builder-menu"]')
+
+    open_tools(collapsed)
+    handle_box = collapsed.locator(".panel-resize-handle").bounding_box()
+    assert handle_box
+    x, y = box_center(handle_box)
+    page.mouse.move(x, y)
+    page.mouse.down()
+    page.mouse.move(x + 8, y + 300, steps=18)
+    page.wait_for_timeout(240)
+
+    during = page.evaluate(
+        """
+        () => {
+          const blocker = document.querySelector('[data-panel-key="builder-notes"]');
+          const collapsed = document.querySelector('[data-panel-key="builder-menu"]');
+          const ghost = document.querySelector(".dashboard-expanded-footprint-ghost");
+          const blockerRect = blocker.getBoundingClientRect();
+          const ghostRect = ghost?.getBoundingClientRect();
+          return {
+            ghostCount: document.querySelectorAll(".dashboard-expanded-footprint-ghost").length,
+            ghostOverlapsBlocker: Boolean(ghostRect) &&
+              ghostRect.left < blockerRect.right &&
+              ghostRect.right > blockerRect.left &&
+              ghostRect.top < blockerRect.bottom &&
+              ghostRect.bottom > blockerRect.top,
+            blocker: {
+              col: Number(blocker.dataset.gridCol),
+              row: Number(blocker.dataset.gridRow),
+              rowSpan: Number(blocker.dataset.gridRowSpan),
+            },
+            collapsedRows: Number(collapsed.dataset.gridRowSpan),
+            previewRows: [...document.querySelectorAll(".dashboard-group-member-preview")]
+              .map((node) => Number(node.dataset.gridRowSpan)),
+          };
+        }
+        """
+    )
+    assert during["ghostCount"] == 1
+    assert during["ghostOverlapsBlocker"] is True
+    assert during["blocker"]["row"] == before_blocker["row"]
+    assert during["blocker"]["rowSpan"] == before_blocker["rowSpan"]
+    assert during["collapsedRows"] == before_collapsed["rowSpan"] == 1
+    assert 1 in during["previewRows"]
+
+    page.mouse.up()
+    page.wait_for_timeout(420)
+    after_blocker = grid_item_state(page, '[data-panel-key="builder-notes"]')
+    after_collapsed = grid_item_state(page, '[data-panel-key="builder-menu"]')
+    assert grid_state_tuple(after_blocker) == grid_state_tuple(before_blocker)
+    assert after_collapsed["rowSpan"] == 1
+    assert_no_resize_artifacts(page)
+    expect(page.locator(".dashboard-expanded-footprint-ghost")).to_have_count(0)
+    assert no_visible_overlaps(page, ".dashboard-layout-grid .widget-card, .dashboard-layout-grid .db-panel") == []
+    assert_clean_browser(page)
+
+
 def test_group_resize_preserves_stacked_panel_spacing(page: Page, app_server: str) -> None:
     goto(page, app_server)
     page.evaluate(
@@ -8437,6 +8663,127 @@ def test_group_resize_preserves_stacked_panel_spacing(page: Page, app_server: st
     assert_no_resize_artifacts(page)
     expect(page.locator(".dashboard-group-resize-footprint")).to_have_count(0)
     assert no_visible_overlaps(page, ".dashboard-layout-grid .widget-card, .dashboard-layout-grid .db-panel") == []
+    assert_clean_browser(page)
+
+
+def test_group_resize_vertical_growth_extends_open_panel_members(page: Page, app_server: str) -> None:
+    goto(page, app_server)
+    page.evaluate(
+        """
+        () => {
+          const place = (node, col, row, span, rowSpan = 1) => {
+            node.classList.remove("db-panel-collapsed");
+            node.dataset.gridCol = String(col);
+            node.dataset.gridRow = String(row);
+            node.dataset.currentSpan = String(span);
+            node.dataset.gridRowSpan = String(rowSpan);
+            node.style.gridColumn = `${col} / span ${span}`;
+            node.style.gridRow = `${row} / span ${rowSpan}`;
+            const gap = parseFloat(getComputedStyle(document.querySelector(".dashboard-layout-grid")).rowGap || "16") || 16;
+            const height = (rowSpan * 81) + (Math.max(0, rowSpan - 1) * gap);
+            node.dataset.savedHeight = String(height);
+            node.style.height = `${height}px`;
+          };
+          document.querySelectorAll(".widget-layout > .widget-card").forEach((node, index) => {
+            node.dataset.gridCol = String(1 + (index % 6));
+            node.dataset.gridRow = String(22 + index);
+            node.dataset.currentSpan = "1";
+            node.dataset.gridRowSpan = "1";
+            node.style.gridColumn = `${1 + (index % 6)} / span 1`;
+            node.style.gridRow = `${22 + index} / span 1`;
+          });
+          place(document.querySelector('[data-panel-key="builder-menu"]'), 1, 4, 2, 2);
+          place(document.querySelector('[data-panel-key="builder-notes"]'), 1, 7, 2, 2);
+          place(document.querySelector('[data-panel-key="builder-content"]'), 1, 10, 2, 2);
+        }
+        """
+    )
+
+    page.locator(".layout-group-button").click()
+    menu = page.locator('[data-panel-key="builder-menu"]')
+    notes = page.locator('[data-panel-key="builder-notes"]')
+    table = page.locator('[data-panel-key="builder-content"]')
+    menu.click(position={"x": 20, "y": 20})
+    notes.click(position={"x": 20, "y": 20})
+    table.click(position={"x": 20, "y": 20})
+    expect(page.locator(".group-selected")).to_have_count(3)
+
+    before = {
+        "menu": grid_item_state(page, '[data-panel-key="builder-menu"]'),
+        "notes": grid_item_state(page, '[data-panel-key="builder-notes"]'),
+        "table": grid_item_state(page, '[data-panel-key="builder-content"]'),
+    }
+
+    open_tools(menu)
+    handle_box = menu.locator(".panel-resize-handle").bounding_box()
+    assert handle_box
+    x, y = box_center(handle_box)
+    page.mouse.move(x, y)
+    page.mouse.down()
+    page.mouse.move(x + 18, y + 300, steps=18)
+    page.wait_for_timeout(240)
+
+    during = page.evaluate(
+        """
+        () => {
+          const sourceRows = ["builder-menu", "builder-notes", "builder-content"].map((key) => Number(document.querySelector(`[data-panel-key="${key}"]`).dataset.gridRowSpan));
+          const previews = [...document.querySelectorAll(".dashboard-group-member-preview")]
+            .sort((a, b) => Number(a.dataset.gridRow) - Number(b.dataset.gridRow))
+            .map((node) => ({
+              row: Number(node.dataset.gridRow),
+              rowSpan: Number(node.dataset.gridRowSpan),
+              savedHeight: Number(node.dataset.savedHeight || 0),
+              rectHeight: Math.round(node.getBoundingClientRect().height),
+              bottom: Number(node.dataset.gridRow) + Number(node.dataset.gridRowSpan) - 1,
+            }));
+          const live = [...document.querySelectorAll(".dashboard-live-resize")]
+            .sort((a, b) => a.getBoundingClientRect().top - b.getBoundingClientRect().top)
+            .map((node) => Math.round(node.getBoundingClientRect().height));
+          const footprint = document.querySelector(".dashboard-group-resize-footprint");
+          return {
+            sourceRows,
+            previews,
+            live,
+            footprintRows: Number(footprint.dataset.gridRowSpan),
+            footprintBottom: Number(footprint.dataset.gridRow) + Number(footprint.dataset.gridRowSpan) - 1,
+            previewBottom: Math.max(...previews.map((preview) => preview.bottom)),
+          };
+        }
+        """
+    )
+    assert during["sourceRows"] == [2, 2, 2]
+    assert during["footprintRows"] > 8
+    assert len(during["previews"]) == 3
+    assert all(preview["rowSpan"] > 2 for preview in during["previews"])
+    assert all(preview["rectHeight"] == preview["savedHeight"] for preview in during["previews"])
+    assert max(during["live"]) > before["table"]["height"] + 150
+    assert during["previewBottom"] == during["footprintBottom"]
+
+    page.mouse.up()
+    page.wait_for_timeout(420)
+    after = {
+        "menu": grid_item_state(page, '[data-panel-key="builder-menu"]'),
+        "notes": grid_item_state(page, '[data-panel-key="builder-notes"]'),
+        "table": grid_item_state(page, '[data-panel-key="builder-content"]'),
+    }
+    assert all(after[key]["rowSpan"] > before[key]["rowSpan"] for key in after)
+    assert all(after[key]["height"] > before[key]["height"] for key in after)
+    assert after["table"]["row"] + after["table"]["rowSpan"] - 1 == max(
+        item["row"] + item["rowSpan"] - 1 for item in after.values()
+    )
+    assert_no_resize_artifacts(page)
+    assert no_visible_overlaps(page, ".dashboard-layout-grid .widget-card, .dashboard-layout-grid .db-panel") == []
+
+    page.locator(".layout-save-button").click()
+    expect(page.locator(".toast", has_text="saved")).to_be_visible()
+    page.reload(wait_until="networkidle")
+    reloaded = {
+        "menu": grid_item_state(page, '[data-panel-key="builder-menu"]'),
+        "notes": grid_item_state(page, '[data-panel-key="builder-notes"]'),
+        "table": grid_item_state(page, '[data-panel-key="builder-content"]'),
+    }
+    assert {key: reloaded[key]["rowSpan"] for key in reloaded} == {key: after[key]["rowSpan"] for key in after}
+    assert {key: reloaded[key]["height"] for key in reloaded} == {key: after[key]["height"] for key in after}
     assert_clean_browser(page)
 
 
