@@ -89,3 +89,18 @@ Save/load restores committed records first, then recomputes derived region membe
 ## Intentionally Deferred
 
 The architecture intentionally does not include a heavy context editor UI, backend data-source execution, server-side permissions, product-specific widgets, or mobile/responsive architecture changes. Those systems can be added later without changing the foundational taxonomy, layout-domain ownership, widget runtime contract, or context inheritance backbone.
+
+### Compact Workspace Mode
+
+Compact Workspace Mode is deferred as a future system. It is not a scaled-down version of the desktop spatial workspace; it needs its own constrained-viewport interaction contract.
+
+Expected compact-mode concerns include:
+
+- single-column layout behavior;
+- collapsed navbar and grouped workspace chrome;
+- simplified drag/resize and placement interactions;
+- anchor rail compression or anchor drawer behavior;
+- responsive density scaling;
+- progressive disclosure for controls, menus, context indicators, and navigation.
+
+Compact mode should wait until desktop interaction laws, panel containment, context inheritance, widget runtime architecture, and performance systems have stabilized. Until then, responsive work should avoid weakening the desktop/spatial interaction model or mixing compact-mode rules into the global grid, panel internal grid, anchor rail, or divider-region domains.

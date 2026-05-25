@@ -119,3 +119,8 @@ Regions should not:
 - Whether future persistent groups should create semantic context scopes by default or only when explicitly promoted.
 - How much region summary information should be visible at overview zoom.
 
+## Deferred Compact Workspace Mode
+
+Compact Workspace Mode is a future responsive system, not a direct shrink of the current desktop workspace. It should define a separate constrained-viewport interaction contract with single-column layout behavior, collapsed chrome, simplified movement and resizing, compressed anchor rail or drawer behavior, responsive density scaling, and progressive disclosure.
+
+This mode is intentionally deferred until desktop interaction laws, panel containment, context inheritance, widget runtime architecture, and large-workspace performance systems are stable.

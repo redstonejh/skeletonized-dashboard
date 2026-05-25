@@ -63,6 +63,7 @@ The upcoming work is intentionally staged around stabilization first, then large
 - Composite group interactions with shared visual language, local collision, proportional resize, and stable member relationships.
 - Region-aware placement that understands context zones without scrambling unrelated dashboard items.
 - Richer undo/redo transaction boundaries for committed dashboard actions while excluding live previews and transient surfaces.
+- Compact Workspace Mode as a separate constrained-viewport interaction contract, with single-column layout behavior, collapsed workspace chrome, simplified interactions, compressed anchor rail/drawer behavior, responsive density scaling, and progressive disclosure. This is intentionally not desktop scaled down.
 - Accessibility-first keyboard support for anchors, groups, dividers, panels, widgets, and major dashboard commands.
 - Reduced-motion equivalents for cinematic scroll, drag, resize, collapse, and anchor navigation.
 
@@ -90,6 +91,7 @@ The upcoming work is intentionally staged around stabilization first, then large
 - No product-specific monitoring, security, vendor, incident, ranking, or notification concepts.
 - No fake widget insertion inside panels until nested widget behavior is implemented for real.
 - No global auto-pack behavior that silently rewrites intentional dashboard space.
+- No compact/mobile workspace mode until desktop interaction laws, panel containment, context inheritance, widget runtime architecture, and performance systems are stable.
 
 ## Routes
 
