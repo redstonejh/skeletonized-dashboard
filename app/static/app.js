@@ -283,6 +283,9 @@ document.addEventListener("DOMContentLoaded", () => {
     engineerModeState.enabled = nextEnabled;
     engineerModeState.source = options.source || "api";
     engineerModeState.updatedAt = Date.now();
+    if (!nextEnabled) {
+      selectedWorkspaceRelationship = null;
+    }
     syncEngineerModeDom();
     refreshEngineerContextVisibility();
     engineerModeListeners.forEach((listener) => {
@@ -2478,6 +2481,23 @@ document.addEventListener("DOMContentLoaded", () => {
     operator: "operator",
     semantic: "semantic",
   });
+  const WORKSPACE_SIGNAL_TYPES = Object.freeze({
+    context: "context",
+    filter: "filter",
+    query: "query",
+    logical: "logical",
+    style: "style",
+    data: "data",
+    semantic: "semantic",
+  });
+  const WORKSPACE_PORT_ROLES = Object.freeze({
+    input: "input",
+    output: "output",
+  });
+  const WORKSPACE_PORT_SIDES = Object.freeze({
+    input: "left",
+    output: "right",
+  });
   const LOGICAL_OPERATOR_TYPES = Object.freeze({
     and: "AND",
     or: "OR",
@@ -2493,6 +2513,7 @@ document.addEventListener("DOMContentLoaded", () => {
   });
   const LOGIC_COMPARISON_OPERATORS = new Set(["<", ">", "=", "!=", "<=", ">="]);
   const relationshipId = () => `relationship-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
+  const graphLinkId = () => `link-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
   const operatorNodeId = () => `operator-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
   const styleRuleId = () => `style-rule-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
   const styleRuleGraphId = (id) => `style-rule:${String(id || "")}`;
@@ -2500,6 +2521,52 @@ document.addEventListener("DOMContentLoaded", () => {
   const normalizeRelationshipType = (type) => (
     Object.values(WORKSPACE_RELATIONSHIP_TYPES).includes(type) ? type : WORKSPACE_RELATIONSHIP_TYPES.semantic
   );
+  const relationshipTypeForSignal = (signalType) => {
+    const normalized = normalizeSignalType(signalType);
+    if (normalized === WORKSPACE_SIGNAL_TYPES.logical || normalized === WORKSPACE_SIGNAL_TYPES.style) return WORKSPACE_RELATIONSHIP_TYPES.operator;
+    if (normalized === WORKSPACE_SIGNAL_TYPES.data) return WORKSPACE_RELATIONSHIP_TYPES.query;
+    return normalizeRelationshipType(normalized);
+  };
+  const normalizeSignalType = (type) => (
+    Object.values(WORKSPACE_SIGNAL_TYPES).includes(type) ? type : WORKSPACE_SIGNAL_TYPES.semantic
+  );
+  const normalizePortRole = (role) => (
+    Object.values(WORKSPACE_PORT_ROLES).includes(role) ? role : WORKSPACE_PORT_ROLES.output
+  );
+  const graphPortId = (objectId, role = WORKSPACE_PORT_ROLES.output, name = "main") =>
+    `${String(objectId || "")}:${normalizePortRole(role)}:${String(name || "main")}`;
+  const normalizePortRef = (ref = {}, fallbackRole = WORKSPACE_PORT_ROLES.output, fallbackObjectId = "") => {
+    const objectId = String(ref.objectId || ref.nodeId || ref.object || fallbackObjectId || "");
+    const role = normalizePortRole(ref.role || fallbackRole);
+    const name = String(ref.name || ref.portName || "main");
+    return {
+      objectId,
+      portId: String(ref.portId || graphPortId(objectId, role, name)),
+      role,
+      side: WORKSPACE_PORT_SIDES[role],
+      name,
+      signalTypes: Array.isArray(ref.signalTypes)
+        ? ref.signalTypes.map(normalizeSignalType)
+        : [WORKSPACE_SIGNAL_TYPES.context, WORKSPACE_SIGNAL_TYPES.filter, WORKSPACE_SIGNAL_TYPES.query, WORKSPACE_SIGNAL_TYPES.logical, WORKSPACE_SIGNAL_TYPES.semantic],
+    };
+  };
+  const normalizeWorkspaceLink = (link = {}) => {
+    const legacySource = String(link.sourceId || link.sourceObjectId || "");
+    const legacyTarget = String(link.targetId || link.targetObjectId || "");
+    const source = normalizePortRef(link.source || {}, WORKSPACE_PORT_ROLES.output, legacySource);
+    const target = normalizePortRef(link.target || {}, WORKSPACE_PORT_ROLES.input, legacyTarget);
+    return {
+      id: String(link.id || graphLinkId()),
+      source,
+      target,
+      signalType: normalizeSignalType(link.signalType || link.type),
+      direction: String(link.direction || "source-to-target"),
+      label: String(link.label || ""),
+      enabled: link.enabled !== false,
+      visualState: String(link.visualState || "ambient"),
+      metadata: link.metadata && typeof link.metadata === "object" ? { ...link.metadata } : {},
+    };
+  };
   const normalizeLogicalOperatorType = (type) => {
     const normalized = String(type || "AND").toUpperCase();
     return Object.values(LOGICAL_OPERATOR_TYPES).includes(normalized) ? normalized : LOGICAL_OPERATOR_TYPES.and;
@@ -2574,6 +2641,9 @@ document.addEventListener("DOMContentLoaded", () => {
   });
   const normalizeWorkspaceLogicGraph = (graph = {}) => ({
     version: 1,
+    links: Array.isArray(graph.links)
+      ? graph.links.map(normalizeWorkspaceLink).filter((link) => link.source.objectId && link.target.objectId)
+      : [],
     relationships: Array.isArray(graph.relationships)
       ? graph.relationships.map(normalizeWorkspaceRelationship).filter((relationship) => relationship.sourceId && relationship.targetId)
       : [],
@@ -2606,18 +2676,20 @@ document.addEventListener("DOMContentLoaded", () => {
         inputs: operator.inputs.filter(hasEndpoint),
         outputs: operator.outputs.filter(hasEndpoint),
       })),
+      links: normalized.links.filter((link) => hasEndpoint(link.source.objectId) && hasEndpoint(link.target.objectId)),
       styleRules: normalized.styleRules.filter((rule) => hasEndpoint(rule.targetObjectId)),
       contextLinks: normalized.contextLinks.filter((link) => hasEndpoint(link.sourceObjectId) && hasEndpoint(link.targetObjectId)),
     });
   };
   const workspaceLogicGraphFromPersistedSnapshot = (snapshot = {}) => normalizeWorkspaceLogicGraph({
+    links: snapshot.links || [],
     relationships: snapshot.relationships || [],
     operators: snapshot.operators || [],
     styleRules: snapshot.styleRules || [],
     contextLinks: snapshot.contextLinks || [],
   });
   const loadWorkspaceLogicGraph = (layoutKey = "builder", profile = getActivePanelProfile(layoutKey)) =>
-    normalizeWorkspaceLogicGraph(readJsonStore(workspaceLogicGraphKey(layoutKey, profile), { version: 1, relationships: [], operators: [], styleRules: [], contextLinks: [] }));
+    normalizeWorkspaceLogicGraph(readJsonStore(workspaceLogicGraphKey(layoutKey, profile), { version: 1, links: [], relationships: [], operators: [], styleRules: [], contextLinks: [] }));
   const saveWorkspaceLogicGraph = (layoutKey = "builder", graph = {}, profile = getActivePanelProfile(layoutKey), options = {}) => {
     const normalized = normalizeWorkspaceLogicGraph(graph);
     writeJsonStore(workspaceLogicGraphKey(layoutKey, profile), normalized);
@@ -2630,6 +2702,7 @@ document.addEventListener("DOMContentLoaded", () => {
         label: "Workspace logic graph changed",
         payload: {
           profile,
+          linkCount: normalized.links.length,
           relationshipCount: normalized.relationships.length,
           operatorCount: normalized.operators.length,
           styleRuleCount: normalized.styleRules.length,
@@ -2668,9 +2741,31 @@ document.addEventListener("DOMContentLoaded", () => {
   };
   const explicitWorkspaceRelationships = (graph = loadWorkspaceLogicGraph("builder")) => {
     const relationships = [];
+    (graph.links || []).forEach((link) => {
+      addUniqueRelationship(relationships, {
+        id: `link-${link.id}`,
+        sourceId: link.source.objectId,
+        targetId: link.target.objectId,
+        type: relationshipTypeForSignal(link.signalType),
+        visualState: link.visualState || (link.enabled === false ? "ambient" : "active"),
+        label: link.label,
+        metadata: {
+          ...(link.metadata || {}),
+          linkId: link.id,
+          sourcePortId: link.source.portId,
+          sourcePortRole: link.source.role,
+          targetPortId: link.target.portId,
+          targetPortRole: link.target.role,
+          direction: link.direction,
+          signalType: link.signalType,
+        },
+      });
+    });
     (graph.relationships || []).forEach((relationship) => addUniqueRelationship(relationships, relationship));
 
     graph.contextLinks.forEach((link) => {
+      const hasCanonicalLink = (graph.links || []).some((entry) => entry.metadata?.contextLinkId === link.id);
+      if (hasCanonicalLink) return;
       addUniqueRelationship(relationships, {
         id: `context-link-${link.id}`,
         sourceId: link.sourceObjectId,
@@ -2814,29 +2909,37 @@ document.addEventListener("DOMContentLoaded", () => {
     ));
     return items;
   };
-  const nodulePointForElement = (element) => {
+  const nodulePointForElement = (element, role = WORKSPACE_PORT_ROLES.input) => {
     if (!element || !element.isConnected || element.hidden) return null;
     const rect = element.getBoundingClientRect();
     if (rect.width <= 0 || rect.height <= 0) return null;
+    const normalizedRole = normalizePortRole(role);
     return {
-      x: rect.left,
+      x: normalizedRole === WORKSPACE_PORT_ROLES.output ? rect.right : rect.left,
       y: rect.top + (rect.height / 2),
       rect,
+      role: normalizedRole,
     };
   };
-  const relationshipEndpointPoint = (id, layoutKey, operators = [], styleRules = []) => {
+  const operatorPortPoint = (operator, role = WORKSPACE_PORT_ROLES.input) => {
+    if (!operator) return null;
+    const normalizedRole = normalizePortRole(role);
+    return {
+      x: operator.x - window.scrollX + (normalizedRole === WORKSPACE_PORT_ROLES.output ? 24 : -24),
+      y: operator.y - window.scrollY,
+      kind: "operator",
+      role: normalizedRole,
+    };
+  };
+  const relationshipEndpointPoint = (id, layoutKey, operators = [], styleRules = [], portRole = WORKSPACE_PORT_ROLES.input) => {
     const operator = operators.find((node) => node.id === id);
     if (operator) {
-      return {
-        x: operator.x - window.scrollX,
-        y: operator.y - window.scrollY,
-        kind: "operator",
-      };
+      return operatorPortPoint(operator, portRole);
     }
     const styleRulePoint = styleRuleEndpointPoint(id, layoutKey, styleRules);
     if (styleRulePoint) return styleRulePoint;
     const element = workspaceElementByGraphId(id, layoutKey);
-    const point = nodulePointForElement(element);
+    const point = nodulePointForElement(element, portRole);
     if (!point) return null;
     return {
       x: point.x,
@@ -2861,6 +2964,115 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     return `M ${sx.toFixed(1)} ${sy.toFixed(1)} C ${gutterX.toFixed(1)} ${sy.toFixed(1)}, ${gutterX.toFixed(1)} ${ty.toFixed(1)}, ${tx.toFixed(1)} ${ty.toFixed(1)}`;
   };
+  let selectedWorkspaceRelationship = null;
+  const relationshipStorageRef = (relationship = {}) => {
+    const linkId = relationship.metadata?.linkId || "";
+    if (linkId) return { type: "link", id: linkId };
+    const contextLinkId = relationship.metadata?.contextLinkId || "";
+    if (contextLinkId) return { type: "context-link", id: contextLinkId };
+    return { type: "relationship", id: relationship.id || "" };
+  };
+  const clearSelectedWorkspaceRelationship = () => {
+    if (!selectedWorkspaceRelationship) return;
+    selectedWorkspaceRelationship = null;
+    refreshEngineerOverlays();
+  };
+  const deleteSelectedWorkspaceRelationship = () => {
+    if (!selectedWorkspaceRelationship || !isEngineerMode()) return false;
+    const { layoutKey, storageType, storageId } = selectedWorkspaceRelationship;
+    const profile = getActivePanelProfile(layoutKey);
+    const removed = storageType === "link"
+      ? window.dashboardRelationshipRuntime?.removeLink?.(layoutKey, storageId, profile)
+      : storageType === "context-link"
+        ? window.dashboardRelationshipRuntime?.removeContextLink?.(layoutKey, storageId, profile)
+        : window.dashboardRelationshipRuntime?.removeRelationship?.(layoutKey, storageId, profile);
+    if (!removed) return false;
+    selectedWorkspaceRelationship = null;
+    refreshEngineerOverlays();
+    return true;
+  };
+  const selectWorkspaceRelationship = (relationship, layoutKey = "builder") => {
+    if (!relationship || !isEngineerMode()) return;
+    const storage = relationshipStorageRef(relationship);
+    if (!storage.id) return;
+    selectedWorkspaceRelationship = {
+      layoutKey,
+      relationshipId: relationship.id,
+      storageType: storage.type,
+      storageId: storage.id,
+    };
+    refreshEngineerOverlays();
+  };
+  const selectedWorkspaceRelationshipMatches = (relationship, layoutKey = "builder") => {
+    if (!selectedWorkspaceRelationship || selectedWorkspaceRelationship.layoutKey !== layoutKey) return false;
+    const storage = relationshipStorageRef(relationship);
+    return selectedWorkspaceRelationship.relationshipId === relationship.id &&
+      selectedWorkspaceRelationship.storageType === storage.type &&
+      selectedWorkspaceRelationship.storageId === storage.id;
+  };
+  const renderWorkspaceRelationshipDeleteControl = (layer, relationship, path, layoutKey = "builder") => {
+    if (!selectedWorkspaceRelationshipMatches(relationship, layoutKey)) return;
+    let point = null;
+    try {
+      const length = path.getTotalLength();
+      point = path.getPointAtLength(length * .5);
+    } catch {
+      point = null;
+    }
+    if (!point) return;
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "workspace-wire-delete-button";
+    button.dataset.relationshipId = relationship.id;
+    button.setAttribute("aria-label", "Delete selected wire");
+    button.title = "Delete wire";
+    button.textContent = "x";
+    button.style.left = `${Math.round(point.x)}px`;
+    button.style.top = `${Math.round(point.y)}px`;
+    button.addEventListener("pointerdown", (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+    });
+    button.addEventListener("click", (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      deleteSelectedWorkspaceRelationship();
+    });
+    layer.appendChild(button);
+  };
+  const renderWorkspaceRelationshipSelectTarget = (layer, relationship, path, onSelect) => {
+    let point = null;
+    try {
+      const length = path.getTotalLength();
+      point = path.getPointAtLength(length * .5);
+    } catch {
+      point = null;
+    }
+    if (!point) return;
+    const target = document.createElement("button");
+    target.type = "button";
+    target.className = "workspace-wire-select-target";
+    target.dataset.relationshipId = relationship.id;
+    target.setAttribute("aria-label", "Select wire");
+    target.style.left = `${Math.round(point.x)}px`;
+    target.style.top = `${Math.round(point.y)}px`;
+    target.addEventListener("pointerenter", () => {
+      path.dataset.relationshipHovered = "true";
+    });
+    target.addEventListener("pointerleave", () => {
+      delete path.dataset.relationshipHovered;
+    });
+    target.addEventListener("pointerdown", (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+    });
+    target.addEventListener("click", (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      onSelect(event);
+    });
+    layer.appendChild(target);
+  };
   const renderWorkspaceRelationships = (layer, layoutKey = "builder") => {
     const graph = loadWorkspaceLogicGraph(layoutKey);
     const relationships = explicitWorkspaceRelationships(graph);
@@ -2872,24 +3084,74 @@ document.addEventListener("DOMContentLoaded", () => {
       viewBox: `0 0 ${window.innerWidth} ${window.innerHeight}`,
     });
     relationships.forEach((relationship) => {
-      const source = relationshipEndpointPoint(relationship.sourceId, layoutKey, graph.operators, graph.styleRules);
-      const target = relationshipEndpointPoint(relationship.targetId, layoutKey, graph.operators, graph.styleRules);
+      const source = relationshipEndpointPoint(
+        relationship.sourceId,
+        layoutKey,
+        graph.operators,
+        graph.styleRules,
+        relationship.metadata?.sourcePortRole || WORKSPACE_PORT_ROLES.output
+      );
+      const target = relationshipEndpointPoint(
+        relationship.targetId,
+        layoutKey,
+        graph.operators,
+        graph.styleRules,
+        relationship.metadata?.targetPortRole || WORKSPACE_PORT_ROLES.input
+      );
       if (!source || !target) return;
       const min = -120;
       const maxX = window.innerWidth + 120;
       const maxY = window.innerHeight + 120;
       if ((source.x < min && target.x < min) || (source.x > maxX && target.x > maxX) || (source.y < min && target.y < min) || (source.y > maxY && target.y > maxY)) return;
+      const storage = relationshipStorageRef(relationship);
+      const selected = selectedWorkspaceRelationshipMatches(relationship, layoutKey);
       const path = createRelationshipSvgElement("path", {
         class: "workspace-relationship-path",
         "data-relationship-id": relationship.id,
+        "data-relationship-storage-type": storage.type,
+        "data-relationship-storage-id": storage.id,
         "data-relationship-type": relationship.type,
+        "data-relationship-signal-type": relationship.metadata?.signalType || relationship.type,
         "data-relationship-state": relationship.visualState || "ambient",
+        "data-relationship-selected": selected ? "true" : "false",
         "data-relationship-source-id": relationship.sourceId,
         "data-relationship-target-id": relationship.targetId,
+        "data-relationship-source-port": relationship.metadata?.sourcePortId || "",
+        "data-relationship-target-port": relationship.metadata?.targetPortId || "",
+        "data-relationship-direction": relationship.metadata?.direction || "source-to-target",
         "data-relationship-label": relationship.label || "",
         d: workspaceWirePath(source, target),
       });
+      const hitPath = createRelationshipSvgElement("path", {
+        class: "workspace-relationship-hit-path",
+        "data-relationship-id": relationship.id,
+        "data-relationship-storage-type": storage.type,
+        "data-relationship-storage-id": storage.id,
+        "data-relationship-source-port": relationship.metadata?.sourcePortId || "",
+        "data-relationship-target-port": relationship.metadata?.targetPortId || "",
+        d: path.getAttribute("d"),
+      });
+      const handleRelationshipClick = (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        selectWorkspaceRelationship(relationship, layoutKey);
+      };
+      const setRelationshipHover = () => {
+        path.dataset.relationshipHovered = "true";
+      };
+      const clearRelationshipHover = () => {
+        delete path.dataset.relationshipHovered;
+      };
+      path.addEventListener("click", handleRelationshipClick);
+      hitPath.addEventListener("click", handleRelationshipClick);
+      path.addEventListener("pointerenter", setRelationshipHover);
+      path.addEventListener("pointerleave", clearRelationshipHover);
+      hitPath.addEventListener("pointerenter", setRelationshipHover);
+      hitPath.addEventListener("pointerleave", clearRelationshipHover);
+      svg.appendChild(hitPath);
       svg.appendChild(path);
+      renderWorkspaceRelationshipSelectTarget(layer, relationship, path, handleRelationshipClick);
+      renderWorkspaceRelationshipDeleteControl(layer, relationship, path, layoutKey);
     });
     layer.appendChild(svg);
 
@@ -2943,24 +3205,37 @@ document.addEventListener("DOMContentLoaded", () => {
     const target = document.elementFromPoint(x, y);
     return target?.closest?.(".workspace-wire-nodule") || null;
   };
-  const commitWorkspaceWireConnection = (layoutKey, sourceId, targetId) => {
+  const commitWorkspaceWireConnection = (layoutKey, sourcePort = {}, targetPort = {}) => {
+    const sourceId = sourcePort.objectId || "";
+    const targetId = targetPort.objectId || "";
     if (!sourceId || !targetId || sourceId === targetId) return null;
     const profile = getActivePanelProfile(layoutKey);
     const graph = loadWorkspaceLogicGraph(layoutKey, profile);
+    const source = normalizePortRef(sourcePort, WORKSPACE_PORT_ROLES.output, sourceId);
+    const target = normalizePortRef(targetPort, WORKSPACE_PORT_ROLES.input, targetId);
+    const normalizedSource = source.role === WORKSPACE_PORT_ROLES.output ? source : target;
+    const normalizedTarget = source.role === WORKSPACE_PORT_ROLES.output ? target : source;
+    if (normalizedSource.objectId === normalizedTarget.objectId) return null;
     const link = normalizeContextLink({
-      sourceObjectId: sourceId,
-      targetObjectId: targetId,
+      sourceObjectId: normalizedSource.objectId,
+      targetObjectId: normalizedTarget.objectId,
       mode: CONTEXT_LINK_MODES.inherit,
     });
-    if (graph.contextLinks.some((entry) => entry.sourceObjectId === link.sourceObjectId && entry.targetObjectId === link.targetObjectId && entry.mode === link.mode)) {
+    if (
+      graph.contextLinks.some((entry) => entry.sourceObjectId === link.sourceObjectId && entry.targetObjectId === link.targetObjectId && entry.mode === link.mode) ||
+      graph.links.some((entry) => entry.source.objectId === normalizedSource.objectId && entry.target.objectId === normalizedTarget.objectId && entry.signalType === WORKSPACE_SIGNAL_TYPES.context)
+    ) {
       return null;
     }
-    const existingRuntime = window.dashboardRelationshipRuntime?.addContextLink?.(layoutKey, link, profile);
+    const existingRuntime = window.dashboardRelationshipRuntime?.addContextLink?.(layoutKey, link, profile, {
+      sourcePort: normalizedSource,
+      targetPort: normalizedTarget,
+    });
     return existingRuntime;
   };
-  const liveWorkspaceWireEndpointPoint = (objectId, layoutKey, fallbackHandle = null) => {
+  const liveWorkspaceWireEndpointPoint = (objectId, layoutKey, fallbackHandle = null, role = WORKSPACE_PORT_ROLES.output) => {
     const graph = loadWorkspaceLogicGraph(layoutKey);
-    const point = relationshipEndpointPoint(objectId, layoutKey, graph.operators, graph.styleRules);
+    const point = relationshipEndpointPoint(objectId, layoutKey, graph.operators, graph.styleRules, role);
     if (point) return point;
     const rect = fallbackHandle?.isConnected ? fallbackHandle.getBoundingClientRect() : null;
     if (rect && rect.width > 0 && rect.height > 0) {
@@ -2971,7 +3246,8 @@ document.addEventListener("DOMContentLoaded", () => {
   const startWorkspaceWireDrag = (event, handle, layoutKey = "builder") => {
     if (!isEngineerMode() || event.button !== 0) return;
     const sourceId = handle?.dataset?.wireObjectId || "";
-    const initialSourcePoint = liveWorkspaceWireEndpointPoint(sourceId, layoutKey, handle);
+    const sourceRole = normalizePortRole(handle?.dataset?.wirePortRole || WORKSPACE_PORT_ROLES.output);
+    const initialSourcePoint = liveWorkspaceWireEndpointPoint(sourceId, layoutKey, handle, sourceRole);
     if (!sourceId) return;
     event.preventDefault();
     event.stopPropagation();
@@ -2982,6 +3258,12 @@ document.addEventListener("DOMContentLoaded", () => {
     const dragState = {
       layoutKey,
       sourceId,
+      sourcePort: {
+        objectId: sourceId,
+        portId: handle.dataset.wirePortId || graphPortId(sourceId, sourceRole),
+        role: sourceRole,
+        name: handle.dataset.wirePortName || "main",
+      },
       lastClientX: event.clientX,
       lastClientY: event.clientY,
       frame: 0,
@@ -3008,7 +3290,7 @@ document.addEventListener("DOMContentLoaded", () => {
       dragState.previewSvg.setAttribute("width", String(window.innerWidth));
       dragState.previewSvg.setAttribute("height", String(window.innerHeight));
       dragState.previewSvg.setAttribute("viewBox", `0 0 ${window.innerWidth} ${window.innerHeight}`);
-      const sourcePoint = liveWorkspaceWireEndpointPoint(sourceId, layoutKey, dragState.sourceHandle) || initialSourcePoint;
+      const sourcePoint = liveWorkspaceWireEndpointPoint(sourceId, layoutKey, dragState.sourceHandle, sourceRole) || initialSourcePoint;
       if (!sourcePoint) return;
       const targetHandle = workspaceWireHandleFromPoint(clientX, clientY);
       const validTarget = targetHandle && targetHandle.dataset.wireObjectId !== sourceId ? targetHandle : null;
@@ -3042,8 +3324,16 @@ document.addEventListener("DOMContentLoaded", () => {
       const targetHandle = workspaceWireHandleFromPoint(upEvent.clientX, upEvent.clientY);
       const targetId = targetHandle?.dataset?.wireObjectId || "";
       const valid = targetHandle && targetId && targetId !== sourceId;
+      const targetRole = normalizePortRole(targetHandle?.dataset?.wirePortRole || WORKSPACE_PORT_ROLES.input);
       cleanupWorkspaceWireDrag();
-      if (valid) commitWorkspaceWireConnection(layoutKey, sourceId, targetId);
+      if (valid) {
+        commitWorkspaceWireConnection(layoutKey, dragState.sourcePort, {
+          objectId: targetId,
+          portId: targetHandle.dataset.wirePortId || graphPortId(targetId, targetRole),
+          role: targetRole,
+          name: targetHandle.dataset.wirePortName || "main",
+        });
+      }
     };
     dragState.onCancel = (cancelEvent) => {
       cancelEvent.preventDefault();
@@ -3094,44 +3384,57 @@ document.addEventListener("DOMContentLoaded", () => {
     };
     connectableWorkspaceElements(layoutKey).forEach((item) => {
       const objectId = graphIdForWorkspaceElement(item);
-      const point = nodulePointForElement(item);
-      if (!objectId || !point) return;
-      if (point.rect.bottom < -40 || point.rect.top > window.innerHeight + 40) return;
-      const handle = document.createElement("button");
-      handle.type = "button";
-      handle.className = "workspace-wire-nodule";
-      handle.dataset.wireObjectId = objectId;
-      handle.dataset.wireObjectType = workspaceObjectType(item);
-      handle.dataset.wireX = String(point.x);
-      handle.dataset.wireY = String(point.y);
-      handle.setAttribute("aria-label", `Create relationship from ${objectId}`);
-      handle.title = "Create relationship";
-      handle.style.left = `${Math.round(point.x)}px`;
-      handle.style.top = `${Math.round(point.y)}px`;
-      handle.addEventListener("pointerdown", (event) => startWorkspaceWireDrag(event, handle, layoutKey));
-      handle.addEventListener("click", isolateWireHandleClick);
-      bindWireHoverTrace(handle);
-      layer.appendChild(handle);
+      if (!objectId) return;
+      [WORKSPACE_PORT_ROLES.output, WORKSPACE_PORT_ROLES.input].forEach((role) => {
+        const point = nodulePointForElement(item, role);
+        if (!point) return;
+        if (point.rect.bottom < -40 || point.rect.top > window.innerHeight + 40) return;
+        const handle = document.createElement("button");
+        handle.type = "button";
+        handle.className = `workspace-wire-nodule workspace-wire-nodule-${role}`;
+        handle.dataset.wireObjectId = objectId;
+        handle.dataset.wireObjectType = workspaceObjectType(item);
+        handle.dataset.wirePortId = graphPortId(objectId, role);
+        handle.dataset.wirePortRole = role;
+        handle.dataset.wirePortSide = WORKSPACE_PORT_SIDES[role];
+        handle.dataset.wirePortName = "main";
+        handle.dataset.wireX = String(point.x);
+        handle.dataset.wireY = String(point.y);
+        handle.setAttribute("aria-label", `${role === WORKSPACE_PORT_ROLES.output ? "Output" : "Input"} port for ${objectId}`);
+        handle.title = role === WORKSPACE_PORT_ROLES.output ? "Output port" : "Input port";
+        handle.style.left = `${Math.round(point.x)}px`;
+        handle.style.top = `${Math.round(point.y)}px`;
+        handle.addEventListener("pointerdown", (event) => startWorkspaceWireDrag(event, handle, layoutKey));
+        handle.addEventListener("click", isolateWireHandleClick);
+        bindWireHoverTrace(handle);
+        layer.appendChild(handle);
+      });
     });
     loadWorkspaceLogicGraph(layoutKey).operators.forEach((operator) => {
-      const point = relationshipEndpointPoint(operator.id, layoutKey, [operator]);
-      if (!point) return;
-      if (point.y < -40 || point.y > window.innerHeight + 40 || point.x < -40 || point.x > window.innerWidth + 40) return;
-      const handle = document.createElement("button");
-      handle.type = "button";
-      handle.className = "workspace-wire-nodule workspace-wire-nodule-operator";
-      handle.dataset.wireObjectId = operator.id;
-      handle.dataset.wireObjectType = "operator";
-      handle.dataset.wireX = String(point.x);
-      handle.dataset.wireY = String(point.y);
-      handle.setAttribute("aria-label", `Create relationship from ${operator.operatorType} operator`);
-      handle.title = "Create relationship";
-      handle.style.left = `${Math.round(point.x)}px`;
-      handle.style.top = `${Math.round(point.y)}px`;
-      handle.addEventListener("pointerdown", (event) => startWorkspaceWireDrag(event, handle, layoutKey));
-      handle.addEventListener("click", isolateWireHandleClick);
-      bindWireHoverTrace(handle);
-      layer.appendChild(handle);
+      [WORKSPACE_PORT_ROLES.output, WORKSPACE_PORT_ROLES.input].forEach((role) => {
+        const point = relationshipEndpointPoint(operator.id, layoutKey, [operator], [], role);
+        if (!point) return;
+        if (point.y < -40 || point.y > window.innerHeight + 40 || point.x < -40 || point.x > window.innerWidth + 40) return;
+        const handle = document.createElement("button");
+        handle.type = "button";
+        handle.className = `workspace-wire-nodule workspace-wire-nodule-operator workspace-wire-nodule-${role}`;
+        handle.dataset.wireObjectId = operator.id;
+        handle.dataset.wireObjectType = "operator";
+        handle.dataset.wirePortId = graphPortId(operator.id, role);
+        handle.dataset.wirePortRole = role;
+        handle.dataset.wirePortSide = WORKSPACE_PORT_SIDES[role];
+        handle.dataset.wirePortName = "main";
+        handle.dataset.wireX = String(point.x);
+        handle.dataset.wireY = String(point.y);
+        handle.setAttribute("aria-label", `${role === WORKSPACE_PORT_ROLES.output ? "Output" : "Input"} port for ${operator.operatorType} operator`);
+        handle.title = role === WORKSPACE_PORT_ROLES.output ? "Output port" : "Input port";
+        handle.style.left = `${Math.round(point.x)}px`;
+        handle.style.top = `${Math.round(point.y)}px`;
+        handle.addEventListener("pointerdown", (event) => startWorkspaceWireDrag(event, handle, layoutKey));
+        handle.addEventListener("click", isolateWireHandleClick);
+        bindWireHoverTrace(handle);
+        layer.appendChild(handle);
+      });
     });
   };
   const renderWorkspaceLogicToolbox = (layer, layoutKey = "builder") => {
@@ -3453,6 +3756,21 @@ document.addEventListener("DOMContentLoaded", () => {
   window.addEventListener("resize", () => {
     if (isEngineerMode()) refreshEngineerOverlays();
   }, { passive: true });
+  document.addEventListener("keydown", (event) => {
+    if (!isEngineerMode() || !selectedWorkspaceRelationship) return;
+    if (event.target?.closest?.("input, textarea, select, [contenteditable='true'], [role='textbox']")) return;
+    if (event.key === "Escape") {
+      event.preventDefault();
+      event.stopPropagation();
+      clearSelectedWorkspaceRelationship();
+      return;
+    }
+    if (event.key === "Delete" || event.key === "Backspace") {
+      if (!deleteSelectedWorkspaceRelationship()) return;
+      event.preventDefault();
+      event.stopPropagation();
+    }
+  }, true);
 
   const gridItemMinimumSpan = (item) => {
     const explicit = Number(item?.dataset?.minW || item?.dataset?.minSpan);
@@ -11635,6 +11953,7 @@ document.addEventListener("DOMContentLoaded", () => {
       anchors,
       contexts,
       dataSources,
+      links: logicGraph.links,
       relationships: logicGraph.relationships,
       operators: logicGraph.operators,
       styleRules: logicGraph.styleRules,
@@ -11747,6 +12066,26 @@ document.addEventListener("DOMContentLoaded", () => {
         addDiagnostic("warning", "missing-relationship-target", `Relationship target "${relationship.targetId}" is not present in persisted objects.`, relationship.id, "relationship");
       }
     });
+    (snapshot.links || []).forEach((link) => {
+      addId("link", link.id);
+      const source = normalizePortRef(link.source || {}, WORKSPACE_PORT_ROLES.output);
+      const target = normalizePortRef(link.target || {}, WORKSPACE_PORT_ROLES.input);
+      if (!source.objectId || !target.objectId) {
+        addDiagnostic("error", "link-missing-port-endpoint", "Link must include source and target port object ids.", link.id, "link");
+      }
+      if (source.objectId === target.objectId) {
+        addDiagnostic("error", "link-self-cycle", "Link source and target must be different objects.", link.id, "link");
+      }
+      if (link.signalType && !Object.values(WORKSPACE_SIGNAL_TYPES).includes(link.signalType)) {
+        addDiagnostic("error", "invalid-link-signal-type", `Unsupported link signal type "${link.signalType}".`, link.id, "link");
+      }
+      if (source.objectId && !relationshipEndpointIds.has(source.objectId)) {
+        addDiagnostic("warning", "missing-link-source", `Link source "${source.objectId}" is not present in persisted objects.`, link.id, "link");
+      }
+      if (target.objectId && !relationshipEndpointIds.has(target.objectId)) {
+        addDiagnostic("warning", "missing-link-target", `Link target "${target.objectId}" is not present in persisted objects.`, link.id, "link");
+      }
+    });
     (snapshot.contextLinks || []).forEach((link) => {
       addId("context-link", link.id);
       if (!link.sourceObjectId || !link.targetObjectId) {
@@ -11815,6 +12154,7 @@ document.addEventListener("DOMContentLoaded", () => {
     );
     const hydrated = {
       ...saved,
+      links: logicGraph.links,
       relationships: logicGraph.relationships,
       operators: logicGraph.operators,
       styleRules: logicGraph.styleRules,
@@ -11846,6 +12186,31 @@ document.addEventListener("DOMContentLoaded", () => {
   };
 
   const logicEditAllowed = (options = {}) => isEngineerMode() || options.force === true;
+  const graphPortsForObject = (layoutKey = "builder", objectId = "", profile = getActivePanelProfile(layoutKey)) => {
+    const id = String(objectId || "");
+    if (!id) return [];
+    const graph = loadWorkspaceLogicGraph(layoutKey, profile);
+    const element = workspaceElementByGraphId(id, layoutKey);
+    const operator = graph.operators.find((node) => node.id === id);
+    const objectType = operator ? "logic-node" : element ? workspaceObjectType(element) : "external";
+    if (!element && !operator) return [];
+    return [WORKSPACE_PORT_ROLES.input, WORKSPACE_PORT_ROLES.output].map((role) => normalizePortRef({
+      objectId: id,
+      role,
+      name: "main",
+      signalTypes: role === WORKSPACE_PORT_ROLES.input
+        ? [WORKSPACE_SIGNAL_TYPES.context, WORKSPACE_SIGNAL_TYPES.filter, WORKSPACE_SIGNAL_TYPES.query, WORKSPACE_SIGNAL_TYPES.logical, WORKSPACE_SIGNAL_TYPES.semantic]
+        : [WORKSPACE_SIGNAL_TYPES.context, WORKSPACE_SIGNAL_TYPES.filter, WORKSPACE_SIGNAL_TYPES.query, WORKSPACE_SIGNAL_TYPES.logical, WORKSPACE_SIGNAL_TYPES.style, WORKSPACE_SIGNAL_TYPES.data, WORKSPACE_SIGNAL_TYPES.semantic],
+      metadata: { objectType },
+    }, role, id));
+  };
+  const allGraphPorts = (layoutKey = "builder", profile = getActivePanelProfile(layoutKey)) => {
+    const graph = loadWorkspaceLogicGraph(layoutKey, profile);
+    return [
+      ...connectableWorkspaceElements(layoutKey).flatMap((item) => graphPortsForObject(layoutKey, graphIdForWorkspaceElement(item), profile)),
+      ...graph.operators.flatMap((operator) => graphPortsForObject(layoutKey, operator.id, profile)),
+    ];
+  };
   const normalizedOperatorCondition = (operator) => ({
     id: operator.id,
     operator: String(operator.operatorType || "AND").toLowerCase(),
@@ -11854,11 +12219,48 @@ document.addEventListener("DOMContentLoaded", () => {
   });
   window.dashboardRelationshipRuntime = {
     types: () => ({ ...WORKSPACE_RELATIONSHIP_TYPES }),
+    signalTypes: () => ({ ...WORKSPACE_SIGNAL_TYPES }),
+    portRoles: () => ({ ...WORKSPACE_PORT_ROLES }),
     operatorTypes: () => ({ ...LOGICAL_OPERATOR_TYPES }),
     getGraph: (layoutKey = "builder", profile = getActivePanelProfile(layoutKey)) => loadWorkspaceLogicGraph(layoutKey, profile),
     setGraph: (layoutKey = "builder", graph = {}, profile = getActivePanelProfile(layoutKey), options = {}) => {
       if (!logicEditAllowed(options)) return loadWorkspaceLogicGraph(layoutKey, profile);
       return saveWorkspaceLogicGraph(layoutKey, graph, profile, options);
+    },
+    ports: (layoutKey = "builder", profile = getActivePanelProfile(layoutKey)) => allGraphPorts(layoutKey, profile),
+    portsForObject: (layoutKey = "builder", objectId = "", profile = getActivePanelProfile(layoutKey)) =>
+      graphPortsForObject(layoutKey, objectId, profile),
+    links: (layoutKey = "builder", profile = getActivePanelProfile(layoutKey)) =>
+      loadWorkspaceLogicGraph(layoutKey, profile).links,
+    addLink: (layoutKey = "builder", link = {}, profile = getActivePanelProfile(layoutKey), options = {}) => {
+      if (!logicEditAllowed(options)) return null;
+      const graph = loadWorkspaceLogicGraph(layoutKey, profile);
+      const next = normalizeWorkspaceLink(link);
+      if (!next.source.objectId || !next.target.objectId || next.source.objectId === next.target.objectId) return null;
+      const links = graph.links.filter((entry) => entry.id !== next.id)
+        .filter((entry) => !(
+          entry.source.objectId === next.source.objectId &&
+          entry.target.objectId === next.target.objectId &&
+          entry.source.portId === next.source.portId &&
+          entry.target.portId === next.target.portId &&
+          entry.signalType === next.signalType
+        ));
+      links.push(next);
+      saveWorkspaceLogicGraph(layoutKey, { ...graph, links }, profile, options);
+      return next;
+    },
+    removeLink: (layoutKey = "builder", linkId = "", profile = getActivePanelProfile(layoutKey), options = {}) => {
+      if (!logicEditAllowed(options)) return false;
+      const graph = loadWorkspaceLogicGraph(layoutKey, profile);
+      const removedLink = graph.links.find((link) => link.id === linkId);
+      const links = graph.links.filter((link) => link.id !== linkId);
+      if (links.length === graph.links.length) return false;
+      const contextLinkId = removedLink?.metadata?.contextLinkId || "";
+      const contextLinks = contextLinkId
+        ? graph.contextLinks.filter((link) => link.id !== contextLinkId)
+        : graph.contextLinks;
+      saveWorkspaceLogicGraph(layoutKey, { ...graph, links, contextLinks }, profile, options);
+      return true;
     },
     relationships: (layoutKey = "builder", options = {}) => {
       const graph = loadWorkspaceLogicGraph(layoutKey, options.profile || getActivePanelProfile(layoutKey));
@@ -11885,7 +12287,26 @@ document.addEventListener("DOMContentLoaded", () => {
       if (reachesSource(next.sourceObjectId, next.targetObjectId)) return null;
       const contextLinks = candidateLinks.filter((entry) => !(entry.sourceObjectId === next.sourceObjectId && entry.targetObjectId === next.targetObjectId && entry.mode === next.mode));
       contextLinks.push(next);
-      saveWorkspaceLogicGraph(layoutKey, { ...graph, contextLinks }, profile, options);
+      const sourcePort = normalizePortRef(options.sourcePort || {}, WORKSPACE_PORT_ROLES.output, next.sourceObjectId);
+      const targetPort = normalizePortRef(options.targetPort || {}, WORKSPACE_PORT_ROLES.input, next.targetObjectId);
+      const canonicalLink = normalizeWorkspaceLink({
+        id: options.linkId || `context-${next.id}`,
+        source: sourcePort,
+        target: targetPort,
+        signalType: WORKSPACE_SIGNAL_TYPES.context,
+        visualState: "active",
+        label: next.label || next.mode,
+        metadata: { contextLinkId: next.id, mode: next.mode },
+      });
+      const links = options.createGraphLink === false
+        ? graph.links
+        : [
+          ...graph.links
+            .filter((entry) => entry.id !== canonicalLink.id)
+            .filter((entry) => entry.metadata?.contextLinkId !== next.id),
+          canonicalLink,
+        ];
+      saveWorkspaceLogicGraph(layoutKey, { ...graph, links, contextLinks }, profile, options);
       return next;
     },
     updateContextLink: (layoutKey = "builder", linkId = "", patch = {}, profile = getActivePanelProfile(layoutKey), options = {}) => {
@@ -11913,7 +12334,8 @@ document.addEventListener("DOMContentLoaded", () => {
       const graph = loadWorkspaceLogicGraph(layoutKey, profile);
       const contextLinks = graph.contextLinks.filter((link) => link.id !== linkId);
       if (contextLinks.length === graph.contextLinks.length) return false;
-      saveWorkspaceLogicGraph(layoutKey, { ...graph, contextLinks }, profile, options);
+      const links = graph.links.filter((link) => link.metadata?.contextLinkId !== linkId);
+      saveWorkspaceLogicGraph(layoutKey, { ...graph, links, contextLinks }, profile, options);
       return true;
     },
     addRelationship: (layoutKey = "builder", relationship = {}, profile = getActivePanelProfile(layoutKey), options = {}) => {
@@ -12697,10 +13119,27 @@ document.addEventListener("DOMContentLoaded", () => {
     const trigger = picker.querySelector(".panel-add-button");
     const menu = picker.querySelector(".panel-add-menu");
     let closeTimer;
+    const syncMenuViewportSize = () => {
+      if (!menu) return;
+      const triggerRect = trigger?.getBoundingClientRect?.();
+      const menuTop = triggerRect ? triggerRect.bottom + 8 : menu.getBoundingClientRect().top;
+      const availableHeight = Math.max(160, Math.floor(window.innerHeight - menuTop - 12));
+      menu.style.setProperty("--panel-add-menu-max-height", `${availableHeight}px`);
+      const menuStyles = getComputedStyle(menu);
+      const verticalPadding =
+        (parseFloat(menuStyles.paddingTop) || 0) +
+        (parseFloat(menuStyles.paddingBottom) || 0);
+      const browserMaxHeight = Math.max(96, availableHeight - verticalPadding);
+      menu.style.setProperty("--object-add-browser-max-height", `${browserMaxHeight}px`);
+      const browser = menu.querySelector(".object-add-browser");
+      menu.classList.toggle("menu-scroll", Boolean(browser && browser.scrollHeight > browserMaxHeight + 1));
+    };
     const openMenu = () => {
       window.clearTimeout(closeTimer);
+      syncMenuViewportSize();
       menu?.classList.add("open");
       trigger?.setAttribute("aria-expanded", "true");
+      requestAnimationFrame(syncMenuViewportSize);
     };
     const scheduleClose = () => {
       window.clearTimeout(closeTimer);
@@ -12711,8 +13150,12 @@ document.addEventListener("DOMContentLoaded", () => {
     const closeMenu = () => {
       window.clearTimeout(closeTimer);
       menu?.classList.remove("open");
+      menu?.classList.remove("menu-scroll");
       trigger?.setAttribute("aria-expanded", "false");
     };
+    window.addEventListener("resize", () => {
+      if (menu?.classList.contains("open")) syncMenuViewportSize();
+    });
     picker.addEventListener("mouseenter", openMenu);
     picker.addEventListener("mouseleave", scheduleClose);
     trigger?.addEventListener("focus", openMenu);

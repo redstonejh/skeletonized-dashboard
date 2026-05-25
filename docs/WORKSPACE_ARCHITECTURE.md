@@ -68,7 +68,23 @@ Events describe what happened; they are not canonical state and are not persiste
 
 ## Relationship Graph And Logical Operators
 
-Workspace computational relationships live in a persisted sidecar graph exposed through `window.dashboardRelationshipRuntime`. The graph stores `relationships`, `contextLinks`, `operators`, and `styleRules` by stable object ids rather than DOM nodes. Relationships support `context`, `filter`, `query`, `containment`, `operator`, and `semantic` types; logical operators currently support `AND`, `OR`, and `NOT` nodes with normalized input/output ids.
+Workspace computational relationships live in a persisted sidecar graph exposed through `window.dashboardRelationshipRuntime`. The graph stores first-class `links`, legacy/diagnostic `relationships`, semantic `contextLinks`, `operators`, and `styleRules` by stable object ids rather than DOM nodes. Links are the canonical computational graph edges: widgets, panels, dividers, and logic nodes act like machines; ports are plugs; wires are only the Engineer Mode rendering of persisted links.
+
+Each connectable object exposes derived default ports. The default convention is left-side `input` ports and right-side `output` ports. Link records persist source and target port refs, signal type, direction, visual state, and metadata:
+
+```ts
+type WorkspaceLink = {
+  id: string;
+  source: { objectId: string; portId: string; role: "output"; side: "right"; name: string };
+  target: { objectId: string; portId: string; role: "input"; side: "left"; name: string };
+  signalType: "context" | "filter" | "query" | "logical" | "style" | "data" | "semantic";
+  direction: "source-to-target";
+  enabled: boolean;
+  metadata?: Record<string, unknown>;
+};
+```
+
+Legacy `relationships` remain as compatibility/diagnostic edges, while Context Links remain the semantic context-resolution layer. A Context Link may be backed by a canonical `link` so context resolution continues to use `contextLinks` while Engineer Mode draws and edits the computational graph through `links`. Relationships support `context`, `filter`, `query`, `containment`, `operator`, and `semantic` types; logical operators currently support `AND`, `OR`, and `NOT` nodes with normalized input/output ids.
 
 Context Links are semantic graph edges with `{ id, sourceObjectId, targetObjectId, mode }`, where `mode` is `inherit`, `share`, `override`, or `reference`. They let a divider, panel, widget, context record, or future logic node resolve context from a non-adjacent source while physical region ownership remains unchanged. Dividers still define visual/organizational regions; a linked divider region can resolve its semantic context from another divider/context source without copying that context into the divider or its child objects. Circular links are rejected or short-circuited during resolution.
 
@@ -76,7 +92,7 @@ Style rules evaluate logic expressions against widget query results, resolved co
 
 The graph is state, not layout. It is included in save/load snapshots and undo/redo checkpoints, but it does not participate in dashboard grid collision, panel internal grid collision, anchor rail positioning, or object placement. Runtime-derived relationships may be calculated from committed context inheritance, explicit Context Links, panel containment, filter propagation, operator chains, and style-rule data/effect flow for diagnostics and APIs, but those derived links are not saved as separate layout objects and are not rendered as an always-on wire graph by default.
 
-Relationship links and wire handles are hidden in normal mode. Engineer Mode reveals small left-side wire nodules on connectable widgets, panels, dividers, and logical nodes; anchors and minimap overlays are excluded. Dragging from a nodule shows a temporary red preview wire, dropping on another valid nodule creates a persisted cross-region semantic/context link, and invalid drops or Escape cancel without saving preview state. Existing explicit links render as low-opacity paths from committed object positions. Local inherited divider context is intentionally implicit and should not be rendered as a dense wire graph, label field, or region-debug surface. The overlay uses `pointer-events: none` by default, with nodules as the only pointer-active editing controls, so normal object drag/resize/body behavior remains isolated from graph editing.
+Relationship links and wire handles are hidden in normal mode. Engineer Mode reveals small port nodules on connectable widgets, panels, dividers, and logical nodes; anchors and minimap overlays are excluded. Input ports sit on the left side and output ports sit on the right side. Dragging from a port shows a temporary red preview wire, dropping on another valid port creates a persisted canonical `link` and, for context signals, the matching semantic `contextLink`. Invalid drops or Escape cancel without saving preview state. Existing explicit links render as low-opacity paths from committed object positions. Selecting a wire exposes a compact Engineer-only delete affordance and keyboard Delete/Backspace removes the link through history-aware graph mutation. Local inherited divider context is intentionally implicit and should not be rendered as a dense wire graph, label field, or region-debug surface. The overlay uses `pointer-events: none` by default, with port nodules and selected-wire controls as the only pointer-active editing controls, so normal object drag/resize/body behavior remains isolated from graph editing.
 
 ## Engineer Mode Infrastructure
 
@@ -130,6 +146,7 @@ The top-level layout state owns:
 - `contexts`;
 - `dataSources`;
 - `relationships`;
+- `links`;
 - `contextLinks`;
 - `operators`;
 - `styleRules`;

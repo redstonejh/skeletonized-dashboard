@@ -882,6 +882,69 @@ def test_add_object_menu_uses_categorized_right_expanding_submenus(page: Page, a
     assert_clean_browser(page)
 
 
+def test_add_object_menu_hugs_content_and_scrolls_when_viewport_constrained(page: Page, app_server: str) -> None:
+    page.set_viewport_size({"width": 1440, "height": 960})
+    goto(page, app_server)
+    page.locator(".panel-add-button").click()
+    menu = page.locator(".panel-add-menu")
+    expect(menu).to_have_class(re.compile("open"))
+
+    desktop_geometry = menu.evaluate(
+        """
+        node => {
+          const browser = node.querySelector(".object-add-browser");
+          const last = browser.lastElementChild;
+          const menuRect = node.getBoundingClientRect();
+          const browserRect = browser.getBoundingClientRect();
+          const lastRect = last.getBoundingClientRect();
+          return {
+            blankTail: Math.round(menuRect.bottom - lastRect.bottom),
+            menuHeight: Math.round(menuRect.height),
+            browserHeight: Math.round(browserRect.height),
+            browserScrollHeight: Math.round(browser.scrollHeight),
+            viewportHeight: window.innerHeight,
+            scrollClass: node.classList.contains("menu-scroll"),
+          };
+        }
+        """
+    )
+    assert desktop_geometry["blankTail"] <= 16
+    assert desktop_geometry["menuHeight"] < desktop_geometry["viewportHeight"] / 2
+    assert desktop_geometry["scrollClass"] is False
+
+    page.locator(".app-nav").click(position={"x": 10, "y": 10}, force=True)
+    page.set_viewport_size({"width": 1440, "height": 360})
+    page.locator(".panel-add-button").click()
+    expect(menu).to_have_class(re.compile("open"))
+
+    constrained_geometry = menu.evaluate(
+        """
+        node => {
+          const browser = node.querySelector(".object-add-browser");
+          const menuRect = node.getBoundingClientRect();
+          const browserRect = browser.getBoundingClientRect();
+          browser.scrollTop = browser.scrollHeight;
+          const lastRect = browser.lastElementChild.getBoundingClientRect();
+          return {
+            menuBottom: Math.round(menuRect.bottom),
+            viewportHeight: window.innerHeight,
+            scrollClass: node.classList.contains("menu-scroll"),
+            browserOverflowY: getComputedStyle(browser).overflowY,
+            browserHeight: Math.round(browserRect.height),
+            browserScrollHeight: Math.round(browser.scrollHeight),
+            blankTailAfterScroll: Math.round(browserRect.bottom - lastRect.bottom),
+          };
+        }
+        """
+    )
+    assert constrained_geometry["menuBottom"] <= constrained_geometry["viewportHeight"] - 8
+    assert constrained_geometry["scrollClass"] is True
+    assert constrained_geometry["browserOverflowY"] == "auto"
+    assert constrained_geometry["browserScrollHeight"] > constrained_geometry["browserHeight"]
+    assert constrained_geometry["blankTailAfterScroll"] <= 8
+    assert_clean_browser(page)
+
+
 def test_search_bar_widget_uses_normal_widget_creation_and_controls(page: Page, app_server: str) -> None:
     goto(page, app_server)
     page.evaluate("localStorage.clear()")
@@ -1406,10 +1469,8 @@ def test_add_widget_targets_visible_divider_region_and_next_open_slot(page: Page
     page.reload(wait_until="networkidle")
     page.wait_for_selector(".page")
 
-    page.locator(".panel-add-button").click()
-    page.locator('.divider-add-action[data-divider-kind="context-divider"]').click()
-    page.locator(".panel-add-button").click()
-    page.locator('.divider-add-action[data-divider-kind="context-divider"]').click()
+    open_add_category(page, "dividers").locator('.divider-add-action[data-divider-kind="context-divider"]').click()
+    open_add_category(page, "dividers").locator('.divider-add-action[data-divider-kind="context-divider"]').click()
     expect(page.locator(".panel-layout[data-layout-key='builder'] > .workspace-divider")).to_have_count(2)
 
     setup = page.evaluate(
@@ -5482,10 +5543,8 @@ def test_context_links_share_divider_contexts_through_engineer_graph(page: Page,
     page.reload(wait_until="networkidle")
     page.wait_for_selector(".page")
 
-    page.locator(".panel-add-button").click()
-    page.locator('.divider-add-action[data-divider-kind="context-divider"]').click()
-    page.locator(".panel-add-button").click()
-    page.locator('.divider-add-action[data-divider-kind="context-divider"]').click()
+    open_add_category(page, "dividers").locator('.divider-add-action[data-divider-kind="context-divider"]').click()
+    open_add_category(page, "dividers").locator('.divider-add-action[data-divider-kind="context-divider"]').click()
     expect(page.locator(".panel-layout > .workspace-divider")).to_have_count(2)
 
     setup = page.evaluate(
@@ -5839,7 +5898,7 @@ def test_engineer_mode_relationship_links_and_logic_graph_are_gated_and_persiste
         """
     )
     assert normal_state["attempted"] is None
-    assert normal_state["graph"] == {"version": 1, "relationships": [], "operators": [], "styleRules": [], "contextLinks": []}
+    assert normal_state["graph"] == {"version": 1, "links": [], "relationships": [], "operators": [], "styleRules": [], "contextLinks": []}
     assert normal_state["links"] == 0
     assert normal_state["nodules"] == 0
     assert normal_state["toolbox"] == 0
@@ -5851,14 +5910,15 @@ def test_engineer_mode_relationship_links_and_logic_graph_are_gated_and_persiste
         () => {
           window.dashboardRelationshipRuntime.setGraph("builder", {
             version: 1,
-            relationships: [{
+            links: [{
               id: "query-link-widget-1-widget-2",
-              sourceId: "widget-1",
-              targetId: "widget-2",
-              type: "query",
+              source: { objectId: "widget-1", role: "output", name: "main" },
+              target: { objectId: "widget-2", role: "input", name: "main" },
+              signalType: "query",
               visualState: "active",
               label: "Query dependency"
             }],
+            relationships: [],
             operators: [{
               id: "operator-and-test",
               operatorType: "AND",
@@ -5897,6 +5957,12 @@ def test_engineer_mode_relationship_links_and_logic_graph_are_gated_and_persiste
             pointerEvents: getComputedStyle(overlay).pointerEvents,
             nodulePointerEvents: getComputedStyle(document.querySelector(".workspace-wire-nodule")).pointerEvents,
             queryType: link?.dataset.relationshipType || "",
+            querySignal: link?.dataset.relationshipSignalType || "",
+            sourcePort: link?.dataset.relationshipSourcePort || "",
+            targetPort: link?.dataset.relationshipTargetPort || "",
+            linkStorageType: link?.dataset.relationshipStorageType || "",
+            ports: window.dashboardRelationshipRuntime.portsForObject("builder", "widget-1"),
+            snapshotLinks: snapshot.links,
             snapshotRelationships: snapshot.relationships,
             snapshotOperators: snapshot.operators,
             validationOk: validation.ok,
@@ -5915,7 +5981,15 @@ def test_engineer_mode_relationship_links_and_logic_graph_are_gated_and_persiste
     assert engineer_state["pointerEvents"] == "none"
     assert engineer_state["nodulePointerEvents"] == "auto"
     assert engineer_state["queryType"] == "query"
-    assert engineer_state["snapshotRelationships"][0]["id"] == "query-link-widget-1-widget-2"
+    assert engineer_state["querySignal"] == "query"
+    assert engineer_state["linkStorageType"] == "link"
+    assert engineer_state["sourcePort"].endswith(":output:main")
+    assert engineer_state["targetPort"].endswith(":input:main")
+    assert {port["role"] for port in engineer_state["ports"]} == {"input", "output"}
+    assert engineer_state["snapshotLinks"][0]["id"] == "query-link-widget-1-widget-2"
+    assert engineer_state["snapshotLinks"][0]["source"]["role"] == "output"
+    assert engineer_state["snapshotLinks"][0]["target"]["role"] == "input"
+    assert engineer_state["snapshotRelationships"] == []
     assert engineer_state["snapshotOperators"][0]["id"] == "operator-and-test"
     assert engineer_state["validationOk"] is True
     assert "invalid-logical-operator" not in engineer_state["validationCodes"]
@@ -5946,14 +6020,14 @@ def test_engineer_mode_relationship_links_and_logic_graph_are_gated_and_persiste
     assert hidden_logic["links"] == 0
     assert hidden_logic["nodules"] == 0
     assert hidden_logic["toolbox"] == 0
-    assert hidden_logic["graph"]["relationships"][0]["id"] == "query-link-widget-1-widget-2"
+    assert hidden_logic["graph"]["links"][0]["id"] == "query-link-widget-1-widget-2"
 
     press_dashboard_undo(page)
     undone = page.evaluate("() => window.dashboardRelationshipRuntime.getGraph('builder')")
-    assert undone == {"version": 1, "relationships": [], "operators": [], "styleRules": [], "contextLinks": []}
+    assert undone == {"version": 1, "links": [], "relationships": [], "operators": [], "styleRules": [], "contextLinks": []}
     press_dashboard_redo(page)
     redone = page.evaluate("() => window.dashboardRelationshipRuntime.getGraph('builder')")
-    assert redone["relationships"][0]["id"] == "query-link-widget-1-widget-2"
+    assert redone["links"][0]["id"] == "query-link-widget-1-widget-2"
     assert redone["operators"][0]["operatorType"] == "AND"
     assert_clean_browser(page)
 
@@ -5993,8 +6067,10 @@ def test_engineer_wire_nodules_drag_to_create_context_link(page: Page, app_serve
     nodule_state = page.evaluate(
         """
         ({ dividerKey, anchorKey }) => ({
-          widget: Boolean(document.querySelector('.workspace-wire-nodule[data-wire-object-id="widget-1"]')),
-          panel: Boolean(document.querySelector('.workspace-wire-nodule[data-wire-object-id="builder-content"]')),
+              widget: Boolean(document.querySelector('.workspace-wire-nodule[data-wire-object-id="widget-1"]')),
+              widgetInputs: document.querySelectorAll('.workspace-wire-nodule[data-wire-object-id="widget-1"][data-wire-port-role="input"]').length,
+              widgetOutputs: document.querySelectorAll('.workspace-wire-nodule[data-wire-object-id="widget-1"][data-wire-port-role="output"]').length,
+              panel: Boolean(document.querySelector('.workspace-wire-nodule[data-wire-object-id="builder-content"]')),
           divider: Boolean(document.querySelector(`.workspace-wire-nodule[data-wire-object-id="${dividerKey}"]`)),
           anchor: Boolean(document.querySelector(`.workspace-wire-nodule[data-wire-object-id="${anchorKey}"]`)),
           minimap: Boolean(document.querySelector('.workspace-minimap-layer .workspace-wire-nodule')),
@@ -6004,13 +6080,15 @@ def test_engineer_wire_nodules_drag_to_create_context_link(page: Page, app_serve
         {"dividerKey": divider_key, "anchorKey": anchor_key},
     )
     assert nodule_state["widget"] is True
+    assert nodule_state["widgetInputs"] == 1
+    assert nodule_state["widgetOutputs"] == 1
     assert nodule_state["panel"] is True
     assert nodule_state["divider"] is True
     assert nodule_state["anchor"] is False
     assert nodule_state["minimap"] is False
     assert nodule_state["maxSize"] <= 12
 
-    source = page.locator('.workspace-wire-nodule[data-wire-object-id="widget-1"]').first
+    source = page.locator('.workspace-wire-nodule[data-wire-object-id="widget-1"][data-wire-port-role="output"]').first
     source_box = source.bounding_box()
     assert source_box
     source_x, source_y = box_center(source_box)
@@ -6068,9 +6146,11 @@ def test_engineer_wire_nodules_drag_to_create_context_link(page: Page, app_serve
         """
     )
     page.evaluate("() => window.scrollTo(0, 0)")
-    page.wait_for_function("() => window.scrollY === 0 && document.querySelector('.workspace-wire-nodule[data-wire-object-id=\"widget-1\"]')")
+    page.wait_for_function(
+        "() => window.scrollY === 0 && document.querySelector('.workspace-wire-nodule[data-wire-object-id=\"widget-1\"][data-wire-port-role=\"output\"]') && document.querySelector('.workspace-wire-nodule[data-wire-object-id=\"widget-2\"][data-wire-port-role=\"input\"]')"
+    )
 
-    target = page.locator('.workspace-wire-nodule[data-wire-object-id="widget-2"]').first
+    target = page.locator('.workspace-wire-nodule[data-wire-object-id="widget-2"][data-wire-port-role="input"]').first
     target_box = target.bounding_box()
     source_box = source.bounding_box()
     assert source_box and target_box
@@ -6093,6 +6173,7 @@ def test_engineer_wire_nodules_drag_to_create_context_link(page: Page, app_serve
         """
         () => ({
           links: window.dashboardRelationshipRuntime.contextLinks("builder"),
+          graphLinks: window.dashboardRelationshipRuntime.links("builder"),
           preview: document.querySelectorAll(".workspace-wire-drag-path").length,
           rendered: document.querySelectorAll('.workspace-relationship-path[data-relationship-type="context"]').length,
         })
@@ -6101,6 +6182,9 @@ def test_engineer_wire_nodules_drag_to_create_context_link(page: Page, app_serve
     assert created["preview"] == 0
     assert created["rendered"] == 1
     assert created["links"][0]["mode"] == "inherit"
+    assert created["graphLinks"][0]["signalType"] == "context"
+    assert created["graphLinks"][0]["source"]["role"] == "output"
+    assert created["graphLinks"][0]["target"]["role"] == "input"
 
     page.evaluate(
         """
@@ -6140,6 +6224,112 @@ def test_engineer_wire_nodules_drag_to_create_context_link(page: Page, app_serve
     press_dashboard_redo(page)
     assert page.evaluate('() => window.dashboardRelationshipRuntime.contextLinks("builder").length') == 1
 
+    assert page.evaluate('() => document.querySelectorAll(".workspace-wire-delete-button").length') == 0
+    context_midpoint = page.evaluate(
+        """
+        () => {
+          const target = document.querySelector('.workspace-wire-select-target');
+          const rect = target.getBoundingClientRect();
+          return { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 };
+        }
+        """
+    )
+    page.mouse.click(context_midpoint["x"], context_midpoint["y"])
+    expect(page.locator(".workspace-wire-delete-button")).to_be_visible()
+    selected_state = page.evaluate(
+        """
+        () => ({
+          selected: document.querySelector('.workspace-relationship-path[data-relationship-selected="true"]')?.dataset.relationshipStorageType,
+          buttonCount: document.querySelectorAll(".workspace-wire-delete-button").length,
+        })
+        """
+    )
+    assert selected_state == {"selected": "link", "buttonCount": 1}
+    page.locator(".engineer-mode-button").click()
+    expect(page.locator(".engineer-mode-button")).to_have_attribute("aria-pressed", "false")
+    assert page.evaluate('() => document.querySelectorAll(".workspace-wire-delete-button, .workspace-relationship-path").length') == 0
+    page.locator(".engineer-mode-button").click()
+    expect(page.locator(".engineer-mode-button")).to_have_attribute("aria-pressed", "true")
+    page.wait_for_function("() => document.querySelector('.workspace-relationship-path[data-relationship-type=\"context\"]')")
+    context_midpoint = page.evaluate(
+        """
+        () => {
+          const target = document.querySelector('.workspace-wire-select-target');
+          const rect = target.getBoundingClientRect();
+          return { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 };
+        }
+        """
+    )
+    page.mouse.click(context_midpoint["x"], context_midpoint["y"])
+    expect(page.locator(".workspace-wire-delete-button")).to_be_visible()
+    page.locator(".workspace-wire-delete-button").click()
+    page.wait_for_function("() => window.dashboardRelationshipRuntime.contextLinks('builder').length === 0")
+    assert page.evaluate('() => document.querySelectorAll(".workspace-relationship-path[data-relationship-type=\\"context\\"], .workspace-wire-delete-button").length') == 0
+    press_dashboard_undo(page)
+    page.wait_for_function("() => window.dashboardRelationshipRuntime.contextLinks('builder').length === 1 && document.querySelector('.workspace-relationship-path[data-relationship-type=\"context\"]')")
+    press_dashboard_redo(page)
+    page.wait_for_function("() => window.dashboardRelationshipRuntime.contextLinks('builder').length === 0")
+
+    page.evaluate(
+        """
+        (dividerKey) => {
+          window.dashboardRelationshipRuntime.addContextLink("builder", {
+            id: "escape-context-wire",
+            sourceObjectId: "widget-1",
+            targetObjectId: dividerKey,
+            mode: "inherit"
+          });
+        }
+        """,
+        divider_key,
+    )
+    page.wait_for_function("() => window.dashboardRelationshipRuntime.contextLinks('builder').length === 1 && document.querySelector('.workspace-wire-select-target')")
+    context_midpoint = page.evaluate(
+        """
+        () => {
+          const target = document.querySelector('.workspace-wire-select-target');
+          const rect = target.getBoundingClientRect();
+          return { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 };
+        }
+        """
+    )
+    page.mouse.click(context_midpoint["x"], context_midpoint["y"])
+    expect(page.locator(".workspace-wire-delete-button")).to_be_visible()
+    page.keyboard.press("Escape")
+    page.wait_for_function('() => document.querySelectorAll(".workspace-wire-delete-button").length === 0')
+    page.evaluate("() => window.dashboardRelationshipRuntime.removeContextLink('builder', 'escape-context-wire')")
+    page.wait_for_function("() => window.dashboardRelationshipRuntime.contextLinks('builder').length === 0")
+
+    page.evaluate(
+        """
+        (dividerKey) => {
+          window.dashboardRelationshipRuntime.addContextLink("builder", {
+            id: "keyboard-delete-context-wire",
+            sourceObjectId: "widget-1",
+            targetObjectId: dividerKey,
+            mode: "inherit"
+          });
+        }
+        """,
+        divider_key,
+    )
+    page.wait_for_function("() => window.dashboardRelationshipRuntime.contextLinks('builder').length === 1 && document.querySelector('.workspace-wire-select-target')")
+    context_midpoint = page.evaluate(
+        """
+        () => {
+          const target = document.querySelector('.workspace-wire-select-target');
+          const rect = target.getBoundingClientRect();
+          return { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 };
+        }
+        """
+    )
+    page.mouse.click(context_midpoint["x"], context_midpoint["y"])
+    expect(page.locator(".workspace-wire-delete-button")).to_be_visible()
+    page.keyboard.press("Delete")
+    page.wait_for_function(
+        "() => window.dashboardRelationshipRuntime.contextLinks('builder').length === 0 && document.querySelectorAll('.workspace-wire-delete-button').length === 0"
+    )
+
     page.locator(".layout-save-button").click()
     expect(page.locator(".toast", has_text="saved")).to_be_visible()
     stale_load = page.evaluate(
@@ -6149,6 +6339,15 @@ def test_engineer_wire_nodules_drag_to_create_context_link(page: Page, app_serve
           const snapshot = runtime.loadSnapshot("builder", "1");
           const broken = {
             ...snapshot,
+            links: [
+              ...snapshot.links,
+              {
+                id: "stale-canonical-wire",
+                source: { objectId: "widget-1", role: "output" },
+                target: { objectId: "missing-widget", role: "input" },
+                signalType: "context"
+              }
+            ],
             contextLinks: [
               ...snapshot.contextLinks,
               { id: "stale-context-wire", sourceObjectId: "widget-1", targetObjectId: "missing-widget", mode: "inherit" }
@@ -6162,22 +6361,32 @@ def test_engineer_wire_nodules_drag_to_create_context_link(page: Page, app_serve
           const loaded = runtime.loadSnapshot("builder", "1");
           const graph = window.dashboardRelationshipRuntime.getGraph("builder", "1");
           return {
+            loadedLinks: loaded.links.map((link) => link.id),
             loadedContextLinks: loaded.contextLinks.map((link) => link.id),
             loadedRelationships: loaded.relationships.map((relationship) => relationship.id),
+            graphLinks: graph.links.map((link) => link.id),
             graphContextLinks: graph.contextLinks.map((link) => link.id),
             graphRelationships: graph.relationships.map((relationship) => relationship.id),
           };
         }
         """
     )
+    assert "stale-canonical-wire" not in stale_load["loadedLinks"]
     assert "stale-context-wire" not in stale_load["loadedContextLinks"]
     assert "stale-query-wire" not in stale_load["loadedRelationships"]
+    assert stale_load["loadedLinks"] == stale_load["graphLinks"]
     assert stale_load["loadedContextLinks"] == stale_load["graphContextLinks"]
     assert stale_load["loadedRelationships"] == stale_load["graphRelationships"]
     page.reload(wait_until="networkidle")
-    reloaded = page.evaluate('() => window.dashboardRelationshipRuntime.contextLinks("builder")')
-    assert reloaded[0]["sourceObjectId"] == "widget-1"
-    assert reloaded[0]["targetObjectId"] == "widget-2"
+    reloaded = page.evaluate(
+        """
+        () => ({
+          links: window.dashboardRelationshipRuntime.contextLinks("builder"),
+          deleteControls: document.querySelectorAll(".workspace-wire-delete-button").length,
+        })
+        """
+    )
+    assert reloaded == {"links": [], "deleteControls": 0}
     assert_clean_browser(page)
 
 

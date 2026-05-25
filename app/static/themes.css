@@ -297,7 +297,8 @@
 }
 
 .panel-add-menu.open {
-  max-height: min(80vh, 520px);
+  height: auto;
+  max-height: var(--panel-add-menu-max-height, calc(100vh - 120px));
   overflow: visible;
   opacity: 1;
   visibility: visible;
@@ -3872,7 +3873,20 @@ body {
 .object-add-browser {
   display: grid;
   gap: 5px;
+  align-content: start;
   min-width: 156px;
+}
+
+.panel-add-menu.menu-scroll {
+  overflow: hidden;
+}
+
+.panel-add-menu.menu-scroll > .object-add-browser {
+  max-height: var(--object-add-browser-max-height, calc(100vh - 140px));
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding-right: 2px;
+  scrollbar-width: thin;
 }
 
 .object-add-category,
@@ -3904,7 +3918,7 @@ body {
   top: 0;
   left: calc(100% + 8px);
   z-index: calc(var(--z-navbar-dropdown) + 1);
-  display: grid;
+  display: none;
   gap: 5px;
   min-width: 172px;
   padding: 7px;
@@ -3931,6 +3945,7 @@ body {
 .object-add-subcategory:hover > .object-add-submenu,
 .object-add-subcategory:focus-within > .object-add-submenu,
 .object-add-subcategory.is-open > .object-add-submenu {
+  display: grid;
   opacity: 1;
   visibility: visible;
   pointer-events: auto;

@@ -160,7 +160,7 @@
 .workspace-engineer-overlay-layer {
   position: fixed;
   inset: 0;
-  z-index: calc(var(--z-object-control) - 1);
+  z-index: calc(var(--z-object-control) + 3);
   pointer-events: none;
   contain: layout paint;
 }
@@ -242,11 +242,34 @@ body:not(.engineer-mode-active) .workspace-engineer-overlay-layer {
   opacity: .28;
   filter: drop-shadow(0 0 5px color-mix(in srgb, #93c5fd 14%, transparent));
   vector-effect: non-scaling-stroke;
+  pointer-events: stroke;
+  cursor: pointer;
+  transition: opacity .14s ease, stroke-width .14s ease, filter .14s ease;
+}
+
+.workspace-relationship-hit-path {
+  fill: none;
+  stroke: transparent;
+  stroke-width: 14;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  opacity: 0;
+  pointer-events: stroke;
+  cursor: pointer;
 }
 
 .workspace-relationship-path[data-relationship-state="active"] {
   opacity: .38;
   stroke-width: 1.5;
+}
+
+.workspace-relationship-path:hover,
+.workspace-relationship-path[data-relationship-hovered="true"],
+.workspace-relationship-path[data-relationship-selected="true"] {
+  stroke: #ef4444;
+  stroke-width: 2.35;
+  opacity: .86;
+  filter: drop-shadow(0 0 8px color-mix(in srgb, #ef4444 28%, transparent));
 }
 
 .workspace-relationship-path[data-relationship-type="context"] {
@@ -306,6 +329,14 @@ body:not(.engineer-mode-active) .workspace-engineer-overlay-layer {
   box-shadow: 0 0 0 1px color-mix(in srgb, #ffffff 42%, transparent);
 }
 
+.workspace-wire-nodule-input {
+  border-color: color-mix(in srgb, #93c5fd 50%, var(--line));
+}
+
+.workspace-wire-nodule-output {
+  border-color: color-mix(in srgb, #ef4444 46%, var(--line));
+}
+
 .workspace-wire-nodule:hover,
 .workspace-wire-nodule:focus-visible,
 .workspace-wire-nodule-source,
@@ -324,6 +355,11 @@ body:not(.engineer-mode-active) .workspace-engineer-overlay-layer {
   stroke-width: 2;
   opacity: .82;
   filter: drop-shadow(0 0 6px color-mix(in srgb, #ef4444 24%, transparent));
+}
+
+.workspace-relationship-path[data-relationship-selected="true"][data-relationship-highlight="connected"] {
+  stroke-width: 2.45;
+  opacity: .94;
 }
 
 .workspace-relationship-path[data-relationship-highlight="unrelated"] {
@@ -358,6 +394,63 @@ body:not(.engineer-mode-active) .workspace-engineer-overlay-layer {
 body.workspace-wire-drag-active {
   cursor: crosshair;
   user-select: none;
+}
+
+.workspace-wire-delete-button {
+  position: fixed;
+  z-index: 6;
+  display: grid;
+  place-items: center;
+  width: 22px;
+  min-width: 22px;
+  height: 22px;
+  min-height: 22px;
+  padding: 0;
+  translate: -50% -50%;
+  border: 1px solid color-mix(in srgb, #ef4444 58%, var(--line));
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--glass-surface-strong) 88%, #fee2e2);
+  color: #b91c1c;
+  box-shadow:
+    0 8px 18px rgba(15, 23, 42, .14),
+    inset 0 1px 0 color-mix(in srgb, var(--glass-highlight) 72%, transparent);
+  font-size: 13px;
+  font-weight: 850;
+  line-height: 1;
+  cursor: pointer;
+  pointer-events: auto;
+  transition: transform .14s ease, background .14s ease, border-color .14s ease, box-shadow .14s ease;
+}
+
+.workspace-wire-select-target {
+  position: fixed;
+  z-index: 4;
+  width: 24px;
+  min-width: 24px;
+  height: 24px;
+  min-height: 24px;
+  padding: 0;
+  translate: -50% -50%;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  opacity: 0;
+  cursor: pointer;
+  pointer-events: auto;
+}
+
+.workspace-wire-delete-button:hover,
+.workspace-wire-delete-button:focus-visible {
+  border-color: #ef4444;
+  background: color-mix(in srgb, var(--glass-surface-strong) 74%, #fee2e2);
+  box-shadow:
+    0 10px 22px rgba(185, 28, 28, .18),
+    inset 0 1px 0 color-mix(in srgb, var(--glass-highlight) 80%, transparent);
+  transform: translateY(.75px);
+}
+
+.workspace-wire-delete-button:active {
+  transform: translateY(1.5px);
 }
 
 .workspace-operator-node,

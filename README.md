@@ -50,8 +50,10 @@ The upcoming work is intentionally staged around stabilization first, then large
 - Workspace infrastructure now includes centralized query lifecycle/caching, schema-driven widget settings, asset references for rich media, adaptive density tiers, and a structured workspace event bus while keeping automatic Engineer Mode visuals limited to intentional semantic wiring.
 - Viewport-aware pseudo-LOD is now centralized around shared visual tiers and overscan rules, with focused/selected/dragged/resized objects promoted to full fidelity, anchor rail objects classified separately, and far-offscreen hover/material effects reduced without changing layout correctness.
 - Engineer Mode now exposes relationship editing through explicit left-side wire nodules on connectable workspace objects. Dragging from a nodule shows a red semantic preview wire, dropping on another nodule creates a persisted cross-region Context Link, and normal mode hides nodules, editing tools, and graph clutter.
+- Engineer Mode wiring now sits on a first-class computational graph substrate: connectable objects expose input/output ports, persisted Link entities carry directional signal metadata, and wires are only the Engineer Mode rendering of graph state while context resolution continues through semantic Context Links.
 - Widget body clicks now open widget working surfaces for data/query/context behavior, while widget settings stay focused on appearance, material, title, density, and display customization.
 - The Add Object menu now uses a categorized right-expanding object browser, grouping data, visualization/chart, control, content, media, system, container, navigation, and divider objects while keeping Engineer-only items behind Engineer Mode.
+- The Add Object browser now sizes to its visible content, avoiding blank menu tails while using internal scrolling only when the viewport is constrained.
 
 ### Near-Term Stabilization
 
