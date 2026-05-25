@@ -741,6 +741,7 @@ document.addEventListener("DOMContentLoaded", () => {
       dashboardColorToggleForItem(item)?.setAttribute("aria-expanded", "false");
       item.querySelector?.(":scope > .widget-tools .widget-settings-schema-panel")?.setAttribute("hidden", "");
       item.querySelector?.(":scope > .widget-tools .widget-workbench-panel")?.setAttribute("hidden", "");
+      setWidgetLinkNavigationSuspended(item, false);
     });
     document.querySelectorAll(".panel-color-menu-open").forEach((menu) => menu.classList.remove("panel-color-menu-open"));
     syncLayoutToolsActive();
@@ -2586,6 +2587,35 @@ document.addEventListener("DOMContentLoaded", () => {
       ? graph.contextLinks.map(normalizeContextLink).filter((link) => link.id && link.sourceObjectId && link.targetObjectId)
       : [],
   });
+  const persistedWorkspaceEndpointIds = (snapshot = {}) => new Set([
+    ...(snapshot.widgets || []).map((widget) => widget.id),
+    ...(snapshot.panels || []).map((panel) => panel.id),
+    ...(snapshot.dividers || []).map((divider) => divider.id),
+    ...(snapshot.anchors || []).map((anchor) => anchor.id),
+    ...(snapshot.contexts || []).map((context) => context.id),
+    ...(snapshot.operators || []).map((operator) => operator.id),
+  ].map(String).filter(Boolean));
+  const pruneWorkspaceLogicGraphForEndpointIds = (graph = {}, endpointIds = new Set()) => {
+    const normalized = normalizeWorkspaceLogicGraph(graph);
+    const hasEndpoint = (id) => endpointIds.has(String(id || ""));
+    return normalizeWorkspaceLogicGraph({
+      ...normalized,
+      relationships: normalized.relationships.filter((relationship) => hasEndpoint(relationship.sourceId) && hasEndpoint(relationship.targetId)),
+      operators: normalized.operators.map((operator) => ({
+        ...operator,
+        inputs: operator.inputs.filter(hasEndpoint),
+        outputs: operator.outputs.filter(hasEndpoint),
+      })),
+      styleRules: normalized.styleRules.filter((rule) => hasEndpoint(rule.targetObjectId)),
+      contextLinks: normalized.contextLinks.filter((link) => hasEndpoint(link.sourceObjectId) && hasEndpoint(link.targetObjectId)),
+    });
+  };
+  const workspaceLogicGraphFromPersistedSnapshot = (snapshot = {}) => normalizeWorkspaceLogicGraph({
+    relationships: snapshot.relationships || [],
+    operators: snapshot.operators || [],
+    styleRules: snapshot.styleRules || [],
+    contextLinks: snapshot.contextLinks || [],
+  });
   const loadWorkspaceLogicGraph = (layoutKey = "builder", profile = getActivePanelProfile(layoutKey)) =>
     normalizeWorkspaceLogicGraph(readJsonStore(workspaceLogicGraphKey(layoutKey, profile), { version: 1, relationships: [], operators: [], styleRules: [], contextLinks: [] }));
   const saveWorkspaceLogicGraph = (layoutKey = "builder", graph = {}, profile = getActivePanelProfile(layoutKey), options = {}) => {
@@ -2851,8 +2881,11 @@ document.addEventListener("DOMContentLoaded", () => {
       if ((source.x < min && target.x < min) || (source.x > maxX && target.x > maxX) || (source.y < min && target.y < min) || (source.y > maxY && target.y > maxY)) return;
       const path = createRelationshipSvgElement("path", {
         class: "workspace-relationship-path",
+        "data-relationship-id": relationship.id,
         "data-relationship-type": relationship.type,
         "data-relationship-state": relationship.visualState || "ambient",
+        "data-relationship-source-id": relationship.sourceId,
+        "data-relationship-target-id": relationship.targetId,
         "data-relationship-label": relationship.label || "",
         d: workspaceWirePath(source, target),
       });
@@ -2881,10 +2914,13 @@ document.addEventListener("DOMContentLoaded", () => {
     activeWorkspaceWireDrag.sourceHandle?.classList.remove("workspace-wire-nodule-source");
     activeWorkspaceWireDrag.targetHandle?.classList.remove("workspace-wire-nodule-target");
     document.body.classList.remove("workspace-wire-drag-active");
+    window.cancelAnimationFrame(activeWorkspaceWireDrag.frame || 0);
     window.removeEventListener("pointermove", activeWorkspaceWireDrag.onMove, true);
     window.removeEventListener("pointerup", activeWorkspaceWireDrag.onUp, true);
     window.removeEventListener("pointercancel", activeWorkspaceWireDrag.onCancel, true);
     window.removeEventListener("keydown", activeWorkspaceWireDrag.onKeyDown, true);
+    window.removeEventListener("scroll", activeWorkspaceWireDrag.onScroll);
+    window.removeEventListener("resize", activeWorkspaceWireDrag.onResize);
     activeWorkspaceWireDrag = null;
   };
   const createWorkspaceWirePreview = () => {
@@ -2922,13 +2958,20 @@ document.addEventListener("DOMContentLoaded", () => {
     const existingRuntime = window.dashboardRelationshipRuntime?.addContextLink?.(layoutKey, link, profile);
     return existingRuntime;
   };
+  const liveWorkspaceWireEndpointPoint = (objectId, layoutKey, fallbackHandle = null) => {
+    const graph = loadWorkspaceLogicGraph(layoutKey);
+    const point = relationshipEndpointPoint(objectId, layoutKey, graph.operators, graph.styleRules);
+    if (point) return point;
+    const rect = fallbackHandle?.isConnected ? fallbackHandle.getBoundingClientRect() : null;
+    if (rect && rect.width > 0 && rect.height > 0) {
+      return { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 };
+    }
+    return null;
+  };
   const startWorkspaceWireDrag = (event, handle, layoutKey = "builder") => {
     if (!isEngineerMode() || event.button !== 0) return;
     const sourceId = handle?.dataset?.wireObjectId || "";
-    const sourcePoint = {
-      x: Number(handle.dataset.wireX) || handle.getBoundingClientRect().left + (handle.getBoundingClientRect().width / 2),
-      y: Number(handle.dataset.wireY) || handle.getBoundingClientRect().top + (handle.getBoundingClientRect().height / 2),
-    };
+    const initialSourcePoint = liveWorkspaceWireEndpointPoint(sourceId, layoutKey, handle);
     if (!sourceId) return;
     event.preventDefault();
     event.stopPropagation();
@@ -2939,7 +2982,9 @@ document.addEventListener("DOMContentLoaded", () => {
     const dragState = {
       layoutKey,
       sourceId,
-      sourcePoint,
+      lastClientX: event.clientX,
+      lastClientY: event.clientY,
+      frame: 0,
       sourceHandle: handle,
       targetHandle: null,
       previewSvg: preview.svg,
@@ -2948,6 +2993,8 @@ document.addEventListener("DOMContentLoaded", () => {
       onUp: null,
       onCancel: null,
       onKeyDown: null,
+      onScroll: null,
+      onResize: null,
     };
     const updateTarget = (targetHandle) => {
       if (dragState.targetHandle === targetHandle) return;
@@ -2955,7 +3002,14 @@ document.addEventListener("DOMContentLoaded", () => {
       dragState.targetHandle = targetHandle;
       dragState.targetHandle?.classList.add("workspace-wire-nodule-target");
     };
-    const updatePreview = (clientX, clientY) => {
+    const updatePreview = (clientX = dragState.lastClientX, clientY = dragState.lastClientY) => {
+      dragState.lastClientX = clientX;
+      dragState.lastClientY = clientY;
+      dragState.previewSvg.setAttribute("width", String(window.innerWidth));
+      dragState.previewSvg.setAttribute("height", String(window.innerHeight));
+      dragState.previewSvg.setAttribute("viewBox", `0 0 ${window.innerWidth} ${window.innerHeight}`);
+      const sourcePoint = liveWorkspaceWireEndpointPoint(sourceId, layoutKey, dragState.sourceHandle) || initialSourcePoint;
+      if (!sourcePoint) return;
       const targetHandle = workspaceWireHandleFromPoint(clientX, clientY);
       const validTarget = targetHandle && targetHandle.dataset.wireObjectId !== sourceId ? targetHandle : null;
       updateTarget(validTarget);
@@ -2968,10 +3022,19 @@ document.addEventListener("DOMContentLoaded", () => {
       dragState.previewPath.setAttribute("d", workspaceWirePath(sourcePoint, endPoint));
       dragState.previewPath.dataset.validTarget = validTarget ? "true" : "false";
     };
+    const schedulePreviewUpdate = (clientX = dragState.lastClientX, clientY = dragState.lastClientY) => {
+      dragState.lastClientX = clientX;
+      dragState.lastClientY = clientY;
+      window.cancelAnimationFrame(dragState.frame || 0);
+      dragState.frame = window.requestAnimationFrame(() => {
+        dragState.frame = 0;
+        updatePreview();
+      });
+    };
     dragState.onMove = (moveEvent) => {
       moveEvent.preventDefault();
       moveEvent.stopPropagation();
-      updatePreview(moveEvent.clientX, moveEvent.clientY);
+      schedulePreviewUpdate(moveEvent.clientX, moveEvent.clientY);
     };
     dragState.onUp = (upEvent) => {
       upEvent.preventDefault();
@@ -2993,17 +3056,41 @@ document.addEventListener("DOMContentLoaded", () => {
       keyEvent.stopPropagation();
       cleanupWorkspaceWireDrag();
     };
+    dragState.onScroll = () => schedulePreviewUpdate();
+    dragState.onResize = () => schedulePreviewUpdate();
     activeWorkspaceWireDrag = dragState;
     window.addEventListener("pointermove", dragState.onMove, true);
     window.addEventListener("pointerup", dragState.onUp, true);
     window.addEventListener("pointercancel", dragState.onCancel, true);
     window.addEventListener("keydown", dragState.onKeyDown, true);
+    window.addEventListener("scroll", dragState.onScroll, { passive: true });
+    window.addEventListener("resize", dragState.onResize, { passive: true });
     updatePreview(event.clientX, event.clientY);
   };
   const renderWorkspaceWireNodules = (layer, layoutKey = "builder") => {
     const isolateWireHandleClick = (event) => {
       event.preventDefault();
       event.stopPropagation();
+    };
+    const setWireHoverTrace = (objectId = "") => {
+      document.querySelectorAll(".workspace-relationship-path").forEach((path) => {
+        const connected = objectId && (
+          path.dataset.relationshipSourceId === objectId ||
+          path.dataset.relationshipTargetId === objectId
+        );
+        if (!objectId) {
+          delete path.dataset.relationshipHighlight;
+        } else {
+          path.dataset.relationshipHighlight = connected ? "connected" : "unrelated";
+        }
+      });
+    };
+    const bindWireHoverTrace = (handle) => {
+      const objectId = handle.dataset.wireObjectId || "";
+      handle.addEventListener("pointerenter", () => setWireHoverTrace(objectId));
+      handle.addEventListener("focus", () => setWireHoverTrace(objectId));
+      handle.addEventListener("pointerleave", () => setWireHoverTrace(""));
+      handle.addEventListener("blur", () => setWireHoverTrace(""));
     };
     connectableWorkspaceElements(layoutKey).forEach((item) => {
       const objectId = graphIdForWorkspaceElement(item);
@@ -3023,6 +3110,7 @@ document.addEventListener("DOMContentLoaded", () => {
       handle.style.top = `${Math.round(point.y)}px`;
       handle.addEventListener("pointerdown", (event) => startWorkspaceWireDrag(event, handle, layoutKey));
       handle.addEventListener("click", isolateWireHandleClick);
+      bindWireHoverTrace(handle);
       layer.appendChild(handle);
     });
     loadWorkspaceLogicGraph(layoutKey).operators.forEach((operator) => {
@@ -3042,6 +3130,7 @@ document.addEventListener("DOMContentLoaded", () => {
       handle.style.top = `${Math.round(point.y)}px`;
       handle.addEventListener("pointerdown", (event) => startWorkspaceWireDrag(event, handle, layoutKey));
       handle.addEventListener("click", isolateWireHandleClick);
+      bindWireHoverTrace(handle);
       layer.appendChild(handle);
     });
   };
@@ -4333,6 +4422,20 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!widget) return;
     widget.dataset.widgetConfig = JSON.stringify(config || {});
   };
+  const setWidgetLinkNavigationSuspended = (widget, suspended) => {
+    if (!widget || widget.tagName !== "A") return;
+    if (suspended) {
+      if (widget.hasAttribute("href") && !widget.dataset.widgetSuspendedHref) {
+        widget.dataset.widgetSuspendedHref = widget.getAttribute("href") || "";
+        widget.removeAttribute("href");
+      }
+      return;
+    }
+    if (widget.dataset.widgetSuspendedHref !== undefined) {
+      if (widget.dataset.widgetSuspendedHref) widget.setAttribute("href", widget.dataset.widgetSuspendedHref);
+      delete widget.dataset.widgetSuspendedHref;
+    }
+  };
   const setWidgetConfigValue = (widget, key, value) => {
     if (!widget || !key) return;
     setWidgetConfig(widget, {
@@ -4645,6 +4748,11 @@ document.addEventListener("DOMContentLoaded", () => {
       ${(section.fields || []).map((field) => renderWidgetSettingField(widget, field, config, surface)).join("")}
     </fieldset>`).join("") : widgetSchemaEmptyState(definition, surface)}`;
   };
+  const normalizeWidgetMenuFormControls = (panel) => {
+    panel?.querySelectorAll?.("button:not([type])").forEach((button) => {
+      button.type = "button";
+    });
+  };
   const ensureWidgetSettingsSchemaPanel = (widget) => {
     const tools = widget?.querySelector(":scope > .widget-tools");
     if (!tools) return null;
@@ -4658,7 +4766,10 @@ document.addEventListener("DOMContentLoaded", () => {
       tools.appendChild(panel);
     }
     const isOpen = widget.classList.contains("widget-settings-schema-open");
-    if (isOpen) panel.innerHTML = renderWidgetSettingsSchemaPanel(widget, "appearance");
+    if (isOpen) {
+      panel.innerHTML = renderWidgetSettingsSchemaPanel(widget, "appearance");
+      normalizeWidgetMenuFormControls(panel);
+    }
     else panel.replaceChildren();
     panel.toggleAttribute("hidden", !isOpen);
     return panel;
@@ -4689,7 +4800,10 @@ document.addEventListener("DOMContentLoaded", () => {
       tools.appendChild(panel);
     }
     const isOpen = widget.classList.contains("widget-workbench-open");
-    if (isOpen) panel.innerHTML = renderWidgetWorkbenchPanel(widget);
+    if (isOpen) {
+      panel.innerHTML = renderWidgetWorkbenchPanel(widget);
+      normalizeWidgetMenuFormControls(panel);
+    }
     else panel.replaceChildren();
     panel.toggleAttribute("hidden", !isOpen);
     return panel;
@@ -10119,6 +10233,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (!canOpenDashboardTools(widget)) return;
         window.clearTimeout(closeTimer);
         positionDashboardToolDrawer(widget, settings, drawer);
+        setWidgetLinkNavigationSuspended(widget, true);
         widget.classList.add("widget-tools-open");
         settings?.setAttribute("aria-expanded", "true");
         syncLayoutToolsActive();
@@ -10135,11 +10250,13 @@ document.addEventListener("DOMContentLoaded", () => {
         workbenchPanel?.setAttribute("hidden", "");
         colorMenu?.classList.remove("panel-color-menu-open");
         colorToggle?.setAttribute("aria-expanded", "false");
+        setWidgetLinkNavigationSuspended(widget, false);
         syncLayoutToolsActive();
       };
       const closeWorkbench = () => {
         widget.classList.remove("widget-workbench-open");
         workbenchPanel?.setAttribute("hidden", "");
+        if (!widget.classList.contains("widget-tools-open")) setWidgetLinkNavigationSuspended(widget, false);
         syncLayoutToolsActive();
       };
       const openWorkbench = () => {
@@ -10152,6 +10269,7 @@ document.addEventListener("DOMContentLoaded", () => {
         settingsSchemaPanel?.setAttribute("hidden", "");
         colorMenu?.classList.remove("panel-color-menu-open");
         colorToggle?.setAttribute("aria-expanded", "false");
+        setWidgetLinkNavigationSuspended(widget, true);
         widget.classList.add("widget-workbench-open");
         const panel = ensureWidgetWorkbenchPanel(widget);
         if (panel) {
@@ -10233,6 +10351,10 @@ document.addEventListener("DOMContentLoaded", () => {
       settingsSchemaPanel?.addEventListener("click", (event) => {
         event.stopPropagation();
       });
+      settingsSchemaPanel?.addEventListener("submit", (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+      });
       settingsSchemaPanel?.addEventListener("input", (event) => {
         event.stopPropagation();
       });
@@ -10253,6 +10375,10 @@ document.addEventListener("DOMContentLoaded", () => {
         }
       });
       workbenchPanel?.addEventListener("click", (event) => {
+        event.stopPropagation();
+      });
+      workbenchPanel?.addEventListener("submit", (event) => {
+        event.preventDefault();
         event.stopPropagation();
       });
       workbenchPanel?.addEventListener("input", (event) => {
@@ -11477,7 +11603,19 @@ document.addEventListener("DOMContentLoaded", () => {
     const widgets = [...rootWidgets, ...childWidgets];
     const anchorLayer = anchorLayerForLayoutKey(layoutKey);
     const anchors = anchorLayer ? anchorRailAnchors(anchorLayer).map(canonicalAnchorInstanceForPersistence) : [];
-    const logicGraph = loadWorkspaceLogicGraph(layoutKey, profile);
+    const contexts = loadWorkspaceContexts(layoutKey, profile);
+    const dataSources = loadDataSources(layoutKey, profile);
+    const assets = loadAssets(layoutKey, profile);
+    const rawLogicGraph = loadWorkspaceLogicGraph(layoutKey, profile);
+    const logicEndpointIds = persistedWorkspaceEndpointIds({
+      widgets,
+      panels,
+      dividers,
+      anchors,
+      contexts,
+      operators: rawLogicGraph.operators,
+    });
+    const logicGraph = pruneWorkspaceLogicGraphForEndpointIds(rawLogicGraph, logicEndpointIds);
     const objects = [
       ...widgets.map((widget) => ({ id: widget.id, type: WORKSPACE_OBJECT_TYPES.widget, layoutDomain: widget.layoutDomain, parentId: widget.parentPanelId || null })),
       ...panels.map((panel) => ({ id: panel.id, type: WORKSPACE_OBJECT_TYPES.panel, layoutDomain: panel.layoutDomain, parentId: null })),
@@ -11495,13 +11633,13 @@ document.addEventListener("DOMContentLoaded", () => {
       panels,
       dividers,
       anchors,
-      contexts: loadWorkspaceContexts(layoutKey, profile),
-      dataSources: loadDataSources(layoutKey, profile),
+      contexts,
+      dataSources,
       relationships: logicGraph.relationships,
       operators: logicGraph.operators,
       styleRules: logicGraph.styleRules,
       contextLinks: logicGraph.contextLinks,
-      assets: loadAssets(layoutKey, profile),
+      assets,
       assetReferences: widgets.flatMap(assetReferencesFromWidget),
     };
   };
@@ -11671,7 +11809,22 @@ document.addEventListener("DOMContentLoaded", () => {
   const loadPersistedWorkspaceSnapshot = (layoutKey = "builder", profile = getActivePanelProfile(layoutKey)) => {
     const saved = readJsonStore(persistedWorkspaceKey(layoutKey, profile), null);
     if (!saved || Number(saved.version) !== PERSISTED_WORKSPACE_VERSION) return currentPersistedWorkspaceSnapshot(layoutKey, profile);
-    return saved;
+    const logicGraph = pruneWorkspaceLogicGraphForEndpointIds(
+      workspaceLogicGraphFromPersistedSnapshot(saved),
+      persistedWorkspaceEndpointIds(saved)
+    );
+    const hydrated = {
+      ...saved,
+      relationships: logicGraph.relationships,
+      operators: logicGraph.operators,
+      styleRules: logicGraph.styleRules,
+      contextLinks: logicGraph.contextLinks,
+    };
+    writeJsonStore(workspaceLogicGraphKey(layoutKey, profile), logicGraph);
+    writeJsonStore(persistedWorkspaceKey(layoutKey, profile), hydrated);
+    refreshResolvedContextDebug(layoutKey, profile);
+    refreshEngineerOverlays();
+    return hydrated;
   };
 
   const migratePersistedWorkspaceSnapshot = (layoutKey = "builder", profile = getActivePanelProfile(layoutKey)) => {

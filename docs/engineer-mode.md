@@ -39,6 +39,7 @@ Rules:
 - Handles must align to object edges without shifting layout.
 - Handles must not interfere with drag, resize, menu, or pin controls.
 - Handles should only appear in Engineer Mode or during a deliberate context wiring gesture.
+- Handles should stay small and quiet. They are Engineer affordances, not primary dashboard controls.
 
 ## Link Creation
 
@@ -48,6 +49,7 @@ Rules:
 4. Dropping on a valid target creates a `ContextLink`.
 5. Dropping elsewhere cancels without side effects.
 6. Link persistence updates after successful creation.
+7. Hovering a handle highlights only the committed links connected to that object; unrelated links remain subdued.
 
 Do not rely on arbitrary timers. Pointer state, preview state, and committed link state must be separate.
 
@@ -74,6 +76,9 @@ Link paths should update after:
 - Layout load/reset
 - Panel membership change
 - Future canvas pan
+
+Save/load must include committed `ContextLink` and relationship graph state. Loading should restore valid links by object id and discard stale links whose source or target objects no longer exist.
+
 - Future canvas zoom
 - Future workspace region collapse/expand
 

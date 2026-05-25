@@ -278,17 +278,20 @@ body:not(.engineer-mode-active) .workspace-engineer-overlay-layer {
   z-index: 5;
   display: grid;
   place-items: center;
-  width: 16px;
-  height: 16px;
+  width: 11px;
+  min-width: 11px;
+  height: 11px;
+  min-height: 11px;
+  padding: 0;
   translate: -50% -50%;
-  border: 1.5px solid color-mix(in srgb, #64748b 42%, var(--line));
+  border: 1px solid color-mix(in srgb, #64748b 38%, var(--line));
   border-radius: 999px;
   background:
-    radial-gradient(circle at 45% 42%, color-mix(in srgb, var(--surface-raised) 96%, transparent) 0 34%, color-mix(in srgb, #60a5fa 42%, transparent) 35% 58%, color-mix(in srgb, #0f172a 62%, transparent) 59% 100%);
+    radial-gradient(circle at 45% 42%, color-mix(in srgb, var(--surface-raised) 96%, transparent) 0 32%, color-mix(in srgb, #60a5fa 34%, transparent) 33% 58%, color-mix(in srgb, #0f172a 54%, transparent) 59% 100%);
   box-shadow:
-    0 5px 12px rgba(15, 23, 42, .18),
-    inset 0 1px 0 color-mix(in srgb, var(--glass-highlight) 58%, transparent);
-  opacity: .82;
+    0 3px 8px rgba(15, 23, 42, .13),
+    inset 0 1px 0 color-mix(in srgb, var(--glass-highlight) 52%, transparent);
+  opacity: .72;
   cursor: crosshair;
   pointer-events: auto;
   transition: transform .14s ease, opacity .14s ease, border-color .14s ease, box-shadow .14s ease;
@@ -296,11 +299,11 @@ body:not(.engineer-mode-active) .workspace-engineer-overlay-layer {
 
 .workspace-wire-nodule::after {
   content: "";
-  width: 5px;
-  height: 5px;
+  width: 3px;
+  height: 3px;
   border-radius: inherit;
-  background: color-mix(in srgb, #2563eb 72%, var(--surface-raised));
-  box-shadow: 0 0 0 2px color-mix(in srgb, #ffffff 52%, transparent);
+  background: color-mix(in srgb, #2563eb 66%, var(--surface-raised));
+  box-shadow: 0 0 0 1px color-mix(in srgb, #ffffff 42%, transparent);
 }
 
 .workspace-wire-nodule:hover,
@@ -310,10 +313,22 @@ body:not(.engineer-mode-active) .workspace-engineer-overlay-layer {
   opacity: 1;
   border-color: color-mix(in srgb, #ef4444 72%, var(--line));
   box-shadow:
-    0 8px 18px rgba(15, 23, 42, .20),
-    0 0 0 4px color-mix(in srgb, #ef4444 12%, transparent),
+    0 4px 10px rgba(15, 23, 42, .16),
+    0 0 0 2px color-mix(in srgb, #ef4444 10%, transparent),
     inset 0 1px 0 color-mix(in srgb, var(--glass-highlight) 64%, transparent);
-  transform: scale(1.08);
+  transform: scale(1.12);
+}
+
+.workspace-relationship-path[data-relationship-highlight="connected"] {
+  stroke: #ef4444;
+  stroke-width: 2;
+  opacity: .82;
+  filter: drop-shadow(0 0 6px color-mix(in srgb, #ef4444 24%, transparent));
+}
+
+.workspace-relationship-path[data-relationship-highlight="unrelated"] {
+  opacity: .14;
+  filter: none;
 }
 
 .workspace-wire-drag-svg {

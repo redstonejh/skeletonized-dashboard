@@ -1732,6 +1732,37 @@ def test_widget_body_workbench_and_appearance_settings_split_configuration(page:
     expect(stat.locator(".panel-tool-drawer")).not_to_be_visible()
     expect(stat.locator(".widget-config-toggle")).to_have_count(0)
 
+    page.evaluate("() => { window.__workbenchReloadProbe = Math.random(); }")
+    reload_probe = page.evaluate("() => window.__workbenchReloadProbe")
+    stat_metric = stat_workbench.locator('[data-widget-setting-key="metric"]')
+    stat_metric.click()
+    expect(stat_workbench).to_be_visible()
+    assert page.evaluate("() => window.__workbenchReloadProbe") == reload_probe
+    stat_metric.select_option("avg")
+    expect(stat_workbench).to_be_visible()
+    expect(stat.locator(".stat-val")).to_have_text("15")
+    assert page.evaluate("() => window.__workbenchReloadProbe") == reload_probe
+    stat_workbench.evaluate(
+        """
+        panel => {
+          const form = document.createElement("form");
+          form.className = "workbench-submit-probe";
+          form.innerHTML = '<input name="probe" value="stable"><button class="workbench-submit-probe-button">Apply</button>';
+          panel.appendChild(form);
+        }
+        """
+    )
+    stat_workbench.locator('.workbench-submit-probe input[name="probe"]').fill("still stable")
+    expect(stat_workbench).to_be_visible()
+    assert page.evaluate("() => window.__workbenchReloadProbe") == reload_probe
+    stat_workbench.locator(".workbench-submit-probe-button").click()
+    expect(stat_workbench).to_be_visible()
+    assert page.evaluate("() => window.__workbenchReloadProbe") == reload_probe
+    page.mouse.click(20, 20)
+    expect(stat_workbench).not_to_be_visible()
+
+    stat.click()
+    expect(stat_workbench).to_be_visible()
     stat.locator(".widget-settings-toggle").click(force=True)
     stat_settings = stat.locator(".widget-settings-schema-panel")
     expect(stat_settings).to_be_visible()
@@ -1740,6 +1771,7 @@ def test_widget_body_workbench_and_appearance_settings_split_configuration(page:
     expect(stat_settings.locator('[data-widget-setting-key="valueField"]')).to_have_count(0)
     expect(stat_settings.locator('[data-widget-setting-key="format"]')).to_be_visible()
 
+    before_label_query_count = page.evaluate("() => window.__settingsQueryCount")
     stat_settings.locator('[data-widget-setting-key="label"]').evaluate(
         """node => {
           node.value = "Revenue";
@@ -1747,7 +1779,7 @@ def test_widget_body_workbench_and_appearance_settings_split_configuration(page:
         }"""
     )
     expect(stat.locator(".stat-lbl")).to_have_text("Revenue")
-    assert page.evaluate("() => window.__settingsQueryCount") == 1
+    assert page.evaluate("() => window.__settingsQueryCount") == before_label_query_count
 
     page.mouse.click(20, 20)
     press_dashboard_undo(page)
@@ -5932,11 +5964,9 @@ def test_engineer_wire_nodules_drag_to_create_context_link(page: Page, app_serve
     page.reload(wait_until="networkidle")
     page.wait_for_selector(".page")
 
-    page.locator(".panel-add-button").click()
-    page.locator('.divider-add-action[data-divider-kind="context-divider"]').click()
+    open_add_category(page, "dividers").locator('.divider-add-action[data-divider-kind="context-divider"]').click()
     divider_key = page.locator(".workspace-divider").last.evaluate("node => node.dataset.panelKey")
-    page.locator(".panel-add-button").click()
-    page.locator('.widget-add-action[data-widget-kind="anchor"]').click()
+    open_add_category(page, "navigation").locator('.widget-add-action[data-widget-kind="anchor"]').click()
     anchor_key = page.locator(".workspace-anchor-object").last.evaluate("node => node.dataset.anchorKey")
 
     normal = page.evaluate(
@@ -5968,11 +5998,17 @@ def test_engineer_wire_nodules_drag_to_create_context_link(page: Page, app_serve
           divider: Boolean(document.querySelector(`.workspace-wire-nodule[data-wire-object-id="${dividerKey}"]`)),
           anchor: Boolean(document.querySelector(`.workspace-wire-nodule[data-wire-object-id="${anchorKey}"]`)),
           minimap: Boolean(document.querySelector('.workspace-minimap-layer .workspace-wire-nodule')),
+          maxSize: Math.max(...[...document.querySelectorAll(".workspace-wire-nodule")].map((node) => node.getBoundingClientRect().width)),
         })
         """,
         {"dividerKey": divider_key, "anchorKey": anchor_key},
     )
-    assert nodule_state == {"widget": True, "panel": True, "divider": True, "anchor": False, "minimap": False}
+    assert nodule_state["widget"] is True
+    assert nodule_state["panel"] is True
+    assert nodule_state["divider"] is True
+    assert nodule_state["anchor"] is False
+    assert nodule_state["minimap"] is False
+    assert nodule_state["maxSize"] <= 12
 
     source = page.locator('.workspace-wire-nodule[data-wire-object-id="widget-1"]').first
     source_box = source.bounding_box()
@@ -5997,6 +6033,33 @@ def test_engineer_wire_nodules_drag_to_create_context_link(page: Page, app_serve
     assert preview_state["valid"] == "false"
     assert preview_state["openTools"] == 0
     assert "239, 68, 68" in preview_state["stroke"] or "#ef4444" in preview_state["stroke"].lower()
+    scroll_preview_state = page.evaluate(
+        """
+        async () => {
+          document.body.style.minHeight = "1800px";
+          const preview = document.querySelector(".workspace-wire-drag-path");
+          const beforePath = preview.getAttribute("d");
+          const beforeSource = document.querySelector('.workspace-wire-nodule[data-wire-object-id="widget-1"]').getBoundingClientRect();
+          window.scrollBy(0, 120);
+          await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+          const afterPath = preview.getAttribute("d");
+          const afterSource = document.querySelector('.workspace-wire-nodule[data-wire-object-id="widget-1"]').getBoundingClientRect();
+          const startMatch = afterPath.match(/^M\\s+(-?\\d+(?:\\.\\d+)?)\\s+(-?\\d+(?:\\.\\d+)?)/);
+          return {
+            scrollY: window.scrollY,
+            beforePath,
+            afterPath,
+            beforeSourceY: beforeSource.top + beforeSource.height / 2,
+            afterSourceY: afterSource.top + afterSource.height / 2,
+            pathStartY: startMatch ? Number(startMatch[2]) : null,
+          };
+        }
+        """
+    )
+    assert scroll_preview_state["scrollY"] >= 100
+    assert scroll_preview_state["beforePath"] != scroll_preview_state["afterPath"]
+    assert abs(scroll_preview_state["pathStartY"] - scroll_preview_state["afterSourceY"]) <= 2
+    assert scroll_preview_state["afterSourceY"] < scroll_preview_state["beforeSourceY"]
     page.mouse.up()
     page.wait_for_function(
         """
@@ -6004,6 +6067,8 @@ def test_engineer_wire_nodules_drag_to_create_context_link(page: Page, app_serve
           window.dashboardRelationshipRuntime.contextLinks("builder").length === 0
         """
     )
+    page.evaluate("() => window.scrollTo(0, 0)")
+    page.wait_for_function("() => window.scrollY === 0 && document.querySelector('.workspace-wire-nodule[data-wire-object-id=\"widget-1\"]')")
 
     target = page.locator('.workspace-wire-nodule[data-wire-object-id="widget-2"]').first
     target_box = target.bounding_box()
@@ -6037,6 +6102,39 @@ def test_engineer_wire_nodules_drag_to_create_context_link(page: Page, app_serve
     assert created["rendered"] == 1
     assert created["links"][0]["mode"] == "inherit"
 
+    page.evaluate(
+        """
+        () => window.dashboardRelationshipRuntime.addRelationship("builder", {
+          id: "unrelated-query-wire",
+          sourceId: "widget-3",
+          targetId: "widget-4",
+          type: "query",
+          visualState: "ambient"
+        })
+        """
+    )
+    page.wait_for_function("() => document.querySelectorAll('.workspace-relationship-path').length >= 2")
+    source.hover()
+    page.wait_for_timeout(180)
+    hover_trace = page.evaluate(
+        """
+        () => ({
+          connected: document.querySelectorAll('.workspace-relationship-path[data-relationship-highlight="connected"]').length,
+          unrelated: document.querySelectorAll('.workspace-relationship-path[data-relationship-highlight="unrelated"]').length,
+          connectedStroke: getComputedStyle(document.querySelector('.workspace-relationship-path[data-relationship-highlight="connected"]')).stroke,
+        })
+        """
+    )
+    assert hover_trace["connected"] >= 1
+    assert hover_trace["unrelated"] >= 1
+    assert "239, 68, 68" in hover_trace["connectedStroke"] or "#ef4444" in hover_trace["connectedStroke"].lower()
+    page.mouse.move(24, 24)
+    page.wait_for_timeout(120)
+    assert page.evaluate('() => document.querySelectorAll(".workspace-relationship-path[data-relationship-highlight]").length') == 0
+
+    press_dashboard_undo(page)
+    assert page.evaluate('() => window.dashboardRelationshipRuntime.relationships("builder", { derived: false }).length') == 0
+    assert page.evaluate('() => window.dashboardRelationshipRuntime.contextLinks("builder").length') == 1
     press_dashboard_undo(page)
     assert page.evaluate('() => window.dashboardRelationshipRuntime.contextLinks("builder").length') == 0
     press_dashboard_redo(page)
@@ -6044,6 +6142,38 @@ def test_engineer_wire_nodules_drag_to_create_context_link(page: Page, app_serve
 
     page.locator(".layout-save-button").click()
     expect(page.locator(".toast", has_text="saved")).to_be_visible()
+    stale_load = page.evaluate(
+        """
+        () => {
+          const runtime = window.dashboardPersistenceRuntime;
+          const snapshot = runtime.loadSnapshot("builder", "1");
+          const broken = {
+            ...snapshot,
+            contextLinks: [
+              ...snapshot.contextLinks,
+              { id: "stale-context-wire", sourceObjectId: "widget-1", targetObjectId: "missing-widget", mode: "inherit" }
+            ],
+            relationships: [
+              ...snapshot.relationships,
+              { id: "stale-query-wire", sourceId: "missing-source", targetId: "widget-2", type: "query" }
+            ]
+          };
+          localStorage.setItem(runtime.keyForLayout("builder", "1"), JSON.stringify(broken));
+          const loaded = runtime.loadSnapshot("builder", "1");
+          const graph = window.dashboardRelationshipRuntime.getGraph("builder", "1");
+          return {
+            loadedContextLinks: loaded.contextLinks.map((link) => link.id),
+            loadedRelationships: loaded.relationships.map((relationship) => relationship.id),
+            graphContextLinks: graph.contextLinks.map((link) => link.id),
+            graphRelationships: graph.relationships.map((relationship) => relationship.id),
+          };
+        }
+        """
+    )
+    assert "stale-context-wire" not in stale_load["loadedContextLinks"]
+    assert "stale-query-wire" not in stale_load["loadedRelationships"]
+    assert stale_load["loadedContextLinks"] == stale_load["graphContextLinks"]
+    assert stale_load["loadedRelationships"] == stale_load["graphRelationships"]
     page.reload(wait_until="networkidle")
     reloaded = page.evaluate('() => window.dashboardRelationshipRuntime.contextLinks("builder")')
     assert reloaded[0]["sourceObjectId"] == "widget-1"
