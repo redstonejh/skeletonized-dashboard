@@ -6141,6 +6141,20 @@ document.addEventListener("DOMContentLoaded", () => {
       .filter(Boolean);
   };
 
+  const WORKSPACE_VISUAL_LOD_TIERS = Object.freeze({
+    active: "active",
+    visible: "visible",
+    near: "near",
+    far: "far",
+  });
+
+  const WORKSPACE_VISUAL_LOD_OVERSCAN = Object.freeze({
+    visibleMin: 180,
+    visibleViewportRatio: .35,
+    nearMin: 900,
+    nearViewportRatio: 1.5,
+  });
+
   const workspaceVisualViewport = () => {
     const scrollY = window.scrollY || document.documentElement.scrollTop || 0;
     const height = window.innerHeight || document.documentElement.clientHeight || 800;
@@ -6148,8 +6162,8 @@ document.addEventListener("DOMContentLoaded", () => {
       top: scrollY,
       bottom: scrollY + height,
       height,
-      visibleOverscan: Math.max(180, height * .35),
-      nearOverscan: Math.max(900, height * 1.5),
+      visibleOverscan: Math.max(WORKSPACE_VISUAL_LOD_OVERSCAN.visibleMin, height * WORKSPACE_VISUAL_LOD_OVERSCAN.visibleViewportRatio),
+      nearOverscan: Math.max(WORKSPACE_VISUAL_LOD_OVERSCAN.nearMin, height * WORKSPACE_VISUAL_LOD_OVERSCAN.nearViewportRatio),
     };
   };
 
@@ -6163,7 +6177,15 @@ document.addEventListener("DOMContentLoaded", () => {
   };
 
   const workspaceVisualLodForItem = (item, metrics = null, viewport = workspaceVisualViewport()) => {
+    if (item.closest?.(".workspace-anchor-layer")) {
+      return item.classList.contains("anchor-dragging") || item.classList.contains("anchor-rail-source")
+        ? WORKSPACE_VISUAL_LOD_TIERS.active
+        : WORKSPACE_VISUAL_LOD_TIERS.visible;
+    }
     if (
+      item.matches?.(":focus-within") ||
+      item.classList.contains("active") ||
+      item.classList.contains("group-selected") ||
       item.classList.contains("widget-dragging") ||
       item.classList.contains("db-panel-dragging") ||
       item.classList.contains("dashboard-active-resize") ||
@@ -6174,12 +6196,12 @@ document.addEventListener("DOMContentLoaded", () => {
       item.classList.contains("widget-tools-open") ||
       item.classList.contains("db-panel-tools-open")
     ) {
-      return "active";
+      return WORKSPACE_VISUAL_LOD_TIERS.active;
     }
     const { top, bottom } = gridItemDocumentBounds(item, metrics);
-    if (bottom >= viewport.top - viewport.visibleOverscan && top <= viewport.bottom + viewport.visibleOverscan) return "visible";
-    if (bottom >= viewport.top - viewport.nearOverscan && top <= viewport.bottom + viewport.nearOverscan) return "near";
-    return "far";
+    if (bottom >= viewport.top - viewport.visibleOverscan && top <= viewport.bottom + viewport.visibleOverscan) return WORKSPACE_VISUAL_LOD_TIERS.visible;
+    if (bottom >= viewport.top - viewport.nearOverscan && top <= viewport.bottom + viewport.nearOverscan) return WORKSPACE_VISUAL_LOD_TIERS.near;
+    return WORKSPACE_VISUAL_LOD_TIERS.far;
   };
 
   const syncWorkspaceVisualLod = (scope = document) => {
@@ -6200,6 +6222,12 @@ document.addEventListener("DOMContentLoaded", () => {
         item.dataset.lod = lod;
       });
     });
+    [...scope.querySelectorAll?.(".workspace-anchor-layer > .workspace-anchor-object:not([hidden])") || []]
+      .forEach((item) => {
+        const lod = workspaceVisualLodForItem(item, null, viewport);
+        item.dataset.visualLod = lod;
+        item.dataset.lod = lod;
+      });
   };
 
   let visualLodRefreshFrame = null;
@@ -10836,6 +10864,8 @@ document.addEventListener("DOMContentLoaded", () => {
   });
   window.addEventListener("scroll", () => scheduleWorkspaceVisualLodRefresh(), { passive: true });
   window.addEventListener("resize", () => scheduleWorkspaceVisualLodRefresh(), { passive: true });
+  document.addEventListener("focusin", () => scheduleWorkspaceVisualLodRefresh(), true);
+  document.addEventListener("focusout", () => scheduleWorkspaceVisualLodRefresh(), true);
   window.dashboardPerformanceEngine = {
     refreshVisualLod: () => syncWorkspaceVisualLod(),
     visualLodForElement: (item) => {

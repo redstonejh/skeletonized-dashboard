@@ -10,6 +10,8 @@ PERFORMANCE_PLAN = (ROOT / "docs" / "performance-stabilization-plan.md").read_te
 
 def test_visual_reflow_is_viewport_aware_without_changing_layout_commit_paths():
     for name in (
+        "WORKSPACE_VISUAL_LOD_TIERS",
+        "WORKSPACE_VISUAL_LOD_OVERSCAN",
         "workspaceVisualLodForItem",
         "gridItemDocumentBounds",
         "shouldAnimateGridReflowItem",
@@ -67,12 +69,18 @@ def test_visual_lod_css_reduces_far_offscreen_render_cost_only():
         assert tier in THEMES_CSS
 
     assert "dataset.lod" in APP_JS
+    assert 'item.matches?.(":focus-within")' in APP_JS
+    assert 'item.classList.contains("group-selected")' in APP_JS
+    assert "document.addEventListener(\"focusin\"" in APP_JS
+    assert ".workspace-anchor-layer > .workspace-anchor-object:not([hidden])" in APP_JS
     assert "--workspace-lod-near-shadow" in THEMES_CSS
     assert "--workspace-lod-far-shadow" in THEMES_CSS
     assert "backdrop-filter: none" in THEMES_CSS
     assert "transition: var(--workspace-lod-far-transition)" in THEMES_CSS
+    assert "transform: none !important" in THEMES_CSS
     assert ":not(.widget-dragging)" in THEMES_CSS
     assert ":not(.dashboard-active-resize)" in THEMES_CSS
+    assert ":not(.group-selected)" in THEMES_CSS
 
 
 def test_performance_pass_two_is_documented():

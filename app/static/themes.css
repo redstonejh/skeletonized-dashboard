@@ -4030,10 +4030,10 @@ button[aria-disabled="true"]:hover {
   will-change: transform;
 }
 
-.dashboard-layout-grid .widget-card[data-lod="near"]:not(.widget-dragging):not(.dashboard-active-resize):not(.widget-tools-open),
-.dashboard-layout-grid .db-panel[data-lod="near"]:not(.db-panel-dragging):not(.dashboard-active-resize):not(.db-panel-tools-open),
-.dashboard-layout-grid .widget-card[data-visual-lod="near"]:not(.widget-dragging):not(.dashboard-active-resize):not(.widget-tools-open),
-.dashboard-layout-grid .db-panel[data-visual-lod="near"]:not(.db-panel-dragging):not(.dashboard-active-resize):not(.db-panel-tools-open) {
+.dashboard-layout-grid .widget-card[data-lod="near"]:not(:focus-within):not(.active):not(.group-selected):not(.widget-dragging):not(.dashboard-active-resize):not(.widget-tools-open),
+.dashboard-layout-grid .db-panel[data-lod="near"]:not(:focus-within):not(.active):not(.group-selected):not(.db-panel-dragging):not(.dashboard-active-resize):not(.db-panel-tools-open),
+.dashboard-layout-grid .widget-card[data-visual-lod="near"]:not(:focus-within):not(.active):not(.group-selected):not(.widget-dragging):not(.dashboard-active-resize):not(.widget-tools-open),
+.dashboard-layout-grid .db-panel[data-visual-lod="near"]:not(:focus-within):not(.active):not(.group-selected):not(.db-panel-dragging):not(.dashboard-active-resize):not(.db-panel-tools-open) {
   box-shadow: var(--workspace-lod-near-shadow) !important;
   backdrop-filter: blur(2px) saturate(1.02);
   -webkit-backdrop-filter: blur(2px) saturate(1.02);
@@ -4041,10 +4041,10 @@ button[aria-disabled="true"]:hover {
   will-change: auto;
 }
 
-.dashboard-layout-grid .widget-card[data-lod="far"]:not(.widget-dragging):not(.dashboard-active-resize):not(.widget-tools-open),
-.dashboard-layout-grid .db-panel[data-lod="far"]:not(.db-panel-dragging):not(.dashboard-active-resize):not(.db-panel-tools-open),
-.dashboard-layout-grid .widget-card[data-visual-lod="far"]:not(.widget-dragging):not(.dashboard-active-resize):not(.widget-tools-open),
-.dashboard-layout-grid .db-panel[data-visual-lod="far"]:not(.db-panel-dragging):not(.dashboard-active-resize):not(.db-panel-tools-open) {
+.dashboard-layout-grid .widget-card[data-lod="far"]:not(:focus-within):not(.active):not(.group-selected):not(.widget-dragging):not(.dashboard-active-resize):not(.widget-tools-open),
+.dashboard-layout-grid .db-panel[data-lod="far"]:not(:focus-within):not(.active):not(.group-selected):not(.db-panel-dragging):not(.dashboard-active-resize):not(.db-panel-tools-open),
+.dashboard-layout-grid .widget-card[data-visual-lod="far"]:not(:focus-within):not(.active):not(.group-selected):not(.widget-dragging):not(.dashboard-active-resize):not(.widget-tools-open),
+.dashboard-layout-grid .db-panel[data-visual-lod="far"]:not(:focus-within):not(.active):not(.group-selected):not(.db-panel-dragging):not(.dashboard-active-resize):not(.db-panel-tools-open) {
   box-shadow: var(--workspace-lod-far-shadow) !important;
   backdrop-filter: none !important;
   -webkit-backdrop-filter: none !important;
@@ -4052,10 +4052,13 @@ button[aria-disabled="true"]:hover {
   will-change: auto;
 }
 
-.dashboard-layout-grid .widget-card[data-lod="far"]:not(.widget-dragging):not(.dashboard-active-resize):not(.widget-tools-open):hover,
-.dashboard-layout-grid .db-panel[data-lod="far"]:not(.db-panel-dragging):not(.dashboard-active-resize):not(.db-panel-tools-open):hover,
-.dashboard-layout-grid .widget-card[data-visual-lod="far"]:not(.widget-dragging):not(.dashboard-active-resize):not(.widget-tools-open):hover,
-.dashboard-layout-grid .db-panel[data-visual-lod="far"]:not(.db-panel-dragging):not(.dashboard-active-resize):not(.db-panel-tools-open):hover {
-  transform: none;
+.dashboard-layout-grid .widget-card[data-lod="far"]:not(:focus-within):not(.active):not(.group-selected):not(.widget-dragging):not(.dashboard-active-resize):not(.widget-tools-open):hover,
+.dashboard-layout-grid .db-panel[data-lod="far"]:not(:focus-within):not(.active):not(.group-selected):not(.db-panel-dragging):not(.dashboard-active-resize):not(.db-panel-tools-open):hover,
+.dashboard-layout-grid .widget-card[data-visual-lod="far"]:not(:focus-within):not(.active):not(.group-selected):not(.widget-dragging):not(.dashboard-active-resize):not(.widget-tools-open):hover,
+.dashboard-layout-grid .db-panel[data-visual-lod="far"]:not(:focus-within):not(.active):not(.group-selected):not(.db-panel-dragging):not(.dashboard-active-resize):not(.db-panel-tools-open):hover {
+  box-shadow: var(--workspace-lod-far-shadow) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  transform: none !important;
 }
 
