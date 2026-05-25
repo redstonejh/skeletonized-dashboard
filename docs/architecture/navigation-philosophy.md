@@ -44,7 +44,7 @@ Appropriate navbar responsibilities:
 - Workspace/profile identity.
 - Layout/profile save/load utilities.
 - Add/create entry point.
-- Group/Engineer/Context modes.
+- Group and Engineer modes. Context visibility belongs inside Engineer Mode rather than a separate normal-user toolbar mode.
 - Anchor management entry point in the future.
 
 Inappropriate navbar responsibilities:
@@ -101,4 +101,3 @@ Reduced motion should preserve navigation clarity:
 - Whether saved viewports are their own object class or an anchor subtype.
 - Whether overview/minimap is necessary before many anchors exist.
 - How context search interacts with anchor creation.
-

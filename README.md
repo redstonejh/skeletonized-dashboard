@@ -33,6 +33,14 @@ Current architectural principles:
 
 The upcoming work is intentionally staged around stabilization first, then larger architecture. See `docs/pre-overhaul-stabilization-roadmap.md` for the detailed pre-overhaul checklist.
 
+### Current Progress
+
+- Spatial anchors now live on a left-side viewport rail with dedicated anchor ordering, persistence, undo/redo, divider linking, and live divider navigation.
+- Widgets can be intentionally absorbed into open panels, where they become panel children with scoped internal grid state, save/load, and undo/redo support.
+- Workspace context now resolves through source-agnostic data-source adapters, semantic mappings, inherited divider regions, and normalized context queries.
+- Widget rendering now uses `app/static/widget-registry.js`, so stat, timeframe, search, table, chart, stat-filter, and calendar widgets declare runtime contracts outside core grid interaction code.
+- Context visualization is hidden in normal mode and is revealed through Engineer Mode, keeping the default workspace clean while preserving internal context inheritance.
+
 ### Near-Term Stabilization
 
 - Keep drag, resize, collision, snapping, ghost previews, pinning, collapse, undo, and save/load deterministic under repeated interaction.
@@ -108,6 +116,7 @@ The upcoming work is intentionally staged around stabilization first, then large
 - `app/routes/api.py` exposes generic dashboard APIs.
 - `app/templates/` contains the generic shell, dashboard, and settings pages.
 - `app/static/app.js` contains the protected dashboard interaction system.
+- `app/static/widget-registry.js` contains registry-backed widget runtime definitions and renderers.
 - `app/static/style.css` is an import manifest for the split CSS architecture.
 - `app/static/tokens.css`, `base.css`, `layout.css`, `components.css`, `dashboard-grid.css`, `themes.css`, and `utilities.css` contain the preserved visual system.
 - `AGENTS.md` defines mandatory guardrails for AI agents and contributors.

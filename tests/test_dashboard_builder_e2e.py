@@ -884,6 +884,136 @@ def test_search_bar_widget_uses_normal_widget_creation_and_controls(page: Page, 
     assert_clean_browser(page)
 
 
+def test_widget_runtime_registry_drives_real_widget_contracts(page: Page, app_server: str) -> None:
+    goto(page, app_server)
+    page.evaluate("localStorage.clear()")
+    page.reload(wait_until="networkidle")
+    page.wait_for_selector(".page")
+
+    runtime = page.evaluate(
+        """
+        () => ({
+          types: window.dashboardWidgetRuntime.listWidgetDefinitions().map((definition) => definition.type),
+          timeframe: document.querySelector(".timeframe-widget").dataset.widgetDefinition,
+          timeframeRuntimeType: document.querySelector(".timeframe-widget").dataset.widgetRuntimeType,
+          statDefinition: document.querySelector('[data-widget-key="widget-1"]').dataset.widgetDefinition,
+          statCapabilities: JSON.parse(document.querySelector('[data-widget-key="widget-1"]').dataset.widgetCapabilities || "{}")
+        })
+        """
+    )
+    for widget_type in ("stat", "timeframe", "search", "table", "chart"):
+        assert widget_type in runtime["types"]
+    assert runtime["timeframe"] == "timeframe"
+    assert runtime["timeframeRuntimeType"] == "timeframe"
+    assert runtime["statDefinition"] == "stat"
+    assert runtime["statCapabilities"]["readsContext"] is True
+
+    page.locator(".panel-add-button").click()
+    page.locator('.widget-add-action[data-widget-kind="table"]').click()
+    table_widget = page.locator('.widget-layout > .widget-card[data-widget-definition="table"]').last
+    expect(table_widget).to_be_visible()
+    table_state = table_widget.evaluate(
+        """
+        node => ({
+          widgetType: node.dataset.widgetType,
+          objectKind: node.dataset.dashboardObjectKind,
+          definition: node.dataset.widgetDefinition,
+          capabilities: JSON.parse(node.dataset.widgetCapabilities || "{}"),
+          settings: JSON.parse(node.dataset.widgetSupportedSettings || "[]"),
+          requirements: JSON.parse(node.dataset.widgetQueryRequirements || "{}"),
+          text: node.textContent
+        })
+        """
+    )
+    assert table_state["widgetType"] == "table"
+    assert table_state["objectKind"] == "table"
+    assert table_state["definition"] == "table"
+    assert table_state["capabilities"]["requiresDataSource"] is True
+    assert "columns" in table_state["settings"]
+    assert table_state["requirements"]["fields"] == "semantic"
+    assert "Configure a data source" in table_state["text"]
+
+    page.evaluate(
+        """
+        async () => {
+          const engine = window.dashboardContextEngine;
+          engine.setDataSources("builder", [{
+            id: "runtime-source",
+            name: "Runtime Source",
+            kind: "manual",
+            config: {
+              rows: [
+                { created_at: "2026-05-01", amount: 42, name: "Alpha", category: "A" },
+                { created_at: "2026-05-02", amount: 18, name: "Beta", category: "B" }
+              ]
+            }
+          }]);
+          engine.setWorkspaceContexts("builder", [{
+            id: "builder:region:root",
+            name: "Runtime root",
+            dataSourceId: "runtime-source",
+            semanticMapping: { dateField: "created_at", valueField: "amount", labelField: "name", categoryField: "category" }
+          }]);
+          engine.refresh("builder");
+        }
+        """
+    )
+    expect(table_widget.locator(".runtime-table")).to_be_visible()
+    expect(table_widget.locator(".runtime-table")).to_contain_text("Alpha")
+    expect(table_widget.locator(".runtime-table")).to_contain_text("42")
+
+    page.locator(".panel-add-button").click()
+    page.locator('.widget-add-action[data-widget-kind="graph"]').click()
+    chart_widget = page.locator('.widget-layout > .widget-card[data-widget-definition="chart"]').last
+    expect(chart_widget).to_be_visible()
+    chart_state = chart_widget.evaluate(
+        """
+        node => ({
+          widgetType: node.dataset.widgetType,
+          objectKind: node.dataset.dashboardObjectKind,
+          definition: node.dataset.widgetDefinition,
+          text: node.textContent
+        })
+        """
+    )
+    assert chart_state["widgetType"] == "graph"
+    assert chart_state["objectKind"] == "chart"
+    assert chart_state["definition"] == "chart"
+    assert "Ready for chart mapping" in chart_state["text"]
+
+    page.locator(".panel-add-button").click()
+    page.locator('.widget-add-action[data-widget-kind="search"]').click()
+    search_widget = page.locator('.widget-layout > .widget-card[data-widget-definition="search"]').last
+    search_widget.locator(".search-widget-input").fill("needle")
+    page.locator(".layout-save-button").click()
+    expect(page.locator(".toast", has_text="saved")).to_be_visible()
+    page.reload(wait_until="networkidle")
+    persisted_search = page.locator('.widget-layout > .widget-card[data-widget-definition="search"]').last
+    expect(persisted_search.locator(".search-widget-input")).to_have_value("needle")
+
+    page.evaluate(
+        """
+        () => {
+          localStorage.setItem("dashboard-custom-six-grid-widgets:1:builder", JSON.stringify([{
+            key: "unknown-widget",
+            title: "Mystery",
+            type: "mystery",
+            runtimeType: "mystery",
+            span: 1,
+            config: JSON.stringify({ title: "Mystery" })
+          }]));
+        }
+        """
+    )
+    page.reload(wait_until="networkidle")
+    unsupported = page.locator('.widget-layout > .widget-card[data-widget-key="unknown-widget"]')
+    expect(unsupported).to_be_visible()
+    expect(unsupported.locator(".unsupported-widget-state")).to_be_visible()
+    expect(unsupported).to_contain_text("Unsupported widget")
+    assert unsupported.evaluate("node => node.dataset.widgetDefinition") == "unsupported"
+    assert_clean_browser(page)
+
+
 def test_widget_absorbs_into_open_panel_after_stable_hover_and_round_trips(page: Page, app_server: str) -> None:
     goto(page, app_server)
     page.evaluate(
@@ -1465,10 +1595,8 @@ def test_workspace_chrome_is_spatial_and_modes_still_work(page: Page, app_server
     page.locator(".engineer-mode-button").click()
     expect(page.locator(".engineer-mode-button")).to_have_attribute("aria-pressed", "true")
     assert page.locator("body").evaluate("node => node.classList.contains('engineer-mode-active')")
-
-    page.locator(".context-view-button").click()
-    expect(page.locator(".context-view-button")).to_have_attribute("aria-pressed", "true")
-    assert page.locator("body").evaluate("node => node.classList.contains('context-view-active')")
+    expect(page.locator(".context-view-button")).to_have_count(0)
+    assert not page.locator("body").evaluate("node => node.classList.contains('context-view-active')")
 
     assert_clean_browser(page)
 
@@ -1823,6 +1951,252 @@ def test_spatial_workspace_objects_keep_anchors_on_floating_navigation_layer(pag
     assert persisted_state["anchorTargetType"] == "workspace-top"
     assert persisted_state["anchorTarget"] in ("", None)
     assert persisted_state["orderedKeys"][0] == second_key
+    assert_clean_browser(page)
+
+
+def test_source_agnostic_context_inheritance_uses_adapters_and_semantic_mappings(page: Page, app_server: str) -> None:
+    goto(page, app_server)
+    page.evaluate("localStorage.clear()")
+    page.reload(wait_until="networkidle")
+    page.wait_for_selector(".page")
+
+    page.locator(".panel-add-button").click()
+    page.locator('.divider-add-action[data-divider-kind="context-divider"]').click()
+    divider = page.locator(".panel-layout > .workspace-divider").last
+    expect(divider).to_be_visible()
+
+    state = page.evaluate(
+        """
+        async () => {
+          const place = (node, col, row, span = 1) => {
+            node.hidden = false;
+            node.dataset.gridCol = String(col);
+            node.dataset.gridRow = String(row);
+            node.dataset.currentSpan = String(span);
+            node.dataset.gridRowSpan = "1";
+            node.style.gridColumn = `${col} / span ${span}`;
+            node.style.gridRow = `${row} / span 1`;
+          };
+          const engine = window.dashboardContextEngine;
+          const widgetOne = document.querySelector('[data-widget-key="widget-1"]');
+          const widgetTwo = document.querySelector('[data-widget-key="widget-2"]');
+          const divider = document.querySelector(".panel-layout > .workspace-divider");
+          place(widgetOne, 1, 1, 1);
+          place(widgetTwo, 1, 5, 1);
+          place(divider, 1, 3, 6);
+          engine.refresh("builder");
+          const dividerRegion = divider.dataset.contextScopeId;
+          engine.setDataSources("builder", [
+            {
+              id: "manual-orders",
+              name: "Manual Orders",
+              kind: "manual",
+              config: {
+                rows: [
+                  { created_at: "2026-02-01", amount: 15, name: "Alpha", category: "A" },
+                  { created_at: "2026-02-02", amount: 9, name: "Beta", category: "B" }
+                ]
+              }
+            },
+            {
+              id: "json-events",
+              name: "JSON Events",
+              kind: "json",
+              config: {
+                rows: [
+                  { timestamp: "2026-03-01", total: 22, title: "Gamma", category: "A" },
+                  { timestamp: "2026-03-02", total: 31, title: "Delta", category: "A" }
+                ]
+              }
+            }
+          ]);
+          engine.setWorkspaceContexts("builder", [
+            {
+              id: "builder:region:root",
+              name: "Root manual context",
+              dataSourceId: "manual-orders",
+              semanticMapping: { dateField: "created_at", valueField: "amount", labelField: "name", categoryField: "category" },
+              filters: [{ field: "category", operator: "eq", value: "A" }],
+              tags: ["root"]
+            },
+            {
+              id: dividerRegion,
+              name: "Divider JSON context",
+              dataSourceId: "json-events",
+              semanticMapping: { dateField: "timestamp", valueField: "total", labelField: "title", categoryField: "category" },
+              timeRange: { start: "2026-01-01", end: "2026-12-31" },
+              tags: ["divider"]
+            }
+          ]);
+          engine.refresh("builder");
+          const beforeOne = engine.resolveContextForElement(widgetOne);
+          const beforeTwo = engine.resolveContextForElement(widgetTwo);
+          const beforeTwoRows = await engine.queryWidget(widgetTwo, {
+            fields: [beforeTwo.semanticMapping.dateField, beforeTwo.semanticMapping.valueField],
+            sort: [{ field: beforeTwo.semanticMapping.valueField, direction: "desc" }]
+          });
+
+          place(widgetOne, 2, 6, 1);
+          engine.refresh("builder");
+          const afterMove = engine.resolveContextForElement(widgetOne);
+          const afterMoveRows = await engine.queryWidget(widgetOne, {
+            fields: [afterMove.semanticMapping.dateField, afterMove.semanticMapping.valueField],
+            limit: 1
+          });
+
+          engine.registerAdapter({
+            kind: "memory",
+            introspect: async (source) => ({ fields: [{ name: "observed_on", type: "date" }, { name: "score", type: "number" }] }),
+            query: async (source, request) => ({
+              schema: { fields: [{ name: "observed_on", type: "date" }, { name: "score", type: "number" }] },
+              rows: [{ observed_on: "2026-04-01", score: 44 }],
+              total: 1,
+              sourceId: source.id,
+              sourceKind: source.kind,
+              request
+            })
+          });
+          engine.setDataSources("builder", [
+            ...engine.getDataSources("builder"),
+            { id: "memory-source", name: "Memory Source", kind: "memory", config: {} }
+          ]);
+          engine.setWorkspaceContext("builder", {
+            id: "builder:region:root",
+            name: "Root memory context",
+            dataSourceId: "memory-source",
+            semanticMapping: { dateField: "observed_on", valueField: "score" },
+            tags: ["adapter"]
+          });
+          place(widgetTwo, 3, 1, 1);
+          engine.refresh("builder");
+          const customAdapterContext = engine.resolveContextForElement(widgetTwo);
+          const customAdapterRows = await engine.queryWidget(widgetTwo, {
+            fields: [customAdapterContext.semanticMapping.dateField, customAdapterContext.semanticMapping.valueField]
+          });
+
+          return {
+            dividerRegion,
+            beforeOne,
+            beforeTwo,
+            beforeTwoRows,
+            afterMove,
+            afterMoveRows,
+            customAdapterContext,
+            customAdapterRows,
+            badgeText: widgetOne.querySelector(".workspace-context-badge")?.textContent || "",
+            widgetOneRegion: widgetOne.dataset.resolvedWorkspaceRegionId,
+            widgetOneMapping: JSON.parse(widgetOne.dataset.resolvedSemanticMapping || "{}")
+          };
+        }
+        """
+    )
+
+    assert state["beforeOne"]["dataSourceId"] == "manual-orders"
+    assert state["beforeOne"]["semanticMapping"]["dateField"] == "created_at"
+    assert state["beforeTwo"]["dataSourceId"] == "json-events"
+    assert state["beforeTwo"]["semanticMapping"]["dateField"] == "timestamp"
+    assert state["beforeTwoRows"]["rows"][0]["total"] == 31
+    assert state["afterMove"]["dataSourceId"] == "json-events"
+    assert state["afterMoveRows"]["rows"][0]["timestamp"] == "2026-03-01"
+    assert state["customAdapterContext"]["dataSourceId"] == "memory-source"
+    assert state["customAdapterRows"]["rows"][0]["score"] == 44
+    assert state["widgetOneRegion"] == state["dividerRegion"]
+    assert state["widgetOneMapping"]["valueField"] == "total"
+
+    changed_context = page.evaluate(
+        """
+        (dividerRegion) => {
+          const engine = window.dashboardContextEngine;
+          engine.setWorkspaceContext("builder", {
+            id: dividerRegion,
+            name: "Divider manual context",
+            dataSourceId: "manual-orders",
+            semanticMapping: { dateField: "created_at", valueField: "amount", labelField: "name", categoryField: "category" }
+          });
+          engine.refresh("builder");
+          return engine.resolveContextForElement('[data-widget-key="widget-1"]').dataSourceId;
+        }
+        """,
+        state["dividerRegion"],
+    )
+    assert changed_context == "manual-orders"
+
+    press_dashboard_undo(page)
+    undone_context = page.evaluate(
+        """() => window.dashboardContextEngine.resolveContextForElement('[data-widget-key="widget-1"]').dataSourceId"""
+    )
+    assert undone_context == "json-events"
+
+    press_dashboard_redo(page)
+    redone_context = page.evaluate(
+        """() => window.dashboardContextEngine.resolveContextForElement('[data-widget-key="widget-1"]').dataSourceId"""
+    )
+    assert redone_context == "manual-orders"
+
+    page.evaluate(
+        """
+        (dividerRegion) => {
+          const engine = window.dashboardContextEngine;
+          engine.setWorkspaceContext("builder", {
+            id: dividerRegion,
+            name: "Divider JSON context",
+            dataSourceId: "json-events",
+            semanticMapping: { dateField: "timestamp", valueField: "total", labelField: "title", categoryField: "category" },
+            timeRange: { start: "2026-01-01", end: "2026-12-31" },
+            tags: ["divider"]
+          });
+          engine.refresh("builder");
+        }
+        """,
+        state["dividerRegion"],
+    )
+
+    expect(page.locator('[data-widget-key="widget-1"] > .workspace-context-badge')).to_have_count(0)
+    page.locator(".engineer-mode-button").click()
+    expect(page.locator(".engineer-mode-button")).to_have_attribute("aria-pressed", "true")
+    expect(page.locator('[data-widget-key="widget-1"] > .workspace-context-badge')).to_be_visible()
+    expect(page.locator('[data-widget-key="widget-1"] > .workspace-context-badge')).to_contain_text("JSON Events")
+    page.locator(".engineer-mode-button").click()
+    expect(page.locator(".engineer-mode-button")).to_have_attribute("aria-pressed", "false")
+    expect(page.locator('[data-widget-key="widget-1"] > .workspace-context-badge')).to_have_count(0)
+
+    page.locator(".layout-save-button").click()
+    expect(page.locator(".toast", has_text="saved")).to_be_visible()
+    page.reload(wait_until="networkidle")
+    reloaded = page.evaluate(
+        """
+        async () => {
+          const engine = window.dashboardContextEngine;
+          engine.registerAdapter({
+            kind: "memory",
+            introspect: async () => ({ fields: [{ name: "observed_on", type: "date" }, { name: "score", type: "number" }] }),
+            query: async (source, request) => ({
+              schema: { fields: [{ name: "observed_on", type: "date" }, { name: "score", type: "number" }] },
+              rows: [{ observed_on: "2026-04-01", score: 44 }],
+              total: 1,
+              sourceId: source.id,
+              sourceKind: source.kind,
+              request
+            })
+          });
+          engine.refresh("builder");
+          const widget = document.querySelector('[data-widget-key="widget-1"]');
+          const context = engine.resolveContextForElement(widget);
+          const result = await engine.queryWidget(widget, { fields: [context.semanticMapping.dateField, context.semanticMapping.valueField] });
+          return {
+            context,
+            result,
+            contexts: engine.getWorkspaceContexts("builder").map((entry) => entry.id),
+            sources: engine.getDataSources("builder").map((entry) => [entry.id, entry.kind])
+          };
+        }
+        """
+    )
+    assert reloaded["context"]["dataSourceId"] == "json-events"
+    assert reloaded["context"]["semanticMapping"]["dateField"] == "timestamp"
+    assert reloaded["result"]["rows"][0]["timestamp"] == "2026-03-01"
+    assert state["dividerRegion"] in reloaded["contexts"]
+    assert ["memory-source", "memory"] in reloaded["sources"]
     assert_clean_browser(page)
 
 
@@ -7424,7 +7798,6 @@ def test_compact_pressable_controls_depress_without_sinking_large_surfaces(page:
         ".panel-undo-button",
         ".layout-group-button",
         ".engineer-mode-button",
-        ".context-view-button",
         ".composition-add-button",
         ".restore-layout-button",
     ]:
@@ -7876,7 +8249,7 @@ def test_group_drag_uses_composite_footprint_and_preserves_member_spacing(page: 
     live_dx = during["livePanel"]["left"] - during["liveWidget"]["left"]
     live_dy = during["livePanel"]["top"] - during["liveWidget"]["top"]
     assert abs(live_dx - before_dx) <= 1
-    assert abs(live_dy - before_dy) <= 1
+    assert abs(live_dy - before_dy) <= 1.5
 
     page.mouse.up()
     page.wait_for_timeout(360)

@@ -134,14 +134,22 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 
+  const isEngineerMode = () => document.body.classList.contains("engineer-mode-active");
+  const refreshEngineerContextVisibility = () => {
+    document.querySelectorAll(".panel-layout").forEach((layout) => {
+      const layoutKey = layout.dataset.layoutKey || "default";
+      refreshResolvedContextDebug(layoutKey, getActivePanelProfile(layoutKey));
+    });
+  };
   document.querySelectorAll(".workspace-mode-button").forEach((button) => {
     button.addEventListener("click", () => {
       const mode = button.dataset.workspaceMode || "";
-      const className = mode === "engineer" ? "engineer-mode-active" : mode === "context" ? "context-view-active" : "";
+      const className = mode === "engineer" ? "engineer-mode-active" : "";
       if (!className) return;
       const enabled = !document.body.classList.contains(className);
       document.body.classList.toggle(className, enabled);
       button.setAttribute("aria-pressed", enabled.toString());
+      refreshEngineerContextVisibility();
       showToast(`${button.textContent.trim()} ${enabled ? "enabled" : "disabled"}.`);
     });
   });
@@ -345,6 +353,8 @@ document.addEventListener("DOMContentLoaded", () => {
   const customWidgetsPrefix = "dashboard-custom-six-grid-widgets:";
   const hiddenWidgetsPrefix = "dashboard-hidden-six-grid-widgets:";
   const floatingAnchorsPrefix = "dashboard-floating-anchors:";
+  const dataSourcesPrefix = "dashboard-data-sources:";
+  const workspaceContextsPrefix = "dashboard-workspace-contexts:";
   const layoutUndoPrefix = "dashboard-layout-undo:";
   const getActivePanelProfile = (layoutKey) => {
     try {
@@ -372,6 +382,8 @@ document.addEventListener("DOMContentLoaded", () => {
     return `${hiddenWidgetsPrefix}${profile}:${layoutKey}`;
   };
   const floatingAnchorsKey = (layoutKey, profile = getActivePanelProfile(layoutKey)) => `${floatingAnchorsPrefix}${profile}:${layoutKey}`;
+  const dataSourcesKey = (layoutKey, profile = getActivePanelProfile(layoutKey)) => `${dataSourcesPrefix}${profile}:${layoutKey}`;
+  const workspaceContextsKey = (layoutKey, profile = getActivePanelProfile(layoutKey)) => `${workspaceContextsPrefix}${profile}:${layoutKey}`;
   const layoutUndoKey = (layoutKey, profile = getActivePanelProfile(layoutKey)) => `${layoutUndoPrefix}${profile}:${layoutKey}`;
   let layoutUndoCaptureLock = false;
   const layoutScopedPrefixes = (layoutKey, profile = getActivePanelProfile(layoutKey)) => [
@@ -382,6 +394,8 @@ document.addEventListener("DOMContentLoaded", () => {
     `${customWidgetsPrefix}${profile}:${layoutKey}`,
     `${hiddenWidgetsPrefix}${profile}:${layoutKey}`,
     `${floatingAnchorsPrefix}${profile}:${layoutKey}`,
+    `${dataSourcesPrefix}${profile}:${layoutKey}`,
+    `${workspaceContextsPrefix}${profile}:${layoutKey}`,
   ];
   const layoutStorageKeys = (layoutKey, profile = getActivePanelProfile(layoutKey)) => {
     const prefixes = layoutScopedPrefixes(layoutKey, profile);
@@ -401,6 +415,27 @@ document.addEventListener("DOMContentLoaded", () => {
   const writeDraftList = (element, key, values) => {
     if (!element) return;
     element.dataset[key] = JSON.stringify([...new Set(values.filter(Boolean))]);
+  };
+  const parseJsonRecord = (value, fallback = null) => {
+    if (value == null || value === "") return fallback;
+    if (typeof value === "object") return value;
+    try {
+      return JSON.parse(value);
+    } catch {
+      return fallback;
+    }
+  };
+  const readJsonStore = (key, fallback) => {
+    try {
+      return JSON.parse(localStorage.getItem(key) || JSON.stringify(fallback));
+    } catch {
+      return fallback;
+    }
+  };
+  const writeJsonStore = (key, value) => {
+    try {
+      localStorage.setItem(key, JSON.stringify(value));
+    } catch {}
   };
   const syncLayoutToolsActive = () => {
     const hasOpenTools = Boolean(document.querySelector(".db-panel-tools-open, .widget-tools-open"));
@@ -574,12 +609,16 @@ document.addEventListener("DOMContentLoaded", () => {
         serializeLayoutElement(item, "anchorKey")
       )),
     })),
+    dataSources: localStorage.getItem(dataSourcesKey(layoutKey, profile)) || "[]",
+    workspaceContexts: localStorage.getItem(workspaceContextsKey(layoutKey, profile)) || "[]",
     profile,
   });
   const liveLayoutUndoSignature = (snapshot) => JSON.stringify({
     panels: snapshot.panels,
     widgets: snapshot.widgets,
     anchors: snapshot.anchors,
+    dataSources: snapshot.dataSources,
+    workspaceContexts: snapshot.workspaceContexts,
     profile: snapshot.profile,
   });
   const pushLiveLayoutUndo = (layoutKey, profile = getActivePanelProfile(layoutKey)) => {
@@ -654,6 +693,11 @@ document.addEventListener("DOMContentLoaded", () => {
   };
   const restoreLiveLayoutSnapshot = (snapshot) => {
     cleanupDashboardUndoArtifacts();
+    const layoutKeyForSnapshot = snapshot.panels?.[0]?.selector?.match(/data-layout-key="([^"]+)"/)?.[1] ||
+      snapshot.widgets?.[0]?.selector?.match(/data-widget-layout-key="([^"]+)"/)?.[1] ||
+      "builder";
+    if (snapshot.dataSources != null) localStorage.setItem(dataSourcesKey(layoutKeyForSnapshot, snapshot.profile), snapshot.dataSources);
+    if (snapshot.workspaceContexts != null) localStorage.setItem(workspaceContextsKey(layoutKeyForSnapshot, snapshot.profile), snapshot.workspaceContexts);
     snapshot.widgets?.forEach((widgetSnapshot) => {
       const layout = document.querySelector(widgetSnapshot.selector);
       if (!layout) return;
@@ -674,6 +718,7 @@ document.addEventListener("DOMContentLoaded", () => {
       restoreAnchorItems(layer, anchorSnapshot.items);
     });
     restoreGroupSelection();
+    refreshResolvedContextDebug(layoutKeyForSnapshot, snapshot.profile);
     syncLayoutToolsActive();
     cleanupDashboardUndoArtifacts();
   };
@@ -780,7 +825,20 @@ document.addEventListener("DOMContentLoaded", () => {
   };
   const widgetHasConfiguredContent = (widget) => {
     if (!widget) return false;
-    if (widget.dataset.widgetConfig) return true;
+    const config = parseJsonRecord(widget.dataset.widgetConfig, {}) || {};
+    let defaultConfig = {};
+    try {
+      const definition = widgetDefinitionForElement(widget);
+      defaultConfig = typeof definition.getDefaultConfig === "function" ? definition.getDefaultConfig() : {};
+    } catch {}
+    const meaningfulConfig = Object.entries(config).some(([key, value]) => {
+      if (value == null || value === "" || value === false) return false;
+      const defaultValue = defaultConfig[key];
+      if (JSON.stringify(value) === JSON.stringify(defaultValue)) return false;
+      if (key === "title" && value === (widget.dataset.defaultTitle || widget.querySelector(".stat-lbl")?.textContent?.trim())) return false;
+      return true;
+    });
+    if (meaningfulConfig) return true;
     if (widget.dataset.dataSource || widget.dataset.filterConfig || widget.dataset.searchConfig) return true;
     const searchValue = widget.querySelector(".search-widget-input")?.value?.trim();
     if (searchValue) return true;
@@ -1113,13 +1171,357 @@ document.addEventListener("DOMContentLoaded", () => {
     workspaceRegionId: item.dataset.workspaceRegionId || null,
     contextScopeId: item.dataset.contextScopeId || null,
     contextRole: item.dataset.contextRole || null,
+    workspaceContext: workspaceContextFromElement(item),
     navigationTargetType: item.dataset.navigationTargetType || null,
     navigationTargetId: item.dataset.navigationTargetId || null,
   });
+
+  /**
+   * Source-agnostic data contracts used by the workspace context layer.
+   *
+   * DataSource: { id, name, kind, config }
+   * DataSourceAdapter: { kind, introspect(source), query(source, request), validateConfig?, suggestSemanticMapping? }
+   * DataSchema: { fields: [{ name, type, nullable?, sampleValues? }] }
+   * ContextQuery: { fields?, filters?, timeRange?, groupBy?, sort?, limit? }
+   * SemanticMapping: { dateField?, valueField?, labelField?, categoryField?, statusField?, ownerField?, locationField?, custom? }
+   * WorkspaceContext: { id, name, dataSourceId?, semanticMapping?, filters?, timeRange?, tags?, visualSettings? }
+   */
+  const dataSourceAdapters = new Map();
+  const normalizeFieldType = (value) => {
+    if (value instanceof Date) return "date";
+    if (typeof value === "number") return "number";
+    if (typeof value === "boolean") return "boolean";
+    if (Array.isArray(value) || (value && typeof value === "object")) return "json";
+    if (typeof value === "string") {
+      if (/^\d{4}-\d{2}-\d{2}/.test(value) || !Number.isNaN(Date.parse(value)) && /date|time|at$/i.test(value)) return "date";
+      return "string";
+    }
+    return "unknown";
+  };
+  const inferDataSchema = (rows = [], explicitFields = []) => {
+    const fieldsByName = new Map();
+    explicitFields.forEach((field) => {
+      if (!field?.name) return;
+      fieldsByName.set(field.name, {
+        name: field.name,
+        type: field.type || "unknown",
+        nullable: Boolean(field.nullable),
+        sampleValues: Array.isArray(field.sampleValues) ? field.sampleValues.slice(0, 4) : [],
+      });
+    });
+    rows.slice(0, 50).forEach((row) => {
+      if (!row || typeof row !== "object") return;
+      Object.entries(row).forEach(([name, value]) => {
+        const existing = fieldsByName.get(name);
+        const type = existing?.type && existing.type !== "unknown" ? existing.type : normalizeFieldType(value);
+        const sampleValues = existing?.sampleValues || [];
+        if (value != null && sampleValues.length < 4 && !sampleValues.some((sample) => JSON.stringify(sample) === JSON.stringify(value))) {
+          sampleValues.push(value);
+        }
+        fieldsByName.set(name, {
+          name,
+          type,
+          nullable: Boolean(existing?.nullable || value == null),
+          sampleValues,
+        });
+      });
+    });
+    return { fields: [...fieldsByName.values()] };
+  };
+  const semanticFieldScore = (fieldName, candidates) => {
+    const name = String(fieldName || "").toLowerCase();
+    return candidates.reduce((score, candidate, index) => {
+      if (name === candidate) return Math.max(score, 100 - index);
+      if (name.includes(candidate)) return Math.max(score, 60 - index);
+      return score;
+    }, 0);
+  };
+  const suggestSemanticMappingFromSchema = (schema) => {
+    const fields = schema?.fields || [];
+    const best = (candidates, typePreference = null) => fields
+      .map((field) => ({
+        field,
+        score: semanticFieldScore(field.name, candidates) + (typePreference && field.type === typePreference ? 18 : 0),
+      }))
+      .sort((a, b) => b.score - a.score)[0]?.score > 0
+      ? fields
+        .map((field) => ({
+          field,
+          score: semanticFieldScore(field.name, candidates) + (typePreference && field.type === typePreference ? 18 : 0),
+        }))
+        .sort((a, b) => b.score - a.score)[0].field.name
+      : undefined;
+    return {
+      dateField: best(["created_at", "timestamp", "order_date", "date", "time", "at"], "date"),
+      valueField: best(["value", "amount", "total", "count", "score", "metric"], "number"),
+      labelField: best(["label", "name", "title", "description"], "string"),
+      categoryField: best(["category", "type", "group", "segment"], "string"),
+      statusField: best(["status", "state"], "string"),
+      ownerField: best(["owner", "assignee", "user"], "string"),
+      locationField: best(["location", "geo", "region", "country", "city"], "geo"),
+      custom: {},
+    };
+  };
+  const sourceRows = (source) => {
+    const config = source?.config || {};
+    if (Array.isArray(config.rows)) return config.rows;
+    if (Array.isArray(config.data)) return config.data;
+    if (Array.isArray(config.values)) return config.values;
+    return [];
+  };
+  const applyContextFilters = (rows, filters = []) => rows.filter((row) => filters.every((filter) => {
+    if (!filter?.field && !filter?.key) return true;
+    const field = filter.field || filter.key;
+    const operator = filter.operator || "eq";
+    const actual = row?.[field];
+    const expected = filter.value;
+    if (operator === "neq") return actual !== expected;
+    if (operator === "contains") return String(actual ?? "").toLowerCase().includes(String(expected ?? "").toLowerCase());
+    if (operator === "in") return Array.isArray(expected) ? expected.includes(actual) : actual === expected;
+    if (operator === "gte") return Number(actual) >= Number(expected);
+    if (operator === "lte") return Number(actual) <= Number(expected);
+    return actual === expected;
+  }));
+  const applyContextTimeRange = (rows, timeRange, mapping) => {
+    if (!timeRange?.start && !timeRange?.end) return rows;
+    const field = timeRange.field || mapping?.dateField;
+    if (!field) return rows;
+    const start = timeRange.start ? Date.parse(timeRange.start) : Number.NEGATIVE_INFINITY;
+    const end = timeRange.end ? Date.parse(timeRange.end) : Number.POSITIVE_INFINITY;
+    return rows.filter((row) => {
+      const value = Date.parse(row?.[field]);
+      if (!Number.isFinite(value)) return false;
+      return value >= start && value <= end;
+    });
+  };
+  const applyContextSort = (rows, sort = []) => {
+    if (!sort.length) return rows;
+    return [...rows].sort((a, b) => {
+      for (const rule of sort) {
+        const direction = rule.direction === "desc" ? -1 : 1;
+        const av = a?.[rule.field];
+        const bv = b?.[rule.field];
+        if (av === bv) continue;
+        return av > bv ? direction : -direction;
+      }
+      return 0;
+    });
+  };
+  const projectContextFields = (rows, fields = null) => {
+    if (!Array.isArray(fields) || !fields.length) return rows;
+    return rows.map((row) => fields.reduce((projected, field) => {
+      projected[field] = row?.[field];
+      return projected;
+    }, {}));
+  };
+  const createRecordAdapter = (kind) => ({
+    kind,
+    introspect: async (source) => inferDataSchema(sourceRows(source), source?.config?.schema || source?.config?.fields || []),
+    query: async (source, request = {}) => {
+      const mapping = request.semanticMapping || {};
+      const baseRows = sourceRows(source);
+      const filters = [...(request.filters || [])];
+      const filtered = applyContextTimeRange(applyContextFilters(baseRows, filters), request.timeRange, mapping);
+      const sorted = applyContextSort(filtered, request.sort || []);
+      const limited = Number.isFinite(Number(request.limit)) ? sorted.slice(0, Math.max(0, Number(request.limit))) : sorted;
+      return {
+        schema: inferDataSchema(limited, source?.config?.schema || source?.config?.fields || []),
+        rows: projectContextFields(limited, request.fields),
+        total: filtered.length,
+        sourceId: source.id,
+        sourceKind: source.kind,
+      };
+    },
+    validateConfig: async (source) => ({ ok: Array.isArray(sourceRows(source)), errors: Array.isArray(sourceRows(source)) ? [] : ["Rows must be an array."] }),
+    suggestSemanticMapping: async (schema) => suggestSemanticMappingFromSchema(schema),
+  });
+  const registerDataSourceAdapter = (adapter) => {
+    if (!adapter?.kind || typeof adapter.query !== "function" || typeof adapter.introspect !== "function") return false;
+    dataSourceAdapters.set(adapter.kind, adapter);
+    return true;
+  };
+  registerDataSourceAdapter(createRecordAdapter("manual"));
+  registerDataSourceAdapter(createRecordAdapter("json"));
+  registerDataSourceAdapter(createRecordAdapter("csv"));
+
+  const normalizeDataSource = (source) => ({
+    id: String(source?.id || "").trim(),
+    name: String(source?.name || source?.id || "Data source").trim(),
+    kind: String(source?.kind || "manual").trim(),
+    config: source?.config && typeof source.config === "object" ? source.config : {},
+  });
+  const loadDataSources = (layoutKey = "default", profile = getActivePanelProfile(layoutKey)) =>
+    readJsonStore(dataSourcesKey(layoutKey, profile), []).map(normalizeDataSource).filter((source) => source.id);
+  const saveDataSources = (layoutKey, profile, sources) => writeJsonStore(dataSourcesKey(layoutKey, profile), sources.map(normalizeDataSource).filter((source) => source.id));
+  const loadWorkspaceContexts = (layoutKey = "default", profile = getActivePanelProfile(layoutKey)) =>
+    readJsonStore(workspaceContextsKey(layoutKey, profile), []).filter((context) => context?.id);
+  const saveWorkspaceContexts = (layoutKey, profile, contexts) => writeJsonStore(workspaceContextsKey(layoutKey, profile), contexts.filter((context) => context?.id));
+  const workspaceContextFromElement = (item) => {
+    const raw = parseJsonRecord(item?.dataset?.workspaceContext, null) || {};
+    const mapping = parseJsonRecord(item?.dataset?.semanticMapping, null) || raw.semanticMapping || null;
+    const filters = parseJsonRecord(item?.dataset?.contextFilters, null) || raw.filters || null;
+    const timeRange = parseJsonRecord(item?.dataset?.contextTimeRange, null) || raw.timeRange || null;
+    const tags = parseJsonRecord(item?.dataset?.contextTags, null) || raw.tags || null;
+    const dataSourceId = item?.dataset?.dataSourceId || raw.dataSourceId || null;
+    if (!dataSourceId && !mapping && !filters && !timeRange && !tags && !raw.name && !raw.visualSettings) return null;
+    return {
+      id: item?.dataset?.contextScopeId || item?.dataset?.workspaceRegionId || workspaceObjectKey(item),
+      name: item?.dataset?.contextName || raw.name || item?.dataset?.panelTitle || item?.dataset?.defaultTitle || "Workspace context",
+      dataSourceId,
+      semanticMapping: mapping || undefined,
+      filters: filters || undefined,
+      timeRange: timeRange || undefined,
+      tags: tags || undefined,
+      visualSettings: raw.visualSettings || undefined,
+    };
+  };
+  const applyWorkspaceContextToElement = (item, context) => {
+    if (!item || !context) return;
+    item.dataset.workspaceContext = JSON.stringify(context);
+    if (context.dataSourceId) item.dataset.dataSourceId = context.dataSourceId;
+    if (context.semanticMapping) item.dataset.semanticMapping = JSON.stringify(context.semanticMapping);
+    if (context.filters) item.dataset.contextFilters = JSON.stringify(context.filters);
+    if (context.timeRange) item.dataset.contextTimeRange = JSON.stringify(context.timeRange);
+    if (context.tags) item.dataset.contextTags = JSON.stringify(context.tags);
+    if (context.name) item.dataset.contextName = context.name;
+  };
+  const mergeWorkspaceContexts = (...contexts) => contexts.filter(Boolean).reduce((merged, context) => ({
+    ...merged,
+    ...context,
+    semanticMapping: {
+      ...(merged.semanticMapping || {}),
+      ...(context.semanticMapping || {}),
+      custom: {
+        ...(merged.semanticMapping?.custom || {}),
+        ...(context.semanticMapping?.custom || {}),
+      },
+    },
+    filters: [...(merged.filters || []), ...(context.filters || [])],
+    tags: [...new Set([...(merged.tags || []), ...(context.tags || [])])],
+    visualSettings: {
+      ...(merged.visualSettings || {}),
+      ...(context.visualSettings || {}),
+    },
+  }), {});
+  const dataSourceById = (layoutKey, profile, id) => loadDataSources(layoutKey, profile).find((source) => source.id === id) || null;
+  const contextById = (layoutKey, profile, id) => loadWorkspaceContexts(layoutKey, profile).find((context) => context.id === id) || null;
+  const activeLayoutKeyForItem = (item) => {
+    const layout = groupItemLayout(item) || item?.closest?.(".widget-layout, .panel-layout");
+    return gridItemLayoutKey(layout || document.querySelector(".panel-layout") || document.querySelector(".widget-layout"));
+  };
+  const regionIdForWorkspaceItem = (item) => {
+    const internalPanel = panelForInternalWidgetLayout(item?.closest?.(".panel-internal-widget-grid"));
+    if (internalPanel) return internalPanel.dataset.workspaceRegionId || internalPanel.dataset.contextInheritedFrom;
+    return item?.dataset?.workspaceRegionId || item?.dataset?.contextInheritedFrom || workspaceRootRegionId(activeLayoutKeyForItem(item));
+  };
+  const resolveWorkspaceContextForItem = (item, options = {}) => {
+    const layoutKey = options.layoutKey || activeLayoutKeyForItem(item);
+    const profile = options.profile || getActivePanelProfile(layoutKey);
+    const regionId = regionIdForWorkspaceItem(item);
+    const rootContext = contextById(layoutKey, profile, workspaceRootRegionId(layoutKey));
+    const regionContext = contextById(layoutKey, profile, regionId);
+    const localContext = workspaceContextFromElement(item);
+    const resolved = mergeWorkspaceContexts(rootContext, regionContext, localContext);
+    const dataSource = resolved.dataSourceId ? dataSourceById(layoutKey, profile, resolved.dataSourceId) : null;
+    const adapter = dataSource ? dataSourceAdapters.get(dataSource.kind) : null;
+    return {
+      id: resolved.id || regionId,
+      name: resolved.name || regionId,
+      layoutKey,
+      profile,
+      regionId,
+      dataSourceId: resolved.dataSourceId || null,
+      dataSourceKind: dataSource?.kind || null,
+      dataSourceName: dataSource?.name || null,
+      semanticMapping: resolved.semanticMapping || {},
+      filters: resolved.filters || [],
+      timeRange: resolved.timeRange || null,
+      tags: resolved.tags || [],
+      visualSettings: resolved.visualSettings || {},
+      adapterKind: adapter?.kind || null,
+      canQuery: Boolean(dataSource && adapter),
+    };
+  };
+  const queryResolvedWorkspaceContext = async (resolvedContext, request = {}) => {
+    if (!resolvedContext?.dataSourceId) {
+      return { schema: { fields: [] }, rows: [], total: 0, error: "No data source resolved." };
+    }
+    const source = dataSourceById(resolvedContext.layoutKey, resolvedContext.profile, resolvedContext.dataSourceId);
+    const adapter = source ? dataSourceAdapters.get(source.kind) : null;
+    if (!source || !adapter) {
+      return { schema: { fields: [] }, rows: [], total: 0, error: "Missing data source adapter." };
+    }
+    return adapter.query(source, {
+      ...request,
+      filters: [...(resolvedContext.filters || []), ...(request.filters || [])],
+      timeRange: request.timeRange || resolvedContext.timeRange,
+      semanticMapping: resolvedContext.semanticMapping || {},
+    });
+  };
+  const describeResolvedContext = (context) => {
+    const mapping = context.semanticMapping || {};
+    const mappedFields = [mapping.dateField, mapping.valueField, mapping.labelField, mapping.categoryField].filter(Boolean);
+    return [context.dataSourceName || context.dataSourceId || "No source", ...mappedFields.slice(0, 2)].join(" · ");
+  };
+  const ensureContextBadge = (item) => {
+    let badge = item.querySelector(":scope > .workspace-context-badge");
+    if (!badge) {
+      badge = document.createElement("span");
+      badge.className = "workspace-context-badge";
+      item.appendChild(badge);
+    }
+    return badge;
+  };
+  const refreshResolvedContextDebug = (layoutKey = "default", profile = getActivePanelProfile(layoutKey)) => {
+    const panelLayout = document.querySelector(`.panel-layout[data-layout-key="${CSS.escape(layoutKey)}"]`);
+    const widgetLayout = document.querySelector(`.widget-layout[data-widget-layout-key="${CSS.escape(layoutKey)}"]`);
+    if (panelLayout) syncWorkspaceRegions(panelLayout);
+    if (widgetLayout) syncWorkspaceRegions(widgetLayout);
+    const items = [
+      ...document.querySelectorAll(`.widget-layout[data-widget-layout-key="${CSS.escape(layoutKey)}"] > .widget-card:not(.workspace-anchor-object)`),
+      ...document.querySelectorAll(`.panel-layout[data-layout-key="${CSS.escape(layoutKey)}"] > .db-panel`),
+      ...document.querySelectorAll(`.panel-layout[data-layout-key="${CSS.escape(layoutKey)}"] .panel-internal-widget-grid > .widget-card`),
+    ];
+    items.forEach((item) => {
+      const resolved = resolveWorkspaceContextForItem(item, { layoutKey, profile });
+      const hasResolvedContext = Boolean(resolved.dataSourceId || Object.keys(resolved.semanticMapping || {}).length);
+      const showContextUi = isEngineerMode();
+      item.dataset.resolvedContextId = resolved.id || "";
+      item.dataset.resolvedWorkspaceRegionId = resolved.regionId || "";
+      item.dataset.resolvedDataSourceId = resolved.dataSourceId || "";
+      item.dataset.resolvedSemanticMapping = JSON.stringify(resolved.semanticMapping || {});
+      let badge = item.querySelector(":scope > .workspace-context-badge");
+      if (!hasResolvedContext || !showContextUi) {
+        badge?.remove();
+      } else {
+        badge = badge || ensureContextBadge(item);
+        badge.textContent = describeResolvedContext(resolved);
+        badge.title = `Context: ${resolved.name || resolved.id}\nRegion: ${resolved.regionId}\nSource: ${resolved.dataSourceName || resolved.dataSourceId || "None"}`;
+        badge.removeAttribute("hidden");
+      }
+      if (item.classList.contains("widget-card")) void refreshWidgetRuntimeData(item, resolved);
+    });
+  };
+  const saveWorkspaceContextState = (layoutKey, profile = getActivePanelProfile(layoutKey), options = {}) => {
+    const persist = Boolean(options.persist);
+    const contexts = loadWorkspaceContexts(layoutKey, profile);
+    const byId = new Map(contexts.map((context) => [context.id, context]));
+    document.querySelectorAll(`.panel-layout[data-layout-key="${CSS.escape(layoutKey)}"] > .db-panel`).forEach((item) => {
+      const context = workspaceContextFromElement(item);
+      if (!context?.id) return;
+      byId.set(context.id, { ...byId.get(context.id), ...context });
+    });
+    saveWorkspaceContexts(layoutKey, profile, [...byId.values()]);
+    refreshResolvedContextDebug(layoutKey, profile);
+    if (!persist && options.history !== false) pushLiveLayoutUndo(layoutKey, profile);
+  };
   const syncWorkspaceRegions = (layout) => {
     if (!layout) return;
     const host = gridHostForLayout(layout);
     const layoutKey = gridItemLayoutKey(layout);
+    const profile = getActivePanelProfile(layoutKey);
+    const contextDefinitions = loadWorkspaceContexts(layoutKey, profile);
+    const contextByRegion = new Map(contextDefinitions.map((context) => [context.id, context]));
     let activeRegion = workspaceRootRegionId(layoutKey);
     visualGridOrder(globalGridItems(layout, { includePlaceholders: false })).forEach((item) => {
       ensureWorkspaceObjectMetadata(item);
@@ -1129,6 +1531,8 @@ document.addEventListener("DOMContentLoaded", () => {
         item.dataset.workspaceRegionId = activeRegion;
         item.dataset.contextRole = "semantic-boundary";
         item.dataset.navigationTargetId = activeRegion;
+        const explicitContext = workspaceContextFromElement(item);
+        if (explicitContext?.id) contextByRegion.set(activeRegion, { ...contextByRegion.get(activeRegion), ...explicitContext, id: activeRegion });
         return;
       }
       item.dataset.workspaceRegionId = activeRegion;
@@ -1137,6 +1541,9 @@ document.addEventListener("DOMContentLoaded", () => {
         item.dataset.navigationTargetId = activeRegion;
       }
     });
+    if (contextByRegion.size !== contextDefinitions.length || [...contextByRegion.values()].some((context, index) => context !== contextDefinitions[index])) {
+      saveWorkspaceContexts(layoutKey, profile, [...contextByRegion.values()]);
+    }
     host?.setAttribute("data-workspace-context-model", WORKSPACE_CONTEXT_MODEL_VERSION);
   };
 
@@ -1850,73 +2257,212 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   };
 
-  const timeframeWidgetMarkup = () => `
-      <div class="timeframe-command-surface">
-        <div class="range-controls timeframe-controls">
-          <div class="range-presets timeframe-presets" role="group" aria-label="Timeframe presets">
-            <a class="preset-btn active" href="/dashboard">Today</a>
-            <a class="preset-btn" href="/dashboard">7 days</a>
-            <a class="preset-btn" href="/dashboard">30 days</a>
-          </div>
-        </div>
-        <div class="timeframe-active-cluster">
-          <button class="range-custom-trigger timeframe-selector" type="button" aria-label="Selected timeframe" title="Selected timeframe">This week</button>
-        </div>
-        <div class="range-search timeframe-range timeframe-utility-cluster" role="group" aria-label="Timeframe utilities">
-          <button class="range-icon-button timeframe-refresh" type="button" aria-label="Refresh timeframe" title="Refresh timeframe"><span class="timeframe-refresh-icon" aria-hidden="true"></span></button>
-          <button class="range-icon-button timeframe-calendar" type="button" aria-label="Open date range" title="Open date range"><span class="timeframe-calendar-icon" aria-hidden="true"></span></button>
-        </div>
-      </div>`;
-
-  const searchWidgetMarkup = (definition) => {
-    const safeTitle = escapeHtml(definition.title || "Search");
-    return `
-      <div class="search-widget-content">
-        <div class="range-search search-widget-control" role="search" aria-label="${safeTitle}">
-          <input class="range-search-input search-widget-input" type="search" placeholder=" " autocomplete="off" aria-label="${safeTitle}">
-          <span class="range-search-label stat-lbl">${safeTitle}</span>
-        </div>
-      </div>`;
+  const widgetRuntime = window.dashboardWidgetRuntime || null;
+  const widgetDefinitionFor = (type) => widgetRuntime?.getWidgetDefinition?.(type) || {
+    type: String(type || "unsupported"),
+    displayName: "Unsupported Widget",
+    widgetType: String(type || "unsupported"),
+    dashboardObjectKind: "unsupported-widget",
+    contextRole: "content",
+    htmlTag: "div",
+    className: "stat-card widget-card widget-card-custom unsupported-widget-card",
+    defaultSize: { cols: 1, rows: 1 },
+    minSize: { cols: 1, rows: 1 },
+    capabilities: { supportsResize: true },
+    supportedSettings: ["title", "color", "pin", "delete"],
+    queryRequirements: { fields: [] },
+    getDefaultConfig: () => ({ title: `Unsupported: ${type || "unknown"}` }),
+    resolveQuery: () => null,
+    render: ({ instance }) => `
+      <div class="unsupported-widget-state widget-runtime-state" role="status">
+        <span class="stat-val">Unsupported widget</span>
+        <span class="stat-lbl">${escapeHtml(instance.type || type || "unknown")}</span>
+      </div>`,
+  };
+  const widgetRuntimeTypeFromElement = (widget) => (
+    widget?.dataset?.widgetRuntimeType ||
+    widget?.dataset?.dashboardObjectKind ||
+    widget?.dataset?.widgetType ||
+    "stat"
+  );
+  const widgetDefinitionForElement = (widget) => widgetDefinitionFor(widgetRuntimeTypeFromElement(widget));
+  const parseWidgetConfig = (value) => parseJsonRecord(value, {}) || {};
+  const setWidgetConfig = (widget, config) => {
+    if (!widget) return;
+    widget.dataset.widgetConfig = JSON.stringify(config || {});
+  };
+  const widgetConfigFromElement = (widget, definition = widgetDefinitionForElement(widget)) => {
+    const defaults = typeof definition.getDefaultConfig === "function" ? definition.getDefaultConfig() : {};
+    const current = parseWidgetConfig(widget?.dataset?.widgetConfig);
+    const label = widget?.querySelector?.(".stat-lbl, .range-search-label")?.textContent?.trim();
+    const value = widget?.querySelector?.(".stat-val")?.textContent?.trim();
+    return {
+      ...defaults,
+      ...(label && !current.title ? { title: label } : {}),
+      ...(value && !current.value ? { value } : {}),
+      ...current,
+    };
+  };
+  const widgetInstanceFromElement = (widget, definition = widgetDefinitionForElement(widget)) => widgetRuntime?.createWidgetInstance?.(definition, {
+    id: widget?.dataset?.widgetKey || "",
+    type: definition.type,
+    x: Number(widget?.dataset?.gridCol) || 1,
+    y: Number(widget?.dataset?.gridRow) || 1,
+    cols: Number(widget?.dataset?.currentSpan || widget?.dataset?.defaultSpan) || definition.defaultSize?.cols || 1,
+    rows: Number(widget?.dataset?.gridRowSpan) || definition.defaultSize?.rows || 1,
+    config: widgetConfigFromElement(widget, definition),
+    contextOverrideId: widget?.dataset?.contextOverrideId || null,
+  }) || {
+    id: widget?.dataset?.widgetKey || "",
+    type: definition.type,
+    x: Number(widget?.dataset?.gridCol) || 1,
+    y: Number(widget?.dataset?.gridRow) || 1,
+    cols: Number(widget?.dataset?.currentSpan || widget?.dataset?.defaultSpan) || definition.defaultSize?.cols || 1,
+    rows: Number(widget?.dataset?.gridRowSpan) || definition.defaultSize?.rows || 1,
+    config: widgetConfigFromElement(widget, definition),
+    contextOverrideId: widget?.dataset?.contextOverrideId || null,
+  };
+  const setWidgetRuntimeContent = (widget, html) => {
+    if (!widget) return;
+    const preserved = [...widget.children].filter((child) => (
+      child.classList.contains("widget-tools") ||
+      child.classList.contains("workspace-context-badge") ||
+      child.classList.contains("dashboard-pinned-indicator")
+    ));
+    [...widget.children].forEach((child) => {
+      if (!preserved.includes(child)) child.remove();
+    });
+    const template = document.createElement("template");
+    template.innerHTML = html || "";
+    const firstPreserved = preserved[0] || null;
+    [...template.content.childNodes].forEach((node) => widget.insertBefore(node, firstPreserved));
+  };
+  const renderWidgetRuntimeContent = (widget, options = {}) => {
+    if (!widget?.classList?.contains("widget-card") || widget.classList.contains("workspace-anchor-object")) return;
+    const definition = widgetDefinitionForElement(widget);
+    const instance = widgetInstanceFromElement(widget, definition);
+    setWidgetConfig(widget, instance.config);
+    const html = widgetRuntime?.renderWidget?.(definition, {
+      instance,
+      definition,
+      resolvedContext: options.resolvedContext || null,
+      data: options.data,
+      status: options.status || "empty",
+    }) || definition.render({ instance, definition, resolvedContext: options.resolvedContext || null, data: options.data, status: options.status || "empty" });
+    setWidgetRuntimeContent(widget, html);
+  };
+  const refreshWidgetRuntimeData = async (widget, resolvedContext) => {
+    if (!widget?.isConnected || widget.classList.contains("workspace-anchor-object")) return;
+    if (widget.contains(document.activeElement)) return;
+    const definition = widgetDefinitionForElement(widget);
+    const instance = widgetInstanceFromElement(widget, definition);
+    const query = typeof definition.resolveQuery === "function"
+      ? definition.resolveQuery(instance.config, resolvedContext)
+      : null;
+    widget.dataset.widgetRuntimeStatus = query && resolvedContext?.canQuery ? "loading" : "empty";
+    widget.dataset.widgetQueryRequirements = JSON.stringify(definition.queryRequirements || {});
+    if (!query || !resolvedContext?.canQuery) {
+      renderWidgetRuntimeContent(widget, { resolvedContext, status: "empty" });
+      return;
+    }
+    try {
+      const result = await queryResolvedWorkspaceContext(resolvedContext, query);
+      if (!widget.isConnected || widget.contains(document.activeElement)) return;
+      widget.dataset.widgetRuntimeStatus = result.error ? "error" : "ready";
+      renderWidgetRuntimeContent(widget, {
+        resolvedContext,
+        data: {
+          ...result,
+          semanticMapping: resolvedContext.semanticMapping || {},
+        },
+        status: result.error ? "error" : "ready",
+      });
+    } catch (error) {
+      if (!widget.isConnected || widget.contains(document.activeElement)) return;
+      widget.dataset.widgetRuntimeStatus = "error";
+      renderWidgetRuntimeContent(widget, { resolvedContext, data: { error: error?.message || "Query failed" }, status: "error" });
+    }
+  };
+  const hydrateWidgetRuntime = (widget, saved = null) => {
+    if (!widget?.classList?.contains("widget-card") || widget.classList.contains("workspace-anchor-object")) return null;
+    if (saved?.runtimeType) widget.dataset.widgetRuntimeType = saved.runtimeType;
+    if (saved?.type && !widget.dataset.widgetRuntimeType) widget.dataset.widgetRuntimeType = saved.type;
+    const definition = widgetDefinitionForElement(widget);
+    widget.dataset.widgetRuntimeType = definition.type;
+    widget.dataset.widgetDefinition = definition.type;
+    widget.dataset.widgetDisplayName = definition.displayName || definition.type;
+    widget.dataset.widgetType = definition.widgetType || widget.dataset.widgetType || definition.type;
+    widget.dataset.dashboardObjectKind = definition.dashboardObjectKind || widget.dataset.dashboardObjectKind || definition.type;
+    widget.dataset.contextRole = definition.contextRole || widget.dataset.contextRole || "content";
+    widget.dataset.widgetCapabilities = JSON.stringify(definition.capabilities || {});
+    widget.dataset.widgetSupportedSettings = JSON.stringify(definition.supportedSettings || []);
+    widget.dataset.widgetQueryRequirements = JSON.stringify(definition.queryRequirements || {});
+    if (!widget.dataset.defaultSpan) widget.dataset.defaultSpan = String(definition.defaultSize?.cols || 1);
+    if (!widget.dataset.minW && definition.minSize?.cols) widget.dataset.minW = String(definition.minSize.cols);
+    if (!widget.dataset.minH && definition.minSize?.rows > 1) widget.dataset.minH = String(definition.minSize.rows);
+    if (definition.capabilities?.supportsResize === false) widget.dataset.resizable = "false";
+    if (!widget.dataset.widgetConfig) setWidgetConfig(widget, widgetConfigFromElement(widget, definition));
+    renderWidgetRuntimeContent(widget);
+    return definition;
+  };
+  const bindWidgetRuntimeControls = (widget) => {
+    if (!widget || widget.dataset.widgetRuntimeControlsBound === "true") return;
+    widget.dataset.widgetRuntimeControlsBound = "true";
+    widget.addEventListener("input", (event) => {
+      const searchInput = event.target?.closest?.(".search-widget-input");
+      if (!searchInput || !widget.contains(searchInput)) return;
+      setWidgetConfig(widget, {
+        ...widgetConfigFromElement(widget),
+        query: searchInput.value,
+      });
+      widget.dataset.widgetRuntimeStatus = "ready";
+      saveWidgetLayouts(widget.closest(".widget-layout"), getActivePanelProfile(activeLayoutKeyForItem(widget)), { history: false });
+    });
   };
 
   const createCustomWidget = (definition) => {
-    const safeTitle = escapeHtml(definition.title || "Widget");
-    const isTimeframe = definition.type === "controls" || definition.dashboardObjectKind === "timeframe";
-    const isSearch = definition.type === "search" || definition.dashboardObjectKind === "search";
-    const widget = document.createElement(isTimeframe ? "nav" : isSearch ? "div" : "a");
-    widget.className = isTimeframe
-      ? "range-bar widget-card timeframe-widget widget-card-custom"
-      : `stat-card widget-card widget-card-custom${isSearch ? " search-widget-card" : ""}`;
-    if (isTimeframe) {
-      widget.setAttribute("aria-label", definition.ariaLabel || safeTitle);
-    } else if (isSearch) {
-      widget.setAttribute("role", "group");
-      widget.setAttribute("aria-label", definition.ariaLabel || safeTitle);
+    const runtimeDefinition = widgetDefinitionFor(definition.runtimeType || definition.widgetRuntimeType || definition.dashboardObjectKind || definition.type || "stat");
+    const defaultConfig = typeof runtimeDefinition.getDefaultConfig === "function" ? runtimeDefinition.getDefaultConfig() : {};
+    const config = {
+      ...defaultConfig,
+      ...parseWidgetConfig(definition.config),
+      ...(definition.title ? { title: definition.title } : {}),
+      ...(definition.value != null ? { value: definition.value } : {}),
+    };
+    const safeTitle = escapeHtml(config.title || runtimeDefinition.displayName || "Widget");
+    const tagName = runtimeDefinition.htmlTag || "div";
+    const widget = document.createElement(tagName);
+    widget.className = runtimeDefinition.className || "stat-card widget-card widget-card-custom";
+    if (tagName === "nav") {
+      widget.setAttribute("aria-label", definition.ariaLabel || runtimeDefinition.ariaLabel || safeTitle);
+    } else if (tagName !== "a") {
+      widget.setAttribute("role", definition.role || "group");
+      widget.setAttribute("aria-label", definition.ariaLabel || runtimeDefinition.ariaLabel || safeTitle);
     } else {
       widget.href = definition.href || window.location.pathname + window.location.search;
     }
     widget.dataset.widgetKey = definition.key;
-    widget.dataset.widgetType = definition.type || "tracker";
-    widget.dataset.defaultSpan = String(definition.span || (isTimeframe ? 5 : 3));
+    widget.dataset.widgetRuntimeType = runtimeDefinition.type;
+    widget.dataset.widgetDefinition = runtimeDefinition.type;
+    widget.dataset.widgetType = definition.type || runtimeDefinition.widgetType || runtimeDefinition.type;
+    widget.dataset.defaultSpan = String(definition.span || runtimeDefinition.defaultSize?.cols || 1);
     if (definition.gridCol) widget.dataset.gridCol = String(definition.gridCol);
     if (definition.gridRow) widget.dataset.gridRow = String(definition.gridRow);
-    if (definition.minW || isTimeframe) widget.dataset.minW = String(definition.minW || 2);
-    if (definition.minH) widget.dataset.minH = String(definition.minH);
+    if (definition.minW || runtimeDefinition.minSize?.cols) widget.dataset.minW = String(definition.minW || runtimeDefinition.minSize.cols);
+    if (definition.minH || runtimeDefinition.minSize?.rows > 1) widget.dataset.minH = String(definition.minH || runtimeDefinition.minSize.rows);
     if (definition.locked) widget.dataset.locked = "true";
-    if (definition.resizable === false) widget.dataset.resizable = "false";
-    if (definition.config) widget.dataset.widgetConfig = definition.config;
+    if (definition.resizable === false || runtimeDefinition.capabilities?.supportsResize === false) widget.dataset.resizable = "false";
+    setWidgetConfig(widget, config);
     widget.dataset.customWidget = "true";
     ensureWorkspaceObjectMetadata(widget, {
       ...definition,
       workspaceObjectType: WORKSPACE_OBJECT_TYPES.widget,
-      dashboardObjectKind: definition.dashboardObjectKind || (isTimeframe ? "timeframe" : "widget"),
-      contextRole: definition.contextRole || (isTimeframe ? "timeframe-control" : "content"),
+      dashboardObjectKind: definition.dashboardObjectKind || runtimeDefinition.dashboardObjectKind || runtimeDefinition.type,
+      contextRole: definition.contextRole || runtimeDefinition.contextRole || "content",
       navigationTargetType: definition.navigationTargetType,
       navigationTargetId: definition.navigationTargetId,
     });
-    widget.innerHTML = isTimeframe ? timeframeWidgetMarkup() : isSearch ? searchWidgetMarkup(definition) : `
-      <span class="stat-val">${escapeHtml(definition.value || "0")}</span>
-      <span class="stat-lbl">${safeTitle}</span>`;
+    hydrateWidgetRuntime(widget);
     return widget;
   };
 
@@ -5446,6 +5992,7 @@ document.addEventListener("DOMContentLoaded", () => {
           title: widget.dataset.panelTitle || null,
           pinned: widget.classList.contains("db-panel-pinned"),
           type: widget.dataset.widgetType || null,
+          runtimeType: widget.dataset.widgetRuntimeType || widget.dataset.widgetDefinition || null,
           minW: Number(widget.dataset.minW) || null,
           minH: Number(widget.dataset.minH) || null,
           locked: widget.dataset.locked === "true",
@@ -5468,6 +6015,7 @@ document.addEventListener("DOMContentLoaded", () => {
         gridCol: Number(widget.dataset.gridCol) || null,
         gridRow: Number(widget.dataset.gridRow) || null,
         type: widget.dataset.widgetType || "tracker",
+        runtimeType: widget.dataset.widgetRuntimeType || widget.dataset.widgetDefinition || null,
         href: widget.getAttribute("href") || "",
         pinned: widget.classList.contains("db-panel-pinned"),
         minW: Number(widget.dataset.minW) || null,
@@ -5518,24 +6066,29 @@ document.addEventListener("DOMContentLoaded", () => {
       const key = widget.dataset.widgetKey || `widget-${index}`;
       widget.dataset.defaultOrder = String(index);
       widget.dataset.defaultTitle = widget.querySelector(".stat-lbl")?.textContent?.trim() || "Widget";
-      ensureWidgetTools(widget);
       let saved = null;
       if (!internalLayout) {
         try {
           saved = JSON.parse(localStorage.getItem(widgetStorageKey(layoutKey, key, profile)) || "null");
         } catch {}
       }
+      if (saved?.runtimeType) widget.dataset.widgetRuntimeType = saved.runtimeType;
+      if (saved?.type && !widget.dataset.widgetRuntimeType) widget.dataset.widgetRuntimeType = saved.type;
+      if (saved?.config) widget.dataset.widgetConfig = saved.config;
+      const runtimeDefinition = hydrateWidgetRuntime(widget, saved);
+      ensureWidgetTools(widget);
       savedByWidget.set(widget, saved);
       markLoadedExpansionBaseline(widget, saved?.expansionBaseline);
       ensureWorkspaceObjectMetadata(widget, {
         workspaceObjectType: saved?.workspaceObjectType || widget.dataset.workspaceObjectType || workspaceObjectType(widget),
-        dashboardObjectKind: saved?.dashboardObjectKind || widget.dataset.dashboardObjectKind,
+        dashboardObjectKind: saved?.dashboardObjectKind || widget.dataset.dashboardObjectKind || runtimeDefinition?.dashboardObjectKind,
         workspaceRegionId: saved?.workspaceRegionId,
         contextScopeId: saved?.contextScopeId,
-        contextRole: saved?.contextRole,
+        contextRole: saved?.contextRole || runtimeDefinition?.contextRole,
         navigationTargetType: saved?.navigationTargetType,
         navigationTargetId: saved?.navigationTargetId,
       });
+      if (saved?.workspaceContext) applyWorkspaceContextToElement(widget, saved.workspaceContext);
       const defaultWidgetSpan = widget.dataset.widgetType === "controls" ? 6 : 1;
       applyWidgetSpan(widget, saved?.span ?? widget.dataset.defaultSpan ?? defaultWidgetSpan);
       if (saved?.gridCol && saved?.gridRow) applyWidgetGridPosition(widget, saved.gridCol, saved.gridRow);
@@ -5545,11 +6098,11 @@ document.addEventListener("DOMContentLoaded", () => {
       if (saved?.minH) widget.dataset.minH = String(saved.minH);
       if (saved?.locked) widget.dataset.locked = "true";
       if (saved?.resizable === false) widget.dataset.resizable = "false";
-      if (saved?.config) widget.dataset.widgetConfig = saved.config;
       applyPanelColor(widget, saved?.color || widget.querySelector(".panel-color-toggle")?.dataset.defaultTheme);
       applyPanelTitleColor(widget, "");
       if (saved?.title) {
         widget.dataset.panelTitle = saved.title;
+        setWidgetConfig(widget, { ...widgetConfigFromElement(widget), title: saved.title });
         const label = widget.querySelector(".stat-lbl");
         if (label) label.textContent = saved.title;
       }
@@ -5589,6 +6142,7 @@ document.addEventListener("DOMContentLoaded", () => {
       if (widget.dataset.widgetInitialized === "true") return;
       widget.dataset.widgetInitialized = "true";
       widget.__saveWidgetLayout = () => saveWidgetLayouts(layout);
+      bindWidgetRuntimeControls(widget);
       const tools = widget.querySelector(".widget-tools");
       const drawer = widget.querySelector(".widget-tool-drawer");
       const settings = widget.querySelector(".widget-settings-toggle");
@@ -5996,6 +6550,7 @@ document.addEventListener("DOMContentLoaded", () => {
         navigationTargetType: saved?.navigationTargetType,
         navigationTargetId: saved?.navigationTargetId,
       });
+      if (saved?.workspaceContext) applyWorkspaceContextToElement(panel, saved.workspaceContext);
       panel.classList.remove("db-panel-unlocked", "db-panel-pinned");
       if (saved?.pinned) panel.classList.add("db-panel-pinned");
       panel.classList.toggle("db-panel-collapsed", saved?.collapsed ?? panel.classList.contains("db-panel-collapsed"));
@@ -6737,6 +7292,61 @@ document.addEventListener("DOMContentLoaded", () => {
     ...[...document.querySelectorAll(".widget-layout")].map((layout) => layout.dataset.widgetLayoutKey || "default"),
   ])].forEach((layoutKey) => pushLiveLayoutUndo(layoutKey));
 
+  window.dashboardContextEngine = {
+    registerAdapter: registerDataSourceAdapter,
+    adapters: () => [...dataSourceAdapters.keys()],
+    setDataSources: (layoutKey = "builder", sources = [], profile = getActivePanelProfile(layoutKey)) => {
+      saveDataSources(layoutKey, profile, sources);
+      refreshResolvedContextDebug(layoutKey, profile);
+      pushLiveLayoutUndo(layoutKey, profile);
+      return loadDataSources(layoutKey, profile);
+    },
+    getDataSources: (layoutKey = "builder", profile = getActivePanelProfile(layoutKey)) => loadDataSources(layoutKey, profile),
+    setWorkspaceContexts: (layoutKey = "builder", contexts = [], profile = getActivePanelProfile(layoutKey)) => {
+      saveWorkspaceContexts(layoutKey, profile, contexts);
+      refreshResolvedContextDebug(layoutKey, profile);
+      pushLiveLayoutUndo(layoutKey, profile);
+      return loadWorkspaceContexts(layoutKey, profile);
+    },
+    setWorkspaceContext: (layoutKey = "builder", context, profile = getActivePanelProfile(layoutKey)) => {
+      const contexts = loadWorkspaceContexts(layoutKey, profile).filter((entry) => entry.id !== context?.id);
+      if (context?.id) contexts.push(context);
+      saveWorkspaceContexts(layoutKey, profile, contexts);
+      refreshResolvedContextDebug(layoutKey, profile);
+      pushLiveLayoutUndo(layoutKey, profile);
+      return context;
+    },
+    getWorkspaceContexts: (layoutKey = "builder", profile = getActivePanelProfile(layoutKey)) => loadWorkspaceContexts(layoutKey, profile),
+    assignContextToDivider: (divider, context, profile = null) => {
+      const node = typeof divider === "string" ? document.querySelector(divider) : divider;
+      if (!node) return null;
+      ensureWorkspaceObjectMetadata(node);
+      const layoutKey = activeLayoutKeyForItem(node);
+      const resolvedProfile = profile || getActivePanelProfile(layoutKey);
+      const regionId = workspaceRegionIdForDivider(node, layoutKey);
+      const nextContext = { ...context, id: regionId, name: context?.name || node.dataset.defaultTitle || "Workspace context" };
+      applyWorkspaceContextToElement(node, nextContext);
+      saveWorkspaceContextState(layoutKey, resolvedProfile);
+      return nextContext;
+    },
+    resolveContextForElement: (item) => resolveWorkspaceContextForItem(typeof item === "string" ? document.querySelector(item) : item),
+    queryContext: (context, request = {}) => queryResolvedWorkspaceContext(context, request),
+    queryWidget: (widget, request = {}) => {
+      const node = typeof widget === "string" ? document.querySelector(widget) : widget;
+      return queryResolvedWorkspaceContext(resolveWorkspaceContextForItem(node), request);
+    },
+    introspectContext: async (context) => {
+      const source = dataSourceById(context.layoutKey, context.profile, context.dataSourceId);
+      const adapter = source ? dataSourceAdapters.get(source.kind) : null;
+      return adapter ? adapter.introspect(source) : { fields: [] };
+    },
+    refresh: (layoutKey = "builder", profile = getActivePanelProfile(layoutKey)) => refreshResolvedContextDebug(layoutKey, profile),
+  };
+  document.querySelectorAll(".panel-layout").forEach((layout) => {
+    const layoutKey = layout.dataset.layoutKey || "default";
+    refreshResolvedContextDebug(layoutKey, getActivePanelProfile(layoutKey));
+  });
+
   const activeLayoutSlot = (layoutKey) => {
     return document.querySelector(`.layout-slot-trigger[data-layout-target="${CSS.escape(layoutKey)}"]`)?.dataset.currentSlot || getActivePanelProfile(layoutKey);
   };
@@ -6819,15 +7429,21 @@ document.addEventListener("DOMContentLoaded", () => {
     button.addEventListener("click", () => {
       const layoutKey = button.dataset.layoutTarget || "default";
       const selected = activeLayoutSlot(layoutKey) || "1";
+      const currentProfile = getActivePanelProfile(layoutKey);
+      const currentDataSources = loadDataSources(layoutKey, currentProfile);
+      const currentWorkspaceContexts = loadWorkspaceContexts(layoutKey, currentProfile);
       try {
         localStorage.setItem(`${panelProfilePrefix}${layoutKey}`, selected);
         layoutStorageKeys(layoutKey, selected).forEach((key) => localStorage.removeItem(key));
       } catch {}
+      saveDataSources(layoutKey, selected, currentDataSources);
+      saveWorkspaceContexts(layoutKey, selected, currentWorkspaceContexts);
       const layout = document.querySelector(`.panel-layout[data-layout-key="${CSS.escape(layoutKey)}"]`);
       if (layout) savePanelLayouts(layout, selected, { persist: true });
       const widgetLayout = document.querySelector(`.widget-layout[data-widget-layout-key="${CSS.escape(layoutKey)}"]`);
       if (widgetLayout) saveWidgetLayouts(widgetLayout, selected, { persist: true });
       saveFloatingAnchors(layoutKey, selected, { persist: true });
+      saveWorkspaceContextState(layoutKey, selected, { persist: true, history: false });
       showToast(`Layout ${selected} saved.`);
     });
   });
@@ -7036,47 +7652,24 @@ document.addEventListener("DOMContentLoaded", () => {
         panelThemePresets.find((color) => !used.has(color.toLowerCase())) ||
         panelThemePresets[customCount % panelThemePresets.length];
       const key = `widget-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`;
-      const widgetCatalog = {
-        timeframe: {
-          objectName: "Timeframe",
-          value: "A",
-          span: 4,
-          minW: 2,
-          type: "controls",
-          dashboardObjectKind: "timeframe",
-          contextRole: "timeframe-control",
-        },
-        search: {
-          objectName: "Search Bar",
-          title: "Search",
-          value: "",
-          span: 2,
-          minW: 2,
-          type: "search",
-          dashboardObjectKind: "search",
-          contextRole: "search-control",
-        },
-      };
-      const catalogDefinition = widgetCatalog[kind] || {
-        objectName: "Widget",
-        value: "0",
-        span: 1,
-        type: "tracker",
-        dashboardObjectKind: "widget",
-        contextRole: "content",
-      };
-      const title = catalogDefinition.title || `${catalogDefinition.objectName} ${customCount + 1}`;
+      const runtimeDefinition = widgetDefinitionFor(kind);
+      const runtimeDefaults = typeof runtimeDefinition.getDefaultConfig === "function" ? runtimeDefinition.getDefaultConfig() : {};
+      const objectName = kind === "graph" ? "Graph" : (runtimeDefinition.displayName || "Widget");
+      const title = runtimeDefaults.title || `${objectName} ${customCount + 1}`;
       const definition = {
         key,
         title,
-        value: catalogDefinition.value,
+        value: runtimeDefaults.value,
         color: nextColor,
-        span: catalogDefinition.span,
-        minW: catalogDefinition.minW,
-        type: catalogDefinition.type,
+        span: runtimeDefinition.defaultSize?.cols || 1,
+        minW: runtimeDefinition.minSize?.cols || 1,
+        minH: runtimeDefinition.minSize?.rows || null,
+        type: runtimeDefinition.widgetType || runtimeDefinition.type,
+        runtimeType: runtimeDefinition.type,
         workspaceObjectType: WORKSPACE_OBJECT_TYPES.widget,
-        dashboardObjectKind: catalogDefinition.dashboardObjectKind,
-        contextRole: catalogDefinition.contextRole,
+        dashboardObjectKind: runtimeDefinition.dashboardObjectKind || runtimeDefinition.type,
+        contextRole: runtimeDefinition.contextRole || "content",
+        config: JSON.stringify(runtimeDefaults),
       };
       const widget = createCustomWidget(definition);
       ensureWidgetTools(widget, nextColor);
@@ -7089,8 +7682,9 @@ document.addEventListener("DOMContentLoaded", () => {
       });
       layout.__initWidget?.(widget);
       bindDashboardKeywordForms(widget);
+      refreshResolvedContextDebug(layoutKey, selected);
       saveWidgetLayouts(layout, selected);
-      showToast(`${catalogDefinition.objectName || title} added.`);
+      showToast(`${objectName || title} added.`);
     });
   });
 
@@ -7166,6 +7760,10 @@ document.addEventListener("DOMContentLoaded", () => {
       const widgetLayouts = [...document.querySelectorAll(`.widget-layout[data-widget-layout-key="${CSS.escape(layoutKey)}"]`)];
       const anchorLayers = [...document.querySelectorAll(`.workspace-anchor-layer[data-anchor-layout-key="${CSS.escape(layoutKey)}"]`)];
       captureLayoutUndo(layoutKey, profile);
+      try {
+        localStorage.removeItem(dataSourcesKey(layoutKey, profile));
+        localStorage.removeItem(workspaceContextsKey(layoutKey, profile));
+      } catch {}
       widgetLayouts.forEach((layout) => {
         writeDraftList(layout, "hiddenWidgetsDraft", []);
         layout.querySelectorAll(":scope > .widget-row-break").forEach((rowBreak) => rowBreak.remove());
@@ -7181,6 +7779,13 @@ document.addEventListener("DOMContentLoaded", () => {
             delete widget.dataset.panelColor;
             delete widget.dataset.panelTitleColor;
             delete widget.dataset.panelTitle;
+            delete widget.dataset.workspaceContext;
+            delete widget.dataset.dataSourceId;
+            delete widget.dataset.semanticMapping;
+            delete widget.dataset.contextFilters;
+            delete widget.dataset.contextTimeRange;
+            delete widget.dataset.contextTags;
+            delete widget.dataset.contextName;
             widget.style.removeProperty("--panel-accent");
             widget.style.removeProperty("--panel-accent-rgb");
             widget.style.removeProperty("--panel-accent-text");
@@ -7210,6 +7815,13 @@ document.addEventListener("DOMContentLoaded", () => {
             delete panel.dataset.panelColor;
             delete panel.dataset.panelTitleColor;
             delete panel.dataset.panelTitle;
+            delete panel.dataset.workspaceContext;
+            delete panel.dataset.dataSourceId;
+            delete panel.dataset.semanticMapping;
+            delete panel.dataset.contextFilters;
+            delete panel.dataset.contextTimeRange;
+            delete panel.dataset.contextTags;
+            delete panel.dataset.contextName;
             panel.querySelector(":scope > .db-panel-body > .panel-internal-widget-grid")?.remove();
             updatePanelChildEmptyState(panel);
             panel.style.left = "";

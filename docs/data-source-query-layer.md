@@ -27,6 +27,11 @@ Each source should be represented abstractly through neutral adapter metadata, n
 ## Core Concepts
 
 - `DataSource`: Connection definition and adapter type.
+- `DataSourceAdapter`: Source-specific contract that can introspect and query a source without exposing source details to widgets.
+- `DataSchema`: Normalized field list with generic field types, nullability, and optional samples.
+- `ContextQuery`: Source-neutral query request containing fields, filters, time range, grouping, sorting, and limits.
+- `SemanticMapping`: Mapping from arbitrary source fields into workspace meaning such as date, value, label, category, status, owner, or location.
+- `WorkspaceContext`: Inherited workspace context record that references a data source plus semantic mappings, filters, time range, tags, and visual settings.
 - `Dataset`: Named table, endpoint, file, query result, or stream topic exposed by a source.
 - `QueryDefinition`: Neutral query/request description for a dataset.
 - `FieldMap`: Visual mapping from source fields to widget roles.
@@ -42,8 +47,23 @@ Each source should be represented abstractly through neutral adapter metadata, n
 - Adapters must not leak domain concepts into widget rendering.
 - Adapters own connection details, auth details, pagination, request shape, and raw source quirks.
 - Widgets should consume normalized `QueryResult` objects.
+- Widgets should request data through resolved `WorkspaceContext` plus `ContextQuery`, not by branching on source kind.
 - Source-specific credentials and secrets must never be exposed to browser code.
 - Connector errors should be visible in a generic, user-safe way.
+
+## Phase 1 Source-Agnostic Context Foundation
+
+The current client-side foundation includes a source adapter registry, neutral `manual` / `json` / `csv` row-backed adapters, semantic mapping helpers, and a context query path exposed through `window.dashboardContextEngine` for Engineer Mode verification. This is intentionally a contract and debugging foundation, not a full data-source editor.
+
+Phase 1 flow:
+
+1. A `DataSource` is registered for a layout slot.
+2. A `WorkspaceContext` references the source by `dataSourceId` and defines semantic mappings.
+3. Dividers create spatial regions, and widgets resolve the current region from their grid position.
+4. The resolved context merges root, region, and local object context.
+5. Widgets or debug tools call the adapter layer with `ResolvedContext` plus `ContextQuery`.
+
+The context layer stores semantic intent and source identity. It does not copy raw data into widgets or store link-time physical coordinates. Adding a new source kind should mean registering an adapter with `introspect` and `query`, while widget behavior continues to consume the same resolved context shape.
 
 ## Widget Data Binding
 

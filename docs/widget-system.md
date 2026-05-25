@@ -158,6 +158,35 @@ Avoid domain terms such as alert, severity, threat, incident, client, mailbox, v
 8. Widget emits context through configured interactions.
 9. Persistence saves widget config, layout, panel membership, data binding, context links, and theme state.
 
+## Runtime Contract
+
+The phase-2 foundation now lives in `app/static/widget-registry.js`. The registry owns widget definitions and renderers, while `app/static/app.js` continues to own the shared dashboard shell, grid placement, drag, resize, settings controls, save/load, and context resolution lifecycle.
+
+Each registry definition includes:
+
+- `type` and `displayName`
+- `defaultSize` and `minSize`
+- `capabilities` such as reading context, writing context, requiring a data source, filters, time range, and resize support
+- `supportedSettings`
+- `queryRequirements`
+- `getDefaultConfig()`
+- optional `resolveQuery(config, resolvedContext)`
+- `render({ instance, definition, resolvedContext, data, status })`
+
+Current registry-backed types:
+
+- `stat`
+- `timeframe`
+- `search`
+- `table`
+- `chart` with `graph` as the add-menu alias
+- `stat-filter`
+- `calendar`
+
+Widgets resolve inherited workspace context first, then ask their registry definition for a neutral `ContextQuery`. Data-bound widgets query through the source-agnostic context adapter layer and render normalized `DataResult` rows. Unknown widget types render a generic unsupported-widget state instead of throwing or corrupting layout.
+
+The registry is intentionally not responsible for dashboard interaction mechanics. Adding a future widget type should require adding a registry definition and targeted tests, not editing drag, resize, collision, save/load, or panel containment code.
+
 ## Data Binding Rules
 
 - Widget renderers consume normalized data, not source-specific API responses.

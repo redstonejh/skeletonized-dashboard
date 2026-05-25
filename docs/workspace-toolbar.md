@@ -60,6 +60,6 @@ Toolbar tests should verify:
 - Floating anchor and creation controls carry the glass/depth treatment.
 - Old `.workspace-command-island` elements no longer render as bordered/shadowed islands.
 - Add menu opens and exposes generic object types.
-- Engineer Mode and Context View toggle correctly.
+- Engineer Mode toggles correctly and is the single visibility gate for context visualizations.
 - Default and deep-background screenshots are captured.
 - Console and network errors stay clean.

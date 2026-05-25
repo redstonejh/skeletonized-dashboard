@@ -93,6 +93,20 @@ Recommended precedence:
 4. Parent inherited context
 5. Dashboard/global context
 
+## Source-Agnostic Spatial Context
+
+The workspace now has a phase-1 source-agnostic context foundation. Context records can reference a generic `DataSource` by id and carry `SemanticMapping` rules that describe what source fields mean to the workspace. Widgets resolve context dynamically from their current spatial region and query through the adapter registry instead of hard-coding CSV, JSON, API, SQL, or other source behavior.
+
+Spatial inheritance rules:
+
+- Dividers define workspace regions.
+- Each region can own a `WorkspaceContext`.
+- Widgets inherit the root context, then the current divider region context, then any local object context.
+- Moving a widget across a divider changes its resolved context without copying context into widget state.
+- Save/load and live undo snapshots include data sources and workspace contexts alongside widgets, panels, dividers, and anchors.
+
+Debug visibility is available through `window.dashboardContextEngine` and Engineer Mode. Context labels, inherited-context badges, region hints, and other physical context visualizations are hidden in normal mode and are revealed only while Engineer Mode is active. The debug API can register adapters, set data sources, set workspace contexts, resolve a widget's context, introspect a context schema, and query through the resolved adapter contract.
+
 ## Panel Context Inheritance
 
 Panels are context scopes.

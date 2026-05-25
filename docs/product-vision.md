@@ -100,7 +100,7 @@ Engineer Mode should feel native to the dashboard, not like a separate node edit
 ### Phase 5: Toolbar And Command Surface
 
 - Redesign the top toolbar within the existing glass/pill/button language.
-- Add dashboard selector, layout/profile selector, save/load/default/undo, add widget, add panel, Engineer Mode, Context View, theme controls, and settings.
+- Add dashboard selector, layout/profile selector, save/load/default/undo, add widget, add panel, Engineer Mode, theme controls, and settings. Context visualizations should appear through Engineer Mode rather than a separate Context View toggle.
 - Evolve the timeframe widget into a dashboard command surface with grouped glass control clusters, range presets, active timeframe capsule, utility controls, and status/context indicators.
 
 ### Phase 6: Validation And Stabilization

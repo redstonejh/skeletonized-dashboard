@@ -110,7 +110,7 @@ Exit criteria:
 
 Deliverables:
 
-- Expanded top toolbar with dashboard selector, profile selector, save/load/default/undo, add widget, add panel, Engineer Mode, Context View, theme controls, and settings.
+- Expanded top toolbar with dashboard selector, profile selector, save/load/default/undo, add widget, add panel, Engineer Mode, theme controls, and settings. Context visualizations live behind Engineer Mode rather than a separate Context View toggle.
 - Timeframe widget evolved into a command surface with grouped glass control clusters, preset pills, active timeframe capsule, utility controls, and context/status indicators.
 - Search widget rendered as a compact contextual glass capsule, not a default input.
 

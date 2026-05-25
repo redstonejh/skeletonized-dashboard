@@ -1956,6 +1956,99 @@ body.layout-tools-active .db-panel:not(.db-panel-tools-open):not(:has(.panel-too
   box-shadow: 0 8px 18px color-mix(in srgb, var(--panel-accent, var(--blue)) 10%, transparent), inset 0 1px 0 color-mix(in srgb, var(--glass-highlight) 72%, transparent);
 }
 
+.workspace-context-badge {
+  position: absolute;
+  left: 12px;
+  bottom: 10px;
+  z-index: var(--z-object-control);
+  display: none;
+  max-width: calc(100% - 24px);
+  min-height: 22px;
+  padding: 0 8px;
+  align-items: center;
+  border: 1px solid color-mix(in srgb, var(--panel-accent, var(--blue)) 34%, var(--line));
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--glass-surface-strong) 78%, var(--panel-accent, var(--blue)) 10%);
+  color: color-mix(in srgb, var(--ink-strong) 84%, var(--panel-accent, var(--blue)) 16%);
+  font-size: 10px;
+  font-weight: 760;
+  line-height: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  pointer-events: none;
+  box-shadow: 0 8px 18px color-mix(in srgb, var(--panel-accent, var(--blue)) 10%, transparent), inset 0 1px 0 color-mix(in srgb, var(--glass-highlight) 60%, transparent);
+}
+
+body.engineer-mode-active .workspace-context-badge:not([hidden]) {
+  display: inline-flex;
+}
+
+.db-panel > .workspace-context-badge {
+  left: 16px;
+  bottom: 14px;
+}
+
+.db-panel-collapsed > .workspace-context-badge,
+.workspace-divider > .workspace-context-badge {
+  top: 10px;
+  bottom: auto;
+}
+
+.widget-runtime-state,
+.runtime-table-widget {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  flex-direction: column;
+  justify-content: center;
+  gap: 6px;
+}
+
+.widget-runtime-state .stat-val,
+.widget-runtime-state .stat-lbl {
+  display: block;
+}
+
+.unsupported-widget-state .stat-val {
+  font-size: 0.86rem;
+}
+
+.runtime-table-widget {
+  justify-content: flex-start;
+  overflow: hidden;
+}
+
+.runtime-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.66rem;
+  color: color-mix(in srgb, var(--panel-accent-text, #ffffff) 88%, transparent);
+}
+
+.runtime-table th,
+.runtime-table td {
+  max-width: 96px;
+  padding: 3px 4px;
+  border-bottom: 1px solid color-mix(in srgb, var(--panel-accent, var(--blue)) 18%, transparent);
+  overflow: hidden;
+  text-align: left;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.runtime-table th {
+  color: color-mix(in srgb, var(--panel-accent-text, #ffffff) 76%, transparent);
+  font-weight: 760;
+}
+
+.runtime-table td {
+  color: color-mix(in srgb, var(--panel-accent-text, #ffffff) 92%, transparent);
+}
+
 .db-panel-body > .empty-state strong {
   font-size: var(--panel-empty-strong-size);
 }
