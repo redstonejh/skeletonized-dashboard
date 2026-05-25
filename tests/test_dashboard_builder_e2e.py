@@ -1033,8 +1033,7 @@ def test_adaptive_density_engine_marks_widgets_without_layout_mutation(page: Pag
     page.reload(wait_until="networkidle")
     page.wait_for_selector(".page")
 
-    page.locator(".panel-add-button").click()
-    page.locator('.widget-add-action[data-widget-kind="search"]').click()
+    open_add_category(page, "controls").locator('.widget-add-action[data-widget-kind="search"]').click()
     search_widget = page.locator(
         '.widget-layout[data-widget-layout-key="builder"] > .widget-card[data-widget-definition="search"]'
     ).last
@@ -1219,8 +1218,7 @@ def test_add_widget_scores_top_default_region_before_first_divider(page: Page, a
     page.reload(wait_until="networkidle")
     page.wait_for_selector(".page")
 
-    page.locator(".panel-add-button").click()
-    page.locator('.divider-add-action[data-divider-kind="context-divider"]').click()
+    open_add_category(page, "dividers").locator('.divider-add-action[data-divider-kind="context-divider"]').click()
     expect(page.locator(".panel-layout[data-layout-key='builder'] > .workspace-divider")).to_have_count(1)
 
     setup = page.evaluate(
@@ -1260,8 +1258,7 @@ def test_add_widget_scores_top_default_region_before_first_divider(page: Page, a
     added_positions = []
     for index in range(3):
         page.evaluate("window.scrollTo(0, 0)")
-        page.locator(".panel-add-button").click()
-        page.locator('.widget-add-action[data-widget-kind="stat"]').click()
+        open_add_category(page, "data").locator('.widget-add-action[data-widget-kind="stat"]').click()
         expect(
             page.locator(
                 '.widget-layout[data-widget-layout-key="builder"] > .widget-card[data-custom-widget="true"][data-dashboard-object-kind="stat"]'
@@ -1342,15 +1339,13 @@ def test_clicking_newly_added_widgets_does_not_reload_or_hide_widgets(page: Page
     page.reload(wait_until="networkidle")
     page.wait_for_selector(".page")
 
-    page.locator(".panel-add-button").click()
-    page.locator('.divider-add-action[data-divider-kind="context-divider"]').click()
+    open_add_category(page, "dividers").locator('.divider-add-action[data-divider-kind="context-divider"]').click()
     expect(page.locator(".panel-layout[data-layout-key='builder'] > .workspace-divider")).to_have_count(1)
 
     before_count = page.locator(".widget-layout[data-widget-layout-key='builder'] > .widget-card:not([hidden])").count()
     added_keys = []
     for index in range(5):
-        page.locator(".panel-add-button").click()
-        page.locator('.widget-add-action[data-widget-kind="stat"]').click()
+        open_add_category(page, "data").locator('.widget-add-action[data-widget-kind="stat"]').click()
         expect(
             page.locator(
                 ".widget-layout[data-widget-layout-key='builder'] > .widget-card[data-custom-widget='true'][data-dashboard-object-kind='stat']"
@@ -1773,8 +1768,7 @@ def test_widget_body_workbench_and_appearance_settings_split_configuration(page:
     expect(stat.locator(".stat-val")).to_have_text("30")
     assert page.evaluate("() => window.__settingsQueryCount") > before_metric_query_count
 
-    page.locator(".panel-add-button").click()
-    page.locator('.widget-add-action[data-widget-kind="table"]').click()
+    open_add_category(page, "data").locator('.widget-add-action[data-widget-kind="table"]').click()
     table = page.locator('.widget-layout > .widget-card[data-widget-definition="table"]').last
     expect(table).to_be_visible()
     table.click()
@@ -1796,8 +1790,7 @@ def test_widget_body_workbench_and_appearance_settings_split_configuration(page:
     )
     expect(table.locator(".runtime-table")).to_contain_text("Alpha")
 
-    page.locator(".panel-add-button").click()
-    page.locator('.widget-add-action[data-widget-kind="graph"]').click()
+    open_add_category(page, "visualization", "Charts").locator('.widget-add-action[data-widget-kind="graph"]').click()
     chart = page.locator('.widget-layout > .widget-card[data-widget-definition="chart"]').last
     expect(chart).to_be_visible()
     chart.click()
@@ -1830,18 +1823,15 @@ def test_persistence_runtime_exports_versioned_snapshot_and_validation(page: Pag
     page.reload(wait_until="networkidle")
     page.wait_for_selector(".page")
 
-    page.locator(".panel-add-button").click()
-    page.locator('.divider-add-action[data-divider-kind="context-divider"]').click()
+    open_add_category(page, "dividers").locator('.divider-add-action[data-divider-kind="context-divider"]').click()
     divider = page.locator('.panel-layout > .db-panel[data-workspace-object-type="divider"]').last
     expect(divider).to_be_visible()
 
-    page.locator(".panel-add-button").click()
-    page.locator('.widget-add-action[data-widget-kind="anchor"]').click()
+    open_add_category(page, "navigation").locator('.widget-add-action[data-widget-kind="anchor"]').click()
     anchor = page.locator('.workspace-anchor-object[data-workspace-object-type="anchor"]').last
     expect(anchor).to_be_visible()
 
-    page.locator(".panel-add-button").click()
-    page.locator('.widget-add-action[data-widget-kind="image"]').click()
+    open_add_category(page, "media").locator('.widget-add-action[data-widget-kind="image"]').click()
     image_widget = page.locator('.widget-layout > .widget-card[data-widget-definition="image"]').last
     expect(image_widget).to_be_visible()
 
@@ -2308,8 +2298,7 @@ def test_workspace_event_bus_emits_structured_events_and_feeds_activity_widget(p
     )
     assert setup == {"retention": 40, "initialCount": 0}
 
-    page.locator(".panel-add-button").click()
-    page.locator('.widget-add-action[data-widget-kind="search"]').click()
+    open_add_category(page, "controls").locator('.widget-add-action[data-widget-kind="search"]').click()
     search_widget = page.locator('.widget-layout > .widget-card[data-widget-definition="search"][data-custom-widget="true"]').last
     expect(search_widget).to_be_visible()
 
@@ -2347,8 +2336,7 @@ def test_workspace_event_bus_emits_structured_events_and_feeds_activity_widget(p
     )
     expect(page.locator('[data-widget-key="widget-1"]')).to_contain_text("Event query failed")
 
-    page.locator(".panel-add-button").click()
-    page.locator('.widget-add-action[data-widget-kind="activity-feed"]').click()
+    open_add_category(page, "system").locator('.widget-add-action[data-widget-kind="activity-feed"]').click()
     feed = page.locator('.widget-layout > .widget-card[data-widget-definition="activity-feed"]').last
     expect(feed.locator(".activity-feed-widget")).to_be_visible()
 
@@ -2405,8 +2393,7 @@ def test_table_widget_consumes_context_rows_density_and_persistence(page: Page, 
     page.reload(wait_until="networkidle")
     page.wait_for_selector(".page")
 
-    page.locator(".panel-add-button").click()
-    page.locator('.divider-add-action[data-divider-kind="context-divider"]').click()
+    open_add_category(page, "dividers").locator('.divider-add-action[data-divider-kind="context-divider"]').click()
     divider = page.locator(".panel-layout > .workspace-divider").last
     expect(divider).to_be_visible()
 
@@ -2691,13 +2678,11 @@ def test_chart_widget_registry_renders_chart_types_and_context_rows(page: Page, 
     page.reload(wait_until="networkidle")
     page.wait_for_selector(".page")
 
-    page.locator(".panel-add-button").click()
-    page.locator('.divider-add-action[data-divider-kind="context-divider"]').click()
+    open_add_category(page, "dividers").locator('.divider-add-action[data-divider-kind="context-divider"]').click()
     divider = page.locator(".panel-layout > .workspace-divider").last
     expect(divider).to_be_visible()
 
-    page.locator(".panel-add-button").click()
-    page.locator('.widget-add-action[data-widget-kind="graph"]').click()
+    open_add_category(page, "visualization", "Charts").locator('.widget-add-action[data-widget-kind="graph"]').click()
     chart = page.locator('.widget-layout > .widget-card[data-widget-definition="chart"]').last
     expect(chart).to_be_visible()
     expect(chart).to_contain_text("No data source")
@@ -4901,14 +4886,12 @@ def test_workspace_composition_uses_balanced_shell_and_column_rhythm(page: Page,
 def test_spatial_workspace_objects_keep_anchors_on_floating_navigation_layer(page: Page, app_server: str) -> None:
     goto(page, app_server)
 
-    page.locator(".panel-add-button").click()
-    page.locator('.divider-add-action[data-divider-kind="context-divider"]').click()
+    open_add_category(page, "dividers").locator('.divider-add-action[data-divider-kind="context-divider"]').click()
     divider = page.locator('.workspace-divider[data-workspace-object-type="divider"]').last
     expect(divider).to_be_visible()
     expect(divider.locator(".db-panel-title")).to_contain_text("Divider")
 
-    page.locator(".panel-add-button").click()
-    page.locator('.widget-add-action[data-widget-kind="anchor"]').click()
+    open_add_category(page, "navigation").locator('.widget-add-action[data-widget-kind="anchor"]').click()
     anchor = page.locator('.workspace-anchor-object[data-workspace-object-type="anchor"]').last
     expect(anchor).to_be_visible()
     expect(anchor.locator(".workspace-anchor-label")).to_have_text("Top")
@@ -7924,8 +7907,7 @@ def test_widget_vertical_resize_commits_rows_and_respects_widget_types(page: Pag
     assert clamped_widget["rowSpan"] == 1
     assert clamped_widget["height"] <= before_widget["height"] + 3
 
-    page.locator(".panel-add-button").click()
-    page.locator('.widget-add-action[data-widget-kind="search"]').click()
+    open_add_category(page, "controls").locator('.widget-add-action[data-widget-kind="search"]').click()
     search_widget = page.locator('.widget-layout > .search-widget-card[data-custom-widget="true"]').last
     search_widget.evaluate(
         """
@@ -7954,8 +7936,7 @@ def test_widget_vertical_resize_commits_rows_and_respects_widget_types(page: Pag
     timeframe_resized = grid_item_state(page, '[data-widget-key="builder-search"]')
     assert timeframe_resized["rowSpan"] > 1
 
-    page.locator(".panel-add-button").click()
-    page.locator('.widget-add-action[data-widget-kind="anchor"]').click()
+    open_add_category(page, "navigation").locator('.widget-add-action[data-widget-kind="anchor"]').click()
     anchor = page.locator('.workspace-anchor-object[data-workspace-object-type="anchor"]').last
     expect(anchor).to_be_visible()
     expect(anchor.locator(".panel-resize-handle")).to_have_count(0)
@@ -7975,6 +7956,134 @@ def test_widget_vertical_resize_commits_rows_and_respects_widget_types(page: Pag
     }
     assert reloaded_rows == expected_rows
     assert no_visible_overlaps(page, ".dashboard-layout-grid .widget-card, .dashboard-layout-grid .db-panel") == []
+    assert_clean_browser(page)
+
+
+def test_panel_local_chart_resize_preserves_active_widget_anchor(page: Page, app_server: str) -> None:
+    goto(page, app_server)
+    page.evaluate("localStorage.clear()")
+    page.reload(wait_until="networkidle")
+    page.wait_for_selector(".page")
+
+    open_add_category(page, "visualization", "Charts").locator('.widget-add-action[data-widget-kind="chart-line"]').click()
+    expect(page.locator('.widget-layout > .widget-card[data-widget-definition="chart"]').last).to_be_visible()
+    open_add_category(page, "data").locator('.widget-add-action[data-widget-kind="stat"]').click()
+    expect(page.locator('.widget-layout > .widget-card[data-widget-definition="stat"]').last).to_be_visible()
+
+    setup = page.evaluate(
+        """
+        () => {
+          const panel = document.querySelector('[data-panel-key="builder-content"]');
+          const body = panel?.querySelector(":scope > .db-panel-body");
+          const grid = body?.querySelector(":scope > .panel-internal-widget-grid");
+          const sourceChart = document.querySelector('.widget-layout:not(.panel-internal-widget-grid) > .widget-card[data-widget-definition="chart"]');
+          const sourceStat = document.querySelector('.widget-layout:not(.panel-internal-widget-grid) > .widget-card[data-widget-definition="stat"]');
+          if (!panel || !body || !grid || !grid.__initWidget || !sourceChart || !sourceStat) {
+            return { ready: false };
+          }
+
+          panel.classList.remove("db-panel-collapsed");
+          panel.dataset.gridCol = "1";
+          panel.dataset.gridRow = "2";
+          panel.dataset.currentSpan = "5";
+          panel.dataset.gridRowSpan = "7";
+          panel.style.gridColumn = "1 / span 5";
+          panel.style.gridRow = "2 / span 7";
+          panel.style.height = "651px";
+          panel.querySelector(":scope > .db-panel-hd")?.setAttribute("aria-expanded", "true");
+
+          const resetTransient = (node) => {
+            delete node.dataset.widgetInitialized;
+            node.classList.remove(
+              "widget-tools-open",
+              "widget-settings-schema-open",
+              "widget-workbench-open",
+              "widget-dragging",
+              "dashboard-active-resize",
+              "dashboard-live-resize",
+              "dashboard-resize-source",
+              "group-selected"
+            );
+            node.querySelector(".panel-settings-toggle")?.setAttribute("aria-expanded", "false");
+          };
+          const place = (node, col, row, span, rowSpan) => {
+            node.dataset.gridCol = String(col);
+            node.dataset.gridRow = String(row);
+            node.dataset.currentSpan = String(span);
+            node.dataset.gridRowSpan = String(rowSpan);
+            node.style.gridColumn = `${col} / span ${span}`;
+            node.style.gridRow = `${row} / span ${rowSpan}`;
+            const styles = getComputedStyle(grid);
+            const rowHeight = parseFloat(styles.getPropertyValue("--dashboard-grid-row-height")) || 81;
+            const gap = parseFloat(styles.rowGap || styles.gap || "12") || 12;
+            node.style.height = `${(rowSpan * rowHeight) + (Math.max(0, rowSpan - 1) * gap)}px`;
+          };
+          const cloneIntoPanel = (source, key) => {
+            const clone = source.cloneNode(true);
+            source.remove();
+            clone.dataset.widgetKey = key;
+            clone.dataset.customWidget = "true";
+            clone.dataset.panelChildWidget = "true";
+            clone.dataset.parentPanelKey = panel.dataset.panelKey || "";
+            resetTransient(clone);
+            grid.appendChild(clone);
+            grid.__initWidget(clone);
+            return clone;
+          };
+
+          const stat = cloneIntoPanel(sourceStat, "panel-local-stat-above-chart");
+          const chart = cloneIntoPanel(sourceChart, "panel-local-chart-resize-anchor");
+          chart.dataset.widgetConfig = JSON.stringify({
+            title: "Panel Local Chart",
+            chartType: "line",
+            xField: "category",
+            yField: "amount",
+            aggregation: "sum"
+          });
+          place(stat, 1, 1, 2, 1);
+          place(chart, 1, 3, 2, 2);
+          window.dashboardContextEngine?.refresh?.("builder");
+          return {
+            ready: true,
+            chart: {
+              col: Number(chart.dataset.gridCol || 0),
+              row: Number(chart.dataset.gridRow || 0),
+              span: Number(chart.dataset.currentSpan || 0),
+              rowSpan: Number(chart.dataset.gridRowSpan || 0),
+            },
+          };
+        }
+        """
+    )
+    assert setup["ready"] is True
+    assert setup["chart"] == {"col": 1, "row": 3, "span": 2, "rowSpan": 2}
+
+    chart = page.locator('.panel-internal-widget-grid > .chart-widget-card[data-widget-key="panel-local-chart-resize-anchor"]')
+    stat = page.locator('.panel-internal-widget-grid > .widget-card[data-widget-key="panel-local-stat-above-chart"]')
+    expect(chart).to_be_visible()
+    expect(stat).to_be_visible()
+    before_chart = grid_item_state(page, '.panel-internal-widget-grid > .chart-widget-card[data-widget-key="panel-local-chart-resize-anchor"]')
+    before_stat = grid_item_state(page, '.panel-internal-widget-grid > .widget-card[data-widget-key="panel-local-stat-above-chart"]')
+
+    force_open_tools_for_interaction(page, chart)
+    drag_by(page, chart.locator(".panel-resize-handle"), 300, 150, steps=16)
+    page.wait_for_timeout(360)
+
+    after_chart = grid_item_state(page, '.panel-internal-widget-grid > .chart-widget-card[data-widget-key="panel-local-chart-resize-anchor"]')
+    after_stat = grid_item_state(page, '.panel-internal-widget-grid > .widget-card[data-widget-key="panel-local-stat-above-chart"]')
+    assert after_chart["col"] == before_chart["col"] == 1
+    assert after_chart["row"] == before_chart["row"] == 3
+    assert after_chart["span"] > before_chart["span"]
+    assert after_chart["rowSpan"] > before_chart["rowSpan"]
+    assert grid_state_tuple(after_stat) == grid_state_tuple(before_stat)
+    assert_no_resize_artifacts(page)
+
+    page.locator(".layout-save-button").click()
+    expect(page.locator(".toast", has_text="saved")).to_be_visible()
+    page.reload(wait_until="networkidle")
+    page.wait_for_selector(".page")
+    reloaded_chart = grid_item_state(page, '.panel-internal-widget-grid > .chart-widget-card[data-widget-key="panel-local-chart-resize-anchor"]')
+    assert grid_state_tuple(reloaded_chart) == grid_state_tuple(after_chart)
     assert_clean_browser(page)
 
 
@@ -12762,6 +12871,102 @@ def test_panel_widget_hover_focus_surface_parity(page: Page, app_server: str) ->
     assert_material_shadow(widget_focus["boxShadow"])
     assert_transform_close(panel_focus["transform"], widget_focus["transform"])
     assert panel_focus["outlineStyle"] != "solid" or panel_focus["outlineWidth"] in {"0px", "1px", "2px"}
+    assert_clean_browser(page)
+
+
+def test_panel_child_widget_hover_does_not_lift_parent_panel(page: Page, app_server: str) -> None:
+    goto(page, app_server)
+    page.evaluate("localStorage.clear()")
+    page.reload(wait_until="networkidle")
+    page.wait_for_selector(".page")
+
+    setup = page.evaluate(
+        """
+        () => {
+          const panel = document.querySelector('[data-panel-key="builder-content"]');
+          const body = panel?.querySelector(":scope > .db-panel-body");
+          const grid = body?.querySelector(":scope > .panel-internal-widget-grid");
+          const source = document.querySelector('.widget-layout:not(.panel-internal-widget-grid) > .widget-card[data-widget-key="widget-1"]');
+          if (!panel || !body || !grid || !grid.__initWidget || !source) return { ready: false };
+          document.querySelectorAll('.widget-layout:not(.panel-internal-widget-grid) > .widget-card').forEach((node, index) => {
+            node.dataset.gridCol = String(1 + (index % 3) * 2);
+            node.dataset.gridRow = String(10 + index);
+            node.dataset.currentSpan = "2";
+            node.dataset.gridRowSpan = "1";
+            node.style.gridColumn = `${node.dataset.gridCol} / span 2`;
+            node.style.gridRow = `${node.dataset.gridRow} / span 1`;
+            node.style.removeProperty("height");
+          });
+          panel.classList.remove("db-panel-collapsed", "db-panel-tools-open", "panel-child-hover-active");
+          panel.dataset.gridCol = "1";
+          panel.dataset.gridRow = "1";
+          panel.dataset.currentSpan = "5";
+          panel.dataset.gridRowSpan = "7";
+          panel.style.gridColumn = "1 / span 5";
+          panel.style.gridRow = "1 / span 7";
+          panel.style.height = "651px";
+          panel.querySelector(":scope > .db-panel-hd")?.setAttribute("aria-expanded", "true");
+          const child = source.cloneNode(true);
+          child.dataset.widgetKey = "panel-child-hover-owner";
+          child.dataset.customWidget = "true";
+          child.dataset.panelChildWidget = "true";
+          child.dataset.parentPanelKey = panel.dataset.panelKey || "";
+          delete child.dataset.widgetInitialized;
+          child.classList.remove("widget-tools-open", "widget-dragging", "dashboard-active-resize", "dashboard-live-resize", "dashboard-resize-source");
+          child.querySelector(".panel-settings-toggle")?.setAttribute("aria-expanded", "false");
+          child.dataset.gridCol = "1";
+          child.dataset.gridRow = "1";
+          child.dataset.currentSpan = "2";
+          child.dataset.gridRowSpan = "1";
+          child.style.gridColumn = "1 / span 2";
+          child.style.gridRow = "1 / span 1";
+          child.style.removeProperty("height");
+          grid.appendChild(child);
+          grid.__initWidget(child);
+          return { ready: true };
+        }
+        """
+    )
+    assert setup["ready"] is True
+    panel = page.locator('[data-panel-key="builder-content"]')
+    body = panel.locator(".db-panel-body")
+    header = panel.locator(".db-panel-hd")
+    child = page.locator('.panel-internal-widget-grid > .widget-card[data-widget-key="panel-child-hover-owner"]')
+    workspace_widget = page.locator('.widget-layout:not(.panel-internal-widget-grid) > .widget-card[data-widget-key="widget-2"]')
+    expect(child).to_be_visible()
+
+    def transform_y(locator) -> float:
+        value = locator.evaluate("node => getComputedStyle(node).transform")
+        if value == "none":
+            return 0.0
+        parts = [float(part) for part in re.findall(r"-?[\d.]+", value)]
+        if value.startswith("matrix3d") and len(parts) >= 16:
+            return parts[13]
+        if value.startswith("matrix") and len(parts) >= 6:
+            return parts[5]
+        return 0.0
+
+    child.hover()
+    page.wait_for_timeout(260)
+    assert panel.evaluate("node => node.classList.contains('panel-child-hover-active')") is True
+    assert transform_y(child) < -0.5
+    assert abs(transform_y(panel)) <= 0.05
+
+    body_box = body.bounding_box()
+    assert body_box
+    page.mouse.move(body_box["x"] + body_box["width"] - 24, body_box["y"] + body_box["height"] - 24)
+    page.wait_for_timeout(260)
+    assert panel.evaluate("node => node.classList.contains('panel-child-hover-active')") is False
+    assert transform_y(panel) < -0.5
+
+    header.hover()
+    page.wait_for_timeout(220)
+    assert panel.evaluate("node => node.classList.contains('panel-child-hover-active')") is False
+    assert transform_y(panel) < -0.5
+
+    workspace_widget.hover()
+    page.wait_for_timeout(220)
+    assert transform_y(workspace_widget) < -0.5
     assert_clean_browser(page)
 
 

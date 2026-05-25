@@ -1749,6 +1749,13 @@ body.layout-tools-active .widget-card:not(.widget-tools-open):not(:has(> .widget
     0 1px 0 rgba(255, 255, 255, .62) inset;
 }
 
+.db-panel.panel-child-hover-active:not(.db-panel-tools-open):not(.db-panel-collapsed) {
+  transform: none;
+  background: var(--surface);
+  border-color: var(--line);
+  box-shadow: var(--shadow-card);
+}
+
 .workspace-divider.db-panel {
   --panel-header-min-height: var(--dashboard-grid-row-height, 81px);
   --panel-title-size: 15px;

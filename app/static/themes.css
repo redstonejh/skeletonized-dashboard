@@ -1226,6 +1226,11 @@ body::-webkit-scrollbar-thumb:hover {
     0 0 0 1px rgba(var(--panel-accent-rgb), .10);
 }
 
+.db-panel.db-panel-custom-color.panel-child-hover-active:not(.db-panel-tools-open):not(.db-panel-collapsed) {
+  border-color: color-mix(in srgb, var(--panel-accent) 50%, white);
+  box-shadow: var(--shadow-card);
+}
+
 .db-panel.db-panel-custom-color > .db-panel-hd {
   --panel-header-control-bg: color-mix(in srgb, var(--surface-raised) 52%, var(--panel-accent) 48%);
   --panel-header-control-fg: var(--panel-accent-text);

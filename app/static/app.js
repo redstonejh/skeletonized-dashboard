@@ -10006,7 +10006,7 @@ document.addEventListener("DOMContentLoaded", () => {
       });
       if (saved?.workspaceContext) applyWorkspaceContextToElement(widget, saved.workspaceContext);
       const defaultWidgetSpan = widget.dataset.widgetType === "controls" ? 6 : 1;
-      applyWidgetSpan(widget, saved?.span ?? widget.dataset.defaultSpan ?? defaultWidgetSpan);
+      applyWidgetSpan(widget, saved?.span ?? widget.dataset.currentSpan ?? widget.dataset.defaultSpan ?? defaultWidgetSpan);
       if (saved?.gridCol && saved?.gridRow) applyWidgetGridPosition(widget, saved.gridCol, saved.gridRow, saved?.rowSpan);
       widget.classList.toggle("db-panel-pinned", Boolean(saved?.pinned));
       widget.querySelector(".panel-pin-toggle")?.setAttribute("aria-pressed", Boolean(saved?.pinned).toString());
@@ -10566,7 +10566,10 @@ document.addEventListener("DOMContentLoaded", () => {
                 applyWidgetSpan(peer, peerStartSpan + delta);
                 applyWidgetGridPosition(peer, peer.dataset.gridCol, peer.dataset.gridRow, peerStartRows + rowDelta);
               });
-              applyOrderedGridLayout(layout);
+              resolveSparseGridLayout(layout, widget, { col: finalCol, row: startRow }, {
+                metrics: layoutMetrics,
+                items: reflowItems,
+              });
             }, widget, { items: reflowItems, metrics: layoutMetrics });
             saveSharedGridLayouts(layout);
             emitWorkspaceEvent({
@@ -10745,6 +10748,24 @@ document.addEventListener("DOMContentLoaded", () => {
       if (!header || !body) return;
       const internalWidgetGrid = capabilities.hasPanelContentArea ? ensurePanelInternalWidgetGrid(panel) : null;
       if (internalWidgetGrid) initWidgetLayout(internalWidgetGrid);
+      if (internalWidgetGrid && !panel.__panelChildHoverOwnershipBound) {
+        panel.__panelChildHoverOwnershipBound = true;
+        const childWidgetFromEvent = (event) => {
+          const child = event.target?.closest?.(".panel-internal-widget-grid > .widget-card");
+          return child && internalWidgetGrid.contains(child) ? child : null;
+        };
+        internalWidgetGrid.addEventListener("pointerover", (event) => {
+          if (childWidgetFromEvent(event)) panel.classList.add("panel-child-hover-active");
+        });
+        internalWidgetGrid.addEventListener("pointerout", (event) => {
+          const relatedChild = event.relatedTarget?.closest?.(".panel-internal-widget-grid > .widget-card");
+          if (relatedChild && internalWidgetGrid.contains(relatedChild)) return;
+          panel.classList.remove("panel-child-hover-active");
+        });
+        panel.addEventListener("pointerleave", () => {
+          panel.classList.remove("panel-child-hover-active");
+        });
+      }
       const colorMenu = buildPanelColorMenu(panel, layout, colorToggle);
       pinButton?.setAttribute("aria-pressed", panel.classList.contains("db-panel-pinned").toString());
       let movedDuringPointer = false;
