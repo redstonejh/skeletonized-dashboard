@@ -157,10 +157,6 @@
   pointer-events: none;
 }
 
-body.engineer-mode-active .workspace-minimap-layer {
-  display: block;
-}
-
 .workspace-engineer-overlay-layer {
   position: fixed;
   inset: 0;
@@ -233,26 +229,24 @@ body:not(.engineer-mode-active) .workspace-engineer-overlay-layer {
 .workspace-relationship-svg {
   position: fixed;
   inset: 0;
-  z-index: 0;
+  z-index: 1;
   overflow: visible;
   pointer-events: none;
 }
 
 .workspace-relationship-path {
   fill: none;
-  stroke: color-mix(in srgb, #93c5fd 48%, transparent);
-  stroke-width: 1.35;
+  stroke: color-mix(in srgb, #93c5fd 34%, transparent);
+  stroke-width: 1.25;
   stroke-linecap: round;
-  opacity: .42;
-  filter: drop-shadow(0 0 7px color-mix(in srgb, #93c5fd 22%, transparent));
+  opacity: .28;
+  filter: drop-shadow(0 0 5px color-mix(in srgb, #93c5fd 14%, transparent));
   vector-effect: non-scaling-stroke;
 }
 
 .workspace-relationship-path[data-relationship-state="active"] {
-  opacity: .64;
-  stroke-width: 1.75;
-  stroke-dasharray: 8 12;
-  animation: workspace-relationship-flow 2.8s linear infinite;
+  opacity: .38;
+  stroke-width: 1.5;
 }
 
 .workspace-relationship-path[data-relationship-type="context"] {
@@ -277,6 +271,78 @@ body:not(.engineer-mode-active) .workspace-engineer-overlay-layer {
 
 .workspace-relationship-path[data-relationship-type="semantic"] {
   stroke: color-mix(in srgb, #22c55e 42%, transparent);
+}
+
+.workspace-wire-nodule {
+  position: fixed;
+  z-index: 5;
+  display: grid;
+  place-items: center;
+  width: 16px;
+  height: 16px;
+  translate: -50% -50%;
+  border: 1.5px solid color-mix(in srgb, #64748b 42%, var(--line));
+  border-radius: 999px;
+  background:
+    radial-gradient(circle at 45% 42%, color-mix(in srgb, var(--surface-raised) 96%, transparent) 0 34%, color-mix(in srgb, #60a5fa 42%, transparent) 35% 58%, color-mix(in srgb, #0f172a 62%, transparent) 59% 100%);
+  box-shadow:
+    0 5px 12px rgba(15, 23, 42, .18),
+    inset 0 1px 0 color-mix(in srgb, var(--glass-highlight) 58%, transparent);
+  opacity: .82;
+  cursor: crosshair;
+  pointer-events: auto;
+  transition: transform .14s ease, opacity .14s ease, border-color .14s ease, box-shadow .14s ease;
+}
+
+.workspace-wire-nodule::after {
+  content: "";
+  width: 5px;
+  height: 5px;
+  border-radius: inherit;
+  background: color-mix(in srgb, #2563eb 72%, var(--surface-raised));
+  box-shadow: 0 0 0 2px color-mix(in srgb, #ffffff 52%, transparent);
+}
+
+.workspace-wire-nodule:hover,
+.workspace-wire-nodule:focus-visible,
+.workspace-wire-nodule-source,
+.workspace-wire-nodule-target {
+  opacity: 1;
+  border-color: color-mix(in srgb, #ef4444 72%, var(--line));
+  box-shadow:
+    0 8px 18px rgba(15, 23, 42, .20),
+    0 0 0 4px color-mix(in srgb, #ef4444 12%, transparent),
+    inset 0 1px 0 color-mix(in srgb, var(--glass-highlight) 64%, transparent);
+  transform: scale(1.08);
+}
+
+.workspace-wire-drag-svg {
+  position: fixed;
+  inset: 0;
+  z-index: calc(var(--z-object-control) + 4);
+  overflow: visible;
+  pointer-events: none;
+}
+
+.workspace-wire-drag-path {
+  fill: none;
+  stroke: #ef4444;
+  stroke-width: 2.25;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  opacity: .94;
+  filter: drop-shadow(0 0 9px color-mix(in srgb, #ef4444 34%, transparent));
+  vector-effect: non-scaling-stroke;
+}
+
+.workspace-wire-drag-path[data-valid-target="true"] {
+  stroke: #dc2626;
+  stroke-width: 2.65;
+}
+
+body.workspace-wire-drag-active {
+  cursor: crosshair;
+  user-select: none;
 }
 
 .workspace-operator-node,
@@ -914,7 +980,7 @@ body.layout-tools-active .widget-card:not(.widget-tools-open):not(:has(> .widget
 }
 
 .widget-tools-open .widget-tool-drawer,
-.widget-tools:focus-within .widget-tool-drawer {
+.widget-tools:focus-within:not(:has(> .widget-workbench-panel:not([hidden]))) .widget-tool-drawer {
   visibility: visible;
   opacity: 1;
   pointer-events: auto;
@@ -931,7 +997,8 @@ body.layout-tools-active .widget-card:not(.widget-tools-open):not(:has(> .widget
   height: calc(100% + 8px);
 }
 
-.widget-settings-schema-panel {
+.widget-settings-schema-panel,
+.widget-workbench-panel {
   position: absolute;
   top: calc(var(--dashboard-tool-drawer-top, -10px) + 88px);
   right: var(--dashboard-tool-drawer-right, 42px);
@@ -957,18 +1024,71 @@ body.layout-tools-active .widget-card:not(.widget-tools-open):not(:has(> .widget
   z-index: var(--z-object-popover);
 }
 
-.widget-settings-schema-panel[hidden] {
+.widget-workbench-panel {
+  top: calc(var(--dashboard-tool-drawer-top, -10px) + 46px);
+  width: min(318px, calc(100vw - 40px));
+  border-color: color-mix(in srgb, var(--panel-accent, var(--blue)) 32%, var(--panel-drawer-border));
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--surface-raised) 94%, transparent), color-mix(in srgb, var(--glass-surface) 86%, transparent)),
+    color-mix(in srgb, var(--surface-raised) 90%, var(--panel-accent, var(--blue)) 10%);
+}
+
+.widget-settings-schema-panel[hidden],
+.widget-workbench-panel[hidden] {
   display: none;
 }
 
 .widget-settings-schema-open .widget-settings-schema-panel,
-.widget-tools:focus-within .widget-settings-schema-panel:not([hidden]) {
+.widget-workbench-open .widget-workbench-panel,
+.widget-tools:focus-within .widget-settings-schema-panel:not([hidden]),
+.widget-tools:focus-within .widget-workbench-panel:not([hidden]) {
   display: grid;
   visibility: visible;
   opacity: 1;
   pointer-events: auto;
   transform: translate(0, -10px) scale(1);
   transition: transform var(--motion-popover), opacity .14s ease, background .16s ease, border-color .16s ease, visibility 0s linear 0s;
+}
+
+.widget-workbench-open .widget-tool-drawer {
+  visibility: hidden;
+  opacity: 0;
+  pointer-events: none;
+  transform: translate(14px, -6px) scale(.84);
+}
+
+.widget-settings-empty-state,
+.widget-workbench-context {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+  padding: 9px 10px;
+  color: var(--text);
+  border: 1px solid color-mix(in srgb, var(--panel-accent, var(--blue)) 18%, var(--line));
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--surface-raised) 72%, transparent);
+}
+
+.widget-settings-empty-state span,
+.widget-workbench-context span {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--text-strong);
+  font-size: .76rem;
+  font-weight: 760;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.widget-settings-empty-state small,
+.widget-workbench-context small {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--text-muted);
+  font-size: .66rem;
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .widget-settings-schema-head {

@@ -710,13 +710,14 @@ document.addEventListener("DOMContentLoaded", () => {
     reader.readAsDataURL(file);
   });
   const syncLayoutToolsActive = () => {
-    const hasOpenTools = Boolean(document.querySelector(".db-panel-tools-open, .widget-tools-open"));
+    const hasOpenTools = Boolean(document.querySelector(".db-panel-tools-open, .widget-tools-open, .widget-workbench-open"));
     document.body.classList.toggle("layout-tools-active", hasOpenTools);
   };
   const isDashboardInteractionActive = () => (
     document.body.classList.contains("panel-interaction-active") ||
     document.body.classList.contains("panel-resize-active") ||
-    document.body.classList.contains("anchor-rail-drag-active")
+    document.body.classList.contains("anchor-rail-drag-active") ||
+    document.body.classList.contains("workspace-wire-drag-active")
   );
   const isInteractionSource = (item) => Boolean(item?.classList?.contains("widget-dragging") ||
     item?.classList?.contains("db-panel-dragging") ||
@@ -733,20 +734,22 @@ document.addEventListener("DOMContentLoaded", () => {
     return item?.querySelector?.(".panel-color-toggle") || null;
   };
   const closeInactiveDashboardTools = (activeItem = null) => {
-    document.querySelectorAll(".widget-tools-open, .db-panel-tools-open").forEach((item) => {
+    document.querySelectorAll(".widget-tools-open, .widget-workbench-open, .db-panel-tools-open").forEach((item) => {
       if (item === activeItem) return;
-      item.classList.remove("widget-tools-open", "db-panel-tools-open");
+      item.classList.remove("widget-tools-open", "widget-settings-schema-open", "widget-workbench-open", "db-panel-tools-open");
       dashboardSettingsToggleForItem(item)?.setAttribute("aria-expanded", "false");
       dashboardColorToggleForItem(item)?.setAttribute("aria-expanded", "false");
+      item.querySelector?.(":scope > .widget-tools .widget-settings-schema-panel")?.setAttribute("hidden", "");
+      item.querySelector?.(":scope > .widget-tools .widget-workbench-panel")?.setAttribute("hidden", "");
     });
     document.querySelectorAll(".panel-color-menu-open").forEach((menu) => menu.classList.remove("panel-color-menu-open"));
     syncLayoutToolsActive();
   };
   const isDashboardToolInteractionTarget = (event) =>
-    Boolean(event?.target?.closest?.(".panel-tool-drawer, .panel-settings-toggle"));
+    Boolean(event?.target?.closest?.(".panel-tool-drawer, .panel-settings-toggle, .widget-workbench-panel"));
   document.addEventListener("pointerdown", (event) => {
     if (isDashboardInteractionActive()) return;
-    if (event.target?.closest?.(".panel-tool-drawer, .panel-settings-toggle, .panel-color-menu")) return;
+    if (event.target?.closest?.(".panel-tool-drawer, .panel-settings-toggle, .panel-color-menu, .widget-settings-schema-panel, .widget-workbench-panel")) return;
     closeInactiveDashboardTools();
   }, true);
   let groupMode = false;
@@ -2263,20 +2266,12 @@ document.addEventListener("DOMContentLoaded", () => {
     items.forEach((item) => {
       const resolved = resolveWorkspaceContextForItem(item, { layoutKey, profile });
       const hasResolvedContext = Boolean(resolved.dataSourceId || Object.keys(resolved.semanticMapping || {}).length);
-      const showContextUi = isEngineerMode();
       item.dataset.resolvedContextId = resolved.id || "";
       item.dataset.resolvedWorkspaceRegionId = resolved.regionId || "";
       item.dataset.resolvedDataSourceId = resolved.dataSourceId || "";
       item.dataset.resolvedSemanticMapping = JSON.stringify(resolved.semanticMapping || {});
       let badge = item.querySelector(":scope > .workspace-context-badge");
-      if (!hasResolvedContext || !showContextUi) {
-        badge?.remove();
-      } else {
-        badge = badge || ensureContextBadge(item);
-        badge.textContent = describeResolvedContext(resolved);
-        badge.title = `Context: ${resolved.name || resolved.id}\nRegion: ${resolved.regionId}\nSource: ${resolved.dataSourceName || resolved.dataSourceId || "None"}`;
-        badge.removeAttribute("hidden");
-      }
+      if (!hasResolvedContext || badge) badge?.remove();
       if (item.classList.contains("widget-card")) void refreshWidgetRuntimeData(item, resolved);
     });
     refreshWorkspaceMiniMaps(layoutKey);
@@ -2641,7 +2636,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!element?.dataset?.activeStyleRuleIds) return new Set();
     return new Set(String(element.dataset.activeStyleRuleIds).split(",").map((id) => id.trim()).filter(Boolean));
   };
-  const deriveWorkspaceRelationships = (layoutKey = "builder", graph = loadWorkspaceLogicGraph(layoutKey)) => {
+  const explicitWorkspaceRelationships = (graph = loadWorkspaceLogicGraph("builder")) => {
     const relationships = [];
     (graph.relationships || []).forEach((relationship) => addUniqueRelationship(relationships, relationship));
 
@@ -2656,6 +2651,11 @@ document.addEventListener("DOMContentLoaded", () => {
         metadata: { mode: link.mode, contextLinkId: link.id },
       });
     });
+
+    return relationships;
+  };
+  const deriveWorkspaceRelationships = (layoutKey = "builder", graph = loadWorkspaceLogicGraph(layoutKey)) => {
+    const relationships = explicitWorkspaceRelationships(graph);
 
     const items = allCommittedWorkspaceGridItems(layoutKey);
     items.forEach((item) => {
@@ -2770,6 +2770,30 @@ document.addEventListener("DOMContentLoaded", () => {
       kind: "style-rule",
     };
   };
+  const connectableWorkspaceElements = (layoutKey = "builder") => {
+    const items = [
+      ...allCommittedWorkspaceGridItems(layoutKey),
+      ...document.querySelectorAll(`.panel-layout[data-layout-key="${CSS.escape(layoutKey)}"] .panel-internal-widget-grid > .widget-card:not([hidden])`),
+    ].filter((item, index, list) => (
+      item?.isConnected &&
+      !item.hidden &&
+      list.indexOf(item) === index &&
+      workspaceObjectType(item) !== WORKSPACE_OBJECT_TYPES.anchor &&
+      !item.closest(".workspace-anchor-layer") &&
+      !item.closest(".workspace-minimap-layer")
+    ));
+    return items;
+  };
+  const nodulePointForElement = (element) => {
+    if (!element || !element.isConnected || element.hidden) return null;
+    const rect = element.getBoundingClientRect();
+    if (rect.width <= 0 || rect.height <= 0) return null;
+    return {
+      x: rect.left,
+      y: rect.top + (rect.height / 2),
+      rect,
+    };
+  };
   const relationshipEndpointPoint = (id, layoutKey, operators = [], styleRules = []) => {
     const operator = operators.find((node) => node.id === id);
     if (operator) {
@@ -2782,12 +2806,11 @@ document.addEventListener("DOMContentLoaded", () => {
     const styleRulePoint = styleRuleEndpointPoint(id, layoutKey, styleRules);
     if (styleRulePoint) return styleRulePoint;
     const element = workspaceElementByGraphId(id, layoutKey);
-    if (!element || !element.isConnected || element.hidden) return null;
-    const rect = element.getBoundingClientRect();
-    if (rect.width <= 0 || rect.height <= 0) return null;
+    const point = nodulePointForElement(element);
+    if (!point) return null;
     return {
-      x: rect.left + (rect.width / 2),
-      y: rect.top + (rect.height / 2),
+      x: point.x,
+      y: point.y,
       kind: workspaceObjectType(element),
     };
   };
@@ -2796,9 +2819,21 @@ document.addEventListener("DOMContentLoaded", () => {
     Object.entries(attrs).forEach(([key, value]) => node.setAttribute(key, String(value)));
     return node;
   };
+  const workspaceWirePath = (source, target) => {
+    const sx = Number(source?.x) || 0;
+    const sy = Number(source?.y) || 0;
+    const tx = Number(target?.x) || 0;
+    const ty = Number(target?.y) || 0;
+    const gutterX = Math.min(sx, tx) - Math.max(34, Math.min(96, Math.abs(tx - sx) * .28 + 36));
+    if (Math.abs(ty - sy) < 16 && Math.abs(tx - sx) > 72) {
+      const bendY = Math.min(window.innerHeight - 28, sy + 52);
+      return `M ${sx.toFixed(1)} ${sy.toFixed(1)} C ${gutterX.toFixed(1)} ${sy.toFixed(1)}, ${gutterX.toFixed(1)} ${bendY.toFixed(1)}, ${gutterX.toFixed(1)} ${bendY.toFixed(1)} C ${gutterX.toFixed(1)} ${bendY.toFixed(1)}, ${tx.toFixed(1)} ${bendY.toFixed(1)}, ${tx.toFixed(1)} ${ty.toFixed(1)}`;
+    }
+    return `M ${sx.toFixed(1)} ${sy.toFixed(1)} C ${gutterX.toFixed(1)} ${sy.toFixed(1)}, ${gutterX.toFixed(1)} ${ty.toFixed(1)}, ${tx.toFixed(1)} ${ty.toFixed(1)}`;
+  };
   const renderWorkspaceRelationships = (layer, layoutKey = "builder") => {
     const graph = loadWorkspaceLogicGraph(layoutKey);
-    const relationships = deriveWorkspaceRelationships(layoutKey, graph);
+    const relationships = explicitWorkspaceRelationships(graph);
     const svg = createRelationshipSvgElement("svg", {
       class: "workspace-relationship-svg",
       "aria-hidden": "true",
@@ -2814,28 +2849,14 @@ document.addEventListener("DOMContentLoaded", () => {
       const maxX = window.innerWidth + 120;
       const maxY = window.innerHeight + 120;
       if ((source.x < min && target.x < min) || (source.x > maxX && target.x > maxX) || (source.y < min && target.y < min) || (source.y > maxY && target.y > maxY)) return;
-      const dx = Math.max(80, Math.abs(target.x - source.x) * .42);
-      const direction = target.x >= source.x ? 1 : -1;
-      const c1x = source.x + (dx * direction);
-      const c2x = target.x - (dx * direction);
       const path = createRelationshipSvgElement("path", {
         class: "workspace-relationship-path",
         "data-relationship-type": relationship.type,
         "data-relationship-state": relationship.visualState || "ambient",
         "data-relationship-label": relationship.label || "",
-        d: `M ${source.x.toFixed(1)} ${source.y.toFixed(1)} C ${c1x.toFixed(1)} ${source.y.toFixed(1)}, ${c2x.toFixed(1)} ${target.y.toFixed(1)}, ${target.x.toFixed(1)} ${target.y.toFixed(1)}`,
+        d: workspaceWirePath(source, target),
       });
       svg.appendChild(path);
-      if (relationship.metadata?.contextLinkId) {
-        const label = document.createElement("div");
-        label.className = "workspace-context-link-label";
-        label.dataset.contextLinkId = relationship.metadata.contextLinkId;
-        label.dataset.contextLinkMode = relationship.metadata.mode || relationship.label || "";
-        label.style.left = `${Math.round((source.x + target.x) / 2)}px`;
-        label.style.top = `${Math.round((source.y + target.y) / 2)}px`;
-        label.textContent = relationship.metadata.mode || relationship.label || "context";
-        layer.appendChild(label);
-      }
     });
     layer.appendChild(svg);
 
@@ -2852,19 +2873,176 @@ document.addEventListener("DOMContentLoaded", () => {
       node.textContent = operator.operatorType;
       layer.appendChild(node);
     });
-    graph.styleRules.forEach((rule) => {
-      const point = styleRuleEndpointPoint(styleRuleGraphId(rule.id), layoutKey, graph.styleRules);
+  };
+  let activeWorkspaceWireDrag = null;
+  const cleanupWorkspaceWireDrag = () => {
+    if (!activeWorkspaceWireDrag) return;
+    activeWorkspaceWireDrag.previewSvg?.remove();
+    activeWorkspaceWireDrag.sourceHandle?.classList.remove("workspace-wire-nodule-source");
+    activeWorkspaceWireDrag.targetHandle?.classList.remove("workspace-wire-nodule-target");
+    document.body.classList.remove("workspace-wire-drag-active");
+    window.removeEventListener("pointermove", activeWorkspaceWireDrag.onMove, true);
+    window.removeEventListener("pointerup", activeWorkspaceWireDrag.onUp, true);
+    window.removeEventListener("pointercancel", activeWorkspaceWireDrag.onCancel, true);
+    window.removeEventListener("keydown", activeWorkspaceWireDrag.onKeyDown, true);
+    activeWorkspaceWireDrag = null;
+  };
+  const createWorkspaceWirePreview = () => {
+    const svg = createRelationshipSvgElement("svg", {
+      class: "workspace-wire-drag-svg",
+      "aria-hidden": "true",
+      width: window.innerWidth,
+      height: window.innerHeight,
+      viewBox: `0 0 ${window.innerWidth} ${window.innerHeight}`,
+    });
+    const path = createRelationshipSvgElement("path", {
+      class: "workspace-wire-drag-path",
+      d: "",
+    });
+    svg.appendChild(path);
+    document.body.appendChild(svg);
+    return { svg, path };
+  };
+  const workspaceWireHandleFromPoint = (x, y) => {
+    const target = document.elementFromPoint(x, y);
+    return target?.closest?.(".workspace-wire-nodule") || null;
+  };
+  const commitWorkspaceWireConnection = (layoutKey, sourceId, targetId) => {
+    if (!sourceId || !targetId || sourceId === targetId) return null;
+    const profile = getActivePanelProfile(layoutKey);
+    const graph = loadWorkspaceLogicGraph(layoutKey, profile);
+    const link = normalizeContextLink({
+      sourceObjectId: sourceId,
+      targetObjectId: targetId,
+      mode: CONTEXT_LINK_MODES.inherit,
+    });
+    if (graph.contextLinks.some((entry) => entry.sourceObjectId === link.sourceObjectId && entry.targetObjectId === link.targetObjectId && entry.mode === link.mode)) {
+      return null;
+    }
+    const existingRuntime = window.dashboardRelationshipRuntime?.addContextLink?.(layoutKey, link, profile);
+    return existingRuntime;
+  };
+  const startWorkspaceWireDrag = (event, handle, layoutKey = "builder") => {
+    if (!isEngineerMode() || event.button !== 0) return;
+    const sourceId = handle?.dataset?.wireObjectId || "";
+    const sourcePoint = {
+      x: Number(handle.dataset.wireX) || handle.getBoundingClientRect().left + (handle.getBoundingClientRect().width / 2),
+      y: Number(handle.dataset.wireY) || handle.getBoundingClientRect().top + (handle.getBoundingClientRect().height / 2),
+    };
+    if (!sourceId) return;
+    event.preventDefault();
+    event.stopPropagation();
+    cleanupWorkspaceWireDrag();
+    const preview = createWorkspaceWirePreview();
+    document.body.classList.add("workspace-wire-drag-active");
+    handle.classList.add("workspace-wire-nodule-source");
+    const dragState = {
+      layoutKey,
+      sourceId,
+      sourcePoint,
+      sourceHandle: handle,
+      targetHandle: null,
+      previewSvg: preview.svg,
+      previewPath: preview.path,
+      onMove: null,
+      onUp: null,
+      onCancel: null,
+      onKeyDown: null,
+    };
+    const updateTarget = (targetHandle) => {
+      if (dragState.targetHandle === targetHandle) return;
+      dragState.targetHandle?.classList.remove("workspace-wire-nodule-target");
+      dragState.targetHandle = targetHandle;
+      dragState.targetHandle?.classList.add("workspace-wire-nodule-target");
+    };
+    const updatePreview = (clientX, clientY) => {
+      const targetHandle = workspaceWireHandleFromPoint(clientX, clientY);
+      const validTarget = targetHandle && targetHandle.dataset.wireObjectId !== sourceId ? targetHandle : null;
+      updateTarget(validTarget);
+      const endPoint = validTarget
+        ? {
+          x: Number(validTarget.dataset.wireX) || clientX,
+          y: Number(validTarget.dataset.wireY) || clientY,
+        }
+        : { x: clientX, y: clientY };
+      dragState.previewPath.setAttribute("d", workspaceWirePath(sourcePoint, endPoint));
+      dragState.previewPath.dataset.validTarget = validTarget ? "true" : "false";
+    };
+    dragState.onMove = (moveEvent) => {
+      moveEvent.preventDefault();
+      moveEvent.stopPropagation();
+      updatePreview(moveEvent.clientX, moveEvent.clientY);
+    };
+    dragState.onUp = (upEvent) => {
+      upEvent.preventDefault();
+      upEvent.stopPropagation();
+      const targetHandle = workspaceWireHandleFromPoint(upEvent.clientX, upEvent.clientY);
+      const targetId = targetHandle?.dataset?.wireObjectId || "";
+      const valid = targetHandle && targetId && targetId !== sourceId;
+      cleanupWorkspaceWireDrag();
+      if (valid) commitWorkspaceWireConnection(layoutKey, sourceId, targetId);
+    };
+    dragState.onCancel = (cancelEvent) => {
+      cancelEvent.preventDefault();
+      cancelEvent.stopPropagation();
+      cleanupWorkspaceWireDrag();
+    };
+    dragState.onKeyDown = (keyEvent) => {
+      if (keyEvent.key !== "Escape") return;
+      keyEvent.preventDefault();
+      keyEvent.stopPropagation();
+      cleanupWorkspaceWireDrag();
+    };
+    activeWorkspaceWireDrag = dragState;
+    window.addEventListener("pointermove", dragState.onMove, true);
+    window.addEventListener("pointerup", dragState.onUp, true);
+    window.addEventListener("pointercancel", dragState.onCancel, true);
+    window.addEventListener("keydown", dragState.onKeyDown, true);
+    updatePreview(event.clientX, event.clientY);
+  };
+  const renderWorkspaceWireNodules = (layer, layoutKey = "builder") => {
+    const isolateWireHandleClick = (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+    };
+    connectableWorkspaceElements(layoutKey).forEach((item) => {
+      const objectId = graphIdForWorkspaceElement(item);
+      const point = nodulePointForElement(item);
+      if (!objectId || !point) return;
+      if (point.rect.bottom < -40 || point.rect.top > window.innerHeight + 40) return;
+      const handle = document.createElement("button");
+      handle.type = "button";
+      handle.className = "workspace-wire-nodule";
+      handle.dataset.wireObjectId = objectId;
+      handle.dataset.wireObjectType = workspaceObjectType(item);
+      handle.dataset.wireX = String(point.x);
+      handle.dataset.wireY = String(point.y);
+      handle.setAttribute("aria-label", `Create relationship from ${objectId}`);
+      handle.title = "Create relationship";
+      handle.style.left = `${Math.round(point.x)}px`;
+      handle.style.top = `${Math.round(point.y)}px`;
+      handle.addEventListener("pointerdown", (event) => startWorkspaceWireDrag(event, handle, layoutKey));
+      handle.addEventListener("click", isolateWireHandleClick);
+      layer.appendChild(handle);
+    });
+    loadWorkspaceLogicGraph(layoutKey).operators.forEach((operator) => {
+      const point = relationshipEndpointPoint(operator.id, layoutKey, [operator]);
       if (!point) return;
-      if (point.y < -80 || point.y > window.innerHeight + 80 || point.x < -120 || point.x > window.innerWidth + 120) return;
-      const node = document.createElement("div");
-      node.className = "workspace-style-rule-node";
-      node.dataset.styleRuleId = rule.id;
-      node.dataset.targetObjectId = rule.targetObjectId;
-      node.dataset.styleRuleActive = activeStyleRuleIdsForTarget(rule.targetObjectId, layoutKey).has(rule.id) ? "true" : "false";
-      node.style.left = `${Math.round(point.x)}px`;
-      node.style.top = `${Math.round(point.y)}px`;
-      node.textContent = rule.label || "Style";
-      layer.appendChild(node);
+      if (point.y < -40 || point.y > window.innerHeight + 40 || point.x < -40 || point.x > window.innerWidth + 40) return;
+      const handle = document.createElement("button");
+      handle.type = "button";
+      handle.className = "workspace-wire-nodule workspace-wire-nodule-operator";
+      handle.dataset.wireObjectId = operator.id;
+      handle.dataset.wireObjectType = "operator";
+      handle.dataset.wireX = String(point.x);
+      handle.dataset.wireY = String(point.y);
+      handle.setAttribute("aria-label", `Create relationship from ${operator.operatorType} operator`);
+      handle.title = "Create relationship";
+      handle.style.left = `${Math.round(point.x)}px`;
+      handle.style.top = `${Math.round(point.y)}px`;
+      handle.addEventListener("pointerdown", (event) => startWorkspaceWireDrag(event, handle, layoutKey));
+      handle.addEventListener("click", isolateWireHandleClick);
+      layer.appendChild(handle);
     });
   };
   const renderWorkspaceLogicToolbox = (layer, layoutKey = "builder") => {
@@ -3172,11 +3350,8 @@ document.addEventListener("DOMContentLoaded", () => {
     layer.hidden = !isEngineerMode();
     if (!isEngineerMode()) return;
     const layoutKey = document.querySelector(".panel-layout")?.dataset.layoutKey || "builder";
-    renderEngineerRegionBands(layer, layoutKey);
     renderWorkspaceRelationships(layer, layoutKey);
-    renderWorkspaceLogicToolbox(layer, layoutKey);
-    renderEngineerObjectChips(layer, layoutKey);
-    renderEngineerDiagnosticsPanel(layer, layoutKey);
+    renderWorkspaceWireNodules(layer, layoutKey);
   };
 
   refreshEngineerOverlays = () => {
@@ -4229,7 +4404,66 @@ document.addEventListener("DOMContentLoaded", () => {
     };
     return { persistedConfig, renderConfig, asset, changed };
   };
+  const WIDGET_LOGIC_SETTING_KEYS = new Set([
+    "assetId",
+    "chartType",
+    "columns",
+    "customEnd",
+    "customStart",
+    "dateField",
+    "eventTypes",
+    "filter",
+    "filters",
+    "labelField",
+    "limit",
+    "metric",
+    "page",
+    "promptTemplate",
+    "scope",
+    "selectedPreset",
+    "seriesField",
+    "sortBy",
+    "sortDirection",
+    "source",
+    "src",
+    "target",
+    "timeRange",
+    "valueField",
+    "xField",
+    "yField",
+  ]);
+  const WIDGET_APPEARANCE_SETTING_KEYS = new Set([
+    "caption",
+    "density",
+    "display",
+    "fit",
+    "format",
+    "label",
+    "showAxes",
+    "showGrid",
+    "showLabels",
+    "showLegend",
+    "title",
+  ]);
   const widgetSettingsFields = (definition) => (definition?.settingsSchema?.sections || []).flatMap((section) => section.fields || []);
+  const widgetSettingSurface = (field = {}) => {
+    if (field.surface === "appearance" || field.surface === "visual") return "appearance";
+    if (field.surface === "logic" || field.surface === "data" || field.surface === "context") return "logic";
+    const key = String(field.key || "");
+    if (field.affectsQuery || field.affectsContext) return "logic";
+    if (WIDGET_LOGIC_SETTING_KEYS.has(key)) return "logic";
+    if (WIDGET_APPEARANCE_SETTING_KEYS.has(key)) return "appearance";
+    return "appearance";
+  };
+  const widgetSettingsSchemaForSurface = (definition, surface = "all") => {
+    const schema = definition?.settingsSchema || { sections: [] };
+    if (!surface || surface === "all") return schema;
+    const sections = (schema.sections || []).map((section) => ({
+      ...section,
+      fields: (section.fields || []).filter((field) => widgetSettingSurface(field) === surface),
+    })).filter((section) => section.fields.length);
+    return { ...schema, sections };
+  };
   const queryRelevantWidgetConfig = (definition, config = {}) => {
     const relevantKeys = widgetSettingsFields(definition)
       .filter((field) => field.affectsQuery || field.affectsContext)
@@ -4347,10 +4581,10 @@ document.addEventListener("DOMContentLoaded", () => {
     if (typeof value === "object" && value !== null) return JSON.stringify(value, null, 2);
     return String(value ?? "");
   };
-  const renderWidgetSettingField = (widget, field, config) => {
+  const renderWidgetSettingField = (widget, field, config, surface = "settings") => {
     const id = `${widget.dataset.widgetKey || "widget"}-${field.key}`;
     const value = settingInputValue(config, field);
-    const common = `class="widget-setting-input" data-widget-setting-key="${escapeHtml(field.key)}" data-widget-setting-type="${escapeHtml(field.type)}" aria-label="${escapeHtml(field.label)}"`;
+    const common = `class="widget-setting-input" data-widget-setting-key="${escapeHtml(field.key)}" data-widget-setting-type="${escapeHtml(field.type)}" data-widget-setting-surface="${escapeHtml(surface)}" aria-label="${escapeHtml(field.label)}"`;
     const placeholder = field.placeholder ? ` placeholder="${escapeHtml(field.placeholder)}"` : "";
     if (field.type === "select" || field.type === "metricPicker" || field.type === "fieldPicker") {
       const options = field.type === "fieldPicker"
@@ -4386,18 +4620,30 @@ document.addEventListener("DOMContentLoaded", () => {
       <input id="${escapeHtml(id)}" ${common} type="${inputType}" value="${escapeHtml(value)}"${placeholder}${numeric}>
     </label>`;
   };
-  const renderWidgetSettingsSchemaPanel = (widget) => {
+  const widgetSchemaEmptyState = (definition, surface) => {
+    if (surface === "logic") {
+      return `<div class="widget-settings-empty-state">
+        <span>${escapeHtml(definition.displayName || "Widget")}</span>
+        <small>${isEngineerMode() ? "No data logic fields" : "No working controls"}</small>
+      </div>`;
+    }
+    return `<div class="widget-settings-empty-state">
+      <span>${escapeHtml(definition.displayName || "Widget")}</span>
+      <small>Appearance uses title, color, and layout controls</small>
+    </div>`;
+  };
+  const renderWidgetSettingsSchemaPanel = (widget, surface = "appearance") => {
     const definition = widgetDefinitionForElement(widget);
-    const schema = definition.settingsSchema || { sections: [] };
+    const schema = widgetSettingsSchemaForSurface(definition, surface);
     const config = widgetConfigFromElement(widget, definition);
     const sections = schema.sections || [];
     return `<div class="widget-settings-schema-head">
-      <span>${escapeHtml(definition.displayName || "Widget")} settings</span>
+      <span>${escapeHtml(definition.displayName || "Widget")} ${surface === "logic" ? "workbench" : "appearance"}</span>
     </div>
-    ${sections.map((section) => `<fieldset class="widget-settings-section" data-widget-settings-section="${escapeHtml(section.id)}">
+    ${sections.length ? sections.map((section) => `<fieldset class="widget-settings-section" data-widget-settings-section="${escapeHtml(section.id)}" data-widget-settings-surface="${escapeHtml(surface)}">
       <legend>${escapeHtml(section.label || "Settings")}</legend>
-      ${(section.fields || []).map((field) => renderWidgetSettingField(widget, field, config)).join("")}
-    </fieldset>`).join("")}`;
+      ${(section.fields || []).map((field) => renderWidgetSettingField(widget, field, config, surface)).join("")}
+    </fieldset>`).join("") : widgetSchemaEmptyState(definition, surface)}`;
   };
   const ensureWidgetSettingsSchemaPanel = (widget) => {
     const tools = widget?.querySelector(":scope > .widget-tools");
@@ -4407,12 +4653,43 @@ document.addEventListener("DOMContentLoaded", () => {
       panel = document.createElement("div");
       panel.className = "widget-settings-schema-panel";
       panel.setAttribute("role", "menu");
-      panel.setAttribute("aria-label", "Widget settings");
+      panel.setAttribute("aria-label", "Widget appearance");
       panel.hidden = true;
       tools.appendChild(panel);
     }
     const isOpen = widget.classList.contains("widget-settings-schema-open");
-    if (isOpen) panel.innerHTML = renderWidgetSettingsSchemaPanel(widget);
+    if (isOpen) panel.innerHTML = renderWidgetSettingsSchemaPanel(widget, "appearance");
+    else panel.replaceChildren();
+    panel.toggleAttribute("hidden", !isOpen);
+    return panel;
+  };
+  const renderWidgetWorkbenchPanel = (widget) => {
+    const definition = widgetDefinitionForElement(widget);
+    const resolvedContext = resolveWorkspaceContextForItem(widget);
+    const status = widget.dataset.widgetRuntimeStatus || "empty";
+    const contextLabel = resolvedContext?.dataSourceName || resolvedContext?.dataSourceId || resolvedContext?.name || "Workspace";
+    const engineerMarkup = isEngineerMode()
+      ? `<div class="widget-workbench-context" aria-label="Resolved context">
+          <span>${escapeHtml(contextLabel)}</span>
+          <small>${escapeHtml(status)}</small>
+        </div>`
+      : "";
+    return `${renderWidgetSettingsSchemaPanel(widget, "logic")}${engineerMarkup}`;
+  };
+  const ensureWidgetWorkbenchPanel = (widget) => {
+    const tools = widget?.querySelector(":scope > .widget-tools");
+    if (!tools) return null;
+    let panel = tools.querySelector(":scope > .widget-workbench-panel");
+    if (!panel) {
+      panel = document.createElement("div");
+      panel.className = "widget-workbench-panel";
+      panel.setAttribute("role", "dialog");
+      panel.setAttribute("aria-label", "Widget workbench");
+      panel.hidden = true;
+      tools.appendChild(panel);
+    }
+    const isOpen = widget.classList.contains("widget-workbench-open");
+    if (isOpen) panel.innerHTML = renderWidgetWorkbenchPanel(widget);
     else panel.replaceChildren();
     panel.toggleAttribute("hidden", !isOpen);
     return panel;
@@ -4446,9 +4723,13 @@ document.addEventListener("DOMContentLoaded", () => {
       const node = typeof widget === "string" ? document.querySelector(widget) : widget;
       return node ? widgetSettingsFields(widgetDefinitionForElement(node)) : [];
     },
-    renderPanel: (widget) => {
+    renderPanel: (widget, options = {}) => {
       const node = typeof widget === "string" ? document.querySelector(widget) : widget;
-      return node ? renderWidgetSettingsSchemaPanel(node) : "";
+      return node ? renderWidgetSettingsSchemaPanel(node, options.surface || "appearance") : "";
+    },
+    renderWorkbench: (widget) => {
+      const node = typeof widget === "string" ? document.querySelector(widget) : widget;
+      return node ? renderWidgetWorkbenchPanel(node) : "";
     },
     applySetting: (widget, key, value, options = {}) => {
       const node = typeof widget === "string" ? document.querySelector(widget) : widget;
@@ -5765,12 +6046,11 @@ document.addEventListener("DOMContentLoaded", () => {
     widget.insertAdjacentHTML("beforeend", `
       <div class="widget-tools" aria-label="Widget tools">
         <div class="panel-tool-drawer widget-tool-drawer">
-          ${panelToolButtonsMarkup(theme, true, {
-            extraButtons: '<button class="panel-tool-button widget-config-toggle" type="button" aria-label="Configure widget" aria-expanded="false" title="Configure widget"><span class="settings-icon" aria-hidden="true"></span></button>',
-          })}
+          ${panelToolButtonsMarkup(theme, true)}
         </div>
         <div class="widget-settings-schema-panel" role="menu" aria-label="Widget settings" hidden></div>
-        <button class="panel-settings-toggle widget-settings-toggle" type="button" aria-label="Widget settings" aria-expanded="false" title="Widget settings"><span class="settings-icon" aria-hidden="true"></span></button>
+        <div class="widget-workbench-panel" role="dialog" aria-label="Widget workbench" hidden></div>
+        <button class="panel-settings-toggle widget-settings-toggle" type="button" aria-label="Widget appearance" aria-expanded="false" title="Widget appearance"><span class="settings-icon" aria-hidden="true"></span></button>
       </div>`);
   };
 
@@ -8163,6 +8443,24 @@ document.addEventListener("DOMContentLoaded", () => {
     clientY >= rect.top &&
     clientY <= rect.bottom
   );
+  const PANEL_ENTRY_TOLERANCE_PX = 42;
+  const expandPanelEntryBodyRect = (rect, tolerance = PANEL_ENTRY_TOLERANCE_PX) => rect
+    ? {
+      left: rect.left - tolerance,
+      right: rect.right + tolerance,
+      top: rect.top - tolerance,
+      bottom: rect.bottom + tolerance,
+    }
+    : null;
+  const clampPointToPanelBodyRect = (panel, clientX, clientY, snapshot = null) => {
+    const body = panel?.querySelector?.(":scope > .db-panel-body");
+    const rect = body?.getBoundingClientRect?.() || panelBodyRectFromSnapshot(panel, snapshot);
+    if (!rect) return { clientX, clientY };
+    return {
+      clientX: Math.max(rect.left, Math.min(rect.right, clientX)),
+      clientY: Math.max(rect.top, Math.min(rect.bottom, clientY)),
+    };
+  };
 
   const panelEntryCandidateAt = (clientX, clientY, draggedWidget, options = {}) => {
     const panels = [...document.querySelectorAll(".panel-layout > .db-panel:not([hidden])")]
@@ -8176,11 +8474,17 @@ document.addEventListener("DOMContentLoaded", () => {
       const header = panel.querySelector(":scope > .db-panel-hd");
       if (!body || body.offsetParent === null || !header) continue;
       const rect = body.getBoundingClientRect();
-      if (pointInRect(clientX, clientY, rect) || pointInRect(clientX, clientY, panelBodyRectFromSnapshot(panel, options.snapshot))) {
+      const snapshotBodyRect = panelBodyRectFromSnapshot(panel, options.snapshot);
+      const headerRect = header.getBoundingClientRect();
+      const snapshotHeaderRect = panelHeaderRectFromSnapshot(panel, options.snapshot);
+      if (pointInRect(clientX, clientY, headerRect) || pointInRect(clientX, clientY, snapshotHeaderRect)) {
+        return { panel, zone: "header" };
+      }
+      if (pointInRect(clientX, clientY, rect) || pointInRect(clientX, clientY, snapshotBodyRect)) {
         return { panel, zone: "body" };
       }
-      if (pointInRect(clientX, clientY, header.getBoundingClientRect()) || pointInRect(clientX, clientY, panelHeaderRectFromSnapshot(panel, options.snapshot))) {
-        return { panel, zone: "header" };
+      if (pointInRect(clientX, clientY, expandPanelEntryBodyRect(rect)) || pointInRect(clientX, clientY, expandPanelEntryBodyRect(snapshotBodyRect))) {
+        return { panel, zone: "body-tolerance" };
       }
     }
     return null;
@@ -8507,9 +8811,6 @@ document.addEventListener("DOMContentLoaded", () => {
       element.classList.remove(className);
       void element.offsetWidth;
       element.classList.add(className);
-      element.addEventListener("animationend", () => {
-        element.classList.remove(className);
-      }, { once: true });
     };
 
     const animatePanelEntryTransition = (state) => {
@@ -8642,14 +8943,15 @@ document.addEventListener("DOMContentLoaded", () => {
       if (!panelDrag) {
         if (candidate.zone === "header") {
           if (!acceptsHeaderPanelEntry(candidate.panel, motion)) return false;
-        } else if (Math.abs(moveEvent.clientX - startX) < 72) {
-          return false;
         }
       }
       const state = enterPanelDragPreview(candidate.panel, { zone: candidate.zone });
       if (!state) return false;
       const metrics = refreshGridMetricsRect(state.metrics);
-      const nextCell = gridCellFromDragPointer(state.layout, state.placeholder, moveEvent.clientX, moveEvent.clientY, offsetX, offsetY, metrics, rect);
+      const previewPoint = candidate.zone === "body-tolerance"
+        ? clampPointToPanelBodyRect(candidate.panel, moveEvent.clientX, moveEvent.clientY, startSnapshot)
+        : { clientX: moveEvent.clientX, clientY: moveEvent.clientY };
+      const nextCell = gridCellFromDragPointer(state.layout, state.placeholder, previewPoint.clientX, previewPoint.clientY, offsetX, offsetY, metrics, rect);
       const shouldPlayEntryTransition = state.entryZone === "header" && !state.entryTransitionPlayed;
       if (state.targetCell && state.targetCell.col === nextCell.col && state.targetCell.row === nextCell.row) return true;
       state.targetCell = nextCell;
@@ -9761,7 +10063,6 @@ document.addEventListener("DOMContentLoaded", () => {
       const tools = widget.querySelector(".widget-tools");
       const drawer = widget.querySelector(".widget-tool-drawer");
       const settings = widget.querySelector(".widget-settings-toggle");
-      const configToggle = widget.querySelector(".widget-config-toggle");
       const moveHandle = widget.querySelector(".panel-move-handle");
       const resizeHandle = widget.querySelector(".panel-resize-handle");
       const pinButton = widget.querySelector(".panel-pin-toggle");
@@ -9770,10 +10071,15 @@ document.addEventListener("DOMContentLoaded", () => {
       const deleteButton = widget.querySelector(".panel-delete-handle");
       const colorMenu = buildPanelColorMenu(widget, layout, colorToggle);
       const settingsSchemaPanel = ensureWidgetSettingsSchemaPanel(widget);
+      const workbenchPanel = ensureWidgetWorkbenchPanel(widget);
       const syncOpenWidgetToolPosition = () => {
-        if (!widget.classList.contains("widget-tools-open")) return;
+        if (!widget.classList.contains("widget-tools-open") && !widget.classList.contains("widget-workbench-open")) return;
         if (isDashboardInteractionActive()) return;
         positionDashboardToolDrawer(widget, settings, drawer);
+        const drawerTop = drawer?.style?.getPropertyValue("--dashboard-tool-drawer-top");
+        const drawerRight = drawer?.style?.getPropertyValue("--dashboard-tool-drawer-right");
+        if (drawerTop) tools?.style?.setProperty("--dashboard-tool-drawer-top", drawerTop);
+        if (drawerRight) tools?.style?.setProperty("--dashboard-tool-drawer-right", drawerRight);
       };
       if (!widget.__widgetToolPositionObserver) {
         widget.__widgetToolPositionObserver = new MutationObserver(syncOpenWidgetToolPosition);
@@ -9786,6 +10092,7 @@ document.addEventListener("DOMContentLoaded", () => {
       let suppressToolOpenUntil = 0;
       let suppressWidgetClickUntil = 0;
       let dragging = false;
+      let suppressSettingsClickUntil = 0;
       let ignoreToolLeaveCloseUntilPointerActivity = false;
       let releaseToolLeaveCloseResume = null;
       let toolsOpenedByApproach = false;
@@ -9822,12 +10129,64 @@ document.addEventListener("DOMContentLoaded", () => {
         if (tools?.contains(document.activeElement)) document.activeElement?.blur?.();
         widget.classList.remove("widget-tools-open");
         widget.classList.remove("widget-settings-schema-open");
+        widget.classList.remove("widget-workbench-open");
         settings?.setAttribute("aria-expanded", "false");
-        configToggle?.setAttribute("aria-expanded", "false");
         settingsSchemaPanel?.setAttribute("hidden", "");
+        workbenchPanel?.setAttribute("hidden", "");
         colorMenu?.classList.remove("panel-color-menu-open");
         colorToggle?.setAttribute("aria-expanded", "false");
         syncLayoutToolsActive();
+      };
+      const closeWorkbench = () => {
+        widget.classList.remove("widget-workbench-open");
+        workbenchPanel?.setAttribute("hidden", "");
+        syncLayoutToolsActive();
+      };
+      const openWorkbench = () => {
+        if (isDashboardInteractionActive()) return;
+        closeInactiveDashboardTools(widget);
+        window.clearTimeout(closeTimer);
+        widget.classList.remove("widget-tools-open");
+        widget.classList.remove("widget-settings-schema-open");
+        settings?.setAttribute("aria-expanded", "false");
+        settingsSchemaPanel?.setAttribute("hidden", "");
+        colorMenu?.classList.remove("panel-color-menu-open");
+        colorToggle?.setAttribute("aria-expanded", "false");
+        widget.classList.add("widget-workbench-open");
+        const panel = ensureWidgetWorkbenchPanel(widget);
+        if (panel) {
+          positionDashboardToolDrawer(widget, settings, drawer);
+          const drawerTop = drawer?.style?.getPropertyValue("--dashboard-tool-drawer-top");
+          const drawerRight = drawer?.style?.getPropertyValue("--dashboard-tool-drawer-right");
+          if (drawerTop) tools?.style?.setProperty("--dashboard-tool-drawer-top", drawerTop);
+          if (drawerRight) tools?.style?.setProperty("--dashboard-tool-drawer-right", drawerRight);
+          panel.hidden = false;
+        }
+        syncLayoutToolsActive();
+      };
+      const toggleAppearanceSettings = () => {
+        releaseToolLeaveClose();
+        closeWorkbench();
+        if (!canOpenDashboardTools(widget)) return;
+        const shouldClose = widget.classList.contains("widget-tools-open") &&
+          widget.classList.contains("widget-settings-schema-open") &&
+          !toolsOpenedByApproach;
+        toolsOpenedByApproach = false;
+        if (shouldClose) {
+          closeTools();
+          return;
+        }
+        suppressToolOpenUntil = 0;
+        closeInactiveDashboardTools(widget);
+        openTools();
+        colorMenu?.classList.remove("panel-color-menu-open");
+        colorToggle?.setAttribute("aria-expanded", "false");
+        widget.classList.add("widget-settings-schema-open");
+        const panel = ensureWidgetSettingsSchemaPanel(widget);
+        if (panel) {
+          panel.hidden = false;
+          positionDashboardToolDrawer(widget, settings, drawer);
+        }
       };
       const scheduleClose = () => {
         window.clearTimeout(closeTimer);
@@ -9859,9 +10218,8 @@ document.addEventListener("DOMContentLoaded", () => {
         event.preventDefault();
         event.stopPropagation();
         if (performance.now() < suppressWidgetClickUntil) return;
-        closeInactiveDashboardTools(widget);
         suppressToolOpenUntil = 0;
-        openTools();
+        openWorkbench();
         try {
           widget.focus?.({ preventScroll: true });
         } catch {
@@ -9890,49 +10248,49 @@ document.addEventListener("DOMContentLoaded", () => {
         if (event.key === "Escape") {
           event.preventDefault();
           widget.classList.remove("widget-settings-schema-open");
-          configToggle?.setAttribute("aria-expanded", "false");
           settingsSchemaPanel.hidden = true;
-          configToggle?.focus?.({ preventScroll: true });
+          settings?.focus?.({ preventScroll: true });
+        }
+      });
+      workbenchPanel?.addEventListener("click", (event) => {
+        event.stopPropagation();
+      });
+      workbenchPanel?.addEventListener("input", (event) => {
+        event.stopPropagation();
+      });
+      workbenchPanel?.addEventListener("change", (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        const input = event.target?.closest?.(".widget-setting-input");
+        if (!input || !widget.contains(input)) return;
+        applyWidgetSettingsSchemaChange(widget, input, { history: true });
+        ensureWidgetWorkbenchPanel(widget);
+      });
+      workbenchPanel?.addEventListener("keydown", (event) => {
+        event.stopPropagation();
+        if (event.key === "Escape") {
+          event.preventDefault();
+          closeWorkbench();
+          widget.focus?.({ preventScroll: true });
         }
       });
       settings?.addEventListener("click", (event) => {
         event.preventDefault();
         event.stopPropagation();
-        releaseToolLeaveClose();
-        if (!canOpenDashboardTools(widget)) return;
-        const shouldClose = widget.classList.contains("widget-tools-open") && !toolsOpenedByApproach;
-        toolsOpenedByApproach = false;
-        if (shouldClose) {
-          closeTools();
-        } else {
-          suppressToolOpenUntil = 0;
-          closeInactiveDashboardTools(widget);
-          openTools();
-        }
+        if (performance.now() < suppressSettingsClickUntil) return;
+        toggleAppearanceSettings();
       });
-      configToggle?.addEventListener("click", (event) => {
+      settings?.addEventListener("pointerdown", (event) => {
+        if (event.button !== 0) return;
         event.preventDefault();
         event.stopPropagation();
-        releaseToolLeaveClose();
-        if (!canOpenDashboardTools(widget)) return;
-        closeInactiveDashboardTools(widget);
-        openTools();
-        colorMenu?.classList.remove("panel-color-menu-open");
-        colorToggle?.setAttribute("aria-expanded", "false");
-        const nextOpen = !widget.classList.contains("widget-settings-schema-open");
-        widget.classList.toggle("widget-settings-schema-open", nextOpen);
-        configToggle.setAttribute("aria-expanded", nextOpen.toString());
-        const panel = ensureWidgetSettingsSchemaPanel(widget);
-        if (panel) {
-          panel.hidden = !nextOpen;
-          positionDashboardToolDrawer(widget, settings, drawer);
-        }
+        suppressSettingsClickUntil = performance.now() + 320;
+        toggleAppearanceSettings();
       });
       colorToggle?.addEventListener("click", (event) => {
         event.preventDefault();
         event.stopPropagation();
         widget.classList.remove("widget-settings-schema-open");
-        configToggle?.setAttribute("aria-expanded", "false");
         settingsSchemaPanel?.setAttribute("hidden", "");
         const nextOpen = !colorMenu?.classList.contains("panel-color-menu-open");
         if (nextOpen) {
@@ -9957,6 +10315,11 @@ document.addEventListener("DOMContentLoaded", () => {
         if (!widget.classList.contains("widget-settings-schema-open")) return;
         if (widget.contains(event.target) || colorMenu?.contains(event.target)) return;
         closeTools();
+      });
+      document.addEventListener("pointerdown", (event) => {
+        if (!widget.classList.contains("widget-workbench-open")) return;
+        if (widget.contains(event.target) || colorMenu?.contains(event.target)) return;
+        closeWorkbench();
       });
       pinButton?.addEventListener("click", (event) => {
         event.preventDefault();
@@ -11926,6 +12289,30 @@ document.addEventListener("DOMContentLoaded", () => {
       event.stopPropagation();
       openMenu();
     });
+    menu?.addEventListener("pointerenter", (event) => {
+      const group = event.target?.closest?.(".object-add-category, .object-add-subcategory");
+      if (!group || !menu.contains(group)) return;
+      setObjectAddSubmenuOpen(group, true);
+    }, true);
+    menu?.addEventListener("focusin", (event) => {
+      const group = event.target?.closest?.(".object-add-category, .object-add-subcategory");
+      if (!group || !menu.contains(group)) return;
+      setObjectAddSubmenuOpen(group, true);
+    });
+    menu?.addEventListener("click", (event) => {
+      const triggerButton = event.target?.closest?.(".object-add-category-trigger, .object-add-subcategory-trigger");
+      if (!triggerButton || !menu.contains(triggerButton)) return;
+      event.preventDefault();
+      event.stopPropagation();
+      const group = triggerButton.closest(".object-add-category, .object-add-subcategory");
+      const willOpen = !group.classList.contains("is-open");
+      const scope = group.parentElement;
+      scope?.querySelectorAll?.(":scope > .object-add-category.is-open, :scope > .object-add-subcategory.is-open")
+        .forEach((openGroup) => {
+          if (openGroup !== group) setObjectAddSubmenuOpen(openGroup, false);
+        });
+      setObjectAddSubmenuOpen(group, willOpen);
+    });
     document.addEventListener("pointerdown", (event) => {
       if (!picker.contains(event.target)) closeMenu();
     }, true);
@@ -12001,6 +12388,137 @@ document.addEventListener("DOMContentLoaded", () => {
     toggleGroupItem(item);
   }, true);
 
+  const objectAddCategories = [
+    { id: "data", label: "Data" },
+    { id: "visualization", label: "Visualization" },
+    { id: "controls", label: "Controls" },
+    { id: "content", label: "Content" },
+    { id: "media", label: "Media" },
+    { id: "system", label: "System" },
+    { id: "experimental", label: "Experimental" },
+    { id: "containers", label: "Containers" },
+    { id: "navigation", label: "Navigation" },
+    { id: "dividers", label: "Dividers" },
+  ];
+  const objectAddItems = [
+    { category: "data", displayName: "Stat", actionClass: "widget-add-action", dataset: { widgetKind: "stat" } },
+    { category: "data", displayName: "Table", actionClass: "widget-add-action", dataset: { widgetKind: "table" } },
+    { category: "visualization", subcategory: "Charts", displayName: "Bar", actionClass: "widget-add-action", dataset: { widgetKind: "graph", widgetCreateKind: "graph", objectDisplayName: "Bar Chart", widgetConfig: JSON.stringify({ title: "Bar Chart", chartType: "bar" }), chartType: "bar" } },
+    { category: "visualization", subcategory: "Charts", displayName: "Line", actionClass: "widget-add-action", dataset: { widgetKind: "chart-line", widgetCreateKind: "graph", objectDisplayName: "Line Chart", widgetConfig: JSON.stringify({ title: "Line Chart", chartType: "line" }), chartType: "line" } },
+    { category: "visualization", subcategory: "Charts", displayName: "Area", actionClass: "widget-add-action", dataset: { widgetKind: "chart-area", widgetCreateKind: "graph", objectDisplayName: "Area Chart", widgetConfig: JSON.stringify({ title: "Area Chart", chartType: "area" }), chartType: "area" } },
+    { category: "visualization", subcategory: "Charts", displayName: "Scatter", actionClass: "widget-add-action", dataset: { widgetKind: "chart-scatter", widgetCreateKind: "graph", objectDisplayName: "Scatter Chart", widgetConfig: JSON.stringify({ title: "Scatter Chart", chartType: "scatter" }), chartType: "scatter" } },
+    { category: "visualization", subcategory: "Charts", displayName: "Histogram", actionClass: "widget-add-action", dataset: { widgetKind: "chart-histogram", widgetCreateKind: "graph", objectDisplayName: "Histogram", widgetConfig: JSON.stringify({ title: "Histogram", chartType: "histogram" }), chartType: "histogram" } },
+    { category: "visualization", subcategory: "Charts", displayName: "Heatmap", actionClass: "widget-add-action", dataset: { widgetKind: "chart-heatmap", widgetCreateKind: "graph", objectDisplayName: "Heatmap", widgetConfig: JSON.stringify({ title: "Heatmap", chartType: "heatmap" }), chartType: "heatmap" } },
+    { category: "visualization", subcategory: "Charts", displayName: "Pie / Donut", actionClass: "widget-add-action", dataset: { widgetKind: "chart-donut", widgetCreateKind: "graph", objectDisplayName: "Donut Chart", widgetConfig: JSON.stringify({ title: "Donut Chart", chartType: "donut" }), chartType: "donut" } },
+    { category: "visualization", subcategory: "Charts", displayName: "Gauge", actionClass: "widget-add-action", dataset: { widgetKind: "chart-gauge", widgetCreateKind: "graph", objectDisplayName: "Gauge", widgetConfig: JSON.stringify({ title: "Gauge", chartType: "gauge" }), chartType: "gauge" } },
+    { category: "visualization", subcategory: "Charts", displayName: "Sparkline", actionClass: "widget-add-action", dataset: { widgetKind: "chart-sparkline", widgetCreateKind: "graph", objectDisplayName: "Sparkline", widgetConfig: JSON.stringify({ title: "Sparkline", chartType: "sparkline" }), chartType: "sparkline" } },
+    { category: "controls", displayName: "Search Bar", actionClass: "widget-add-action", dataset: { widgetKind: "search" } },
+    { category: "controls", displayName: "Filter Control", actionClass: "widget-add-action", dataset: { widgetKind: "filter" } },
+    { category: "controls", displayName: "Timeframe", actionClass: "widget-add-action", dataset: { widgetKind: "timeframe" } },
+    { category: "controls", displayName: "Calendar", actionClass: "widget-add-action", dataset: { widgetKind: "calendar" } },
+    { category: "content", displayName: "Text / Notes", actionClass: "widget-add-action", dataset: { widgetKind: "text" } },
+    { category: "content", displayName: "Region Summary", actionClass: "widget-add-action", dataset: { widgetKind: "region-summary" } },
+    { category: "media", displayName: "Image", actionClass: "widget-add-action", dataset: { widgetKind: "image" } },
+    { category: "media", displayName: "Video", actionClass: "widget-add-action", dataset: { widgetKind: "video" } },
+    { category: "media", displayName: "PDF / Document", actionClass: "widget-add-action", dataset: { widgetKind: "document" } },
+    { category: "system", displayName: "Activity Feed", actionClass: "widget-add-action", dataset: { widgetKind: "activity-feed" } },
+    { category: "system", displayName: "AI Assistant", actionClass: "widget-add-action", dataset: { widgetKind: "ai-assistant" } },
+    { category: "system", displayName: "Context Inspector", actionClass: "widget-add-action", engineerOnly: true, dataset: { widgetKind: "context-inspector" } },
+    { category: "containers", displayName: "Panel", actionClass: "panel-add-action", dataset: { panelKind: "panel" } },
+    { category: "navigation", displayName: "Anchor", actionClass: "widget-add-action", dataset: { widgetKind: "anchor" } },
+    { category: "dividers", displayName: "Divider", actionClass: "divider-add-action", dataset: { dividerKind: "context-divider" } },
+  ];
+  const objectAddSetDataset = (element, dataset = {}) => {
+    Object.entries(dataset).forEach(([key, value]) => {
+      if (value == null) return;
+      element.dataset[key] = String(value);
+    });
+  };
+  const createObjectAddAction = (item, layoutKey) => {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = `object-add-action ${item.actionClass || ""}`.trim();
+    button.textContent = item.displayName;
+    if (item.actionClass === "panel-add-action" || item.actionClass === "divider-add-action") {
+      button.dataset.layoutTarget = layoutKey;
+    } else {
+      button.dataset.widgetTarget = layoutKey;
+    }
+    button.dataset.objectAddCategory = item.category;
+    if (item.subcategory) button.dataset.objectAddSubcategory = item.subcategory;
+    objectAddSetDataset(button, item.dataset);
+    return button;
+  };
+  const createObjectAddSubmenu = (items, layoutKey) => {
+    const submenu = document.createElement("div");
+    submenu.className = "object-add-submenu";
+    submenu.setAttribute("role", "menu");
+    const bySubcategory = new Map();
+    items.filter((item) => !item.subcategory).forEach((item) => submenu.appendChild(createObjectAddAction(item, layoutKey)));
+    items.filter((item) => item.subcategory).forEach((item) => {
+      if (!bySubcategory.has(item.subcategory)) bySubcategory.set(item.subcategory, []);
+      bySubcategory.get(item.subcategory).push(item);
+    });
+    bySubcategory.forEach((subcategoryItems, subcategory) => {
+      const group = document.createElement("div");
+      group.className = "object-add-subcategory";
+      group.dataset.objectAddSubcategory = subcategory;
+      const trigger = document.createElement("button");
+      trigger.type = "button";
+      trigger.className = "object-add-subcategory-trigger";
+      trigger.textContent = subcategory;
+      trigger.setAttribute("aria-haspopup", "true");
+      trigger.setAttribute("aria-expanded", "false");
+      const nested = document.createElement("div");
+      nested.className = "object-add-submenu object-add-chart-submenu";
+      nested.setAttribute("role", "menu");
+      subcategoryItems.forEach((item) => nested.appendChild(createObjectAddAction(item, layoutKey)));
+      group.append(trigger, nested);
+      submenu.appendChild(group);
+    });
+    return submenu;
+  };
+  const setObjectAddSubmenuOpen = (group, open) => {
+    if (!group) return;
+    group.classList.toggle("is-open", Boolean(open));
+    group.querySelector(":scope > .object-add-category-trigger, :scope > .object-add-subcategory-trigger")
+      ?.setAttribute("aria-expanded", String(Boolean(open)));
+  };
+  const openObjectAddSubmenuBranch = (group) => {
+    if (!group) return;
+    group.parentElement?.querySelectorAll?.(":scope > .object-add-category.is-open, :scope > .object-add-subcategory.is-open")
+      .forEach((openGroup) => {
+        if (openGroup !== group) setObjectAddSubmenuOpen(openGroup, false);
+      });
+    setObjectAddSubmenuOpen(group, true);
+  };
+  const renderObjectAddMenus = () => {
+    document.querySelectorAll(".panel-add-picker").forEach((picker) => {
+      const layoutKey = picker.dataset.layoutTarget || "default";
+      const browser = picker.querySelector(".object-add-browser");
+      if (!browser) return;
+      browser.replaceChildren();
+      const availableItems = objectAddItems.filter((item) => !item.engineerOnly || isEngineerMode());
+      objectAddCategories.forEach((category) => {
+        const items = availableItems.filter((item) => item.category === category.id);
+        if (!items.length) return;
+        const group = document.createElement("div");
+        group.className = "object-add-category";
+        group.dataset.objectMenuCategory = category.id;
+        const trigger = document.createElement("button");
+        trigger.type = "button";
+        trigger.className = "object-add-category-trigger";
+        trigger.textContent = category.label;
+        trigger.setAttribute("aria-haspopup", "true");
+        trigger.setAttribute("aria-expanded", "false");
+        group.append(trigger, createObjectAddSubmenu(items, layoutKey));
+        browser.appendChild(group);
+      });
+    });
+  };
+  renderObjectAddMenus();
+  onEngineerModeChange(renderObjectAddMenus);
+
   document.querySelectorAll(".panel-add-picker").forEach((picker) => {
     const trigger = picker.querySelector(".panel-add-button");
     const menu = picker.querySelector(".panel-add-menu");
@@ -12029,6 +12547,29 @@ document.addEventListener("DOMContentLoaded", () => {
       event.stopPropagation();
       openMenu();
     });
+    menu?.addEventListener("pointerenter", (event) => {
+      const group = event.target?.closest?.(".object-add-category, .object-add-subcategory");
+      if (!group || !menu.contains(group)) return;
+      openObjectAddSubmenuBranch(group);
+    }, true);
+    menu?.addEventListener("focusin", (event) => {
+      const group = event.target?.closest?.(".object-add-category, .object-add-subcategory");
+      if (!group || !menu.contains(group)) return;
+      openObjectAddSubmenuBranch(group);
+    });
+    menu?.addEventListener("click", (event) => {
+      const triggerButton = event.target?.closest?.(".object-add-category-trigger, .object-add-subcategory-trigger");
+      if (!triggerButton || !menu.contains(triggerButton)) return;
+      event.preventDefault();
+      event.stopPropagation();
+      const group = triggerButton.closest(".object-add-category, .object-add-subcategory");
+      const willOpen = !group.classList.contains("is-open");
+      if (willOpen) {
+        openObjectAddSubmenuBranch(group);
+      } else {
+        setObjectAddSubmenuOpen(group, false);
+      }
+    });
     document.addEventListener("pointerdown", (event) => {
       if (!picker.contains(event.target)) closeMenu();
     }, true);
@@ -12045,8 +12586,7 @@ document.addEventListener("DOMContentLoaded", () => {
     trigger?.setAttribute("aria-expanded", "false");
   };
 
-  document.querySelectorAll(".panel-add-action").forEach((button) => {
-    button.addEventListener("click", () => {
+  const handlePanelAddAction = (button) => {
       closeObjectAddMenu(button);
       const layoutKey = button.dataset.layoutTarget || "default";
       const layout = document.querySelector(`.panel-layout[data-layout-key="${CSS.escape(layoutKey)}"]`);
@@ -12102,11 +12642,9 @@ document.addEventListener("DOMContentLoaded", () => {
         regionId: regionIdForWorkspaceItem(panel),
         payload: { title, cols: Number(panel.dataset.currentSpan) || 1, rows: Number(panel.dataset.gridRowSpan) || 1 },
       });
-    });
-  });
+  };
 
-  document.querySelectorAll(".divider-add-action").forEach((button) => {
-    button.addEventListener("click", () => {
+  const handleDividerAddAction = (button) => {
       closeObjectAddMenu(button);
       const layoutKey = button.dataset.layoutTarget || "default";
       const layout = document.querySelector(`.panel-layout[data-layout-key="${CSS.escape(layoutKey)}"]`);
@@ -12156,15 +12694,13 @@ document.addEventListener("DOMContentLoaded", () => {
         regionId: regionIdForWorkspaceItem(divider),
         payload: { title: definition.title, dividerKind: button.dataset.dividerKind || "divider" },
       });
-    });
-  });
+  };
 
-  document.querySelectorAll(".widget-add-action").forEach((button) => {
-    button.addEventListener("click", () => {
+  const handleWidgetAddAction = (button) => {
       closeObjectAddMenu(button);
       const layoutKey = button.dataset.widgetTarget || "default";
       const layout = document.querySelector(`.widget-layout[data-widget-layout-key="${CSS.escape(layoutKey)}"]`);
-      const kind = button.dataset.widgetKind || "widget";
+      const kind = button.dataset.widgetCreateKind || button.dataset.widgetKind || "widget";
       if (kind === "anchor") {
         const layer = anchorLayerForLayoutKey(layoutKey);
         if (!layer) return;
@@ -12214,12 +12750,14 @@ document.addEventListener("DOMContentLoaded", () => {
       const key = `widget-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`;
       const runtimeDefinition = widgetDefinitionFor(kind);
       const runtimeDefaults = typeof runtimeDefinition.getDefaultConfig === "function" ? runtimeDefinition.getDefaultConfig() : {};
-      const objectName = kind === "graph" ? "Graph" : (runtimeDefinition.displayName || "Widget");
-      const title = runtimeDefaults.title || `${objectName} ${customCount + 1}`;
+      const runtimeConfigOverrides = parseJsonRecord(button.dataset.widgetConfig, {});
+      const objectName = button.dataset.objectDisplayName || (kind === "graph" ? "Graph" : (runtimeDefinition.displayName || "Widget"));
+      const widgetConfig = { ...runtimeDefaults, ...runtimeConfigOverrides };
+      const title = widgetConfig.title || `${objectName} ${customCount + 1}`;
       const definition = {
         key,
         title,
-        value: runtimeDefaults.value,
+        value: widgetConfig.value,
         color: nextColor,
         span: runtimeDefinition.defaultSize?.cols || 1,
         rowSpan: runtimeDefinition.defaultSize?.rows || 1,
@@ -12230,7 +12768,7 @@ document.addEventListener("DOMContentLoaded", () => {
         workspaceObjectType: WORKSPACE_OBJECT_TYPES.widget,
         dashboardObjectKind: runtimeDefinition.dashboardObjectKind || runtimeDefinition.type,
         contextRole: runtimeDefinition.contextRole || "content",
-        config: JSON.stringify(runtimeDefaults),
+        config: JSON.stringify(widgetConfig),
       };
       const widget = createCustomWidget(definition);
       ensureWidgetTools(widget, nextColor);
@@ -12262,7 +12800,20 @@ document.addEventListener("DOMContentLoaded", () => {
           rows: Number(widget.dataset.gridRowSpan) || definition.rowSpan,
         },
       });
-    });
+  };
+
+  document.addEventListener("click", (event) => {
+    const button = event.target?.closest?.(".panel-add-action, .divider-add-action, .widget-add-action");
+    if (!button) return;
+    event.preventDefault();
+    event.stopPropagation();
+    if (button.classList.contains("panel-add-action")) {
+      handlePanelAddAction(button);
+    } else if (button.classList.contains("divider-add-action")) {
+      handleDividerAddAction(button);
+    } else {
+      handleWidgetAddAction(button);
+    }
   });
 
   const undoDashboardLayoutChange = (layoutKey, profile, options = {}) => {

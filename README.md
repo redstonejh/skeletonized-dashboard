@@ -39,17 +39,19 @@ The upcoming work is intentionally staged around stabilization first, then large
 - Widgets can be intentionally absorbed into open panels, where they become panel children with scoped internal grid state, save/load, and undo/redo support.
 - Workspace context now resolves through source-agnostic data-source adapters, semantic mappings, inherited divider regions, and normalized context queries.
 - Widget rendering now uses `app/static/widget-registry.js`, so stat, timeframe, search, table, chart, stat-filter, and calendar widgets declare runtime contracts outside core grid interaction code.
-- Context visualization is hidden in normal mode and is revealed through Engineer Mode, keeping the default workspace clean while preserving internal context inheritance.
+- Context inheritance now stays internal and ambient by default; Engineer Mode no longer floods the workspace with inherited-context badges, labels, or region debug overlays.
 - Large-workspace performance now separates layout correctness from visual cost with viewport-aware reflow animation, pseudo-LOD material tiers, row-bucketed collision queries, cached logical geometry records, and reduced DOM reads on committed geometry.
 - Smart object insertion now treats the top/default workspace area as a first-class visible divider region, keeps repeated adds deterministic, and places new objects in the region the user is actually viewing.
 - Newly added widget cards remain in-app workspace objects when clicked, so link-backed placeholder content no longer reloads away unsaved additions.
 - Top-edge drag auto-scroll now brakes smoothly near the fixed navbar and workspace top while preserving the existing bottom-edge runway behavior.
-- Engineer Mode now includes an optional right-side mini-map overlay rendered from committed workspace geometry, and Region Summary is available as a normal spatial-awareness widget.
+- Region Summary is available as a normal spatial-awareness widget, while mini-map/debug overlays no longer appear automatically when Engineer Mode is toggled.
 - Image, Video, and PDF / Document are now registry-backed rich content widgets with safe URL/reference previews, captions, resize-aware containment, save/load persistence, and normal workspace/panel behavior.
 - Activity Feed, AI Assistant placeholder, and Engineer-gated Context Inspector widgets are now registry-backed workspace meta widgets that consume resolved workspace/context state without dashboard-renderer special cases.
-- Workspace infrastructure now includes centralized query lifecycle/caching, schema-driven widget settings, asset references for rich media, adaptive density tiers, a structured workspace event bus, and centralized Engineer Mode diagnostics for context, layout, ownership, cache, event, and LOD visibility.
+- Workspace infrastructure now includes centralized query lifecycle/caching, schema-driven widget settings, asset references for rich media, adaptive density tiers, and a structured workspace event bus while keeping automatic Engineer Mode visuals limited to intentional semantic wiring.
 - Viewport-aware pseudo-LOD is now centralized around shared visual tiers and overscan rules, with focused/selected/dragged/resized objects promoted to full fidelity, anchor rail objects classified separately, and far-offscreen hover/material effects reduced without changing layout correctness.
-- Engineer Mode now exposes a persisted relationship graph with subtle spatial links for Context Links, filters, queries, containment, semantic relationships, operators, and conditional styling. Context Links let dividers, panels, widgets, and contexts share or override semantic context across non-adjacent workspace regions while remaining hidden in normal mode.
+- Engineer Mode now exposes relationship editing through explicit left-side wire nodules on connectable workspace objects. Dragging from a nodule shows a red semantic preview wire, dropping on another nodule creates a persisted cross-region Context Link, and normal mode hides nodules, editing tools, and graph clutter.
+- Widget body clicks now open widget working surfaces for data/query/context behavior, while widget settings stay focused on appearance, material, title, density, and display customization.
+- The Add Object menu now uses a categorized right-expanding object browser, grouping data, visualization/chart, control, content, media, system, container, navigation, and divider objects while keeping Engineer-only items behind Engineer Mode.
 
 ### Near-Term Stabilization
 

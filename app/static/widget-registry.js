@@ -875,6 +875,10 @@
       ...definition,
       type,
       displayName: definition.displayName || type,
+      category: definition.category || "data",
+      subcategory: definition.subcategory || "",
+      engineerOnly: Boolean(definition.engineerOnly),
+      icon: definition.icon || "",
       aliases: Array.isArray(definition.aliases) ? definition.aliases : [],
       defaultSize,
       minSize,
@@ -964,6 +968,7 @@
   registerWidgetDefinition({
     type: "stat",
     displayName: "Stat",
+    category: "data",
     aliases: ["tracker", "widget"],
     defaultSize: { cols: 1, rows: 1 },
     minSize: { cols: 1, rows: 1 },
@@ -1045,6 +1050,7 @@
   registerWidgetDefinition({
     type: "timeframe",
     displayName: "Timeframe",
+    category: "controls",
     aliases: ["controls", "time-range"],
     defaultSize: { cols: 4, rows: 1 },
     minSize: { cols: 2, rows: 1 },
@@ -1125,6 +1131,7 @@
   registerWidgetDefinition({
     type: "search",
     displayName: "Search Bar",
+    category: "controls",
     defaultSize: { cols: 2, rows: 1 },
     minSize: { cols: 2, rows: 1 },
     widgetType: "search",
@@ -1160,6 +1167,7 @@
   registerWidgetDefinition({
     type: "filter",
     displayName: "Filter Control",
+    category: "controls",
     aliases: ["filter-control"],
     defaultSize: { cols: 3, rows: 2 },
     minSize: { cols: 2, rows: 1 },
@@ -1212,6 +1220,7 @@
   registerWidgetDefinition({
     type: "text",
     displayName: "Text / Notes",
+    category: "content",
     aliases: ["note", "notes"],
     defaultSize: { cols: 2, rows: 2 },
     minSize: { cols: 2, rows: 1 },
@@ -1253,6 +1262,7 @@
   registerWidgetDefinition({
     type: "region-summary",
     displayName: "Region Summary",
+    category: "content",
     aliases: ["region", "spatial-summary", "summary"],
     defaultSize: { cols: 2, rows: 2 },
     minSize: { cols: 2, rows: 1 },
@@ -1303,6 +1313,7 @@
   registerWidgetDefinition({
     type: "activity-feed",
     displayName: "Activity Feed",
+    category: "system",
     aliases: ["activity", "feed", "events"],
     defaultSize: { cols: 3, rows: 2 },
     minSize: { cols: 2, rows: 1 },
@@ -1356,6 +1367,7 @@
   registerWidgetDefinition({
     type: "ai-assistant",
     displayName: "AI Assistant",
+    category: "system",
     aliases: ["assistant", "ai"],
     defaultSize: { cols: 3, rows: 2 },
     minSize: { cols: 2, rows: 1 },
@@ -1409,6 +1421,8 @@
   registerWidgetDefinition({
     type: "context-inspector",
     displayName: "Context Inspector",
+    category: "system",
+    engineerOnly: true,
     aliases: ["context-debug", "inspector"],
     defaultSize: { cols: 3, rows: 3 },
     minSize: { cols: 2, rows: 1 },
@@ -1509,6 +1523,7 @@
   registerWidgetDefinition({
     type: "image",
     displayName: "Image",
+    category: "media",
     aliases: ["picture", "media-image"],
     defaultSize: { cols: 3, rows: 2 },
     minSize: { cols: 2, rows: 1 },
@@ -1553,6 +1568,7 @@
   registerWidgetDefinition({
     type: "video",
     displayName: "Video",
+    category: "media",
     aliases: ["media-video"],
     defaultSize: { cols: 3, rows: 2 },
     minSize: { cols: 2, rows: 1 },
@@ -1606,6 +1622,7 @@
   registerWidgetDefinition({
     type: "document",
     displayName: "PDF / Document",
+    category: "media",
     aliases: ["pdf", "doc", "document-preview"],
     defaultSize: { cols: 3, rows: 3 },
     minSize: { cols: 2, rows: 1 },
@@ -1664,6 +1681,7 @@
   registerWidgetDefinition({
     type: "table",
     displayName: "Table",
+    category: "data",
     defaultSize: { cols: 3, rows: 2 },
     minSize: { cols: 2, rows: 1 },
     widgetType: "table",
@@ -1750,6 +1768,8 @@
   registerWidgetDefinition({
     type: "chart",
     displayName: "Chart",
+    category: "visualization",
+    subcategory: "Charts",
     aliases: ["graph"],
     defaultSize: { cols: 3, rows: 2 },
     minSize: { cols: 2, rows: 1 },
@@ -1846,6 +1866,7 @@
   registerWidgetDefinition({
     type: "stat-filter",
     displayName: "Stat + Filter",
+    category: "controls",
     defaultSize: { cols: 1, rows: 1 },
     minSize: { cols: 1, rows: 1 },
     widgetType: "stat-filter",
@@ -1869,6 +1890,7 @@
   registerWidgetDefinition({
     type: "calendar",
     displayName: "Calendar",
+    category: "controls",
     defaultSize: { cols: 2, rows: 2 },
     minSize: { cols: 2, rows: 1 },
     widgetType: "calendar",
@@ -1937,6 +1959,10 @@
       settingsSchema: definition.settingsSchema,
       densityBehavior: definition.densityBehavior,
       queryRequirements: definition.queryRequirements,
+      category: definition.category,
+      subcategory: definition.subcategory,
+      engineerOnly: definition.engineerOnly,
+      icon: definition.icon,
       aliases: definition.aliases,
     })),
     parseConfig,

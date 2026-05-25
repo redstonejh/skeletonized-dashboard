@@ -3820,6 +3820,79 @@ body {
   transform: translateY(0) scale(1);
 }
 
+.object-add-browser {
+  display: grid;
+  gap: 5px;
+  min-width: 156px;
+}
+
+.object-add-category,
+.object-add-subcategory {
+  position: relative;
+}
+
+.object-add-category-trigger,
+.object-add-subcategory-trigger {
+  position: relative;
+}
+
+.object-add-category-trigger::after,
+.object-add-subcategory-trigger::after {
+  content: "";
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  width: 6px;
+  height: 6px;
+  border-top: 1.5px solid currentColor;
+  border-right: 1.5px solid currentColor;
+  opacity: .62;
+  transform: translateY(-50%) rotate(45deg);
+}
+
+.object-add-submenu {
+  position: absolute;
+  top: 0;
+  left: calc(100% + 8px);
+  z-index: calc(var(--z-navbar-dropdown) + 1);
+  display: grid;
+  gap: 5px;
+  min-width: 172px;
+  padding: 7px;
+  border: 1px solid color-mix(in srgb, var(--line) 62%, rgba(255, 255, 255, .72));
+  border-radius: var(--radius-sm);
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--glass-surface-strong) 94%, var(--surface-raised)), color-mix(in srgb, var(--glass-surface) 86%, var(--surface-soft)));
+  box-shadow:
+    var(--shadow-glass),
+    inset 0 1px 0 color-mix(in srgb, var(--glass-highlight) 76%, transparent);
+  backdrop-filter: blur(22px) saturate(1.12);
+  -webkit-backdrop-filter: blur(22px) saturate(1.12);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transform: translateX(-4px) scale(.985);
+  transform-origin: top left;
+  transition: opacity var(--motion-fast), transform var(--motion-fast), visibility 0s linear var(--motion-fast);
+}
+
+.object-add-category:hover > .object-add-submenu,
+.object-add-category:focus-within > .object-add-submenu,
+.object-add-category.is-open > .object-add-submenu,
+.object-add-subcategory:hover > .object-add-submenu,
+.object-add-subcategory:focus-within > .object-add-submenu,
+.object-add-subcategory.is-open > .object-add-submenu {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transform: translateX(0) scale(1);
+  transition-delay: 0s;
+}
+
+.object-add-chart-submenu {
+  min-width: 184px;
+}
+
 .app-nav.workspace-chrome .layout-slot-menu {
   min-width: 140px;
   padding: 6px;
@@ -3828,6 +3901,8 @@ body {
 .app-nav.workspace-chrome .panel-add-action,
 .app-nav.workspace-chrome .widget-add-action,
 .app-nav.workspace-chrome .divider-add-action,
+.app-nav.workspace-chrome .object-add-category-trigger,
+.app-nav.workspace-chrome .object-add-subcategory-trigger,
 .app-nav.workspace-chrome .layout-slot-menu button,
 .app-nav.workspace-chrome .dash-switch-opt {
   box-sizing: border-box;
@@ -3877,6 +3952,12 @@ body {
 .app-nav.workspace-chrome .panel-add-action:hover,
 .app-nav.workspace-chrome .widget-add-action:hover,
 .app-nav.workspace-chrome .divider-add-action:hover,
+.app-nav.workspace-chrome .object-add-category-trigger:hover,
+.app-nav.workspace-chrome .object-add-category-trigger:focus-visible,
+.app-nav.workspace-chrome .object-add-subcategory-trigger:hover,
+.app-nav.workspace-chrome .object-add-subcategory-trigger:focus-visible,
+.object-add-category.is-open > .object-add-category-trigger,
+.object-add-subcategory.is-open > .object-add-subcategory-trigger,
 .app-nav.workspace-chrome .dash-switch-opt:hover,
 .app-nav.workspace-chrome .dash-switch-opt:focus-visible {
   border-color: color-mix(in srgb, #98a4b2 72%, rgba(255, 255, 255, .38));
@@ -3925,11 +4006,15 @@ body {
 .app-nav.workspace-chrome .panel-add-action:hover,
 .app-nav.workspace-chrome .widget-add-action:hover,
 .app-nav.workspace-chrome .divider-add-action:hover,
+.app-nav.workspace-chrome .object-add-category-trigger:hover,
+.app-nav.workspace-chrome .object-add-subcategory-trigger:hover,
 .app-nav.workspace-chrome .dash-switch-opt:hover,
 .app-nav.workspace-chrome .background-tone-option:hover,
 .panel-add-action:hover,
 .widget-add-action:hover,
 .divider-add-action:hover,
+.object-add-category-trigger:hover,
+.object-add-subcategory-trigger:hover,
 .layout-slot-menu button:hover,
 .dash-switch-opt:hover,
 .background-tone-option:hover,
@@ -3949,11 +4034,15 @@ body {
 .app-nav.workspace-chrome .panel-add-action:focus-visible,
 .app-nav.workspace-chrome .widget-add-action:focus-visible,
 .app-nav.workspace-chrome .divider-add-action:focus-visible,
+.app-nav.workspace-chrome .object-add-category-trigger:focus-visible,
+.app-nav.workspace-chrome .object-add-subcategory-trigger:focus-visible,
 .app-nav.workspace-chrome .dash-switch-opt:focus-visible,
 .app-nav.workspace-chrome .background-tone-option:focus-visible,
 .panel-add-action:focus-visible,
 .widget-add-action:focus-visible,
 .divider-add-action:focus-visible,
+.object-add-category-trigger:focus-visible,
+.object-add-subcategory-trigger:focus-visible,
 .layout-slot-menu button:focus-visible,
 .dash-switch-opt:focus-visible,
 .background-tone-option:focus-visible,
@@ -3974,11 +4063,15 @@ body {
 .app-nav.workspace-chrome .panel-add-action:active,
 .app-nav.workspace-chrome .widget-add-action:active,
 .app-nav.workspace-chrome .divider-add-action:active,
+.app-nav.workspace-chrome .object-add-category-trigger:active,
+.app-nav.workspace-chrome .object-add-subcategory-trigger:active,
 .app-nav.workspace-chrome .dash-switch-opt:active,
 .app-nav.workspace-chrome .background-tone-option:active,
 .panel-add-action:active,
 .widget-add-action:active,
 .divider-add-action:active,
+.object-add-category-trigger:active,
+.object-add-subcategory-trigger:active,
 .layout-slot-menu button:active,
 .layout-slot-menu button.is-active,
 .dash-switch-opt:active,
