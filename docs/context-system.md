@@ -128,15 +128,16 @@ In a future pan-and-zoom workspace, context should remain understandable at ever
 - Panning or zooming must never change committed context state.
 - Collapsing a spatial region or panel must not break context propagation.
 
-## Stat Filtering Flow
+## Data Filter Flow
 
-1. Stat widget is configured with `emittedContext`.
-2. User clicks the stat.
-3. Context engine creates or toggles the active context value.
-4. Linked or inherited targets receive the context.
-5. Table and graph widgets pass matching filter bindings into the query/data-binding layer.
-6. Active filter indicators appear.
-7. User clears the filter from the source, target, or panel header.
+1. Data Filter widget is configured with a mode such as Logic Operator or Type Conversion.
+2. Engineer Mode dataflow links route explicit output signals/data into the filter input.
+3. The filter produces a normalized output signal/data shape for downstream widgets.
+4. Table, chart, stat, and future transform widgets can consume that output through explicit dataflow.
+5. Active filter indicators appear only where the resulting data/query state requires them.
+6. User clears or rewires the explicit dataflow/filter chain without mutating ambient divider context.
+
+Type Conversion is one Data Filter mode. It stores source type, target type, conversion behavior, fallback behavior, and fallback/default value in widget config so conversions such as string-to-boolean or float-to-integer remain one configurable dataflow object rather than separate widgets.
 
 ## Timeframe Context Flow
 
@@ -176,11 +177,11 @@ Search context must not behave like a generic global web search. It should resol
 - Query results should be recomputed from committed context state, not from hover state or transient DOM state.
 - Context-driven query updates must be deterministic and reversible.
 - Clearing context must invalidate or refresh affected query results.
-- Timeframe and search context must use the same propagation and query-binding path as stat filters.
+- Timeframe and search context must use the same propagation and query-binding path as explicit filter outputs.
 
 ## Chevron/Header Drop Behavior
 
-Users can drag a Stat or Stat + Filter widget onto a panel chevron/header context target.
+Users can drag a Stat or Data Filter widget onto a panel chevron/header context target.
 
 Expected behavior:
 

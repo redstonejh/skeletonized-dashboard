@@ -272,6 +272,9 @@ document.addEventListener("DOMContentLoaded", () => {
         layer.replaceChildren();
         layer.hidden = true;
       }
+      document.querySelectorAll(".workspace-engineer-underlay-plane").forEach((underlay) => {
+        underlay.hidden = true;
+      });
     }
     refreshWorkspaceMiniMaps();
     refreshEngineerOverlays();
@@ -756,6 +759,18 @@ document.addEventListener("DOMContentLoaded", () => {
     "textarea",
     "[contenteditable='true']",
   ].join(", ");
+  const isWorkspaceSurfaceDragStart = (event, item) => {
+    if (!event || !item || event.button !== 0) return false;
+    if (isDashboardInteractionActive() || isInteractionSource(item)) return false;
+    if (event.target?.closest?.(".workspace-wire-nodule, .workspace-wire-delete-button")) return false;
+    const controlTarget = event.target?.closest?.(surfaceResponseControlSelector);
+    if (controlTarget && controlTarget !== item) return false;
+    if (item.classList?.contains("db-panel")) {
+      if (event.target?.closest?.(".panel-internal-widget-grid > .widget-card")) return false;
+      if (typeof resizeEdgeFromPointer === "function" && resizeEdgeFromPointer(event, item)) return false;
+    }
+    return true;
+  };
   const surfaceResponseState = {
     target: null,
     rect: null,
@@ -1165,9 +1180,39 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     return clampResizeAutoZoomScale(target);
   };
+  const resizeAutoZoomElementLayoutRect = (element) => {
+    if (!element) return null;
+    let left = 0;
+    let top = 0;
+    let node = element;
+    while (node && node instanceof HTMLElement) {
+      left += node.offsetLeft || 0;
+      top += node.offsetTop || 0;
+      node = node.offsetParent;
+    }
+    return {
+      left: left - (window.scrollX || 0),
+      top: top - (window.scrollY || document.documentElement.scrollTop || 0),
+      width: element.offsetWidth || 0,
+      height: element.offsetHeight || 0,
+    };
+  };
+  const resizeAutoZoomSceneHosts = () => [...document.querySelectorAll(".dashboard-layout-grid")];
   const resizeAutoZoomSurfaces = () => [...document.querySelectorAll(
-    ".dashboard-live-resize, .dashboard-resize-preview, .dashboard-expanded-footprint-ghost"
+    ".dashboard-live-resize, .dashboard-expanded-footprint-ghost"
   )].filter((surface) => !surface.classList.contains("dashboard-group-resize-footprint"));
+  const applyResizeAutoZoomSceneStyles = (scale, viewport) => {
+    resizeAutoZoomSceneHosts().forEach((host) => {
+      const rect = resizeAutoZoomElementLayoutRect(host);
+      if (!rect) return;
+      const originX = Number.isFinite(rect.left) ? `${Math.round(viewport.centerX - rect.left)}px` : "50%";
+      const originY = Number.isFinite(rect.top) ? `${Math.round(viewport.centerY - rect.top)}px` : "50%";
+      host.style.setProperty("--resize-camera-origin-x", originX);
+      host.style.setProperty("--resize-camera-origin-y", originY);
+      host.style.setProperty("transform-origin", `${originX} ${originY}`, "important");
+      host.style.setProperty("transform", `scale(${scale.toFixed(4)})`, "important");
+    });
+  };
   const applyResizeAutoZoomSurfaceStyles = () => {
     const scale = Math.max(RESIZE_AUTO_ZOOM_MIN_SCALE, Math.min(1, resizeAutoZoomCamera.scale));
     const viewport = resizeAutoZoomViewport();
@@ -1179,6 +1224,7 @@ document.addEventListener("DOMContentLoaded", () => {
     } else {
       delete document.body.dataset.resizeCameraScale;
     }
+    applyResizeAutoZoomSceneStyles(scale, viewport);
     resizeAutoZoomSurfaces().forEach((surface) => {
       const left = Number.parseFloat(surface.style.left);
       const top = Number.parseFloat(surface.style.top);
@@ -1187,12 +1233,30 @@ document.addEventListener("DOMContentLoaded", () => {
       surface.style.setProperty("transform-origin", `${originX} ${originY}`, "important");
       surface.style.setProperty("transform", `scale(${scale.toFixed(4)})`, "important");
     });
+    if (cameraVisible && isEngineerMode()) refreshEngineerOverlays();
   };
   const clearResizeAutoZoomSurfaceStyles = () => {
+    resizeAutoZoomSceneHosts().forEach((host) => {
+      host.style.removeProperty("--resize-camera-origin-x");
+      host.style.removeProperty("--resize-camera-origin-y");
+      host.style.removeProperty("transform");
+      host.style.removeProperty("transform-origin");
+    });
     resizeAutoZoomSurfaces().forEach((surface) => {
       surface.style.removeProperty("transform");
       surface.style.removeProperty("transform-origin");
     });
+  };
+  const resizeAutoZoomPointerToScenePoint = (clientX, clientY) => {
+    const scale = Math.max(RESIZE_AUTO_ZOOM_MIN_SCALE, Math.min(1, resizeAutoZoomCamera.scale || 1));
+    if (!resizeAutoZoomCamera.active || Math.abs(scale - 1) < 0.002) {
+      return { x: clientX, y: clientY };
+    }
+    const viewport = resizeAutoZoomViewport();
+    return {
+      x: viewport.centerX + ((clientX - viewport.centerX) / scale),
+      y: viewport.centerY + ((clientY - viewport.centerY) / scale),
+    };
   };
   const tickResizeAutoZoomCamera = () => {
     resizeAutoZoomCamera.frame = 0;
@@ -1886,12 +1950,7 @@ document.addEventListener("DOMContentLoaded", () => {
     enabled: link.enabled !== false,
     metadata: link.metadata && typeof link.metadata === "object" ? { ...link.metadata } : {},
   });
-  const loadWorkspaceContextLinks = (layoutKey = "builder", profile = getActivePanelProfile(layoutKey)) => {
-    const graph = readJsonStore(workspaceLogicGraphKey(layoutKey, profile), { contextLinks: [] });
-    return Array.isArray(graph.contextLinks)
-      ? graph.contextLinks.map(normalizeContextLink).filter((link) => link.id && link.sourceObjectId && link.targetObjectId)
-      : [];
-  };
+  const loadWorkspaceContextLinks = () => [];
   const contextElementById = (id, layoutKey = "builder") => {
     const key = String(id || "");
     if (!key) return null;
@@ -2692,6 +2751,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const isCommittedContextRegionItem = (item) => (
     item &&
     !item.hidden &&
+    !(workspaceObjectType(item) === WORKSPACE_OBJECT_TYPES.widget && widgetLayerForElement(item) === "backend" && !isEngineerMode()) &&
     !item.classList.contains("db-panel-placeholder") &&
     !item.classList.contains("widget-placeholder") &&
     !item.classList.contains("dashboard-live-resize") &&
@@ -2833,21 +2893,10 @@ document.addEventListener("DOMContentLoaded", () => {
   };
 
   const WORKSPACE_RELATIONSHIP_TYPES = Object.freeze({
-    context: "context",
-    filter: "filter",
     query: "query",
-    containment: "containment",
-    operator: "operator",
-    semantic: "semantic",
   });
   const WORKSPACE_SIGNAL_TYPES = Object.freeze({
-    context: "context",
-    filter: "filter",
-    query: "query",
-    logical: "logical",
-    style: "style",
     data: "data",
-    semantic: "semantic",
   });
   const WORKSPACE_PORT_ROLES = Object.freeze({
     input: "input",
@@ -2878,17 +2927,26 @@ document.addEventListener("DOMContentLoaded", () => {
   const styleRuleGraphId = (id) => `style-rule:${String(id || "")}`;
   const styleRuleIdFromGraphId = (id) => String(id || "").startsWith("style-rule:") ? String(id).slice("style-rule:".length) : "";
   const normalizeRelationshipType = (type) => (
-    Object.values(WORKSPACE_RELATIONSHIP_TYPES).includes(type) ? type : WORKSPACE_RELATIONSHIP_TYPES.semantic
+    Object.values(WORKSPACE_RELATIONSHIP_TYPES).includes(type) ? type : WORKSPACE_RELATIONSHIP_TYPES.query
   );
-  const relationshipTypeForSignal = (signalType) => {
-    const normalized = normalizeSignalType(signalType);
-    if (normalized === WORKSPACE_SIGNAL_TYPES.logical || normalized === WORKSPACE_SIGNAL_TYPES.style) return WORKSPACE_RELATIONSHIP_TYPES.operator;
-    if (normalized === WORKSPACE_SIGNAL_TYPES.data) return WORKSPACE_RELATIONSHIP_TYPES.query;
-    return normalizeRelationshipType(normalized);
-  };
+  const relationshipTypeForSignal = () => WORKSPACE_RELATIONSHIP_TYPES.query;
   const normalizeSignalType = (type) => (
-    Object.values(WORKSPACE_SIGNAL_TYPES).includes(type) ? type : WORKSPACE_SIGNAL_TYPES.semantic
+    Object.values(WORKSPACE_SIGNAL_TYPES).includes(type) ? type : WORKSPACE_SIGNAL_TYPES.data
   );
+  const coerceBooleanSignalValue = (value) => {
+    if (typeof value === "boolean") return value;
+    if (typeof value === "number") return Number.isFinite(value) && value !== 0;
+    if (typeof value === "string") {
+      const normalized = value.trim().toLowerCase();
+      if (["true", "1", "active", "on", "yes"].includes(normalized)) return true;
+      if (["false", "0", "inactive", "off", "no", ""].includes(normalized)) return false;
+    }
+    return Boolean(value);
+  };
+  const optionalBooleanSignalValue = (...values) => {
+    const value = values.find((entry) => entry !== undefined && entry !== null);
+    return value === undefined ? undefined : coerceBooleanSignalValue(value);
+  };
   const normalizePortRole = (role) => (
     Object.values(WORKSPACE_PORT_ROLES).includes(role) ? role : WORKSPACE_PORT_ROLES.output
   );
@@ -2904,26 +2962,41 @@ document.addEventListener("DOMContentLoaded", () => {
       role,
       side: WORKSPACE_PORT_SIDES[role],
       name,
-      signalTypes: Array.isArray(ref.signalTypes)
-        ? ref.signalTypes.map(normalizeSignalType)
-        : [WORKSPACE_SIGNAL_TYPES.context, WORKSPACE_SIGNAL_TYPES.filter, WORKSPACE_SIGNAL_TYPES.query, WORKSPACE_SIGNAL_TYPES.logical, WORKSPACE_SIGNAL_TYPES.semantic],
+      signalTypes: [WORKSPACE_SIGNAL_TYPES.data],
     };
   };
   const normalizeWorkspaceLink = (link = {}) => {
     const legacySource = String(link.sourceId || link.sourceObjectId || "");
     const legacyTarget = String(link.targetId || link.targetObjectId || "");
-    const source = normalizePortRef(link.source || {}, WORKSPACE_PORT_ROLES.output, legacySource);
-    const target = normalizePortRef(link.target || {}, WORKSPACE_PORT_ROLES.input, legacyTarget);
+    let source = normalizePortRef(link.source || {}, WORKSPACE_PORT_ROLES.output, legacySource);
+    let target = normalizePortRef(link.target || {}, WORKSPACE_PORT_ROLES.input, legacyTarget);
+    if (source.role === WORKSPACE_PORT_ROLES.input && target.role === WORKSPACE_PORT_ROLES.output) {
+      [source, target] = [target, source];
+    }
+    if (source.role !== WORKSPACE_PORT_ROLES.output || target.role !== WORKSPACE_PORT_ROLES.input) return null;
+    if (!source.objectId || !target.objectId || source.objectId === target.objectId) return null;
+    const signalState = optionalBooleanSignalValue(
+      link.signalState,
+      link.signalValue,
+      link.metadata?.signalState,
+      link.metadata?.signalValue,
+      link.metadata?.active,
+      link.metadata?.value
+    );
     return {
       id: String(link.id || graphLinkId()),
       source,
       target,
-      signalType: normalizeSignalType(link.signalType || link.type),
+      signalType: WORKSPACE_SIGNAL_TYPES.data,
+      ...(signalState !== undefined ? { signalState } : {}),
       direction: String(link.direction || "source-to-target"),
-      label: String(link.label || ""),
+      label: String(link.label || "Dataflow"),
       enabled: link.enabled !== false,
       visualState: String(link.visualState || "ambient"),
-      metadata: link.metadata && typeof link.metadata === "object" ? { ...link.metadata } : {},
+      metadata: {
+        linkKind: "dataflow",
+        ...(link.metadata?.createdBy ? { createdBy: String(link.metadata.createdBy) } : {}),
+      },
     };
   };
   const normalizeLogicalOperatorType = (type) => {
@@ -3000,21 +3073,24 @@ document.addEventListener("DOMContentLoaded", () => {
   });
   const normalizeWorkspaceLogicGraph = (graph = {}) => ({
     version: 1,
-    links: Array.isArray(graph.links)
-      ? graph.links.map(normalizeWorkspaceLink).filter((link) => link.source.objectId && link.target.objectId)
-      : [],
-    relationships: Array.isArray(graph.relationships)
-      ? graph.relationships.map(normalizeWorkspaceRelationship).filter((relationship) => relationship.sourceId && relationship.targetId)
-      : [],
-    operators: Array.isArray(graph.operators)
-      ? graph.operators.map(normalizeLogicalOperatorNode).filter((node) => node.id)
-      : [],
+    links: (() => {
+      const seen = new Set();
+      return (Array.isArray(graph.links) ? graph.links : [])
+        .map(normalizeWorkspaceLink)
+        .filter((link) => {
+          if (!link?.source?.objectId || !link?.target?.objectId) return false;
+          const key = `${link.source.objectId}:${link.source.portId}->${link.target.objectId}:${link.target.portId}`;
+          if (seen.has(key)) return false;
+          seen.add(key);
+          return true;
+        });
+    })(),
+    relationships: [],
+    operators: [],
     styleRules: Array.isArray(graph.styleRules)
       ? graph.styleRules.map(normalizeStyleRule).filter((rule) => rule.id && rule.targetObjectId && rule.effects.length)
       : [],
-    contextLinks: Array.isArray(graph.contextLinks)
-      ? graph.contextLinks.map(normalizeContextLink).filter((link) => link.id && link.sourceObjectId && link.targetObjectId)
-      : [],
+    contextLinks: [],
   });
   const persistedWorkspaceEndpointIds = (snapshot = {}) => new Set([
     ...(snapshot.widgets || []).map((widget) => widget.id),
@@ -3022,30 +3098,22 @@ document.addEventListener("DOMContentLoaded", () => {
     ...(snapshot.dividers || []).map((divider) => divider.id),
     ...(snapshot.anchors || []).map((anchor) => anchor.id),
     ...(snapshot.contexts || []).map((context) => context.id),
-    ...(snapshot.operators || []).map((operator) => operator.id),
   ].map(String).filter(Boolean));
   const pruneWorkspaceLogicGraphForEndpointIds = (graph = {}, endpointIds = new Set()) => {
     const normalized = normalizeWorkspaceLogicGraph(graph);
     const hasEndpoint = (id) => endpointIds.has(String(id || ""));
     return normalizeWorkspaceLogicGraph({
       ...normalized,
-      relationships: normalized.relationships.filter((relationship) => hasEndpoint(relationship.sourceId) && hasEndpoint(relationship.targetId)),
-      operators: normalized.operators.map((operator) => ({
-        ...operator,
-        inputs: operator.inputs.filter(hasEndpoint),
-        outputs: operator.outputs.filter(hasEndpoint),
-      })),
       links: normalized.links.filter((link) => hasEndpoint(link.source.objectId) && hasEndpoint(link.target.objectId)),
       styleRules: normalized.styleRules.filter((rule) => hasEndpoint(rule.targetObjectId)),
-      contextLinks: normalized.contextLinks.filter((link) => hasEndpoint(link.sourceObjectId) && hasEndpoint(link.targetObjectId)),
+      relationships: [],
+      operators: [],
+      contextLinks: [],
     });
   };
   const workspaceLogicGraphFromPersistedSnapshot = (snapshot = {}) => normalizeWorkspaceLogicGraph({
     links: snapshot.links || [],
-    relationships: snapshot.relationships || [],
-    operators: snapshot.operators || [],
     styleRules: snapshot.styleRules || [],
-    contextLinks: snapshot.contextLinks || [],
   });
   const loadWorkspaceLogicGraph = (layoutKey = "builder", profile = getActivePanelProfile(layoutKey)) =>
     normalizeWorkspaceLogicGraph(readJsonStore(workspaceLogicGraphKey(layoutKey, profile), { version: 1, links: [], relationships: [], operators: [], styleRules: [], contextLinks: [] }));
@@ -3062,10 +3130,7 @@ document.addEventListener("DOMContentLoaded", () => {
         payload: {
           profile,
           linkCount: normalized.links.length,
-          relationshipCount: normalized.relationships.length,
-          operatorCount: normalized.operators.length,
           styleRuleCount: normalized.styleRules.length,
-          contextLinkCount: normalized.contextLinks.length,
         },
       });
     }
@@ -3130,124 +3195,11 @@ document.addEventListener("DOMContentLoaded", () => {
         },
       });
     });
-    (graph.relationships || []).forEach((relationship) => addUniqueRelationship(relationships, relationship));
-
-    graph.contextLinks.forEach((link) => {
-      const hasCanonicalLink = (graph.links || []).some((entry) => entry.metadata?.contextLinkId === link.id);
-      if (hasCanonicalLink) return;
-      addUniqueRelationship(relationships, {
-        id: `context-link-${link.id}`,
-        sourceId: link.sourceObjectId,
-        targetId: link.targetObjectId,
-        type: WORKSPACE_RELATIONSHIP_TYPES.context,
-        visualState: "active",
-        label: link.mode,
-        metadata: { mode: link.mode, contextLinkId: link.id },
-      });
-    });
 
     return relationships;
   };
   const deriveWorkspaceRelationships = (layoutKey = "builder", graph = loadWorkspaceLogicGraph(layoutKey)) => {
-    const relationships = explicitWorkspaceRelationships(graph);
-
-    const items = allCommittedWorkspaceGridItems(layoutKey);
-    items.forEach((item) => {
-      const itemId = graphIdForWorkspaceElement(item);
-      if (!itemId || workspaceObjectType(item) === WORKSPACE_OBJECT_TYPES.divider) return;
-      const regionId = regionIdForWorkspaceItem(item);
-      const dividerKey = regionId === workspaceRootRegionId(layoutKey) ? "" : dividerKeyForRegion(regionId, layoutKey);
-      if (dividerKey) {
-        addUniqueRelationship(relationships, {
-          id: `derived-context-${dividerKey}-${itemId}`,
-          sourceId: dividerKey,
-          targetId: itemId,
-          type: WORKSPACE_RELATIONSHIP_TYPES.context,
-          visualState: "ambient",
-          label: "Context inheritance",
-        });
-      }
-    });
-
-    document.querySelectorAll(`.panel-layout[data-layout-key="${CSS.escape(layoutKey)}"] > .db-panel:not([hidden])`).forEach((panel) => {
-      const panelId = panel.dataset.panelKey || "";
-      if (!panelId) return;
-      panelChildWidgets(panel).forEach((child) => {
-        const childId = child.dataset.widgetKey || "";
-        addUniqueRelationship(relationships, {
-          id: `derived-containment-${panelId}-${childId}`,
-          sourceId: panelId,
-          targetId: childId,
-          type: WORKSPACE_RELATIONSHIP_TYPES.containment,
-          visualState: "ambient",
-          label: "Panel containment",
-        });
-      });
-    });
-
-    const widgets = [...document.querySelectorAll(`.widget-layout[data-widget-layout-key="${CSS.escape(layoutKey)}"] > .widget-card:not([hidden]), .panel-layout[data-layout-key="${CSS.escape(layoutKey)}"] .panel-internal-widget-grid > .widget-card:not([hidden])`)];
-    const filterTypes = ["filter", "filter-control", "stat-filter", "search", "timeframe"];
-    const filters = widgets.filter((widget) => filterTypes.some((type) => String(widget.dataset.widgetDefinition || widget.dataset.widgetType || "").includes(type)));
-    filters.forEach((filterWidget) => {
-      const sourceId = filterWidget.dataset.widgetKey || "";
-      const regionId = regionIdForWorkspaceItem(filterWidget);
-      widgets.forEach((targetWidget) => {
-        const targetId = targetWidget.dataset.widgetKey || "";
-        if (!sourceId || !targetId || targetWidget === filterWidget || regionIdForWorkspaceItem(targetWidget) !== regionId) return;
-        if (filterTypes.some((type) => String(targetWidget.dataset.widgetDefinition || targetWidget.dataset.widgetType || "").includes(type))) return;
-        addUniqueRelationship(relationships, {
-          id: `derived-filter-${sourceId}-${targetId}`,
-          sourceId,
-          targetId,
-          type: WORKSPACE_RELATIONSHIP_TYPES.filter,
-          visualState: filterWidget.dataset.widgetRuntimeStatus === "ready" ? "active" : "ambient",
-          label: "Filter propagation",
-        });
-      });
-    });
-
-    graph.operators.forEach((operator) => {
-      operator.inputs.forEach((sourceId) => addUniqueRelationship(relationships, {
-        id: `derived-operator-input-${sourceId}-${operator.id}`,
-        sourceId,
-        targetId: operator.id,
-        type: WORKSPACE_RELATIONSHIP_TYPES.operator,
-        visualState: "ambient",
-        label: `${operator.operatorType} input`,
-      }));
-      operator.outputs.forEach((targetId) => addUniqueRelationship(relationships, {
-        id: `derived-operator-output-${operator.id}-${targetId}`,
-        sourceId: operator.id,
-        targetId,
-        type: WORKSPACE_RELATIONSHIP_TYPES.operator,
-        visualState: "active",
-        label: `${operator.operatorType} output`,
-      }));
-    });
-
-    graph.styleRules.forEach((rule) => {
-      const ruleNodeId = styleRuleGraphId(rule.id);
-      const activeIds = activeStyleRuleIdsForTarget(rule.targetObjectId, layoutKey);
-      const state = activeIds.has(rule.id) ? "active" : "ambient";
-      addUniqueRelationship(relationships, {
-        id: `derived-style-data-${rule.targetObjectId}-${rule.id}`,
-        sourceId: rule.targetObjectId,
-        targetId: ruleNodeId,
-        type: WORKSPACE_RELATIONSHIP_TYPES.query,
-        visualState: state,
-        label: "Style rule input",
-      });
-      addUniqueRelationship(relationships, {
-        id: `derived-style-effect-${rule.id}-${rule.targetObjectId}`,
-        sourceId: ruleNodeId,
-        targetId: rule.targetObjectId,
-        type: WORKSPACE_RELATIONSHIP_TYPES.semantic,
-        visualState: state,
-        label: "Conditional style effect",
-      });
-    });
-
-    return relationships;
+    return explicitWorkspaceRelationships(graph);
   };
   const styleRuleEndpointPoint = (id, layoutKey, styleRules = []) => {
     const ruleId = styleRuleIdFromGraphId(id);
@@ -3360,9 +3312,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const relationshipStorageRef = (relationship = {}) => {
     const linkId = relationship.metadata?.linkId || "";
     if (linkId) return { type: "link", id: linkId };
-    const contextLinkId = relationship.metadata?.contextLinkId || "";
-    if (contextLinkId) return { type: "context-link", id: contextLinkId };
-    return { type: "relationship", id: relationship.id || "" };
+    return { type: "link", id: "" };
   };
   const clearSelectedWorkspaceRelationship = () => {
     if (!selectedWorkspaceRelationship) return;
@@ -3375,9 +3325,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const profile = getActivePanelProfile(layoutKey);
     const removed = storageType === "link"
       ? window.dashboardRelationshipRuntime?.removeLink?.(layoutKey, storageId, profile)
-      : storageType === "context-link"
-        ? window.dashboardRelationshipRuntime?.removeContextLink?.(layoutKey, storageId, profile)
-        : window.dashboardRelationshipRuntime?.removeRelationship?.(layoutKey, storageId, profile);
+      : false;
     if (!removed) return false;
     selectedWorkspaceRelationship = null;
     refreshEngineerOverlays();
@@ -3470,22 +3418,15 @@ document.addEventListener("DOMContentLoaded", () => {
     const removedLinks = graph.links.filter((link) => isInput
       ? link.target.objectId === normalizedPort.objectId && link.target.portId === normalizedPort.portId
       : link.source.objectId === normalizedPort.objectId && link.source.portId === normalizedPort.portId);
-    const removedRelationships = graph.relationships.filter((relationship) => isInput
-      ? relationship.targetId === normalizedPort.objectId && relationship.metadata?.targetPortId === normalizedPort.portId
-      : relationship.sourceId === normalizedPort.objectId && relationship.metadata?.sourcePortId === normalizedPort.portId);
-    if (!removedLinks.length && !removedRelationships.length) return 0;
-    const removedContextLinkIds = new Set(removedLinks.map((link) => link.metadata?.contextLinkId).filter(Boolean));
+    if (!removedLinks.length) return 0;
     const links = graph.links.filter((link) => !removedLinks.some((removed) => removed.id === link.id));
-    const relationships = graph.relationships.filter((relationship) => !removedRelationships.some((removed) => removed.id === relationship.id));
-    const contextLinks = graph.contextLinks.filter((link) => !removedContextLinkIds.has(link.id));
-    saveWorkspaceLogicGraph(layoutKey, { ...graph, links, relationships, contextLinks }, profile, options);
+    saveWorkspaceLogicGraph(layoutKey, { ...graph, links }, profile, options);
+    refreshSignalConsumerWidgetsForLinks(layoutKey, removedLinks);
     if (selectedWorkspaceRelationship) {
-      const selectedStillExists = links.some((link) => selectedWorkspaceRelationship.storageType === "link" && link.id === selectedWorkspaceRelationship.storageId) ||
-        contextLinks.some((link) => selectedWorkspaceRelationship.storageType === "context-link" && link.id === selectedWorkspaceRelationship.storageId) ||
-        relationships.some((relationship) => selectedWorkspaceRelationship.storageType === "relationship" && relationship.id === selectedWorkspaceRelationship.storageId);
+      const selectedStillExists = links.some((link) => selectedWorkspaceRelationship.storageType === "link" && link.id === selectedWorkspaceRelationship.storageId);
       if (!selectedStillExists) selectedWorkspaceRelationship = null;
     }
-    return removedLinks.length + removedRelationships.length;
+    return removedLinks.length;
   };
   const renderWorkspaceRelationshipDeleteControl = (layer, relationship, path, layoutKey = "builder") => {
     if (!selectedWorkspaceRelationshipMatches(relationship, layoutKey)) return;
@@ -3654,19 +3595,6 @@ document.addEventListener("DOMContentLoaded", () => {
     });
     layer.appendChild(svg);
 
-    graph.operators.forEach((operator) => {
-      const top = operator.y - window.scrollY;
-      const left = operator.x - window.scrollX;
-      if (top < -80 || top > window.innerHeight + 80 || left < -120 || left > window.innerWidth + 120) return;
-      const node = document.createElement("div");
-      node.className = "workspace-operator-node";
-      node.dataset.operatorType = operator.operatorType;
-      node.dataset.operatorId = operator.id;
-      node.style.left = `${Math.round(left)}px`;
-      node.style.top = `${Math.round(top)}px`;
-      node.textContent = operator.operatorType;
-      layer.appendChild(node);
-    });
   };
   let activeWorkspaceWireDrag = null;
   const cleanupWorkspaceWireDrag = () => {
@@ -3925,59 +3853,7 @@ document.addEventListener("DOMContentLoaded", () => {
         layer.appendChild(handle);
       });
     });
-    loadWorkspaceLogicGraph(layoutKey).operators.forEach((operator) => {
-      [WORKSPACE_PORT_ROLES.output, WORKSPACE_PORT_ROLES.input].forEach((role) => {
-        const point = relationshipEndpointPoint(operator.id, layoutKey, [operator], [], role);
-        if (!point) return;
-        if (point.y < -40 || point.y > window.innerHeight + 40 || point.x < -40 || point.x > window.innerWidth + 40) return;
-        const handle = document.createElement("button");
-        handle.type = "button";
-        handle.className = `workspace-wire-nodule workspace-wire-nodule-operator workspace-wire-nodule-${role}`;
-        handle.dataset.wireObjectId = operator.id;
-        handle.dataset.wireObjectType = "operator";
-        handle.dataset.wirePortId = graphPortId(operator.id, role);
-        handle.dataset.wirePortRole = role;
-        handle.dataset.wirePortSide = WORKSPACE_PORT_SIDES[role];
-        handle.dataset.wirePortName = "main";
-        handle.dataset.wireX = String(point.x);
-        handle.dataset.wireY = String(point.y);
-        handle.setAttribute("aria-label", `${role === WORKSPACE_PORT_ROLES.output ? "Output" : "Input"} port for ${operator.operatorType} operator`);
-        handle.title = role === WORKSPACE_PORT_ROLES.output ? "Output port" : "Input port";
-        handle.style.left = `${Math.round(point.x)}px`;
-        handle.style.top = `${Math.round(point.y)}px`;
-        handle.addEventListener("pointerdown", (event) => startWorkspaceWireDrag(event, handle, layoutKey));
-        handle.addEventListener("click", isolateWireHandleClick);
-        handle.addEventListener("dblclick", (event) => deleteWireConnectionsFromHandle(event, handle));
-        bindWireHoverTrace(handle);
-        layer.appendChild(handle);
-      });
-    });
   };
-  const renderWorkspaceLogicToolbox = (layer, layoutKey = "builder") => {
-    const toolbox = document.createElement("section");
-    toolbox.className = "workspace-logic-toolbox";
-    toolbox.setAttribute("aria-label", "Logical operator tools");
-    toolbox.innerHTML = `
-      <strong>Logic</strong>
-      ${Object.values(LOGICAL_OPERATOR_TYPES).map((type) => `<button type="button" data-operator-type="${type}">${type}</button>`).join("")}
-    `;
-    toolbox.querySelectorAll("button[data-operator-type]").forEach((button) => {
-      button.addEventListener("click", (event) => {
-        event.preventDefault();
-        event.stopPropagation();
-        const type = button.dataset.operatorType || "AND";
-        const graph = loadWorkspaceLogicGraph(layoutKey);
-        const operator = normalizeLogicalOperatorNode({
-          operatorType: type,
-          x: window.scrollX + Math.round(window.innerWidth * .5),
-          y: window.scrollY + Math.round(window.innerHeight * .36),
-        });
-        saveWorkspaceLogicGraph(layoutKey, { ...graph, operators: [...graph.operators, operator] }, getActivePanelProfile(layoutKey));
-      });
-    });
-    layer.appendChild(toolbox);
-  };
-
   const clampMinimapValue = (value, min, max) => Math.max(min, Math.min(max, value));
   const createMinimapSvgElement = (name, attrs = {}) => {
     const node = document.createElementNS("http://www.w3.org/2000/svg", name);
@@ -4170,6 +4046,21 @@ document.addEventListener("DOMContentLoaded", () => {
     return layer;
   };
 
+  const ensureEngineerUnderlayLayer = (layoutKey = "builder") => {
+    const dashboard = document.querySelector(`.dashboard-layout-grid[data-dashboard-layout-key="${CSS.escape(layoutKey)}"]`) ||
+      document.querySelector(".dashboard-layout-grid");
+    if (!dashboard) return null;
+    let layer = dashboard.querySelector(":scope > .workspace-engineer-underlay-plane");
+    if (!layer) {
+      layer = document.createElement("div");
+      layer.className = "workspace-engineer-underlay-plane";
+      layer.setAttribute("aria-hidden", "true");
+      dashboard.prepend(layer);
+    }
+    layer.dataset.engineerUnderlayLayoutKey = layoutKey;
+    return layer;
+  };
+
   const renderEngineerRegionBands = (layer, layoutKey = "builder") => {
     const geometry = minimapLayoutGeometry(layoutKey);
     if (!geometry) return;
@@ -4244,7 +4135,7 @@ document.addEventListener("DOMContentLoaded", () => {
       <strong>Engineer Mode</strong>
       <span>events ${workspaceEvents.length} | query cache ${queryStats.cache} | inflight ${queryStats.inflight}</span>
       <span>anchors ${anchors} | panel children ${panelChildren}</span>
-      <span>relationships ${relationships.length} | operators ${graph.operators.length}</span>
+      <span>dataflow links ${relationships.length}</span>
       <span>LOD ${Object.entries(lodCounts).map(([key, value]) => `${key}:${value}`).join(" ") || "none"}</span>
       <ol>${events.map((event) => `<li>${escapeHtml(event.type)}</li>`).join("")}</ol>
     `;
@@ -4256,8 +4147,10 @@ document.addEventListener("DOMContentLoaded", () => {
     const layer = ensureEngineerOverlayLayer();
     layer.replaceChildren();
     layer.hidden = !isEngineerMode();
-    if (!isEngineerMode()) return;
     const layoutKey = document.querySelector(".panel-layout")?.dataset.layoutKey || "builder";
+    const underlay = ensureEngineerUnderlayLayer(layoutKey);
+    if (underlay) underlay.hidden = !isEngineerMode();
+    if (!isEngineerMode()) return;
     renderWorkspaceRelationships(layer, layoutKey);
     renderWorkspaceWireNodules(layer, layoutKey);
   };
@@ -4924,7 +4817,7 @@ document.addEventListener("DOMContentLoaded", () => {
       <div class="db-panel-body">
         <div class="empty-state panel-empty-state" data-panel-placeholder="empty">
           <strong>Empty panel</strong>
-          <small>Widgets will appear here when this panel is configured.</small>
+          <small>Drop widgets here</small>
           <span class="panel-empty-action" aria-hidden="true">Add widgets</span>
         </div>
       </div>`;
@@ -5237,6 +5130,7 @@ document.addEventListener("DOMContentLoaded", () => {
     contextRole: "content",
     htmlTag: "div",
     className: "stat-card widget-card widget-card-custom unsupported-widget-card",
+    layer: "presentation",
     defaultSize: { cols: 1, rows: 1 },
     minSize: { cols: 1, rows: 1 },
     capabilities: { supportsResize: true },
@@ -5257,6 +5151,22 @@ document.addEventListener("DOMContentLoaded", () => {
     "stat"
   );
   const widgetDefinitionForElement = (widget) => widgetDefinitionFor(widgetRuntimeTypeFromElement(widget));
+  const workspaceWidgetLayers = new Set(["presentation", "backend", "both"]);
+  const normalizeWorkspaceWidgetLayer = (value, fallback = "presentation") => (
+    workspaceWidgetLayers.has(value) ? value : fallback
+  );
+  const widgetLayerForElement = (widget, definition = widgetDefinitionForElement(widget)) => (
+    normalizeWorkspaceWidgetLayer(widget?.dataset?.widgetLayer || definition?.layer, "presentation")
+  );
+  const applyWidgetLayerMetadata = (widget, definition = widgetDefinitionForElement(widget), explicitLayer = "") => {
+    if (!widget) return "presentation";
+    const layer = normalizeWorkspaceWidgetLayer(explicitLayer || widget.dataset.widgetLayer || definition?.layer, "presentation");
+    widget.dataset.widgetLayer = layer;
+    widget.dataset.workspaceLayer = layer === "backend" ? "engineer-underlay" : "presentation";
+    widget.classList.toggle("workspace-backend-widget", layer === "backend");
+    widget.classList.toggle("workspace-presentation-widget", layer !== "backend");
+    return layer;
+  };
   const parseWidgetConfig = (value) => parseJsonRecord(value, {}) || {};
   const uniqueValues = (values = []) => [...new Set(values.filter((value) => value != null && String(value).trim()))];
   const setWidgetConfig = (widget, config) => {
@@ -5348,6 +5258,68 @@ document.addEventListener("DOMContentLoaded", () => {
     };
     return { persistedConfig, renderConfig, asset, changed };
   };
+  const isSignalConsumerWidget = (widget, definition = widgetDefinitionForElement(widget)) =>
+    Boolean(definition?.capabilities?.consumesSignals) || widgetRuntimeTypeFromElement(widget) === "shift";
+  const dataflowSignalStateForWidget = (widget, layoutKey = activeLayoutKeyForItem(widget), profile = getActivePanelProfile(layoutKey)) => {
+    const targetId = widget?.dataset?.widgetKey || "";
+    if (!targetId) return { connected: false, active: false, incomingCount: 0, sourceIds: [] };
+    const graph = loadWorkspaceLogicGraph(layoutKey, profile);
+    const incoming = (graph.links || []).filter((link) =>
+      link.enabled !== false &&
+      link.signalType === WORKSPACE_SIGNAL_TYPES.data &&
+      link.target?.objectId === targetId
+    );
+    const explicit = incoming.find((link) => link.signalState !== undefined);
+    return {
+      connected: incoming.length > 0,
+      active: explicit ? coerceBooleanSignalValue(explicit.signalState) : false,
+      incomingCount: incoming.length,
+      sourceIds: incoming.map((link) => link.source?.objectId).filter(Boolean),
+      activeLinkId: explicit?.id || "",
+    };
+  };
+  const applySignalConsumerState = (widget, signalState = {}, config = {}) => {
+    if (!widget) return;
+    const active = Boolean(signalState.active);
+    const color = String(active ? (config.stateBColor || "#f59e0b") : (config.stateAColor || "#64748b"));
+    const opacity = Math.max(.35, Math.min(1, Number(active ? config.stateBOpacity : config.stateAOpacity) || (active ? .92 : .72)));
+    const rgb = hexToRgb(color);
+    widget.classList.toggle("shift-widget-signal-active", active);
+    widget.classList.toggle("shift-widget-signal-inactive", !active);
+    widget.classList.toggle("shift-widget-signal-connected", Boolean(signalState.connected));
+    widget.dataset.shiftSignalActive = active ? "true" : "false";
+    widget.dataset.shiftSignalConnected = signalState.connected ? "true" : "false";
+    widget.dataset.shiftSignalIncomingCount = String(signalState.incomingCount || 0);
+    widget.style.setProperty("--shift-state-opacity", String(opacity));
+    if (rgb) {
+      widget.style.setProperty("--shift-state-color", `#${color.replace("#", "")}`);
+      widget.style.setProperty("--shift-state-rgb", `${rgb.r}, ${rgb.g}, ${rgb.b}`);
+      widget.style.setProperty("--panel-accent", `#${color.replace("#", "")}`);
+      widget.style.setProperty("--panel-accent-rgb", `${rgb.r}, ${rgb.g}, ${rgb.b}`);
+      widget.style.setProperty("--panel-accent-text", readableTextFor(rgb));
+    }
+  };
+  const clearSignalConsumerState = (widget) => {
+    if (!widget?.classList?.contains("shift-widget-card")) return;
+    widget.classList.remove("shift-widget-signal-active", "shift-widget-signal-inactive", "shift-widget-signal-connected");
+    ["--shift-state-color", "--shift-state-rgb", "--shift-state-opacity"].forEach((property) => widget.style.removeProperty(property));
+    delete widget.dataset.shiftSignalActive;
+    delete widget.dataset.shiftSignalConnected;
+    delete widget.dataset.shiftSignalIncomingCount;
+  };
+  const refreshSignalConsumerWidgetsForLinks = (layoutKey = "builder", links = []) => {
+    const targetIds = new Set((links || []).map((link) => link?.target?.objectId).filter(Boolean));
+    const selector = targetIds.size
+      ? [...targetIds].map((id) => `.widget-card[data-widget-key="${CSS.escape(id)}"]`).join(",")
+      : ".widget-card[data-widget-definition='shift']";
+    document.querySelectorAll(selector).forEach((widget) => {
+      if (!isSignalConsumerWidget(widget)) return;
+      renderWidgetRuntimeContent(widget, {
+        resolvedContext: resolveWorkspaceContextForItem(widget),
+        status: widget.dataset.widgetRuntimeStatus || "ready",
+      });
+    });
+  };
   const WIDGET_LOGIC_SETTING_KEYS = new Set([
     "assetId",
     "chartType",
@@ -5357,13 +5329,17 @@ document.addEventListener("DOMContentLoaded", () => {
     "dateField",
     "eventTypes",
     "filter",
+    "filterMode",
     "filters",
+    "fallbackBehavior",
+    "fallbackValue",
     "labelField",
     "latitudeField",
     "limit",
     "locationField",
     "longitudeField",
     "metric",
+    "operator",
     "page",
     "promptTemplate",
     "scope",
@@ -5373,13 +5349,24 @@ document.addEventListener("DOMContentLoaded", () => {
     "sortBy",
     "sortDirection",
     "source",
+    "sourceType",
     "src",
+    "stateAColor",
+    "stateALabel",
+    "stateAOpacity",
+    "stateBColor",
+    "stateBLabel",
+    "stateBOpacity",
     "target",
+    "targetType",
     "timeRange",
     "valueField",
     "weekStartDay",
     "xField",
     "yField",
+    "allowMultipleInputs",
+    "conversionBehavior",
+    "invertOutput",
   ]);
   const WIDGET_APPEARANCE_SETTING_KEYS = new Set([
     "caption",
@@ -5432,6 +5419,7 @@ document.addEventListener("DOMContentLoaded", () => {
     y: Number(widget?.dataset?.gridRow) || 1,
     cols: Number(widget?.dataset?.currentSpan || widget?.dataset?.defaultSpan) || definition.defaultSize?.cols || 1,
     rows: Number(widget?.dataset?.gridRowSpan) || definition.defaultSize?.rows || 1,
+    layer: widgetLayerForElement(widget, definition),
     config: widgetConfigFromElement(widget, definition),
     contextOverrideId: widget?.dataset?.contextOverrideId || null,
   }) || {
@@ -5476,9 +5464,24 @@ document.addEventListener("DOMContentLoaded", () => {
     const mediaState = mediaWidgetAssetState(widget, instance.config, definition);
     const persistedConfig = isMediaWidgetDefinition(definition) ? mediaState.persistedConfig : instance.config;
     setWidgetConfig(widget, persistedConfig);
-    const renderInstance = isMediaWidgetDefinition(definition)
+    let renderInstance = isMediaWidgetDefinition(definition)
       ? { ...instance, config: mediaState.renderConfig }
       : instance;
+    if (isSignalConsumerWidget(widget, definition)) {
+      const signalState = dataflowSignalStateForWidget(widget);
+      renderInstance = {
+        ...renderInstance,
+        config: {
+          ...renderInstance.config,
+          _signalActive: signalState.active,
+          _signalConnected: signalState.connected,
+          _signalIncomingCount: signalState.incomingCount,
+        },
+      };
+      applySignalConsumerState(widget, signalState, renderInstance.config);
+    } else {
+      clearSignalConsumerState(widget);
+    }
     const html = widgetRuntime?.renderWidget?.(definition, {
       instance: renderInstance,
       definition,
@@ -5895,6 +5898,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (saved?.runtimeType) widget.dataset.widgetRuntimeType = saved.runtimeType;
     if (saved?.type && !widget.dataset.widgetRuntimeType) widget.dataset.widgetRuntimeType = saved.type;
     const definition = widgetDefinitionForElement(widget);
+    applyWidgetLayerMetadata(widget, definition, saved?.widgetLayer || saved?.layer || "");
     widget.dataset.widgetRuntimeType = definition.type;
     widget.dataset.widgetDefinition = definition.type;
     widget.dataset.widgetDisplayName = definition.displayName || definition.type;
@@ -6316,6 +6320,7 @@ document.addEventListener("DOMContentLoaded", () => {
     widget.dataset.widgetRuntimeType = runtimeDefinition.type;
     widget.dataset.widgetDefinition = runtimeDefinition.type;
     widget.dataset.widgetType = definition.type || runtimeDefinition.widgetType || runtimeDefinition.type;
+    applyWidgetLayerMetadata(widget, runtimeDefinition, definition.widgetLayer || definition.layer || "");
     widget.dataset.defaultSpan = String(definition.span || runtimeDefinition.defaultSize?.cols || 1);
     widget.dataset.gridRowSpan = String(definition.rowSpan || definition.rows || runtimeDefinition.defaultSize?.rows || 1);
     if (definition.gridCol) widget.dataset.gridCol = String(definition.gridCol);
@@ -6980,10 +6985,14 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     }
 
-    const startAnchorMove = (event) => {
+    const startAnchorMove = (event, options = {}) => {
       if (event.button !== 0) return;
-      event.preventDefault();
-      event.stopPropagation();
+      const surfaceShortcut = Boolean(options.surfaceShortcut);
+      if (surfaceShortcut && !isWorkspaceSurfaceDragStart(event, anchor)) return;
+      if (!surfaceShortcut) {
+        event.preventDefault();
+        event.stopPropagation();
+      }
       if (activeMovePointerId != null || dragState) finishAnchorMove({ type: "pointercancel" });
       startX = event.clientX;
       startY = event.clientY;
@@ -7116,6 +7125,8 @@ document.addEventListener("DOMContentLoaded", () => {
       }
       const distance = Math.hypot(event.clientX - startX, event.clientY - startY);
       if (!dragging && distance < 4) return;
+      event.preventDefault();
+      event.stopPropagation();
       if (!dragState) beginAnchorRailDrag(event);
       updateAnchorRailDrag(event);
     }
@@ -7217,6 +7228,7 @@ document.addEventListener("DOMContentLoaded", () => {
       requestWorkspaceObjectDelete({ targets: [anchor] });
     });
     moveHandle?.addEventListener("pointerdown", startAnchorMove);
+    anchor.addEventListener("pointerdown", (event) => startAnchorMove(event, { surfaceShortcut: true }));
 
     anchor.addEventListener("click", (event) => {
       if (event.target?.closest?.(".anchor-tools, .panel-color-menu, .anchor-link-menu")) return;
@@ -8579,8 +8591,21 @@ document.addEventListener("DOMContentLoaded", () => {
   );
 
   const localBelowDisplacementSlot = (item, base, occupied, reserved = [], metrics = null) => {
-    const candidate = boundsAtGridSlot(item, base.col, base.row + base.rowSpan, metrics);
-    return canPlaceLocalDisplacementBounds(candidate, occupied, reserved) ? candidate : null;
+    const conflicts = indexedCollisionEntries(base, occupied)
+      .map((entry) => entry?.bounds)
+      .filter((bounds) => bounds && gridBoundsOverlap(base, bounds));
+    const candidateRows = [
+      base.row + 1,
+      ...conflicts.map((bounds) => bounds.bottom + 1),
+    ]
+      .filter((row) => Number.isFinite(row) && row > base.row)
+      .sort((a, b) => a - b)
+      .filter((row, index, rows) => index === 0 || row !== rows[index - 1]);
+    for (const row of candidateRows) {
+      const candidate = boundsAtGridSlot(item, base.col, row, metrics);
+      if (canPlaceLocalDisplacementBounds(candidate, occupied, reserved)) return candidate;
+    }
+    return null;
   };
 
   const localLeftDisplacementSlot = (item, base, occupied, localVacancy = null, reserved = [], metrics = null) => {
@@ -9181,7 +9206,7 @@ document.addEventListener("DOMContentLoaded", () => {
     workspaceObjectClipboard = {
       layoutKey,
       copiedAt: Date.now(),
-      contextLinks: graph.contextLinks.filter((link) => selectedIds.has(link.sourceObjectId) && selectedIds.has(link.targetObjectId)),
+      links: graph.links.filter((link) => selectedIds.has(link.source.objectId) && selectedIds.has(link.target.objectId)),
       items: visualGridOrder(roots).map((item) => ({
         kind: workspaceDeleteKind(item),
         layoutKey: groupItemLayoutKey(item),
@@ -9275,25 +9300,26 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   };
 
-  const pasteClipboardContextLinks = (layoutKey, profile, clipboard, idMap) => {
-    const links = Array.isArray(clipboard?.contextLinks) ? clipboard.contextLinks : [];
+  const pasteClipboardDataflowLinks = (layoutKey, profile, clipboard, idMap) => {
+    const links = Array.isArray(clipboard?.links) ? clipboard.links : [];
     if (!links.length) return;
     const remapped = links.flatMap((link) => {
-      const sourceObjectId = idMap.get(link.sourceObjectId);
-      const targetObjectId = idMap.get(link.targetObjectId);
+      const sourceObjectId = idMap.get(link.source?.objectId);
+      const targetObjectId = idMap.get(link.target?.objectId);
       if (!sourceObjectId || !targetObjectId) return [];
-      return normalizeContextLink({
+      const normalized = normalizeWorkspaceLink({
         ...link,
-        id: contextLinkId(),
-        sourceObjectId,
-        targetObjectId,
+        id: graphLinkId(),
+        source: { ...(link.source || {}), objectId: sourceObjectId },
+        target: { ...(link.target || {}), objectId: targetObjectId },
       });
+      return normalized ? [normalized] : [];
     });
     if (!remapped.length) return;
     const graph = loadWorkspaceLogicGraph(layoutKey, profile);
     saveWorkspaceLogicGraph(layoutKey, {
       ...graph,
-      contextLinks: [...graph.contextLinks, ...remapped],
+      links: [...graph.links, ...remapped],
     }, profile, { history: false, event: false });
   };
 
@@ -9364,7 +9390,7 @@ document.addEventListener("DOMContentLoaded", () => {
         setGroupItemSelected(entry.element, true);
       });
       syncWorkspaceRegions(targetLayout);
-      pasteClipboardContextLinks(layoutKey, profile, clipboard, idMap);
+      pasteClipboardDataflowLinks(layoutKey, profile, clipboard, idMap);
     };
 
     const animationLayout = panelLayout || widgetLayout;
@@ -9851,11 +9877,20 @@ document.addEventListener("DOMContentLoaded", () => {
     onCancel,
     onStart,
     onEnd,
+    deferStartEventHandling = false,
   }) => {
-    event.preventDefault();
-    event.stopPropagation();
-    document.body.classList.add("panel-interaction-active");
-    window.getSelection?.()?.removeAllRanges();
+    let interactionStarted = false;
+    const markInteractionStarted = (sourceEvent = null) => {
+      if (interactionStarted) return;
+      interactionStarted = true;
+      sourceEvent?.preventDefault?.();
+      sourceEvent?.stopPropagation?.();
+      document.body.classList.add("panel-interaction-active");
+      window.getSelection?.()?.removeAllRanges();
+    };
+    if (!deferStartEventHandling) {
+      markInteractionStarted(event);
+    }
     const startX = event.clientX;
     const startY = event.clientY;
     const pointerId = event.pointerId;
@@ -9922,8 +9957,9 @@ document.addEventListener("DOMContentLoaded", () => {
       },
     });
 
-    const startDrag = () => {
+    const startDrag = (sourceEvent = null) => {
       if (dragging) return;
+      markInteractionStarted(sourceEvent);
       dragging = true;
       item.dataset.visualLod = "active";
       item.dataset.lod = "active";
@@ -10314,8 +10350,9 @@ document.addEventListener("DOMContentLoaded", () => {
       const dx = moveEvent.clientX - startX;
       const dy = moveEvent.clientY - startY;
       if (!dragging && Math.hypot(dx, dy) < threshold) return;
-      startDrag();
+      startDrag(moveEvent);
       moveEvent.preventDefault();
+      moveEvent.stopPropagation();
       lastMoveEvent = moveEvent;
       autoScroll.update(moveEvent);
       const panelEntryMotion = panelEntryMotionFor(moveEvent);
@@ -11163,6 +11200,7 @@ document.addEventListener("DOMContentLoaded", () => {
           pinned: widget.classList.contains("db-panel-pinned"),
           type: widget.dataset.widgetType || null,
           runtimeType: widget.dataset.widgetRuntimeType || widget.dataset.widgetDefinition || null,
+          widgetLayer: widgetLayerForElement(widget),
           minW: Number(widget.dataset.minW) || null,
           minH: Number(widget.dataset.minH) || null,
           locked: widget.dataset.locked === "true",
@@ -11187,6 +11225,7 @@ document.addEventListener("DOMContentLoaded", () => {
         rowSpan: Number(widget.dataset.gridRowSpan) || 1,
         type: widget.dataset.widgetType || "tracker",
         runtimeType: widget.dataset.widgetRuntimeType || widget.dataset.widgetDefinition || null,
+        widgetLayer: widgetLayerForElement(widget),
         href: widget.getAttribute("href") || "",
         pinned: widget.classList.contains("db-panel-pinned"),
         minW: Number(widget.dataset.minW) || null,
@@ -11641,14 +11680,20 @@ document.addEventListener("DOMContentLoaded", () => {
         const title = widget.querySelector(".widget-title")?.textContent?.trim() || widget.dataset.panelTitle || "Widget";
         requestWidgetDelete({ widget, widgets: targets, layout, layoutKey, title });
       });
-      moveHandle?.addEventListener("pointerdown", (event) => {
+      const beginWidgetMove = (event, options = {}) => {
         if (event.button !== 0 || widget.classList.contains("db-panel-pinned")) return;
+        const surfaceShortcut = Boolean(options.surfaceShortcut);
+        if (surfaceShortcut && !isWorkspaceSurfaceDragStart(event, widget)) return;
         const restoreToolsAfterDrag = widget.classList.contains("widget-tools-open") ||
           settings?.getAttribute("aria-expanded") === "true" ||
           drawer?.matches(":hover") ||
           isDashboardToolInteractionTarget(event);
         window.clearTimeout(closeTimer);
-        openTools();
+        if (surfaceShortcut) {
+          setWidgetLinkNavigationSuspended(widget, true);
+        } else {
+          openTools();
+        }
         runOrderedDrag({
           layout,
           item: widget,
@@ -11656,6 +11701,7 @@ document.addEventListener("DOMContentLoaded", () => {
           draggingClass: "widget-dragging",
           placeholderClass: "widget-placeholder",
           threshold: 5,
+          deferStartEventHandling: surfaceShortcut,
           onCommit: () => {
             cleanupWidgetRowBreaks(layout);
             saveSharedGridLayouts(layout);
@@ -11689,7 +11735,9 @@ document.addEventListener("DOMContentLoaded", () => {
             window.clearTimeout(closeTimer);
           },
         });
-      });
+      };
+      moveHandle?.addEventListener("pointerdown", beginWidgetMove);
+      widget.addEventListener("pointerdown", (event) => beginWidgetMove(event, { surfaceShortcut: true }));
       const beginWidgetResize = (event, resizeEdge = "right") => {
         if (widget.classList.contains("db-panel-pinned") || widget.dataset.locked === "true" || widget.dataset.resizable === "false") return;
         const restoreToolsAfterResize = widget.classList.contains("widget-tools-open") ||
@@ -11793,8 +11841,9 @@ document.addEventListener("DOMContentLoaded", () => {
         const onMove = (moveEvent) => {
           moveEvent.preventDefault();
           const scrollDeltaY = (window.scrollY || document.documentElement.scrollTop || 0) - startScrollY;
-          const deltaX = moveEvent.clientX - startX;
-          const effectiveClientY = moveEvent.clientY + scrollDeltaY;
+          const scenePoint = resizeAutoZoomPointerToScenePoint(moveEvent.clientX, moveEvent.clientY);
+          const deltaX = scenePoint.x - startX;
+          const effectiveClientY = scenePoint.y + scrollDeltaY;
           const deltaY = effectiveClientY - startY;
           const liveWidth = Math.max(minLiveWidth, Math.min(maxLiveWidth, startRect.width + (resizeEdge === "left" ? -deltaX : deltaX)));
           const liveHeight = Math.max(minLiveHeight, startRect.height + deltaY);
@@ -12345,16 +12394,18 @@ document.addEventListener("DOMContentLoaded", () => {
         togglePanel();
       });
 
-      moveHandle?.addEventListener("pointerdown", (event) => {
+      const beginPanelMove = (event, options = {}) => {
         if (event.button !== 0) return;
         if (panel.classList.contains("db-panel-pinned")) return;
+        const surfaceShortcut = Boolean(options.surfaceShortcut);
+        if (surfaceShortcut && !isWorkspaceSurfaceDragStart(event, panel)) return;
         const restoreToolsAfterDrag = panel.classList.contains("db-panel-tools-open") ||
           settingsButton?.getAttribute("aria-expanded") === "true" ||
           panelToolDrawer?.matches(":hover") ||
           isDashboardToolInteractionTarget(event);
         window.clearTimeout(toolsCloseTimer);
         toolPointerCapture = true;
-        openPanelTools();
+        if (!surfaceShortcut) openPanelTools();
         runOrderedDrag({
           layout,
           item: panel,
@@ -12362,6 +12413,7 @@ document.addEventListener("DOMContentLoaded", () => {
           draggingClass: "db-panel-dragging",
           placeholderClass: "db-panel-placeholder",
           threshold: 6,
+          deferStartEventHandling: surfaceShortcut,
           onCommit: () => {
             cleanupPanelRowBreaks(layout);
             saveSharedGridLayouts(layout);
@@ -12393,7 +12445,9 @@ document.addEventListener("DOMContentLoaded", () => {
             });
           },
         });
-      });
+      };
+      moveHandle?.addEventListener("pointerdown", beginPanelMove);
+      panel.addEventListener("pointerdown", (event) => beginPanelMove(event, { surfaceShortcut: true }));
 
       const beginPanelResize = (event, resizeEdge = "right") => {
         if (panel.classList.contains("db-panel-pinned") || panel.dataset.locked === "true" || panel.dataset.resizable === "false") return;
@@ -12505,8 +12559,9 @@ document.addEventListener("DOMContentLoaded", () => {
         const onResizeMove = (moveEvent) => {
           moveEvent.preventDefault();
           const scrollDeltaY = (window.scrollY || document.documentElement.scrollTop || 0) - startScrollY;
-          const effectiveClientY = moveEvent.clientY + scrollDeltaY;
-          const deltaX = moveEvent.clientX - startX;
+          const scenePoint = resizeAutoZoomPointerToScenePoint(moveEvent.clientX, moveEvent.clientY);
+          const effectiveClientY = scenePoint.y + scrollDeltaY;
+          const deltaX = scenePoint.x - startX;
           const liveWidth = Math.max(minLiveWidth, Math.min(maxLiveWidth, startRect.width + (resizeEdge === "left" ? -deltaX : deltaX)));
           const liveLeft = resizeEdge === "left" ? startRect.right - liveWidth : startRect.left;
           const liveHeight = collapsedPanelResize ? startRect.height : Math.max(minLiveHeight, startRect.height + (effectiveClientY - startY));
@@ -12659,6 +12714,7 @@ document.addEventListener("DOMContentLoaded", () => {
     return {
       id: instance.id || widget.dataset.widgetKey || "",
       type: instance.type || definition.type || "unsupported",
+      layer: widgetLayerForElement(widget, definition),
       layoutDomain: parentPanelId ? "panel-internal-grid" : "global-workspace-grid",
       parentPanelId,
       x: instance.x,
@@ -12804,7 +12860,6 @@ document.addEventListener("DOMContentLoaded", () => {
       dividers,
       anchors,
       contexts,
-      operators: rawLogicGraph.operators,
     });
     const logicGraph = pruneWorkspaceLogicGraphForEndpointIds(rawLogicGraph, logicEndpointIds);
     const objects = [
@@ -12812,7 +12867,6 @@ document.addEventListener("DOMContentLoaded", () => {
       ...panels.map((panel) => ({ id: panel.id, type: WORKSPACE_OBJECT_TYPES.panel, layoutDomain: panel.layoutDomain, parentId: null })),
       ...dividers.map((divider) => ({ id: divider.id, type: WORKSPACE_OBJECT_TYPES.divider, layoutDomain: divider.layoutDomain, parentId: null })),
       ...anchors.map((anchor) => ({ id: anchor.id, type: WORKSPACE_OBJECT_TYPES.anchor, layoutDomain: anchor.layoutDomain, parentId: null })),
-      ...logicGraph.operators.map((operator) => ({ id: operator.id, type: "logical-operator", layoutDomain: "logic-overlay", parentId: null })),
     ];
     return {
       version: PERSISTED_WORKSPACE_VERSION,
@@ -12949,6 +13003,9 @@ document.addEventListener("DOMContentLoaded", () => {
       if (source.objectId === target.objectId) {
         addDiagnostic("error", "link-self-cycle", "Link source and target must be different objects.", link.id, "link");
       }
+      if (source.role !== WORKSPACE_PORT_ROLES.output || target.role !== WORKSPACE_PORT_ROLES.input) {
+        addDiagnostic("error", "invalid-dataflow-direction", "Dataflow links must be stored as output source to input target.", link.id, "link");
+      }
       if (link.signalType && !Object.values(WORKSPACE_SIGNAL_TYPES).includes(link.signalType)) {
         addDiagnostic("error", "invalid-link-signal-type", `Unsupported link signal type "${link.signalType}".`, link.id, "link");
       }
@@ -13064,25 +13121,18 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!id) return [];
     const graph = loadWorkspaceLogicGraph(layoutKey, profile);
     const element = workspaceElementByGraphId(id, layoutKey);
-    const operator = graph.operators.find((node) => node.id === id);
-    const objectType = operator ? "logic-node" : element ? workspaceObjectType(element) : "external";
-    if (!element && !operator) return [];
+    const objectType = element ? workspaceObjectType(element) : "external";
+    if (!element) return [];
     return [WORKSPACE_PORT_ROLES.input, WORKSPACE_PORT_ROLES.output].map((role) => normalizePortRef({
       objectId: id,
       role,
       name: "main",
-      signalTypes: role === WORKSPACE_PORT_ROLES.input
-        ? [WORKSPACE_SIGNAL_TYPES.context, WORKSPACE_SIGNAL_TYPES.filter, WORKSPACE_SIGNAL_TYPES.query, WORKSPACE_SIGNAL_TYPES.logical, WORKSPACE_SIGNAL_TYPES.semantic]
-        : [WORKSPACE_SIGNAL_TYPES.context, WORKSPACE_SIGNAL_TYPES.filter, WORKSPACE_SIGNAL_TYPES.query, WORKSPACE_SIGNAL_TYPES.logical, WORKSPACE_SIGNAL_TYPES.style, WORKSPACE_SIGNAL_TYPES.data, WORKSPACE_SIGNAL_TYPES.semantic],
+      signalTypes: [WORKSPACE_SIGNAL_TYPES.data],
       metadata: { objectType },
     }, role, id));
   };
   const allGraphPorts = (layoutKey = "builder", profile = getActivePanelProfile(layoutKey)) => {
-    const graph = loadWorkspaceLogicGraph(layoutKey, profile);
-    return [
-      ...connectableWorkspaceElements(layoutKey).flatMap((item) => graphPortsForObject(layoutKey, graphIdForWorkspaceElement(item), profile)),
-      ...graph.operators.flatMap((operator) => graphPortsForObject(layoutKey, operator.id, profile)),
-    ];
+    return connectableWorkspaceElements(layoutKey).flatMap((item) => graphPortsForObject(layoutKey, graphIdForWorkspaceElement(item), profile));
   };
   const normalizedOperatorCondition = (operator) => ({
     id: operator.id,
@@ -13106,12 +13156,17 @@ document.addEventListener("DOMContentLoaded", () => {
     links: (layoutKey = "builder", profile = getActivePanelProfile(layoutKey)) =>
       loadWorkspaceLogicGraph(layoutKey, profile).links,
     dataflowLinks: (layoutKey = "builder", profile = getActivePanelProfile(layoutKey)) =>
-      loadWorkspaceLogicGraph(layoutKey, profile).links.filter((link) => link.metadata?.linkKind === "dataflow" || link.signalType !== WORKSPACE_SIGNAL_TYPES.context),
+      loadWorkspaceLogicGraph(layoutKey, profile).links,
     addLink: (layoutKey = "builder", link = {}, profile = getActivePanelProfile(layoutKey), options = {}) => {
       if (!logicEditAllowed(options)) return null;
       const graph = loadWorkspaceLogicGraph(layoutKey, profile);
       const next = normalizeWorkspaceLink(link);
-      if (!next.source.objectId || !next.target.objectId || next.source.objectId === next.target.objectId) return null;
+      if (!next?.source?.objectId || !next?.target?.objectId || next.source.objectId === next.target.objectId) return null;
+      const validation = canCreateDataflowLink(next.source, next.target, {
+        ...graph,
+        links: graph.links.filter((entry) => entry.id !== next.id),
+      });
+      if (!validation.ok) return null;
       const links = graph.links.filter((entry) => entry.id !== next.id)
         .filter((entry) => !(
           entry.source.objectId === next.source.objectId &&
@@ -13122,116 +13177,52 @@ document.addEventListener("DOMContentLoaded", () => {
         ));
       links.push(next);
       saveWorkspaceLogicGraph(layoutKey, { ...graph, links }, profile, options);
+      refreshSignalConsumerWidgetsForLinks(layoutKey, [next]);
       return next;
     },
     removeLink: (layoutKey = "builder", linkId = "", profile = getActivePanelProfile(layoutKey), options = {}) => {
       if (!logicEditAllowed(options)) return false;
       const graph = loadWorkspaceLogicGraph(layoutKey, profile);
-      const removedLink = graph.links.find((link) => link.id === linkId);
+      const removed = graph.links.filter((link) => link.id === linkId);
       const links = graph.links.filter((link) => link.id !== linkId);
       if (links.length === graph.links.length) return false;
-      const contextLinkId = removedLink?.metadata?.contextLinkId || "";
-      const contextLinks = contextLinkId
-        ? graph.contextLinks.filter((link) => link.id !== contextLinkId)
-        : graph.contextLinks;
-      saveWorkspaceLogicGraph(layoutKey, { ...graph, links, contextLinks }, profile, options);
+      saveWorkspaceLogicGraph(layoutKey, { ...graph, links }, profile, options);
+      refreshSignalConsumerWidgetsForLinks(layoutKey, removed);
       return true;
+    },
+    setSignalState: (layoutKey = "builder", linkId = "", value = false, profile = getActivePanelProfile(layoutKey), options = {}) => {
+      if (!logicEditAllowed(options)) return null;
+      const graph = loadWorkspaceLogicGraph(layoutKey, profile);
+      let updated = null;
+      const links = graph.links.map((link) => {
+        if (link.id !== linkId) return link;
+        updated = { ...link, signalState: coerceBooleanSignalValue(value) };
+        return updated;
+      });
+      if (!updated) return null;
+      saveWorkspaceLogicGraph(layoutKey, { ...graph, links }, profile, options);
+      refreshSignalConsumerWidgetsForLinks(layoutKey, [updated]);
+      return updated;
+    },
+    signalStateForObject: (layoutKey = "builder", objectId = "", profile = getActivePanelProfile(layoutKey)) => {
+      const widget = workspaceElementByGraphId(objectId, layoutKey);
+      return dataflowSignalStateForWidget(widget, layoutKey, profile);
     },
     removeConnectionsForPort: (layoutKey = "builder", port = {}, profile = getActivePanelProfile(layoutKey), options = {}) =>
       deleteWorkspaceConnectionsForPort(layoutKey, port, profile, options),
     relationships: (layoutKey = "builder", options = {}) => {
       const graph = loadWorkspaceLogicGraph(layoutKey, options.profile || getActivePanelProfile(layoutKey));
-      return options.derived === false ? graph.relationships : deriveWorkspaceRelationships(layoutKey, graph);
+      return deriveWorkspaceRelationships(layoutKey, graph);
     },
     contextLinkModes: () => ({ ...CONTEXT_LINK_MODES }),
-    contextLinks: (layoutKey = "builder", profile = getActivePanelProfile(layoutKey)) =>
-      loadWorkspaceLogicGraph(layoutKey, profile).contextLinks,
-    addContextLink: (layoutKey = "builder", link = {}, profile = getActivePanelProfile(layoutKey), options = {}) => {
-      if (!logicEditAllowed(options)) return null;
-      const graph = loadWorkspaceLogicGraph(layoutKey, profile);
-      const next = normalizeContextLink(link);
-      if (!next.sourceObjectId || !next.targetObjectId || next.sourceObjectId === next.targetObjectId) return null;
-      const candidateLinks = graph.contextLinks.filter((entry) => entry.id !== next.id);
-      const cycleCheck = [...candidateLinks, next];
-      const reachesSource = (currentId, targetId, visited = new Set()) => {
-        if (currentId === targetId) return true;
-        if (visited.has(currentId)) return false;
-        visited.add(currentId);
-        return cycleCheck
-          .filter((entry) => entry.targetObjectId === currentId && entry.enabled !== false)
-          .some((entry) => reachesSource(entry.sourceObjectId, targetId, visited));
-      };
-      if (reachesSource(next.sourceObjectId, next.targetObjectId)) return null;
-      const contextLinks = candidateLinks.filter((entry) => !(entry.sourceObjectId === next.sourceObjectId && entry.targetObjectId === next.targetObjectId && entry.mode === next.mode));
-      contextLinks.push(next);
-      const sourcePort = normalizePortRef(options.sourcePort || {}, WORKSPACE_PORT_ROLES.output, next.sourceObjectId);
-      const targetPort = normalizePortRef(options.targetPort || {}, WORKSPACE_PORT_ROLES.input, next.targetObjectId);
-      const canonicalLink = normalizeWorkspaceLink({
-        id: options.linkId || `context-${next.id}`,
-        source: sourcePort,
-        target: targetPort,
-        signalType: WORKSPACE_SIGNAL_TYPES.context,
-        visualState: "active",
-        label: next.label || next.mode,
-        metadata: { contextLinkId: next.id, mode: next.mode },
-      });
-      const links = options.createGraphLink === false
-        ? graph.links
-        : [
-          ...graph.links
-            .filter((entry) => entry.id !== canonicalLink.id)
-            .filter((entry) => entry.metadata?.contextLinkId !== next.id),
-          canonicalLink,
-        ];
-      saveWorkspaceLogicGraph(layoutKey, { ...graph, links, contextLinks }, profile, options);
-      return next;
-    },
-    updateContextLink: (layoutKey = "builder", linkId = "", patch = {}, profile = getActivePanelProfile(layoutKey), options = {}) => {
-      if (!logicEditAllowed(options)) return null;
-      const graph = loadWorkspaceLogicGraph(layoutKey, profile);
-      const contextLinks = graph.contextLinks.map((link) => link.id === linkId
-        ? normalizeContextLink({ ...link, ...patch, id: link.id })
-        : link);
-      const updated = contextLinks.find((link) => link.id === linkId) || null;
-      if (!updated || updated.sourceObjectId === updated.targetObjectId) return null;
-      const reachesSource = (currentId, targetId, visited = new Set()) => {
-        if (currentId === targetId) return true;
-        if (visited.has(currentId)) return false;
-        visited.add(currentId);
-        return contextLinks
-          .filter((entry) => entry.id !== updated.id && entry.targetObjectId === currentId && entry.enabled !== false)
-          .some((entry) => reachesSource(entry.sourceObjectId, targetId, visited));
-      };
-      if (reachesSource(updated.sourceObjectId, updated.targetObjectId)) return null;
-      saveWorkspaceLogicGraph(layoutKey, { ...graph, contextLinks }, profile, options);
-      return updated;
-    },
-    removeContextLink: (layoutKey = "builder", linkId = "", profile = getActivePanelProfile(layoutKey), options = {}) => {
-      if (!logicEditAllowed(options)) return false;
-      const graph = loadWorkspaceLogicGraph(layoutKey, profile);
-      const contextLinks = graph.contextLinks.filter((link) => link.id !== linkId);
-      if (contextLinks.length === graph.contextLinks.length) return false;
-      const links = graph.links.filter((link) => link.metadata?.contextLinkId !== linkId);
-      saveWorkspaceLogicGraph(layoutKey, { ...graph, links, contextLinks }, profile, options);
-      return true;
-    },
+    contextLinks: () => [],
+    addContextLink: () => null,
+    updateContextLink: () => null,
+    removeContextLink: () => false,
     addRelationship: (layoutKey = "builder", relationship = {}, profile = getActivePanelProfile(layoutKey), options = {}) => {
-      if (!logicEditAllowed(options)) return null;
-      const graph = loadWorkspaceLogicGraph(layoutKey, profile);
-      const next = normalizeWorkspaceRelationship(relationship);
-      const relationships = graph.relationships.filter((entry) => entry.id !== next.id);
-      relationships.push(next);
-      saveWorkspaceLogicGraph(layoutKey, { ...graph, relationships }, profile, options);
-      return next;
+      return null;
     },
-    removeRelationship: (layoutKey = "builder", relationshipId = "", profile = getActivePanelProfile(layoutKey), options = {}) => {
-      if (!logicEditAllowed(options)) return false;
-      const graph = loadWorkspaceLogicGraph(layoutKey, profile);
-      const relationships = graph.relationships.filter((entry) => entry.id !== relationshipId);
-      if (relationships.length === graph.relationships.length) return false;
-      saveWorkspaceLogicGraph(layoutKey, { ...graph, relationships }, profile, options);
-      return true;
-    },
+    removeRelationship: () => false,
     styleRules: (layoutKey = "builder", profile = getActivePanelProfile(layoutKey)) =>
       loadWorkspaceLogicGraph(layoutKey, profile).styleRules,
     addStyleRule: (layoutKey = "builder", rule = {}, profile = getActivePanelProfile(layoutKey), options = {}) => {
@@ -13268,40 +13259,11 @@ document.addEventListener("DOMContentLoaded", () => {
       return node ? applyStyleRulesForWidget(node, options).map((rule) => rule.id) : [];
     },
     addOperator: (layoutKey = "builder", operator = {}, profile = getActivePanelProfile(layoutKey), options = {}) => {
-      if (!logicEditAllowed(options)) return null;
-      const graph = loadWorkspaceLogicGraph(layoutKey, profile);
-      const node = normalizeLogicalOperatorNode(operator);
-      saveWorkspaceLogicGraph(layoutKey, { ...graph, operators: [...graph.operators, node] }, profile, options);
-      return node;
+      return null;
     },
-    updateOperator: (layoutKey = "builder", operatorId = "", patch = {}, profile = getActivePanelProfile(layoutKey), options = {}) => {
-      if (!logicEditAllowed(options)) return null;
-      const graph = loadWorkspaceLogicGraph(layoutKey, profile);
-      const operators = graph.operators.map((operator) => operator.id === operatorId
-        ? normalizeLogicalOperatorNode({ ...operator, ...patch, id: operator.id })
-        : operator);
-      const updated = operators.find((operator) => operator.id === operatorId) || null;
-      if (!updated) return null;
-      saveWorkspaceLogicGraph(layoutKey, { ...graph, operators }, profile, options);
-      return updated;
-    },
-    connectOperator: (layoutKey = "builder", operatorId = "", { inputs = [], outputs = [] } = {}, profile = getActivePanelProfile(layoutKey), options = {}) => {
-      if (!logicEditAllowed(options)) return null;
-      const graph = loadWorkspaceLogicGraph(layoutKey, profile);
-      const operators = graph.operators.map((operator) => operator.id === operatorId
-        ? normalizeLogicalOperatorNode({
-          ...operator,
-          inputs: [...new Set([...(operator.inputs || []), ...inputs.map(String).filter(Boolean)])],
-          outputs: [...new Set([...(operator.outputs || []), ...outputs.map(String).filter(Boolean)])],
-        })
-        : operator);
-      const updated = operators.find((operator) => operator.id === operatorId) || null;
-      if (!updated) return null;
-      saveWorkspaceLogicGraph(layoutKey, { ...graph, operators }, profile, options);
-      return updated;
-    },
-    operatorConditions: (layoutKey = "builder", profile = getActivePanelProfile(layoutKey)) =>
-      loadWorkspaceLogicGraph(layoutKey, profile).operators.map(normalizedOperatorCondition),
+    updateOperator: () => null,
+    connectOperator: () => null,
+    operatorConditions: () => [],
     refresh: (layoutKey = "builder") => {
       refreshResolvedContextDebug(layoutKey, getActivePanelProfile(layoutKey));
       refreshEngineerOverlays();
@@ -13876,6 +13838,10 @@ document.addEventListener("DOMContentLoaded", () => {
   const objectAddItems = [
     { category: "data", displayName: "Stat", actionClass: "widget-add-action", dataset: { widgetKind: "stat" } },
     { category: "data", displayName: "Table", actionClass: "widget-add-action", dataset: { widgetKind: "table" } },
+    { category: "data", subcategory: "Data Filter", displayName: "AND", actionClass: "widget-add-action", engineerOnly: true, dataset: { widgetKind: "data-filter", widgetConfig: JSON.stringify({ title: "Data Filter", operator: "AND" }) } },
+    { category: "data", subcategory: "Data Filter", displayName: "OR", actionClass: "widget-add-action", engineerOnly: true, dataset: { widgetKind: "data-filter", widgetConfig: JSON.stringify({ title: "Data Filter", operator: "OR" }) } },
+    { category: "data", subcategory: "Data Filter", displayName: "NOT", actionClass: "widget-add-action", engineerOnly: true, dataset: { widgetKind: "data-filter", widgetConfig: JSON.stringify({ title: "Data Filter", operator: "NOT" }) } },
+    { category: "data", subcategory: "Data Filter", displayName: "Type Conversion", actionClass: "widget-add-action", engineerOnly: true, dataset: { widgetKind: "data-filter", widgetConfig: JSON.stringify({ title: "Data Filter", filterMode: "type-conversion", sourceType: "string", targetType: "boolean", conversionBehavior: "round", fallbackBehavior: "null", fallbackValue: "" }) } },
     { category: "visualization", subcategory: "Charts", displayName: "Bar", actionClass: "widget-add-action", dataset: { widgetKind: "graph", widgetCreateKind: "graph", objectDisplayName: "Bar Chart", widgetConfig: JSON.stringify({ title: "Bar Chart", chartType: "bar" }), chartType: "bar" } },
     { category: "visualization", subcategory: "Charts", displayName: "Line", actionClass: "widget-add-action", dataset: { widgetKind: "chart-line", widgetCreateKind: "graph", objectDisplayName: "Line Chart", widgetConfig: JSON.stringify({ title: "Line Chart", chartType: "line" }), chartType: "line" } },
     { category: "visualization", subcategory: "Charts", displayName: "Area", actionClass: "widget-add-action", dataset: { widgetKind: "chart-area", widgetCreateKind: "graph", objectDisplayName: "Area Chart", widgetConfig: JSON.stringify({ title: "Area Chart", chartType: "area" }), chartType: "area" } },
@@ -13898,10 +13864,28 @@ document.addEventListener("DOMContentLoaded", () => {
     { category: "system", displayName: "Activity Feed", actionClass: "widget-add-action", dataset: { widgetKind: "activity-feed" } },
     { category: "system", displayName: "AI Assistant", actionClass: "widget-add-action", dataset: { widgetKind: "ai-assistant" } },
     { category: "system", displayName: "Context Inspector", actionClass: "widget-add-action", engineerOnly: true, dataset: { widgetKind: "context-inspector" } },
+    { category: "system", subcategory: "Reactive", displayName: "Shift Widget", actionClass: "widget-add-action", dataset: { widgetKind: "shift" } },
     { category: "containers", displayName: "Panel", actionClass: "panel-add-action", dataset: { panelKind: "panel" } },
     { category: "navigation", displayName: "Anchor", actionClass: "widget-add-action", dataset: { widgetKind: "anchor" } },
     { category: "dividers", displayName: "Divider", actionClass: "divider-add-action", dataset: { dividerKind: "context-divider" } },
   ];
+  const objectAddItemRuntimeDefinition = (item = {}) => {
+    if (item.actionClass !== "widget-add-action") return null;
+    const kind = item.dataset?.widgetCreateKind || item.dataset?.widgetKind || "";
+    if (!kind || kind === "anchor") return null;
+    return widgetDefinitionFor(kind);
+  };
+  const objectAddItemLayer = (item = {}) => (
+    normalizeWorkspaceWidgetLayer(
+      item.layer ||
+      item.dataset?.widgetLayer ||
+      objectAddItemRuntimeDefinition(item)?.layer,
+      "presentation"
+    )
+  );
+  const objectAddItemEngineerOnly = (item = {}) => (
+    Boolean(item.engineerOnly || objectAddItemRuntimeDefinition(item)?.engineerOnly || objectAddItemLayer(item) === "backend")
+  );
   const objectAddSetDataset = (element, dataset = {}) => {
     Object.entries(dataset).forEach(([key, value]) => {
       if (value == null) return;
@@ -13932,6 +13916,8 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     button.dataset.objectAddCategory = item.category;
     if (item.subcategory) button.dataset.objectAddSubcategory = item.subcategory;
+    const layer = objectAddItemLayer(item);
+    if (item.actionClass === "widget-add-action" && layer) button.dataset.widgetLayer = layer;
     objectAddSetDataset(button, item.dataset);
     return button;
   };
@@ -13984,7 +13970,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const browser = picker.querySelector(".object-add-browser");
       if (!browser) return;
       browser.replaceChildren();
-      const availableItems = objectAddItems.filter((item) => !item.engineerOnly || isEngineerMode());
+      const availableItems = objectAddItems.filter((item) => !objectAddItemEngineerOnly(item) || isEngineerMode());
       objectAddCategories.forEach((category) => {
         const items = availableItems.filter((item) => item.category === category.id);
         if (!items.length) return;
@@ -14142,6 +14128,7 @@ document.addEventListener("DOMContentLoaded", () => {
       });
       layout.__initPanel?.(panel);
       savePanelLayouts(layout, selected);
+      refreshEngineerOverlays();
       showToast(`${title} added.`, "info", {
         type: "object-created",
         source: "object-add",
@@ -14194,6 +14181,7 @@ document.addEventListener("DOMContentLoaded", () => {
       });
       layout.__initPanel?.(divider);
       savePanelLayouts(layout, selected);
+      refreshEngineerOverlays();
       showToast(`${definition.title} added.`, "info", {
         type: "object-created",
         source: "object-add",
@@ -14274,6 +14262,7 @@ document.addEventListener("DOMContentLoaded", () => {
         minH: runtimeDefinition.minSize?.rows || null,
         type: runtimeDefinition.widgetType || runtimeDefinition.type,
         runtimeType: runtimeDefinition.type,
+        widgetLayer: button.dataset.widgetLayer || runtimeDefinition.layer || "presentation",
         workspaceObjectType: WORKSPACE_OBJECT_TYPES.widget,
         dashboardObjectKind: runtimeDefinition.dashboardObjectKind || runtimeDefinition.type,
         contextRole: runtimeDefinition.contextRole || "content",
@@ -14294,6 +14283,7 @@ document.addEventListener("DOMContentLoaded", () => {
       layout.__initWidget?.(widget);
       bindDashboardKeywordForms(widget);
       refreshResolvedContextDebug(layoutKey, selected);
+      refreshEngineerOverlays();
       saveWidgetLayouts(layout, selected);
       showToast(`${objectName || title} added.`, "info", {
         type: "object-created",

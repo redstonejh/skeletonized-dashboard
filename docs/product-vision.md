@@ -40,22 +40,21 @@ The experience should feel like a polished creative workspace, not a generic ent
 Normal Mode is the default composition and usage surface.
 
 - Widgets and panels display their content.
-- Context links remain active but wiring visuals are hidden.
+- Explicit dataflow links remain active but wiring visuals are hidden.
 - Users can add, move, resize, pin, rename, recolor, collapse, delete, save, load, and reset.
 - Context indicators show enough information to explain filtered content.
 - Common context actions, such as clearing an active filter, remain available.
 
 ## Engineer Mode
 
-Engineer Mode is an advanced visual wiring mode.
+Engineer Mode is an advanced visual dataflow mode.
 
 - Widgets and panels expose connection handles.
-- Users create explicit context links between sources and targets.
+- Users create explicit output-to-input dataflow links between sources and targets.
 - Links are drawn with subtle theme-aware lines.
 - Selected links can be deleted.
-- Context propagation stays active after Engineer Mode is turned off.
-- Context Links can share, inherit, override, or reference semantic context across non-adjacent dividers, widgets, panels, and context records while preserving the physical divider layout as the visual organization layer.
-- Experimental computational logic may be inspectable here over time, including hidden StyleRule, event, signal, or simulation wiring that remains invisible in Normal Mode.
+- Spatial context inheritance remains ambient and separate from wires.
+- Experimental computational logic may be inspectable here over time through explicit dataflow, StyleRule, event, signal, or simulation wiring that remains invisible in Normal Mode.
 
 Engineer Mode should feel native to the dashboard, not like a separate node editor bolted on top.
 
@@ -84,7 +83,7 @@ Engineer Mode should feel native to the dashboard, not like a separate node edit
 
 ### Phase 3: Context Engine
 
-- Add generic context models: `ContextScope`, `ContextValue`, `ContextLink`, and `FilterBinding`.
+- Add generic context models: `ContextScope`, `ContextValue`, and `FilterBinding`.
 - Implement emitted context from stat widgets.
 - Implement inherited panel context for child widgets.
 - Implement table and graph filtering from active context.
@@ -94,8 +93,8 @@ Engineer Mode should feel native to the dashboard, not like a separate node edit
 ### Phase 4: Engineer Mode
 
 - Add an Engineer Mode toggle to the toolbar.
-- Expose source and target handles on context-capable objects.
-- Draw persistent context links between objects.
+- Expose input and output handles on dataflow-capable objects.
+- Draw persistent output-to-input dataflow links between objects.
 - Support selecting and deleting links.
 - Persist links with layout/profile data.
 

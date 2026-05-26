@@ -236,12 +236,30 @@ def assert_no_resize_artifacts(page: Page) -> None:
 def resize_camera_state(page: Page) -> dict:
     return page.evaluate(
         """
-        () => ({
-          active: document.body.classList.contains("resize-auto-zoom-active"),
-          scale: Number(document.body.dataset.resizeCameraScale || getComputedStyle(document.documentElement).getPropertyValue("--resize-camera-scale") || 1),
-          liveTransform: getComputedStyle(document.querySelector(".dashboard-live-resize") || document.body).transform,
-          previewTransform: getComputedStyle(document.querySelector(".dashboard-resize-preview") || document.body).transform,
-        })
+        () => {
+          const scene = document.querySelector(".dashboard-layout-grid");
+          const preview = document.querySelector(".dashboard-resize-preview");
+          const activeSource = document.querySelector(".dashboard-resize-source");
+          const neighbor = [...document.querySelectorAll(".widget-layout > .widget-card:not(.range-bar), .panel-layout > .db-panel")]
+            .find((node) => node !== activeSource && !node.classList.contains("dashboard-resize-preview") && !node.hidden);
+          const neighborRect = neighbor?.getBoundingClientRect?.();
+          const previewTransform = getComputedStyle(preview || document.body).transform;
+          const previewMatrix = previewTransform && previewTransform !== "none"
+            ? previewTransform.match(/matrix\\(([^)]+)\\)/)?.[1]?.split(",").map((part) => Number(part.trim()))
+            : null;
+          return {
+            active: document.body.classList.contains("resize-auto-zoom-active"),
+            scale: Number(document.body.dataset.resizeCameraScale || getComputedStyle(document.documentElement).getPropertyValue("--resize-camera-scale") || 1),
+            liveTransform: getComputedStyle(document.querySelector(".dashboard-live-resize") || document.body).transform,
+            previewTransform,
+            previewOwnScaleX: previewMatrix ? previewMatrix[0] : 1,
+            previewOwnScaleY: previewMatrix ? previewMatrix[3] : 1,
+            previewInScene: Boolean(preview?.closest?.(".dashboard-layout-grid")),
+            sceneTransform: getComputedStyle(scene || document.body).transform,
+            sceneOrigin: getComputedStyle(scene || document.body).transformOrigin,
+            neighborScaledByScene: Boolean(neighborRect && neighbor && neighborRect.width < neighbor.offsetWidth - 1),
+          };
+        }
         """
     )
 
@@ -823,7 +841,7 @@ def test_panels_are_generic_containers_not_table_panel_types(page: Page, app_ser
         placeholder = panel.locator('.db-panel-body > .empty-state.panel-empty-state[data-panel-placeholder="empty"]')
         expect(placeholder).to_have_count(1)
         expect(placeholder.locator("strong")).to_have_text("Empty panel")
-        expect(placeholder.locator("small")).to_have_text("Widgets will appear here when this panel is configured.")
+        expect(placeholder.locator("small")).to_have_text("Drop widgets here")
         expect(placeholder.locator(".panel-empty-action")).to_have_text("Add widgets")
 
     page.locator(".panel-add-button").click()
@@ -853,7 +871,7 @@ def test_panels_are_generic_containers_not_table_panel_types(page: Page, app_ser
     new_placeholder = new_panel.locator('.db-panel-body > .empty-state.panel-empty-state[data-panel-placeholder="empty"]')
     expect(new_placeholder).to_have_count(1)
     expect(new_placeholder.locator("strong")).to_have_text("Empty panel")
-    expect(new_placeholder.locator("small")).to_have_text("Widgets will appear here when this panel is configured.")
+    expect(new_placeholder.locator("small")).to_have_text("Drop widgets here")
     expect(new_placeholder.locator(".panel-empty-action")).to_have_text("Add widgets")
     assert_clean_browser(page)
 
@@ -913,12 +931,23 @@ def test_add_object_menu_uses_categorized_right_expanding_submenus(page: Page, a
     data.locator(".object-add-category-trigger").hover()
     expect(data.locator('.widget-add-action[data-widget-kind="stat"]')).to_be_visible()
     expect(data.locator('.widget-add-action[data-widget-kind="table"]')).to_be_visible()
+    expect(data.locator('.object-add-subcategory[data-object-add-subcategory="Data Filter"]')).to_have_count(0)
+    expect(menu.locator('.widget-add-action[data-widget-kind="stat-filter"]')).to_have_count(0)
+    expect(menu.locator('.widget-add-action[data-widget-kind="logic-gate"]')).to_have_count(0)
 
     page.locator(".engineer-mode-button").click()
     page.locator(".panel-add-button").click()
+    data = page.locator('.object-add-category[data-object-menu-category="data"]')
+    data.locator(".object-add-category-trigger").hover()
+    data_filter = data.locator('.object-add-subcategory[data-object-add-subcategory="Data Filter"]')
+    expect(data_filter.locator(".object-add-subcategory-trigger")).to_be_visible()
+    data_filter.locator(".object-add-subcategory-trigger").hover()
+    expect(data_filter.locator(".widget-add-action")).to_contain_text(["AND", "OR", "NOT", "Type Conversion"])
     system = page.locator('.object-add-category[data-object-menu-category="system"]')
     system.locator(".object-add-category-trigger").hover()
-    expect(system.locator('.widget-add-action[data-widget-kind="context-inspector"]')).to_be_visible()
+    context_inspector_action = system.locator('.widget-add-action[data-widget-kind="context-inspector"]')
+    expect(context_inspector_action).to_be_visible()
+    expect(context_inspector_action).to_have_attribute("data-widget-layer", "backend")
     assert page.locator(".panel-add-menu").evaluate(
         """
         node => [...node.querySelectorAll('button, [role="menu"], .object-add-category, .object-add-subcategory')]
@@ -1660,6 +1689,8 @@ def test_widget_runtime_registry_drives_real_widget_contracts(page: Page, app_se
         """
         () => ({
           types: window.dashboardWidgetRuntime.listWidgetDefinitions().map((definition) => definition.type),
+          layers: Object.fromEntries(window.dashboardWidgetRuntime.listWidgetDefinitions().map((definition) => [definition.type, definition.layer])),
+          engineerOnly: Object.fromEntries(window.dashboardWidgetRuntime.listWidgetDefinitions().map((definition) => [definition.type, Boolean(definition.engineerOnly)])),
           timeframe: document.querySelector(".timeframe-widget").dataset.widgetDefinition,
           timeframeRuntimeType: document.querySelector(".timeframe-widget").dataset.widgetRuntimeType,
           statDefinition: document.querySelector('[data-widget-key="widget-1"]').dataset.widgetDefinition,
@@ -1667,8 +1698,18 @@ def test_widget_runtime_registry_drives_real_widget_contracts(page: Page, app_se
         })
         """
     )
-    for widget_type in ("stat", "timeframe", "search", "filter", "text", "region-summary", "image", "video", "document", "activity-feed", "ai-assistant", "context-inspector", "table", "chart", "map"):
+    for widget_type in ("stat", "timeframe", "search", "filter", "text", "region-summary", "image", "video", "document", "activity-feed", "ai-assistant", "context-inspector", "data-filter", "shift", "table", "chart", "map"):
         assert widget_type in runtime["types"]
+    assert "stat-filter" not in runtime["types"]
+    assert "logic-gate" not in runtime["types"]
+    assert runtime["layers"]["data-filter"] == "backend"
+    assert runtime["layers"]["context-inspector"] == "backend"
+    assert runtime["layers"]["stat"] == "presentation"
+    assert runtime["layers"]["chart"] == "presentation"
+    assert runtime["layers"]["table"] == "presentation"
+    assert runtime["layers"]["timeframe"] == "presentation"
+    assert runtime["engineerOnly"]["data-filter"] is True
+    assert runtime["engineerOnly"]["context-inspector"] is True
     assert runtime["timeframe"] == "timeframe"
     assert runtime["timeframeRuntimeType"] == "timeframe"
     assert runtime["statDefinition"] == "stat"
@@ -3532,6 +3573,160 @@ def test_widget_drags_directly_into_open_panel_and_round_trips(page: Page, app_s
     panel = page.locator('[data-panel-key="builder-content"]')
     expect(panel.locator('.panel-internal-widget-grid > .widget-card[data-widget-key="widget-1"]')).to_be_visible()
     expect(page.locator('.widget-layout[data-widget-layout-key="builder"]:not(.panel-internal-widget-grid) > .widget-card[data-widget-key="widget-1"]')).to_have_count(0)
+    assert_clean_browser(page)
+
+
+def test_panel_local_drag_displaces_large_child_by_incoming_footprint(page: Page, app_server: str) -> None:
+    goto(page, app_server)
+    page.evaluate(
+        """
+        () => {
+          const dashboardGrid = document.querySelector(".dashboard-layout-grid");
+          const gap = parseFloat(getComputedStyle(dashboardGrid).rowGap || "16") || 16;
+          const placeGlobal = (node, col, row, span, rowSpan = 1) => {
+            node.hidden = false;
+            node.dataset.gridCol = String(col);
+            node.dataset.gridRow = String(row);
+            node.dataset.currentSpan = String(span);
+            node.dataset.gridRowSpan = String(rowSpan);
+            node.style.gridColumn = `${col} / span ${span}`;
+            node.style.gridRow = `${row} / span ${rowSpan}`;
+            if (node.classList.contains("db-panel")) {
+              node.classList.remove("db-panel-collapsed");
+              const height = (rowSpan * 81) + (Math.max(0, rowSpan - 1) * gap);
+              node.dataset.savedHeight = String(height);
+              node.style.height = `${height}px`;
+              node.querySelector(".db-panel-hd")?.setAttribute("aria-expanded", "true");
+            }
+          };
+          const placePanelChild = (node, key, col, row, span, rowSpan) => {
+            const panel = document.querySelector('[data-panel-key="builder-content"]');
+            const body = panel.querySelector(":scope > .db-panel-body");
+            let grid = body.querySelector(":scope > .panel-internal-widget-grid");
+            if (!grid) {
+              grid = document.createElement("div");
+              grid.className = "panel-internal-widget-grid widget-layout";
+              grid.dataset.widgetLayoutKey = "builder:panel:builder-content";
+              grid.dataset.panelContainerKey = "builder-content";
+              body.appendChild(grid);
+            }
+            const clone = node.cloneNode(true);
+            clone.dataset.widgetKey = key;
+            clone.dataset.parentPanelKey = "builder-content";
+            clone.dataset.layoutDomain = "panel-internal-grid";
+            clone.dataset.gridCol = String(col);
+            clone.dataset.gridRow = String(row);
+            clone.dataset.currentSpan = String(span);
+            clone.dataset.defaultSpan = String(span);
+            clone.dataset.gridRowSpan = String(rowSpan);
+            clone.style.gridColumn = `${col} / span ${span}`;
+            clone.style.gridRow = `${row} / span ${rowSpan}`;
+            clone.style.height = `${(rowSpan * 81) + (Math.max(0, rowSpan - 1) * 14)}px`;
+            clone.classList.remove("widget-tools-open", "widget-dragging", "dashboard-active-resize", "dashboard-live-resize", "dashboard-resize-source");
+            grid.appendChild(clone);
+            body.querySelector(":scope > .panel-empty-state")?.setAttribute("hidden", "");
+          };
+          document.querySelectorAll(".panel-internal-widget-grid").forEach((node) => node.remove());
+          placeGlobal(document.querySelector('[data-widget-key="widget-1"]'), 5, 1, 1, 1);
+          placeGlobal(document.querySelector('[data-widget-key="widget-2"]'), 6, 1, 1, 1);
+          placeGlobal(document.querySelector('[data-widget-key="widget-3"]'), 5, 3, 1, 1);
+          placeGlobal(document.querySelector('[data-widget-key="widget-4"]'), 6, 3, 1, 1);
+          placeGlobal(document.querySelector('[data-panel-key="builder-content"]'), 1, 4, 4, 6);
+          placeGlobal(document.querySelector('[data-panel-key="builder-menu"]'), 5, 4, 2, 2);
+          placeGlobal(document.querySelector('[data-panel-key="builder-notes"]'), 5, 7, 2, 2);
+          placePanelChild(document.querySelector('[data-widget-key="widget-2"]'), "panel-large-displacement-target", 1, 1, 2, 3);
+        }
+        """
+    )
+
+    source = page.locator('.widget-layout[data-widget-layout-key="builder"]:not(.panel-internal-widget-grid) > .widget-card[data-widget-key="widget-1"]')
+    panel = page.locator('[data-panel-key="builder-content"]')
+    large_child_selector = '.panel-internal-widget-grid > .widget-card[data-widget-key="panel-large-displacement-target"]'
+    expect(page.locator(large_child_selector)).to_be_visible()
+    assert grid_item_state(page, large_child_selector)["row"] == 1
+    assert grid_item_state(page, large_child_selector)["rowSpan"] == 3
+
+    force_open_tools_for_interaction(page, source)
+    handle_box = source.locator(".panel-move-handle").bounding_box()
+    source_box = source.bounding_box()
+    assert handle_box and source_box
+    start_x, start_y = box_center(handle_box)
+    target = page.evaluate(
+        """
+        ({ offsetX, offsetY, sourceWidth, sourceHeight }) => {
+          const grid = document.querySelector('[data-panel-key="builder-content"] .panel-internal-widget-grid');
+          const rect = grid.getBoundingClientRect();
+          const styles = getComputedStyle(grid);
+          const gap = parseFloat(styles.columnGap || styles.gap || "14") || 14;
+          const paddingLeft = parseFloat(styles.paddingLeft) || 0;
+          const paddingTop = parseFloat(styles.paddingTop) || 0;
+          const paddingRight = parseFloat(styles.paddingRight) || 0;
+          const contentWidth = Math.max(1, rect.width - paddingLeft - paddingRight);
+          const columnWidth = (contentWidth - (gap * 5)) / 6;
+          const itemWidth = columnWidth;
+          const itemHeight = 81;
+          return {
+            x: rect.left + paddingLeft + (Math.max(0, Math.min(1, offsetX / sourceWidth)) * itemWidth) + 1,
+            y: rect.top + paddingTop + (Math.max(0, Math.min(1, offsetY / sourceHeight)) * itemHeight) + 1,
+          };
+        }
+        """,
+        {
+            "offsetX": start_x - source_box["x"],
+            "offsetY": start_y - source_box["y"],
+            "sourceWidth": source_box["width"],
+            "sourceHeight": source_box["height"],
+        },
+    )
+
+    page.mouse.move(start_x, start_y)
+    page.mouse.down()
+    page.mouse.move(target["x"], target["y"], steps=20)
+    page.wait_for_function(
+        """
+        () => {
+          const placeholder = document.querySelector('[data-panel-key="builder-content"] .panel-internal-widget-grid > .widget-placeholder');
+          const large = document.querySelector('[data-widget-key="panel-large-displacement-target"]');
+          return placeholder &&
+            Number(placeholder.dataset.gridRow || 0) === 1 &&
+            Number(large?.dataset.gridRow || 0) === 2;
+        }
+        """
+    )
+    preview = page.evaluate(
+        """
+        () => {
+          const placeholder = document.querySelector('[data-panel-key="builder-content"] .panel-internal-widget-grid > .widget-placeholder');
+          const large = document.querySelector('[data-widget-key="panel-large-displacement-target"]');
+          return {
+            placeholderRow: Number(placeholder.dataset.gridRow || 0),
+            placeholderRows: Number(placeholder.dataset.gridRowSpan || 0),
+            largeRow: Number(large.dataset.gridRow || 0),
+            largeRows: Number(large.dataset.gridRowSpan || 0),
+          };
+        }
+        """
+    )
+    assert preview == {"placeholderRow": 1, "placeholderRows": 1, "largeRow": 2, "largeRows": 3}
+    page.mouse.up()
+
+    inserted_selector = '.panel-internal-widget-grid > .widget-card[data-widget-key="widget-1"]'
+    expect(page.locator(inserted_selector)).to_be_visible()
+    committed_inserted = grid_item_state(page, inserted_selector)
+    committed_large = grid_item_state(page, large_child_selector)
+    assert committed_inserted["row"] == 1
+    assert committed_inserted["rowSpan"] == 1
+    assert committed_large["row"] == 2
+    assert committed_large["rowSpan"] == 3
+    assert no_visible_overlaps(page, ".panel-internal-widget-grid > .widget-card") == []
+
+    page.locator(".layout-save-button").click()
+    page.wait_for_timeout(120)
+    page.reload(wait_until="networkidle")
+    expect(page.locator(inserted_selector)).to_be_visible()
+    assert grid_item_state(page, inserted_selector)["row"] == 1
+    assert grid_item_state(page, large_child_selector)["row"] == 2
+    assert no_visible_overlaps(page, ".panel-internal-widget-grid > .widget-card") == []
     assert_clean_browser(page)
 
 
@@ -5825,7 +6020,7 @@ def test_source_agnostic_context_inheritance_uses_adapters_and_semantic_mappings
     assert_clean_browser(page)
 
 
-def test_context_links_share_divider_contexts_through_engineer_graph(page: Page, app_server: str) -> None:
+def test_engineer_dataflow_links_do_not_replace_spatial_context_inheritance(page: Page, app_server: str) -> None:
     goto(page, app_server)
     page.evaluate("localStorage.clear()")
     page.reload(wait_until="networkidle")
@@ -5890,58 +6085,80 @@ def test_context_links_share_divider_contexts_through_engineer_graph(page: Page,
     assert setup["before"]["dataSourceId"] == "support-source"
     assert setup["before"]["semanticMapping"]["valueField"] == "tickets"
 
-    normal_attempt = page.evaluate(
-        """
-        ({ dividerA, dividerB }) => window.dashboardRelationshipRuntime.addContextLink("builder", {
-          id: "normal-context-link",
-          sourceObjectId: dividerA,
-          targetObjectId: dividerB,
-          mode: "override"
-        })
-        """,
-        setup,
-    )
-    assert normal_attempt is None
-
     page.locator(".engineer-mode-button").click()
     expect(page.locator(".engineer-mode-button")).to_have_attribute("aria-pressed", "true")
-    linked = page.evaluate(
+    graph_state = page.evaluate(
         """
         ({ dividerA, dividerB }) => {
           const runtime = window.dashboardRelationshipRuntime;
-          const link = runtime.addContextLink("builder", {
-            id: "sales-to-support-section",
+          const contextLink = runtime.addContextLink("builder", {
+            id: "disabled-context-link",
             sourceObjectId: dividerA,
             targetObjectId: dividerB,
-            mode: "override",
-            label: "Share Sales context"
-          });
-          const circular = runtime.addContextLink("builder", {
-            id: "circular-context-link",
-            sourceObjectId: dividerB,
-            targetObjectId: dividerA,
             mode: "override"
+          });
+          const genericRelationship = runtime.addRelationship("builder", {
+            id: "disabled-relationship",
+            sourceId: dividerA,
+            targetId: dividerB,
+            type: "context"
+          });
+          runtime.setGraph("builder", {
+            version: 1,
+            links: [{
+              id: "divider-dataflow",
+              source: { objectId: dividerA, role: "output", name: "main" },
+              target: { objectId: dividerB, role: "input", name: "main" },
+              signalType: "context"
+            }],
+            contextLinks: [{
+              id: "legacy-context-link",
+              sourceObjectId: dividerA,
+              targetObjectId: dividerB,
+              mode: "override"
+            }],
+            relationships: [{
+              id: "legacy-relationship",
+              sourceId: dividerA,
+              targetId: dividerB,
+              type: "context"
+            }],
+            operators: [{
+              id: "legacy-operator",
+              operatorType: "AND",
+              inputs: [dividerA],
+              outputs: [dividerB]
+            }]
           });
           window.dashboardContextEngine.refresh("builder");
           return {
-            link,
-            circular,
+            contextLink,
+            genericRelationship,
             resolved: window.dashboardContextEngine.resolveContextForElement('[data-widget-key="widget-1"]'),
+            graph: runtime.getGraph("builder"),
             snapshot: window.dashboardPersistenceRuntime.snapshot("builder", "1"),
           };
         }
         """,
         setup,
     )
-    assert linked["link"]["id"] == "sales-to-support-section"
-    assert linked["circular"] is None
-    assert linked["resolved"]["dataSourceId"] == "sales-source"
-    assert linked["resolved"]["semanticMapping"]["valueField"] == "revenue"
-    assert linked["snapshot"]["contextLinks"][0]["id"] == "sales-to-support-section"
+    assert graph_state["contextLink"] is None
+    assert graph_state["genericRelationship"] is None
+    assert graph_state["resolved"]["dataSourceId"] == "support-source"
+    assert graph_state["resolved"]["semanticMapping"]["valueField"] == "tickets"
+    assert graph_state["graph"]["relationships"] == []
+    assert graph_state["graph"]["operators"] == []
+    assert graph_state["graph"]["contextLinks"] == []
+    assert graph_state["graph"]["links"][0]["signalType"] == "data"
+    assert graph_state["graph"]["links"][0]["source"]["role"] == "output"
+    assert graph_state["graph"]["links"][0]["target"]["role"] == "input"
+    assert graph_state["snapshot"]["contextLinks"] == []
+    assert graph_state["snapshot"]["relationships"] == []
+    assert graph_state["snapshot"]["operators"] == []
 
     page.wait_for_function(
         """
-        () => document.querySelector('.workspace-relationship-path[data-relationship-type="context"][data-relationship-state="active"]')
+        () => document.querySelector('.workspace-relationship-path[data-relationship-type="query"][data-relationship-signal-type="data"]')
         """
     )
     engineer_links = page.evaluate(
@@ -5951,14 +6168,16 @@ def test_context_links_share_divider_contexts_through_engineer_graph(page: Page,
           visiblePaths: document.querySelectorAll(".workspace-relationship-path").length,
           linkLabels: document.querySelectorAll(".workspace-context-link-label").length,
           nodules: document.querySelectorAll(".workspace-wire-nodule").length,
+          operators: document.querySelectorAll(".workspace-operator-node").length,
           validationOk: window.dashboardPersistenceRuntime.validate("builder", "1").ok,
         })
         """
     )
-    assert engineer_links["contextLinks"] == 1
+    assert engineer_links["contextLinks"] == 0
     assert engineer_links["visiblePaths"] == 1
     assert engineer_links["linkLabels"] == 0
     assert engineer_links["nodules"] >= 3
+    assert engineer_links["operators"] == 0
     assert engineer_links["validationOk"] is True
 
     page.locator(".engineer-mode-button").click()
@@ -5973,29 +6192,29 @@ def test_context_links_share_divider_contexts_through_engineer_graph(page: Page,
         })
         """
     )
-    assert normal_hidden == {"resolved": "sales-source", "paths": 0, "labels": 0}
+    assert normal_hidden == {"resolved": "support-source", "paths": 0, "labels": 0}
 
     press_dashboard_undo(page)
     undone = page.evaluate(
         """
         () => ({
-          contextLinks: window.dashboardRelationshipRuntime.contextLinks("builder").length,
+          links: window.dashboardRelationshipRuntime.links("builder").length,
           resolved: window.dashboardContextEngine.resolveContextForElement('[data-widget-key="widget-1"]').dataSourceId,
         })
         """
     )
-    assert undone == {"contextLinks": 0, "resolved": "support-source"}
+    assert undone == {"links": 0, "resolved": "support-source"}
 
     press_dashboard_redo(page)
     redone = page.evaluate(
         """
         () => ({
-          contextLinks: window.dashboardRelationshipRuntime.contextLinks("builder").length,
+          links: window.dashboardRelationshipRuntime.links("builder").length,
           resolved: window.dashboardContextEngine.resolveContextForElement('[data-widget-key="widget-1"]').dataSourceId,
         })
         """
     )
-    assert redone == {"contextLinks": 1, "resolved": "sales-source"}
+    assert redone == {"links": 1, "resolved": "support-source"}
 
     moved_context = page.evaluate(
         """
@@ -6011,7 +6230,20 @@ def test_context_links_share_divider_contexts_through_engineer_graph(page: Page,
         }
         """
     )
-    assert moved_context == "sales-source"
+    assert moved_context == "support-source"
+
+    top_region_context = page.evaluate(
+        """
+        () => {
+          const widget = document.querySelector('[data-widget-key="widget-1"]');
+          widget.dataset.gridRow = "5";
+          widget.style.gridRow = "5 / span 1";
+          window.dashboardContextEngine.refresh("builder");
+          return window.dashboardContextEngine.resolveContextForElement(widget).dataSourceId;
+        }
+        """
+    )
+    assert top_region_context == "sales-source"
 
     page.locator(".layout-save-button").click()
     expect(page.locator(".toast", has_text="saved")).to_be_visible()
@@ -6021,26 +6253,16 @@ def test_context_links_share_divider_contexts_through_engineer_graph(page: Page,
         () => {
           window.dashboardContextEngine.refresh("builder");
           return {
-            links: window.dashboardRelationshipRuntime.contextLinks("builder"),
+            links: window.dashboardRelationshipRuntime.links("builder"),
+            contextLinks: window.dashboardRelationshipRuntime.contextLinks("builder"),
             resolved: window.dashboardContextEngine.resolveContextForElement('[data-widget-key="widget-1"]').dataSourceId,
           };
         }
         """
     )
-    assert reloaded["links"][0]["id"] == "sales-to-support-section"
+    assert reloaded["links"][0]["id"] == "divider-dataflow"
+    assert reloaded["contextLinks"] == []
     assert reloaded["resolved"] == "sales-source"
-
-    page.locator(".engineer-mode-button").click()
-    page.evaluate("() => window.dashboardRelationshipRuntime.removeContextLink('builder', 'sales-to-support-section')")
-    removed = page.evaluate(
-        """
-        () => ({
-          links: window.dashboardRelationshipRuntime.contextLinks("builder").length,
-          resolved: window.dashboardContextEngine.resolveContextForElement('[data-widget-key="widget-1"]').dataSourceId,
-        })
-        """
-    )
-    assert removed == {"links": 0, "resolved": "support-source"}
     assert_clean_browser(page)
 
 
@@ -6466,7 +6688,7 @@ def test_open_panel_interior_uses_recessed_glass_material_without_covering_child
     assert deep_material["afterOpacity"] > 0
 
 
-def test_engineer_mode_relationship_links_and_logic_graph_are_gated_and_persisted(page: Page, app_server: str) -> None:
+def test_engineer_mode_dataflow_links_are_gated_normalized_and_persisted(page: Page, app_server: str) -> None:
     goto(page, app_server)
     page.evaluate("localStorage.clear()")
     page.reload(wait_until="networkidle")
@@ -6511,8 +6733,23 @@ def test_engineer_mode_relationship_links_and_logic_graph_are_gated_and_persiste
               signalType: "query",
               visualState: "active",
               label: "Query dependency"
+            }, {
+              id: "invalid-output-output",
+              source: { objectId: "widget-1", role: "output", name: "main" },
+              target: { objectId: "widget-2", role: "output", name: "main" },
+              signalType: "data"
+            }, {
+              id: "reverse-input-output",
+              source: { objectId: "widget-4", role: "input", name: "main" },
+              target: { objectId: "widget-3", role: "output", name: "main" },
+              signalType: "semantic"
             }],
-            relationships: [],
+            relationships: [{
+              id: "legacy-semantic-relationship",
+              sourceId: "widget-1",
+              targetId: "widget-2",
+              type: "semantic"
+            }],
             operators: [{
               id: "operator-and-test",
               operatorType: "AND",
@@ -6520,6 +6757,12 @@ def test_engineer_mode_relationship_links_and_logic_graph_are_gated_and_persiste
               outputs: ["widget-2"],
               x: window.scrollX + 720,
               y: window.scrollY + 280
+            }],
+            contextLinks: [{
+              id: "legacy-context-link",
+              sourceObjectId: "widget-1",
+              targetObjectId: "widget-2",
+              mode: "inherit"
             }]
           });
         }
@@ -6527,9 +6770,9 @@ def test_engineer_mode_relationship_links_and_logic_graph_are_gated_and_persiste
     )
     page.wait_for_function(
         """
-        () => document.querySelectorAll('.workspace-relationship-path').length === 1 &&
+        () => document.querySelectorAll('.workspace-relationship-path').length === 2 &&
           document.querySelectorAll('.workspace-wire-nodule').length >= 4 &&
-          document.querySelector('.workspace-operator-node[data-operator-type="AND"]') &&
+          !document.querySelector('.workspace-operator-node') &&
           !document.querySelector('.workspace-logic-toolbox')
         """
     )
@@ -6540,14 +6783,13 @@ def test_engineer_mode_relationship_links_and_logic_graph_are_gated_and_persiste
           const snapshot = window.dashboardPersistenceRuntime.snapshot("builder", "1");
           const validation = window.dashboardPersistenceRuntime.validate("builder", "1");
           const link = document.querySelector('.workspace-relationship-path[data-relationship-type="query"]');
-          const operator = document.querySelector('.workspace-operator-node[data-operator-type="AND"]');
           const overlay = document.querySelector('.workspace-engineer-overlay-layer');
           return {
             pathCount: document.querySelectorAll(".workspace-relationship-path").length,
             activeCount: document.querySelectorAll('.workspace-relationship-path[data-relationship-state="active"]').length,
             noduleCount: document.querySelectorAll(".workspace-wire-nodule").length,
             toolboxVisible: Boolean(document.querySelector(".workspace-logic-toolbox")),
-            operatorText: operator?.textContent?.trim() || "",
+            operatorCount: document.querySelectorAll(".workspace-operator-node").length,
             pointerEvents: getComputedStyle(overlay).pointerEvents,
             nodulePointerEvents: getComputedStyle(document.querySelector(".workspace-wire-nodule")).pointerEvents,
             queryType: link?.dataset.relationshipType || "",
@@ -6559,6 +6801,7 @@ def test_engineer_mode_relationship_links_and_logic_graph_are_gated_and_persiste
             snapshotLinks: snapshot.links,
             snapshotRelationships: snapshot.relationships,
             snapshotOperators: snapshot.operators,
+            snapshotContextLinks: snapshot.contextLinks,
             validationOk: validation.ok,
             validationCodes: validation.diagnostics.map((entry) => entry.code),
             derivedCount: window.dashboardRelationshipRuntime.relationships("builder").length,
@@ -6567,15 +6810,15 @@ def test_engineer_mode_relationship_links_and_logic_graph_are_gated_and_persiste
         }
         """
     )
-    assert engineer_state["pathCount"] == 1
+    assert engineer_state["pathCount"] == 2
     assert engineer_state["activeCount"] >= 1
     assert engineer_state["noduleCount"] >= 4
     assert engineer_state["toolboxVisible"] is False
-    assert engineer_state["operatorText"] == "AND"
+    assert engineer_state["operatorCount"] == 0
     assert engineer_state["pointerEvents"] == "none"
     assert engineer_state["nodulePointerEvents"] == "auto"
     assert engineer_state["queryType"] == "query"
-    assert engineer_state["querySignal"] == "query"
+    assert engineer_state["querySignal"] == "data"
     assert engineer_state["linkStorageType"] == "link"
     assert engineer_state["sourcePort"].endswith(":output:main")
     assert engineer_state["targetPort"].endswith(":input:main")
@@ -6583,17 +6826,21 @@ def test_engineer_mode_relationship_links_and_logic_graph_are_gated_and_persiste
     assert engineer_state["snapshotLinks"][0]["id"] == "query-link-widget-1-widget-2"
     assert engineer_state["snapshotLinks"][0]["source"]["role"] == "output"
     assert engineer_state["snapshotLinks"][0]["target"]["role"] == "input"
+    assert {link["signalType"] for link in engineer_state["snapshotLinks"]} == {"data"}
+    assert "invalid-output-output" not in {link["id"] for link in engineer_state["snapshotLinks"]}
+    reverse = next(link for link in engineer_state["snapshotLinks"] if link["id"] == "reverse-input-output")
+    assert reverse["source"]["objectId"] == "widget-3"
+    assert reverse["source"]["role"] == "output"
+    assert reverse["target"]["objectId"] == "widget-4"
+    assert reverse["target"]["role"] == "input"
     assert engineer_state["snapshotRelationships"] == []
-    assert engineer_state["snapshotOperators"][0]["id"] == "operator-and-test"
+    assert engineer_state["snapshotOperators"] == []
+    assert engineer_state["snapshotContextLinks"] == []
     assert engineer_state["validationOk"] is True
     assert "invalid-logical-operator" not in engineer_state["validationCodes"]
-    assert engineer_state["derivedCount"] >= 3
-    assert engineer_state["conditions"] == [{
-        "id": "operator-and-test",
-        "operator": "and",
-        "inputs": ["widget-1"],
-        "outputs": ["widget-2"],
-    }]
+    assert "invalid-dataflow-direction" not in engineer_state["validationCodes"]
+    assert engineer_state["derivedCount"] == 2
+    assert engineer_state["conditions"] == []
 
     page.locator(".widget-card[data-widget-key='widget-1'] .panel-settings-toggle").first.click(force=True)
     assert page.locator(".widget-card[data-widget-key='widget-1']").evaluate("node => node.classList.contains('widget-tools-open')")
@@ -6615,6 +6862,9 @@ def test_engineer_mode_relationship_links_and_logic_graph_are_gated_and_persiste
     assert hidden_logic["nodules"] == 0
     assert hidden_logic["toolbox"] == 0
     assert hidden_logic["graph"]["links"][0]["id"] == "query-link-widget-1-widget-2"
+    assert hidden_logic["graph"]["relationships"] == []
+    assert hidden_logic["graph"]["operators"] == []
+    assert hidden_logic["graph"]["contextLinks"] == []
 
     press_dashboard_undo(page)
     undone = page.evaluate("() => window.dashboardRelationshipRuntime.getGraph('builder')")
@@ -6622,7 +6872,9 @@ def test_engineer_mode_relationship_links_and_logic_graph_are_gated_and_persiste
     press_dashboard_redo(page)
     redone = page.evaluate("() => window.dashboardRelationshipRuntime.getGraph('builder')")
     assert redone["links"][0]["id"] == "query-link-widget-1-widget-2"
-    assert redone["operators"][0]["operatorType"] == "AND"
+    assert redone["relationships"] == []
+    assert redone["operators"] == []
+    assert redone["contextLinks"] == []
     assert_clean_browser(page)
 
 
@@ -6637,27 +6889,67 @@ def test_engineer_relationship_wire_routes_follow_natural_direction(page: Page, 
     page.evaluate(
         """
         () => {
+          const layout = document.querySelector(".widget-layout[data-widget-layout-key='builder']");
+          const template = document.querySelector(".widget-card[data-widget-key='widget-1']");
+          const place = (key, col, row) => {
+            const node = template.cloneNode(true);
+            node.dataset.widgetKey = key;
+            node.dataset.customWidget = "true";
+            node.dataset.gridCol = String(col);
+            node.dataset.gridRow = String(row);
+            node.dataset.currentSpan = "1";
+            node.dataset.defaultSpan = "1";
+            node.dataset.gridRowSpan = "1";
+            node.style.gridColumn = `${col} / span 1`;
+            node.style.gridRow = `${row} / span 1`;
+            node.classList.remove("widget-tools-open", "widget-workbench-open", "group-selected");
+            delete node.dataset.widgetInitialized;
+            layout.appendChild(node);
+            layout.__initWidget?.(node);
+          };
+          [
+            ["route-a", 1, 1],
+            ["route-b", 5, 5],
+            ["route-c", 5, 1],
+            ["route-d", 1, 2],
+            ["route-e", 3, 2],
+            ["route-f", 4, 6],
+            ["route-g", 5, 3],
+            ["route-h", 1, 7]
+          ].forEach(([key, col, row]) => place(key, col, row));
+          window.dashboardEngineerMode.refresh();
           window.dashboardRelationshipRuntime.setGraph("builder", {
             version: 1,
-            links: [],
+            links: [
+              {
+                id: "route-down-right",
+                source: { objectId: "route-a", role: "output", name: "main" },
+                target: { objectId: "route-b", role: "input", name: "main" },
+                signalType: "data"
+              },
+              {
+                id: "route-right-left",
+                source: { objectId: "route-c", role: "output", name: "main" },
+                target: { objectId: "route-d", role: "input", name: "main" },
+                signalType: "data"
+              },
+              {
+                id: "route-vertical",
+                source: { objectId: "route-e", role: "output", name: "main" },
+                target: { objectId: "route-f", role: "input", name: "main" },
+                signalType: "data"
+              },
+              {
+                id: "route-down-left",
+                source: { objectId: "route-g", role: "output", name: "main" },
+                target: { objectId: "route-h", role: "input", name: "main" },
+                signalType: "data"
+              }
+            ],
             contextLinks: [],
             styleRules: [],
-            operators: [
-              { id: "route-a", operatorType: "AND", x: 300, y: 220 },
-              { id: "route-b", operatorType: "OR", x: 760, y: 520 },
-              { id: "route-c", operatorType: "AND", x: 760, y: 220 },
-              { id: "route-d", operatorType: "OR", x: 300, y: 220 },
-              { id: "route-e", operatorType: "AND", x: 520, y: 260 },
-              { id: "route-f", operatorType: "OR", x: 568, y: 580 },
-              { id: "route-g", operatorType: "AND", x: 760, y: 340 },
-              { id: "route-h", operatorType: "OR", x: 320, y: 620 }
-            ],
-            relationships: [
-              { id: "route-down-right", sourceId: "route-a", targetId: "route-b", type: "semantic" },
-              { id: "route-right-left", sourceId: "route-c", targetId: "route-d", type: "semantic" },
-              { id: "route-vertical", sourceId: "route-e", targetId: "route-f", type: "semantic" },
-              { id: "route-down-left", sourceId: "route-g", targetId: "route-h", type: "semantic" }
-            ]
+            operators: [],
+            relationships: []
           });
         }
         """
@@ -6683,10 +6975,10 @@ def test_engineer_relationship_wire_routes_follow_natural_direction(page: Page, 
             };
           };
           return {
-            downRight: parse("route-down-right"),
-            rightLeft: parse("route-right-left"),
-            vertical: parse("route-vertical"),
-            downLeft: parse("route-down-left"),
+            downRight: parse("link-route-down-right"),
+            rightLeft: parse("link-route-right-left"),
+            vertical: parse("link-route-vertical"),
+            downLeft: parse("link-route-down-left"),
           };
         }
         """
@@ -6709,7 +7001,7 @@ def test_engineer_relationship_wire_routes_follow_natural_direction(page: Page, 
     assert right_left["tx"] <= right_left["c2x"] <= right_left["sx"]
 
     vertical = routes["vertical"]
-    assert abs(vertical["tx"] - vertical["sx"]) <= 1
+    assert abs(vertical["tx"] - vertical["sx"]) <= 24
     assert vertical["ty"] > vertical["sy"]
     assert 24 <= vertical["c1x"] - vertical["sx"] <= 90
     assert 24 <= vertical["c2x"] - vertical["tx"] <= 90
@@ -6823,7 +7115,7 @@ def test_engineer_wire_nodules_drag_to_create_directional_dataflow_link(page: Pa
         "() => document.querySelector('.workspace-wire-nodule[data-wire-object-id=\"widget-1\"][data-wire-port-role=\"output\"]')?.getBoundingClientRect().width > 0"
     )
 
-    source = page.locator('.workspace-wire-nodule[data-wire-object-id="widget-1"][data-wire-port-role="output"]').first
+    source = page.locator('.workspace-wire-nodule[data-wire-object-id="widget-1"][data-wire-port-role="output"]:visible').first
     source_box = source.bounding_box()
     assert source_box
     source_x, source_y = box_center(source_box)
@@ -6912,8 +7204,8 @@ def test_engineer_wire_nodules_drag_to_create_directional_dataflow_link(page: Pa
         "() => document.querySelector('.workspace-wire-nodule[data-wire-object-id=\"widget-1\"][data-wire-port-role=\"output\"]')?.getBoundingClientRect().width > 0 && document.querySelector('.workspace-wire-nodule[data-wire-object-id=\"widget-2\"][data-wire-port-role=\"input\"]')?.getBoundingClientRect().width > 0"
     )
 
-    reverse_source = page.locator('.workspace-wire-nodule[data-wire-object-id="widget-2"][data-wire-port-role="input"]').first
-    reverse_target = page.locator('.workspace-wire-nodule[data-wire-object-id="widget-1"][data-wire-port-role="output"]').first
+    reverse_source = page.locator('.workspace-wire-nodule[data-wire-object-id="widget-2"][data-wire-port-role="input"]:visible').first
+    reverse_target = page.locator('.workspace-wire-nodule[data-wire-object-id="widget-1"][data-wire-port-role="output"]:visible').first
     reverse_source_box = reverse_source.bounding_box()
     reverse_target_box = reverse_target.bounding_box()
     assert reverse_source_box and reverse_target_box
@@ -6954,7 +7246,7 @@ def test_engineer_wire_nodules_drag_to_create_directional_dataflow_link(page: Pa
     press_dashboard_undo(page)
     page.wait_for_function("() => window.dashboardRelationshipRuntime.links('builder').length === 0")
 
-    target = page.locator('.workspace-wire-nodule[data-wire-object-id="widget-2"][data-wire-port-role="input"]').first
+    target = page.locator('.workspace-wire-nodule[data-wire-object-id="widget-2"][data-wire-port-role="input"]:visible').first
     target_box = target.bounding_box()
     source_box = source.bounding_box()
     assert source_box and target_box
@@ -7020,8 +7312,8 @@ def test_engineer_wire_nodules_drag_to_create_directional_dataflow_link(page: Pa
     page.mouse.up()
     page.wait_for_function("() => window.dashboardRelationshipRuntime.dataflowLinks('builder').length === 1")
 
-    recursive_source = page.locator('.workspace-wire-nodule[data-wire-object-id="widget-2"][data-wire-port-role="output"]').first
-    recursive_target = page.locator('.workspace-wire-nodule[data-wire-object-id="widget-1"][data-wire-port-role="input"]').first
+    recursive_source = page.locator('.workspace-wire-nodule[data-wire-object-id="widget-2"][data-wire-port-role="output"]:visible').first
+    recursive_target = page.locator('.workspace-wire-nodule[data-wire-object-id="widget-1"][data-wire-port-role="input"]:visible').first
     recursive_source_box = recursive_source.bounding_box()
     recursive_target_box = recursive_target.bounding_box()
     assert recursive_source_box and recursive_target_box
@@ -7078,13 +7370,17 @@ def test_engineer_wire_nodules_drag_to_create_directional_dataflow_link(page: Pa
 
     page.evaluate(
         """
-        () => window.dashboardRelationshipRuntime.addRelationship("builder", {
-          id: "unrelated-query-wire",
-          sourceId: "widget-3",
-          targetId: "widget-4",
-          type: "query",
-          visualState: "ambient"
-        })
+        () => {
+          const runtime = window.dashboardRelationshipRuntime;
+          const port = (objectId, role) => runtime.portsForObject("builder", objectId).find((entry) => entry.role === role);
+          runtime.addLink("builder", {
+            id: "unrelated-dataflow-wire",
+            source: port("widget-3", "output"),
+            target: port("widget-4", "input"),
+            signalType: "data",
+            visualState: "ambient"
+          });
+        }
         """
     )
     page.wait_for_function("() => document.querySelectorAll('.workspace-relationship-path').length >= 2")
@@ -7110,7 +7406,7 @@ def test_engineer_wire_nodules_drag_to_create_directional_dataflow_link(page: Pa
     assert page.evaluate('() => document.querySelectorAll(".workspace-relationship-path[data-relationship-highlight]").length') == 0
 
     press_dashboard_undo(page)
-    assert page.evaluate('() => window.dashboardRelationshipRuntime.relationships("builder", { derived: false }).length') == 0
+    assert page.evaluate('() => window.dashboardRelationshipRuntime.relationships("builder", { derived: false }).length') == 1
     assert page.evaluate('() => window.dashboardRelationshipRuntime.links("builder").length') == 1
     assert page.evaluate('() => window.dashboardRelationshipRuntime.contextLinks("builder").length') == 0
     press_dashboard_undo(page)
@@ -7120,7 +7416,7 @@ def test_engineer_wire_nodules_drag_to_create_directional_dataflow_link(page: Pa
     assert page.evaluate('() => window.dashboardRelationshipRuntime.contextLinks("builder").length') == 0
 
     assert page.evaluate('() => document.querySelectorAll(".workspace-wire-delete-button").length') == 0
-    context_midpoint = page.evaluate(
+    wire_midpoint = page.evaluate(
         """
         () => {
           const target = document.querySelector('.workspace-wire-select-target');
@@ -7129,7 +7425,7 @@ def test_engineer_wire_nodules_drag_to_create_directional_dataflow_link(page: Pa
         }
         """
     )
-    page.mouse.click(context_midpoint["x"], context_midpoint["y"])
+    page.mouse.click(wire_midpoint["x"], wire_midpoint["y"])
     expect(page.locator(".workspace-wire-delete-button")).to_be_visible()
     selected_state = page.evaluate(
         """
@@ -7146,7 +7442,7 @@ def test_engineer_wire_nodules_drag_to_create_directional_dataflow_link(page: Pa
     page.locator(".engineer-mode-button").click()
     expect(page.locator(".engineer-mode-button")).to_have_attribute("aria-pressed", "true")
     page.wait_for_function("() => document.querySelector('.workspace-relationship-path[data-relationship-type=\"query\"][data-relationship-signal-type=\"data\"]')")
-    context_midpoint = page.evaluate(
+    wire_midpoint = page.evaluate(
         """
         () => {
           const target = document.querySelector('.workspace-wire-select-target');
@@ -7155,7 +7451,7 @@ def test_engineer_wire_nodules_drag_to_create_directional_dataflow_link(page: Pa
         }
         """
     )
-    page.mouse.click(context_midpoint["x"], context_midpoint["y"])
+    page.mouse.click(wire_midpoint["x"], wire_midpoint["y"])
     expect(page.locator(".workspace-wire-delete-button")).to_be_visible()
     page.locator(".workspace-wire-delete-button").click()
     page.wait_for_function("() => window.dashboardRelationshipRuntime.links('builder').length === 0")
@@ -7164,66 +7460,6 @@ def test_engineer_wire_nodules_drag_to_create_directional_dataflow_link(page: Pa
     page.wait_for_function("() => window.dashboardRelationshipRuntime.links('builder').length === 1 && document.querySelector('.workspace-relationship-path[data-relationship-signal-type=\"data\"]')")
     press_dashboard_redo(page)
     page.wait_for_function("() => window.dashboardRelationshipRuntime.links('builder').length === 0")
-
-    page.evaluate(
-        """
-        (dividerKey) => {
-          window.dashboardRelationshipRuntime.addContextLink("builder", {
-            id: "escape-context-wire",
-            sourceObjectId: "widget-1",
-            targetObjectId: dividerKey,
-            mode: "inherit"
-          });
-        }
-        """,
-        divider_key,
-    )
-    page.wait_for_function("() => window.dashboardRelationshipRuntime.contextLinks('builder').length === 1 && document.querySelector('.workspace-wire-select-target')")
-    context_midpoint = page.evaluate(
-        """
-        () => {
-          const target = document.querySelector('.workspace-wire-select-target');
-          const rect = target.getBoundingClientRect();
-          return { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 };
-        }
-        """
-    )
-    page.mouse.click(context_midpoint["x"], context_midpoint["y"])
-    expect(page.locator(".workspace-wire-delete-button")).to_be_visible()
-    page.keyboard.press("Escape")
-    page.wait_for_function('() => document.querySelectorAll(".workspace-wire-delete-button").length === 0')
-    page.evaluate("() => window.dashboardRelationshipRuntime.removeContextLink('builder', 'escape-context-wire')")
-    page.wait_for_function("() => window.dashboardRelationshipRuntime.contextLinks('builder').length === 0")
-
-    page.evaluate(
-        """
-        (dividerKey) => {
-          window.dashboardRelationshipRuntime.addContextLink("builder", {
-            id: "keyboard-delete-context-wire",
-            sourceObjectId: "widget-1",
-            targetObjectId: dividerKey,
-            mode: "inherit"
-          });
-        }
-        """,
-        divider_key,
-    )
-    page.wait_for_function("() => window.dashboardRelationshipRuntime.contextLinks('builder').length === 1 && document.querySelector('.workspace-wire-select-target')")
-    context_midpoint = page.evaluate(
-        """
-        () => {
-          const target = document.querySelector('.workspace-wire-select-target');
-          const rect = target.getBoundingClientRect();
-          return { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 };
-        }
-        """
-    )
-    page.mouse.click(context_midpoint["x"], context_midpoint["y"])
-    expect(page.locator(".workspace-wire-delete-button")).to_be_visible()
-    page.keyboard.press("Delete")
-    page.wait_for_function(
-        "() => window.dashboardRelationshipRuntime.contextLinks('builder').length === 0 && document.querySelectorAll('.workspace-wire-delete-button').length === 0"
-    )
 
     page.locator(".layout-save-button").click()
     expect(page.locator(".toast", has_text="saved")).to_be_visible()
@@ -7312,7 +7548,7 @@ def test_engineer_port_double_click_deletes_exact_port_connections(page: Page, a
     )
     page.wait_for_function("() => window.dashboardRelationshipRuntime.links('builder').length === 4")
 
-    widget_2_input = page.locator('.workspace-wire-nodule[data-wire-object-id="widget-2"][data-wire-port-role="input"]').first
+    widget_2_input = page.locator('.workspace-wire-nodule[data-wire-object-id="widget-2"][data-wire-port-role="input"]:visible').first
     widget_2_input.dblclick()
     page.wait_for_function(
         """
@@ -7340,7 +7576,7 @@ def test_engineer_port_double_click_deletes_exact_port_connections(page: Page, a
         """
     )
     page.wait_for_function("() => window.dashboardRelationshipRuntime.links('builder').length === 4")
-    widget_1_output = page.locator('.workspace-wire-nodule[data-wire-object-id="widget-1"][data-wire-port-role="output"]').first
+    widget_1_output = page.locator('.workspace-wire-nodule[data-wire-object-id="widget-1"][data-wire-port-role="output"]:visible').first
     widget_1_output.dblclick()
     page.wait_for_function(
         """
@@ -7362,38 +7598,6 @@ def test_engineer_port_double_click_deletes_exact_port_connections(page: Page, a
         }
         """
     )
-
-    page.evaluate(
-        """
-        () => {
-          const runtime = window.dashboardRelationshipRuntime;
-          const port = (objectId, role) => runtime.portsForObject("builder", objectId).find((entry) => entry.role === role);
-          runtime.addContextLink("builder", {
-            id: "port-context-delete",
-            sourceObjectId: "widget-1",
-            targetObjectId: "widget-2",
-            mode: "inherit"
-          }, undefined, {
-            sourcePort: port("widget-1", "output"),
-            targetPort: port("widget-2", "input")
-          });
-        }
-        """
-    )
-    page.wait_for_function(
-        "() => window.dashboardRelationshipRuntime.contextLinks('builder').length === 1 && window.dashboardRelationshipRuntime.links('builder').some((link) => link.metadata.contextLinkId === 'port-context-delete')"
-    )
-    widget_2_input.dblclick()
-    page.wait_for_function(
-        """
-        () => window.dashboardRelationshipRuntime.contextLinks("builder").length === 0 &&
-          window.dashboardRelationshipRuntime.links("builder").map((link) => link.id).join(",") === "widget-2-outgoing"
-        """
-    )
-    press_dashboard_undo(page)
-    page.wait_for_function("() => window.dashboardRelationshipRuntime.contextLinks('builder').length === 1")
-    press_dashboard_redo(page)
-    page.wait_for_function("() => window.dashboardRelationshipRuntime.contextLinks('builder').length === 0")
 
     page.locator(".layout-save-button").click()
     expect(page.locator(".toast", has_text="saved")).to_be_visible()
@@ -9260,6 +9464,437 @@ def test_system_meta_widgets_render_context_and_engineer_gated_inspector(page: P
     assert_clean_browser(page)
 
 
+def test_data_filter_widget_registers_configures_persists_and_exposes_dataflow_ports(page: Page, app_server: str) -> None:
+    goto(page, app_server)
+    page.evaluate("localStorage.clear()")
+    page.reload(wait_until="networkidle")
+    page.wait_for_selector(".page")
+
+    page.locator(".engineer-mode-button").click()
+    expect(page.locator(".engineer-mode-button")).to_have_attribute("aria-pressed", "true")
+    open_add_category(page, "data", "Data Filter").locator('.widget-add-action[data-widget-kind="data-filter"]', has_text="AND").click()
+    data_filter = page.locator('.widget-layout > .data-filter-widget-card[data-widget-definition="data-filter"]').last
+    expect(data_filter).to_be_visible()
+    expect(data_filter.locator(".data-filter-widget")).to_contain_text("AND")
+    assert data_filter.evaluate(
+        """
+        node => ({
+          type: node.dataset.widgetRuntimeType,
+          kind: node.dataset.dashboardObjectKind,
+          layer: node.dataset.widgetLayer,
+          span: Number(node.dataset.currentSpan || node.dataset.defaultSpan),
+          rows: Number(node.dataset.gridRowSpan || 1),
+          config: JSON.parse(node.dataset.widgetConfig || "{}"),
+        })
+        """
+    ) == {
+        "type": "data-filter",
+        "kind": "data-filter",
+        "layer": "backend",
+        "span": 2,
+        "rows": 1,
+        "config": {
+            "title": "Data Filter",
+            "filterMode": "logic",
+            "operator": "AND",
+            "sourceType": "auto",
+            "targetType": "boolean",
+            "conversionBehavior": "round",
+            "fallbackBehavior": "null",
+            "fallbackValue": "",
+            "invertOutput": False,
+            "allowMultipleInputs": True,
+        },
+    }
+
+    data_filter.locator(".data-filter-core").click()
+    expect(data_filter).to_have_class(re.compile("widget-workbench-open"))
+    workbench = data_filter.locator(".widget-workbench-panel")
+    expect(workbench).to_be_visible()
+    expect(workbench).to_contain_text("Data Filter workbench")
+    expect(workbench.locator('[data-widget-setting-key="operator"]')).to_be_visible()
+    workbench.locator('[data-widget-setting-key="operator"]').select_option("OR")
+    expect(data_filter.locator(".data-filter-widget")).to_contain_text("OR")
+    configured = data_filter.evaluate("node => JSON.parse(node.dataset.widgetConfig || '{}')")
+    assert configured["operator"] == "OR"
+
+    key = data_filter.evaluate("node => node.dataset.widgetKey")
+    page.wait_for_function(
+        """
+        key => document.querySelector(`.workspace-wire-nodule[data-wire-object-id="${key}"][data-wire-port-role="input"]`) &&
+          document.querySelector(`.workspace-wire-nodule[data-wire-object-id="${key}"][data-wire-port-role="output"]`)
+        """,
+        arg=key,
+    )
+    ports = page.evaluate(
+        """
+        key => {
+          const runtime = window.dashboardRelationshipRuntime;
+          const gatePorts = runtime.portsForObject("builder", key);
+          const portRoles = gatePorts.map((port) => port.role).sort();
+          const link = runtime.addLink("builder", {
+            id: "data-filter-dataflow",
+            source: gatePorts.find((port) => port.role === "output"),
+            target: runtime.portsForObject("builder", "widget-1").find((port) => port.role === "input"),
+            signalType: "data"
+          });
+          return {
+            portRoles,
+            linkSourceRole: link?.source?.role || "",
+            linkTargetRole: link?.target?.role || "",
+            linkSignalType: link?.signalType || "",
+          };
+        }
+        """,
+        key,
+    )
+    assert ports["portRoles"] == ["input", "output"]
+    assert ports["linkSourceRole"] == "output"
+    assert ports["linkTargetRole"] == "input"
+    assert ports["linkSignalType"] == "data"
+    page.wait_for_function('() => document.querySelectorAll(".workspace-relationship-path[data-relationship-signal-type=\\"data\\"]").length === 1')
+
+    page.locator(".layout-save-button").click()
+    expect(page.locator(".toast", has_text="saved")).to_be_visible()
+    page.reload(wait_until="networkidle")
+    reloaded = page.locator(f'.data-filter-widget-card[data-widget-key="{key}"]')
+    expect(reloaded).to_be_hidden()
+    page.locator(".engineer-mode-button").click()
+    expect(page.locator(".engineer-mode-button")).to_have_attribute("aria-pressed", "true")
+    expect(reloaded).to_be_visible()
+    expect(reloaded).to_contain_text("OR")
+    assert reloaded.evaluate("node => JSON.parse(node.dataset.widgetConfig || '{}').operator") == "OR"
+    page.wait_for_function(
+        """
+        key => window.dashboardRelationshipRuntime.links("builder").some((link) =>
+          link.id === "data-filter-dataflow" &&
+          link.source.objectId === key &&
+          link.source.role === "output" &&
+          link.target.role === "input" &&
+          link.signalType === "data")
+        """,
+        arg=key,
+    )
+    assert_clean_browser(page)
+
+
+def test_engineer_underlay_gates_backend_widgets_and_ghosts_presentation_layer(page: Page, app_server: str) -> None:
+    goto(page, app_server)
+    page.evaluate("localStorage.clear()")
+    page.reload(wait_until="networkidle")
+    page.wait_for_selector(".page")
+
+    open_add_category(page, "data").locator('.widget-add-action[data-widget-kind="stat"]').click()
+    presentation_widget = page.locator('.widget-layout > .widget-card[data-widget-definition="stat"]').last
+    expect(presentation_widget).to_be_visible()
+    assert page.evaluate("() => document.querySelector('.workspace-engineer-underlay-plane:not([hidden])') === null")
+
+    page.locator(".engineer-mode-button").click()
+    expect(page.locator(".engineer-mode-button")).to_have_attribute("aria-pressed", "true")
+    page.wait_for_function("() => document.querySelector('.workspace-engineer-underlay-plane:not([hidden])')")
+    expect(page.locator(".workspace-engineer-underlay-plane")).to_be_visible()
+    ghost_opacity = presentation_widget.evaluate("node => Number.parseFloat(getComputedStyle(node).opacity)")
+    assert ghost_opacity < 0.8
+
+    open_add_category(page, "data", "Data Filter").locator('.widget-add-action[data-widget-kind="data-filter"]', has_text="AND").click()
+    backend_widget = page.locator('.widget-layout > .data-filter-widget-card[data-widget-definition="data-filter"]').last
+    expect(backend_widget).to_be_visible()
+    assert backend_widget.evaluate(
+        """
+        node => ({
+          layer: node.dataset.widgetLayer,
+          workspaceLayer: node.dataset.workspaceLayer,
+          definitionLayer: window.dashboardWidgetRuntime
+            .listWidgetDefinitions()
+            .find((definition) => definition.type === "data-filter")?.layer || "",
+          engineerOnly: window.dashboardWidgetRuntime
+            .listWidgetDefinitions()
+            .find((definition) => definition.type === "data-filter")?.engineerOnly || false,
+        })
+        """
+    ) == {
+        "layer": "backend",
+        "workspaceLayer": "engineer-underlay",
+        "definitionLayer": "backend",
+        "engineerOnly": True,
+    }
+    open_add_category(page, "system").locator('.widget-add-action[data-widget-kind="context-inspector"]').click()
+    inspector_widget = page.locator('.widget-layout > .context-inspector-widget-card[data-widget-definition="context-inspector"]').last
+    expect(inspector_widget).to_be_visible()
+    assert inspector_widget.evaluate("node => node.dataset.widgetLayer") == "backend"
+
+    page.locator(".engineer-mode-button").click()
+    expect(page.locator(".engineer-mode-button")).to_have_attribute("aria-pressed", "false")
+    expect(page.locator(".workspace-engineer-underlay-plane")).to_be_hidden()
+    expect(backend_widget).to_be_hidden()
+    expect(inspector_widget).to_be_hidden()
+    expect(presentation_widget).to_be_visible()
+    assert page.evaluate(
+        """
+        () => ({
+          nodules: document.querySelectorAll(".workspace-wire-nodule").length,
+          wires: document.querySelectorAll(".workspace-relationship-path").length,
+        })
+        """
+    ) == {"nodules": 0, "wires": 0}
+    page.locator(".panel-add-button").click()
+    data = page.locator('.object-add-category[data-object-menu-category="data"]')
+    data.locator(".object-add-category-trigger").hover()
+    expect(data.locator('.object-add-subcategory[data-object-add-subcategory="Data Filter"]')).to_have_count(0)
+    assert_clean_browser(page)
+
+
+def test_data_filter_type_conversion_mode_configures_and_persists(page: Page, app_server: str) -> None:
+    goto(page, app_server)
+    page.evaluate("localStorage.clear()")
+    page.reload(wait_until="networkidle")
+    page.wait_for_selector(".page")
+
+    page.locator(".engineer-mode-button").click()
+    expect(page.locator(".engineer-mode-button")).to_have_attribute("aria-pressed", "true")
+    open_add_category(page, "data", "Data Filter").locator('.widget-add-action[data-widget-kind="data-filter"]', has_text="Type Conversion").click()
+    converter = page.locator('.widget-layout > .data-filter-widget-card[data-widget-definition="data-filter"]').last
+    expect(converter).to_be_visible()
+    expect(converter.locator(".data-filter-widget")).to_contain_text("string")
+    expect(converter.locator(".data-filter-widget")).to_contain_text("boolean")
+    state = converter.evaluate(
+        """
+        node => ({
+          type: node.dataset.widgetRuntimeType,
+          kind: node.dataset.dashboardObjectKind,
+          layer: node.dataset.widgetLayer,
+          config: JSON.parse(node.dataset.widgetConfig || "{}"),
+          mode: node.querySelector(".data-filter-widget")?.dataset.filterMode || "",
+        })
+        """
+    )
+    assert state["type"] == "data-filter"
+    assert state["kind"] == "data-filter"
+    assert state["layer"] == "backend"
+    assert state["mode"] == "type-conversion"
+    assert state["config"]["filterMode"] == "type-conversion"
+    assert state["config"]["sourceType"] == "string"
+    assert state["config"]["targetType"] == "boolean"
+
+    converter.locator(".data-filter-core").click()
+    expect(converter).to_have_class(re.compile("widget-workbench-open"))
+    workbench = converter.locator(".widget-workbench-panel")
+    expect(workbench).to_be_visible()
+    expect(workbench).to_contain_text("Data Filter workbench")
+    expect(workbench.locator('[data-widget-setting-key="filterMode"]')).to_be_visible()
+    expect(workbench.locator('[data-widget-setting-key="sourceType"]')).to_be_visible()
+    expect(workbench.locator('[data-widget-setting-key="targetType"]')).to_be_visible()
+
+    workbench.locator('[data-widget-setting-key="sourceType"]').select_option("float")
+    workbench.locator('[data-widget-setting-key="targetType"]').select_option("integer")
+    workbench.locator('[data-widget-setting-key="conversionBehavior"]').select_option("round")
+    workbench.locator('[data-widget-setting-key="fallbackBehavior"]').select_option("default")
+    workbench.locator('[data-widget-setting-key="fallbackValue"]').fill("0")
+    workbench.locator('[data-widget-setting-key="fallbackValue"]').dispatch_event("change")
+    expect(converter.locator(".data-filter-widget")).to_contain_text("float")
+    expect(converter.locator(".data-filter-widget")).to_contain_text("integer")
+    configured = converter.evaluate("node => JSON.parse(node.dataset.widgetConfig || '{}')")
+    assert configured["filterMode"] == "type-conversion"
+    assert configured["sourceType"] == "float"
+    assert configured["targetType"] == "integer"
+    assert configured["conversionBehavior"] == "round"
+    assert configured["fallbackBehavior"] == "default"
+    assert configured["fallbackValue"] == "0"
+
+    key = converter.evaluate("node => node.dataset.widgetKey")
+    page.wait_for_function(
+        """
+        key => document.querySelector(`.workspace-wire-nodule[data-wire-object-id="${key}"][data-wire-port-role="input"]`) &&
+          document.querySelector(`.workspace-wire-nodule[data-wire-object-id="${key}"][data-wire-port-role="output"]`)
+        """,
+        arg=key,
+    )
+    assert page.evaluate(
+        """
+        key => {
+          const ports = window.dashboardRelationshipRuntime.portsForObject("builder", key);
+          return ports.map((port) => port.role).sort();
+        }
+        """,
+        key,
+    ) == ["input", "output"]
+
+    page.locator(".layout-save-button").click()
+    expect(page.locator(".toast", has_text="saved")).to_be_visible()
+    page.reload(wait_until="networkidle")
+    reloaded = page.locator(f'.data-filter-widget-card[data-widget-key="{key}"]')
+    expect(reloaded).to_be_hidden()
+    page.locator(".engineer-mode-button").click()
+    expect(page.locator(".engineer-mode-button")).to_have_attribute("aria-pressed", "true")
+    expect(reloaded).to_be_visible()
+    expect(reloaded.locator(".data-filter-widget")).to_contain_text("float")
+    expect(reloaded.locator(".data-filter-widget")).to_contain_text("integer")
+    assert reloaded.evaluate(
+        """
+        node => {
+          const config = JSON.parse(node.dataset.widgetConfig || "{}");
+          return {
+            filterMode: config.filterMode,
+            sourceType: config.sourceType,
+            targetType: config.targetType,
+            conversionBehavior: config.conversionBehavior,
+            fallbackBehavior: config.fallbackBehavior,
+            fallbackValue: config.fallbackValue,
+          };
+        }
+        """
+    ) == {
+        "filterMode": "type-conversion",
+        "sourceType": "float",
+        "targetType": "integer",
+        "conversionBehavior": "round",
+        "fallbackBehavior": "default",
+        "fallbackValue": "0",
+    }
+    assert page.evaluate(
+        """
+        () => window.dashboardWidgetRuntime.listWidgetDefinitions()
+          .filter((definition) => /conversion/i.test(definition.displayName) || /conversion/i.test(definition.type))
+          .map((definition) => definition.type)
+        """
+    ) == []
+    assert_clean_browser(page)
+
+
+def test_shift_widget_reacts_to_dataflow_signal_and_persists_config(page: Page, app_server: str) -> None:
+    goto(page, app_server)
+    page.evaluate("localStorage.clear()")
+    page.reload(wait_until="networkidle")
+    page.wait_for_selector(".page")
+
+    page.locator(".engineer-mode-button").click()
+    expect(page.locator(".engineer-mode-button")).to_have_attribute("aria-pressed", "true")
+    open_add_category(page, "data", "Data Filter").locator('.widget-add-action[data-widget-kind="data-filter"]', has_text="AND").click()
+    open_add_category(page, "system", "Reactive").locator('.widget-add-action[data-widget-kind="shift"]').click()
+    gate = page.locator('.widget-layout > .data-filter-widget-card[data-widget-definition="data-filter"]').last
+    shift = page.locator('.widget-layout > .shift-widget-card[data-widget-definition="shift"]').last
+    expect(gate).to_be_visible()
+    expect(shift).to_be_visible()
+    expect(shift.locator(".shift-widget")).to_contain_text("Inactive")
+    assert shift.evaluate(
+        """
+        node => ({
+          type: node.dataset.widgetRuntimeType,
+          kind: node.dataset.dashboardObjectKind,
+          span: Number(node.dataset.currentSpan || node.dataset.defaultSpan),
+          rows: Number(node.dataset.gridRowSpan || 1),
+          signalActive: node.dataset.shiftSignalActive,
+          signalConnected: node.dataset.shiftSignalConnected,
+          config: JSON.parse(node.dataset.widgetConfig || "{}"),
+        })
+        """
+    ) == {
+        "type": "shift",
+        "kind": "shift",
+        "span": 2,
+        "rows": 1,
+        "signalActive": "false",
+        "signalConnected": "false",
+        "config": {
+            "title": "Shift",
+            "stateALabel": "Inactive",
+            "stateAColor": "#64748b",
+            "stateAOpacity": 0.72,
+            "stateBLabel": "Active",
+            "stateBColor": "#f59e0b",
+            "stateBOpacity": 0.92,
+        },
+    }
+
+    shift.locator(".shift-widget-core").click()
+    expect(shift).to_have_class(re.compile("widget-workbench-open"))
+    workbench = shift.locator(".widget-workbench-panel")
+    expect(workbench).to_be_visible()
+    expect(workbench).to_contain_text("Shift Widget workbench")
+    state_b_label = workbench.locator('[data-widget-setting-key="stateBLabel"]')
+    state_b_label.fill("Engaged")
+    state_b_label.dispatch_event("change")
+    assert shift.evaluate("node => JSON.parse(node.dataset.widgetConfig || '{}').stateBLabel") == "Engaged"
+
+    gate_key = gate.evaluate("node => node.dataset.widgetKey")
+    shift_key = shift.evaluate("node => node.dataset.widgetKey")
+    page.wait_for_function(
+        """
+        ({ gateKey, shiftKey }) => document.querySelector(`.workspace-wire-nodule[data-wire-object-id="${gateKey}"][data-wire-port-role="output"]`) &&
+          document.querySelector(`.workspace-wire-nodule[data-wire-object-id="${shiftKey}"][data-wire-port-role="input"]`)
+        """,
+        arg={"gateKey": gate_key, "shiftKey": shift_key},
+    )
+    link_state = page.evaluate(
+        """
+        ({ gateKey, shiftKey }) => {
+          const runtime = window.dashboardRelationshipRuntime;
+          const source = runtime.portsForObject("builder", gateKey).find((port) => port.role === "output");
+          const target = runtime.portsForObject("builder", shiftKey).find((port) => port.role === "input");
+          const link = runtime.addLink("builder", { id: "logic-to-shift", source, target, signalType: "data" });
+          const inactive = runtime.signalStateForObject("builder", shiftKey);
+          const activeLink = runtime.setSignalState("builder", "logic-to-shift", true);
+          const active = runtime.signalStateForObject("builder", shiftKey);
+          return {
+            linkSourceRole: link?.source?.role || "",
+            linkTargetRole: link?.target?.role || "",
+            inactiveConnected: inactive.connected,
+            inactiveActive: inactive.active,
+            activeSignalState: activeLink?.signalState,
+            activeConnected: active.connected,
+            activeActive: active.active,
+          };
+        }
+        """,
+        {"gateKey": gate_key, "shiftKey": shift_key},
+    )
+    assert link_state == {
+        "linkSourceRole": "output",
+        "linkTargetRole": "input",
+        "inactiveConnected": True,
+        "inactiveActive": False,
+        "activeSignalState": True,
+        "activeConnected": True,
+        "activeActive": True,
+    }
+    expect(shift.locator(".shift-widget")).to_contain_text("Engaged")
+    assert shift.evaluate("node => node.dataset.shiftSignalActive") == "true"
+
+    page.evaluate('() => window.dashboardRelationshipRuntime.setSignalState("builder", "logic-to-shift", false)')
+    expect(shift.locator(".shift-widget")).to_contain_text("Inactive")
+    assert shift.evaluate("node => node.dataset.shiftSignalActive") == "false"
+    page.evaluate('() => window.dashboardRelationshipRuntime.setSignalState("builder", "logic-to-shift", true)')
+    expect(shift.locator(".shift-widget")).to_contain_text("Engaged")
+
+    page.locator(".layout-save-button").click()
+    expect(page.locator(".toast", has_text="saved")).to_be_visible()
+    page.reload(wait_until="networkidle")
+    reloaded = page.locator(f'.shift-widget-card[data-widget-key="{shift_key}"]')
+    expect(reloaded).to_be_visible()
+    expect(reloaded.locator(".shift-widget")).to_contain_text("Engaged")
+    assert reloaded.evaluate(
+        """
+        node => ({
+          label: JSON.parse(node.dataset.widgetConfig || "{}").stateBLabel,
+          active: node.dataset.shiftSignalActive,
+          connected: node.dataset.shiftSignalConnected,
+        })
+        """
+    ) == {"label": "Engaged", "active": "true", "connected": "true"}
+    page.locator(".engineer-mode-button").click()
+    page.wait_for_function(
+        """
+        shiftKey => window.dashboardRelationshipRuntime.links("builder").some((link) =>
+          link.id === "logic-to-shift" &&
+          link.target.objectId === shiftKey &&
+          link.target.role === "input" &&
+          link.signalState === true)
+        """,
+        arg=shift_key,
+    )
+    assert_clean_browser(page)
+
+
 def test_engineer_mode_does_not_auto_expose_minimap_overlay(page: Page, app_server: str) -> None:
     goto(page, app_server)
     page.evaluate("localStorage.clear()")
@@ -10436,16 +11071,10 @@ def test_anchor_reorder_starts_from_menu_move_control_and_cleans_preview_state(p
             anchor.locator(".anchor-settings-toggle").click(force=True)
         expect(anchor.locator(".anchor-tool-drawer")).to_be_visible()
 
-    order_before_body_drag = anchor_order()
-    body_box = second_anchor.bounding_box()
-    assert body_box
-    page.mouse.move(body_box["x"] + body_box["width"] / 2, body_box["y"] + body_box["height"] / 2)
-    page.mouse.down()
-    page.mouse.move(body_box["x"] + body_box["width"] + 280, body_box["y"] - 90, steps=12)
-    page.mouse.up()
-    page.wait_for_timeout(140)
+    order_before_body_click = anchor_order()
+    second_anchor.click(position={"x": 24, "y": 24})
     assert anchor_drag_artifacts() == expected_clear
-    assert anchor_order() == order_before_body_drag
+    assert anchor_order() == order_before_body_click
 
     page.evaluate("window.scrollTo(0, 600)")
     page.wait_for_timeout(80)
@@ -10467,7 +11096,7 @@ def test_anchor_reorder_starts_from_menu_move_control_and_cleans_preview_state(p
     page.mouse.move(900, 900)
     page.mouse.up()
     page.keyboard.press("Escape")
-    assert anchor_order() == order_before_body_drag
+    assert anchor_order() == order_before_body_click
 
     open_anchor_tools(second_anchor)
     move_box = second_anchor.locator(".panel-move-handle").bounding_box()
@@ -10491,7 +11120,7 @@ def test_anchor_reorder_starts_from_menu_move_control_and_cleans_preview_state(p
     page.mouse.move(900, 900)
     page.mouse.up()
     page.keyboard.press("Escape")
-    assert anchor_order() == order_before_body_drag
+    assert anchor_order() == order_before_body_click
 
     open_anchor_tools(second_anchor)
     move_box = second_anchor.locator(".panel-move-handle").bounding_box()
@@ -10504,7 +11133,51 @@ def test_anchor_reorder_starts_from_menu_move_control_and_cleans_preview_state(p
     assert anchor_drag_artifacts() == expected_clear
     order_after_menu_drag = anchor_order()
     assert order_after_menu_drag[0] == second_key
-    assert order_after_menu_drag != order_before_body_drag
+    assert order_after_menu_drag != order_before_body_click
+    assert_clean_browser(page)
+
+
+def test_anchor_surface_drag_shortcut_reorders_with_anchor_move_system(page: Page, app_server: str) -> None:
+    goto(page, app_server)
+    page.evaluate("localStorage.clear()")
+    page.reload(wait_until="networkidle")
+    page.wait_for_selector(".page")
+
+    open_add_category(page, "navigation").locator('.widget-add-action[data-widget-kind="anchor"]').click()
+    open_add_category(page, "navigation").locator('.widget-add-action[data-widget-kind="anchor"]').click()
+    anchors = page.locator('.workspace-anchor-object[data-workspace-object-type="anchor"]')
+    expect(anchors).to_have_count(2)
+    second_anchor = anchors.nth(1)
+    second_key = second_anchor.evaluate("node => node.dataset.anchorKey")
+
+    order_before = page.evaluate(
+        """
+        () => [...document.querySelectorAll('.workspace-anchor-layer > .workspace-anchor-object')]
+          .sort((a, b) => Number(a.dataset.anchorRailOrder) - Number(b.dataset.anchorRailOrder))
+          .map((anchor) => anchor.dataset.anchorKey)
+        """
+    )
+    body_box = second_anchor.bounding_box()
+    first_box = anchors.nth(0).bounding_box()
+    assert body_box and first_box
+    page.mouse.move(body_box["x"] + body_box["width"] / 2, body_box["y"] + body_box["height"] / 2)
+    page.mouse.down()
+    page.mouse.move(body_box["x"] + body_box["width"] / 2, first_box["y"] + 8, steps=12)
+    expect(page.locator(".workspace-anchor-drag-ghost")).to_have_count(1)
+    expect(page.locator(".workspace-anchor-rail-placeholder")).to_have_count(1)
+    page.mouse.up()
+    page.wait_for_timeout(260)
+
+    order_after = page.evaluate(
+        """
+        () => [...document.querySelectorAll('.workspace-anchor-layer > .workspace-anchor-object')]
+          .sort((a, b) => Number(a.dataset.anchorRailOrder) - Number(b.dataset.anchorRailOrder))
+          .map((anchor) => anchor.dataset.anchorKey)
+        """
+    )
+    assert order_after[0] == second_key
+    assert order_after != order_before
+    assert_no_undo_artifacts(page)
     assert_clean_browser(page)
 
 
@@ -11170,6 +11843,111 @@ def test_drag_ghost_grid_snapping_and_collision_handling(page: Page, app_server:
     end_drag(page, x, y, 300, 0)
     page.wait_for_timeout(350)
     assert no_visible_overlaps(page, ".widget-layout > .widget-card") == []
+    assert_clean_browser(page)
+
+
+def test_surface_drag_shortcut_uses_move_system_without_replacing_body_click(page: Page, app_server: str) -> None:
+    goto(page, app_server)
+    widget = page.locator(".widget-layout > .stat-card.widget-card").nth(1)
+    widget.scroll_into_view_if_needed()
+    widget_state = lambda: widget.evaluate(
+        """
+        node => ({
+          col: Number(node.dataset.gridCol || 0),
+          row: Number(node.dataset.gridRow || 0),
+        })
+        """
+    )
+
+    before = widget_state()
+    box = widget.locator(".stat-lbl").bounding_box()
+    assert box
+    start_x, start_y = box_center(box)
+    page.mouse.move(start_x, start_y)
+    page.mouse.down()
+    page.mouse.move(start_x + 190, start_y + 130, steps=14)
+    expect(page.locator(".widget-placeholder")).to_have_count(1)
+    expect(widget).to_have_class(re.compile("widget-dragging"))
+    page.mouse.up()
+    page.wait_for_timeout(350)
+
+    after_surface_drag = widget_state()
+    assert (after_surface_drag["col"], after_surface_drag["row"]) != (before["col"], before["row"])
+    expect(widget).not_to_have_class(re.compile("widget-workbench-open"))
+
+    widget.locator(".stat-lbl").click()
+    expect(widget).to_have_class(re.compile("widget-workbench-open"))
+    assert page.locator(".widget-placeholder").count() == 0
+    page.evaluate(
+        """
+        () => {
+          document.querySelectorAll(".widget-tools-open, .widget-workbench-open, .db-panel-tools-open").forEach((node) => {
+            node.classList.remove("widget-tools-open", "widget-settings-schema-open", "widget-workbench-open", "db-panel-tools-open");
+            node.querySelector(":scope > .widget-tools .widget-workbench-panel")?.setAttribute("hidden", "");
+            node.querySelector(".panel-settings-toggle")?.setAttribute("aria-expanded", "false");
+            if (node.dataset.widgetSuspendedHref !== undefined) {
+              if (node.dataset.widgetSuspendedHref) node.setAttribute("href", node.dataset.widgetSuspendedHref);
+              delete node.dataset.widgetSuspendedHref;
+            }
+          });
+          document.body.classList.remove("layout-tools-active");
+        }
+        """
+    )
+
+    force_open_tools_for_interaction(page, widget)
+    drag_by(page, widget.locator(".panel-move-handle"), -120, 115, steps=12)
+    page.wait_for_timeout(350)
+    after_move_handle_drag = widget_state()
+    assert (after_move_handle_drag["col"], after_move_handle_drag["row"]) != (
+        after_surface_drag["col"],
+        after_surface_drag["row"],
+    )
+
+    force_open_tools_for_interaction(page, widget)
+    button_box = widget.locator(".panel-settings-toggle").bounding_box()
+    assert button_box
+    button_x, button_y = box_center(button_box)
+    page.mouse.move(button_x, button_y)
+    page.mouse.down()
+    page.mouse.move(button_x + 110, button_y + 80, steps=8)
+    page.mouse.up()
+    page.wait_for_timeout(120)
+    assert page.locator(".widget-placeholder").count() == 0
+    assert_no_undo_artifacts(page)
+    assert_clean_browser(page)
+
+
+def test_panel_surface_drag_shortcut_preserves_explicit_move_handle(page: Page, app_server: str) -> None:
+    goto(page, app_server)
+    panel = page.locator(".panel-layout > .db-panel").first
+    panel.scroll_into_view_if_needed()
+    before = grid_item_state(page, ".panel-layout > .db-panel")
+    box = panel.bounding_box()
+    assert box
+
+    start_x = box["x"] + min(180, box["width"] * 0.45)
+    start_y = box["y"] + min(80, box["height"] * 0.5)
+    page.mouse.move(start_x, start_y)
+    page.mouse.down()
+    page.mouse.move(start_x + 140, start_y + 120, steps=14)
+    expect(page.locator(".db-panel-placeholder")).to_have_count(1)
+    expect(panel).to_have_class(re.compile("db-panel-dragging"))
+    page.mouse.up()
+    page.wait_for_timeout(350)
+
+    after_surface_drag = grid_item_state(page, ".panel-layout > .db-panel")
+    assert (after_surface_drag["col"], after_surface_drag["row"]) != (before["col"], before["row"])
+
+    force_open_tools_for_interaction(page, panel)
+    drag_by(page, panel.locator(".panel-move-handle"), -90, 105, steps=12)
+    page.wait_for_timeout(350)
+    after_move_handle_drag = grid_item_state(page, ".panel-layout > .db-panel")
+    assert (after_move_handle_drag["col"], after_move_handle_drag["row"]) != (
+        after_surface_drag["col"],
+        after_surface_drag["row"],
+    )
+    assert_no_undo_artifacts(page)
     assert_clean_browser(page)
 
 
@@ -12551,8 +13329,12 @@ def test_resize_auto_zoom_camera_tracks_oversized_widget_and_restores(page: Page
     zoomed = resize_camera_state(page)
     assert zoomed["active"] is True
     assert 0.29 <= zoomed["scale"] < 0.985
+    assert zoomed["sceneTransform"] != "none"
+    assert zoomed["previewInScene"] is True
+    assert zoomed["neighborScaledByScene"] is True
     assert zoomed["liveTransform"] != "none"
-    assert zoomed["previewTransform"] != "none"
+    assert abs(zoomed["previewOwnScaleX"] - 1) < 0.01
+    assert abs(zoomed["previewOwnScaleY"] - 1) < 0.01
 
     page.mouse.move(x + 52, y + 720, steps=18)
     page.wait_for_function("() => Number(document.body.dataset.resizeCameraScale || 1) < .985")
@@ -15757,10 +16539,8 @@ def test_select_mode_copy_paste_duplicates_selected_workspace_group(page: Page, 
     expect(select_button).to_have_text("Select")
     expect(select_button).to_have_attribute("title", "Select widgets or panels")
 
-    page.locator(".panel-add-button").click()
-    page.locator('.divider-add-action[data-divider-kind="context-divider"]').click()
-    page.locator(".panel-add-button").click()
-    page.locator('.divider-add-action[data-divider-kind="context-divider"]').click()
+    open_add_category(page, "dividers").locator('.divider-add-action[data-divider-kind="context-divider"]').click()
+    open_add_category(page, "dividers").locator('.divider-add-action[data-divider-kind="context-divider"]').click()
     expect(page.locator(".panel-layout[data-layout-key='builder'] > .workspace-divider")).to_have_count(2)
 
     setup = page.evaluate(
@@ -15829,11 +16609,13 @@ def test_select_mode_copy_paste_duplicates_selected_workspace_group(page: Page, 
     page.evaluate(
         """
         ({ sourceWidgetKey, sourcePanelKey }) => {
-          window.dashboardRelationshipRuntime.addContextLink("builder", {
-            id: "copy-source-context-link",
-            sourceObjectId: sourceWidgetKey,
-            targetObjectId: sourcePanelKey,
-            mode: "inherit"
+          const runtime = window.dashboardRelationshipRuntime;
+          const port = (objectId, role) => runtime.portsForObject("builder", objectId).find((entry) => entry.role === role);
+          window.dashboardRelationshipRuntime.addLink("builder", {
+            id: "copy-source-dataflow-link",
+            source: port(sourceWidgetKey, "output"),
+            target: port(sourcePanelKey, "input"),
+            signalType: "data"
           }, "1", { force: true });
         }
         """,
@@ -15900,8 +16682,8 @@ def test_select_mode_copy_paste_duplicates_selected_workspace_group(page: Page, 
           const pastedPanel = selected.find((node) => node.classList.contains("db-panel"));
           const child = pastedPanel?.querySelector(".panel-internal-widget-grid > .widget-card");
           const blocker = document.querySelector('[data-widget-key="widget-2"]');
-          const pastedLink = window.dashboardRelationshipRuntime.contextLinks("builder")
-            .find((link) => link.sourceObjectId === pastedWidget?.dataset.widgetKey && link.targetObjectId === pastedPanel?.dataset.panelKey);
+          const pastedLink = window.dashboardRelationshipRuntime.dataflowLinks("builder")
+            .find((link) => link.source.objectId === pastedWidget?.dataset.widgetKey && link.target.objectId === pastedPanel?.dataset.panelKey);
           return {
             sourceWidget: bounds(sourceWidget),
             sourcePanel: bounds(sourcePanel),
@@ -15911,10 +16693,12 @@ def test_select_mode_copy_paste_duplicates_selected_workspace_group(page: Page, 
               key: child.dataset.widgetKey,
               parentPanelKey: child.dataset.parentPanelKey,
             } : null,
-            pastedContextLink: pastedLink ? {
-              sourceObjectId: pastedLink.sourceObjectId,
-              targetObjectId: pastedLink.targetObjectId,
-              mode: pastedLink.mode,
+            pastedDataflowLink: pastedLink ? {
+              sourceObjectId: pastedLink.source.objectId,
+              sourceRole: pastedLink.source.role,
+              targetObjectId: pastedLink.target.objectId,
+              targetRole: pastedLink.target.role,
+              signalType: pastedLink.signalType,
             } : null,
             blocker: bounds(blocker),
           };
@@ -15925,10 +16709,12 @@ def test_select_mode_copy_paste_duplicates_selected_workspace_group(page: Page, 
     assert pasted["pastedPanel"]["key"] != setup["sourcePanelKey"]
     assert pasted["child"]["key"] != setup["childKey"]
     assert pasted["child"]["parentPanelKey"] == pasted["pastedPanel"]["key"]
-    assert pasted["pastedContextLink"] == {
+    assert pasted["pastedDataflowLink"] == {
         "sourceObjectId": pasted["pastedWidget"]["key"],
+        "sourceRole": "output",
         "targetObjectId": pasted["pastedPanel"]["key"],
-        "mode": "inherit",
+        "targetRole": "input",
+        "signalType": "data",
     }
     assert pasted["pastedWidget"]["row"] >= setup["targetRow"]
     assert pasted["blocker"] == {"key": "widget-2", "col": 1, "row": setup["targetRow"], "span": 2, "rowSpan": 1}

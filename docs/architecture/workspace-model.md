@@ -16,6 +16,7 @@ The current dashboard grid remains the foundation. Future systems should extend 
 - `Camera state`: Future pan, zoom, and focused-region state. Camera movement must not mutate committed layout.
 - `Object`: A workspace entity with identity, behavior, and persistence semantics.
 - `Context scope`: A boundary that owns inherited context values.
+- `Engineer Underlay`: The recessed Engineer Mode plane for backend/dataflow widgets and explicit output-to-input signal routes. It is aligned with the presentation workspace but hidden in Normal Mode.
 
 ## Region Types
 
@@ -29,6 +30,7 @@ Regions can be introduced gradually. Do not implement every type at once.
 | Group bounds | Yes | Optional | Group selection or future group record | Current groups are temporary selection transforms. |
 | Saved viewport | No or subtle | Optional | Anchor or profile | Navigation state, not grid occupancy. |
 | Focus region | Subtle | Optional | Viewport/camera state | Should not persist as layout unless explicitly saved. |
+| Engineer Underlay | Yes in Engineer Mode only | Yes for explicit dataflow | Widget registry/dataflow graph | Backend widgets and dataflow wires live here; it must not replace ambient region context. |
 
 ## Spatial Relationship Model
 
@@ -86,11 +88,10 @@ No object should secretly own another system's state. For example:
 Context should resolve from local to global:
 
 1. Direct object context.
-2. Explicit context links.
-3. Panel context.
-4. Group context, if persistent semantic groups are introduced.
-5. Spatial Context Zone context.
-6. Workspace/global context.
+2. Panel context.
+3. Group context, if persistent semantic groups are introduced.
+4. Spatial Context Zone context.
+5. Workspace/global context.
 
 The workspace/global scope is the fallback, not the default place to put every control.
 

@@ -48,7 +48,7 @@ Each widget definition declares:
 - `resolveQuery(config, resolvedContext)`
 - `render(props)`
 
-The registry currently includes first-class definitions for stat, timeframe, search, table, chart, stat-filter, and calendar widgets. Timeframe and Search Bar are widget types, not special dashboard chrome. Unknown widget types resolve through the unsupported-widget fallback instead of breaking the renderer.
+The registry currently includes first-class definitions for stat, timeframe, search, filter control, data filter, table, chart, shift, and calendar widgets. Timeframe and Search Bar are widget types, not special dashboard chrome. Unknown widget types resolve through the unsupported-widget fallback instead of breaking the renderer.
 
 Core layout, drag, resize, collision, save/load, and menu code should not need edits when a new widget type is added. New widget behavior belongs in the widget definition and should consume a resolved context rather than raw data-source details.
 
@@ -66,11 +66,15 @@ The widget runtime also owns adaptive visual density through `resolveWidgetDensi
 
 Events describe what happened; they are not canonical state and are not persisted with layouts. The bus currently emits object creation/deletion/move/resize, panel open/collapse, widget panel-containment transitions, anchor link/reorder/delete, divider movement/context changes, context updates, query start/success/failure, save/load completion, and undo/redo. Activity Feed and Engineer/debug surfaces consume the same bus so future AI/context tooling can subscribe without coupling directly to widget, query, or history internals.
 
-## Relationship Graph And Logical Operators
+## Engineer Dataflow Links
 
-Workspace computational relationships live in a persisted sidecar graph exposed through `window.dashboardRelationshipRuntime`. The graph stores first-class `links`, legacy/diagnostic `relationships`, semantic `contextLinks`, `operators`, and `styleRules` by stable object ids rather than DOM nodes. Links are the canonical explicit runtime/dataflow graph edges: widgets, panels, dividers, and logic nodes act like machines; ports are plugs; wires are only the Engineer Mode rendering of persisted directional links.
+Workspace dataflow links live in a persisted sidecar graph exposed through `window.dashboardRelationshipRuntime`. The current graph is intentionally narrow: first-class `links` are the only wire-backed computational edges, and wires are only the Engineer Mode rendering of those persisted directional links. Legacy `relationships`, `contextLinks`, and `operators` fields may appear in compatibility payloads, but they are normalized to empty current state and are not active behavior.
 
 This graph is distinct from ambient context inheritance. Region/divider context answers "where does this object live, and what environment does it inherit?" Dataflow links answer "what output feeds this input, and what computational chain produced this result?" The two systems are complementary, but they must not be collapsed into one generic relationship layer.
+
+Engineer Mode reveals the explicit dataflow substrate through an Engineer Underlay. Widget definitions declare a `layer` of `presentation`, `backend`, or `both`. Presentation widgets remain the normal visible dashboard surface. Backend widgets, such as Data Filter and Context Inspector, are hidden in Normal Mode and become visible only when Engineer Mode opens the recessed underlay plane. Presentation objects are ghosted as spatial references while backend objects and dataflow wires remain the primary underlay affordances. This is a visual/runtime layer distinction, not a second dashboard application: backend widgets still use the normal widget registry, grid geometry, config persistence, undo/redo, and save/load paths.
+
+Layer assignment follows role, not category. Widgets whose purpose is to show information or provide direct visible controls stay on the presentation layer: Stat, Chart, Table, Map, Timeframe, Search, Filter Control, Text/Notes, Region Summary, Media, Activity Feed, AI Assistant, Shift, panels, dividers, and anchors. Widgets whose purpose is data preparation, transformation, routing, filtering, normalization, computation, or runtime/debug inspection belong to the backend layer. Current backend widgets are Data Filter and Context Inspector. Legacy Stat Filter and Logic Gate concepts migrate into Data Filter aliases/config; Type Conversion is a Data Filter mode. Future Sort, Join, Transform, Query/API/SQL, JSON/data inspector, conditional styling processor, and normalization widgets should be registered as backend-layer widgets unless they are explicitly user-facing presentation surfaces.
 
 Each connectable object exposes derived default ports. The default convention is left-side `input` ports and right-side `output` ports. Link records persist source and target port refs, signal type, direction, visual state, and metadata:
 
@@ -79,28 +83,31 @@ type WorkspaceLink = {
   id: string;
   source: { objectId: string; portId: string; role: "output"; side: "right"; name: string };
   target: { objectId: string; portId: string; role: "input"; side: "left"; name: string };
-  signalType: "context" | "filter" | "query" | "logical" | "style" | "data" | "semantic";
+  signalType: "data";
+  signalState?: boolean;
   direction: "source-to-target";
   enabled: boolean;
   metadata?: Record<string, unknown>;
 };
 ```
 
-Legacy `relationships` remain as compatibility/diagnostic edges, while Context Links remain the semantic context-resolution layer. A Context Link may be backed by a canonical `link` for persistence compatibility, but default Engineer wire drags create directional dataflow `links`, not context inheritance. Relationships support `context`, `filter`, `query`, `containment`, `operator`, and `semantic` types; logical operators currently support `AND`, `OR`, and `NOT` nodes with normalized input/output ids.
-
-Context Links are semantic graph edges with `{ id, sourceObjectId, targetObjectId, mode }`, where `mode` is `inherit`, `share`, `override`, or `reference`. They let a divider, panel, widget, context record, or future logic node resolve context from a non-adjacent source while physical region ownership remains unchanged. Dividers still define visual/organizational regions; a linked divider region can resolve its semantic context from another divider/context source without copying that context into the divider or its child objects. Circular links are rejected or short-circuited during resolution.
+Only valid `output -> input` links are stored. Dragging from an input port may be supported as a convenience, but the saved link is normalized back to output source and input target. `input -> input`, `output -> output`, duplicate, and unsupported self links are rejected. For now all current wires use the `"data"` signal type; query, filter, logic, style, and transform semantics should be layered onto explicit widgets such as Data Filter and Shift rather than encoded as generic wire types.
 
 Style rules evaluate logic expressions against widget query results, resolved context, widget config, and constants, then apply temporary visual effects such as accent color, text color, background tint, rim state, icon state, or future visibility state. Style rules are persisted and undoable, but their computed CSS variables/classes are ephemeral render state and must not be copied into widget config or layout geometry.
 
-The graph is state, not layout. It is included in save/load snapshots and undo/redo checkpoints, but it does not participate in dashboard grid collision, panel internal grid collision, anchor rail positioning, or object placement. Runtime-derived relationships may be calculated from committed context inheritance, explicit Context Links, panel containment, filter propagation, operator chains, and style-rule data/effect flow for diagnostics and APIs, but those derived links are not saved as separate layout objects and are not rendered as an always-on wire graph by default.
+The graph is state, not layout. It is included in save/load snapshots and undo/redo checkpoints, but it does not participate in dashboard grid collision, panel internal grid collision, anchor rail positioning, or object placement. Runtime-derived wire paths are calculated from committed object positions for Engineer Mode display only.
 
-Relationship links and wire handles are hidden in normal mode. Engineer Mode reveals small port nodules on connectable widgets, panels, dividers, and logical nodes; anchors and minimap overlays are excluded. Input ports sit on the left side and output ports sit on the right side. Dragging from a port shows a temporary red preview wire, dropping on another valid port creates a persisted canonical dataflow `link` with output-to-input direction. Invalid drops or Escape cancel without saving preview state. Existing explicit links render as low-opacity paths from committed object positions. Selecting a wire exposes a compact Engineer-only delete affordance and keyboard Delete/Backspace removes the link through history-aware graph mutation. Local inherited divider context is intentionally implicit and should not be rendered as a dense wire graph, label field, or region-debug surface. The overlay uses `pointer-events: none` by default, with port nodules and selected-wire controls as the only pointer-active editing controls, so normal object drag/resize/body behavior remains isolated from graph editing.
+Dataflow links and wire handles are hidden in normal mode. Engineer Mode reveals small port nodules on connectable widgets, panels, and dividers; anchors and minimap overlays are excluded. Input ports sit on the left side and output ports sit on the right side. Dragging from a port shows a temporary red preview wire, dropping on another valid port creates a persisted canonical dataflow `link` with output-to-input direction. Invalid drops or Escape cancel without saving preview state. Existing explicit links render as low-opacity paths from committed object positions. Selecting a wire exposes a compact Engineer-only delete affordance and keyboard Delete/Backspace removes the link through history-aware graph mutation. Local inherited divider context is intentionally implicit and should not be rendered as a dense wire graph, label field, or region-debug surface. The overlay uses `pointer-events: none` by default, with port nodules and selected-wire controls as the only pointer-active editing controls, so normal object drag/resize/body behavior remains isolated from graph editing.
+
+The Data Filter widget is the first computational filter foundation. It is a normal registry-backed widget, added from `Data -> Data Filter -> AND/OR/NOT/Type Conversion`, with its selected mode stored in widget config. Logic mode stores the selected operator. Type Conversion mode stores source type, target type, conversion behavior, fallback behavior, and fallback/default value as one configurable filter mode rather than separate conversion widgets. Clicking the widget body opens the filter workbench; Engineer Mode exposes the same default input/output ports and dataflow links used by other connectable objects. It does not yet perform full data normalization or introduce a node-editor runtime.
+
+The Shift Widget is the first reactive signal consumer. It is a normal registry-backed widget, added from `System -> Reactive -> Shift Widget`, with State A/State B labels, tints, and opacity stored in widget config. It reads only explicit incoming dataflow signal state (`false/0` = State A, `true/1` = State B) and never ambient divider context. Its computed active/inactive CSS variables and data attributes are render state; they must not be copied into committed layout geometry or widget config.
 
 ## Engineer Mode Infrastructure
 
 `window.dashboardEngineerMode` is the centralized Engineer Mode store. The Engineer button is the only normal UI control that toggles the mode, while the runtime exposes `isEnabled()`, `getState()`, `set(enabled)`, `toggle()`, `onChange(listener)`, and `refresh()` for tests and developer tooling.
 
-Normal mode hides semantic wiring UI. Engineer Mode adds `body.engineer-mode-active` and renders `.workspace-engineer-overlay-layer` for wire handles and explicit relationship links only by default. Context badges, inherited-context labels, giant region bands, diagnostics panels, minimap overlays, and other debug surfaces should not appear automatically just because Engineer Mode is enabled. The overlay must never replace canonical state or change committed layout, collision, save/load, undo/redo, or query behavior. Engineer visibility is not part of the persisted workspace snapshot.
+Normal mode hides dataflow wiring UI and backend-layer widgets. Engineer Mode adds `body.engineer-mode-active`, reveals `.workspace-engineer-underlay-plane`, and renders `.workspace-engineer-overlay-layer` for wire handles and explicit dataflow links only by default. Context badges, inherited-context labels, giant region bands, diagnostics panels, minimap overlays, and other debug surfaces should not appear automatically just because Engineer Mode is enabled. The overlay and underlay must never replace canonical state or change committed layout, collision, save/load, undo/redo, or query behavior. Engineer visibility is not part of the persisted workspace snapshot; widget layer classification is persisted with the widget definition/instance so backend widgets can be restored and hidden cleanly outside Engineer Mode.
 
 ## Context Inheritance Backbone
 
@@ -113,7 +120,7 @@ Divider -> derived context region -> resolved object context -> widget query
 
 Workspace context entities are stored separately from widgets and dividers. Dividers own region ids, regions are derived from current committed divider positions, and objects resolve inherited context dynamically from their committed spatial membership.
 
-Context resolution first follows the physical divider region chain, then applies any semantic Context Links targeting the active divider, panel, widget, or context source. Linked context is resolved by object/context id at query time, so moving dividers or widgets does not require copying context values or updating cached coordinates. Removing a link restores normal nearest-divider inheritance.
+Context resolution follows the physical divider region chain and object-local context overrides. Engineer dataflow wires do not route, override, or copy region context. Moving dividers or widgets recomputes inherited context from committed spatial membership rather than from the wire graph.
 
 The context engine exposes these stable helpers on `window.dashboardContextEngine`:
 
@@ -124,7 +131,7 @@ The context engine exposes these stable helpers on `window.dashboardContextEngin
 - `mergeContext(inheritedContext, localOverride)` merges inherited and local context using the shared context merge logic.
 - `queryContext(context, request)` and `queryWidget(widget, request)` query through data-source adapters.
 
-Local context inheritance remains ambient and mostly invisible. Context logic may run in normal mode and Engineer Mode, but inherited-context badges, labels, and region overlays should not render by default. Explicit runtime/dataflow wires are for signal routes, query/filter outputs, logic nodes, transforms, style rules, and future computation; semantic Context Links are reserved for intentional context sharing/reference behavior and remain separate from default wire creation.
+Local context inheritance remains ambient and mostly invisible. Context logic may run in normal mode and Engineer Mode, but inherited-context badges, labels, and region overlays should not render by default. Explicit runtime/dataflow wires are for current output-to-input signal routes only. Data Filter and future transform widgets can expose normal input/output ports, but full computation runtime and semantic context-link editing are deferred.
 
 ## Save/Load And History Ownership
 
@@ -147,10 +154,7 @@ The top-level layout state owns:
 - `anchors`;
 - `contexts`;
 - `dataSources`;
-- `relationships`;
 - `links`;
-- `contextLinks`;
-- `operators`;
 - `styleRules`;
 - optional `assets`.
 

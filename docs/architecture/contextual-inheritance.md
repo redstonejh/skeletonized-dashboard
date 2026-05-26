@@ -31,7 +31,6 @@ Possible sources:
 - Spatial Context Zone context from dividers.
 - Panel context.
 - Future persistent group context.
-- Explicit context links.
 - Direct widget selection or local widget state.
 - Timeframe/search widgets.
 
@@ -40,13 +39,12 @@ Possible sources:
 Recommended first precedence:
 
 1. Direct widget/object local context.
-2. Explicit wired context.
-3. Panel context.
-4. Future persistent group context.
-5. Spatial Context Zone context.
-6. Workspace/global context.
+2. Panel context.
+3. Future persistent group context.
+4. Spatial Context Zone context.
+5. Workspace/global context.
 
-Local always beats ambient. Explicit always beats inherited.
+Local always beats ambient. Engineer Mode dataflow wires are explicit signal routes and do not override spatial context inheritance.
 
 ## Spatial Propagation
 
@@ -152,4 +150,3 @@ Future tests should verify:
 - Local context overrides zone context.
 - Panel context overrides zone context for children.
 - Deleting a divider merges or recomputes affected zone context deterministically.
-

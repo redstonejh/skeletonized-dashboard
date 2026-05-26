@@ -10,7 +10,8 @@ Persistence must preserve the workspace as a deterministic operating surface. As
 | --- | --- | --- |
 | Committed layout | Yes | grid row/col/span, saved panel height, collapsed state |
 | Object config | Yes | title, type, data binding, capabilities, color/accent |
-| Context state | Yes | explicit links, panel context, zone context, active committed filters |
+| Context state | Yes | context scopes, panel context, zone context, active committed filters |
+| Dataflow graph | Yes | output-to-input Engineer Mode links |
 | Anchor state | Yes | target id, viewport position, fallback snapshot |
 | Viewport/camera state | Maybe | saved viewport anchors, profile restore point |
 | Preview state | No | ghosts, placeholders, live clones |
@@ -26,7 +27,7 @@ Workspace/Profile
   layoutItems
   objectConfigs
   contextScopes
-  contextLinks
+  dataflowLinks
   dividers
   anchors
   savedViewports
@@ -73,9 +74,10 @@ Persist:
 
 - Context scopes.
 - Context values that represent committed user choices.
-- Explicit links.
 - Divider zone context defaults.
 - Panel-attached context.
+
+Persist Engineer Mode dataflow links separately from ambient context. Current wires represent explicit `output -> input` data routes only; they must not become the source of divider or region inheritance.
 
 Do not persist:
 
@@ -132,7 +134,8 @@ Some should be profile/workspace-scoped:
 - Layout.
 - Dividers.
 - Anchors if intended as workspace navigation.
-- Context scopes and links.
+- Context scopes.
+- Dataflow links.
 - Environment/background.
 
 This scope decision must be explicit per feature.

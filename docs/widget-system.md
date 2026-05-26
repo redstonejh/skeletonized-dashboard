@@ -11,7 +11,7 @@ Every object should be treated as a dashboard object unless documented otherwise
 Objects include:
 
 - Stat widgets
-- Stat + Filter widgets
+- Data Filter widgets
 - Filter Control widgets
 - Text / Notes widgets
 - Region Summary widgets
@@ -52,12 +52,12 @@ If an object is non-resizable, locked, or non-deletable, that must be explicit i
 - May emit context when clicked if configured as a source.
 - Should use existing widget glass styling and compact content rhythm.
 
-### Stat + Filter Widget
+### Data Filter Widget
 
-- Displays a tracked number.
-- Emits a filter context when clicked.
-- Example neutral behavior: a stat showing `5` for `status = red` emits `{ key: "status", value: "red" }`.
-- Linked or inherited tables and graphs filter to matching rows.
+- First-class explicit dataflow widget for boolean/logical filtering and future transform chains.
+- Exposes Engineer Mode input/output ports and stores the selected logical operator in widget config.
+- Current modes are Logic Operator and Type Conversion. Logic Operator supports `AND`, `OR`, and `NOT`. Type Conversion stores source type, target type, conversion behavior, fallback behavior, and fallback/default value as one configurable mode rather than many one-off conversion widgets.
+- Does not replace ambient spatial context inheritance; it consumes and emits explicit dataflow only.
 
 ### Chart Widget
 
@@ -213,11 +213,14 @@ The phase-2 foundation now lives in `app/static/widget-registry.js`. The registr
 Each registry definition includes:
 
 - `type` and `displayName`
+- `layer`, currently `presentation`, `backend`, or `both`
 - `defaultSize` and `minSize`
 - `capabilities` such as reading context, writing context, requiring a data source, filters, time range, and resize support
 - `supportedSettings`
 - `queryRequirements`
 - `getDefaultConfig()`
+
+Presentation-layer widgets are the normal visible dashboard surface. Backend-layer widgets are Engineer Underlay objects: they are hidden in Normal Mode, visible only while Engineer Mode is active, and still use the same widget registry, grid geometry, config persistence, undo/redo, and save/load mechanics as presentation widgets. Current backend widgets are Data Filter and Context Inspector. Legacy Stat Filter and Logic Gate concepts resolve through Data Filter aliases/config, and Type Conversion is a Data Filter mode rather than a separate widget. Future Sort, Join, Transform, Query/API/SQL, JSON/data inspector, conditional styling processor, and normalization widgets should be registered as `layer: "backend"` unless their primary job is to show information directly to the user. Dataflow wires remain explicit `output -> input` routes in the underlay and must not replace ambient divider/panel context inheritance.
 - optional `resolveQuery(config, resolvedContext)`
 - `render({ instance, definition, resolvedContext, data, status })`
 
@@ -235,12 +238,13 @@ Current registry-backed types:
 - `activity-feed`
 - `ai-assistant`
 - `context-inspector`
+- `data-filter`
+- `shift`
 - `table`
 - `chart` with `graph` as the add-menu alias
-- `stat-filter`
 - `calendar`
 
-Widgets resolve inherited workspace context first, then ask their registry definition for a neutral `ContextQuery`. Data-bound widgets query through the source-agnostic context adapter layer and render normalized `DataResult` rows. The Stat widget is the first canonical metric consumer: it resolves semantic value/date/filter context, queries through the adapter layer, computes count/sum/average/min/max metrics, and renders empty, loading, ready, error, and no-data states through the shared widget surface. The Filter Control widget emits normalized `ContextFilter` objects into its current region so sibling Stat, Table, Chart, and future data-bound widgets react through the same context query path. The Time Range Control widget emits a normalized `timeRange` into its current region from presets or custom start/end dates, using the semantic date field at query time. The Text / Notes widget is the first authored-content widget: it stores plain text in widget config while preserving normal widget interaction and persistence behavior. The Region Summary widget reads committed divider-region metadata through `window.dashboardSpatialRuntime` and renders a lightweight local overview without querying raw data. Image, Video, and PDF / Document widgets are first-class rich-content widgets: they store persistent URL/reference config, captions, fit/page/playback settings, and safe preview state in normal widget config while preserving drag, resize, pin, copy/paste, delete, save/load, and panel containment behavior. Activity Feed, AI Assistant, and Context Inspector widgets read workspace meta/context snapshots through `window.dashboardMetaRuntime` without becoming special dashboard objects. The Table widget is the first row-based consumer: it resolves configured or semantic columns, queries filtered/time-ranged rows, adapts visible row and column density to widget size, and works in both the main workspace and panel-local grids. The Chart widget uses `window.dashboardChartRuntime` to choose a chart definition, resolve semantic/configured fields, query normalized rows, aggregate where needed, and render adaptive SVG chart surfaces for comparison, time-series, distribution, relationship, composition, and progress views. Unknown widget types render a generic unsupported-widget state instead of throwing or corrupting layout.
+Widgets resolve inherited workspace context first, then ask their registry definition for a neutral `ContextQuery`. Data-bound widgets query through the source-agnostic context adapter layer and render normalized `DataResult` rows. The Stat widget is the first canonical metric consumer: it resolves semantic value/date/filter context, queries through the adapter layer, computes count/sum/average/min/max metrics, and renders empty, loading, ready, error, and no-data states through the shared widget surface. The Filter Control widget emits normalized `ContextFilter` objects into its current region so sibling Stat, Table, Chart, and future data-bound widgets react through the same context query path. The Time Range Control widget emits a normalized `timeRange` into its current region from presets or custom start/end dates, using the semantic date field at query time. The Text / Notes widget is the first authored-content widget: it stores plain text in widget config while preserving normal widget interaction and persistence behavior. The Region Summary widget reads committed divider-region metadata through `window.dashboardSpatialRuntime` and renders a lightweight local overview without querying raw data. Image, Video, and PDF / Document widgets are first-class rich-content widgets: they store persistent URL/reference config, captions, fit/page/playback settings, and safe preview state in normal widget config while preserving drag, resize, pin, copy/paste, delete, save/load, and panel containment behavior. Activity Feed, AI Assistant, Context Inspector, Data Filter, and Shift widgets read or configure workspace meta/computational state without becoming special dashboard objects; Data Filter stores either logical operator config or type-conversion config and exposes normal Engineer Mode input/output ports, while Shift consumes explicit incoming dataflow signal state to transition between configured State A/State B material states. The Table widget is the first row-based consumer: it resolves configured or semantic columns, queries filtered/time-ranged rows, adapts visible row and column density to widget size, and works in both the main workspace and panel-local grids. The Chart widget uses `window.dashboardChartRuntime` to choose a chart definition, resolve semantic/configured fields, query normalized rows, aggregate where needed, and render adaptive SVG chart surfaces for comparison, time-series, distribution, relationship, composition, and progress views. Unknown widget types render a generic unsupported-widget state instead of throwing or corrupting layout.
 
 The registry is intentionally not responsible for dashboard interaction mechanics. Adding a future widget type should require adding a registry definition and targeted tests, not editing drag, resize, collision, save/load, or panel containment code.
 
@@ -292,7 +296,7 @@ The registry is intentionally not responsible for dashboard interaction mechanic
 ### Phase 3 Context Integration
 
 - Add `emitsContext` and `consumesContext` capabilities.
-- Implement stat filtering for table and graph widgets.
+- Implement Data Filter output for table and graph widgets.
 - Display active and inherited context indicators.
 - Add local demo-data bindings so stat, table, and graph widgets share one query/filter path.
 - Add Timeframe Widget context emission and query integration.

@@ -46,6 +46,7 @@
         valueType: field.valueType || null,
         affectsQuery: Boolean(field.affectsQuery),
         affectsContext: Boolean(field.affectsContext),
+        surface: field.surface || "",
         validation: field.validation || {},
       })).filter((field) => field.key),
     })).filter((section) => section.fields.length);
@@ -76,7 +77,11 @@
 
   const unique = (values) => [...new Set(values.filter(Boolean))];
   const DENSITY_TIERS = ["tiny", "compact", "standard", "expanded", "rich"];
+  const WIDGET_LAYERS = ["presentation", "backend", "both"];
   const normalizeDensity = (value, fallback = "standard") => DENSITY_TIERS.includes(value) ? value : fallback;
+  const normalizeWidgetLayer = (value, fallback = "presentation") => (
+    WIDGET_LAYERS.includes(value) ? value : fallback
+  );
   const resolveWidgetDensity = (instance = {}, availableSize = {}, definition = null) => {
     if (definition?.densityBehavior?.resolve && typeof definition.densityBehavior.resolve === "function") {
       return normalizeDensity(definition.densityBehavior.resolve(instance, availableSize), "standard");
@@ -240,6 +245,29 @@
       <input class="filter-widget-input filter-widget-field" type="search" data-filter-part="value" value="${escapeHtml(filter.value)}" aria-label="${escapeHtml(filter.label)}" placeholder="Search">
     </label>`;
   };
+  const dataFilterModes = [
+    { value: "logic", label: "Logic Operator" },
+    { value: "type-conversion", label: "Type Conversion" },
+  ];
+  const dataFilterTypes = [
+    { value: "auto", label: "Auto" },
+    { value: "string", label: "String" },
+    { value: "integer", label: "Integer" },
+    { value: "float", label: "Float" },
+    { value: "number", label: "Number" },
+    { value: "boolean", label: "Boolean" },
+  ];
+  const dataFilterConversionBehaviors = [
+    { value: "round", label: "Round" },
+    { value: "floor", label: "Floor" },
+    { value: "ceil", label: "Ceil" },
+    { value: "truncate", label: "Truncate" },
+  ];
+  const dataFilterFallbackBehaviors = [
+    { value: "null", label: "Output null" },
+    { value: "default", label: "Use default value" },
+    { value: "block", label: "Block output" },
+  ];
 
   const TIMEFRAME_FILTER_TYPES = [
     { id: "today", label: "Today" },
@@ -1048,6 +1076,7 @@
       displayName: definition.displayName || type,
       category: definition.category || "data",
       subcategory: definition.subcategory || "",
+      layer: normalizeWidgetLayer(definition.layer),
       engineerOnly: Boolean(definition.engineerOnly),
       icon: definition.icon || "",
       aliases: Array.isArray(definition.aliases) ? definition.aliases : [],
@@ -1111,6 +1140,7 @@
       cols,
       rows,
       config,
+      layer: normalizeWidgetLayer(overrides.layer, resolvedDefinition.layer || "presentation"),
       density,
       availableSize: overrides.availableSize || null,
       parentPanelId: overrides.parentPanelId || null,
@@ -1482,6 +1512,267 @@
   });
 
   registerWidgetDefinition({
+    type: "data-filter",
+    displayName: "Data Filter",
+    category: "data",
+    subcategory: "Data Filter",
+    layer: "backend",
+    engineerOnly: true,
+    aliases: ["stat-filter", "logic-gate", "logic", "gate", "logical-gate"],
+    defaultSize: { cols: 2, rows: 1 },
+    minSize: { cols: 1, rows: 1 },
+    widgetType: "data-filter",
+    dashboardObjectKind: "data-filter",
+    contextRole: "dataflow-filter",
+    htmlTag: "div",
+    className: "stat-card widget-card widget-card-custom data-filter-widget-card",
+    capabilities: {
+      readsContext: false,
+      writesContext: false,
+      requiresDataSource: false,
+      supportsFilters: false,
+      supportsTimeRange: false,
+      supportsResize: true,
+      exposesPorts: true,
+    },
+    supportedSettings: [
+      "filterMode",
+      "operator",
+      "sourceType",
+      "targetType",
+      "conversionBehavior",
+      "fallbackBehavior",
+      "fallbackValue",
+      "invertOutput",
+      "allowMultipleInputs",
+      "color",
+      "pin",
+      "duplicate",
+      "delete",
+    ],
+    settingsSchema: {
+      sections: [{
+        id: "mode",
+        label: "Mode",
+        fields: [
+          {
+            key: "filterMode",
+            label: "Filter mode",
+            type: "select",
+            defaultValue: "logic",
+            options: dataFilterModes,
+            surface: "logic",
+          },
+          {
+            key: "operator",
+            label: "Operator",
+            type: "select",
+            defaultValue: "AND",
+            options: ["AND", "OR", "NOT"],
+            surface: "logic",
+          },
+          {
+            key: "sourceType",
+            label: "Input type",
+            type: "select",
+            defaultValue: "auto",
+            options: dataFilterTypes,
+            surface: "logic",
+          },
+          {
+            key: "targetType",
+            label: "Output type",
+            type: "select",
+            defaultValue: "boolean",
+            options: dataFilterTypes.filter((type) => type.value !== "auto"),
+            surface: "logic",
+          },
+          {
+            key: "conversionBehavior",
+            label: "Conversion",
+            type: "select",
+            defaultValue: "round",
+            options: dataFilterConversionBehaviors,
+            surface: "logic",
+          },
+          {
+            key: "fallbackBehavior",
+            label: "Invalid conversion",
+            type: "select",
+            defaultValue: "null",
+            options: dataFilterFallbackBehaviors,
+            surface: "logic",
+          },
+          {
+            key: "fallbackValue",
+            label: "Default value",
+            type: "text",
+            defaultValue: "",
+            surface: "logic",
+          },
+          {
+            key: "invertOutput",
+            label: "Invert output",
+            type: "toggle",
+            defaultValue: false,
+            surface: "logic",
+          },
+          {
+            key: "allowMultipleInputs",
+            label: "Multiple inputs",
+            type: "toggle",
+            defaultValue: true,
+            surface: "logic",
+          },
+        ],
+      }],
+    },
+    queryRequirements: { dataflow: true },
+    getDefaultConfig: () => ({
+      title: "Data Filter",
+      filterMode: "logic",
+      operator: "AND",
+      sourceType: "auto",
+      targetType: "boolean",
+      conversionBehavior: "round",
+      fallbackBehavior: "null",
+      fallbackValue: "",
+      invertOutput: false,
+      allowMultipleInputs: true,
+    }),
+    resolveQuery: () => null,
+    render: ({ instance }) => {
+      const config = instance.config || {};
+      const mode = config.filterMode === "type-conversion" ? "type-conversion" : "logic";
+      const allowed = new Set(["AND", "OR", "NOT"]);
+      const operator = allowed.has(String(config.operator || "").toUpperCase())
+        ? String(config.operator || "").toUpperCase()
+        : "AND";
+      const sourceType = String(config.sourceType || "auto");
+      const targetType = String(config.targetType || "boolean");
+      const conversionLabel = `${sourceType === "auto" ? "Auto" : sourceType} -> ${targetType}`;
+      const primaryLabel = mode === "type-conversion" ? conversionLabel : operator;
+      const title = mode === "type-conversion" ? "Type Conversion" : (config.title || "Data Filter");
+      const kicker = mode === "type-conversion" ? "Convert" : "Filter";
+      const ariaLabel = mode === "type-conversion"
+        ? `${conversionLabel} data filter`
+        : `${operator} data filter`;
+      const density = normalizeDensity(instance.density || resolveWidgetDensity(instance), "standard");
+      return `
+        <div class="data-filter-widget data-filter-density-${escapeHtml(density)}" data-filter-mode="${escapeHtml(mode)}" data-filter-operator="${escapeHtml(operator)}" data-filter-target-type="${escapeHtml(targetType)}" data-invert-output="${config.invertOutput ? "true" : "false"}">
+          <div class="data-filter-header">
+            <span class="stat-lbl">${escapeHtml(title)}</span>
+            <span class="data-filter-kicker">${escapeHtml(kicker)}</span>
+          </div>
+          <div class="data-filter-core" aria-label="${escapeHtml(ariaLabel)}">
+            <strong>${escapeHtml(primaryLabel)}</strong>
+            ${config.invertOutput && mode === "logic" ? `<span class="data-filter-modifier">NOT</span>` : ""}
+          </div>
+          ${density === "tiny" ? "" : `<div class="data-filter-footer">
+            <span>Input</span>
+            <span>Output</span>
+          </div>`}
+        </div>`;
+    },
+  });
+
+  registerWidgetDefinition({
+    type: "shift",
+    displayName: "Shift Widget",
+    category: "system",
+    subcategory: "Reactive",
+    aliases: ["shift-widget", "reactive-shift", "state-shift"],
+    defaultSize: { cols: 2, rows: 1 },
+    minSize: { cols: 1, rows: 1 },
+    widgetType: "shift",
+    dashboardObjectKind: "shift",
+    contextRole: "reactive-signal-consumer",
+    htmlTag: "div",
+    className: "stat-card widget-card widget-card-custom shift-widget-card",
+    capabilities: {
+      readsContext: false,
+      writesContext: false,
+      requiresDataSource: false,
+      supportsFilters: false,
+      supportsTimeRange: false,
+      supportsResize: true,
+      exposesPorts: true,
+      consumesSignals: true,
+    },
+    supportedSettings: [
+      "title",
+      "stateALabel",
+      "stateAColor",
+      "stateAOpacity",
+      "stateBLabel",
+      "stateBColor",
+      "stateBOpacity",
+      "color",
+      "pin",
+      "duplicate",
+      "delete",
+    ],
+    settingsSchema: {
+      sections: [{
+        id: "appearance",
+        label: "Appearance",
+        fields: [
+          { key: "title", label: "Title", type: "text", defaultValue: "Shift", surface: "appearance" },
+        ],
+      }, {
+        id: "state-a",
+        label: "State A",
+        fields: [
+          { key: "stateALabel", label: "Label", type: "text", defaultValue: "Inactive", surface: "logic" },
+          { key: "stateAColor", label: "Tint", type: "text", defaultValue: "#64748b", surface: "logic" },
+          { key: "stateAOpacity", label: "Opacity", type: "number", defaultValue: 0.72, min: 0.35, max: 1, step: 0.05, surface: "logic" },
+        ],
+      }, {
+        id: "state-b",
+        label: "State B",
+        fields: [
+          { key: "stateBLabel", label: "Label", type: "text", defaultValue: "Active", surface: "logic" },
+          { key: "stateBColor", label: "Tint", type: "text", defaultValue: "#f59e0b", surface: "logic" },
+          { key: "stateBOpacity", label: "Opacity", type: "number", defaultValue: 0.92, min: 0.35, max: 1, step: 0.05, surface: "logic" },
+        ],
+      }],
+    },
+    queryRequirements: { dataflow: true },
+    getDefaultConfig: () => ({
+      title: "Shift",
+      stateALabel: "Inactive",
+      stateAColor: "#64748b",
+      stateAOpacity: 0.72,
+      stateBLabel: "Active",
+      stateBColor: "#f59e0b",
+      stateBOpacity: 0.92,
+    }),
+    resolveQuery: () => null,
+    render: ({ instance }) => {
+      const config = instance.config || {};
+      const density = normalizeDensity(instance.density || resolveWidgetDensity(instance), "standard");
+      const active = Boolean(config._signalActive);
+      const connected = Boolean(config._signalConnected);
+      const label = active ? (config.stateBLabel || "Active") : (config.stateALabel || "Inactive");
+      const title = config.title || "Shift";
+      return `
+        <div class="shift-widget shift-widget-density-${escapeHtml(density)}" data-shift-state="${active ? "on" : "off"}" data-shift-connected="${connected ? "true" : "false"}">
+          <div class="shift-widget-header">
+            <span class="stat-lbl">${escapeHtml(title)}</span>
+            <span class="shift-widget-kicker">Signal</span>
+          </div>
+          <div class="shift-widget-core" aria-label="${escapeHtml(`${title}: ${label}`)}">
+            <strong>${escapeHtml(label)}</strong>
+            <span class="shift-widget-state-dot" aria-hidden="true"></span>
+          </div>
+          ${density === "tiny" ? "" : `<div class="shift-widget-footer">
+            <span>${connected ? "Dataflow input" : "Default state"}</span>
+          </div>`}
+        </div>`;
+    },
+  });
+
+  registerWidgetDefinition({
     type: "activity-feed",
     displayName: "Activity Feed",
     category: "system",
@@ -1593,6 +1884,7 @@
     type: "context-inspector",
     displayName: "Context Inspector",
     category: "system",
+    layer: "backend",
     engineerOnly: true,
     aliases: ["context-debug", "inspector"],
     defaultSize: { cols: 3, rows: 3 },
@@ -2128,30 +2420,6 @@
   });
 
   registerWidgetDefinition({
-    type: "stat-filter",
-    displayName: "Stat + Filter",
-    category: "controls",
-    defaultSize: { cols: 1, rows: 1 },
-    minSize: { cols: 1, rows: 1 },
-    widgetType: "stat-filter",
-    dashboardObjectKind: "stat-filter",
-    contextRole: "content",
-    htmlTag: "a",
-    className: "stat-card widget-card widget-card-custom",
-    capabilities: {
-      readsContext: true,
-      writesContext: true,
-      supportsFilters: true,
-      supportsResize: true,
-    },
-    supportedSettings: ["title", "filter", "color", "pin", "delete"],
-    getDefaultConfig: () => ({ title: "Stat + Filter", value: "0" }),
-    render: ({ instance }) => `
-      <span class="stat-val">${escapeHtml(instance.config.value || "0")}</span>
-      <span class="stat-lbl">${escapeHtml(instance.config.title || "Stat + Filter")}</span>`,
-  });
-
-  registerWidgetDefinition({
     type: "calendar",
     displayName: "Calendar",
     category: "controls",
@@ -2229,6 +2497,7 @@
       queryRequirements: definition.queryRequirements,
       category: definition.category,
       subcategory: definition.subcategory,
+      layer: definition.layer,
       engineerOnly: definition.engineerOnly,
       icon: definition.icon,
       aliases: definition.aliases,
