@@ -17,6 +17,29 @@ The dashboard should continue to feel:
 
 This is not a redesign plan and not permission to simplify behavior by removing protected interaction quality. Performance work must preserve the current interaction model: live ghosts follow the pointer, snapped footprints remain independent, grouped objects behave as composite spatial entities, final commits snap to the grid, and expand/collapse stays local and predictable.
 
+## Current Stage - 2026-05-26
+
+Stage: **desktop interaction stabilization with Engineer Underlay foundation in place**.
+
+Completed foundations now include:
+
+- Registry-backed presentation widgets and backend-layer widgets.
+- Engineer Underlay visibility model for backend/dataflow/computation widgets.
+- Explicit output-to-input dataflow links, port rendering, link deletion, persistence, and undo/redo coverage.
+- Data Filter as the unified backend filter/computation widget, including Logic Operator and Type Conversion modes.
+- Context Inspector as an Engineer Underlay runtime/debug widget.
+- Presentation widgets ghosted as spatial references while Engineer Mode is active.
+- Viewport-aware pseudo-LOD and row-bucketed collision optimizations for large-workspace rendering cost.
+
+Active todo for the next stabilization slice:
+
+- Re-test panel-contained widgets against save/load, resize, undo/redo, and collapse/reopen after the underlay split.
+- Add a deterministic large-workspace fixture that includes presentation widgets, backend widgets, panels with children, dividers, anchors, and dataflow links.
+- Keep backend-layer widgets out of Normal Mode menus, collision assumptions, hover ownership, and presentation visual noise.
+- Verify that Engineer Underlay visuals do not affect committed grid geometry, context inheritance, save/load, collision, or undo/redo.
+- Continue targeted Playwright slices while avoiding repeated full-suite runs during iteration.
+- Defer full reactive computation/runtime evaluation, server-backed data connectors, and compact/mobile workspace behavior until this desktop foundation is stable.
+
 ## Measurement First
 
 Performance work should start with observation, not guesses.

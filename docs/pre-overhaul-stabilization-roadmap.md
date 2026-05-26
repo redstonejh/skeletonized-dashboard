@@ -20,6 +20,27 @@ Future work depends on a clear separation between:
 
 This roadmap defines the systems that must stabilize first, the risks to watch, the architectural rules to follow, and the readiness criteria for major overhaul work.
 
+## Current Stage Snapshot - 2026-05-26
+
+Stage: **Engineer Underlay and desktop interaction stabilization**.
+
+Completed enough to move out of the active todo list:
+
+- Registry-backed widget runtime for presentation, meta, media, data, chart, table, map, Data Filter, Shift, and Context Inspector widgets.
+- Panel-contained widgets with panel-local layout ownership, save/load, and undo/redo coverage.
+- Spatial anchors, context dividers, ambient context inheritance, source-agnostic query resolution, and deterministic smart insertion foundations.
+- Engineer Mode dataflow links with compact ports, directional output-to-input validation, link persistence, selection, deletion, double-click port cleanup, and normal-mode hiding.
+- Engineer Underlay v1: backend widgets are hidden in Normal Mode, revealed in Engineer Mode, and presentation widgets become ghosted references.
+- Backend-layer retrofit for Data Filter and Context Inspector; legacy Stat Filter/Logic Gate concepts now migrate through Data Filter aliases/config rather than competing widget types.
+
+Active todo:
+
+- Stabilize the presentation/underlay split across save/load, undo/redo, copy/paste, panel containment, and future backend widget creation.
+- Build a richer large-workspace regression fixture with mixed presentation and backend objects, dataflow links, dividers, anchors, and panel-contained widgets.
+- Continue hardening panel resize, panel-local collision/reflow, open-panel temporary displacement, and hover ownership.
+- Keep Normal Mode free of backend widgets, wires, operator/filter objects, and debug graph clutter.
+- Keep targeted desktop Playwright slices current; run the full suite only at major architecture checkpoints.
+
 ## Current Strengths
 
 ### Custom Interaction Engine

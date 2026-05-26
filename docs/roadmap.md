@@ -1,12 +1,12 @@
 # Roadmap
 
-## Current Milestone: Stable Generic Dashboard Builder
+## Current Milestone: Engineer Underlay And Stabilized Spatial Workspace
 
-Status: Active baseline.
+Status: Active implementation stage.
 
-The app currently provides a generic configurable dashboard shell with theme-aware glass styling, configurable panels/widgets, drag, resize, pinning, sparse placement, Select mode, layout save/load/reset, settings, and automated browser coverage.
+The app now provides a generic configurable dashboard shell with theme-aware glass styling, configurable panels/widgets, panel-contained widgets, drag, resize, pinning, sparse placement, Select mode, layout save/load/reset, registry-backed widgets, source-agnostic context resolution, spatial anchors, context dividers, Engineer Mode dataflow links, and automated browser coverage.
 
-Maintain this as the stable foundation while planning the next major version.
+The current stage is stabilizing the split between the visible presentation workspace and the Engineer Underlay backend/dataflow layer. Normal Mode should stay clean and cinematic; Engineer Mode reveals backend widgets, ports, and explicit output-to-input dataflow.
 
 ## Next Major Version: Context-Aware Visual Analytics Workspace
 
@@ -17,19 +17,19 @@ Core outcomes:
 - Users create widgets from the GUI.
 - Widgets and panels are universal dashboard objects.
 - Panels provide inherited context to child widgets.
-- Stats can filter tables and graphs.
+- Data/control widgets can influence stats, tables, charts, maps, and future presentation widgets through resolved context and explicit dataflow.
 - Widgets can bind to generic datasets, field mappings, transformations, aggregations, and computed values.
 - Timeframe widgets emit reusable timeframe context.
 - Search widgets emit scoped keyword context.
 - Users can attach context to panel headers through direct manipulation.
-- Engineer Mode enables explicit visual wiring.
+- Engineer Mode enables explicit backend/dataflow wiring in the underlay.
 - Top toolbar and timeframe command surface support the expanded workspace.
 - Long-term navigation evolves toward a continuous spatial workspace instead of tab-based segmentation.
 - Long-term collaboration evolves through secure authentication, RBAC, workspace sharing, and object-level permissions.
 
 ## Phase 1: Documentation And Planning
 
-Status: In progress.
+Status: Complete enough for current implementation; keep current as architecture evolves.
 
 Deliverables:
 
@@ -48,9 +48,11 @@ Exit criteria:
 
 - Implementation phases are documented.
 - Non-negotiables are documented.
-- No application code has changed for feature work yet.
+- Documentation stays current with implemented architecture and active stabilization scope.
 
 ## Phase 2: Neutral Data Model And Widget Registry
+
+Status: Implemented baseline; ongoing hardening.
 
 Deliverables:
 
@@ -59,6 +61,8 @@ Deliverables:
 - Current placeholder widgets migrated to registry-backed rendering.
 - Timeframe Widget registry entry with configurable presets, labels, ranges, refresh behavior, compact/dropdown/segmented layouts, min size, and context capabilities.
 - Search Widget registry entry with contextual placeholder text, clear/reset action, compact glass capsule rendering, searchable field bindings, and context capabilities.
+- Stat, Table, Chart, Map, Text, Media, Activity Feed, AI Assistant, Context Inspector, Data Filter, Shift, Calendar, and Region Summary registry definitions.
+- Widget definitions classify layer ownership as presentation, backend, or both.
 - Existing dashboard UI preserved.
 
 Exit criteria:
@@ -68,6 +72,8 @@ Exit criteria:
 - No domain-specific labels or APIs are introduced.
 
 ## Phase 3: Context Engine
+
+Status: Implemented baseline; active stabilization.
 
 Deliverables:
 
@@ -83,7 +89,7 @@ Deliverables:
 
 Exit criteria:
 
-- Stat click filters table and graph.
+- Context-aware controls and dataflow inputs can affect data-bound widgets through shared query/context paths.
 - Panel context affects child widgets.
 - Clearing context restores content.
 - Context behavior is deterministic and tested.
@@ -98,15 +104,21 @@ Deliverables:
 - Link creation gesture.
 - Link rendering overlay.
 - Link selection and deletion.
-- Context link persistence.
+- Directional output-to-input Link persistence.
+- Engineer Underlay plane for backend/dataflow/computation widgets.
+- Backend-layer widget gating so Data Filter, Context Inspector, and future transform/query processors remain hidden in Normal Mode.
 
 Exit criteria:
 
-- Links can be created, deleted, saved, loaded, and used for context propagation.
-- Normal mode hides wiring visuals while keeping links active.
+- Links can be created, deleted, saved, loaded, and used as explicit dataflow routes.
+- Normal mode hides backend widgets, wiring visuals, and graph editing tools while keeping committed dataflow state available to runtime systems.
 - Link routes update after layout changes.
 
+Status: Implemented foundation; active hardening.
+
 ## Phase 5: Toolbar And Command Surface
+
+Status: Implemented foundation; visual polish continues.
 
 Deliverables:
 
@@ -122,9 +134,11 @@ Exit criteria:
 
 ## Phase 6: Stabilization And Test Expansion
 
+Status: Active now.
+
 Deliverables:
 
-- Full Playwright coverage for layout, panels, context, Engineer Mode, visual regression screenshots, settings, mobile behavior, console errors, and network errors.
+- Targeted Playwright coverage for layout, panels, context, Engineer Mode, Engineer Underlay, dataflow links, widget registry, visual regression screenshots, settings, console errors, and network errors.
 - Updated bug report.
 - Updated roadmap.
 
@@ -195,6 +209,7 @@ See:
 - More graph renderers if they can be added without visual drift.
 - Universal data source adapter system.
 - Visual query builder and field mapping.
+- Backend-layer Sort, Join, Transform, Query/API/SQL, JSON/data inspector, conditional styling processor, and normalization widgets.
 - Safe computed fields and formulas.
 - Configurable timeframe preset libraries.
 - Saved search presets and scoped search tokens.
@@ -204,7 +219,7 @@ See:
 - Keyboard movement and resize shortcuts.
 - Multi-select context actions.
 - Read-only presentation mode.
-- More advanced link routing.
+- More advanced underlay link routing.
 - Spatial canvas overview and region navigation.
 - Context-based camera focus.
 - Collapsible workspace regions.

@@ -16,10 +16,10 @@ Users compose dashboards visually:
 - Treat panels as layout containers, not as table, notes, menu, chart, or calendar identities.
 - Model tables, notes, menus, charts, calendars, and similar content as widgets or panel content.
 - Link widgets and panels through generic context.
-- Let stats filter tables, graphs, calendars, and panels.
+- Let visible controls and backend dataflow widgets influence tables, graphs, calendars, panels, and stats through shared context/query systems.
 - Let panels provide inherited context to child widgets.
 - Bind widgets to generic datasets, field mappings, transformations, aggregations, and computed values.
-- Use Engineer Mode to wire context visually when automatic inheritance is not enough.
+- Use Engineer Mode to reveal the hidden Engineer Underlay for backend/dataflow/computation widgets and explicit output-to-input signal routing.
 - Eventually share secure multi-user workspaces with role-aware collaboration.
 
 The experience should feel like a polished creative workspace, not a generic enterprise analytics tool.
@@ -49,9 +49,12 @@ Normal Mode is the default composition and usage surface.
 
 Engineer Mode is an advanced visual dataflow mode.
 
-- Widgets and panels expose connection handles.
+- The recessed Engineer Underlay appears beneath the presentation workspace.
+- Backend widgets such as Data Filter and Context Inspector become visible; Normal Mode hides them.
+- Presentation widgets remain visible as ghosted spatial references.
+- Dataflow-capable objects expose input and output handles.
 - Users create explicit output-to-input dataflow links between sources and targets.
-- Links are drawn with subtle theme-aware lines.
+- Links are drawn with subtle theme-aware lines in the underlay.
 - Selected links can be deleted.
 - Spatial context inheritance remains ambient and separate from wires.
 - Experimental computational logic may be inspectable here over time through explicit dataflow, StyleRule, event, signal, or simulation wiring that remains invisible in Normal Mode.
@@ -97,6 +100,10 @@ Engineer Mode should feel native to the dashboard, not like a separate node edit
 - Draw persistent output-to-input dataflow links between objects.
 - Support selecting and deleting links.
 - Persist links with layout/profile data.
+- Reveal backend/dataflow widgets in the Engineer Underlay while keeping Normal Mode clean.
+- Classify widgets by presentation/backend layer ownership.
+
+Status: foundation implemented; ongoing work should harden persistence, panel containment, copy/paste, and future backend widget creation.
 
 ### Phase 5: Toolbar And Command Surface
 

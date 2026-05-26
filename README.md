@@ -31,14 +31,14 @@ Current architectural principles:
 
 ## Roadmap
 
-The upcoming work is intentionally staged around stabilization first, then larger architecture. See `docs/pre-overhaul-stabilization-roadmap.md` for the detailed pre-overhaul checklist.
+The project is currently in the **Engineer Underlay and desktop interaction stabilization stage**. The stable dashboard builder foundation is in place; the active work is now hardening the split between the presentation workspace and the backend/dataflow underlay before adding heavier runtime computation. See `docs/pre-overhaul-stabilization-roadmap.md` for the detailed stabilization checklist and `docs/roadmap.md` for the product roadmap.
 
 ### Current Progress
 
 - Spatial anchors now live on a left-side viewport rail with dedicated anchor ordering, persistence, undo/redo, divider linking, and live divider navigation.
 - Widgets can be intentionally absorbed into open panels, where they become panel children with scoped internal grid state, save/load, and undo/redo support.
 - Workspace context now resolves through source-agnostic data-source adapters, semantic mappings, inherited divider regions, and normalized context queries.
-- Widget rendering now uses `app/static/widget-registry.js`, so stat, timeframe, search, table, chart, stat-filter, and calendar widgets declare runtime contracts outside core grid interaction code.
+- Widget rendering now uses `app/static/widget-registry.js`, so stat, timeframe, search, filter, table, chart, map, data-filter, media, meta, and calendar widgets declare runtime contracts outside core grid interaction code.
 - Context inheritance now stays internal and ambient by default; Engineer Mode no longer floods the workspace with inherited-context badges, labels, or region debug overlays.
 - Large-workspace performance now separates layout correctness from visual cost with viewport-aware reflow animation, pseudo-LOD material tiers, row-bucketed collision queries, cached logical geometry records, and reduced DOM reads on committed geometry.
 - Smart object insertion now treats the top/default workspace area as a first-class visible divider region, keeps repeated adds deterministic, and places new objects in the region the user is actually viewing.
@@ -51,17 +51,25 @@ The upcoming work is intentionally staged around stabilization first, then large
 - Viewport-aware pseudo-LOD is now centralized around shared visual tiers and overscan rules, with focused/selected/dragged/resized objects promoted to full fidelity, anchor rail objects classified separately, and far-offscreen hover/material effects reduced without changing layout correctness.
 - Engineer Mode now exposes explicit dataflow editing through compact wire nodules on connectable workspace objects. Dragging between valid output/input ports creates a persisted directional runtime Link, while normal mode hides nodules, editing tools, and graph clutter.
 - Engineer Mode wiring now sits on a first-class computational graph substrate: connectable objects expose input/output ports, persisted Link entities carry directional signal metadata, and wires are only the Engineer Mode rendering of explicit graph state. Ambient divider/region context inheritance remains separate and continues through spatial context resolution and semantic Context Links.
+- Engineer Mode now reveals a recessed Engineer Underlay: backend/dataflow widgets such as Data Filter and Context Inspector are hidden in Normal Mode, presentation widgets ghost as spatial references, and dataflow wires remain underlay-only explicit output-to-input routes.
 - Widget body clicks now open widget working surfaces for data/query/context behavior, while widget settings stay focused on appearance, material, title, density, and display customization.
 - The Add Object menu now uses a categorized right-expanding object browser, grouping data, visualization/chart, control, content, media, system, container, navigation, and divider objects while keeping Engineer-only items behind Engineer Mode.
 - The Add Object browser now sizes to its visible content, avoiding blank menu tails while using internal scrolling only when the viewport is constrained.
 
-### Near-Term Stabilization
+### Current Stage
 
+Stage: **presentation workspace + Engineer Underlay foundation**.
+
+The visible dashboard is now treated as the presentation layer. Backend/dataflow/computation widgets are moving into the Engineer Underlay and stay hidden in Normal Mode. The next step is to stabilize this split while preserving deterministic layout, panel containment, save/load, undo/redo, and dataflow link persistence.
+
+### Active Todo
+
+- Harden backend-layer widget save/load, copy/paste, undo/redo, and menu gating across all current and future computational widgets.
 - Keep drag, resize, collision, snapping, ghost previews, pinning, collapse, undo, and save/load deterministic under repeated interaction.
-- Continue tightening edge auto-scroll so newly reachable grid rows remain smooth, preview-accurate, and commit-safe.
-- Preserve local collision behavior and avoid global repacking during add, drag, resize, expand, collapse, and grouped operations.
-- Strengthen Playwright coverage for visual cleanup, stale interaction classes, save/reload persistence, grouped behavior, and compact widget sizing.
+- Preserve local collision behavior and avoid global repacking during add, drag, resize, expand, collapse, panel containment, and grouped operations.
+- Continue targeted Playwright coverage for Engineer Underlay visibility, backend widget gating, wire persistence, panel-contained widgets, visual cleanup, and stale interaction classes.
 - Keep controls, panels, widgets, menus, and selection surfaces routed through one coherent glass material hierarchy across every background tone.
+- Defer full reactive computation, formula/runtime evaluation, server-backed data connectors, and compact/mobile workspace mode until the desktop interaction and underlay foundations are stable.
 
 ### Spatial Navigation And Context
 
@@ -83,9 +91,10 @@ The upcoming work is intentionally staged around stabilization first, then large
 
 ### Future Widget And Panel Architecture
 
-- Widget-inside-panel support, with panels remaining generic containers.
-- Table, notes, menu, chart, calendar, search, filter, timeframe, and control widgets as composable content types.
-- Adaptive-density sizing rules for dense information and control widgets.
+- Continue hardening panel-contained widgets, with panels remaining generic containers.
+- Add future backend-layer Sort, Join, Transform, Query/API/SQL, JSON/data inspector, normalization, and conditional styling processor widgets as underlay objects rather than presentation widgets.
+- Expand table, notes, menu, chart, calendar, search, filter, timeframe, map, media, and control widgets as composable presentation content types.
+- Continue adaptive-density sizing rules for dense information and control widgets.
 - Semantic panel relationships and contextual grouping without encoding content type into panel identity.
 - Future widget marketplace or registry concepts, if needed, should remain context-neutral and data-source neutral.
 
