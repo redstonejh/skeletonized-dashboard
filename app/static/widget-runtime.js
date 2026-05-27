@@ -67,6 +67,7 @@
 
   const createRuntime = (deps = {}) => {
     const registry = window.dashboardWidgetRuntime || null;
+    const bodyRendererCleanups = new WeakMap();
     const escapeHtml = deps.escapeHtml || ((value) => String(value ?? ""));
     const parseJsonRecord = deps.parseJsonRecord || ((value, fallback = {}) => {
       if (!value) return fallback;
@@ -194,6 +195,7 @@
     };
     const setRuntimeContent = (widget, html) => {
       if (!widget) return;
+      cleanupWidgetBodyRenderer(widget, { reason: "content-replace" });
       const widgetKey = widget.dataset.widgetKey || "";
       if (widgetKey) {
         document.querySelectorAll(`.workspace-menu-overlay-layer > [data-timeframe-widget-key="${CSS.escape(widgetKey)}"]`)
@@ -217,6 +219,75 @@
       template.innerHTML = html || "";
       const firstPreserved = preserved[0] || null;
       [...template.content.childNodes].forEach((node) => widget.insertBefore(node, firstPreserved));
+    };
+    const cleanupWidgetBodyRenderer = (widget, details = {}) => {
+      if (!widget) return;
+      const cleanup = bodyRendererCleanups.get(widget);
+      if (typeof cleanup === "function") {
+        try {
+          cleanup({ widget, ...details });
+        } catch (error) {
+          console.warn("Widget body renderer cleanup failed", error);
+        }
+      }
+      bodyRendererCleanups.delete(widget);
+      const definition = details.definition || definitionForElement(widget);
+      if (typeof definition?.unmountBodyRenderer === "function") {
+        try {
+          definition.unmountBodyRenderer({
+            widget,
+            contentRoot: widget.querySelector(":scope [data-widget-shell-content='true']") ||
+              widget.querySelector(":scope .widget-shell-content") ||
+              widget,
+            definition,
+            type: definition.type || runtimeTypeFromElement(widget),
+            config: details.instance?.config || configFromElement(widget, definition),
+            instance: details.instance || null,
+            resolvedContext: details.resolvedContext || null,
+            data: details.data,
+            status: details.status || "empty",
+            reason: details.reason || "cleanup",
+          });
+        } catch (error) {
+          console.warn("Widget body renderer unmount failed", error);
+        }
+      }
+    };
+    const mountWidgetBodyRenderer = (widget, context = {}) => {
+      if (!widget) return null;
+      const definition = context.definition || definitionForElement(widget);
+      const contentRoot = widget.querySelector(":scope [data-widget-shell-content='true']") ||
+        widget.querySelector(":scope .widget-shell-content") ||
+        widget;
+      const mountContext = {
+        widget,
+        contentRoot,
+        definition,
+        type: definition?.type || context.instance?.type || runtimeTypeFromElement(widget),
+        instance: context.instance || null,
+        config: context.instance?.config || configFromElement(widget, definition),
+        resolvedContext: context.resolvedContext || null,
+        data: context.data,
+        status: context.status || "empty",
+      };
+      const mount = typeof definition?.mountBodyRenderer === "function"
+        ? definition.mountBodyRenderer
+        : typeof deps.mountWidgetBodyRenderer === "function"
+          ? deps.mountWidgetBodyRenderer
+          : window.dashboardWidgetBodyRendererRuntime?.mount;
+      if (typeof mount !== "function") return null;
+      try {
+        const cleanup = mount(mountContext);
+        if (typeof cleanup === "function") {
+          bodyRendererCleanups.set(widget, cleanup);
+        } else if (cleanup && typeof cleanup.cleanup === "function") {
+          bodyRendererCleanups.set(widget, cleanup.cleanup);
+        }
+        return cleanup || null;
+      } catch (error) {
+        console.warn("Widget body renderer mount failed", error);
+        return null;
+      }
     };
     const deriveRuntimeMeaning = ({ widget = null, definition = null, instance = null, resolvedContext = null, data = null, status = "empty" } = {}) => {
       const rows = Array.isArray(data?.rows) ? data.rows : [];
@@ -328,6 +399,13 @@
       }) || definition.render({ instance: renderInstance, definition, resolvedContext: options.resolvedContext || null, data: options.data, status: options.status || "empty" });
       widget.dataset.widgetShell = definition.shell === false ? "legacy" : "shared";
       setRuntimeContent(widget, html);
+      mountWidgetBodyRenderer(widget, {
+        definition,
+        instance: renderInstance,
+        resolvedContext: options.resolvedContext || null,
+        data: options.data,
+        status: options.status || "empty",
+      });
       applyRuntimeMeaning(widget, {
         definition,
         instance: renderInstance,
@@ -499,6 +577,8 @@
       resolveDensityForElement,
       instanceFromElement,
       setRuntimeContent,
+      mountWidgetBodyRenderer,
+      cleanupWidgetBodyRenderer,
       renderRuntimeContent,
       hydrateRuntime,
       ensureTools,

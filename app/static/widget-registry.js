@@ -685,210 +685,305 @@
       <span class="runtime-chart-legend-item"><i class="runtime-chart-swatch runtime-chart-fill-${CHART_PALETTE[index % CHART_PALETTE.length]}"></i>${escapeHtml(item)}</span>
     `).join("")}</div>`;
   };
-  const renderBarLikeChart = ({ instance, definition, rows, resolvedContext, data }) => {
+  const renderEchartsChartFrame = ({ instance, definition, rows, resolvedContext, data }) => {
     const config = instance.config || {};
     const density = chartDensityFor(instance);
+    const title = config.title || definition.displayName || "Chart";
     const points = groupedChartData(rows, config, resolvedContext, { series: ["grouped-bar", "stacked-bar"].includes(definition.chartType) });
-    if (!points.length) return runtimeState(config.title || definition.displayName, "No groups match the current fields");
-    const max = Math.max(...points.map((point) => Math.abs(point.value)), 1);
-    const horizontal = definition.chartType === "horizontal-bar";
-    const lollipop = definition.chartType === "lollipop";
-    const count = Math.max(1, points.length);
-    const content = points.map((point, index) => {
-      const slot = 84 / count;
-      const x = 10 + (index * slot);
-      const barWidth = Math.max(2.4, slot * 0.54);
-      const h = Math.max(2, (Math.abs(point.value) / max) * 43);
-      const y = 56 - h;
-      const cls = `runtime-chart-fill-${CHART_PALETTE[index % CHART_PALETTE.length]}`;
-      if (horizontal) {
-        const yPos = 10 + (index * (46 / count));
-        const w = Math.max(3, (Math.abs(point.value) / max) * 78);
-        return `<rect class="runtime-chart-bar ${cls}" x="12" y="${yPos.toFixed(2)}" width="${w.toFixed(2)}" height="${Math.max(2.5, 32 / count).toFixed(2)}" rx="1.4"></rect>`;
-      }
-      if (lollipop) {
-        const cx = x + (barWidth / 2);
-        return `<line class="runtime-chart-stem ${cls}" x1="${cx.toFixed(2)}" y1="56" x2="${cx.toFixed(2)}" y2="${y.toFixed(2)}"></line><circle class="runtime-chart-point ${cls}" cx="${cx.toFixed(2)}" cy="${y.toFixed(2)}" r="2.6"></circle>`;
-      }
-      return `<rect class="runtime-chart-bar ${cls}" x="${x.toFixed(2)}" y="${y.toFixed(2)}" width="${barWidth.toFixed(2)}" height="${h.toFixed(2)}" rx="1.6"></rect>`;
-    }).join("");
+    const meta = ["pie", "donut"].includes(definition.chartType)
+      ? runtimeMeta(`${points.filter((point) => point.value > 0).length} slices`, data)
+      : ["scatter", "bubble"].includes(definition.chartType)
+        ? runtimeMeta(`${Math.min(rows.length, chartLimit(config, 80))} points`, data)
+        : runtimeMeta(`${rows.length} rows`, data);
     return chartFrame({
       instance,
       definition,
       density,
-      meta: runtimeMeta(`${points.length} groups`, data),
-      body: chartSvg(`${config.display?.showAxes === false || density === "tiny" ? "" : axisLayer()}${content}`, { label: definition.displayName }),
-      legend: chartLegend([...new Set(points.map((point) => point.series))], density),
+      meta,
+      body: `<div class="widget-content-well widget-library-surface runtime-chart-library-surface"><div class="runtime-chart-echarts" data-chart-renderer="echarts" data-chart-type="${escapeHtml(definition.chartType)}" role="img" aria-label="${escapeHtml(title)}"></div></div>`,
+      legend: "",
       data,
       resolvedContext,
     });
   };
-  const linePathFor = (points) => points.map((point, index) => `${index === 0 ? "M" : "L"} ${point.x.toFixed(2)} ${point.y.toFixed(2)}`).join(" ");
-  const renderLineLikeChart = ({ instance, definition, rows, resolvedContext, data }) => {
-    const config = instance.config || {};
-    const density = chartDensityFor(instance);
+  const chartCssValue = (element, name, fallback) => {
+    const value = element ? getComputedStyle(element).getPropertyValue(name).trim() : "";
+    return value || fallback;
+  };
+  const chartLegacyColor = (value) => {
+    const match = String(value || "").match(/^color\(\s*srgb\s+([0-9.]+)\s+([0-9.]+)\s+([0-9.]+)(?:\s*\/\s*([0-9.]+))?\s*\)$/i);
+    if (!match) return value;
+    const channels = match.slice(1, 4).map((channel) => Math.round(Math.max(0, Math.min(1, Number(channel))) * 255));
+    const alpha = match[4] == null ? 1 : Math.max(0, Math.min(1, Number(match[4])));
+    return alpha >= 1 ? `rgb(${channels.join(", ")})` : `rgba(${channels.join(", ")}, ${alpha})`;
+  };
+  const chartResolvedColor = (element, name, fallback) => {
+    const raw = chartCssValue(element, name, fallback);
+    if (!element || !raw) return fallback;
+    const probe = document.createElement("span");
+    probe.style.position = "absolute";
+    probe.style.opacity = "0";
+    probe.style.pointerEvents = "none";
+    probe.style.color = raw;
+    element.appendChild(probe);
+    const resolved = getComputedStyle(probe).color;
+    probe.remove();
+    return chartLegacyColor(resolved || raw || fallback);
+  };
+  const chartPaletteForElement = (element) => [
+    "--widget-data-primary",
+    "--widget-data-secondary",
+    "--widget-data-tertiary",
+    "--widget-data-quaternary",
+    "--widget-data-positive",
+    "--widget-data-quiet",
+  ].map((name, index) => chartResolvedColor(element, name, ["#2563eb", "#60a5fa", "#93c5fd", "#fca5a5", "#86efac", "#c4b5fd"][index]));
+  const chartAxisStyle = (element) => ({
+    text: chartResolvedColor(element, "--widget-library-muted", "#4b5563"),
+    line: chartResolvedColor(element, "--widget-library-grid", "rgba(100, 116, 139, .24)"),
+    strong: chartResolvedColor(element, "--widget-library-fg", "#1f2937"),
+  });
+  let echartsLoadPromise = null;
+  const loadEcharts = () => {
+    if (window.echarts?.init) return Promise.resolve(window.echarts);
+    if (!echartsLoadPromise) {
+      echartsLoadPromise = new Promise((resolve, reject) => {
+        const existing = document.querySelector("script[data-dashboard-echarts]");
+        if (existing) {
+          existing.addEventListener("load", () => window.echarts?.init ? resolve(window.echarts) : reject(new Error("ECharts failed to initialize")), { once: true });
+          existing.addEventListener("error", () => reject(new Error("ECharts failed to load")), { once: true });
+          return;
+        }
+        const script = document.createElement("script");
+        script.src = "https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js";
+        script.async = true;
+        script.dataset.dashboardEcharts = "true";
+        script.onload = () => window.echarts?.init ? resolve(window.echarts) : reject(new Error("ECharts failed to initialize"));
+        script.onerror = () => reject(new Error("ECharts failed to load"));
+        document.head.appendChild(script);
+      });
+    }
+    return echartsLoadPromise;
+  };
+  const chartSeriesData = (rows, config, resolvedContext, options = {}) => {
     const xField = chartXField(config, resolvedContext);
     const yField = chartValueField(config, resolvedContext);
-    const numeric = rows.map((row, index) => ({ row, index, yValue: numberValue(row?.[yField]), xValue: row?.[xField] }))
-      .filter((entry) => entry.yValue != null)
-      .slice(0, chartLimit(config, 80));
-    if (!numeric.length) return runtimeState(config.title || definition.displayName, "No numeric series values");
-    const min = Math.min(...numeric.map((entry) => entry.yValue));
-    const max = Math.max(...numeric.map((entry) => entry.yValue), min + 1);
-    const points = numeric.map((entry, index) => ({
-      x: 9 + (index * (86 / Math.max(1, numeric.length - 1))),
-      y: 55 - (((entry.yValue - min) / Math.max(1, max - min)) * 44),
-    }));
-    const path = linePathFor(points);
-    const area = ["area", "stacked-area"].includes(definition.chartType);
-    const marks = density === "large" ? points.map((point) => `<circle class="runtime-chart-point runtime-chart-fill-one" cx="${point.x.toFixed(2)}" cy="${point.y.toFixed(2)}" r="1.8"></circle>`).join("") : "";
-    const body = chartSvg(`
-      ${config.display?.showAxes === false || definition.chartType === "sparkline" || density === "tiny" ? "" : axisLayer()}
-      ${area ? `<path class="runtime-chart-area runtime-chart-fill-one" d="${path} L ${points.at(-1).x.toFixed(2)} 56 L ${points[0].x.toFixed(2)} 56 Z"></path>` : ""}
-      <path class="runtime-chart-line runtime-chart-stroke-one" d="${path}"></path>
-      ${marks}
-    `, { label: definition.displayName });
-    return chartFrame({ instance, definition, density, meta: runtimeMeta(`${numeric.length} points`, data), body, data, resolvedContext });
-  };
-  const renderScatterChart = ({ instance, definition, rows, resolvedContext, data }) => {
-    const config = instance.config || {};
-    const density = chartDensityFor(instance);
-    const xField = chartXField(config, resolvedContext);
-    const yField = chartValueField(config, resolvedContext);
-    const sizeField = chartField(config, resolvedContext, "sizeField", ["valueField"]);
-    const points = rows.map((row) => ({
-      x: numberValue(row?.[xField]),
-      y: numberValue(row?.[yField]),
-      size: numberValue(row?.[sizeField]),
-    })).filter((point) => point.x != null && point.y != null).slice(0, chartLimit(config, 80));
-    if (!points.length) return runtimeState(config.title || definition.displayName, "No paired numeric fields");
-    const minX = Math.min(...points.map((point) => point.x));
-    const maxX = Math.max(...points.map((point) => point.x), minX + 1);
-    const minY = Math.min(...points.map((point) => point.y));
-    const maxY = Math.max(...points.map((point) => point.y), minY + 1);
-    const maxSize = Math.max(...points.map((point) => point.size || 1), 1);
-    const marks = points.map((point, index) => {
-      const x = 10 + (((point.x - minX) / Math.max(1, maxX - minX)) * 84);
-      const y = 55 - (((point.y - minY) / Math.max(1, maxY - minY)) * 44);
-      const r = definition.chartType === "bubble" ? 1.8 + (((point.size || 1) / maxSize) * 3) : 2.2;
-      return `<circle class="runtime-chart-point runtime-chart-fill-${CHART_PALETTE[index % CHART_PALETTE.length]}" cx="${x.toFixed(2)}" cy="${y.toFixed(2)}" r="${r.toFixed(2)}"></circle>`;
-    }).join("");
-    return chartFrame({ instance, definition, density, meta: runtimeMeta(`${points.length} points`, data), body: chartSvg(`${axisLayer()}${marks}`, { label: definition.displayName }), data, resolvedContext });
-  };
-  const renderHistogramChart = ({ instance, definition, rows, resolvedContext, data }) => {
-    const config = instance.config || {};
-    const density = chartDensityFor(instance);
-    const yField = chartValueField(config, resolvedContext);
-    const values = numericRowsFor(rows, yField).map((entry) => entry.value);
-    if (!values.length) return runtimeState(config.title || definition.displayName, "No numeric distribution values");
-    const min = Math.min(...values);
-    const max = Math.max(...values, min + 1);
-    const binCount = density === "large" ? 8 : density === "tiny" ? 4 : 6;
-    const bins = Array.from({ length: binCount }, (_, index) => ({ index, count: 0 }));
-    values.forEach((value) => {
-      const index = Math.min(binCount - 1, Math.floor(((value - min) / Math.max(1, max - min)) * binCount));
-      bins[index].count += 1;
-    });
-    const maxCount = Math.max(...bins.map((bin) => bin.count), 1);
-    const content = bins.map((bin) => {
-      const slot = 84 / binCount;
-      const h = Math.max(1, (bin.count / maxCount) * 42);
-      return `<rect class="runtime-chart-bar runtime-chart-fill-one" x="${(10 + bin.index * slot).toFixed(2)}" y="${(56 - h).toFixed(2)}" width="${Math.max(3, slot * 0.72).toFixed(2)}" height="${h.toFixed(2)}" rx="1.4"></rect>`;
-    }).join("");
-    return chartFrame({ instance, definition, density, meta: runtimeMeta(`${values.length} values`, data), body: chartSvg(`${axisLayer()}${content}`, { label: definition.displayName }), data, resolvedContext });
-  };
-  const pieArcPath = (cx, cy, r, start, end, inner = 0) => {
-    const large = end - start > Math.PI ? 1 : 0;
-    const p = (angle, radius) => [cx + Math.cos(angle) * radius, cy + Math.sin(angle) * radius];
-    const [x1, y1] = p(start, r);
-    const [x2, y2] = p(end, r);
-    if (!inner) return `M ${cx} ${cy} L ${x1.toFixed(2)} ${y1.toFixed(2)} A ${r} ${r} 0 ${large} 1 ${x2.toFixed(2)} ${y2.toFixed(2)} Z`;
-    const [x3, y3] = p(end, inner);
-    const [x4, y4] = p(start, inner);
-    return `M ${x1.toFixed(2)} ${y1.toFixed(2)} A ${r} ${r} 0 ${large} 1 ${x2.toFixed(2)} ${y2.toFixed(2)} L ${x3.toFixed(2)} ${y3.toFixed(2)} A ${inner} ${inner} 0 ${large} 0 ${x4.toFixed(2)} ${y4.toFixed(2)} Z`;
-  };
-  const renderPieChart = ({ instance, definition, rows, resolvedContext, data }) => {
-    const config = instance.config || {};
-    const density = chartDensityFor(instance);
-    const points = groupedChartData(rows, config, resolvedContext).filter((point) => point.value > 0).slice(0, chartLimit(config, 8));
-    if (!points.length) return runtimeState(config.title || definition.displayName, "No positive category values");
-    const total = points.reduce((sum, point) => sum + point.value, 0) || 1;
-    let cursor = -Math.PI / 2;
-    const inner = definition.chartType === "donut" ? 14 : 0;
-    const content = points.map((point, index) => {
-      const next = cursor + ((point.value / total) * Math.PI * 2);
-      const path = pieArcPath(50, 32, 24, cursor, next, inner);
-      cursor = next;
-      return `<path class="runtime-chart-slice runtime-chart-fill-${CHART_PALETTE[index % CHART_PALETTE.length]}" d="${path}"></path>`;
-    }).join("");
-    return chartFrame({ instance, definition, density, meta: runtimeMeta(`${points.length} slices`, data), body: chartSvg(content, { label: definition.displayName }), legend: chartLegend(points.map((point) => point.x), density), data, resolvedContext });
-  };
-  const renderGaugeChart = ({ instance, definition, rows, resolvedContext, data }) => {
-    const config = instance.config || {};
-    const density = chartDensityFor(instance);
-    const yField = chartValueField(config, resolvedContext);
-    const values = numericRowsFor(rows, yField).map((entry) => entry.value);
-    if (!values.length) return runtimeState(config.title || definition.displayName, "No numeric gauge value");
-    const value = aggregateValues(values, chartConfiguredAggregation(config)) || 0;
-    const max = Number(config.max) || Math.max(value, ...values, 100);
-    const ratio = Math.max(0, Math.min(1, value / Math.max(1, max)));
-    const end = -180 + (180 * ratio);
-    const arc = (radius, start, stop) => {
-      const toPoint = (degree) => {
-        const angle = (degree * Math.PI) / 180;
-        return [50 + Math.cos(angle) * radius, 52 + Math.sin(angle) * radius];
-      };
-      const [x1, y1] = toPoint(start);
-      const [x2, y2] = toPoint(stop);
-      return `M ${x1.toFixed(2)} ${y1.toFixed(2)} A ${radius} ${radius} 0 0 1 ${x2.toFixed(2)} ${y2.toFixed(2)}`;
+    const seriesField = options.series ? chartSeriesField(config, resolvedContext) : "";
+    const groups = groupedChartData(rows, config, resolvedContext, { series: Boolean(seriesField) });
+    const categories = unique(groups.map((point) => point.x));
+    const seriesNames = unique(groups.map((point) => point.series));
+    return {
+      categories,
+      seriesNames,
+      groups,
+      xField,
+      yField,
+      series: seriesNames.map((name) => ({
+        name,
+        data: categories.map((category) => groups.find((point) => point.x === category && point.series === name)?.value ?? 0),
+      })),
     };
-    const label = definition.chartType === "radial-progress" ? `${Math.round(ratio * 100)}%` : formatMetricValue(value, config.format);
-    const body = chartSvg(`
-      <path class="runtime-chart-gauge-track" d="${arc(30, -180, 0)}"></path>
-      <path class="runtime-chart-gauge-value runtime-chart-stroke-one" d="${arc(30, -180, end)}"></path>
-      <text class="runtime-chart-value-label" x="50" y="48">${escapeHtml(label)}</text>
-    `, { label: definition.displayName });
-    return chartFrame({ instance, definition, density, meta: runtimeMeta("current", data), body, data, resolvedContext });
   };
-  const renderHeatmapChart = ({ instance, definition, rows, resolvedContext, data }) => {
+  const chartEchartsOption = ({ instance, definition, rows, resolvedContext, data, element }) => {
     const config = instance.config || {};
-    const density = chartDensityFor(instance);
-    const xField = chartXField(config, resolvedContext);
-    const yField = chartField(config, resolvedContext, "seriesField", ["ownerField", "statusField", "categoryField"]);
-    const valueField = chartValueField(config, resolvedContext);
-    const xValues = unique(rows.map((row) => chartEscapeLabel(row?.[xField]))).slice(0, density === "large" ? 8 : 5);
-    const yValues = unique(rows.map((row) => chartEscapeLabel(row?.[yField]))).slice(0, density === "large" ? 6 : 4);
-    const cells = [];
-    xValues.forEach((x) => yValues.forEach((y) => {
-      const matching = rows.filter((row) => chartEscapeLabel(row?.[xField]) === x && chartEscapeLabel(row?.[yField]) === y);
-      const value = aggregateValues(matching.map((row) => chartConfiguredAggregation(config) === "count" ? 1 : row?.[valueField]), chartConfiguredAggregation(config)) || 0;
-      cells.push({ x, y, value });
-    }));
-    const max = Math.max(...cells.map((cell) => cell.value), 1);
-    const cellW = 82 / Math.max(1, xValues.length);
-    const cellH = 44 / Math.max(1, yValues.length);
-    const content = cells.map((cell) => {
-      const x = 10 + (xValues.indexOf(cell.x) * cellW);
-      const y = 10 + (yValues.indexOf(cell.y) * cellH);
-      const opacity = 0.22 + ((cell.value / max) * 0.68);
-      return `<rect class="runtime-chart-heat-cell runtime-chart-fill-one" x="${x.toFixed(2)}" y="${y.toFixed(2)}" width="${Math.max(2, cellW - 1).toFixed(2)}" height="${Math.max(2, cellH - 1).toFixed(2)}" rx="1.2" style="opacity:${opacity.toFixed(2)}"></rect>`;
-    }).join("");
-    return chartFrame({ instance, definition, density, meta: runtimeMeta(`${xValues.length} x ${yValues.length}`, data), body: chartSvg(content, { label: definition.displayName }), data, resolvedContext });
+    const chartType = definition.chartType;
+    const colors = chartPaletteForElement(element);
+    const axis = chartAxisStyle(element);
+    const display = chartDisplayConfig(config);
+    const base = {
+      backgroundColor: "transparent",
+      color: colors,
+      animation: true,
+      animationDuration: 220,
+      textStyle: { color: axis.text, fontFamily: "inherit" },
+      tooltip: { trigger: "item", confine: true },
+      grid: { left: 28, right: 12, top: 14, bottom: 24, containLabel: true },
+    };
+    if (["bar", "horizontal-bar", "grouped-bar", "stacked-bar", "lollipop"].includes(chartType)) {
+      const usesSeries = ["grouped-bar", "stacked-bar"].includes(chartType);
+      const model = chartSeriesData(rows, config, resolvedContext, { series: usesSeries });
+      const horizontal = chartType === "horizontal-bar";
+      return {
+        ...base,
+        tooltip: { trigger: "axis", confine: true },
+        legend: display.showLegend && usesSeries ? { bottom: 0, textStyle: { color: axis.text, fontSize: 10 } } : undefined,
+        xAxis: horizontal ? { type: "value", axisLabel: { color: axis.text }, splitLine: { lineStyle: { color: axis.line } } } : { type: "category", data: model.categories, axisLabel: { color: axis.text }, axisLine: { lineStyle: { color: axis.line } } },
+        yAxis: horizontal ? { type: "category", data: model.categories, axisLabel: { color: axis.text }, axisLine: { lineStyle: { color: axis.line } } } : { type: "value", axisLabel: { color: axis.text }, splitLine: { show: display.showGrid, lineStyle: { color: axis.line } } },
+        series: model.series.map((series) => ({
+          name: series.name,
+          type: "bar",
+          stack: chartType === "stacked-bar" ? "total" : undefined,
+          barMaxWidth: chartType === "lollipop" ? 8 : 18,
+          data: series.data,
+          itemStyle: { borderRadius: horizontal ? [0, 4, 4, 0] : [4, 4, 0, 0] },
+        })),
+      };
+    }
+    if (["line", "multi-line", "area", "stacked-area", "sparkline"].includes(chartType)) {
+      const usesSeries = ["multi-line", "stacked-area"].includes(chartType);
+      const model = chartSeriesData(rows, config, resolvedContext, { series: usesSeries });
+      return {
+        ...base,
+        tooltip: { trigger: "axis", confine: true },
+        grid: chartType === "sparkline" ? { left: 4, right: 4, top: 4, bottom: 4 } : base.grid,
+        legend: display.showLegend && usesSeries && chartType !== "sparkline" ? { bottom: 0, textStyle: { color: axis.text, fontSize: 10 } } : undefined,
+        xAxis: { type: "category", show: chartType !== "sparkline" && display.showAxes, data: model.categories, axisLabel: { color: axis.text }, axisLine: { lineStyle: { color: axis.line } } },
+        yAxis: { type: "value", show: chartType !== "sparkline" && display.showAxes, axisLabel: { color: axis.text }, splitLine: { show: display.showGrid, lineStyle: { color: axis.line } } },
+        series: model.series.map((series) => ({
+          name: series.name,
+          type: "line",
+          smooth: true,
+          showSymbol: chartType !== "sparkline",
+          areaStyle: ["area", "stacked-area"].includes(chartType) ? { opacity: .22 } : undefined,
+          stack: chartType === "stacked-area" ? "total" : undefined,
+          data: series.data,
+        })),
+      };
+    }
+    if (["pie", "donut"].includes(chartType)) {
+      const points = groupedChartData(rows, config, resolvedContext).filter((point) => point.value > 0).slice(0, chartLimit(config, 8));
+      return {
+        ...base,
+        legend: display.showLegend ? { bottom: 0, textStyle: { color: axis.text, fontSize: 10 } } : undefined,
+        series: [{
+          type: "pie",
+          radius: chartType === "donut" ? ["44%", "72%"] : "72%",
+          center: ["50%", display.showLegend ? "44%" : "50%"],
+          label: { show: display.showLabels, color: axis.text, fontSize: 10 },
+          data: points.map((point) => ({ name: point.x, value: point.value })),
+        }],
+      };
+    }
+    if (["scatter", "bubble"].includes(chartType)) {
+      const xField = chartXField(config, resolvedContext);
+      const yField = chartValueField(config, resolvedContext);
+      const sizeField = chartField(config, resolvedContext, "sizeField", ["valueField"]);
+      const points = rows.map((row) => ({
+        x: numberValue(row?.[xField]),
+        y: numberValue(row?.[yField]),
+        size: numberValue(row?.[sizeField]),
+      })).filter((point) => point.x != null && point.y != null).slice(0, chartLimit(config, 80));
+      return {
+        ...base,
+        xAxis: { type: "value", axisLabel: { color: axis.text }, splitLine: { lineStyle: { color: axis.line } } },
+        yAxis: { type: "value", axisLabel: { color: axis.text }, splitLine: { lineStyle: { color: axis.line } } },
+        series: [{
+          type: "scatter",
+          symbolSize: (value) => chartType === "bubble" ? Math.max(7, Math.min(24, Number(value?.[2]) || 8)) : 8,
+          data: points.map((point) => [point.x, point.y, point.size || 8]),
+        }],
+      };
+    }
+    if (["histogram", "box-plot"].includes(chartType)) {
+      const values = numericRowsFor(rows, chartValueField(config, resolvedContext)).map((entry) => entry.value);
+      const min = Math.min(...values);
+      const max = Math.max(...values, min + 1);
+      const binCount = chartDensityFor(instance) === "large" ? 8 : 6;
+      const bins = Array.from({ length: binCount }, (_, index) => ({ name: `${index + 1}`, value: 0 }));
+      values.forEach((value) => {
+        const index = Math.min(binCount - 1, Math.floor(((value - min) / Math.max(1, max - min)) * binCount));
+        bins[index].value += 1;
+      });
+      return {
+        ...base,
+        tooltip: { trigger: "axis", confine: true },
+        xAxis: { type: "category", data: bins.map((bin) => bin.name), axisLabel: { color: axis.text }, axisLine: { lineStyle: { color: axis.line } } },
+        yAxis: { type: "value", axisLabel: { color: axis.text }, splitLine: { show: display.showGrid, lineStyle: { color: axis.line } } },
+        series: [{ type: "bar", data: bins.map((bin) => bin.value), barMaxWidth: 18, itemStyle: { borderRadius: [4, 4, 0, 0] } }],
+      };
+    }
+    if (chartType === "heatmap") {
+      const xField = chartXField(config, resolvedContext);
+      const yField = chartSeriesField(config, resolvedContext);
+      const valueField = chartValueField(config, resolvedContext);
+      const xValues = unique(rows.map((row) => chartEscapeLabel(row?.[xField]))).slice(0, 8);
+      const yValues = unique(rows.map((row) => chartEscapeLabel(row?.[yField]))).slice(0, 6);
+      const cells = [];
+      xValues.forEach((x, xIndex) => yValues.forEach((y, yIndex) => {
+        const matching = rows.filter((row) => chartEscapeLabel(row?.[xField]) === x && chartEscapeLabel(row?.[yField]) === y);
+        cells.push([xIndex, yIndex, aggregateValues(matching.map((row) => chartConfiguredAggregation(config) === "count" ? 1 : row?.[valueField]), chartConfiguredAggregation(config)) || 0]);
+      }));
+      return {
+        ...base,
+        tooltip: { position: "top", confine: true },
+        grid: { left: 34, right: 12, top: 12, bottom: 28 },
+        xAxis: { type: "category", data: xValues, axisLabel: { color: axis.text }, splitArea: { show: true } },
+        yAxis: { type: "category", data: yValues, axisLabel: { color: axis.text }, splitArea: { show: true } },
+        visualMap: { show: false, min: 0, max: Math.max(...cells.map((cell) => cell[2]), 1), inRange: { color: [colors[2], colors[0]] } },
+        series: [{ type: "heatmap", data: cells, label: { show: false } }],
+      };
+    }
+    if (["gauge", "radial-progress", "progress-bar"].includes(chartType)) {
+      const values = numericRowsFor(rows, chartValueField(config, resolvedContext)).map((entry) => entry.value);
+      const value = aggregateValues(values, chartConfiguredAggregation(config)) || 0;
+      const max = Number(config.max) || Math.max(value, ...values, 100);
+      if (chartType === "progress-bar") {
+        return {
+          ...base,
+          grid: { left: 8, right: 8, top: 26, bottom: 20 },
+          xAxis: { type: "value", show: false, max },
+          yAxis: { type: "category", show: false, data: [config.title || definition.displayName] },
+          series: [{ type: "bar", data: [value], barWidth: 18, itemStyle: { borderRadius: 9 }, label: { show: true, position: "inside", color: axis.strong, formatter: () => formatMetricValue(value, config.format) } }],
+        };
+      }
+      return {
+        ...base,
+        series: [{
+          type: "gauge",
+          min: 0,
+          max,
+          progress: { show: true, roundCap: true },
+          axisLine: { roundCap: true, lineStyle: { width: 9 } },
+          pointer: { show: chartType === "gauge" },
+          axisTick: { show: false },
+          splitLine: { show: false },
+          axisLabel: { show: false },
+          detail: { color: axis.strong, fontSize: 16, formatter: () => chartType === "radial-progress" ? `${Math.round((value / Math.max(1, max)) * 100)}%` : formatMetricValue(value, config.format) },
+          data: [{ value }],
+        }],
+      };
+    }
+    if (chartType === "kpi-trend") {
+      const values = numericRowsFor(rows, chartValueField(config, resolvedContext)).map((entry) => entry.value).slice(0, chartLimit(config, 60));
+      return {
+        ...base,
+        grid: { left: 8, right: 8, top: 18, bottom: 8 },
+        title: { text: values.length ? formatMetricValue(values.at(-1), config.format) : "", textStyle: { color: axis.strong, fontSize: 18, fontWeight: 800 }, left: 4, top: 0 },
+        xAxis: { type: "category", show: false, data: values.map((_, index) => index + 1) },
+        yAxis: { type: "value", show: false },
+        series: [{ type: "line", smooth: true, showSymbol: false, data: values, areaStyle: { opacity: .18 } }],
+      };
+    }
+    return { ...base, series: [] };
   };
-  const renderKpiTrendChart = ({ instance, definition, rows, resolvedContext, data }) => {
-    const config = instance.config || {};
-    const yField = chartValueField(config, resolvedContext);
-    const values = numericRowsFor(rows, yField).map((entry) => entry.value);
-    if (!values.length) return runtimeState(config.title || definition.displayName, "No numeric trend values");
-    const current = values.at(-1);
-    const previous = values.length > 1 ? values.at(-2) : current;
-    const delta = current - previous;
-    return `
-      <div class="runtime-chart-kpi" data-runtime-state="ready" data-runtime-source="${escapeHtml(runtimeSource(data))}" data-chart-type="${escapeHtml(definition.chartType)}">
-        <span class="stat-val">${escapeHtml(formatMetricValue(current, config.format))}</span>
-        <span class="stat-lbl">${escapeHtml(config.title || definition.displayName)}</span>
-        <span class="runtime-chart-meta">${escapeHtml(runtimeMeta(delta >= 0 ? `+${formatMetricValue(delta)}` : formatMetricValue(delta), data))}</span>
-      </div>`;
+  const mountChartBodyRenderer = ({ contentRoot, instance, definition, resolvedContext, data, status }) => {
+    const target = contentRoot?.querySelector?.(".runtime-chart-echarts");
+    if (!target || status !== "ready") return null;
+    const config = instance?.config || {};
+    const chartDefinition = getChartDefinition(config.chartType || "bar") || definition;
+    let disposed = false;
+    let chart = null;
+    let resizeObserver = null;
+    loadEcharts()
+      .then((echarts) => {
+        if (disposed || !target.isConnected) return;
+        const rows = Array.isArray(data?.rows) ? data.rows : [];
+        chart = echarts.init(target, null, { renderer: "svg" });
+        chart.setOption(chartEchartsOption({ instance, definition: chartDefinition, rows, resolvedContext, data, element: target }), true);
+        resizeObserver = new ResizeObserver(() => chart?.resize());
+        resizeObserver.observe(target);
+        requestAnimationFrame(() => chart?.resize());
+      })
+      .catch((error) => {
+        if (disposed || !target.isConnected) return;
+        target.innerHTML = `<div class="widget-runtime-state" data-runtime-state="error"><span class="stat-lbl">${escapeHtml(error?.message || "Unable to load chart renderer")}</span></div>`;
+      });
+    return () => {
+      disposed = true;
+      resizeObserver?.disconnect();
+      if (chart && !chart.isDisposed?.()) chart.dispose();
+      chart = null;
+    };
   };
   const registerChartDefinition = (definition) => {
     const chartType = String(definition?.chartType || "").trim();
@@ -899,7 +994,7 @@
       supportedAggregations: CHART_AGGREGATIONS,
       defaultConfig: {},
       valueRequiredForAggregation: true,
-      render: renderBarLikeChart,
+      render: renderEchartsChartFrame,
       ...definition,
       chartType,
       displayName: definition.displayName || chartType,
@@ -916,33 +1011,33 @@
     defaultConfig: definition.defaultConfig,
   }));
   [
-    ["bar", "Bar", "basic-comparison", ["xField"], renderBarLikeChart],
-    ["horizontal-bar", "Horizontal Bar", "basic-comparison", ["xField"], renderBarLikeChart],
-    ["grouped-bar", "Grouped Bar", "basic-comparison", ["xField", "seriesField"], renderBarLikeChart],
-    ["stacked-bar", "Stacked Bar", "basic-comparison", ["xField", "seriesField"], renderBarLikeChart],
-    ["lollipop", "Lollipop", "basic-comparison", ["xField"], renderBarLikeChart],
-    ["line", "Line", "time-series", ["xField", "yField"], renderLineLikeChart],
-    ["multi-line", "Multi-line", "time-series", ["xField", "yField"], renderLineLikeChart],
-    ["area", "Area", "time-series", ["xField", "yField"], renderLineLikeChart],
-    ["stacked-area", "Stacked Area", "time-series", ["xField", "yField"], renderLineLikeChart],
-    ["sparkline", "Sparkline", "time-series", ["xField", "yField"], renderLineLikeChart],
-    ["histogram", "Histogram", "distribution", ["yField"], renderHistogramChart],
-    ["box-plot", "Box Plot", "distribution", ["yField"], renderHistogramChart],
-    ["scatter", "Scatter", "relationship", ["xField", "yField"], renderScatterChart],
-    ["bubble", "Bubble", "relationship", ["xField", "yField"], renderScatterChart],
-    ["heatmap", "Heatmap", "relationship", ["xField", "seriesField"], renderHeatmapChart],
-    ["pie", "Pie", "composition", ["xField"], renderPieChart],
-    ["donut", "Donut", "composition", ["xField"], renderPieChart],
-    ["gauge", "Gauge", "ranking-progress", ["yField"], renderGaugeChart],
-    ["radial-progress", "Radial Progress", "ranking-progress", ["yField"], renderGaugeChart],
-    ["progress-bar", "Progress Bar", "ranking-progress", ["yField"], renderGaugeChart],
-    ["kpi-trend", "KPI Trend Card", "ranking-progress", ["xField", "yField"], renderKpiTrendChart],
+    ["bar", "Bar", "basic-comparison", ["xField"]],
+    ["horizontal-bar", "Horizontal Bar", "basic-comparison", ["xField"]],
+    ["grouped-bar", "Grouped Bar", "basic-comparison", ["xField", "seriesField"]],
+    ["stacked-bar", "Stacked Bar", "basic-comparison", ["xField", "seriesField"]],
+    ["lollipop", "Lollipop", "basic-comparison", ["xField"]],
+    ["line", "Line", "time-series", ["xField", "yField"]],
+    ["multi-line", "Multi-line", "time-series", ["xField", "yField"]],
+    ["area", "Area", "time-series", ["xField", "yField"]],
+    ["stacked-area", "Stacked Area", "time-series", ["xField", "yField"]],
+    ["sparkline", "Sparkline", "time-series", ["xField", "yField"]],
+    ["histogram", "Histogram", "distribution", ["yField"]],
+    ["box-plot", "Box Plot", "distribution", ["yField"]],
+    ["scatter", "Scatter", "relationship", ["xField", "yField"]],
+    ["bubble", "Bubble", "relationship", ["xField", "yField"]],
+    ["heatmap", "Heatmap", "relationship", ["xField", "seriesField"]],
+    ["pie", "Pie", "composition", ["xField"]],
+    ["donut", "Donut", "composition", ["xField"]],
+    ["gauge", "Gauge", "ranking-progress", ["yField"]],
+    ["radial-progress", "Radial Progress", "ranking-progress", ["yField"]],
+    ["progress-bar", "Progress Bar", "ranking-progress", ["yField"]],
+    ["kpi-trend", "KPI Trend Card", "ranking-progress", ["xField", "yField"]],
   ].forEach(([chartType, displayName, category, requiredFields, render]) => registerChartDefinition({
     chartType,
     displayName,
     category,
     requiredFields,
-    render,
+    render: render || renderEchartsChartFrame,
     defaultConfig: { chartType },
     valueRequiredForAggregation: !["bar", "horizontal-bar", "grouped-bar", "stacked-bar", "lollipop", "pie", "donut", "heatmap"].includes(chartType),
   }));
@@ -1408,6 +1503,8 @@
       densityRules: definition.densityRules || definition.densityBehavior || {},
       getDemoData: typeof definition.getDemoData === "function" ? definition.getDemoData : null,
       resolveQuery: typeof definition.resolveQuery === "function" ? definition.resolveQuery : () => null,
+      mountBodyRenderer: typeof definition.mountBodyRenderer === "function" ? definition.mountBodyRenderer : null,
+      unmountBodyRenderer: typeof definition.unmountBodyRenderer === "function" ? definition.unmountBodyRenderer : null,
       renderContent: typeof definition.renderContent === "function" ? definition.renderContent : null,
       render: typeof definition.render === "function"
         ? definition.render
@@ -2919,6 +3016,7 @@
         ? { dateField: "comparison", valueField: "value" }
         : {},
     }),
+    mountBodyRenderer: mountChartBodyRenderer,
     resolveQuery: (config, resolvedContext) => {
       if (!resolvedContext?.canQuery) return null;
       const definition = getChartDefinition(config.chartType || "bar");

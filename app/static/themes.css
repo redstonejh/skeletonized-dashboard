@@ -1215,27 +1215,34 @@ body::-webkit-scrollbar-thumb:hover {
   background-clip: content-box;
 }
 
+.db-panel.db-panel-custom-color {
+  --panel-material-rim: color-mix(in srgb, var(--glass-border) 76%, var(--panel-accent) 10%);
+  --panel-material-rim-hover: color-mix(in srgb, var(--glass-border) 68%, var(--panel-accent) 16%);
+  --panel-material-rim-active: color-mix(in srgb, var(--glass-border) 58%, var(--panel-accent) 22%);
+  border-color: var(--panel-material-rim) !important;
+}
+
 .db-panel.db-panel-custom-color:hover,
 .db-panel.db-panel-custom-color:focus-within {
-  border-color: color(srgb 0.411072 0.568827 0.767257 / 0.435054);
+  border-color: var(--panel-material-rim-hover) !important;
   box-shadow:
     0 7px 18px rgba(15, 23, 42, .08),
-    0 0 0 1px rgba(var(--panel-accent-rgb), .08),
+    0 0 0 1px color-mix(in srgb, var(--glass-border) 34%, transparent),
     inset 0 1px 0 rgba(255, 255, 255, .10);
   transform: translateY(-1px);
 }
 
 .db-panel.db-panel-custom-color.db-panel-collapsed:hover,
 .db-panel.db-panel-custom-color.db-panel-collapsed:focus-within {
-  border-color: color-mix(in srgb, var(--panel-accent) 42%, var(--line));
+  border-color: var(--panel-material-rim-hover) !important;
   box-shadow:
     var(--shadow-card),
-    0 0 0 1px rgba(var(--panel-accent-rgb), .10);
+    0 0 0 1px color-mix(in srgb, var(--glass-border) 36%, transparent);
   transform: translateY(-1px);
 }
 
 .db-panel.db-panel-custom-color.panel-child-hover-active:not(.db-panel-tools-open):not(.db-panel-collapsed) {
-  border-color: color-mix(in srgb, var(--panel-accent) 44%, white);
+  border-color: var(--panel-material-rim-hover) !important;
   box-shadow: var(--shadow-card);
 }
 
@@ -1301,6 +1308,11 @@ body::-webkit-scrollbar-thumb:hover {
 }
 
 .db-panel.db-panel-custom-color > .db-panel-hd {
+  --panel-chrome-bg: linear-gradient(90deg, rgba(var(--panel-accent-rgb), .44), rgba(var(--panel-accent-rgb), .24));
+  --panel-chrome-hover-bg: linear-gradient(90deg, rgba(var(--panel-accent-rgb), .46), rgba(var(--panel-accent-rgb), .26));
+  --panel-chrome-surface: var(--surface);
+  --panel-chrome-border: var(--panel-material-rim, color-mix(in srgb, var(--glass-border) 76%, var(--panel-accent) 10%));
+  --panel-chrome-hover-border: var(--panel-material-rim-hover, color-mix(in srgb, var(--glass-border) 68%, var(--panel-accent) 16%));
   --panel-header-control-bg: color-mix(in srgb, var(--surface-raised) 50%, var(--panel-accent) 50%) !important;
   --panel-header-control-fg: var(--panel-accent-text) !important;
   --panel-header-control-border: color-mix(in srgb, var(--panel-accent) 55%, var(--panel-hover-tint)) !important;
@@ -1310,15 +1322,19 @@ body::-webkit-scrollbar-thumb:hover {
   --panel-lock-border: rgba(var(--panel-accent-rgb), .54) !important;
   --panel-lock-glow: rgba(var(--panel-accent-rgb), .24) !important;
   --panel-drawer-bg: rgba(var(--panel-accent-rgb), .24) !important;
-  background: linear-gradient(90deg, rgba(var(--panel-accent-rgb), .44), rgba(var(--panel-accent-rgb), .24)) !important;
-  border-color: color-mix(in srgb, var(--panel-accent) 48%, white) !important;
+  background: var(--panel-chrome-bg), var(--panel-chrome-surface) !important;
+  border-color: var(--panel-chrome-border) !important;
   box-shadow: none !important;
 }
 
 .db-panel.db-panel-custom-color > .db-panel-hd:hover,.db-panel.db-panel-custom-color > .db-panel-hd:focus-visible {
-  background: linear-gradient(90deg, rgba(var(--panel-accent-rgb), .46), rgba(var(--panel-accent-rgb), .26)) !important;
-  border-color: color-mix(in srgb, var(--panel-accent) 54%, var(--panel-hover-tint)) !important;
+  background: var(--panel-chrome-hover-bg), var(--panel-chrome-surface) !important;
+  border-color: var(--panel-chrome-hover-border) !important;
   box-shadow: none !important;
+}
+
+.db-panel.db-panel-custom-color.db-panel-collapsed > .db-panel-hd {
+  border-bottom-width: 0 !important;
 }
 
 .db-panel.db-panel-custom-color > .db-panel-hd .db-panel-title {
@@ -1342,7 +1358,9 @@ body::-webkit-scrollbar-thumb:hover {
 .db-panel.db-panel-custom-color .panel-lock-toggle,
 .db-panel.db-panel-custom-color .panel-pin-toggle,
 .db-panel.db-panel-custom-color .panel-settings-toggle,
-.db-panel.db-panel-custom-color .panel-tool-button {
+.db-panel.db-panel-custom-color .panel-tool-button,
+.widget-card.db-panel-custom-color .panel-settings-toggle,
+.widget-card.db-panel-custom-color .panel-tool-button {
   --panel-lock-bg: var(--panel-custom-control-bg, color-mix(in srgb, var(--surface-raised) 62%, var(--panel-accent) 38%)) !important;
   --panel-lock-fg: var(--panel-accent-text) !important;
   --panel-lock-border: var(--panel-custom-control-border, rgba(var(--panel-accent-rgb), .54)) !important;
@@ -1410,19 +1428,6 @@ body::-webkit-scrollbar-thumb:hover {
 .widget-card.db-panel-custom-color.widget-tools-open .panel-settings-toggle {
   transform: var(--pressable-active-transform);
   box-shadow: var(--panel-control-active-shadow) !important;
-}
-
-.widget-card.db-panel-custom-color .panel-settings-toggle:hover,
-.widget-card.db-panel-custom-color .panel-tool-button:hover,
-.widget-card.db-panel-custom-color .panel-settings-toggle:focus-visible,
-.widget-card.db-panel-custom-color .panel-tool-button:focus-visible {
-  background: var(--widget-control-hover-bg) !important;
-}
-
-.widget-card.db-panel-custom-color .panel-settings-toggle:active,
-.widget-card.db-panel-custom-color .panel-tool-button:active,
-.widget-card.db-panel-custom-color.widget-tools-open .panel-settings-toggle {
-  background: var(--widget-control-active-bg) !important;
 }
 
 .db-panel.db-panel-custom-color .panel-tool-drawer {
@@ -1734,6 +1739,7 @@ body::-webkit-scrollbar-thumb:hover {
 }
 
 /* Widget palette ownership must win over stat-card and status color rules. */
+.db-panel.db-panel-custom-color > .db-panel-hd,
 .widget-layout > .widget-card.db-panel-custom-color,
 .panel-internal-widget-grid > .widget-card.db-panel-custom-color,
 .widget-layout > .widget-card.db-panel-custom-color.stat-danger,
@@ -1743,6 +1749,18 @@ body::-webkit-scrollbar-thumb:hover {
 .widget-layout > .widget-card.db-panel-custom-color.stat-purple,
 .panel-internal-widget-grid > .widget-card.db-panel-custom-color.stat-purple,
 .workspace-anchor-object.widget-card.db-panel-custom-color {
+  --panel-chrome-bg: linear-gradient(90deg, rgba(var(--panel-accent-rgb), .44), rgba(var(--panel-accent-rgb), .24));
+  --panel-chrome-hover-bg: linear-gradient(90deg, rgba(var(--panel-accent-rgb), .46), rgba(var(--panel-accent-rgb), .26));
+  --panel-chrome-surface: var(--surface);
+  --panel-material-rim: color-mix(in srgb, var(--glass-border) 76%, var(--panel-accent) 10%);
+  --panel-material-rim-hover: color-mix(in srgb, var(--glass-border) 68%, var(--panel-accent) 16%);
+  --panel-material-rim-active: color-mix(in srgb, var(--glass-border) 58%, var(--panel-accent) 22%);
+  --panel-chrome-border: var(--panel-material-rim);
+  --panel-chrome-hover-border: var(--panel-material-rim-hover);
+  --panel-header-control-bg: color-mix(in srgb, var(--surface-raised) 50%, var(--panel-accent) 50%) !important;
+  --panel-header-control-fg: var(--panel-accent-text) !important;
+  --panel-header-control-border: color-mix(in srgb, var(--panel-accent) 55%, var(--panel-hover-tint)) !important;
+  --panel-header-control-glow: rgba(var(--panel-accent-rgb), .24) !important;
   --widget-surface-fg: rgba(248, 250, 252, .94);
   --widget-surface-muted: rgba(226, 232, 240, .72);
   --panel-accent-text: var(--widget-surface-fg) !important;
@@ -1768,27 +1786,23 @@ body::-webkit-scrollbar-thumb:hover {
   --widget-data-quaternary: color-mix(in srgb, var(--panel-accent) 42%, #fca5a5 58%);
   --widget-data-positive: color-mix(in srgb, var(--panel-accent) 44%, #86efac 56%);
   --widget-data-quiet: color-mix(in srgb, var(--panel-accent) 38%, #c4b5fd 62%);
-  --panel-lock-bg: color-mix(in srgb, var(--panel-accent) 22%, transparent);
+  --panel-lock-bg: var(--panel-custom-control-bg, color-mix(in srgb, var(--surface-raised) 62%, var(--panel-accent) 38%));
   --panel-lock-fg: var(--panel-accent-text);
-  --panel-lock-border: color-mix(in srgb, var(--panel-accent) 26%, rgba(15, 23, 42, .24));
-  --panel-lock-glow: rgba(var(--panel-accent-rgb), .05);
-  --panel-drawer-bg: rgba(var(--panel-accent-rgb), .12);
+  --panel-lock-border: var(--panel-custom-control-border, rgba(var(--panel-accent-rgb), .54));
+  --panel-lock-glow: var(--panel-custom-control-shadow, rgba(var(--panel-accent-rgb), .24));
+  --panel-drawer-bg: rgba(var(--panel-accent-rgb), .24);
   --widget-control-bg: var(--panel-lock-bg);
-  --widget-control-hover-bg: color-mix(in srgb, var(--panel-accent) 24%, rgba(15, 23, 42, .06));
-  --widget-control-active-bg: color-mix(in srgb, var(--panel-accent) 28%, rgba(15, 23, 42, .10));
+  --widget-control-hover-bg: color-mix(in srgb, var(--panel-lock-bg) 72%, var(--panel-hover-tint));
+  --widget-control-active-bg: color-mix(in srgb, var(--panel-lock-bg) 72%, var(--panel-hover-tint));
   --panel-control-rest-shadow: inset 0 1px 1px rgba(255, 255, 255, .13), inset 0 -1px 2px rgba(15, 23, 42, .10), 0 1px 1px rgba(15, 23, 42, .035);
   --panel-control-hover-shadow: inset 0 1px 1px rgba(255, 255, 255, .12), inset 0 2px 5px rgba(15, 23, 42, .15), 0 1px 1px rgba(15, 23, 42, .04);
   --panel-control-active-shadow: inset 0 2px 6px rgba(15, 23, 42, .20), inset 0 1px 0 rgba(255, 255, 255, .07), 0 1px 1px rgba(15, 23, 42, .035);
   --widget-drawer-bg:
     linear-gradient(180deg, color-mix(in srgb, var(--glass-surface-strong) 90%, var(--surface-raised)), color-mix(in srgb, var(--glass-surface) 84%, var(--surface-soft))),
     color-mix(in srgb, var(--panel-accent) 8%, var(--glass-surface));
-  background: color-mix(in srgb, var(--glass-surface) 48%, rgba(var(--panel-accent-rgb), .15));
-  border-color: color-mix(in srgb, var(--panel-accent) 17%, rgba(148, 163, 184, .42)) !important;
-  box-shadow:
-    0 1px 2px rgba(15, 23, 42, .028),
-    inset 0 1px 0 rgba(255, 255, 255, .095),
-    inset 0 -12px 20px rgba(15, 23, 42, .026),
-    inset 0 0 0 1px color-mix(in srgb, var(--glass-highlight) 18%, transparent) !important;
+  background: var(--panel-chrome-bg), var(--panel-chrome-surface) !important;
+  border-color: var(--panel-chrome-border) !important;
+  box-shadow: none !important;
   color: var(--widget-surface-fg) !important;
 }
 
@@ -1847,43 +1861,31 @@ body::-webkit-scrollbar-thumb:hover {
 .workspace-anchor-object.widget-card.db-panel-custom-color:focus-visible,
 .workspace-anchor-object.widget-card.db-panel-custom-color.anchor-body-pressing,
 .workspace-anchor-object.widget-card.db-panel-custom-color.active {
-  background: color-mix(in srgb, var(--glass-surface) 46%, rgba(var(--panel-accent-rgb), .16));
-  border-color: rgba(var(--panel-accent-rgb), .46) !important;
-  box-shadow:
-    0 3px 8px rgba(15, 23, 42, .055),
-    inset 0 1px 0 rgba(255, 255, 255, .12),
-    inset 0 -12px 20px rgba(15, 23, 42, .032) !important;
+  background: var(--panel-chrome-hover-bg), var(--panel-chrome-surface) !important;
+  border-color: var(--panel-chrome-hover-border) !important;
+  box-shadow: none !important;
   transform: translateY(-1px);
 }
 
 .workspace-anchor-object.widget-card.db-panel-custom-color.anchor-body-pressing {
   transform: var(--surface-zone-press-transform, var(--pressable-active-transform));
-  background: color-mix(in srgb, var(--glass-surface) 40%, rgba(var(--panel-accent-rgb), .22));
-  border-color: rgba(var(--panel-accent-rgb), .40) !important;
-  box-shadow:
-    0 2px 7px rgba(15, 23, 42, .052),
-    inset 0 1px 0 rgba(255, 255, 255, .11),
-    inset 0 2px 8px rgba(15, 23, 42, .10) !important;
+  background: var(--panel-chrome-hover-bg), var(--panel-chrome-surface) !important;
+  border-color: var(--panel-chrome-hover-border) !important;
+  box-shadow: none !important;
 }
 
 .widget-layout > .widget-card.db-panel-custom-color.active,
 .workspace-anchor-object.widget-card.db-panel-custom-color.active {
-  outline: 3px solid color-mix(in srgb, var(--panel-accent) 68%, var(--panel-hover-tint));
+  outline: 3px solid color-mix(in srgb, var(--panel-material-rim-active) 76%, transparent);
   outline-offset: 0;
-  border-color: color-mix(in srgb, var(--panel-accent) 46%, var(--panel-hover-tint)) !important;
-  box-shadow:
-    0 3px 9px rgba(15, 23, 42, .065),
-    inset 0 1px 0 rgba(255, 255, 255, .13),
-    inset 0 -12px 20px rgba(15, 23, 42, .032) !important;
+  border-color: var(--panel-material-rim-active) !important;
+  box-shadow: none !important;
 }
 
 .widget-layout > .widget-card.db-panel-custom-color.active:hover,
 .workspace-anchor-object.widget-card.db-panel-custom-color.active:hover {
-  outline-color: color-mix(in srgb, var(--panel-accent) 76%, var(--panel-hover-tint));
-  box-shadow:
-    0 4px 10px rgba(15, 23, 42, .07),
-    inset 0 1px 0 rgba(255, 255, 255, .13),
-    inset 0 -12px 20px rgba(15, 23, 42, .032) !important;
+  outline-color: color-mix(in srgb, var(--panel-material-rim-active) 86%, transparent);
+  box-shadow: none !important;
 }
 
 .widget-layout > .widget-card.db-panel-custom-color.widget-tools-open,
@@ -1895,22 +1897,10 @@ body::-webkit-scrollbar-thumb:hover {
 .widget-layout > .widget-card.db-panel-custom-color.widget-runtime-meaning,
 .panel-internal-widget-grid > .widget-card.db-panel-custom-color.widget-runtime-meaning,
 .workspace-anchor-object.widget-card.db-panel-custom-color.widget-runtime-meaning {
-  background: color-mix(
-    in srgb,
-    color-mix(in srgb, var(--glass-surface) 48%, rgba(var(--panel-accent-rgb), .15)) 91%,
-    var(--widget-runtime-condition-tint) 9%
-  ) !important;
-  border-color: color-mix(
-    in srgb,
-    color-mix(in srgb, var(--panel-accent) 17%, rgba(148, 163, 184, .42)) 78%,
-    var(--widget-runtime-condition-border) 22%
-  ) !important;
-  box-shadow:
-    0 1px 2px rgba(15, 23, 42, .028),
-    inset 0 1px 0 rgba(255, 255, 255, .095),
-    inset 0 -12px 20px rgba(15, 23, 42, .026),
-    inset 0 0 0 1px color-mix(in srgb, var(--glass-highlight) 16%, var(--widget-runtime-condition-border) 20%),
-    inset 0 -18px 26px var(--widget-runtime-condition-shadow) !important;
+  background: var(--panel-chrome-bg), var(--panel-chrome-surface) !important;
+  border-color: var(--panel-chrome-border) !important;
+  box-shadow: none !important;
+  filter: none !important;
 }
 
 .widget-card.chart-widget-card.db-panel-custom-color {
@@ -1959,24 +1949,6 @@ body::-webkit-scrollbar-thumb:hover {
   color: var(--range-search-fg) !important;
 }
 
-.widget-card.db-panel-custom-color .panel-settings-toggle,
-.widget-card.db-panel-custom-color .panel-tool-button {
-  --panel-lock-bg: var(--panel-custom-control-bg, color-mix(in srgb, var(--panel-accent) 22%, transparent)) !important;
-  --panel-lock-fg: var(--panel-accent-text) !important;
-  --panel-lock-border: var(--panel-custom-control-border, color-mix(in srgb, var(--panel-accent) 26%, rgba(15, 23, 42, .24))) !important;
-  --panel-lock-glow: var(--panel-custom-control-shadow, rgba(var(--panel-accent-rgb), .05)) !important;
-  --panel-drawer-bg: color-mix(in srgb, var(--surface-raised) 92%, var(--panel-accent) 8%) !important;
-  --widget-control-bg: var(--panel-lock-bg) !important;
-  --widget-control-hover-bg: color-mix(in srgb, var(--panel-accent) 24%, rgba(15, 23, 42, .06)) !important;
-  --widget-control-active-bg: color-mix(in srgb, var(--panel-accent) 28%, rgba(15, 23, 42, .10)) !important;
-  --panel-control-rest-shadow: inset 0 1px 1px rgba(255, 255, 255, .13), inset 0 -1px 2px rgba(15, 23, 42, .10), 0 1px 1px rgba(15, 23, 42, .035) !important;
-  --panel-control-hover-shadow: inset 0 1px 1px rgba(255, 255, 255, .12), inset 0 2px 5px rgba(15, 23, 42, .15), 0 1px 1px rgba(15, 23, 42, .04) !important;
-  --panel-control-active-shadow: inset 0 2px 6px rgba(15, 23, 42, .20), inset 0 1px 0 rgba(255, 255, 255, .07), 0 1px 1px rgba(15, 23, 42, .035) !important;
-  border-color: var(--panel-lock-border);
-  box-shadow:
-    var(--panel-control-rest-shadow);
-}
-
 .widget-card.db-panel-custom-color .widget-tool-drawer {
   background:
     linear-gradient(180deg, color-mix(in srgb, var(--glass-surface-strong) 96%, var(--surface-raised)), color-mix(in srgb, var(--glass-surface-strong) 92%, var(--surface-soft))),
@@ -1984,19 +1956,6 @@ body::-webkit-scrollbar-thumb:hover {
   border-color: var(--panel-custom-drawer-border, color-mix(in srgb, var(--panel-accent) 46%, rgba(15, 23, 42, .32)));
   box-shadow:
     var(--panel-drawer-shadow, 0 14px 32px rgba(15, 23, 42, .18));
-}
-
-.widget-card .panel-settings-toggle:hover,
-.widget-card .panel-tool-button:hover,
-.widget-card .panel-settings-toggle:focus-visible,
-.widget-card .panel-tool-button:focus-visible {
-  background: var(--widget-control-hover-bg) !important;
-}
-
-.widget-card .panel-settings-toggle:active,
-.widget-card .panel-tool-button:active,
-.widget-card.widget-tools-open .panel-settings-toggle {
-  background: var(--widget-control-active-bg) !important;
 }
 
 /* Dashboard top bar polish: match the soft widget/panel control language. */
@@ -4737,11 +4696,9 @@ button[aria-disabled="true"]:hover {
 .widget-layout > .widget-card.db-panel-custom-color:has(:is(.widget-tools, .panel-tool-drawer, [data-widget-control-surface="true"], input, select, textarea, [contenteditable="true"]):focus-within),
 .panel-internal-widget-grid > .widget-card.db-panel-custom-color:has(:is(.widget-tools, .panel-tool-drawer, [data-widget-control-surface="true"], button, input, select, textarea, [contenteditable="true"]):hover),
 .panel-internal-widget-grid > .widget-card.db-panel-custom-color:has(:is(.widget-tools, .panel-tool-drawer, [data-widget-control-surface="true"], input, select, textarea, [contenteditable="true"]):focus-within) {
-  background: color-mix(in srgb, var(--glass-surface) 50%, rgba(var(--panel-accent-rgb), .12)) !important;
-  border-color: color-mix(in srgb, var(--panel-accent) 34%, var(--line)) !important;
-  box-shadow:
-    0 4px 10px rgba(15, 23, 42, .055),
-    inset 0 1px 0 rgba(255, 255, 255, .11) !important;
+  background: var(--panel-chrome-hover-bg), var(--panel-chrome-surface) !important;
+  border-color: var(--panel-chrome-hover-border) !important;
+  box-shadow: none !important;
   transform: none !important;
 }
 
@@ -5401,5 +5358,221 @@ body:is(.panel-interaction-active, .panel-resize-active, .workspace-wire-drag-ac
 .timeframe-widget:has(.timeframe-control-row:hover),
 .timeframe-widget:has(.timeframe-control-row:focus-within) {
   transform: none !important;
+}
+
+/* Shared object shell material for panels and widgets. Keep content renderers separate. */
+.db-panel,
+.db-panel > .db-panel-hd,
+.widget-layout > .widget-card,
+.panel-internal-widget-grid > .widget-card,
+.workspace-anchor-object.widget-card {
+  --object-shell-surface: var(--surface);
+  --object-shell-wash: linear-gradient(90deg, rgba(var(--panel-accent-rgb, 37, 99, 235), .34), rgba(var(--panel-accent-rgb, 37, 99, 235), .18));
+  --object-shell-bg: var(--object-shell-wash), var(--object-shell-surface);
+  --object-shell-hover-bg: var(--object-shell-wash), var(--object-shell-surface);
+  --object-shell-rim: color-mix(in srgb, var(--glass-border) 86%, var(--panel-accent, var(--blue)) 5%);
+  --object-shell-rim-hover: color-mix(in srgb, var(--glass-border) 78%, var(--panel-accent, var(--blue)) 8%);
+  --object-shell-rim-active: color-mix(in srgb, var(--glass-border) 68%, var(--panel-accent, var(--blue)) 12%);
+  --object-shell-inner-line: color-mix(in srgb, var(--glass-border) 42%, transparent);
+  --object-shell-shadow: 0 2px 10px rgba(15, 23, 42, .06), inset 0 1px 0 rgba(255, 255, 255, .10);
+  --object-shell-hover-shadow: 0 10px 24px rgba(15, 23, 42, .10), inset 0 1px 0 rgba(255, 255, 255, .12);
+  --object-control-bg: color-mix(in srgb, var(--surface-raised) 66%, var(--panel-accent, var(--blue)) 34%);
+  --object-control-border: color-mix(in srgb, var(--glass-border) 72%, var(--panel-accent, var(--blue)) 14%);
+  --object-control-hover-border: color-mix(in srgb, var(--glass-border) 58%, var(--panel-accent, var(--blue)) 18%);
+  --object-control-glow: color-mix(in srgb, var(--panel-accent, var(--blue)) 14%, transparent);
+  --panel-material-rim: var(--object-shell-rim);
+  --panel-material-rim-hover: var(--object-shell-rim-hover);
+  --panel-material-rim-active: var(--object-shell-rim-active);
+  --panel-chrome-bg: var(--object-shell-wash);
+  --panel-chrome-hover-bg: var(--object-shell-wash);
+  --panel-chrome-surface: var(--object-shell-surface);
+  --panel-chrome-border: var(--object-shell-rim);
+  --panel-chrome-hover-border: var(--object-shell-rim-hover);
+  --panel-header-control-bg: var(--object-control-bg);
+  --panel-header-control-border: var(--object-control-border);
+  --panel-header-control-glow: var(--object-control-glow);
+  --panel-lock-bg: var(--object-control-bg);
+  --panel-lock-border: var(--object-control-border);
+  --panel-lock-glow: var(--object-control-glow);
+  --panel-control-hover-border: var(--object-control-hover-border);
+}
+
+.db-panel {
+  border-color: var(--object-shell-rim) !important;
+  background: var(--object-shell-surface) !important;
+  box-shadow: var(--object-shell-shadow) !important;
+}
+
+.db-panel > .db-panel-hd,
+.widget-layout > .widget-card,
+.panel-internal-widget-grid > .widget-card,
+.workspace-anchor-object.widget-card {
+  background: var(--object-shell-bg) !important;
+  border-color: var(--object-shell-rim) !important;
+  box-shadow: var(--object-shell-shadow) !important;
+  background-clip: padding-box !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+.db-panel:not(.db-panel-collapsed) > .db-panel-hd {
+  border-bottom-color: var(--object-shell-inner-line) !important;
+}
+
+.db-panel.db-panel-collapsed > .db-panel-hd {
+  border-bottom-width: 0 !important;
+  border-bottom-color: transparent !important;
+  box-shadow: var(--object-shell-shadow) !important;
+}
+
+.db-panel.db-panel-collapsed > .db-panel-body {
+  border-top-width: 0 !important;
+}
+
+.db-panel:hover,
+.db-panel:focus-within,
+.db-panel.db-panel-collapsed:hover,
+.db-panel.db-panel-collapsed:focus-within,
+.db-panel.db-panel-tools-open:hover,
+.db-panel.db-panel-tools-open:focus-within,
+.widget-layout > .widget-card:hover,
+.widget-layout > .widget-card:focus-visible,
+.panel-internal-widget-grid > .widget-card:hover,
+.panel-internal-widget-grid > .widget-card:focus-visible {
+  border-color: var(--object-shell-rim-hover) !important;
+  box-shadow: var(--object-shell-hover-shadow) !important;
+}
+
+.db-panel:hover,
+.db-panel:focus-within {
+  background: var(--object-shell-surface) !important;
+}
+
+.db-panel > .db-panel-hd:hover,
+.db-panel > .db-panel-hd:focus-visible,
+.widget-layout > .widget-card:hover,
+.widget-layout > .widget-card:focus-visible,
+.panel-internal-widget-grid > .widget-card:hover,
+.panel-internal-widget-grid > .widget-card:focus-visible {
+  background: var(--object-shell-hover-bg) !important;
+  border-color: var(--object-shell-rim-hover) !important;
+}
+
+.db-panel.panel-child-hover-active:not(.db-panel-tools-open):not(.db-panel-collapsed) {
+  border-color: var(--object-shell-rim) !important;
+  box-shadow: var(--object-shell-shadow) !important;
+}
+
+.db-panel.db-panel-custom-color,
+.db-panel.db-panel-custom-color > .db-panel-hd,
+.widget-layout > .widget-card.db-panel-custom-color,
+.panel-internal-widget-grid > .widget-card.db-panel-custom-color,
+.workspace-anchor-object.widget-card.db-panel-custom-color {
+  --object-shell-wash: linear-gradient(90deg, rgba(var(--panel-accent-rgb, 37, 99, 235), .34), rgba(var(--panel-accent-rgb, 37, 99, 235), .18));
+  --object-shell-rim: color-mix(in srgb, var(--glass-border) 86%, var(--panel-accent) 5%);
+  --object-shell-rim-hover: color-mix(in srgb, var(--glass-border) 78%, var(--panel-accent) 8%);
+  --object-shell-rim-active: color-mix(in srgb, var(--glass-border) 68%, var(--panel-accent) 12%);
+  --panel-material-rim: var(--object-shell-rim);
+  --panel-material-rim-hover: var(--object-shell-rim-hover);
+  --panel-material-rim-active: var(--object-shell-rim-active);
+  --panel-chrome-bg: var(--object-shell-wash) !important;
+  --panel-chrome-hover-bg: var(--object-shell-wash) !important;
+  --panel-chrome-border: var(--object-shell-rim);
+  --panel-chrome-hover-border: var(--object-shell-rim-hover);
+  background: var(--object-shell-bg) !important;
+  border-color: var(--object-shell-rim) !important;
+  box-shadow: var(--object-shell-shadow) !important;
+}
+
+.db-panel.db-panel-custom-color:hover,
+.db-panel.db-panel-custom-color:focus-within,
+.db-panel.db-panel-custom-color.db-panel-collapsed:hover,
+.db-panel.db-panel-custom-color.db-panel-collapsed:focus-within,
+.widget-layout > .widget-card.db-panel-custom-color:hover,
+.widget-layout > .widget-card.db-panel-custom-color:focus-visible,
+.widget-layout > .widget-card.db-panel-custom-color.active,
+.panel-internal-widget-grid > .widget-card.db-panel-custom-color:hover,
+.panel-internal-widget-grid > .widget-card.db-panel-custom-color:focus-visible,
+.workspace-anchor-object.widget-card.db-panel-custom-color:hover,
+.workspace-anchor-object.widget-card.db-panel-custom-color:focus-visible,
+.workspace-anchor-object.widget-card.db-panel-custom-color.active {
+  background: var(--object-shell-hover-bg) !important;
+  border-color: var(--object-shell-rim-hover) !important;
+  box-shadow: var(--object-shell-hover-shadow) !important;
+}
+
+.widget-layout > .widget-card.db-panel-custom-color.active,
+.panel-internal-widget-grid > .widget-card.db-panel-custom-color.active,
+.workspace-anchor-object.widget-card.db-panel-custom-color.active {
+  border-color: var(--object-shell-rim-active) !important;
+  outline-color: color-mix(in srgb, var(--object-shell-rim-active) 70%, transparent) !important;
+  box-shadow: var(--object-shell-hover-shadow) !important;
+}
+
+.db-panel > .db-panel-hd::before,
+.db-panel > .db-panel-hd .db-panel-count,
+.db-panel .panel-lock-toggle,
+.db-panel .panel-pin-toggle,
+.db-panel .panel-settings-toggle,
+.db-panel .panel-tool-button,
+.widget-card .panel-settings-toggle,
+.widget-card .panel-tool-button {
+  background: var(--object-control-bg) !important;
+  border-color: var(--object-control-border) !important;
+  box-shadow: var(--panel-control-rest-shadow, 0 4px 10px var(--object-control-glow), inset 0 1px 0 rgba(255, 255, 255, .12)) !important;
+}
+
+.db-panel > .db-panel-hd:hover::before,
+.db-panel > .db-panel-hd:focus-visible::before,
+.db-panel .panel-lock-toggle:hover,
+.db-panel .panel-pin-toggle:hover,
+.db-panel .panel-settings-toggle:hover,
+.db-panel .panel-tool-button:hover,
+.widget-card .panel-settings-toggle:hover,
+.widget-card .panel-tool-button:hover,
+.db-panel .panel-lock-toggle:focus-visible,
+.db-panel .panel-pin-toggle:focus-visible,
+.db-panel .panel-settings-toggle:focus-visible,
+.db-panel .panel-tool-button:focus-visible,
+.widget-card .panel-settings-toggle:focus-visible,
+.widget-card .panel-tool-button:focus-visible {
+  border-color: var(--object-control-hover-border) !important;
+}
+
+.range-bar.widget-card .preset-btn,
+.range-bar.widget-card .range-custom-trigger,
+.range-bar.widget-card .timeframe-selected-summary,
+.range-bar.widget-card .range-icon-button {
+  border-color: var(--object-control-border) !important;
+}
+
+.range-bar.widget-card .preset-btn:hover,
+.range-bar.widget-card .range-custom-trigger:hover,
+.range-bar.widget-card .timeframe-selected-summary:hover,
+.range-bar.widget-card .range-icon-button:hover,
+.range-bar.widget-card .preset-btn.active,
+.range-bar.widget-card .timeframe-selected-summary.active {
+  border-color: var(--object-control-hover-border) !important;
+}
+
+.db-panel.db-panel-custom-color > .db-panel-hd::before,
+.db-panel.db-panel-custom-color > .db-panel-hd .db-panel-count,
+.db-panel-custom-color > .db-panel-hd::before,
+.db-panel-custom-color > .db-panel-hd .db-panel-count {
+  background: var(--object-control-bg) !important;
+  border-color: var(--object-control-border) !important;
+  box-shadow: var(--panel-control-rest-shadow, 0 4px 10px var(--object-control-glow), inset 0 1px 0 rgba(255, 255, 255, .12)) !important;
+}
+
+.widget-layout > .widget-card.db-panel-custom-color.widget-runtime-meaning,
+.panel-internal-widget-grid > .widget-card.db-panel-custom-color.widget-runtime-meaning,
+.widget-layout > .widget-card.db-panel-custom-color.widget-tools-open,
+.widget-layout > .widget-card.db-panel-custom-color.widget-tools-open:hover,
+.widget-layout > .widget-card.db-panel-custom-color.widget-tools-open:focus-visible {
+  --panel-chrome-bg: var(--object-shell-wash) !important;
+  --panel-chrome-hover-bg: var(--object-shell-wash) !important;
+  background: var(--object-shell-bg) !important;
+  border-color: var(--object-shell-rim) !important;
+  box-shadow: var(--object-shell-shadow) !important;
 }
 
