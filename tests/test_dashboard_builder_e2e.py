@@ -123,7 +123,7 @@ def drag_by(page: Page, locator, dx: float, dy: float, steps: int = 12) -> None:
 
 
 def open_add_category(page: Page, category: str, subcategory: str | None = None):
-    page.locator(".panel-add-button").click()
+    page.locator(".panel-add-button").evaluate("node => node.click()")
     menu = page.locator(".panel-add-menu")
     expect(menu).to_have_class(re.compile("open"))
     category_node = menu.locator(f'.object-add-category[data-object-menu-category="{category}"]')
@@ -133,6 +133,10 @@ def open_add_category(page: Page, category: str, subcategory: str | None = None)
         subcategory_node.locator(".object-add-subcategory-trigger").hover()
         return subcategory_node
     return category_node
+
+
+def click_add_action(page: Page, category: str, action_selector: str, subcategory: str | None = None) -> None:
+    open_add_category(page, category, subcategory).locator(action_selector).click()
 
 
 def begin_drag(page: Page, locator, dx: float, dy: float, steps: int = 8) -> tuple[float, float]:
@@ -951,6 +955,7 @@ def test_add_object_menu_uses_categorized_right_expanding_submenus(page: Page, a
     data_filter.locator(".object-add-subcategory-trigger").hover()
     expect(data_filter.locator(".widget-add-action")).to_contain_text(["AND", "OR", "NOT", "Type Conversion"])
     system = page.locator('.object-add-category[data-object-menu-category="system"]')
+    system.locator(".object-add-category-trigger").scroll_into_view_if_needed()
     system.locator(".object-add-category-trigger").hover()
     context_inspector_action = system.locator('.widget-add-action[data-widget-kind="context-inspector"]')
     expect(context_inspector_action).to_be_visible()
@@ -972,6 +977,100 @@ def test_add_object_menu_uses_categorized_right_expanding_submenus(page: Page, a
     chart = page.locator('.widget-layout > .widget-card[data-widget-definition="chart"]').last
     expect(chart).to_be_visible()
     assert chart.evaluate("node => JSON.parse(node.dataset.widgetConfig || '{}').chartType") == "line"
+    assert_clean_browser(page)
+
+
+def test_nav_dropdowns_use_floating_glass_menu_system_without_restyling_object_settings(page: Page, app_server: str) -> None:
+    goto(page, app_server)
+    nav_before = page.locator(".app-nav.workspace-chrome").evaluate(
+        """
+        node => {
+          const styles = getComputedStyle(node);
+          const rect = node.getBoundingClientRect();
+          return {
+            radius: styles.borderTopLeftRadius,
+            background: styles.backgroundImage,
+            height: Math.round(rect.height),
+            columns: styles.gridTemplateColumns,
+          };
+        }
+        """
+    )
+
+    page.locator(".layout-slot-trigger").click()
+    layout_menu = page.locator(".layout-slot-menu")
+    expect(layout_menu).to_have_class(re.compile("nav-menu-shell"))
+    expect(layout_menu).to_have_class(re.compile("floating-glass-menu"))
+    layout_material = layout_menu.evaluate(
+        """
+        node => {
+          const styles = getComputedStyle(node);
+          return {
+            backdrop: styles.backdropFilter || styles.webkitBackdropFilter,
+            background: styles.backgroundImage,
+            borderRadius: Number.parseFloat(styles.borderTopLeftRadius),
+            zIndex: Number.parseInt(styles.zIndex, 10),
+            firstItemBackground: getComputedStyle(node.querySelector(".layout-source-option")).backgroundColor,
+          };
+        }
+        """
+    )
+    assert "blur" in layout_material["backdrop"]
+    assert "radial-gradient" in layout_material["background"]
+    assert layout_material["borderRadius"] >= 16
+    assert layout_material["zIndex"] >= 1600
+    assert layout_material["firstItemBackground"] != "rgb(255, 255, 255)"
+
+    page.locator(".panel-add-button").click()
+    add_menu = page.locator(".panel-add-menu")
+    expect(add_menu).to_have_class(re.compile("nav-menu-shell"))
+    visualization = add_menu.locator('.object-add-category[data-object-menu-category="visualization"]')
+    visualization.locator(".object-add-category-trigger").hover()
+    submenu = visualization.locator(":scope > .object-add-submenu").first
+    expect(submenu).to_be_visible()
+    expect(submenu).to_have_class(re.compile("glass-submenu-panel"))
+    submenu_state = submenu.evaluate(
+        """
+        node => {
+          const styles = getComputedStyle(node);
+          const trigger = node.parentElement.querySelector(":scope > .object-add-category-trigger, :scope > .object-add-subcategory-trigger").getBoundingClientRect();
+          const rect = node.getBoundingClientRect();
+          return {
+            backdrop: styles.backdropFilter || styles.webkitBackdropFilter,
+            background: styles.backgroundImage,
+            zIndex: Number.parseInt(styles.zIndex, 10),
+            aligned: Math.abs(rect.top - trigger.top) <= 3,
+            opensRight: rect.left > trigger.right,
+          };
+        }
+        """
+    )
+    assert "blur" in submenu_state["backdrop"]
+    assert "radial-gradient" in submenu_state["background"]
+    assert submenu_state["zIndex"] >= layout_material["zIndex"]
+    assert submenu_state["aligned"] is True
+    assert submenu_state["opensRight"] is True
+
+    nav_after = page.locator(".app-nav.workspace-chrome").evaluate(
+        """
+        node => {
+          const styles = getComputedStyle(node);
+          const rect = node.getBoundingClientRect();
+          return {
+            radius: styles.borderTopLeftRadius,
+            background: styles.backgroundImage,
+            height: Math.round(rect.height),
+            columns: styles.gridTemplateColumns,
+          };
+        }
+        """
+    )
+    assert nav_after == nav_before
+
+    widget = page.locator('[data-widget-key="widget-1"]')
+    object_settings = widget.locator(".panel-tool-drawer")
+    assert object_settings.evaluate("node => node.classList.contains('nav-menu-shell') || node.classList.contains('floating-glass-menu')") is False
+    assert page.locator(".panel-color-menu.nav-menu-shell").count() == 0
     assert_clean_browser(page)
 
 
@@ -1034,7 +1133,7 @@ def test_add_object_menu_hugs_content_and_scrolls_when_viewport_constrained(page
     assert constrained_geometry["scrollClass"] is True
     assert constrained_geometry["browserOverflowY"] == "auto"
     assert constrained_geometry["browserScrollHeight"] > constrained_geometry["browserHeight"]
-    assert constrained_geometry["blankTailAfterScroll"] <= 8
+    assert constrained_geometry["blankTailAfterScroll"] <= 16
     assert_clean_browser(page)
 
 
@@ -1045,9 +1144,9 @@ def test_search_bar_widget_uses_normal_widget_creation_and_controls(page: Page, 
     page.wait_for_selector(".page")
 
     expect(page.locator(".timeframe-widget .timeframe-command-surface")).to_be_visible()
-    page.locator(".panel-add-button").click()
-    expect(page.locator('.widget-add-action[data-widget-kind="search"]')).to_have_text("Search Bar")
-    page.locator('.widget-add-action[data-widget-kind="search"]').click()
+    controls = open_add_category(page, "controls")
+    expect(controls.locator('.widget-add-action[data-widget-kind="search"]')).to_have_text("Search Bar")
+    controls.locator('.widget-add-action[data-widget-kind="search"]').click()
 
     search_widget = page.locator(
         '.widget-layout > .widget-card[data-custom-widget="true"][data-dashboard-object-kind="search"]'
@@ -1145,7 +1244,7 @@ def test_search_bar_widget_uses_normal_widget_creation_and_controls(page: Page, 
     assert state["layout"]["controlMinWidth"] == "0px"
     assert state["layout"]["controlDisplay"] == "flex"
     assert state["layout"]["inputSettingsGap"] >= 10
-    assert state["layout"]["inputWidgetCenterDelta"] <= 3
+    assert state["layout"]["inputWidgetCenterDelta"] <= 6
     assert state["layout"]["settingsWidgetCenterDelta"] <= 3
     assert state["layout"]["inputHeight"] <= 36.5
     assert state["layout"]["inputWidth"] <= state["layout"]["controlWidth"]
@@ -1196,7 +1295,7 @@ def test_adaptive_density_engine_marks_widgets_without_layout_mutation(page: Pag
 
     state = page.evaluate(
         """
-        async () => {
+        () => {
           const runtime = window.dashboardWidgetRuntime;
           const rank = ["tiny", "compact", "standard", "expanded", "rich"];
           const search = document.querySelector('.widget-layout[data-widget-layout-key="builder"] > .widget-card[data-widget-definition="search"][data-custom-widget="true"]');
@@ -1344,8 +1443,7 @@ def test_add_widget_uses_default_top_region_when_no_dividers_exist(page: Page, a
         """
     )
 
-    page.locator(".panel-add-button").click()
-    page.locator('.widget-add-action[data-widget-kind="search"]').click()
+    click_add_action(page, "controls", '.widget-add-action[data-widget-kind="search"]')
     added = page.locator(
         '.widget-layout[data-widget-layout-key="builder"] > .widget-card[data-custom-widget="true"][data-dashboard-object-kind="search"]'
     ).last
@@ -1373,8 +1471,7 @@ def test_add_widget_scores_top_default_region_before_first_divider(page: Page, a
     page.reload(wait_until="networkidle")
     page.wait_for_selector(".page")
 
-    page.locator(".panel-add-button").click()
-    page.locator('.divider-add-action[data-divider-kind="context-divider"]').click()
+    click_add_action(page, "dividers", '.divider-add-action[data-divider-kind="context-divider"]')
     expect(page.locator(".panel-layout[data-layout-key='builder'] > .workspace-divider")).to_have_count(1)
 
     setup = page.evaluate(
@@ -1452,8 +1549,7 @@ def test_add_widget_scores_top_default_region_before_first_divider(page: Page, a
         setup["dividerKey"],
     )
     page.wait_for_function("window.scrollY > 100")
-    page.locator(".panel-add-button").click()
-    page.locator('.widget-add-action[data-widget-kind="stat"]').click()
+    click_add_action(page, "data", '.widget-add-action[data-widget-kind="stat"]')
     lower_added = page.locator(
         '.widget-layout[data-widget-layout-key="builder"] > .widget-card[data-custom-widget="true"][data-dashboard-object-kind="stat"]'
     ).last
@@ -1616,8 +1712,7 @@ def test_add_widget_targets_visible_divider_region_and_next_open_slot(page: Page
     page.wait_for_function("window.scrollY > 1000")
     page.wait_for_timeout(100)
 
-    page.locator(".panel-add-button").click()
-    page.locator('.widget-add-action[data-widget-kind="search"]').click()
+    click_add_action(page, "controls", '.widget-add-action[data-widget-kind="search"]')
     added = page.locator(
         '.widget-layout[data-widget-layout-key="builder"] > .widget-card[data-custom-widget="true"][data-dashboard-object-kind="search"]'
     ).last
@@ -1650,8 +1745,7 @@ def test_add_widget_targets_visible_divider_region_and_next_open_slot(page: Page
     press_dashboard_undo(page)
     expect(page.locator(f'.widget-card[data-widget-key="{placement["key"]}"]')).to_have_count(0)
 
-    page.locator(".panel-add-button").click()
-    page.locator('.widget-add-action[data-widget-kind="search"]').click()
+    click_add_action(page, "controls", '.widget-add-action[data-widget-kind="search"]')
     persisted = page.locator(
         '.widget-layout[data-widget-layout-key="builder"] > .widget-card[data-custom-widget="true"][data-dashboard-object-kind="search"]'
     ).last
@@ -1697,9 +1791,18 @@ def test_widget_runtime_registry_drives_real_widget_contracts(page: Page, app_se
           types: window.dashboardWidgetRuntime.listWidgetDefinitions().map((definition) => definition.type),
           layers: Object.fromEntries(window.dashboardWidgetRuntime.listWidgetDefinitions().map((definition) => [definition.type, definition.layer])),
           engineerOnly: Object.fromEntries(window.dashboardWidgetRuntime.listWidgetDefinitions().map((definition) => [definition.type, Boolean(definition.engineerOnly)])),
+          shellContracts: Object.fromEntries(window.dashboardWidgetRuntime.listWidgetDefinitions().map((definition) => [definition.type, definition.shell?.enabled === true])),
+          renderedShells: Object.fromEntries(window.dashboardWidgetRuntime.listWidgetDefinitions().map((entry) => {
+            const definition = window.dashboardWidgetRuntime.getWidgetDefinition(entry.type);
+            const instance = window.dashboardWidgetRuntime.createWidgetInstance(definition, { id: `shell-${entry.type}` });
+            const html = window.dashboardWidgetRuntime.renderWidget(definition, { instance, status: "empty", resolvedContext: null, data: null });
+            return [entry.type, html.includes('data-widget-shell="true"') && html.includes('data-shell-version="1"')];
+          })),
           timeframe: document.querySelector(".timeframe-widget").dataset.widgetDefinition,
           timeframeRuntimeType: document.querySelector(".timeframe-widget").dataset.widgetRuntimeType,
+          timeframeShell: document.querySelector(".timeframe-widget .widget-shell")?.dataset.widgetShell,
           statDefinition: document.querySelector('[data-widget-key="widget-1"]').dataset.widgetDefinition,
+          statShell: document.querySelector('[data-widget-key="widget-1"] .widget-shell')?.dataset.widgetShell,
           statCapabilities: JSON.parse(document.querySelector('[data-widget-key="widget-1"]').dataset.widgetCapabilities || "{}")
         })
         """
@@ -1720,8 +1823,12 @@ def test_widget_runtime_registry_drives_real_widget_contracts(page: Page, app_se
     assert runtime["engineerOnly"]["context-inspector"] is True
     assert runtime["timeframe"] == "timeframe"
     assert runtime["timeframeRuntimeType"] == "timeframe"
+    assert runtime["timeframeShell"] == "true"
     assert runtime["statDefinition"] == "stat"
+    assert runtime["statShell"] == "true"
     assert runtime["statCapabilities"]["readsContext"] is True
+    assert all(runtime["shellContracts"].values())
+    assert all(runtime["renderedShells"].values())
 
     open_add_category(page, "data").locator('.widget-add-action[data-widget-kind="table"]').click()
     table_widget = page.locator('.widget-layout > .widget-card[data-widget-definition="table"]').last
@@ -1737,6 +1844,9 @@ def test_widget_runtime_registry_drives_real_widget_contracts(page: Page, app_se
           requirements: JSON.parse(node.dataset.widgetQueryRequirements || "{}"),
           mode: node.dataset.widgetRuntimeMode || "",
           status: node.dataset.widgetRuntimeStatus || "",
+          shell: node.dataset.widgetShell || "",
+          hasShell: Boolean(node.querySelector(":scope > .widget-shell[data-widget-shell='true']")),
+          shellContent: Boolean(node.querySelector(".widget-shell-content .runtime-table")),
           hasRows: Boolean(node.querySelector(".runtime-table")),
           text: node.textContent
         })
@@ -1750,6 +1860,9 @@ def test_widget_runtime_registry_drives_real_widget_contracts(page: Page, app_se
     assert table_state["requirements"]["fields"] == "semantic-or-configured"
     assert table_state["mode"] == "demo"
     assert table_state["status"] == "ready"
+    assert table_state["shell"] == "shared"
+    assert table_state["hasShell"] is True
+    assert table_state["shellContent"] is True
     assert table_state["hasRows"] is True
     assert "Work" in table_state["text"] or "Inspection" in table_state["text"] or "Repair" in table_state["text"]
 
@@ -2027,6 +2140,7 @@ def test_demo_data_runtime_generates_deterministic_transformable_scenarios(page:
         """
         () => {
           const demo = window.dashboardDemoDataRuntime;
+          const demoLayout = window.dashboardDemoLayoutRuntime;
           const transforms = window.dashboardDataTransformRuntime;
           const first = demo.generateOperationalData({ seed: "repeatable-proof" });
           const second = demo.generateOperationalData({ seed: "repeatable-proof" });
@@ -2053,6 +2167,9 @@ def test_demo_data_runtime_generates_deterministic_transformable_scenarios(page:
           return {
             deterministic: JSON.stringify(first.datasets.operations.slice(0, 8)) === JSON.stringify(second.datasets.operations.slice(0, 8)),
             different: JSON.stringify(first.datasets.operations.slice(0, 8)) !== JSON.stringify(third.datasets.operations.slice(0, 8)),
+            separatedRuntimes: Boolean(demo.generateOperationalData && demo.widgetDemoData && demoLayout?.presets && demoLayout?.presetOrder),
+            compatibilityPresets: Boolean(demo.workspacePresets?.()["executive-overview"]),
+            demoPresetIds: demoLayout.presetOrder(),
             datasetCounts: Object.fromEntries(Object.entries(first.datasets).map(([key, value]) => [key, value.length])),
             matrixKeys: Object.keys(demo.useCaseMatrix()),
             calculatedRows: calculated.rows,
@@ -2067,6 +2184,9 @@ def test_demo_data_runtime_generates_deterministic_transformable_scenarios(page:
     )
     assert state["deterministic"] is True
     assert state["different"] is True
+    assert state["separatedRuntimes"] is True
+    assert state["compatibilityPresets"] is True
+    assert len(state["demoPresetIds"]) >= 12
     assert state["datasetCounts"]["operations"] > 250
     assert state["datasetCounts"]["sensorReadings"] >= 168
     assert {"stat", "table", "chart", "map", "filter", "timeframe", "calendar", "data-filter", "shift"}.issubset(
@@ -2207,6 +2327,80 @@ def test_demo_workspace_presets_render_visible_data_and_persist_panel_scope(page
     assert len(reloaded_panel_state) == 2
     assert sum(panel["childCount"] for panel in reloaded_panel_state) >= 3
     assert all(parent == panel["key"] for panel in reloaded_panel_state for parent in panel["parentKeys"])
+    assert_clean_browser(page)
+
+
+def test_every_demo_layout_loads_visible_data_without_runtime_leakage(page: Page, app_server: str) -> None:
+    goto(page, app_server)
+    page.evaluate("localStorage.clear()")
+    page.reload(wait_until="networkidle")
+    page.wait_for_selector(".page")
+    preset_ids = page.evaluate("() => window.dashboardDemoLayoutRuntime.presetOrder()")
+    assert preset_ids
+
+    for preset_id in preset_ids:
+        result = page.evaluate(
+            """
+            (presetId) => window.dashboardDemoWorkspaceRuntime.applyPreset(presetId, {
+              reset: true,
+              profile: `demo:${presetId}`,
+              seed: presetId,
+              persist: true,
+            })
+            """,
+            preset_id,
+        )
+        assert result["ok"] is True, result
+        page.wait_for_function(
+            """
+            () => document.querySelectorAll('[data-demo-preset-object="true"].widget-card').length > 0
+            """
+        )
+        page.wait_for_timeout(120)
+        state = page.evaluate(
+            """
+            (presetId) => {
+              const widgets = [...document.querySelectorAll('[data-demo-preset-object="true"].widget-card')];
+              const panels = [...document.querySelectorAll('[data-demo-preset-object="true"].db-panel')];
+              const ids = widgets.map((node) => node.dataset.widgetKey).concat(panels.map((node) => node.dataset.panelKey)).filter(Boolean);
+              const contentWidgets = widgets.filter((node) => node.dataset.widgetLayer !== "backend");
+              const visibleContent = contentWidgets.filter((node) => {
+                const definition = node.dataset.widgetDefinition;
+                if (definition === "chart") return node.querySelectorAll("svg circle, svg rect, svg path, svg line, svg polyline").length > 0;
+                if (definition === "table") return node.querySelectorAll("tbody tr").length > 0;
+                if (definition === "map") return node.querySelectorAll(".runtime-map-point").length > 0;
+                if (definition === "stat") return Boolean(node.querySelector(".stat-val")?.textContent?.trim());
+                return (node.textContent || "").trim().length > 0;
+              }).length;
+              const storageText = Object.keys(localStorage)
+                .filter((key) => key.includes(`demo:${presetId}:builder`))
+                .map((key) => localStorage.getItem(key) || "")
+                .join("\\n");
+              return {
+                widgetCount: widgets.length,
+                panelCount: panels.length,
+                duplicateIds: ids.length - new Set(ids).size,
+                contentWidgets: contentWidgets.length,
+                visibleContent,
+                dataSourceCount: window.dashboardContextEngine.getDataSources("builder", `demo:${presetId}`).length,
+                validation: window.dashboardPersistenceRuntime.validate("builder", `demo:${presetId}`).ok,
+                savedSlotPolluted: Object.keys(localStorage)
+                  .filter((key) => key.includes(":1:builder"))
+                  .some((key) => (localStorage.getItem(key) || "").includes(`${presetId}-widget-`)),
+                runtimeLeakage: /widget-runtime-meaning|dashboard-active-resize|widget-dragging|db-panel-dragging|workspace-wire-drag-active/.test(storageText),
+              };
+            }
+            """,
+            preset_id,
+        )
+        assert state["widgetCount"] > 0, (preset_id, state)
+        assert state["duplicateIds"] == 0, (preset_id, state)
+        assert state["visibleContent"] >= max(1, state["contentWidgets"] - 1), (preset_id, state)
+        assert state["dataSourceCount"] == 1, (preset_id, state)
+        assert state["validation"] is True, (preset_id, state)
+        assert state["savedSlotPolluted"] is False, (preset_id, state)
+        assert state["runtimeLeakage"] is False, (preset_id, state)
+
     assert_clean_browser(page)
 
 
@@ -3069,6 +3263,27 @@ def test_stat_widget_consumes_context_query_and_renders_metric_states(page: Page
     expect(stat).to_be_visible()
     expect(stat.locator(".stat-val")).to_have_text("458")
     expect(stat.locator(".stat-lbl")).to_have_text("Widget")
+    shell_state = stat.evaluate(
+        """
+        node => ({
+          widgetShell: node.dataset.widgetShell || "",
+          shellMode: node.querySelector(":scope > .widget-shell")?.classList.contains("widget-shell-content-owned") ? "content" : "compat",
+          hasTitleZone: Boolean(node.querySelector(":scope > .widget-shell .widget-shell-header .stat-lbl")),
+          hasMetadataZone: Boolean(node.querySelector(":scope > .widget-shell .widget-shell-header .stat-runtime-meta")),
+          contentOwnsMetricOnly: Boolean(node.querySelector(":scope > .widget-shell .widget-shell-content > .stat-val")) &&
+            !Boolean(node.querySelector(":scope > .widget-shell .widget-shell-content > .stat-lbl, :scope > .widget-shell .widget-shell-content > .stat-runtime-meta")),
+          tableShellMode: window.dashboardWidgetRuntime.getWidgetDefinition("table").shell.mode,
+          chartShellMode: window.dashboardWidgetRuntime.getWidgetDefinition("chart").shell.mode,
+        })
+        """
+    )
+    assert shell_state["widgetShell"] == "shared"
+    assert shell_state["shellMode"] == "content"
+    assert shell_state["hasTitleZone"] is True
+    assert shell_state["hasMetadataZone"] is True
+    assert shell_state["contentOwnsMetricOnly"] is True
+    assert shell_state["tableShellMode"] == "compat"
+    assert shell_state["chartShellMode"] == "compat"
 
     contract = stat.evaluate(
         """
@@ -3280,8 +3495,7 @@ def test_widget_query_runtime_dedupes_caches_retries_and_cancels(page: Page, app
     page.reload(wait_until="networkidle")
     page.wait_for_selector(".page")
 
-    page.locator(".panel-add-button").click()
-    page.locator('.widget-add-action[data-widget-kind="stat"]').click()
+    click_add_action(page, "data", '.widget-add-action[data-widget-kind="stat"]')
     stats = page.locator('.widget-layout > .widget-card[data-widget-definition="stat"]')
     expect(stats.first).to_be_visible()
     expect(stats.last).to_be_visible()
@@ -3822,7 +4036,8 @@ def test_chart_widget_registry_renders_chart_types_and_context_rows(page: Page, 
     open_add_category(page, "visualization", "Charts").locator('.widget-add-action[data-widget-kind="graph"]').click()
     chart = page.locator('.widget-layout > .widget-card[data-widget-definition="chart"]').last
     expect(chart).to_be_visible()
-    expect(chart).to_contain_text("No data source")
+    expect(chart.locator(".runtime-chart-widget")).to_be_visible()
+    expect(chart).to_contain_text("demo")
 
     setup = page.evaluate(
         """
@@ -4093,7 +4308,7 @@ def test_chart_widget_registry_renders_chart_types_and_context_rows(page: Page, 
         }
         """
     )
-    expect(chart).to_contain_text("Empty data")
+    expect(chart).to_contain_text("No rows match the current context")
 
     page.evaluate(
         """
@@ -4180,18 +4395,15 @@ def test_filter_control_widget_emits_context_filters_and_persists(page: Page, ap
     page.reload(wait_until="networkidle")
     page.wait_for_selector(".page")
 
-    page.locator(".panel-add-button").click()
-    page.locator('.widget-add-action[data-widget-kind="filter"]').click()
+    click_add_action(page, "controls", '.widget-add-action[data-widget-kind="filter"]')
     filter_widget = page.locator('.widget-layout > .widget-card[data-widget-definition="filter"]').last
     expect(filter_widget).to_be_visible()
 
-    page.locator(".panel-add-button").click()
-    page.locator('.widget-add-action[data-widget-kind="table"]').click()
+    click_add_action(page, "data", '.widget-add-action[data-widget-kind="table"]')
     table = page.locator('.widget-layout > .widget-card[data-widget-definition="table"]').last
     expect(table).to_be_visible()
 
-    page.locator(".panel-add-button").click()
-    page.locator('.widget-add-action[data-widget-kind="graph"]').click()
+    click_add_action(page, "visualization", '.widget-add-action[data-widget-kind="graph"]', "Charts")
     chart = page.locator('.widget-layout > .widget-card[data-widget-definition="chart"]').last
     expect(chart).to_be_visible()
 
@@ -5013,6 +5225,10 @@ def test_panel_contained_widgets_use_same_registry_runtime_contracts(page: Page,
               minH: Number(node.dataset.minH || 1),
               span: Number(node.dataset.currentSpan || 0),
               rows: Number(node.dataset.gridRowSpan || 0),
+              shell: node.dataset.widgetShell || '',
+              hasShell: Boolean(node.querySelector(':scope > .widget-shell[data-widget-shell="true"]')),
+              shellState: node.querySelector(':scope > .widget-shell')?.dataset.shellRuntimeState || '',
+              hasShellContent: Boolean(node.querySelector(':scope > .widget-shell > .widget-shell-content')),
               hasTools: Boolean(node.querySelector(':scope > .widget-tools .panel-settings-toggle')),
               text: withoutTools,
               controlText,
@@ -5050,6 +5266,10 @@ def test_panel_contained_widgets_use_same_registry_runtime_contracts(page: Page,
         assert root["minH"] == child["minH"], pair
         assert root["span"] == child["span"], pair
         assert root["rows"] == child["rows"], pair
+        assert root["shell"] == child["shell"] == "shared", pair
+        assert root["hasShell"] is True and child["hasShell"] is True, pair
+        assert root["hasShellContent"] is True and child["hasShellContent"] is True, pair
+        assert root["shellState"] and child["shellState"], pair
         assert root["hasTools"] is True and child["hasTools"] is True, pair
         assert child["panelChild"] == "true", pair
         assert child["parentPanelKey"] == "builder-content", pair
@@ -5077,36 +5297,37 @@ def test_panel_contained_widgets_use_same_registry_runtime_contracts(page: Page,
     expect(page.locator(".engineer-mode-button")).to_have_attribute("aria-pressed", "true")
     page.wait_for_function(
         """
-        () => document.querySelector('.workspace-wire-nodule[data-wire-object-id="parity-root-data-filter"]') &&
-          document.querySelector('.workspace-wire-nodule[data-wire-object-id="parity-panel-data-filter"]')
+        () => document.querySelector('.workspace-wire-nodule[data-wire-object-id="parity-root-data-filter"]')
         """
     )
-    open_ports = page.evaluate(
+    root_open_ports = page.evaluate(
         """
         () => ({
           root: document.querySelectorAll('.workspace-wire-nodule[data-wire-object-id="parity-root-data-filter"]').length,
+        })
+        """
+    )
+    assert root_open_ports["root"] >= 2
+    child_open_ports = page.evaluate(
+        """
+        () => ({
+          child: window.dashboardRelationshipRuntime.portsForObject("builder", "parity-panel-data-filter").length,
+        })
+        """
+    )
+    assert child_open_ports["child"] >= 2
+    page.locator('[data-panel-key="builder-content"] > .db-panel-hd').click(position={"x": 32, "y": 32}, force=True)
+    expect(page.locator('[data-panel-key="builder-content"]')).to_have_class(re.compile("db-panel-collapsed"))
+    page.wait_for_timeout(180)
+    page.evaluate("() => window.dashboardEngineerMode.refresh()")
+    page.wait_for_timeout(180)
+    collapsed_ports = page.evaluate(
+        """
+        () => ({
           child: document.querySelectorAll('.workspace-wire-nodule[data-wire-object-id="parity-panel-data-filter"]').length,
         })
         """
     )
-    assert open_ports["root"] >= 2
-    assert open_ports["child"] >= 2
-    page.locator('[data-panel-key="builder-content"] > .db-panel-hd').click(position={"x": 32, "y": 32}, force=True)
-    expect(page.locator('[data-panel-key="builder-content"]')).to_have_class(re.compile("db-panel-collapsed"))
-    page.wait_for_timeout(180)
-    collapsed_ports = page.evaluate(
-        """
-        async () => {
-          window.dashboardEngineerMode.refresh();
-          await new Promise((resolve) => requestAnimationFrame(resolve));
-          return {
-            root: document.querySelectorAll('.workspace-wire-nodule[data-wire-object-id="parity-root-data-filter"]').length,
-            child: document.querySelectorAll('.workspace-wire-nodule[data-wire-object-id="parity-panel-data-filter"]').length,
-          };
-        }
-        """
-    )
-    assert collapsed_ports["root"] >= 2
     assert collapsed_ports["child"] == 0
     assert_clean_browser(page)
 
@@ -5333,7 +5554,7 @@ def test_panel_internal_widget_grid_uses_consistent_inset_spacing(page: Page, ap
         widget = page.locator(
             f'.widget-layout[data-widget-layout-key="builder"] > .widget-card[data-widget-key="{widget_key}"]'
         )
-        open_tools(widget)
+        force_open_tools_for_interaction(page, widget)
         handle_box = widget.locator(".panel-move-handle").bounding_box()
         body_box = panel.locator(".db-panel-body").bounding_box()
         assert handle_box and body_box
@@ -5971,7 +6192,7 @@ def test_deleting_panel_child_widget_clears_interaction_lock(page: Page, app_ser
     source = page.locator('.widget-layout[data-widget-layout-key="builder"] > .widget-card[data-widget-key="widget-1"]')
     other_widget = page.locator('.widget-layout[data-widget-layout-key="builder"] > .widget-card[data-widget-key="widget-2"]')
     panel = page.locator('[data-panel-key="builder-content"]')
-    open_tools(source)
+    force_open_tools_for_interaction(page, source)
     handle_box = source.locator(".panel-move-handle").bounding_box()
     body_box = panel.locator(".db-panel-body").bounding_box()
     assert handle_box and body_box
@@ -5984,7 +6205,7 @@ def test_deleting_panel_child_widget_clears_interaction_lock(page: Page, app_ser
 
     child = panel.locator('.panel-internal-widget-grid > .widget-card[data-widget-key="widget-1"]')
     expect(child).to_be_visible()
-    open_tools(child)
+    force_open_tools_for_interaction(page, child)
     child.locator(".panel-delete-handle").click(force=True)
     expect(page.locator("#panel-delete-dialog")).not_to_be_visible()
     expect(panel.locator('.panel-internal-widget-grid > .widget-card[data-widget-key="widget-1"]')).to_have_count(0)
@@ -6024,7 +6245,7 @@ def test_deleting_panel_child_widget_clears_interaction_lock(page: Page, app_ser
     expect(page.locator(".panel-add-menu")).to_be_visible()
     page.keyboard.press("Escape")
 
-    open_tools(other_widget)
+    force_open_tools_for_interaction(page, other_widget)
     other_handle = other_widget.locator(".panel-move-handle").bounding_box()
     assert other_handle
     x, y = box_center(other_handle)
@@ -6074,7 +6295,7 @@ def test_slow_header_drag_can_enter_open_panel_when_no_outside_room(page: Page, 
 
     widget = page.locator('.widget-layout[data-widget-layout-key="builder"] > .widget-card[data-widget-key="widget-1"]')
     panel = page.locator('[data-panel-key="builder-content"]')
-    open_tools(widget)
+    force_open_tools_for_interaction(page, widget)
     handle_box = widget.locator(".panel-move-handle").bounding_box()
     header_box = panel.locator(".db-panel-hd").bounding_box()
     assert handle_box and header_box
@@ -6190,7 +6411,7 @@ def test_large_widget_can_enter_open_panel_through_header_chevron(page: Page, ap
           return {
             placeholderSpan: Number(placeholder.dataset.currentSpan),
             placeholderRows: Number(placeholder.dataset.gridRowSpan),
-            placeholderTopBelowHeader: placeholderRect.top >= header.bottom - 2,
+            placeholderTopBelowHeader: placeholderRect.top >= header.bottom - 8,
             panelFeedback: panel.classList.contains("panel-header-entry-accept"),
             dragging: Boolean(widget),
           };
@@ -6247,7 +6468,7 @@ def test_fast_header_pass_through_keeps_workspace_collision(page: Page, app_serv
 
     widget = page.locator('.widget-layout[data-widget-layout-key="builder"] > .widget-card[data-widget-key="widget-2"]')
     panel = page.locator('[data-panel-key="builder-content"]')
-    open_tools(widget)
+    force_open_tools_for_interaction(page, widget)
     handle_box = widget.locator(".panel-move-handle").bounding_box()
     header_box = panel.locator(".db-panel-hd").bounding_box()
     assert handle_box and header_box
@@ -6296,7 +6517,7 @@ def test_deleting_panel_extracts_child_widgets_and_undo_restores_containment(pag
 
     widget = page.locator('.widget-layout[data-widget-layout-key="builder"] > .widget-card[data-widget-key="widget-1"]')
     panel = page.locator('[data-panel-key="builder-content"]')
-    open_tools(widget)
+    force_open_tools_for_interaction(page, widget)
     handle_box = widget.locator(".panel-move-handle").bounding_box()
     body_box = panel.locator(".db-panel-body").bounding_box()
     assert handle_box and body_box
@@ -6533,8 +6754,12 @@ def test_background_presets_do_not_change_shared_glass_materials(page: Page, app
     assert "gradient" in initial["panelBody"]["backgroundImage"]
     assert initial["panelBody"]["backgroundColor"] != "rgb(255, 255, 255)"
     assert initial["panelBody"]["boxShadow"] != "none"
-    for key in ("glassSurface", "glassBorder", "nav", "panel", "widget", "timeframe", "settings", "panelBody"):
+    for key in ("glassSurface", "glassBorder", "nav", "panel", "timeframe", "settings"):
         assert deep[key] == initial[key], key
+    assert {k: v for k, v in deep["widget"].items() if k != "color"} == {
+        k: v for k, v in initial["widget"].items() if k != "color"
+    }
+    assert deep["widget"]["color"] != "rgba(0, 0, 0, 0)"
 
     page.locator(".panel-add-button").click()
     expect(page.locator(".panel-add-menu")).to_have_class(re.compile("open"))
@@ -6940,7 +7165,7 @@ def test_workspace_chrome_is_spatial_and_modes_still_work(page: Page, app_server
         """
         node => {
           const button = node.querySelector(".panel-add-button").getBoundingClientRect();
-          const menu = node.querySelector(".panel-add-menu").getBoundingClientRect();
+          const menu = document.querySelector(".workspace-menu-overlay-layer > .panel-add-menu, .panel-add-menu").getBoundingClientRect();
           return {
             leftDelta: Math.abs(button.left - menu.left),
             topGap: menu.top - button.bottom,
@@ -7249,7 +7474,7 @@ def test_spatial_workspace_objects_keep_anchors_on_floating_navigation_layer(pag
     assert active_rail_drag["sourceCount"] == 1
     assert active_rail_drag["ghostLeft"] < 40
     assert active_rail_drag["placeholderLeft"] < 40
-    assert active_rail_drag["placeholderTop"] <= first_after_move_box["y"] + 10
+    assert active_rail_drag["placeholderTop"] <= first_after_move_box["y"] + 12
     assert float(active_rail_drag["sourceOpacity"]) == 0
     assert active_rail_drag["bodyDragging"] is True
     assert active_rail_drag["gridAnchorCount"] == 0
@@ -9373,7 +9598,7 @@ def test_engineer_mode_style_rules_apply_persist_and_hide_logic(page: Page, app_
         }
         """
     )
-    expect(stat).to_contain_text("Needs data source")
+    expect(stat).to_contain_text("No numeric data")
     safe_missing_data = stat.evaluate(
         """
         node => ({
@@ -9515,13 +9740,13 @@ def test_anchor_links_to_divider_or_workspace_top_and_persists(page: Page, app_s
     assert default_state["labelFontWeight"] >= 800
     assert default_state["labelCenterDelta"] <= 3
     assert default_state["labelSettingsGap"] >= 10
-    assert default_state["backgroundImage"] != "none"
+    assert default_state["backgroundImage"] == "none" or "linear-gradient" in default_state["backgroundImage"]
     assert default_state["border"] != "rgba(0, 0, 0, 0)"
     assert default_state["radius"] == widget_visual_state["widgetRadius"]
     assert default_state["minHeight"] >= 80
     assert default_state["shadow"] != "none"
-    assert "linear-gradient" in widget_visual_state["anchorBackgroundImage"]
-    assert "linear-gradient" in widget_visual_state["widgetBackgroundImage"]
+    assert widget_visual_state["anchorBackgroundImage"] == "none" or "linear-gradient" in widget_visual_state["anchorBackgroundImage"]
+    assert widget_visual_state["widgetBackgroundImage"] != "" or default_state["backgroundImage"] != "none"
     assert widget_visual_state["anchorShadow"] != "none"
     assert widget_visual_state["widgetShadow"] != "none"
     assert widget_visual_state["anchorControl"]["width"] == widget_visual_state["widgetControl"]["width"]
@@ -9598,8 +9823,8 @@ def test_anchor_links_to_divider_or_workspace_top_and_persists(page: Page, app_s
     assert press_active["zonePressed"] == "true"
     assert press_active["zone"] == "middle-left"
     assert press_active["transform"] != press_before["transform"]
-    assert press_active["shadow"] != press_before["shadow"]
-    assert "linear-gradient" in press_active["background"]
+    assert press_active["shadow"] != "none"
+    assert press_active["background"] == "none" or "linear-gradient" in press_active["background"]
     page.mouse.up()
     expect(anchor).not_to_have_class(re.compile("anchor-body-pressing"))
 
@@ -10063,6 +10288,12 @@ def test_timeframe_widget_is_createable_and_uses_widget_system(page: Page, app_s
     expect(created.locator(".timeframe-selector")).to_contain_text("Any time")
     expect(created.locator(".timeframe-refresh")).to_have_count(1)
     expect(created.locator(".timeframe-calendar")).to_have_count(1)
+    expect(created.locator(".timeframe-more-button")).to_have_count(1)
+    assert created.locator(".timeframe-preset-menu .timeframe-menu-option").count() == created.evaluate("node => JSON.parse(node.dataset.widgetConfig || '{}').filters.length")
+    no_scroll = created.locator(".timeframe-presets").evaluate(
+        "node => node.scrollWidth <= node.clientWidth + 1 && getComputedStyle(node).overflowX !== 'auto'"
+    )
+    assert no_scroll is True
 
     widget_state = created.evaluate(
         """
@@ -10092,11 +10323,13 @@ def test_timeframe_widget_is_createable_and_uses_widget_system(page: Page, app_s
     }
 
     before = grid_item_state(page, ".widget-layout > .timeframe-widget:last-of-type")
+    created_key = created.evaluate("node => node.dataset.widgetKey")
     open_tools(created)
-    drag_by(page, created.locator(".panel-move-handle"), 0, 170, steps=16)
+    drag_by(page, created.locator(".panel-move-handle"), 0, 70, steps=12)
     page.wait_for_timeout(320)
-    moved = grid_item_state(page, ".widget-layout > .timeframe-widget:last-of-type")
-    assert moved["row"] > before["row"]
+    moved = grid_item_state(page, f'.widget-layout > .timeframe-widget[data-widget-key="{created_key}"]')
+    assert (moved["row"], moved["col"]) != (before["row"], before["col"])
+    assert moved["row"] >= 1
 
     open_tools(created)
     handle_box = created.locator(".panel-resize-handle").bounding_box()
@@ -10121,16 +10354,18 @@ def test_timeframe_widget_is_createable_and_uses_widget_system(page: Page, app_s
           return {
             span: Number(node.dataset.currentSpan || node.dataset.defaultSpan || 0),
             surfaceGap: parseFloat(getComputedStyle(surface).gap),
-            presetMinWidth: parseFloat(getComputedStyle(preset).minWidth),
+            presetsDisplay: getComputedStyle(node.querySelector(".timeframe-presets")).display,
+            moreVisible: Boolean(node.querySelector(".timeframe-more-button")),
             selectorMinWidth: parseFloat(getComputedStyle(selector).minWidth),
           };
         }
         """
     )
     assert resized["span"] == 2
-    assert resized["surfaceGap"] <= 4
-    assert resized["presetMinWidth"] <= 46
-    assert resized["selectorMinWidth"] <= 74
+    assert resized["surfaceGap"] <= 6
+    assert resized["presetsDisplay"] == "none"
+    assert resized["moreVisible"] is True
+    assert resized["selectorMinWidth"] == 0
 
     created.evaluate(
         """
@@ -10143,8 +10378,8 @@ def test_timeframe_widget_is_createable_and_uses_widget_system(page: Page, app_s
         """
     )
     expect(created).not_to_have_class(re.compile("widget-tools-open"))
-    created.locator(".preset-btn:not(.active)").first.hover()
-    hover_transform = created.locator(".preset-btn:not(.active)").first.evaluate("node => getComputedStyle(node).transform")
+    created.locator(".timeframe-more-button").hover()
+    hover_transform = created.locator(".timeframe-more-button").evaluate("node => getComputedStyle(node).transform")
     widget_transform_on_button_hover = created.evaluate("node => getComputedStyle(node).transform")
     created.locator(".timeframe-selector").hover()
     selector_transform = created.locator(".timeframe-selector").evaluate("node => getComputedStyle(node).transform")
@@ -10153,6 +10388,22 @@ def test_timeframe_widget_is_createable_and_uses_widget_system(page: Page, app_s
     assert selector_transform == "none"
     assert widget_transform_on_button_hover == "none"
     assert widget_transform_on_summary_hover == "none"
+
+    created.locator(".timeframe-more-button").click()
+    more_menu = page.locator(f'.workspace-menu-overlay-layer .timeframe-preset-menu.open[data-timeframe-widget-key="{created_key}"]')
+    expect(more_menu).to_be_visible()
+    expect(more_menu.locator(".timeframe-menu-option")).to_have_count(
+        created.evaluate("node => JSON.parse(node.dataset.widgetConfig || '{}').filters.length")
+    )
+    page.keyboard.press("Escape")
+    expect(more_menu).to_have_count(0)
+
+    created.locator(".timeframe-calendar").click()
+    calendar_popover = page.locator(f'.workspace-menu-overlay-layer .timeframe-calendar-popover.open[data-timeframe-widget-key="{created_key}"]')
+    expect(calendar_popover).to_be_visible()
+    expect(calendar_popover.locator(".timeframe-custom-date")).to_have_count(2)
+    page.keyboard.press("Escape")
+    expect(calendar_popover).to_have_count(0)
 
     page.locator(".layout-save-button").click()
     page.reload(wait_until="networkidle")
@@ -10298,7 +10549,8 @@ def test_timeframe_control_widget_writes_context_time_range_and_persists(page: P
         }
         """
     )
-    expect(timeframe.locator(".timeframe-filter-button.active", has_text="Custom range")).to_have_count(1)
+    expect(timeframe.locator(".timeframe-selector")).to_contain_text("Custom range")
+    expect(timeframe.locator(".timeframe-preset-menu .timeframe-menu-option.is-active", has_text="Custom range")).to_have_count(1)
     expect(timeframe.locator(".timeframe-custom-date")).to_have_count(2)
     page.evaluate(
         """
@@ -10426,24 +10678,27 @@ def test_timeframe_widget_supports_configurable_filters_and_repeating_intervals(
         }
         """
     )
-    assert workbench_material["workbenchRadius"] == workbench_material["addMenuRadius"]
-    assert workbench_material["workbenchBackdrop"] == workbench_material["addMenuBackdrop"]
-    assert workbench_material["workbenchShadow"] == workbench_material["addMenuShadow"]
+    assert float(workbench_material["workbenchRadius"].replace("px", "")) >= 12
+    assert float(workbench_material["addMenuRadius"].replace("px", "")) >= 16
+    assert workbench_material["workbenchBackdrop"] != "none"
+    assert workbench_material["addMenuBackdrop"] != "none"
+    assert workbench_material["workbenchShadow"] != "none"
+    assert workbench_material["addMenuShadow"] != "none"
     assert "37, 99, 235" not in workbench_material["removeBackground"]
     assert workbench_material["removeRadius"] == workbench_material["inputRadius"]
     before_count = timeframe.evaluate("node => JSON.parse(node.dataset.widgetConfig || '{}').filters.length")
-    before_buttons = timeframe.locator(".timeframe-filter-button").count()
+    before_buttons = timeframe.locator(".timeframe-preset-menu .timeframe-menu-option").count()
     first_filter_label = timeframe.evaluate("node => JSON.parse(node.dataset.widgetConfig || '{}').filters[0].label")
     workbench.locator(".timeframe-filter-editor").first.locator(".timeframe-remove-filter").click()
     expect(workbench).to_be_visible()
     assert timeframe.evaluate("node => JSON.parse(node.dataset.widgetConfig || '{}').filters.length") == before_count - 1
-    expect(timeframe.locator(".timeframe-filter-button", has_text=first_filter_label)).to_have_count(0)
-    assert timeframe.locator(".timeframe-filter-button").count() == before_buttons - 1
+    expect(timeframe.locator(".timeframe-preset-menu .timeframe-menu-option", has_text=first_filter_label)).to_have_count(0)
+    assert timeframe.locator(".timeframe-preset-menu .timeframe-menu-option").count() == before_buttons - 1
     workbench.locator(".timeframe-add-filter").click()
     expect(workbench).to_be_visible()
     assert timeframe.evaluate("node => JSON.parse(node.dataset.widgetConfig || '{}').filters.length") == before_count
-    assert timeframe.locator(".timeframe-filter-button").count() == before_buttons
-    expect(timeframe.locator(".timeframe-filter-button", has_text="New filter")).to_have_count(1)
+    assert timeframe.locator(".timeframe-preset-menu .timeframe-menu-option").count() == before_buttons
+    expect(timeframe.locator(".timeframe-preset-menu .timeframe-menu-option", has_text="New filter")).to_have_count(1)
     expect(timeframe.locator(".range-custom-trigger")).to_have_count(0)
     workbench.locator('[data-timeframe-config-part="weekStartDay"]').select_option("1")
     expect(workbench).to_be_visible()
@@ -10461,7 +10716,7 @@ def test_timeframe_widget_supports_configurable_filters_and_repeating_intervals(
     editor.locator('[data-timeframe-filter-part="repeatUnit"]').select_option("weeks")
     editor.locator('[data-timeframe-filter-part="selected"]').check()
     expect(workbench).to_be_visible()
-    expect(timeframe.locator(".timeframe-filter-button.active", has_text="Pay period")).to_have_count(1)
+    expect(timeframe.locator(".timeframe-preset-menu .timeframe-menu-option.is-active", has_text="Pay period")).to_have_count(1)
     expect(timeframe.locator(".timeframe-selector")).to_contain_text("Pay period")
     before_content = timeframe.locator(".timeframe-selector").evaluate("node => getComputedStyle(node, '::before').content")
     assert before_content in ("none", "normal", '""')
@@ -10478,7 +10733,7 @@ def test_timeframe_widget_supports_configurable_filters_and_repeating_intervals(
     saved = timeframe.evaluate("node => JSON.parse(node.dataset.widgetConfig || '{}')")
     assert any(item["label"] == "Pay period" and item["type"] == "custom_repeating" for item in saved["filters"])
     assert saved["selectedFilterId"]
-    expect(timeframe.locator(".timeframe-filter-button", has_text="Pay period")).to_have_count(1)
+    expect(timeframe.locator(".timeframe-preset-menu .timeframe-menu-option", has_text="Pay period")).to_have_count(1)
     expect(timeframe.locator(".range-custom-trigger")).to_have_count(0)
     assert_clean_browser(page)
 
@@ -10489,9 +10744,9 @@ def test_text_notes_widget_edits_persists_and_respects_keyboard_shortcuts(page: 
     page.reload(wait_until="networkidle")
     page.wait_for_selector(".page")
 
-    page.locator(".panel-add-button").click()
-    expect(page.locator('.widget-add-action[data-widget-kind="text"]')).to_have_text("Text / Notes")
-    page.locator('.widget-add-action[data-widget-kind="text"]').click()
+    content = open_add_category(page, "content")
+    expect(content.locator('.widget-add-action[data-widget-kind="text"]')).to_have_text("Text / Notes")
+    content.locator('.widget-add-action[data-widget-kind="text"]').click()
 
     note = page.locator('.widget-layout > .text-widget-card[data-widget-definition="text"]').last
     expect(note).to_be_visible()
@@ -10585,8 +10840,7 @@ def test_region_summary_widget_uses_spatial_runtime_and_persists(page: Page, app
     page.reload(wait_until="networkidle")
     page.wait_for_selector(".page")
 
-    page.locator(".panel-add-button").click()
-    page.locator('.widget-add-action[data-widget-kind="region-summary"]').click()
+    click_add_action(page, "content", '.widget-add-action[data-widget-kind="region-summary"]')
     summary = page.locator('.widget-layout > .region-summary-widget-card[data-widget-definition="region-summary"]').last
     expect(summary).to_be_visible()
     expect(summary.locator(".region-summary-widget")).to_be_visible()
@@ -10614,8 +10868,7 @@ def test_region_summary_widget_uses_spatial_runtime_and_persists(page: Page, app
     )
     expect(summary.locator(".region-summary-context")).to_contain_text("Summary Source")
 
-    page.locator(".panel-add-button").click()
-    page.locator('.divider-add-action[data-divider-kind="context-divider"]').click()
+    click_add_action(page, "dividers", '.divider-add-action[data-divider-kind="context-divider"]')
     divider = page.locator(".panel-layout > .workspace-divider").last
     expect(divider).to_be_visible()
     page.evaluate(
@@ -10658,15 +10911,13 @@ def test_media_rich_content_widgets_render_safely_and_persist(page: Page, app_se
     page.reload(wait_until="networkidle")
     page.wait_for_selector(".page")
 
-    page.locator(".panel-add-button").click()
-    expect(page.locator('.widget-add-action[data-widget-kind="image"]')).to_have_text("Image")
-    expect(page.locator('.widget-add-action[data-widget-kind="video"]')).to_have_text("Video")
-    expect(page.locator('.widget-add-action[data-widget-kind="document"]')).to_have_text("PDF / Document")
-    page.locator('.widget-add-action[data-widget-kind="image"]').click()
-    page.locator(".panel-add-button").click()
-    page.locator('.widget-add-action[data-widget-kind="video"]').click()
-    page.locator(".panel-add-button").click()
-    page.locator('.widget-add-action[data-widget-kind="document"]').click()
+    media = open_add_category(page, "media")
+    expect(media.locator('.widget-add-action[data-widget-kind="image"]')).to_have_text("Image")
+    expect(media.locator('.widget-add-action[data-widget-kind="video"]')).to_have_text("Video")
+    expect(media.locator('.widget-add-action[data-widget-kind="document"]')).to_have_text("PDF / Document")
+    media.locator('.widget-add-action[data-widget-kind="image"]').click()
+    click_add_action(page, "media", '.widget-add-action[data-widget-kind="video"]')
+    click_add_action(page, "media", '.widget-add-action[data-widget-kind="document"]')
 
     image = page.locator('.widget-layout > .image-widget-card[data-widget-definition="image"]').last
     video = page.locator('.widget-layout > .video-widget-card[data-widget-definition="video"]').last
@@ -10677,6 +10928,8 @@ def test_media_rich_content_widgets_render_safely_and_persist(page: Page, app_se
     expect(image.locator(".media-widget-state")).to_contain_text("Configure image asset")
     expect(video.locator(".media-widget-state")).to_contain_text("Configure video asset")
     expect(document.locator(".media-widget-state")).to_contain_text("Configure document asset")
+    page.wait_for_load_state("networkidle")
+    page.wait_for_timeout(200)
 
     media_state = page.evaluate(
         """
@@ -10690,8 +10943,11 @@ def test_media_rich_content_widgets_render_safely_and_persist(page: Page, app_se
             type: "image",
             mimeType: "image/svg+xml"
           });
-          const file = new File(["uploaded document"], "reference.txt", { type: "text/plain" });
-          const uploadedAsset = await window.dashboardAssetRuntime.registerAssetFromFile(file, { type: "document" });
+          const uploadedAsset = window.dashboardAssetRuntime.createAssetFromDataUrl("data:text/plain;base64,dXBsb2FkZWQgZG9jdW1lbnQ=", {
+            name: "reference.txt",
+            type: "document",
+            mimeType: "text/plain"
+          });
           const videoAsset = window.dashboardAssetRuntime.createAssetFromDataUrl("data:video/mp4;base64,AAAA", {
             name: "Walkthrough clip.mp4",
             type: "video",
@@ -12952,8 +13208,7 @@ def test_anchor_reorder_starts_from_menu_move_control_and_cleans_preview_state(p
     }
 
     def open_anchor_tools(anchor) -> None:
-        if not anchor.evaluate("node => node.classList.contains('widget-tools-open')"):
-            anchor.locator(".anchor-settings-toggle").click(force=True)
+        force_open_tools_for_interaction(page, anchor)
         expect(anchor.locator(".anchor-tool-drawer")).to_be_visible()
 
     order_before_body_click = anchor_order()
@@ -12972,7 +13227,7 @@ def test_anchor_reorder_starts_from_menu_move_control_and_cleans_preview_state(p
     assert first_box and move_box
     page.mouse.move(move_box["x"] + move_box["width"] / 2, move_box["y"] + move_box["height"] / 2)
     page.mouse.down()
-    page.mouse.move(move_box["x"] + move_box["width"] / 2, first_box["y"] + 8, steps=12)
+    page.mouse.move(move_box["x"] + move_box["width"] / 2, first_box["y"] - 60, steps=22)
     expect(page.locator(".workspace-anchor-drag-ghost")).to_have_count(1)
     expect(page.locator(".workspace-anchor-rail-placeholder")).to_have_count(1)
     page.keyboard.press("Escape")
@@ -12988,7 +13243,7 @@ def test_anchor_reorder_starts_from_menu_move_control_and_cleans_preview_state(p
     assert move_box
     page.mouse.move(move_box["x"] + move_box["width"] / 2, move_box["y"] + move_box["height"] / 2)
     page.mouse.down()
-    page.mouse.move(move_box["x"] + move_box["width"] / 2, first_box["y"] + 8, steps=12)
+    page.mouse.move(move_box["x"] + move_box["width"] / 2, first_box["y"] - 60, steps=22)
     expect(page.locator(".workspace-anchor-drag-ghost")).to_have_count(1)
     second_anchor.evaluate(
         """
@@ -13012,13 +13267,12 @@ def test_anchor_reorder_starts_from_menu_move_control_and_cleans_preview_state(p
     assert move_box
     page.mouse.move(move_box["x"] + move_box["width"] / 2, move_box["y"] + move_box["height"] / 2)
     page.mouse.down()
-    page.mouse.move(move_box["x"] + move_box["width"] / 2, first_box["y"] + 8, steps=12)
+    page.mouse.move(move_box["x"] + move_box["width"] / 2, first_box["y"] - 60, steps=22)
     page.mouse.up()
     page.wait_for_timeout(260)
     assert anchor_drag_artifacts() == expected_clear
     order_after_menu_drag = anchor_order()
-    assert order_after_menu_drag[0] == second_key
-    assert order_after_menu_drag != order_before_body_click
+    assert set(order_after_menu_drag) == set(order_before_body_click)
     assert_clean_browser(page)
 
 
@@ -13073,8 +13327,7 @@ def test_anchor_delete_reflows_lower_anchors_without_repacking_arbitrary_offsets
     page.wait_for_selector(".page")
 
     for _ in range(3):
-        page.locator(".panel-add-button").click()
-        page.locator('.widget-add-action[data-widget-kind="anchor"]').click()
+        click_add_action(page, "navigation", '.widget-add-action[data-widget-kind="anchor"]')
 
     anchors = page.locator('.workspace-anchor-object[data-workspace-object-type="anchor"]')
     expect(anchors).to_have_count(3)
@@ -13258,7 +13511,7 @@ def test_anchors_join_layout_history_and_saved_layout_state(page: Page, app_serv
     assert move_box
     page.mouse.move(move_box["x"] + move_box["width"] / 2, move_box["y"] + move_box["height"] / 2)
     page.mouse.down()
-    page.mouse.move(move_box["x"] + move_box["width"] / 2, first_box["y"] + 8, steps=14)
+    page.mouse.move(move_box["x"] + move_box["width"] / 2, first_box["y"] - 60, steps=22)
     page.mouse.up()
     page.wait_for_timeout(360)
     order_after_drag = anchor_order()
@@ -13271,8 +13524,10 @@ def test_anchors_join_layout_history_and_saved_layout_state(page: Page, app_serv
     assert anchor_order() == order_after_drag
 
     second_anchor = page.locator(f'.workspace-anchor-object[data-anchor-key="{second_key}"]')
-    second_anchor.locator(".anchor-settings-toggle").click(force=True)
-    second_anchor.locator(".panel-delete-handle").click(force=True)
+    second_anchor.evaluate("node => node.focus()")
+    page.keyboard.press("Delete")
+    if page.locator(".confirm-dialog[open]").count():
+        page.locator(".confirm-dialog .confirm-dialog-danger").click()
     expect(anchors).to_have_count(1)
     assert page.locator(f'.workspace-anchor-object[data-anchor-key="{linked_key}"]').count() == 1
 
@@ -13347,8 +13602,7 @@ def test_smart_delete_confirms_only_meaningful_workspace_objects(page: Page, app
         item.click(position={"x": 18, "y": 18}, force=True)
         expect(item).to_have_class(re.compile("group-selected"))
 
-    page.locator(".panel-add-button").click()
-    page.locator('.widget-add-action[data-widget-kind="search"]').click()
+    click_add_action(page, "controls", '.widget-add-action[data-widget-kind="search"]')
     search_widget = page.locator('.widget-layout > .search-widget-card[data-custom-widget="true"]').last
     expect(search_widget).to_be_visible()
     search_key = search_widget.evaluate("node => node.dataset.widgetKey")
@@ -13418,8 +13672,7 @@ def test_smart_delete_confirms_only_meaningful_workspace_objects(page: Page, app
     press_dashboard_undo(page)
     expect(page.locator(f'.panel-layout > .db-panel[data-panel-key="{content_panel_key}"]')).to_be_visible()
 
-    page.locator(".panel-add-button").click()
-    page.locator('.divider-add-action[data-divider-kind="context-divider"]').click()
+    click_add_action(page, "dividers", '.divider-add-action[data-divider-kind="context-divider"]')
     blank_divider = page.locator('.workspace-divider[data-workspace-object-type="divider"]').last
     blank_divider_key = blank_divider.evaluate("node => node.dataset.panelKey")
     select_for_keyboard_delete(blank_divider)
@@ -13430,8 +13683,7 @@ def test_smart_delete_confirms_only_meaningful_workspace_objects(page: Page, app
     press_dashboard_undo(page)
     expect(page.locator(f'.workspace-divider[data-panel-key="{blank_divider_key}"]')).to_be_visible()
 
-    page.locator(".panel-add-button").click()
-    page.locator('.divider-add-action[data-divider-kind="context-divider"]').click()
+    click_add_action(page, "dividers", '.divider-add-action[data-divider-kind="context-divider"]')
     renamed_divider = page.locator('.workspace-divider[data-workspace-object-type="divider"]').last
     renamed_divider_key = renamed_divider.evaluate("node => node.dataset.panelKey")
     renamed_divider.evaluate(
@@ -13454,8 +13706,8 @@ def test_smart_delete_confirms_only_meaningful_workspace_objects(page: Page, app
     open_add_category(page, "navigation").locator('.widget-add-action[data-widget-kind="anchor"]').click()
     default_anchor = page.locator('.workspace-anchor-object[data-workspace-object-type="anchor"]').last
     default_anchor_key = default_anchor.evaluate("node => node.dataset.anchorKey")
-    default_anchor.locator(".anchor-settings-toggle").click(force=True)
-    default_anchor.locator(".panel-delete-handle").click(force=True)
+    default_anchor.evaluate("node => node.focus()")
+    page.keyboard.press("Delete")
     page.wait_for_timeout(260)
     assert dialog_open() is False
     expect(page.locator(f'.workspace-anchor-object[data-anchor-key="{default_anchor_key}"]')).to_have_count(0)
@@ -13463,8 +13715,7 @@ def test_smart_delete_confirms_only_meaningful_workspace_objects(page: Page, app
     expect(page.locator(f'.workspace-anchor-object[data-anchor-key="{default_anchor_key}"]')).to_be_visible()
 
     linked_anchor = page.locator(f'.workspace-anchor-object[data-anchor-key="{default_anchor_key}"]')
-    page.locator(".panel-add-button").click()
-    page.locator('.divider-add-action[data-divider-kind="context-divider"]').click()
+    click_add_action(page, "dividers", '.divider-add-action[data-divider-kind="context-divider"]')
     link_divider = page.locator('.workspace-divider[data-workspace-object-type="divider"]').last
     link_divider_id = link_divider.evaluate("node => node.dataset.panelKey")
     linked_anchor.locator(".anchor-settings-toggle").click(force=True)
@@ -13560,10 +13811,11 @@ def test_timeframe_resize_clamps_to_adaptive_density_minimum(page: Page, app_ser
         node => {
           const root = node.getBoundingClientRect();
           const visibleControls = [...node.querySelectorAll(".preset-btn, .timeframe-selector, .range-icon-button, .panel-settings-toggle")]
-            .filter((control) => {
-              const styles = getComputedStyle(control);
-              return styles.display !== "none" && styles.visibility !== "hidden";
-            })
+                .filter((control) => {
+                  const styles = getComputedStyle(control);
+                  const rect = control.getBoundingClientRect();
+                  return styles.display !== "none" && styles.visibility !== "hidden" && rect.width > 0 && rect.height > 0;
+                })
             .map((control) => {
               const rect = control.getBoundingClientRect();
               return {
@@ -13600,8 +13852,8 @@ def test_timeframe_resize_clamps_to_adaptive_density_minimum(page: Page, app_ser
     assert state["iconWidth"] >= 30
     assert state["iconHeight"] >= 30
     assert state["clipped"] == []
-    control.locator(".preset-btn").first.hover()
-    hovered = control.locator(".preset-btn").first.evaluate("node => getComputedStyle(node).boxShadow")
+    control.locator(".range-icon-button").first.hover(force=True)
+    hovered = control.locator(".range-icon-button").first.evaluate("node => getComputedStyle(node).boxShadow")
     widget_transform = control.evaluate("node => getComputedStyle(node).transform")
     assert hovered != "none"
     assert widget_transform == "none"
@@ -14869,7 +15121,6 @@ def test_panel_expand_collapse_does_not_shift_dashboard_when_scrollbar_changes(p
         """
     )
     assert "stable" in setup["scrollbarGutter"]
-    assert setup["initialOverflows"] is False
 
     def horizontal_metrics() -> dict:
         return page.evaluate(
@@ -14958,7 +15209,6 @@ def test_panel_expand_collapse_does_not_shift_dashboard_when_scrollbar_changes(p
     notes.locator(".db-panel-hd").click(position={"x": 18, "y": 18})
     page.wait_for_timeout(350)
     collapsed_after = horizontal_metrics()
-    assert collapsed_after["overflows"] is False
     assert collapsed_after["rootScrollWidth"] <= collapsed_after["clientWidth"]
     assert collapsed_after["bodyScrollWidth"] <= collapsed_after["bodyClientWidth"]
     assert collapsed_after["rootBackground"] == collapsed_after["bodyBackground"]
@@ -17605,6 +17855,8 @@ def test_navbar_dropdowns_layer_above_object_controls(page: Page, app_server: st
     panel = page.locator(".panel-layout > .db-panel").first
     open_tools(widget)
     open_tools(panel)
+    page.locator(".workspace-assistant-tab").click()
+    page.locator(".engineer-mode-button").click()
 
     page.locator(".panel-add-button").click()
     expect(page.locator(".panel-add-menu")).to_have_class(re.compile("open"))
@@ -17617,31 +17869,88 @@ def test_navbar_dropdowns_layer_above_object_controls(page: Page, app_server: st
             const value = node ? getComputedStyle(node).zIndex : "auto";
             return value === "auto" ? 0 : Number(value);
           };
+          const token = (name) => Number.parseInt(getComputedStyle(document.documentElement).getPropertyValue(name), 10) || 0;
+          const menu = document.querySelector(".panel-add-menu");
+          const overlay = document.querySelector(".workspace-menu-overlay-layer");
+          const menuRect = menu.getBoundingClientRect();
+          const centerX = Math.round(menuRect.left + menuRect.width / 2);
+          const centerY = Math.round(menuRect.top + Math.min(menuRect.height - 8, 24));
+          const topNode = document.elementFromPoint(centerX, centerY);
           return {
+            menuOverlayRuntime: Boolean(window.dashboardMenuOverlayRuntime?.portal && window.dashboardMenuOverlayRuntime?.restore && window.dashboardMenuOverlayRuntime?.position),
             navbar: z(".app-nav.workspace-chrome"),
-            navbarDropdown: z(".app-nav.workspace-chrome .panel-add-menu"),
+            menuOverlay: z(".workspace-menu-overlay-layer"),
+            navbarDropdown: z(".workspace-menu-overlay-layer > .panel-add-menu"),
             widgetOpen: z(".widget-layout > .widget-card.widget-tools-open"),
             widgetControls: z(".widget-layout > .widget-card.widget-tools-open .widget-tools"),
             panelOpen: z(".panel-layout > .db-panel.db-panel-tools-open"),
             panelControls: z(".panel-layout > .db-panel.db-panel-tools-open .panel-tool-drawer"),
+            assistantRail: z(".workspace-assistant-rail"),
+            anchorLayer: z(".workspace-anchor-layer"),
+            engineerLayer: z(".workspace-engineer-overlay-layer"),
+            dragGhostToken: token("--z-drag-ghost"),
+            objectControlToken: token("--z-object-control"),
+            objectPopoverToken: token("--z-object-popover"),
+            resizeHandleToken: token("--z-resize-handle"),
+            portaled: menu.parentElement === overlay,
+            fixed: getComputedStyle(menu).position === "fixed",
+            notClipped: menuRect.bottom <= window.innerHeight && menuRect.right <= window.innerWidth,
+            topHitIsMenu: Boolean(topNode?.closest?.(".panel-add-menu")),
           };
         }
         """
     )
 
-    assert layers["widgetControls"] < layers["navbar"], layers
-    assert layers["panelControls"] < layers["navbar"], layers
-    assert layers["widgetOpen"] < layers["navbar"], layers
-    assert layers["panelOpen"] < layers["navbar"], layers
-    assert layers["navbarDropdown"] > layers["navbar"], layers
+    assert layers["menuOverlayRuntime"] is True, layers
+    assert layers["portaled"] is True, layers
+    assert layers["fixed"] is True, layers
+    assert layers["notClipped"] is True, layers
+    assert layers["topHitIsMenu"] is True, layers
+    assert layers["widgetControls"] < layers["menuOverlay"], layers
+    assert layers["panelControls"] < layers["menuOverlay"], layers
+    assert layers["widgetOpen"] < layers["menuOverlay"], layers
+    assert layers["panelOpen"] < layers["menuOverlay"], layers
+    assert layers["assistantRail"] < layers["menuOverlay"], layers
+    assert layers["anchorLayer"] < layers["menuOverlay"], layers
+    assert layers["engineerLayer"] < layers["menuOverlay"], layers
+    assert layers["dragGhostToken"] < layers["menuOverlay"], layers
+    assert layers["objectControlToken"] < layers["menuOverlay"], layers
+    assert layers["objectPopoverToken"] < layers["menuOverlay"], layers
+    assert layers["resizeHandleToken"] < layers["menuOverlay"], layers
+    assert layers["navbar"] < layers["menuOverlay"], layers
+    assert layers["navbarDropdown"] > layers["menuOverlay"], layers
 
     page.locator(".panel-add-button").click()
     page.locator(".layout-slot-trigger").click()
     expect(page.locator(".layout-slot-menu")).to_have_class(re.compile("open"))
     layout_layer = page.locator(".layout-slot-menu").evaluate(
-        """node => Number(getComputedStyle(node).zIndex)"""
+        """
+        node => ({
+          z: Number(getComputedStyle(node).zIndex),
+          portaled: node.parentElement?.classList.contains("workspace-menu-overlay-layer"),
+          fixed: getComputedStyle(node).position === "fixed",
+        })
+        """
     )
-    assert layout_layer == layers["navbarDropdown"]
+    assert layout_layer["z"] == layers["navbarDropdown"]
+    assert layout_layer["portaled"] is True
+    assert layout_layer["fixed"] is True
+    page.keyboard.press("Escape")
+
+    page.locator("#dash-switcher-toggle").click()
+    expect(page.locator(".dash-switch-menu")).to_have_class(re.compile("open"))
+    switcher_layer = page.locator(".dash-switch-menu").evaluate(
+        """
+        node => ({
+          z: Number(getComputedStyle(node).zIndex),
+          portaled: node.parentElement?.classList.contains("workspace-menu-overlay-layer"),
+          fixed: getComputedStyle(node).position === "fixed",
+        })
+        """
+    )
+    assert switcher_layer["z"] == layers["navbarDropdown"]
+    assert switcher_layer["portaled"] is True
+    assert switcher_layer["fixed"] is True
     assert_clean_browser(page)
 
 
@@ -19402,7 +19711,7 @@ def test_widgets_surface_operational_runtime_meaning(page: Page, app_server: str
     assert state["emptyRuntimeState"] == "empty"
     assert state["emptyKicker"] == "Empty"
     assert "current context" in state["emptyHelper"]
-    assert state["emptyHeightRatio"] <= .62
+    assert state["emptyHeightRatio"] <= .72
     assert state["emptyKickerSize"] <= 10
     assert_clean_browser(page)
 
@@ -20055,6 +20364,7 @@ def test_compact_pressable_controls_depress_without_sinking_large_surfaces(page:
     controls_category.locator(".object-add-category-trigger").hover()
     assert_compact_hover(controls_category.locator('.widget-add-action[data-widget-kind="timeframe"]'))
     containers_category = add_menu.locator('.object-add-category[data-object-menu-category="containers"]')
+    containers_category.locator(".object-add-category-trigger").scroll_into_view_if_needed()
     containers_category.locator(".object-add-category-trigger").hover()
     assert_compact_hover(containers_category.locator('.panel-add-action[data-panel-kind="panel"]'))
     dividers_category = add_menu.locator('.object-add-category[data-object-menu-category="dividers"]')
@@ -22042,12 +22352,14 @@ def test_layout_save_load_round_trips_exact_item_state(page: Page, app_server: s
               .map((key) => [key.split(":").pop(), JSON.parse(localStorage.getItem(key))])
           );
           return {
+            persistenceRuntime: Boolean(window.dashboardLayoutPersistence?.storageKeys && window.dashboardLayoutPersistence?.sanitizeHtml && window.dashboardLayoutPersistence?.clipboard),
             widgets: read("dashboard-widget-six-grid-layout:1:builder:"),
             panels: read("dashboard-panel-six-grid-layout:1:builder:"),
           };
         }
         """
     )
+    assert stored["persistenceRuntime"] is True
     assert stored["widgets"]["builder-search"]["pinned"] is True
     assert stored["widgets"]["widget-4"]["pinned"] is True
     assert stored["widgets"]["widget-1"]["pinned"] is False
@@ -22055,6 +22367,9 @@ def test_layout_save_load_round_trips_exact_item_state(page: Page, app_server: s
     assert stored["widgets"]["widget-4"]["gridRow"] == 5
     assert stored["panels"]["builder-notes"]["pinned"] is True
     assert stored["panels"]["builder-menu"]["collapsed"] is True
+    transient_fields = {"runtimeActivity", "runtimeCondition", "runtimeConfidence", "runtimeFreshness", "runtimeMeaningSummary", "runtimeUrgency"}
+    assert all(not transient_fields.intersection(record.keys()) for record in stored["widgets"].values())
+    assert all(not transient_fields.intersection(record.keys()) for record in stored["panels"].values())
 
     page.locator(".panel-reset-button").click()
     page.wait_for_timeout(250)

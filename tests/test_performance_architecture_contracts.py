@@ -3,6 +3,8 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 APP_JS = (ROOT / "app" / "static" / "app.js").read_text(encoding="utf-8")
+COLLISION_REFLOW_JS = (ROOT / "app" / "static" / "collision-reflow.js").read_text(encoding="utf-8")
+DASHBOARD_GEOMETRY_JS = (ROOT / "app" / "static" / "dashboard-geometry.js").read_text(encoding="utf-8")
 DASHBOARD_CSS = (ROOT / "app" / "static" / "dashboard-grid.css").read_text(encoding="utf-8")
 THEMES_CSS = (ROOT / "app" / "static" / "themes.css").read_text(encoding="utf-8")
 PERFORMANCE_PLAN = (ROOT / "docs" / "performance-stabilization-plan.md").read_text(encoding="utf-8")
@@ -35,14 +37,15 @@ def test_collision_queries_use_spatial_row_buckets_for_large_occupied_sets():
         "occupancyIndexCache",
         "indexedCollisionEntries",
     ):
-        assert name in APP_JS
+        assert name in COLLISION_REFLOW_JS
 
-    can_place_body = APP_JS[
-        APP_JS.index("const canPlaceBounds"):
-        APP_JS.index("const nearestSparseSlot")
+    can_place_body = COLLISION_REFLOW_JS[
+        COLLISION_REFLOW_JS.index("const canPlaceBounds"):
+        COLLISION_REFLOW_JS.index("const boundsAtGridSlot")
     ]
     assert "indexedCollisionEntries(bounds, occupied)" in can_place_body
     assert "occupied.some" not in can_place_body
+    assert "some((entry) => gridBoundsOverlap" in DASHBOARD_GEOMETRY_JS
 
 
 def test_sparse_resolution_uses_cached_logical_geometry_records():
@@ -52,11 +55,11 @@ def test_sparse_resolution_uses_cached_logical_geometry_records():
         "gridGeometryEntry",
         "gridGeometryEntriesForItems",
     ):
-        assert name in APP_JS
+        assert name in APP_JS or name in COLLISION_REFLOW_JS
 
-    sparse_body = APP_JS[
-        APP_JS.index("const resolveSparseGridLayout"):
-        APP_JS.index("const resolveActiveDropSlot")
+    sparse_body = COLLISION_REFLOW_JS[
+        COLLISION_REFLOW_JS.index("const resolveSparseGridLayout"):
+        COLLISION_REFLOW_JS.index("const resolveSparseGridLayoutForActiveItems")
     ]
     assert "items: options.items" in sparse_body
     assert "createGridGeometryRecords(items, metrics)" in sparse_body

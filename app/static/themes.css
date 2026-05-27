@@ -1215,7 +1215,7 @@ body::-webkit-scrollbar-thumb:hover {
 
 .db-panel.db-panel-custom-color:hover,
 .db-panel.db-panel-custom-color:focus-within {
-  border-color: rgba(var(--panel-accent-rgb), .46);
+  border-color: color(srgb 0.411072 0.568827 0.767257 / 0.435054);
   box-shadow:
     0 7px 18px rgba(15, 23, 42, .08),
     0 0 0 1px rgba(var(--panel-accent-rgb), .08),
@@ -1225,7 +1225,7 @@ body::-webkit-scrollbar-thumb:hover {
 
 .db-panel.db-panel-custom-color.db-panel-collapsed:hover,
 .db-panel.db-panel-custom-color.db-panel-collapsed:focus-within {
-  border-color: rgba(var(--panel-accent-rgb), .40);
+  border-color: color-mix(in srgb, var(--panel-accent) 42%, var(--line));
   box-shadow:
     var(--shadow-card),
     0 0 0 1px rgba(var(--panel-accent-rgb), .10);
@@ -4821,5 +4821,700 @@ body:is(.panel-interaction-active, .panel-resize-active, .workspace-wire-drag-ac
 body:is(.panel-interaction-active, .panel-resize-active, .workspace-wire-drag-active, .anchor-rail-drag-active)
   :is(.widget-layout > .widget-card, .panel-internal-widget-grid > .widget-card, .panel-layout > .db-panel):not(.widget-dragging):not(.db-panel-dragging):not(.dashboard-active-resize)::before {
   opacity: 0 !important;
+}
+
+/* Floating glass menu system: navbar/dropdown surfaces only. Object settings drawers remain separate. */
+.workspace-menu-overlay-layer {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-menu-overlay, 2600);
+  overflow: visible;
+  pointer-events: none;
+  isolation: isolate;
+}
+
+.workspace-menu-overlay-layer > .nav-menu-shell {
+  z-index: calc(var(--z-menu-overlay, 2600) + 1);
+  pointer-events: auto;
+}
+
+.nav-menu-shell,
+.floating-glass-menu {
+  --glass-menu-radius: 16px;
+  --glass-menu-item-radius: 11px;
+  --glass-menu-bg:
+    radial-gradient(circle at 18% 0%, color-mix(in srgb, var(--blue) 15%, transparent) 0 42%, transparent 64%),
+    linear-gradient(145deg,
+      color-mix(in srgb, var(--surface-raised) 88%, rgba(222, 232, 246, .68) 12%),
+      color-mix(in srgb, var(--surface-soft) 82%, rgba(198, 211, 230, .58) 18%)),
+    color-mix(in srgb, var(--surface-raised) 88%, rgba(218, 228, 244, .74) 12%);
+  --glass-menu-border: color-mix(in srgb, var(--glass-border) 64%, rgba(255, 255, 255, .44));
+  --glass-menu-rim: color-mix(in srgb, var(--glass-highlight) 66%, transparent);
+  --glass-menu-shadow:
+    0 24px 58px rgba(15, 23, 42, .18),
+    0 8px 20px rgba(15, 23, 42, .09),
+    inset 0 1px 0 var(--glass-menu-rim),
+    inset 0 -18px 32px rgba(15, 23, 42, .035);
+  --glass-menu-item-bg: color-mix(in srgb, var(--surface-raised) 76%, rgba(205, 216, 232, .58));
+  --glass-menu-item-hover-bg: color-mix(in srgb, var(--surface-raised) 68%, rgba(188, 204, 226, .72));
+  --glass-menu-item-active-bg: color-mix(in srgb, var(--blue) 14%, var(--glass-surface-strong));
+  --glass-menu-item-border: color-mix(in srgb, var(--glass-border) 42%, transparent);
+  --glass-menu-item-hover-border: color-mix(in srgb, var(--blue) 24%, var(--glass-border));
+  --glass-menu-fg: var(--ink);
+  --glass-menu-muted: color-mix(in srgb, var(--muted) 84%, var(--ink));
+  color: var(--glass-menu-fg);
+  border: 1px solid var(--glass-menu-border);
+  border-radius: var(--glass-menu-radius);
+  background: var(--glass-menu-bg);
+  background-color: color-mix(in srgb, var(--surface-raised) 92%, rgba(218, 228, 244, .88) 8%);
+  box-shadow: var(--glass-menu-shadow);
+  backdrop-filter: blur(28px) saturate(1.22);
+  -webkit-backdrop-filter: blur(28px) saturate(1.22);
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in srgb, var(--ink) 24%, transparent) transparent;
+}
+
+.nav-menu-shell::before,
+.floating-glass-menu::before {
+  content: "";
+  position: absolute;
+  inset: 1px 10px auto;
+  height: 1px;
+  pointer-events: none;
+  border-radius: 999px;
+  background: linear-gradient(90deg, transparent, var(--glass-menu-rim), transparent);
+}
+
+.nav-menu-shell::-webkit-scrollbar,
+.floating-glass-menu::-webkit-scrollbar,
+.glass-menu-scroll-region::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.nav-menu-shell::-webkit-scrollbar-track,
+.floating-glass-menu::-webkit-scrollbar-track,
+.glass-menu-scroll-region::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.nav-menu-shell::-webkit-scrollbar-thumb,
+.floating-glass-menu::-webkit-scrollbar-thumb,
+.glass-menu-scroll-region::-webkit-scrollbar-thumb {
+  border: 2px solid transparent;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--ink) 24%, transparent);
+  background-clip: content-box;
+}
+
+:is(.app-nav.workspace-chrome, .workspace-menu-overlay-layer) :is(.dash-switch-menu, .layout-slot-menu, .panel-add-menu, .nav-status-popover, .background-tone-popover).nav-menu-shell {
+  z-index: var(--z-navbar-dropdown);
+  overflow: visible;
+  border-color: var(--glass-menu-border);
+  border-radius: var(--glass-menu-radius);
+  background: var(--glass-menu-bg);
+  background-color: color-mix(in srgb, var(--surface-raised) 92%, rgba(218, 228, 244, .88) 8%);
+  box-shadow: var(--glass-menu-shadow);
+  backdrop-filter: blur(28px) saturate(1.22);
+  -webkit-backdrop-filter: blur(28px) saturate(1.22);
+}
+
+:is(.app-nav.workspace-chrome, .workspace-menu-overlay-layer) .dash-switch-menu.nav-menu-shell {
+  min-width: 224px;
+  padding: 7px;
+  border-radius: 18px;
+}
+
+:is(.app-nav.workspace-chrome, .workspace-menu-overlay-layer) .layout-slot-menu.nav-menu-shell {
+  min-width: 246px;
+  max-height: min(var(--menu-portal-max-height, 72vh), 580px);
+  padding: 8px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+:is(.app-nav.workspace-chrome, .workspace-menu-overlay-layer) .panel-add-menu.nav-menu-shell {
+  min-width: 184px;
+  padding: 8px;
+  overflow: visible;
+}
+
+:is(.app-nav.workspace-chrome, .workspace-menu-overlay-layer) .panel-add-menu.nav-menu-shell:not(.open) {
+  padding: 8px;
+  border-width: 1px;
+  max-height: var(--panel-add-menu-max-height, calc(100vh - 120px));
+  overflow: visible;
+}
+
+:is(.app-nav.workspace-chrome, .workspace-menu-overlay-layer) .panel-add-menu.nav-menu-shell.menu-scroll.submenu-active {
+  overflow: visible;
+}
+
+:is(.app-nav.workspace-chrome, .workspace-menu-overlay-layer) .panel-add-menu.nav-menu-shell.menu-scroll.submenu-active > .object-add-browser {
+  overflow: visible;
+  max-height: none;
+  padding-right: 0;
+}
+
+.object-add-browser.glass-menu-scroll-region {
+  min-width: 168px;
+  gap: 5px;
+  overflow: visible;
+}
+
+.glass-menu-section {
+  position: relative;
+  display: grid;
+  gap: 5px;
+}
+
+.glass-menu-section + .glass-menu-section {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid color-mix(in srgb, var(--glass-menu-border) 52%, transparent);
+}
+
+.layout-source-heading {
+  padding: 1px 8px 2px;
+  color: var(--glass-menu-muted);
+  font-size: 10px;
+  font-weight: 780;
+  letter-spacing: 0;
+  line-height: 1.2;
+  text-transform: none;
+}
+
+:is(.app-nav.workspace-chrome, .workspace-menu-overlay-layer) :is(.glass-menu-item, .layout-slot-menu button, .dash-switch-opt, .background-tone-option) {
+  position: relative;
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 34px;
+  padding: 0 11px;
+  border: 1px solid var(--glass-menu-item-border);
+  border-radius: var(--glass-menu-item-radius);
+  background: var(--glass-menu-item-bg);
+  color: var(--glass-menu-fg);
+  box-shadow:
+    0 1px 3px rgba(15, 23, 42, .045),
+    inset 0 1px 0 color-mix(in srgb, var(--glass-highlight) 42%, transparent);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 730;
+  line-height: 1;
+  text-align: left;
+  cursor: pointer;
+  transform: translateY(0);
+  transition:
+    background .14s ease,
+    border-color .14s ease,
+    box-shadow .14s ease,
+    color .14s ease,
+    transform .14s ease;
+}
+
+:is(.app-nav.workspace-chrome, .workspace-menu-overlay-layer) .dash-switch-opt {
+  min-height: 48px;
+  align-items: center;
+  gap: 9px;
+  padding-block: 7px;
+  text-decoration: none;
+}
+
+:is(.app-nav.workspace-chrome, .workspace-menu-overlay-layer) .dash-switch-opt small,
+:is(.app-nav.workspace-chrome, .workspace-menu-overlay-layer) .nav-status-popover dd,
+:is(.app-nav.workspace-chrome, .workspace-menu-overlay-layer) .background-tone-label {
+  color: var(--glass-menu-muted);
+}
+
+:is(.app-nav.workspace-chrome, .workspace-menu-overlay-layer) :is(.glass-menu-item, .layout-slot-menu button, .dash-switch-opt, .background-tone-option):hover,
+:is(.app-nav.workspace-chrome, .workspace-menu-overlay-layer) :is(.glass-menu-item, .layout-slot-menu button, .dash-switch-opt, .background-tone-option):focus-visible,
+.object-add-category.is-open > .object-add-category-trigger,
+.object-add-subcategory.is-open > .object-add-subcategory-trigger {
+  border-color: var(--glass-menu-item-hover-border);
+  background: var(--glass-menu-item-hover-bg);
+  color: var(--ink-strong);
+  box-shadow:
+    0 5px 14px rgba(15, 23, 42, .085),
+    inset 0 1px 0 color-mix(in srgb, var(--glass-highlight) 52%, transparent),
+    inset 0 2px 6px rgba(15, 23, 42, .04);
+  transform: translateY(.5px);
+}
+
+:is(.app-nav.workspace-chrome, .workspace-menu-overlay-layer) :is(.glass-menu-item, .layout-slot-menu button, .dash-switch-opt, .background-tone-option):active,
+:is(.app-nav.workspace-chrome, .workspace-menu-overlay-layer) :is(.layout-source-option, .layout-slot-menu button).is-active,
+:is(.app-nav.workspace-chrome, .workspace-menu-overlay-layer) .background-tone-option.is-selected {
+  border-color: color-mix(in srgb, var(--blue) 34%, var(--glass-border));
+  background: var(--glass-menu-item-active-bg);
+  color: color-mix(in srgb, var(--blue) 72%, var(--ink-strong));
+  box-shadow:
+    0 2px 8px rgba(15, 23, 42, .08),
+    inset 0 1px 0 color-mix(in srgb, var(--glass-highlight) 46%, transparent),
+    inset 0 2px 7px color-mix(in srgb, var(--blue) 10%, rgba(15, 23, 42, .08));
+  transform: translateY(1px);
+}
+
+:is(.app-nav.workspace-chrome, .workspace-menu-overlay-layer) :is(.dash-switch-opt:disabled, .dash-switch-opt:disabled:hover, .dash-switch-opt:disabled:active) {
+  cursor: default;
+  opacity: .68;
+  border-color: var(--glass-menu-item-border);
+  background: color-mix(in srgb, var(--glass-menu-item-bg) 82%, transparent);
+  color: var(--glass-menu-muted);
+  box-shadow:
+    0 1px 3px rgba(15, 23, 42, .035),
+    inset 0 1px 0 color-mix(in srgb, var(--glass-highlight) 34%, transparent);
+  transform: none;
+}
+
+.object-add-category,
+.object-add-subcategory {
+  position: relative;
+}
+
+.object-add-category-trigger,
+.object-add-subcategory-trigger {
+  justify-content: flex-start;
+  padding-right: 28px;
+}
+
+.object-add-category-trigger::after,
+.object-add-subcategory-trigger::after {
+  right: 11px;
+  opacity: .58;
+}
+
+.object-add-submenu.glass-submenu-panel {
+  display: grid;
+  gap: 5px;
+  min-width: 190px;
+  max-height: var(--glass-submenu-max-height, min(72vh, 520px));
+  padding: 7px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transform: translateX(-5px) scale(.985);
+  transition:
+    opacity .14s ease,
+    transform .16s cubic-bezier(.2, .8, .2, 1),
+    visibility 0s linear .16s;
+}
+
+.object-add-submenu.glass-submenu-panel::before {
+  inset: 1px 9px auto;
+}
+
+.object-add-submenu.glass-submenu-panel::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: -10px;
+  width: 10px;
+}
+
+.object-add-submenu.glass-submenu-panel.submenu-opens-left {
+  right: calc(100% + 8px);
+  left: auto;
+  transform-origin: top right;
+  transform: translateX(5px) scale(.985);
+}
+
+.object-add-submenu.glass-submenu-panel.submenu-opens-left::after {
+  right: -10px;
+  left: auto;
+}
+
+.object-add-submenu.glass-submenu-panel.submenu-pin-bottom {
+  top: auto;
+  bottom: 0;
+}
+
+.object-add-category:hover > .object-add-submenu.glass-submenu-panel,
+.object-add-category:focus-within > .object-add-submenu.glass-submenu-panel,
+.object-add-category.is-open > .object-add-submenu.glass-submenu-panel,
+.object-add-subcategory:hover > .object-add-submenu.glass-submenu-panel,
+.object-add-subcategory:focus-within > .object-add-submenu.glass-submenu-panel,
+.object-add-subcategory.is-open > .object-add-submenu.glass-submenu-panel {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transform: translateX(0) scale(1);
+  transition-delay: 0s;
+}
+
+:is(.app-nav.workspace-chrome, .workspace-menu-overlay-layer) .nav-status-popover.nav-menu-shell {
+  width: min(324px, calc(100vw - 32px));
+  padding: 14px;
+}
+
+:is(.app-nav.workspace-chrome, .workspace-menu-overlay-layer) .background-tone-popover.nav-menu-shell {
+  max-height: min(var(--menu-portal-max-height, 72vh), 620px);
+  padding: 10px;
+  overflow-y: auto;
+}
+
+.workspace-menu-overlay-layer > :is(.dash-switch-menu, .layout-slot-menu, .panel-add-menu, .background-tone-popover).nav-menu-shell.menu-portaled {
+  z-index: calc(var(--z-menu-overlay, 2600) + 1);
+}
+
+.workspace-menu-overlay-layer .object-add-submenu.glass-submenu-panel {
+  z-index: calc(var(--z-menu-overlay, 2600) + 2);
+}
+
+.workspace-menu-overlay-layer > .background-tone-popover.nav-menu-shell.open {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transform: translateY(0) scale(1);
+  transition-delay: 0s;
+}
+
+/* Timeframe widget: adaptive temporal instrument surface. */
+.widget-layout > .timeframe-widget.range-bar.widget-card,
+.panel-internal-widget-grid > .timeframe-widget.range-bar.widget-card {
+  --timeframe-instrument-bg:
+    radial-gradient(circle at 12% 0%, color-mix(in srgb, var(--panel-accent, var(--blue)) 11%, transparent) 0 38%, transparent 62%),
+    linear-gradient(145deg,
+      color-mix(in srgb, var(--surface-raised) 82%, var(--panel-accent, var(--blue)) 9%),
+      color-mix(in srgb, var(--surface-soft) 88%, var(--panel-accent, var(--blue)) 5%));
+  --timeframe-inset-bg: color-mix(in srgb, var(--surface-raised) 72%, var(--panel-accent, var(--blue)) 10%);
+  --timeframe-control-bg: color-mix(in srgb, var(--surface-raised) 64%, var(--panel-accent, var(--blue)) 15%);
+  --timeframe-control-hover-bg: color-mix(in srgb, var(--surface-raised) 58%, var(--panel-accent, var(--blue)) 19%);
+  --timeframe-control-active-bg: color-mix(in srgb, var(--surface-raised) 50%, var(--panel-accent, var(--blue)) 28%);
+  --timeframe-control-border: color-mix(in srgb, var(--glass-border) 70%, var(--panel-accent, var(--blue)) 18%);
+  --timeframe-control-active-border: color-mix(in srgb, var(--panel-accent, var(--blue)) 42%, var(--glass-border));
+  align-items: stretch;
+  justify-content: stretch;
+  min-width: 0;
+  padding: 6px 50px 6px 10px;
+  cursor: pointer;
+  overflow: visible;
+}
+
+.timeframe-widget .timeframe-command-surface {
+  display: grid;
+  grid-template-columns: minmax(150px, 1fr) auto;
+  align-items: stretch;
+  gap: 7px;
+  width: 100%;
+  min-width: 0;
+  min-height: 0;
+  padding: 5px;
+  overflow: visible;
+  border: 1px solid color-mix(in srgb, var(--glass-border) 70%, var(--panel-accent, var(--blue)) 15%);
+  border-radius: 18px;
+  background: var(--timeframe-instrument-bg);
+  background-color: var(--timeframe-inset-bg);
+  box-shadow:
+    0 10px 24px color-mix(in srgb, var(--panel-accent, var(--blue)) 8%, rgba(15, 23, 42, .10)),
+    inset 0 1px 0 color-mix(in srgb, var(--glass-highlight) 58%, transparent),
+    inset 0 -14px 24px rgba(15, 23, 42, .035);
+}
+
+.timeframe-widget .timeframe-current-zone,
+.timeframe-widget .timeframe-action-zone {
+  min-width: 0;
+  border: 1px solid color-mix(in srgb, var(--timeframe-control-border) 72%, transparent);
+  border-radius: 14px;
+  background: var(--timeframe-inset-bg);
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, var(--glass-highlight) 38%, transparent),
+    inset 0 8px 16px rgba(255, 255, 255, .045),
+    inset 0 -8px 18px rgba(15, 23, 42, .035);
+}
+
+.timeframe-widget .timeframe-current-zone {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-content: center;
+  gap: 2px;
+  padding: 5px 10px;
+}
+
+.timeframe-widget .timeframe-kicker {
+  color: color-mix(in srgb, var(--muted-strong) 82%, var(--ink));
+  font-size: 9px;
+  font-weight: 760;
+  line-height: 1.05;
+  text-transform: none;
+}
+
+.timeframe-widget .timeframe-selected-summary {
+  display: flex;
+  align-items: center;
+  width: auto;
+  min-width: 0;
+  max-width: 100%;
+  height: auto;
+  min-height: 24px;
+  padding: 0;
+  overflow: hidden;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: var(--ink-strong);
+  box-shadow: none;
+  font-size: 15px;
+  font-weight: 810;
+  line-height: 1.08;
+  text-align: left;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  transform: none;
+}
+
+.timeframe-widget .timeframe-range-display {
+  display: block;
+  min-width: 0;
+  overflow: hidden;
+  color: color-mix(in srgb, var(--muted-strong) 88%, var(--ink));
+  font-size: 10px;
+  font-weight: 690;
+  line-height: 1.15;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.timeframe-widget .timeframe-action-zone {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 5px;
+  padding: 4px;
+}
+
+.timeframe-widget .timeframe-controls,
+.timeframe-widget .timeframe-presets,
+.range-bar.widget-card .timeframe-controls,
+.range-bar.widget-card .timeframe-presets {
+  display: flex;
+  flex: 0 1 auto;
+  align-items: center;
+  min-width: 0;
+  max-width: none;
+  gap: 5px;
+  overflow: visible;
+  scrollbar-width: none;
+}
+
+.timeframe-widget .timeframe-presets::-webkit-scrollbar {
+  display: none;
+}
+
+.timeframe-widget .preset-btn,
+.timeframe-widget .range-icon-button,
+.timeframe-widget .timeframe-custom-date,
+.timeframe-widget .timeframe-calendar-apply {
+  height: 30px;
+  min-height: 30px;
+  border: 1px solid var(--timeframe-control-border);
+  background: var(--timeframe-control-bg);
+  color: color-mix(in srgb, var(--panel-accent-text, var(--ink-strong)) 84%, var(--ink-strong));
+  box-shadow:
+    0 1px 3px rgba(15, 23, 42, .04),
+    inset 0 1px 0 color-mix(in srgb, var(--glass-highlight) 42%, transparent),
+    inset 0 -4px 9px rgba(15, 23, 42, .025);
+  transform: none;
+}
+
+.timeframe-widget .preset-btn {
+  width: auto;
+  min-width: max-content;
+  max-width: none;
+  padding: 0 11px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 760;
+  text-overflow: clip;
+}
+
+.timeframe-widget .timeframe-more-button {
+  padding-inline: 12px;
+}
+
+.timeframe-widget .range-icon-button {
+  width: 30px;
+  min-width: 30px;
+  border-radius: 999px;
+}
+
+.timeframe-widget .preset-btn:hover,
+.timeframe-widget .preset-btn:focus-visible,
+.timeframe-widget .range-icon-button:hover,
+.timeframe-widget .range-icon-button:focus-visible,
+.timeframe-widget .timeframe-custom-date:hover,
+.timeframe-widget .timeframe-custom-date:focus,
+.timeframe-widget .timeframe-calendar-apply:hover,
+.timeframe-widget .timeframe-calendar-apply:focus-visible {
+  outline: none;
+  border-color: var(--timeframe-control-active-border);
+  background: var(--timeframe-control-hover-bg);
+  color: var(--ink-strong);
+  box-shadow:
+    0 2px 8px color-mix(in srgb, var(--panel-accent, var(--blue)) 10%, transparent),
+    inset 0 1px 0 color-mix(in srgb, var(--glass-highlight) 48%, transparent),
+    inset 0 2px 7px rgba(15, 23, 42, .035);
+  transform: var(--pressable-hover-transform);
+}
+
+.timeframe-widget .preset-btn:active,
+.timeframe-widget .preset-btn.active,
+.timeframe-widget .range-icon-button:active,
+.timeframe-widget .timeframe-calendar-apply:active {
+  border-color: var(--timeframe-control-active-border);
+  background: var(--timeframe-control-active-bg);
+  color: color-mix(in srgb, var(--panel-accent, var(--blue)) 62%, var(--ink-strong));
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, var(--glass-highlight) 42%, transparent),
+    inset 0 2px 8px color-mix(in srgb, var(--panel-accent, var(--blue)) 10%, rgba(15, 23, 42, .08));
+  transform: var(--pressable-active-transform);
+}
+
+.timeframe-widget .timeframe-selector:hover,
+.timeframe-widget .timeframe-selector:focus-visible,
+.timeframe-widget .timeframe-selector.active {
+  transform: none;
+}
+
+.timeframe-widget .timeframe-preset-menu,
+.timeframe-widget .timeframe-calendar-popover,
+.workspace-menu-overlay-layer > .timeframe-preset-menu,
+.workspace-menu-overlay-layer > .timeframe-calendar-popover {
+  position: absolute;
+  left: 0;
+  top: calc(100% + 8px);
+  display: grid;
+  gap: 6px;
+  min-width: 224px;
+  max-height: min(var(--menu-portal-max-height, 72vh), 520px);
+  padding: 8px;
+  overflow-y: auto;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transform: translateY(-4px) scale(.985);
+  transform-origin: top left;
+  transition:
+    opacity .14s ease,
+    transform .16s cubic-bezier(.2, .8, .2, 1),
+    visibility 0s linear .16s;
+}
+
+.timeframe-widget .timeframe-calendar-popover,
+.workspace-menu-overlay-layer > .timeframe-calendar-popover {
+  min-width: 260px;
+  overflow: visible;
+}
+
+.workspace-menu-overlay-layer > :is(.timeframe-preset-menu, .timeframe-calendar-popover).nav-menu-shell.menu-portaled {
+  z-index: calc(var(--z-menu-overlay, 2600) + 1);
+  pointer-events: auto;
+}
+
+.timeframe-widget .timeframe-preset-menu.open,
+.timeframe-widget .timeframe-calendar-popover.open,
+.workspace-menu-overlay-layer > .timeframe-preset-menu.open,
+.workspace-menu-overlay-layer > .timeframe-calendar-popover.open {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transform: translateY(0) scale(1);
+  transition-delay: 0s;
+}
+
+.timeframe-menu-heading {
+  padding: 1px 7px 2px;
+  color: var(--glass-menu-muted);
+  font-size: 10px;
+  font-weight: 780;
+  line-height: 1.2;
+}
+
+.timeframe-calendar-field {
+  display: grid;
+  gap: 5px;
+  color: var(--glass-menu-muted);
+  font-size: 10px;
+  font-weight: 760;
+}
+
+.timeframe-widget .timeframe-custom-date,
+.workspace-menu-overlay-layer .timeframe-custom-date {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  padding: 0 10px;
+  border-radius: 11px;
+  color: var(--ink-strong);
+  font-size: 12px;
+}
+
+.timeframe-widget .timeframe-calendar-apply,
+.workspace-menu-overlay-layer .timeframe-calendar-apply {
+  justify-content: center;
+  width: 100%;
+  margin-top: 2px;
+  border-radius: 11px;
+  font-size: 12px;
+  font-weight: 760;
+}
+
+.timeframe-widget .timeframe-density-small {
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 6px;
+  padding: 5px;
+}
+
+.timeframe-widget .timeframe-density-small .timeframe-current-zone {
+  padding: 6px 9px;
+}
+
+.timeframe-widget .timeframe-density-small .timeframe-presets {
+  display: none;
+}
+
+.timeframe-widget[data-current-span="2"] .timeframe-presets,
+.timeframe-widget[data-default-span="2"]:not([data-current-span]) .timeframe-presets {
+  display: none;
+}
+
+.timeframe-widget .timeframe-density-small .timeframe-selected-summary {
+  font-size: 14px;
+}
+
+.timeframe-widget[data-current-span="2"] .timeframe-selected-summary,
+.timeframe-widget[data-default-span="2"]:not([data-current-span]) .timeframe-selected-summary {
+  min-width: 0;
+  padding: 0;
+}
+
+.timeframe-widget .timeframe-density-small .timeframe-range-display,
+.timeframe-widget[data-current-span="2"] .timeframe-range-display,
+.timeframe-widget[data-default-span="2"]:not([data-current-span]) .timeframe-range-display {
+  display: none;
+}
+
+.timeframe-widget .timeframe-density-small .timeframe-action-zone {
+  gap: 4px;
+  padding: 4px;
+}
+
+.timeframe-widget .timeframe-density-small .range-icon-button,
+.timeframe-widget[data-current-span="2"] .range-icon-button,
+.timeframe-widget[data-default-span="2"]:not([data-current-span]) .range-icon-button {
+  width: 30px;
+  min-width: 30px;
+  height: 30px;
+  min-height: 30px;
+}
+
+.timeframe-widget .timeframe-density-large {
+  grid-template-columns: minmax(210px, 1fr) auto;
+}
+
+.timeframe-widget:has(.timeframe-command-surface:hover),
+.timeframe-widget:has(.timeframe-command-surface:focus-within) {
+  transform: none !important;
 }
 

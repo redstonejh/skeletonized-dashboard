@@ -23,7 +23,7 @@
           <span class="dash-identity-email">user@example.com</span>
         </span>
       </button>
-      <div class="dash-switch-menu" id="dash-switch-menu">
+      <div class="dash-switch-menu nav-menu-shell floating-glass-menu" id="dash-switch-menu">
         <button class="dash-switch-opt dash-switch-profile dash-switch-opt-active" type="button" disabled>
           <span><strong>Workspace User</strong><small>user@example.com</small></span>
         </button>
@@ -42,7 +42,7 @@
       <div class="layout-slot-controls" aria-label="Layout save slots">
         <div class="layout-slot-picker" data-layout-target="builder">
           <button class="layout-slot-trigger" type="button" data-current-slot="1" aria-haspopup="true" aria-expanded="false"><span class="layout-slot-label">Layout 1</span></button>
-          <div class="layout-slot-menu" role="menu">
+          <div class="layout-slot-menu nav-menu-shell floating-glass-menu glass-menu-scroll-region" role="menu">
             {% for slot in range(1, 11) %}<button type="button" role="menuitem" data-slot="{{ slot }}">Layout {{ slot }}</button>{% endfor %}
           </div>
         </div>
@@ -54,8 +54,8 @@
       <button class="panel-undo-button composition-rocker-control composition-undo-button" type="button" data-layout-target="builder" aria-label="Undo last layout change" title="Undo last layout change"><span class="chrome-rocker-glyph" aria-hidden="true">-</span></button>
       <div class="panel-add-picker" data-layout-target="builder">
       <button class="panel-add-button composition-rocker-control composition-add-button" type="button" aria-label="Add dashboard object" aria-haspopup="true" aria-expanded="false" title="Add dashboard object"><span class="chrome-add-glyph" aria-hidden="true">+</span></button>
-      <div class="panel-add-menu">
-        <div class="object-add-browser" role="menu" aria-label="Add object categories"></div>
+      <div class="panel-add-menu nav-menu-shell floating-glass-menu">
+        <div class="object-add-browser glass-menu-scroll-region" role="menu" aria-label="Add object categories"></div>
       </div>
       </div>
     </div>
@@ -68,7 +68,7 @@
     <div class="workspace-command-island appearance-command-island" aria-label="Appearance and environment">
       <details class="background-tone-menu">
       <summary class="background-tone-trigger" aria-label="Workspace background" title="Workspace background"><span class="background-tone-dot" aria-hidden="true"></span></summary>
-      <div class="background-tone-popover">
+      <div class="background-tone-popover nav-menu-shell floating-glass-menu glass-menu-scroll-region">
         <div class="background-tone-group background-tone-group-bright" aria-label="Bright backgrounds">
           <span class="background-tone-label">Bright</span>
           <button type="button" class="background-tone-option" data-background-tone="warm-white">Warm white</button>
@@ -133,6 +133,7 @@
   </div>
 </header>
 
+<div class="workspace-menu-overlay-layer" aria-hidden="true"></div>
 <div class="workspace-anchor-layer" data-anchor-layout-key="builder" aria-label="Spatial anchors"></div>
 <aside class="workspace-assistant-rail" data-assistant-layout-key="builder" data-assistant-rail-state="collapsed" aria-label="AI workspace operator">
   <button class="workspace-assistant-tab" type="button" aria-label="Open AI assistant" aria-controls="workspace-assistant-drawer" aria-expanded="false">

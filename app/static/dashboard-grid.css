@@ -166,6 +166,7 @@ body.engineer-mode-active .widget-card[data-widget-layer="both"].widget-tools-op
     transform var(--motion-fast),
     color var(--motion-fast);
   box-sizing: border-box;
+  z-index: 1;
   min-width: 0;
   min-height: var(--dashboard-grid-row-height, 81px);
   overflow: visible;
@@ -325,6 +326,109 @@ body.engineer-mode-active .widget-card[data-widget-layer="both"].widget-tools-op
 .widget-card > :not(.widget-tools):not(.workspace-wire-nodule) {
   position: relative;
   z-index: 2;
+}
+
+.widget-shell {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  gap: var(--widget-shell-gap, 6px);
+  color: inherit;
+  isolation: isolate;
+}
+
+.widget-shell-header,
+.widget-shell-footer {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.widget-shell-title-zone {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+}
+
+.widget-shell-title {
+  overflow: hidden;
+  color: var(--widget-content-title, var(--text-strong));
+  font-size: .74rem;
+  font-weight: 780;
+  line-height: 1.05;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.widget-shell-title.stat-lbl {
+  margin-top: 0;
+}
+
+.widget-shell-meta,
+.widget-shell-footer {
+  overflow: hidden;
+  color: var(--widget-content-meta, var(--text-muted));
+  font-size: .58rem;
+  font-weight: 680;
+  line-height: 1.15;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.widget-shell-content {
+  display: grid;
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+  align-content: stretch;
+}
+
+.widget-shell-stat .widget-shell-content {
+  align-content: end;
+}
+
+.widget-shell-stat .stat-val {
+  align-self: end;
+}
+
+.widget-shell-content > :is(.widget-runtime-state, .runtime-table-widget, .runtime-chart-widget, .runtime-map-widget, .runtime-calendar-widget, .timeframe-command-surface, .search-widget-content, .filter-widget-content, .text-widget-content, .media-widget, .meta-widget, .dataset-origin-widget, .data-filter-widget, .shift-widget, .region-summary-widget) {
+  min-height: 0;
+}
+
+.widget-shell[data-shell-runtime-state="loading"] {
+  --widget-shell-state-accent: color-mix(in srgb, var(--widget-data-primary, var(--blue)) 62%, transparent);
+}
+
+.widget-shell[data-shell-runtime-state="empty"],
+.widget-shell[data-shell-runtime-state="configure"] {
+  --widget-shell-state-accent: color-mix(in srgb, var(--widget-content-meta, var(--text-muted)) 42%, transparent);
+}
+
+.widget-shell[data-shell-runtime-state="error"] {
+  --widget-shell-state-accent: color-mix(in srgb, var(--red) 52%, transparent);
+}
+
+.widget-shell[data-shell-runtime-state="stale"] {
+  --widget-shell-state-accent: color-mix(in srgb, var(--amber) 38%, transparent);
+}
+
+.widget-shell::after {
+  content: "";
+  position: absolute;
+  inset: -2px;
+  z-index: -1;
+  border-radius: inherit;
+  pointer-events: none;
+  background: radial-gradient(circle at 12% 8%, var(--widget-shell-state-accent, transparent), transparent 42%);
+  opacity: .28;
 }
 
 .widget-layout > .stat-card {
@@ -2360,6 +2464,13 @@ body.resize-auto-zoom-active .dashboard-expanded-footprint-ghost {
   --widget-data-quaternary: color-mix(in srgb, var(--blue) 42%, #fca5a5 58%);
   --widget-data-positive: color-mix(in srgb, var(--blue) 44%, #86efac 56%);
   --widget-data-quiet: color-mix(in srgb, var(--blue) 36%, #c4b5fd 64%);
+}
+
+.widget-layout > .widget-card.chart-widget-card,
+.panel-internal-widget-grid > .widget-card.chart-widget-card {
+  padding-top: 5px;
+  padding-bottom: 5px;
+  padding-left: 10px;
 }
 
 .widget-card.widget-runtime-meaning[data-runtime-condition="healthy"] {
@@ -6194,8 +6305,11 @@ body.engineer-mode-active .activity-feed-item[data-event-traceable="true"] .acti
 .runtime-chart-legend {
   min-height: auto;
   color: color-mix(in srgb, var(--widget-content-muted) 86%, transparent);
-  font-size: .5rem;
+  max-height: .72rem;
+  overflow: hidden;
+  font-size: .48rem;
   font-weight: 600;
+  line-height: 1;
 }
 
 .runtime-chart-context {

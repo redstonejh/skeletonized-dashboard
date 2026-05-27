@@ -1,0 +1,515 @@
+(() => {
+  const DEFAULT_DENSITY_TIERS = ["tiny", "compact", "standard", "expanded", "rich"];
+  const WORKSPACE_WIDGET_LAYERS = new Set(["presentation", "backend", "both"]);
+
+  const createUnsupportedDefinition = (type, escapeHtml) => ({
+    type: String(type || "unsupported"),
+    displayName: "Unsupported Widget",
+    widgetType: String(type || "unsupported"),
+    dashboardObjectKind: "unsupported-widget",
+    contextRole: "content",
+    htmlTag: "div",
+    className: "stat-card widget-card widget-card-custom unsupported-widget-card",
+    layer: "presentation",
+    defaultSize: { cols: 1, rows: 1 },
+    minSize: { cols: 1, rows: 1 },
+    capabilities: { supportsResize: true },
+    supportedSettings: ["title", "color", "pin", "delete"],
+    queryRequirements: { fields: [] },
+    getDefaultConfig: () => ({ title: `Unsupported: ${type || "unknown"}` }),
+    resolveQuery: () => null,
+    render: ({ instance }) => `
+      <div class="unsupported-widget-state widget-runtime-state" role="status">
+        <span class="stat-val">Unsupported widget</span>
+        <span class="stat-lbl">${escapeHtml(instance.type || type || "unknown")}</span>
+      </div>`,
+  });
+
+  const uniqueValues = (values = []) => [...new Set(values.filter((value) => value != null && String(value).trim()))];
+
+  const runtimeMeaningStatusValue = (value) => String(value ?? "").trim().toLowerCase();
+  const runtimeMeaningStatusKind = (value) => {
+    const status = runtimeMeaningStatusValue(value);
+    if (!status) return "";
+    if (/(critical|error|failed|failure|down|offline|blocked|breach)/.test(status)) return "error";
+    if (/(warn|risk|watch|urgent|late|degraded|attention|elevated)/.test(status)) return "warning";
+    if (/(stale|expired|old|paused|inactive|dormant)/.test(status)) return "stale";
+    if (/(live|stream|refresh|running|processing)/.test(status)) return "active";
+    if (/(ok|ready|healthy|normal|complete|completed|green|clear)/.test(status)) return "healthy";
+    return "";
+  };
+  const runtimeMeaningFreshnessFromTimestamp = (timestamp) => {
+    const value = Number(timestamp) || Date.parse(timestamp || "");
+    if (!Number.isFinite(value)) return "";
+    const age = Date.now() - value;
+    if (age < 0) return "fresh";
+    if (age <= 2 * 60 * 1000) return "live";
+    if (age <= 24 * 60 * 60 * 1000) return "fresh";
+    return "stale";
+  };
+  const runtimeMeaningDataTimestamp = (data, widget) => (
+    data?.metadata?.freshness ||
+    data?.metadata?.lastUpdated ||
+    data?.freshness ||
+    data?.lastUpdated ||
+    data?.updatedAt ||
+    widget?.dataset?.widgetQueryLastUpdated ||
+    ""
+  );
+  const runtimeMeaningConfidence = (data, config = {}) => {
+    const raw = data?.confidence ?? data?.metadata?.confidence ?? config.confidence ?? config.runtimeConfidence;
+    const value = Number(raw);
+    if (!Number.isFinite(value)) return "unknown";
+    if (value < .5) return "low";
+    if (value < .75) return "medium";
+    return "high";
+  };
+
+  const createRuntime = (deps = {}) => {
+    const registry = window.dashboardWidgetRuntime || null;
+    const escapeHtml = deps.escapeHtml || ((value) => String(value ?? ""));
+    const parseJsonRecord = deps.parseJsonRecord || ((value, fallback = {}) => {
+      if (!value) return fallback;
+      try {
+        const parsed = JSON.parse(value);
+        return parsed && typeof parsed === "object" && !Array.isArray(parsed) ? parsed : fallback;
+      } catch {
+        return fallback;
+      }
+    });
+    const densityTiers = registry?.densityTiers?.() || DEFAULT_DENSITY_TIERS;
+
+    const definitionFor = (type) => registry?.getWidgetDefinition?.(type) || createUnsupportedDefinition(type, escapeHtml);
+    const runtimeTypeFromElement = (widget) => (
+      widget?.dataset?.widgetRuntimeType ||
+      widget?.dataset?.widgetDefinition ||
+      widget?.dataset?.dashboardObjectKind ||
+      widget?.dataset?.widgetType ||
+      "stat"
+    );
+    const definitionForElement = (widget) => definitionFor(runtimeTypeFromElement(widget));
+    const normalizeWorkspaceWidgetLayer = (value, fallback = "presentation") => (
+      WORKSPACE_WIDGET_LAYERS.has(value) ? value : fallback
+    );
+    const layerForElement = (widget, definition = definitionForElement(widget)) => (
+      normalizeWorkspaceWidgetLayer(widget?.dataset?.widgetLayer || definition?.layer, "presentation")
+    );
+    const applyLayerMetadata = (widget, definition = definitionForElement(widget), explicitLayer = "") => {
+      if (!widget) return "presentation";
+      const layer = normalizeWorkspaceWidgetLayer(explicitLayer || widget.dataset.widgetLayer || definition?.layer, "presentation");
+      widget.dataset.widgetLayer = layer;
+      widget.dataset.workspaceLayer = layer === "backend" ? "engineer-underlay" : "presentation";
+      widget.classList.toggle("workspace-backend-widget", layer === "backend");
+      widget.classList.toggle("workspace-presentation-widget", layer !== "backend");
+      return layer;
+    };
+    const parseConfig = (value) => parseJsonRecord(value, {}) || {};
+    const setConfig = (widget, config) => {
+      if (!widget) return;
+      widget.dataset.widgetConfig = JSON.stringify(config || {});
+    };
+    const setLinkNavigationSuspended = (widget, suspended) => {
+      if (!widget || widget.tagName !== "A") return;
+      if (suspended) {
+        if (widget.hasAttribute("href") && !widget.dataset.widgetSuspendedHref) {
+          widget.dataset.widgetSuspendedHref = widget.getAttribute("href") || "";
+          widget.removeAttribute("href");
+        }
+        return;
+      }
+      if (widget.dataset.widgetSuspendedHref !== undefined) {
+        if (widget.dataset.widgetSuspendedHref) widget.setAttribute("href", widget.dataset.widgetSuspendedHref);
+        delete widget.dataset.widgetSuspendedHref;
+      }
+    };
+    const configFromElement = (widget, definition = definitionForElement(widget)) => {
+      const defaults = typeof definition.getDefaultConfig === "function" ? definition.getDefaultConfig() : {};
+      const current = parseConfig(widget?.dataset?.widgetConfig);
+      const label = widget?.querySelector?.(".stat-lbl, .range-search-label")?.textContent?.trim();
+      const value = widget?.querySelector?.(".stat-val")?.textContent?.trim();
+      return {
+        ...defaults,
+        ...(label && !current.title ? { title: label } : {}),
+        ...(value && !current.value ? { value } : {}),
+        ...current,
+      };
+    };
+    const setConfigValue = (widget, key, value) => {
+      if (!widget || !key) return;
+      setConfig(widget, {
+        ...configFromElement(widget),
+        [key]: value,
+      });
+    };
+    const availableSizeForDensity = (widget) => {
+      if (!widget?.getBoundingClientRect) return { width: 0, height: 0, panelContained: false };
+      const rect = widget.getBoundingClientRect();
+      const tools = widget.querySelector(":scope > .widget-tools");
+      const controlReserve = tools ? Math.min(44, Math.max(0, rect.width * 0.24)) : 0;
+      return {
+        width: Math.max(0, rect.width - controlReserve),
+        height: Math.max(0, rect.height),
+        panelContained: Boolean(deps.isPanelInternalGridItem?.(widget)),
+      };
+    };
+    const applyDensityMetadata = (widget, density) => {
+      if (!widget || !density) return;
+      densityTiers.forEach((tier) => widget.classList.remove(`widget-density-${tier}`));
+      widget.classList.add(`widget-density-${density}`);
+      widget.dataset.density = density;
+      widget.dataset.widgetDensity = density;
+    };
+    const resolveDensityForElement = (widget, definition = definitionForElement(widget), availableSize = availableSizeForDensity(widget)) => (
+      registry?.resolveWidgetDensity?.({
+        cols: Number(widget?.dataset?.currentSpan || widget?.dataset?.defaultSpan) || definition.defaultSize?.cols || 1,
+        rows: Number(widget?.dataset?.gridRowSpan) || definition.defaultSize?.rows || 1,
+        parentPanelId: widget?.dataset?.parentPanelKey || null,
+      }, availableSize, definition) || "standard"
+    );
+    const instanceFromElement = (widget, definition = definitionForElement(widget)) => registry?.createWidgetInstance?.(definition, {
+      availableSize: availableSizeForDensity(widget),
+      density: resolveDensityForElement(widget, definition),
+      parentPanelId: widget?.dataset?.parentPanelKey || null,
+      id: widget?.dataset?.widgetKey || "",
+      type: definition.type,
+      x: Number(widget?.dataset?.gridCol) || 1,
+      y: Number(widget?.dataset?.gridRow) || 1,
+      cols: Number(widget?.dataset?.currentSpan || widget?.dataset?.defaultSpan) || definition.defaultSize?.cols || 1,
+      rows: Number(widget?.dataset?.gridRowSpan) || definition.defaultSize?.rows || 1,
+      layer: layerForElement(widget, definition),
+      config: configFromElement(widget, definition),
+      contextOverrideId: widget?.dataset?.contextOverrideId || null,
+    }) || {
+      id: widget?.dataset?.widgetKey || "",
+      type: definition.type,
+      x: Number(widget?.dataset?.gridCol) || 1,
+      y: Number(widget?.dataset?.gridRow) || 1,
+      cols: Number(widget?.dataset?.currentSpan || widget?.dataset?.defaultSpan) || definition.defaultSize?.cols || 1,
+      rows: Number(widget?.dataset?.gridRowSpan) || definition.defaultSize?.rows || 1,
+      config: configFromElement(widget, definition),
+      density: resolveDensityForElement(widget, definition),
+      availableSize: availableSizeForDensity(widget),
+      parentPanelId: widget?.dataset?.parentPanelKey || null,
+      contextOverrideId: widget?.dataset?.contextOverrideId || null,
+    };
+    const setRuntimeContent = (widget, html) => {
+      if (!widget) return;
+      const widgetKey = widget.dataset.widgetKey || "";
+      if (widgetKey) {
+        document.querySelectorAll(`.workspace-menu-overlay-layer > [data-timeframe-widget-key="${CSS.escape(widgetKey)}"]`)
+          .forEach((menu) => menu.remove());
+      }
+      const preserved = [...widget.children].filter((child) => (
+        child.classList.contains("widget-tools") ||
+        child.classList.contains("workspace-context-badge") ||
+        child.classList.contains("dashboard-pinned-indicator")
+      ));
+      [...widget.children].forEach((child) => {
+        if (!preserved.includes(child) && child.parentElement === widget) {
+          try {
+            child.remove();
+          } catch {
+            // A focused native control can move during blur while the runtime surface rerenders.
+          }
+        }
+      });
+      const template = document.createElement("template");
+      template.innerHTML = html || "";
+      const firstPreserved = preserved[0] || null;
+      [...template.content.childNodes].forEach((node) => widget.insertBefore(node, firstPreserved));
+    };
+    const deriveRuntimeMeaning = ({ widget = null, definition = null, instance = null, resolvedContext = null, data = null, status = "empty" } = {}) => {
+      const rows = Array.isArray(data?.rows) ? data.rows : [];
+      const config = instance?.config || configFromElement(widget, definition || definitionForElement(widget));
+      const mapping = resolvedContext?.semanticMapping || data?.semanticMapping || {};
+      const statusFields = uniqueValues([
+        mapping.statusField,
+        "status",
+        "state",
+        "health",
+        "condition",
+        "priority",
+        "urgency",
+        "freshness",
+      ]).filter(Boolean);
+      const counts = { error: 0, warning: 0, stale: 0, active: 0, healthy: 0 };
+      rows.forEach((row) => {
+        statusFields.forEach((field) => {
+          const kind = runtimeMeaningStatusKind(row?.[field]);
+          if (kind && counts[kind] !== undefined) counts[kind] += 1;
+        });
+      });
+      const rowCount = Math.max(1, rows.length);
+      const freshness = runtimeMeaningFreshnessFromTimestamp(runtimeMeaningDataTimestamp(data, widget)) ||
+        (counts.stale / rowCount >= .25 ? "stale" : data?.live || data?.sourceKind === "stream" ? "live" : data ? "fresh" : "unknown");
+      const refreshing = widget?.dataset?.widgetQueryRefreshing === "true" || data?.refreshing === true;
+      let condition = "idle";
+      if (status === "error" || counts.error > 0) condition = "error";
+      else if (status === "loading") condition = "loading";
+      else if (widget?.dataset?.shiftSignalActive === "true") condition = "active";
+      else if (widget?.dataset?.shiftSignalConnected === "true") condition = "healthy";
+      else if (refreshing || data?.live === true || data?.sourceKind === "stream") condition = "active";
+      else if (status === "stale" || freshness === "stale" || counts.stale / rowCount >= .25) condition = "stale";
+      else if (counts.warning / rowCount >= .20) condition = "warning";
+      else if (status === "ready" || rows.length || counts.healthy > 0) condition = "healthy";
+      const urgency = condition === "error"
+        ? "urgent"
+        : condition === "warning"
+          ? "watch"
+          : condition === "stale"
+            ? "low"
+            : "normal";
+      const activity = condition === "loading" || refreshing || condition === "active"
+        ? "active"
+        : condition === "stale" || status === "empty"
+          ? "inactive"
+          : "steady";
+      return {
+        condition,
+        urgency,
+        freshness,
+        activity,
+        confidence: runtimeMeaningConfidence(data, config),
+        counts,
+      };
+    };
+    const applyRuntimeMeaning = (widget, context = {}) => {
+      if (!widget?.classList?.contains("widget-card")) return null;
+      const meaning = deriveRuntimeMeaning({ widget, ...context });
+      widget.classList.add("widget-runtime-meaning");
+      widget.dataset.runtimeCondition = meaning.condition;
+      widget.dataset.runtimeUrgency = meaning.urgency;
+      widget.dataset.runtimeFreshness = meaning.freshness;
+      widget.dataset.runtimeActivity = meaning.activity;
+      widget.dataset.runtimeConfidence = meaning.confidence;
+      widget.dataset.runtimeMeaningSummary = [
+        meaning.condition,
+        meaning.freshness,
+        meaning.confidence !== "unknown" ? `${meaning.confidence}-confidence` : "",
+      ].filter(Boolean).join(" ");
+      return meaning;
+    };
+    const renderRuntimeContent = (widget, options = {}) => {
+      if (!widget?.classList?.contains("widget-card") || widget.classList.contains("workspace-anchor-object")) return;
+      const definition = definitionForElement(widget);
+      const instance = instanceFromElement(widget, definition);
+      applyDensityMetadata(widget, instance.density || "standard");
+      const mediaState = deps.mediaWidgetAssetState?.(widget, instance.config, definition) || { persistedConfig: instance.config, renderConfig: instance.config };
+      const persistedConfig = deps.isMediaWidgetDefinition?.(definition) ? mediaState.persistedConfig : instance.config;
+      setConfig(widget, persistedConfig);
+      let renderInstance = deps.isMediaWidgetDefinition?.(definition)
+        ? { ...instance, config: mediaState.renderConfig }
+        : instance;
+      if (deps.isSignalConsumerWidget?.(widget, definition)) {
+        const signalState = deps.dataflowSignalStateForWidget?.(widget) || {};
+        renderInstance = {
+          ...renderInstance,
+          config: {
+            ...renderInstance.config,
+            _signalActive: signalState.active,
+            _signalConnected: signalState.connected,
+            _signalIncomingCount: signalState.incomingCount,
+            _signalSourceIds: signalState.sourceIds || [],
+            _signalSourceLabels: signalState.sourceLabels || [],
+            _signalLinkIds: signalState.linkIds || [],
+            _signalActiveLinkId: signalState.activeLinkId || "",
+          },
+        };
+        deps.applySignalConsumerState?.(widget, signalState, renderInstance.config);
+      } else {
+        deps.clearSignalConsumerState?.(widget);
+      }
+      const html = registry?.renderWidget?.(definition, {
+        instance: renderInstance,
+        definition,
+        resolvedContext: options.resolvedContext || null,
+        data: options.data,
+        status: options.status || "empty",
+      }) || definition.render({ instance: renderInstance, definition, resolvedContext: options.resolvedContext || null, data: options.data, status: options.status || "empty" });
+      widget.dataset.widgetShell = definition.shell === false ? "legacy" : "shared";
+      setRuntimeContent(widget, html);
+      applyRuntimeMeaning(widget, {
+        definition,
+        instance: renderInstance,
+        resolvedContext: options.resolvedContext || null,
+        data: options.data,
+        status: options.status || "empty",
+      });
+      deps.applyStyleRulesForWidget?.(widget, {
+        definition,
+        instance: renderInstance,
+        resolvedContext: options.resolvedContext || null,
+        data: options.data,
+        status: options.status || "empty",
+      });
+    };
+    const hydrateRuntime = (widget, saved = null) => {
+      if (!widget?.classList?.contains("widget-card") || widget.classList.contains("workspace-anchor-object")) return null;
+      if (saved?.runtimeType) widget.dataset.widgetRuntimeType = saved.runtimeType;
+      if (saved?.type && !widget.dataset.widgetRuntimeType) widget.dataset.widgetRuntimeType = saved.type;
+      const definition = definitionForElement(widget);
+      applyLayerMetadata(widget, definition, saved?.widgetLayer || saved?.layer || "");
+      widget.dataset.widgetRuntimeType = definition.type;
+      widget.dataset.widgetDefinition = definition.type;
+      widget.dataset.widgetDisplayName = definition.displayName || definition.type;
+      widget.dataset.widgetType = definition.widgetType || widget.dataset.widgetType || definition.type;
+      widget.dataset.dashboardObjectKind = definition.dashboardObjectKind || widget.dataset.dashboardObjectKind || definition.type;
+      widget.dataset.contextRole = definition.contextRole || widget.dataset.contextRole || "content";
+      widget.dataset.widgetCapabilities = JSON.stringify(definition.capabilities || {});
+      widget.dataset.widgetSupportedSettings = JSON.stringify(definition.supportedSettings || []);
+      widget.dataset.widgetSettingsSchema = JSON.stringify(definition.settingsSchema || { sections: [] });
+      widget.dataset.widgetQueryRequirements = JSON.stringify(definition.queryRequirements || {});
+      if (!widget.dataset.defaultSpan) widget.dataset.defaultSpan = String(definition.defaultSize?.cols || 1);
+      if (!widget.dataset.minW && definition.minSize?.cols) widget.dataset.minW = String(definition.minSize.cols);
+      if (!widget.dataset.minH && definition.minSize?.rows > 1) widget.dataset.minH = String(definition.minSize.rows);
+      if (definition.capabilities?.supportsResize === false) widget.dataset.resizable = "false";
+      if (!widget.dataset.widgetConfig) setConfig(widget, configFromElement(widget, definition));
+      renderRuntimeContent(widget);
+      deps.syncWidgetContextOutputs?.(widget);
+      return definition;
+    };
+    const ensureTools = (widget, theme = "#2563eb") => {
+      if (widget.querySelector(".widget-tools")) return;
+      widget.insertAdjacentHTML("beforeend", `
+        <div class="widget-tools" aria-label="Widget tools">
+          <div class="panel-tool-drawer widget-tool-drawer">
+            ${deps.panelToolButtonsMarkup?.(theme, true) || ""}
+          </div>
+          <div class="widget-settings-schema-panel" role="menu" aria-label="Widget settings" hidden></div>
+          <div class="widget-workbench-panel" role="dialog" aria-label="Widget workbench" hidden></div>
+          <button class="panel-settings-toggle widget-settings-toggle" type="button" aria-label="Widget appearance" aria-expanded="false" title="Widget appearance"><span class="settings-icon" aria-hidden="true"></span></button>
+        </div>`);
+    };
+    const syncRenderedHeightToFootprint = (widget, rowSpan = null, metrics = null) => {
+      if (!deps.isWidgetGridItem?.(widget)) return;
+      const layout = widget.closest(".widget-layout");
+      const gap = metrics?.gap ?? deps.gridGapForLayout?.(layout);
+      const rowHeight = metrics?.rowHeight ?? deps.gridRowHeightForLayout?.(layout);
+      const rows = Math.max(deps.gridItemMinimumRows?.(widget) || 1, Math.round(Number(rowSpan) || deps.gridItemRowSpan?.(widget, metrics) || 1));
+      widget.dataset.gridRowSpan = String(rows);
+      if (rows > 1 || widget.classList.contains("widget-placeholder")) {
+        widget.style.height = `${deps.gridHeightForRows?.(rows, gap, rowHeight)}px`;
+      } else {
+        widget.style.removeProperty("height");
+      }
+    };
+    const applySpan = (widget, span) => {
+      const rawSpan = Number(span) || Number(widget.dataset.defaultSpan) || 1;
+      const minSpan = deps.gridItemMinimumSpan?.(widget) || 1;
+      const safeSpan = Math.max(minSpan, Math.min(6, rawSpan > 6 ? rawSpan / 2 : rawSpan));
+      const displaySpan = Math.round(safeSpan);
+      const rowSpan = deps.gridItemRowSpan?.(widget) || 1;
+      widget.dataset.currentSpan = String(displaySpan);
+      if (widget.dataset.gridCol && widget.dataset.gridRow) {
+        const currentCol = Number(widget.dataset.gridCol) || 1;
+        const currentRow = Number(widget.dataset.gridRow) || 1;
+        const safeCol = Math.max(1, Math.min(7 - displaySpan, currentCol));
+        widget.dataset.gridCol = String(safeCol);
+        widget.dataset.gridRow = String(Math.max(1, currentRow));
+        widget.dataset.gridRowSpan = String(rowSpan);
+        widget.style.gridColumn = `${safeCol} / span ${displaySpan}`;
+        widget.style.gridRow = `${widget.dataset.gridRow} / span ${rowSpan}`;
+      } else {
+        widget.style.gridColumn = `span ${displaySpan}`;
+        widget.style.removeProperty("grid-row");
+      }
+      widget.style.removeProperty("width");
+      widget.style.removeProperty("flex-basis");
+      syncRenderedHeightToFootprint(widget, rowSpan);
+    };
+    const applyGridPosition = (widget, col, row, rowSpan = null) => {
+      const span = Number(widget.dataset.currentSpan) || Number(widget.dataset.defaultSpan) || 1;
+      const safeSpan = Math.max(1, Math.min(6, span > 6 ? span / 2 : span));
+      const safeCol = Math.max(1, Math.min(7 - safeSpan, Math.round(Number(col) || 1)));
+      const safeRow = Math.max(1, Math.round(Number(row) || 1));
+      const safeRows = Math.max(deps.gridItemMinimumRows?.(widget) || 1, Math.round(Number(rowSpan) || deps.gridItemRowSpan?.(widget) || 1));
+      widget.dataset.gridCol = String(safeCol);
+      widget.dataset.gridRow = String(safeRow);
+      widget.dataset.gridRowSpan = String(safeRows);
+      widget.style.gridColumn = `${safeCol} / span ${Math.round(safeSpan)}`;
+      widget.style.gridRow = `${safeRow} / span ${safeRows}`;
+      syncRenderedHeightToFootprint(widget, safeRows);
+      if (widget.classList.contains("widget-card") && !widget.classList.contains("workspace-anchor-object")) {
+        applyDensityMetadata(widget, resolveDensityForElement(widget));
+      }
+    };
+    const createCustomWidget = (definition) => {
+      const runtimeDefinition = definitionFor(definition.runtimeType || definition.widgetRuntimeType || definition.dashboardObjectKind || definition.type || "stat");
+      const defaultConfig = typeof runtimeDefinition.getDefaultConfig === "function" ? runtimeDefinition.getDefaultConfig() : {};
+      const config = {
+        ...defaultConfig,
+        ...parseConfig(definition.config),
+        ...(definition.title ? { title: definition.title } : {}),
+        ...(definition.value != null ? { value: definition.value } : {}),
+      };
+      const safeTitle = escapeHtml(config.title || runtimeDefinition.displayName || "Widget");
+      const tagName = runtimeDefinition.htmlTag || "div";
+      const widget = document.createElement(tagName);
+      widget.className = runtimeDefinition.className || "stat-card widget-card widget-card-custom";
+      if (tagName === "nav") {
+        widget.setAttribute("aria-label", definition.ariaLabel || runtimeDefinition.ariaLabel || safeTitle);
+      } else if (tagName !== "a") {
+        widget.setAttribute("role", definition.role || "group");
+        widget.setAttribute("aria-label", definition.ariaLabel || runtimeDefinition.ariaLabel || safeTitle);
+      } else {
+        widget.href = definition.href || window.location.pathname + window.location.search;
+      }
+      widget.dataset.widgetKey = definition.key;
+      widget.dataset.widgetRuntimeType = runtimeDefinition.type;
+      widget.dataset.widgetDefinition = runtimeDefinition.type;
+      widget.dataset.widgetType = definition.type || runtimeDefinition.widgetType || runtimeDefinition.type;
+      applyLayerMetadata(widget, runtimeDefinition, definition.widgetLayer || definition.layer || "");
+      widget.dataset.defaultSpan = String(definition.span || runtimeDefinition.defaultSize?.cols || 1);
+      widget.dataset.gridRowSpan = String(definition.rowSpan || definition.rows || runtimeDefinition.defaultSize?.rows || 1);
+      if (definition.gridCol) widget.dataset.gridCol = String(definition.gridCol);
+      if (definition.gridRow) widget.dataset.gridRow = String(definition.gridRow);
+      if (definition.minW || runtimeDefinition.minSize?.cols) widget.dataset.minW = String(definition.minW || runtimeDefinition.minSize.cols);
+      if (definition.minH || runtimeDefinition.minSize?.rows > 1) widget.dataset.minH = String(definition.minH || runtimeDefinition.minSize.rows);
+      if (definition.locked) widget.dataset.locked = "true";
+      if (definition.resizable === false || runtimeDefinition.capabilities?.supportsResize === false) widget.dataset.resizable = "false";
+      setConfig(widget, config);
+      widget.dataset.customWidget = "true";
+      deps.ensureWorkspaceObjectMetadata?.(widget, {
+        ...definition,
+        workspaceObjectType: deps.WORKSPACE_OBJECT_TYPES?.widget,
+        dashboardObjectKind: definition.dashboardObjectKind || runtimeDefinition.dashboardObjectKind || runtimeDefinition.type,
+        contextRole: definition.contextRole || runtimeDefinition.contextRole || "content",
+        navigationTargetType: definition.navigationTargetType,
+        navigationTargetId: definition.navigationTargetId,
+      });
+      hydrateRuntime(widget);
+      return widget;
+    };
+
+    return Object.freeze({
+      registry,
+      definitionFor,
+      runtimeTypeFromElement,
+      definitionForElement,
+      normalizeWorkspaceWidgetLayer,
+      layerForElement,
+      applyLayerMetadata,
+      parseConfig,
+      setConfig,
+      setConfigValue,
+      setLinkNavigationSuspended,
+      configFromElement,
+      availableSizeForDensity,
+      applyDensityMetadata,
+      resolveDensityForElement,
+      instanceFromElement,
+      setRuntimeContent,
+      renderRuntimeContent,
+      hydrateRuntime,
+      ensureTools,
+      syncRenderedHeightToFootprint,
+      applySpan,
+      applyGridPosition,
+      createCustomWidget,
+      deriveRuntimeMeaning,
+      applyRuntimeMeaning,
+    });
+  };
+
+  window.dashboardWidgetRuntimeController = Object.freeze({ createRuntime });
+})();

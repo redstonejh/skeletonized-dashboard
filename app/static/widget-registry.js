@@ -360,6 +360,18 @@
     if (timeRange.start) return `Since ${timeRange.start}`;
     return `Until ${timeRange.end}`;
   };
+  const TIMEFRAME_MONTH_LABELS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  const timeframeDateDisplay = (value) => {
+    const date = parseDateOnly(value);
+    if (!date) return String(value || "");
+    return `${TIMEFRAME_MONTH_LABELS[date.getMonth()]} ${date.getDate()}`;
+  };
+  const timeframeRangeDisplay = (timeRange) => {
+    if (!timeRange?.start && !timeRange?.end) return "No active range";
+    if (timeRange.start && timeRange.end) return `${timeframeDateDisplay(timeRange.start)} - ${timeframeDateDisplay(timeRange.end)}`;
+    if (timeRange.start) return `Since ${timeframeDateDisplay(timeRange.start)}`;
+    return `Until ${timeframeDateDisplay(timeRange.end)}`;
+  };
   const normalizeTimeframeFilter = (filter, index = 0) => {
     const type = String(filter?.type || filter?.preset || filter?.id || "today").trim();
     const typeRecord = timeframeFilterTypeById(type) || { id: type, label: type };
@@ -1064,6 +1076,71 @@
     ? `<div class="media-widget-caption">${escapeHtml(caption)}</div>`
     : "";
 
+  const widgetShellText = (value = "") => String(value ?? "").trim();
+  const widgetShellTitle = (definition, instance, props = {}) => {
+    if (typeof definition.getTitle === "function") {
+      return widgetShellText(definition.getTitle({ ...props, definition, instance }));
+    }
+    return widgetShellText(instance?.config?.title || instance?.config?.label || definition.displayName || definition.label || definition.type || "Widget");
+  };
+  const widgetShellMetadata = (definition, instance, props = {}) => {
+    if (typeof definition.getMetadata === "function") {
+      const metadata = definition.getMetadata({ ...props, definition, instance });
+      if (Array.isArray(metadata)) return metadata.map(widgetShellText).filter(Boolean);
+      return widgetShellText(metadata) ? [widgetShellText(metadata)] : [];
+    }
+    return [];
+  };
+  const widgetShellFooter = (definition, instance, props = {}) => {
+    if (typeof definition.getFooter === "function") {
+      return widgetShellText(definition.getFooter({ ...props, definition, instance }));
+    }
+    return "";
+  };
+  const widgetShellStateFromMarkup = (html = "", status = "empty") => {
+    const text = String(html || "");
+    const match = text.match(/data-runtime-state=["']([^"']+)["']/i);
+    if (match?.[1]) return match[1];
+    if (status === "ready") return "ready";
+    return status || "empty";
+  };
+  const renderWidgetShell = (definition, props = {}, content = "") => {
+    const instance = props.instance || {};
+    const shellConfig = definition.shell && typeof definition.shell === "object" ? definition.shell : {};
+    const density = normalizeDensity(props.density || instance.density || "standard");
+    const title = widgetShellTitle(definition, instance, props);
+    const metadata = widgetShellMetadata(definition, instance, props);
+    const footer = widgetShellFooter(definition, instance, props);
+    const hideHeaderDensities = new Set(Array.isArray(shellConfig.hideHeaderDensities) ? shellConfig.hideHeaderDensities : []);
+    const contentState = widgetShellStateFromMarkup(content, props.status || "empty");
+    const headerAllowedForState = !(shellConfig.hideHeaderForRuntimeStates === true && contentState !== "ready");
+    const showHeader = shellConfig.showHeader === true && headerAllowedForState && !hideHeaderDensities.has(density) && (title || metadata.length);
+    const titleClass = ["widget-shell-title", shellConfig.titleClass].filter(Boolean).join(" ");
+    const metadataClass = ["widget-shell-meta", shellConfig.metadataClass].filter(Boolean).join(" ");
+    const state = contentState;
+    const className = [
+      "widget-shell",
+      `widget-shell-${escapeHtml(definition.type || "widget")}`,
+      `widget-shell-density-${escapeHtml(density)}`,
+      showHeader ? "widget-shell-has-header" : "",
+      footer ? "widget-shell-has-footer" : "",
+      shellConfig.mode === "content" ? "widget-shell-content-owned" : "widget-shell-compat",
+    ].filter(Boolean).join(" ");
+    return `
+      <section class="${className}" data-widget-shell="true" data-shell-version="1" data-shell-density="${escapeHtml(density)}" data-shell-runtime-state="${escapeHtml(state)}">
+        ${showHeader ? `<header class="widget-shell-header">
+          <div class="widget-shell-title-zone">
+            <span class="${escapeHtml(titleClass)}">${escapeHtml(title)}</span>
+            ${metadata.length ? `<span class="${escapeHtml(metadataClass)}">${metadata.map(escapeHtml).join(" / ")}</span>` : ""}
+          </div>
+        </header>` : ""}
+        <div class="widget-shell-content" data-widget-shell-content="true">
+          ${content || runtimeState(title || definition.displayName || "Widget", "No content")}
+        </div>
+        ${footer ? `<footer class="widget-shell-footer">${footer}</footer>` : ""}
+      </section>`;
+  };
+
   const youtubeEmbedUrl = (src) => {
     const safe = safeMediaUrl(src, "video");
     if (!safe) return safe;
@@ -1265,6 +1342,22 @@
     }),
   });
 
+  const statMetricContext = ({ instance, resolvedContext, data } = {}) => {
+    const config = instance?.config || {};
+    const metric = ["count", "sum", "avg", "min", "max"].includes(config.metric) ? config.metric : "count";
+    const mapping = resolvedContext?.semanticMapping || data?.semanticMapping || {};
+    const valueField = config.valueField || mapping.valueField;
+    const rows = Array.isArray(data?.rows) ? data.rows : [];
+    const total = Number.isFinite(Number(data?.total)) ? Number(data.total) : rows.length;
+    return {
+      metric,
+      valueField,
+      rows,
+      total,
+      metricContext: metric === "count" ? `${total} records` : `${metric} ${valueField || "value"}`,
+    };
+  };
+
   const normalizeDefinition = (definition) => {
     const type = String(definition?.type || "").trim();
     if (!type) return null;
@@ -1302,8 +1395,20 @@
       densityBehavior: definition.densityBehavior || {},
       queryRequirements: definition.queryRequirements || { fields: [] },
       getDefaultConfig,
+      shell: definition.shell === false ? false : {
+        mode: definition.renderContent ? "content" : "compat",
+        showHeader: false,
+        ...(definition.shell && typeof definition.shell === "object" ? definition.shell : {}),
+      },
+      getTitle: typeof definition.getTitle === "function" ? definition.getTitle : null,
+      getMetadata: typeof definition.getMetadata === "function" ? definition.getMetadata : null,
+      getFooter: typeof definition.getFooter === "function" ? definition.getFooter : null,
+      getRuntimeState: typeof definition.getRuntimeState === "function" ? definition.getRuntimeState : null,
+      getEmptyState: typeof definition.getEmptyState === "function" ? definition.getEmptyState : null,
+      densityRules: definition.densityRules || definition.densityBehavior || {},
       getDemoData: typeof definition.getDemoData === "function" ? definition.getDemoData : null,
       resolveQuery: typeof definition.resolveQuery === "function" ? definition.resolveQuery : () => null,
+      renderContent: typeof definition.renderContent === "function" ? definition.renderContent : null,
       render: typeof definition.render === "function"
         ? definition.render
         : ({ instance }) => runtimeState(instance.config?.title || definition.displayName, ""),
@@ -1359,15 +1464,24 @@
     const density = normalizeDensity(props.density || instance.density, resolveWidgetDensity(instance, instance.availableSize || {}, resolvedDefinition));
     const status = props.status || "empty";
     try {
-      return resolvedDefinition.render({
+      const renderProps = {
         ...props,
         density,
         instance: { ...instance, density },
         definition: resolvedDefinition,
         status,
-      });
+      };
+      const content = typeof resolvedDefinition.renderContent === "function"
+        ? resolvedDefinition.renderContent(renderProps)
+        : resolvedDefinition.render(renderProps);
+      return resolvedDefinition.shell === false
+        ? content
+        : renderWidgetShell(resolvedDefinition, renderProps, content);
     } catch (error) {
-      return runtimeState("Widget error", error?.message || "Render failed");
+      const fallback = runtimeState("Widget error", error?.message || "Render failed", { state: "error" });
+      return resolvedDefinition.shell === false
+        ? fallback
+        : renderWidgetShell(resolvedDefinition, { ...props, density, instance: { ...instance, density }, definition: resolvedDefinition, status: "error" }, fallback);
     }
   };
 
@@ -1407,6 +1521,20 @@
     },
     queryRequirements: { fields: ["semantic"], metric: ["count", "sum", "avg", "min", "max"] },
     getDefaultConfig: () => ({ label: "Widget", title: "Widget", metric: "count", format: "number" }),
+    shell: {
+      mode: "content",
+      showHeader: true,
+      titleClass: "stat-lbl",
+      metadataClass: "stat-runtime-meta",
+      hideHeaderDensities: ["tiny"],
+      hideHeaderForRuntimeStates: true,
+    },
+    getTitle: ({ instance }) => statLabelFor(instance?.config || {}),
+    getMetadata: (props) => {
+      if (props.status !== "ready" || !props.resolvedContext?.dataSourceId) return [];
+      const { metricContext } = statMetricContext(props);
+      return runtimeMeta(metricContext, props.data);
+    },
     getDemoData: (config = {}) => demoDataResult({ widgetType: "stat", config }),
     resolveQuery: (config, resolvedContext) => {
       if (!resolvedContext?.dataSourceId || !resolvedContext?.canQuery) return null;
@@ -1426,19 +1554,14 @@
         ...queryTransformsFromConfig(config),
       };
     },
-    render: ({ instance, resolvedContext, data, status, density = instance.density || "standard" }) => {
+    renderContent: ({ instance, resolvedContext, data, status }) => {
       const config = instance.config || {};
-      const densityTier = normalizeDensity(density);
       const label = statLabelFor(config);
-      const metric = ["count", "sum", "avg", "min", "max"].includes(config.metric) ? config.metric : "count";
-      const mapping = resolvedContext?.semanticMapping || data?.semanticMapping || {};
-      const valueField = config.valueField || mapping.valueField;
+      const { metric, valueField, rows, total } = statMetricContext({ instance, resolvedContext, data });
       if (!resolvedContext?.dataSourceId) return runtimeState(label, "Needs data source");
       if (metric !== "count" && !valueField) return runtimeState(label, "Map a value field");
       if (status === "loading") return runtimeState(label, "Loading");
       if (status === "error") return runtimeState(label, data?.error || "Unable to load metric");
-      const rows = Array.isArray(data?.rows) ? data.rows : [];
-      const total = Number.isFinite(Number(data?.total)) ? Number(data.total) : rows.length;
       if (!rows.length && total <= 0) return runtimeState(label, "No data");
       const numericValues = valueField
         ? rows.map((row) => numberValue(row?.[valueField])).filter((value) => value != null)
@@ -1451,13 +1574,7 @@
         if (metric === "min") value = Math.min(...numericValues);
         if (metric === "max") value = Math.max(...numericValues);
       }
-      const metricContext = metric === "count"
-        ? `${total} records`
-        : `${metric} ${valueField}`;
-      return `
-        <span class="stat-runtime-meta">${escapeHtml(runtimeMeta(metricContext, data))}</span>
-        <span class="stat-val">${escapeHtml(formatMetricValue(value, config.format))}</span>
-        ${densityTier === "tiny" ? "" : `<span class="stat-lbl">${escapeHtml(label)}</span>`}`;
+      return `<span class="stat-val">${escapeHtml(formatMetricValue(value, config.format))}</span>`;
     },
   });
 
@@ -1529,23 +1646,41 @@
       const selectedIsCustom = ["custom", "custom_fixed"].includes(selectedFilter?.type || selectedPreset);
       const customStart = selectedFilter?.start || config.customStart || timeRange?.start || "";
       const customEnd = selectedFilter?.end || config.customEnd || timeRange?.end || "";
+      const visibleLimit = density === "small" ? 0 : density === "large" ? 5 : 4;
+      const visibleFilters = filters.slice(0, visibleLimit);
+      const overflowFilters = filters.slice(visibleLimit);
+      const hasMoreFilters = filters.length > visibleFilters.length;
+      const widgetKey = instance.id || "";
+      const rangeDisplay = timeframeRangeDisplay(timeRange);
+      const selectedStateClass = selectedFilterId || timeRange ? " active" : "";
+      const inlineFilterButton = (filter) => `<button class="preset-btn timeframe-filter-button timeframe-inline-preset${filter.id === selectedFilterId ? " active" : ""}" type="button" data-timeframe-widget-key="${escapeHtml(widgetKey)}" data-timeframe-filter-id="${escapeHtml(filter.id)}" data-timeframe-preset="${escapeHtml(filter.type)}" aria-pressed="${filter.id === selectedFilterId ? "true" : "false"}">${escapeHtml(filter.label)}</button>`;
+      const menuFilterButton = (filter) => `<button class="timeframe-menu-option glass-menu-item${filter.id === selectedFilterId ? " is-active" : ""}" type="button" role="menuitem" data-timeframe-widget-key="${escapeHtml(widgetKey)}" data-timeframe-filter-id="${escapeHtml(filter.id)}" data-timeframe-preset="${escapeHtml(filter.type)}" aria-pressed="${filter.id === selectedFilterId ? "true" : "false"}">${escapeHtml(filter.label)}</button>`;
       return `
         <div class="timeframe-command-surface timeframe-density-${density} widget-density-${densityTier}" data-density="${escapeHtml(densityTier)}" data-timeframe-current-label="${escapeHtml(label)}" data-widget-control-surface="true">
-          <div class="range-controls timeframe-controls">
-            <div class="range-presets timeframe-presets" role="group" aria-label="Time filters">
-              ${filters.map((filter) => `<button class="preset-btn timeframe-filter-button${filter.id === selectedFilterId ? " active" : ""}" type="button" data-timeframe-filter-id="${escapeHtml(filter.id)}" data-timeframe-preset="${escapeHtml(filter.type)}" aria-pressed="${filter.id === selectedFilterId ? "true" : "false"}">${escapeHtml(filter.label)}</button>`).join("")}
+          <div class="timeframe-current-zone" aria-label="Current time range">
+            <span class="timeframe-kicker">${escapeHtml(config.title || "Time range")}</span>
+            <span class="timeframe-selected-summary timeframe-selector${selectedStateClass}" role="status" aria-live="polite" aria-label="Selected time range" title="Selected time range">${escapeHtml(label)}</span>
+            <span class="timeframe-range-display">${escapeHtml(rangeDisplay)}</span>
+          </div>
+          <div class="timeframe-action-zone" role="group" aria-label="Timeframe actions">
+            <div class="range-controls timeframe-controls">
+              <div class="range-presets timeframe-presets" role="group" aria-label="Pinned time filters">
+                ${visibleFilters.map((filter) => inlineFilterButton(filter)).join("")}
+              </div>
             </div>
+            ${hasMoreFilters ? `<button class="preset-btn timeframe-more-button" type="button" aria-haspopup="true" aria-expanded="false" data-timeframe-widget-key="${escapeHtml(widgetKey)}">More</button>` : ""}
+            <button class="range-icon-button timeframe-refresh" type="button" aria-label="Reset timeframe" title="Reset timeframe" data-timeframe-widget-key="${escapeHtml(widgetKey)}"><span class="timeframe-refresh-icon" aria-hidden="true"></span></button>
+            <button class="range-icon-button timeframe-calendar" type="button" aria-label="Open date range" title="Open date range" aria-haspopup="true" aria-expanded="false" data-timeframe-widget-key="${escapeHtml(widgetKey)}"><span class="timeframe-calendar-icon" aria-hidden="true"></span></button>
           </div>
-          <div class="timeframe-active-cluster">
-            <span class="timeframe-selected-summary timeframe-selector${selectedFilterId || timeRange ? " active" : ""}" role="status" aria-live="polite" aria-label="Selected time range" title="Selected time range">${escapeHtml(label)}</span>
+          <div class="timeframe-preset-menu nav-menu-shell floating-glass-menu glass-menu-scroll-region" role="menu" aria-label="Configured time filters" data-timeframe-widget-key="${escapeHtml(widgetKey)}">
+            <div class="timeframe-menu-heading">Configured ranges</div>
+            ${filters.map((filter) => menuFilterButton(filter)).join("")}
           </div>
-          ${density === "large" && selectedIsCustom ? `<div class="timeframe-custom-range" role="group" aria-label="Custom time range">
-            <input class="timeframe-custom-date" type="date" data-timeframe-filter-id="${escapeHtml(selectedFilterId)}" data-timeframe-part="start" value="${escapeHtml(customStart)}" aria-label="Custom start date">
-            <input class="timeframe-custom-date" type="date" data-timeframe-filter-id="${escapeHtml(selectedFilterId)}" data-timeframe-part="end" value="${escapeHtml(customEnd)}" aria-label="Custom end date">
-          </div>` : ""}
-          <div class="range-search timeframe-range timeframe-utility-cluster" role="group" aria-label="Timeframe utilities">
-            <button class="range-icon-button timeframe-refresh" type="button" aria-label="Refresh timeframe" title="Refresh timeframe"><span class="timeframe-refresh-icon" aria-hidden="true"></span></button>
-            <button class="range-icon-button timeframe-calendar" type="button" aria-label="Open date range" title="Open date range"><span class="timeframe-calendar-icon" aria-hidden="true"></span></button>
+          <div class="timeframe-calendar-popover nav-menu-shell floating-glass-menu" role="dialog" aria-label="Date range" data-timeframe-widget-key="${escapeHtml(widgetKey)}">
+            <div class="timeframe-menu-heading">Date range</div>
+            <label class="timeframe-calendar-field"><span>Start</span><input class="timeframe-custom-date" type="date" data-timeframe-filter-id="${escapeHtml(selectedFilterId)}" data-timeframe-part="start" value="${escapeHtml(customStart)}" aria-label="Custom start date"></label>
+            <label class="timeframe-calendar-field"><span>End</span><input class="timeframe-custom-date" type="date" data-timeframe-filter-id="${escapeHtml(selectedFilterId)}" data-timeframe-part="end" value="${escapeHtml(customEnd)}" aria-label="Custom end date"></label>
+            <button class="timeframe-calendar-apply glass-menu-item" type="button" data-timeframe-widget-key="${escapeHtml(widgetKey)}">${escapeHtml(selectedIsCustom ? "Apply range" : "Use custom range")}</button>
           </div>
         </div>`;
     },
@@ -3080,6 +3215,11 @@
       engineerOnly: definition.engineerOnly,
       icon: definition.icon,
       aliases: definition.aliases,
+      shell: definition.shell === false ? { enabled: false } : {
+        enabled: true,
+        mode: definition.shell?.mode || "compat",
+        showHeader: Boolean(definition.shell?.showHeader),
+      },
       hasDemoData: typeof definition.getDemoData === "function",
     })),
     parseConfig,
