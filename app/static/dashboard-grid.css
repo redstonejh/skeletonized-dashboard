@@ -144,7 +144,7 @@ body.engineer-mode-active .widget-card[data-widget-layer="both"].widget-tools-op
   --surface-zone-press-transform: translateY(1px);
   --surface-zone-origin: center;
   --surface-zone-safe-inset: 3px;
-  --surface-zone-opacity: .32;
+  --surface-zone-opacity: .45;
   --surface-zone-wash:
     linear-gradient(180deg, rgba(255, 255, 255, .052), transparent 58%),
     linear-gradient(0deg, color-mix(in srgb, var(--panel-accent, var(--blue)) 3%, transparent), transparent 68%);
@@ -399,7 +399,7 @@ body.engineer-mode-active .widget-card[data-widget-layer="both"].widget-tools-op
   align-self: end;
 }
 
-.widget-shell-content > :is(.widget-runtime-state, .runtime-table-widget, .runtime-chart-widget, .runtime-map-widget, .runtime-calendar-widget, .timeframe-command-surface, .search-widget-content, .filter-widget-content, .text-widget-content, .media-widget, .meta-widget, .dataset-origin-widget, .data-filter-widget, .shift-widget, .region-summary-widget) {
+.widget-shell-content > :is(.widget-runtime-state, .runtime-table-widget, .runtime-chart-widget, .runtime-map-widget, .runtime-calendar-widget, .timeframe-control-row, .search-widget-content, .filter-widget-content, .text-widget-content, .media-widget, .meta-widget, .dataset-origin-widget, .data-filter-widget, .shift-widget, .region-summary-widget) {
   min-height: 0;
 }
 
@@ -2290,10 +2290,11 @@ body.resize-auto-zoom-active .dashboard-expanded-footprint-ghost {
 
 .widget-layout > .widget-card:hover,
 .widget-layout > .widget-card:focus-visible {
+  background: #f7faff;
   border-color: #5f91ee;
   box-shadow:
-    0 10px 22px rgba(15, 23, 42, .10),
-    0 1px 0 rgba(255, 255, 255, .54) inset;
+    0 14px 30px rgba(15, 23, 42, .14),
+    0 1px 0 rgba(255, 255, 255, .62) inset;
   transform: translateY(-1.5px);
 }
 
@@ -2317,6 +2318,11 @@ body.resize-auto-zoom-active .dashboard-expanded-footprint-ghost {
     inset 0 1px 0 rgba(255, 255, 255, .11),
     inset 0 -10px 18px rgba(15, 23, 42, .018);
   transform: none;
+}
+
+.widget-layout > .timeframe-widget,
+.panel-internal-widget-grid > .timeframe-widget {
+  transform: none !important;
 }
 
 .widget-layout > .timeframe-widget:has([data-widget-control-surface]:hover),

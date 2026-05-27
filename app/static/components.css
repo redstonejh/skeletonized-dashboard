@@ -69,55 +69,43 @@
   font-weight: 720;
 }
 
-.timeframe-command-surface {
-  display: inline-flex;
+/* Timeframe widget — flat cinematic control row */
+.timeframe-control-row {
+  display: flex;
   align-items: center;
-  flex-wrap: wrap;
   gap: 10px;
-  box-sizing: border-box;
   width: 100%;
-  max-width: 100%;
+  flex-wrap: nowrap;
   overflow: hidden;
-  padding: 6px;
-  border: 1.5px solid var(--timeframe-surface-border);
-  border-radius: 999px;
-  background: color-mix(in srgb, var(--surface-raised) 54%, var(--range-control-accent) 20%);
-  box-shadow:
-    0 12px 28px color-mix(in srgb, var(--range-control-accent) 18%, transparent),
-    inset 0 1px 0 rgba(255, 255, 255, .20);
+  box-sizing: border-box;
 }
 
-.timeframe-presets,
-.timeframe-active-cluster,
-.timeframe-utility-cluster,
-.timeframe-custom-range {
-  display: inline-flex;
+.timeframe-kicker {
+  font-size: 10px;
+  font-weight: 760;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+  color: var(--widget-surface-muted, rgba(226, 232, 240, .72));
+  white-space: nowrap;
+  flex-shrink: 0;
+  user-select: none;
+}
+
+.timeframe-control-row .timeframe-presets {
+  display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 3px;
-  border: 1.5px solid var(--timeframe-cluster-border);
-  border-radius: 999px;
-  background: color-mix(in srgb, var(--surface-raised) 42%, var(--range-control-accent) 18%);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .14);
-}
-
-.timeframe-active-cluster {
-  background: color-mix(in srgb, var(--surface-raised) 36%, var(--range-control-accent) 24%);
-}
-
-.timeframe-controls {
-  flex: 1 1 180px;
+  gap: 4px;
+  flex: 1 1 auto;
   min-width: 0;
   overflow: hidden;
 }
 
-.timeframe-active-cluster {
-  flex: 0 1 auto;
-  min-width: 0;
-}
-
-.timeframe-custom-range {
-  background: color-mix(in srgb, var(--surface-raised) 34%, var(--range-control-accent) 18%);
+.timeframe-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+  margin-left: auto;
 }
 
 .range-bar.widget-card .widget-tool-drawer {
@@ -149,18 +137,6 @@
   display: contents;
 }
 
-.range-bar.widget-card .timeframe-controls {
-  display: inline-flex;
-  align-items: center;
-  flex: 1 1 180px;
-  min-width: 0;
-  overflow: hidden;
-}
-
-.range-bar.widget-card .timeframe-presets {
-  display: inline-flex;
-  align-items: center;
-}
 
 .range-bar button,
 .range-bar input,
@@ -535,12 +511,6 @@
   padding: 0 14px;
 }
 
-.timeframe-widget .range-custom-trigger,
-.timeframe-widget .timeframe-selected-summary {
-  padding: 0 16px;
-  font-weight: 760;
-}
-
 .timeframe-widget .timeframe-selector::before,
 .timeframe-widget .timeframe-selector::after {
   content: none;
@@ -550,20 +520,6 @@
   max-width: 132px;
   overflow: hidden;
   text-overflow: ellipsis;
-}
-
-.timeframe-widget .range-controls,
-.timeframe-widget .timeframe-presets {
-  min-width: 0;
-  max-width: 100%;
-}
-
-.timeframe-widget .timeframe-presets {
-  flex: 1 1 auto;
-  overflow-x: auto;
-  overflow-y: hidden;
-  overscroll-behavior-inline: contain;
-  scrollbar-width: thin;
 }
 
 .timeframe-filter-editor-list {
@@ -644,48 +600,14 @@
   height: 14px;
 }
 
-.timeframe-widget[data-current-span="3"],
-.timeframe-widget[data-default-span="3"]:not([data-current-span]) {
-  padding-right: 46px;
+/* Timeframe density variants */
+.timeframe-density-small .timeframe-kicker {
+  display: none;
 }
 
-.timeframe-widget[data-current-span="2"],
-.timeframe-widget[data-default-span="2"]:not([data-current-span]) {
-  padding-right: 42px;
-}
-
-.timeframe-widget[data-current-span="3"] .timeframe-command-surface,
-.timeframe-widget[data-default-span="3"]:not([data-current-span]) .timeframe-command-surface {
-  gap: 6px;
-  padding: 4px;
-}
-
-.timeframe-widget[data-current-span="2"] .timeframe-command-surface,
-.timeframe-widget[data-default-span="2"]:not([data-current-span]) .timeframe-command-surface {
-  gap: 3px;
-  padding: 2px;
-}
-
-.timeframe-widget[data-current-span="3"] .timeframe-presets,
-.timeframe-widget[data-current-span="3"] .timeframe-active-cluster,
-.timeframe-widget[data-current-span="3"] .timeframe-utility-cluster,
-.timeframe-widget[data-default-span="3"]:not([data-current-span]) .timeframe-presets,
-.timeframe-widget[data-default-span="3"]:not([data-current-span]) .timeframe-active-cluster,
-.timeframe-widget[data-default-span="3"]:not([data-current-span]) .timeframe-utility-cluster {
-  gap: 4px;
-  padding: 2px;
-}
-
-.timeframe-widget[data-current-span="2"] .timeframe-presets,
-.timeframe-widget[data-current-span="2"] .timeframe-active-cluster,
-.timeframe-widget[data-current-span="2"] .timeframe-utility-cluster,
-.timeframe-widget[data-current-span="2"] .timeframe-custom-range,
-.timeframe-widget[data-default-span="2"]:not([data-current-span]) .timeframe-presets,
-.timeframe-widget[data-default-span="2"]:not([data-current-span]) .timeframe-active-cluster,
-.timeframe-widget[data-default-span="2"]:not([data-current-span]) .timeframe-utility-cluster,
-.timeframe-widget[data-default-span="2"]:not([data-current-span]) .timeframe-custom-range {
-  gap: 2px;
-  padding: 1px;
+.timeframe-density-small .timeframe-control-row .timeframe-selected-summary {
+  min-width: 80px;
+  max-width: 120px;
 }
 
 .timeframe-widget[data-current-span="3"] .preset-btn,
@@ -699,24 +621,6 @@
 .timeframe-widget[data-default-span="2"]:not([data-current-span]) .preset-btn {
   min-width: 42px;
   padding: 0 5px;
-  font-size: 10px;
-}
-
-.timeframe-widget[data-current-span="3"] .range-custom-trigger,
-.timeframe-widget[data-current-span="3"] .timeframe-selected-summary,
-.timeframe-widget[data-default-span="3"]:not([data-current-span]) .range-custom-trigger,
-.timeframe-widget[data-default-span="3"]:not([data-current-span]) .timeframe-selected-summary {
-  min-width: 88px;
-  padding: 0 12px;
-  font-size: 11px;
-}
-
-.timeframe-widget[data-current-span="2"] .range-custom-trigger,
-.timeframe-widget[data-current-span="2"] .timeframe-selected-summary,
-.timeframe-widget[data-default-span="2"]:not([data-current-span]) .range-custom-trigger,
-.timeframe-widget[data-default-span="2"]:not([data-current-span]) .timeframe-selected-summary {
-  min-width: 68px;
-  padding: 0 7px;
   font-size: 10px;
 }
 
@@ -734,20 +638,6 @@
   height: 30px;
   min-width: 30px;
   min-height: 30px;
-}
-
-.timeframe-density-small .timeframe-utility-cluster {
-  display: none;
-}
-
-.timeframe-density-small .range-custom-trigger,
-.timeframe-density-small .timeframe-selected-summary {
-  min-width: 118px;
-  max-width: 100%;
-}
-
-.timeframe-density-large {
-  border-radius: 24px;
 }
 
 .preset-btn:hover,
@@ -837,31 +727,17 @@
 }
 
 .timeframe-selected-summary {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  box-sizing: border-box;
-  height: 34px;
-  width: auto;
-  min-width: 104px;
-  min-height: 34px;
-  max-width: 220px;
+  display: inline-block;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  padding: 0;
-  border: 1.5px solid var(--range-control-active-border);
-  border-radius: 999px;
-  background: color-mix(in srgb, var(--range-control-bg) 78%, var(--panel-hover-tint));
-  color: var(--range-button-fg);
+  max-width: 180px;
+  font-size: 12px;
+  font-weight: 720;
   line-height: 1;
+  color: var(--widget-surface-fg, rgba(248, 250, 252, .94));
+  flex-shrink: 0;
   cursor: default;
-  box-shadow:
-    0 3px 8px color-mix(in srgb, var(--range-control-glow) 42%, transparent),
-    inset 0 1px 0 rgba(255, 255, 255, .24),
-    inset 0 2px 5px color-mix(in srgb, var(--range-control-accent) 8%, rgba(15, 23, 42, .06));
-  transform: none;
-  transition: background .15s ease, border-color .15s ease, color .15s ease, box-shadow .15s ease;
 }
 
 .timeframe-selected-summary:hover,

@@ -1143,7 +1143,7 @@ def test_search_bar_widget_uses_normal_widget_creation_and_controls(page: Page, 
     page.reload(wait_until="networkidle")
     page.wait_for_selector(".page")
 
-    expect(page.locator(".timeframe-widget .timeframe-command-surface")).to_be_visible()
+    expect(page.locator(".timeframe-widget .timeframe-control-row")).to_be_visible()
     controls = open_add_category(page, "controls")
     expect(controls.locator('.widget-add-action[data-widget-kind="search"]')).to_have_text("Search Bar")
     controls.locator('.widget-add-action[data-widget-kind="search"]').click()
@@ -1277,7 +1277,7 @@ def test_search_bar_widget_uses_normal_widget_creation_and_controls(page: Page, 
     anchor = page.locator('.workspace-anchor-object[data-workspace-object-type="anchor"]').last
     expect(anchor).to_be_visible()
     expect(anchor.locator(".workspace-anchor-label")).to_have_text("Top")
-    expect(page.locator(".timeframe-widget .timeframe-command-surface")).to_be_visible()
+    expect(page.locator(".timeframe-widget .timeframe-control-row")).to_be_visible()
     assert_clean_browser(page)
 
 
@@ -10280,7 +10280,7 @@ def test_timeframe_widget_is_createable_and_uses_widget_system(page: Page, app_s
     expect(timeframe_widgets).to_have_count(2)
     created = timeframe_widgets.last
     expect(created).to_be_visible()
-    expect(created.locator(".timeframe-command-surface")).to_be_visible()
+    expect(created.locator(".timeframe-control-row")).to_be_visible()
     expect(created.locator(".preset-btn", has_text="Today")).to_have_count(1)
     expect(created.locator(".preset-btn", has_text="Last 7 days")).to_have_count(1)
     expect(created.locator(".preset-btn", has_text="Last 30 days")).to_have_count(1)
@@ -10348,7 +10348,7 @@ def test_timeframe_widget_is_createable_and_uses_widget_system(page: Page, app_s
     resized = created.evaluate(
         """
         node => {
-          const surface = node.querySelector(".timeframe-command-surface");
+          const surface = node.querySelector(".timeframe-control-row");
           const preset = node.querySelector(".preset-btn");
           const selector = node.querySelector(".timeframe-selector");
           return {
@@ -10410,7 +10410,7 @@ def test_timeframe_widget_is_createable_and_uses_widget_system(page: Page, app_s
     expect(page.locator('.widget-layout > .timeframe-widget[data-custom-widget="true"][data-widget-type="controls"]')).to_have_count(1)
     persisted = page.locator('.widget-layout > .timeframe-widget[data-custom-widget="true"][data-widget-type="controls"]').last
     assert grid_item_state(page, '.widget-layout > .timeframe-widget[data-custom-widget="true"][data-widget-type="controls"]')["span"] == 2
-    expect(persisted.locator(".timeframe-command-surface")).to_be_visible()
+    expect(persisted.locator(".timeframe-control-row")).to_be_visible()
     assert_clean_browser(page)
 
 
@@ -10529,7 +10529,7 @@ def test_timeframe_control_widget_writes_context_time_range_and_persists(page: P
         }
         """
     )
-    expect(timeframe.locator(".timeframe-command-surface")).to_have_class(re.compile("timeframe-density-large"))
+    expect(timeframe.locator(".timeframe-control-row")).to_have_class(re.compile("timeframe-density-large"))
     page.evaluate(
         """
         () => {
@@ -10584,7 +10584,7 @@ def test_timeframe_control_widget_writes_context_time_range_and_persists(page: P
         }
         """
     )
-    expect(timeframe.locator(".timeframe-command-surface")).to_have_class(re.compile("timeframe-density-small"))
+    expect(timeframe.locator(".timeframe-control-row")).to_have_class(re.compile("timeframe-density-small"))
     expect(timeframe.locator(".timeframe-selector")).to_contain_text(setup["today"])
 
     page.locator(".layout-save-button").click()
@@ -13825,7 +13825,7 @@ def test_timeframe_resize_clamps_to_adaptive_density_minimum(page: Page, app_ser
                 clipped: rect.left < root.left - 1 || rect.right > root.right + 1 || rect.top < root.top - 1 || rect.bottom > root.bottom + 1,
               };
             });
-          const surface = node.querySelector(".timeframe-command-surface");
+          const surface = node.querySelector(".timeframe-control-row");
           const preset = node.querySelector(".preset-btn");
           const selector = node.querySelector(".timeframe-selector");
           const icon = node.querySelector(".range-icon-button");
@@ -15770,7 +15770,7 @@ def test_empty_panel_surface_is_translucent_without_affecting_populated_content(
               const strong = empty.querySelector("strong");
               const helper = empty.querySelector("small");
               const action = empty.querySelector(".panel-empty-action");
-              const populated = document.querySelector(".timeframe-widget .timeframe-command-surface");
+              const populated = document.querySelector(".timeframe-widget .timeframe-control-row");
               const styles = getComputedStyle(empty);
               const actionStyles = getComputedStyle(action);
               const colorChannels = (value) => {
@@ -19497,7 +19497,7 @@ def test_workspace_objects_blend_without_hard_card_boundaries(page: Page, app_se
     assert widget_hover["maxOuterOffset"] <= 6
     assert widget_hover["maxOuterBlur"] <= 14
     assert -1.2 <= widget_hover["transformY"] < 0
-    assert widget_hover["beforeOpacity"] <= .34
+    assert widget_hover["beforeOpacity"] <= .50
 
     panel.hover()
     page.wait_for_timeout(260)
@@ -19575,7 +19575,7 @@ def test_widgets_are_grounded_into_workspace_environment(page: Page, app_server:
     assert widget_hover["maxOuterOffset"] <= 5
     assert widget_hover["maxOuterBlur"] <= 13
     assert widget_hover["insetCount"] >= 2
-    assert widget_hover["beforeOpacity"] <= .34
+    assert widget_hover["beforeOpacity"] <= .50
 
     page.evaluate("document.documentElement.dataset.background = 'deep-slate'")
     expect(page.locator("html")).to_have_attribute("data-background", "deep-slate")

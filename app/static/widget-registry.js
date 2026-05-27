@@ -1656,19 +1656,14 @@
       const inlineFilterButton = (filter) => `<button class="preset-btn timeframe-filter-button timeframe-inline-preset${filter.id === selectedFilterId ? " active" : ""}" type="button" data-timeframe-widget-key="${escapeHtml(widgetKey)}" data-timeframe-filter-id="${escapeHtml(filter.id)}" data-timeframe-preset="${escapeHtml(filter.type)}" aria-pressed="${filter.id === selectedFilterId ? "true" : "false"}">${escapeHtml(filter.label)}</button>`;
       const menuFilterButton = (filter) => `<button class="timeframe-menu-option glass-menu-item${filter.id === selectedFilterId ? " is-active" : ""}" type="button" role="menuitem" data-timeframe-widget-key="${escapeHtml(widgetKey)}" data-timeframe-filter-id="${escapeHtml(filter.id)}" data-timeframe-preset="${escapeHtml(filter.type)}" aria-pressed="${filter.id === selectedFilterId ? "true" : "false"}">${escapeHtml(filter.label)}</button>`;
       return `
-        <div class="timeframe-command-surface timeframe-density-${density} widget-density-${densityTier}" data-density="${escapeHtml(densityTier)}" data-timeframe-current-label="${escapeHtml(label)}" data-widget-control-surface="true">
-          <div class="timeframe-current-zone" aria-label="Current time range">
-            <span class="timeframe-kicker">${escapeHtml(config.title || "Time range")}</span>
-            <span class="timeframe-selected-summary timeframe-selector${selectedStateClass}" role="status" aria-live="polite" aria-label="Selected time range" title="Selected time range">${escapeHtml(label)}</span>
-            <span class="timeframe-range-display">${escapeHtml(rangeDisplay)}</span>
+        <div class="timeframe-control-row timeframe-density-${density} widget-density-${densityTier}" data-density="${escapeHtml(densityTier)}" data-timeframe-current-label="${escapeHtml(label)}" data-widget-control-surface="true">
+          <span class="timeframe-kicker">${escapeHtml(config.title || "Time range")}</span>
+          <span class="timeframe-selected-summary timeframe-selector${selectedStateClass}" role="status" aria-live="polite" aria-label="Selected time range" title="${escapeHtml(label)}">${escapeHtml(label)}</span>
+          <div class="timeframe-presets" role="group" aria-label="Pinned time filters">
+            ${visibleFilters.map((filter) => inlineFilterButton(filter)).join("")}
           </div>
-          <div class="timeframe-action-zone" role="group" aria-label="Timeframe actions">
-            <div class="range-controls timeframe-controls">
-              <div class="range-presets timeframe-presets" role="group" aria-label="Pinned time filters">
-                ${visibleFilters.map((filter) => inlineFilterButton(filter)).join("")}
-              </div>
-            </div>
-            ${hasMoreFilters ? `<button class="preset-btn timeframe-more-button" type="button" aria-haspopup="true" aria-expanded="false" data-timeframe-widget-key="${escapeHtml(widgetKey)}">More</button>` : ""}
+          ${hasMoreFilters ? `<button class="preset-btn timeframe-more-button" type="button" aria-haspopup="true" aria-expanded="false" data-timeframe-widget-key="${escapeHtml(widgetKey)}">More</button>` : ""}
+          <div class="timeframe-actions">
             <button class="range-icon-button timeframe-refresh" type="button" aria-label="Reset timeframe" title="Reset timeframe" data-timeframe-widget-key="${escapeHtml(widgetKey)}"><span class="timeframe-refresh-icon" aria-hidden="true"></span></button>
             <button class="range-icon-button timeframe-calendar" type="button" aria-label="Open date range" title="Open date range" aria-haspopup="true" aria-expanded="false" data-timeframe-widget-key="${escapeHtml(widgetKey)}"><span class="timeframe-calendar-icon" aria-hidden="true"></span></button>
           </div>
