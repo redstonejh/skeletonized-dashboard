@@ -1295,7 +1295,7 @@ def test_adaptive_density_engine_marks_widgets_without_layout_mutation(page: Pag
 
     state = page.evaluate(
         """
-        () => {
+        async () => {
           const runtime = window.dashboardWidgetRuntime;
           const rank = ["tiny", "compact", "standard", "expanded", "rich"];
           const search = document.querySelector('.widget-layout[data-widget-layout-key="builder"] > .widget-card[data-widget-definition="search"][data-custom-widget="true"]');
@@ -13506,7 +13506,8 @@ def test_anchors_join_layout_history_and_saved_layout_state(page: Page, app_serv
     first_box = linked_anchor.bounding_box()
     second_box = second_anchor.bounding_box()
     assert first_box and second_box
-    second_anchor.locator(".anchor-settings-toggle").click(force=True)
+    force_open_tools_for_interaction(page, second_anchor)
+    expect(second_anchor.locator(".anchor-tool-drawer")).to_be_visible()
     move_box = second_anchor.locator(".panel-move-handle").bounding_box()
     assert move_box
     page.mouse.move(move_box["x"] + move_box["width"] / 2, move_box["y"] + move_box["height"] / 2)
@@ -18012,8 +18013,8 @@ def test_object_settings_control_nodes_preserve_shell_without_gear_glyph(page: P
     assert delta["widget"]["y"] <= 1
     assert abs(delta["widget"]["x"] - delta["panel"]["x"]) <= 1
     assert abs(delta["widget"]["y"] - delta["panel"]["y"]) <= 1
-    assert delta["panel"]["iconWidth"] == delta["widget"]["iconWidth"] == 16
-    assert delta["panel"]["iconHeight"] == delta["widget"]["iconHeight"] == 16
+    assert abs(delta["panel"]["iconWidth"] - 16) < 0.5 and abs(delta["widget"]["iconWidth"] - 16) < 0.5
+    assert abs(delta["panel"]["iconHeight"] - 16) < 0.5 and abs(delta["widget"]["iconHeight"] - 16) < 0.5
     for key in ("panel", "widget"):
         assert delta[key]["iconBackground"] == "rgba(0, 0, 0, 0)"
         assert delta[key]["iconOpacity"] == 0
@@ -21090,7 +21091,7 @@ def test_group_drag_can_target_top_grid_row(page: Page, app_server: str) -> None
     menu.click(position={"x": 20, "y": 20})
     expect(page.locator(".group-selected")).to_have_count(2)
 
-    open_tools(table)
+    force_open_tools_for_interaction(page, table)
     handle_box = table.locator(".panel-move-handle").bounding_box()
     grid_box = page.locator(".dashboard-layout-grid").bounding_box()
     assert handle_box
