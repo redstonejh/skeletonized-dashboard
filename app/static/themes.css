@@ -4036,8 +4036,47 @@ body {
 }
 
 .app-nav.workspace-chrome .layout-slot-menu {
-  min-width: 140px;
+  min-width: 226px;
+  max-height: min(68vh, 560px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
   padding: 6px;
+  background:
+    linear-gradient(180deg, rgba(248, 251, 255, .97), rgba(237, 244, 252, .95));
+  scrollbar-width: thin;
+}
+
+.app-nav.workspace-chrome .layout-slot-menu.open {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transform: translateY(0) scale(1);
+}
+
+.app-nav.workspace-chrome .layout-slot-menu .layout-source-option {
+  background: color-mix(in srgb, #eef4fb 88%, white);
+  color: var(--ink-strong);
+}
+
+.layout-source-group {
+  display: grid;
+  gap: 5px;
+}
+
+.layout-source-group + .layout-source-group {
+  margin-top: 7px;
+  padding-top: 7px;
+  border-top: 1px solid color-mix(in srgb, var(--line) 44%, transparent);
+}
+
+.layout-source-heading {
+  padding: 2px 8px 1px;
+  color: color-mix(in srgb, var(--ink-muted) 94%, var(--ink));
+  font-size: 10px;
+  font-weight: 820;
+  letter-spacing: 0;
+  line-height: 1.2;
+  text-transform: uppercase;
 }
 
 .app-nav.workspace-chrome .panel-add-action,
@@ -4462,6 +4501,17 @@ body {
 .app-nav.workspace-chrome .dash-switch-opt:disabled:active,
 button:disabled:hover,
 button[aria-disabled="true"]:hover {
+  transform: none;
+}
+
+.widget-layout > .timeframe-widget:has([data-widget-control-surface]:hover),
+.widget-layout > .timeframe-widget:has([data-widget-control-surface]:focus-within),
+.panel-internal-widget-grid > .timeframe-widget:has([data-widget-control-surface]:hover),
+.panel-internal-widget-grid > .timeframe-widget:has([data-widget-control-surface]:focus-within),
+.range-bar.widget-card:has([data-widget-control-surface]:hover),
+.range-bar.widget-card:has([data-widget-control-surface]:focus-within) {
+  border-color: var(--line);
+  box-shadow: var(--shadow-soft);
   transform: none;
 }
 

@@ -471,7 +471,9 @@
       end: range.end || undefined,
       preset: normalized.type,
       filterId: normalized.id,
-      label: normalized.label || timeframeLabel(range, "Time range"),
+      label: ["custom", "custom_fixed"].includes(normalized.type)
+        ? timeframeLabel(range, normalized.label || "Custom range")
+        : normalized.label || timeframeLabel(range, "Time range"),
     };
   };
   const resolveTimeRangeConfig = (config = {}, resolvedContext = {}, now = null) => {
@@ -1394,26 +1396,22 @@
           : compactDensity(densityTier)
             ? "small"
             : "medium";
-      const visibleFilters = density === "large"
-        ? filters
-        : density === "small"
-          ? (selectedFilter ? [selectedFilter] : filters.slice(0, 1))
-          : filters.slice(0, 4);
-      const customStart = config.customStart || timeRange?.start || "";
-      const customEnd = config.customEnd || timeRange?.end || "";
+      const selectedIsCustom = ["custom", "custom_fixed"].includes(selectedFilter?.type || selectedPreset);
+      const customStart = selectedFilter?.start || config.customStart || timeRange?.start || "";
+      const customEnd = selectedFilter?.end || config.customEnd || timeRange?.end || "";
       return `
-        <div class="timeframe-command-surface timeframe-density-${density} widget-density-${densityTier}" data-density="${escapeHtml(densityTier)}" data-timeframe-current-label="${escapeHtml(label)}">
-          ${density === "small" ? "" : `<div class="range-controls timeframe-controls">
+        <div class="timeframe-command-surface timeframe-density-${density} widget-density-${densityTier}" data-density="${escapeHtml(densityTier)}" data-timeframe-current-label="${escapeHtml(label)}" data-widget-control-surface="true">
+          <div class="range-controls timeframe-controls">
             <div class="range-presets timeframe-presets" role="group" aria-label="Time filters">
-              ${visibleFilters.map((filter) => `<button class="preset-btn timeframe-filter-button${filter.id === selectedFilterId ? " active" : ""}" type="button" data-timeframe-filter-id="${escapeHtml(filter.id)}" data-timeframe-preset="${escapeHtml(filter.type)}" aria-pressed="${filter.id === selectedFilterId ? "true" : "false"}">${escapeHtml(filter.label)}</button>`).join("")}
+              ${filters.map((filter) => `<button class="preset-btn timeframe-filter-button${filter.id === selectedFilterId ? " active" : ""}" type="button" data-timeframe-filter-id="${escapeHtml(filter.id)}" data-timeframe-preset="${escapeHtml(filter.type)}" aria-pressed="${filter.id === selectedFilterId ? "true" : "false"}">${escapeHtml(filter.label)}</button>`).join("")}
             </div>
-          </div>`}
-          <div class="timeframe-active-cluster">
-            <button class="range-custom-trigger timeframe-selector${selectedPreset === "custom" || selectedPreset === "custom_fixed" || selectedPreset === "custom_repeating" ? " active" : ""}" type="button" data-timeframe-preset="custom" aria-label="Selected time range" title="Selected time range">${escapeHtml(label)}</button>
           </div>
-          ${density === "large" ? `<div class="timeframe-custom-range" role="group" aria-label="Custom time range">
-            <input class="timeframe-custom-date" type="date" data-timeframe-part="customStart" value="${escapeHtml(customStart)}" aria-label="Custom start date">
-            <input class="timeframe-custom-date" type="date" data-timeframe-part="customEnd" value="${escapeHtml(customEnd)}" aria-label="Custom end date">
+          <div class="timeframe-active-cluster">
+            <span class="timeframe-selected-summary timeframe-selector${selectedFilterId || timeRange ? " active" : ""}" role="status" aria-live="polite" aria-label="Selected time range" title="Selected time range">${escapeHtml(label)}</span>
+          </div>
+          ${density === "large" && selectedIsCustom ? `<div class="timeframe-custom-range" role="group" aria-label="Custom time range">
+            <input class="timeframe-custom-date" type="date" data-timeframe-filter-id="${escapeHtml(selectedFilterId)}" data-timeframe-part="start" value="${escapeHtml(customStart)}" aria-label="Custom start date">
+            <input class="timeframe-custom-date" type="date" data-timeframe-filter-id="${escapeHtml(selectedFilterId)}" data-timeframe-part="end" value="${escapeHtml(customEnd)}" aria-label="Custom end date">
           </div>` : ""}
           <div class="range-search timeframe-range timeframe-utility-cluster" role="group" aria-label="Timeframe utilities">
             <button class="range-icon-button timeframe-refresh" type="button" aria-label="Refresh timeframe" title="Refresh timeframe"><span class="timeframe-refresh-icon" aria-hidden="true"></span></button>

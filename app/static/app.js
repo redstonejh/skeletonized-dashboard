@@ -180,6 +180,102 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     showGlobalToast(message, tone);
   };
+  const assistantRail = document.querySelector(".workspace-assistant-rail");
+  const assistantRailDrawer = assistantRail?.querySelector(".workspace-assistant-drawer");
+  const assistantRailTab = assistantRail?.querySelector(".workspace-assistant-tab");
+  const assistantRailClose = assistantRail?.querySelector(".workspace-assistant-close");
+  const assistantRailPrompt = assistantRail?.querySelector(".workspace-assistant-prompt");
+  const assistantRailResult = assistantRail?.querySelector("[data-assistant-result]");
+  const assistantRailResultStatus = assistantRail?.querySelector("[data-assistant-result-status]");
+  const assistantRailResultSummary = assistantRail?.querySelector("[data-assistant-result-summary]");
+  const setAssistantRailState = (state = "collapsed", options = {}) => {
+    if (!assistantRail) return false;
+    const expanded = state === "expanded";
+    assistantRail.dataset.assistantRailState = expanded ? "expanded" : "collapsed";
+    assistantRailTab?.setAttribute("aria-expanded", expanded ? "true" : "false");
+    assistantRailDrawer?.setAttribute("aria-hidden", expanded ? "false" : "true");
+    document.body.classList.toggle("assistant-rail-open", expanded);
+    if (expanded) {
+      delete assistantRail.dataset.assistantUnread;
+      if (options.focus !== false) window.setTimeout(() => assistantRailPrompt?.focus(), 180);
+    }
+    return true;
+  };
+  const setAssistantRailBusy = (busy = false) => {
+    if (!assistantRail) return false;
+    assistantRail.dataset.assistantBusy = busy ? "true" : "false";
+    assistantRail.querySelectorAll(".ai-operator-button").forEach((button) => {
+      button.disabled = Boolean(busy);
+    });
+    return true;
+  };
+  const setAssistantRailResult = ({
+    status = "ready",
+    summary = "Plan ready for review.",
+    prompt = "",
+    planId = "",
+    ok = true,
+  } = {}) => {
+    if (!assistantRail) return false;
+    if (assistantRailResult) assistantRailResult.hidden = false;
+    if (assistantRailResultStatus) assistantRailResultStatus.textContent = status || (ok ? "ready" : "partial");
+    if (assistantRailResultSummary) assistantRailResultSummary.textContent = summary || "Plan ready for review.";
+    if (prompt && assistantRailPrompt) assistantRailPrompt.value = prompt;
+    assistantRail.dataset.lastPlanId = planId || "";
+    assistantRail.dataset.lastPlanStatus = status || "";
+    if (assistantRail.dataset.assistantRailState !== "expanded") assistantRail.dataset.assistantUnread = "true";
+    return true;
+  };
+  const clearAssistantRailResult = () => {
+    if (!assistantRail) return false;
+    if (assistantRailResult) assistantRailResult.hidden = true;
+    delete assistantRail.dataset.lastPlanId;
+    delete assistantRail.dataset.lastPlanStatus;
+    delete assistantRail.dataset.assistantUnread;
+    return true;
+  };
+  if (assistantRail) {
+    assistantRailTab?.addEventListener("click", (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      setAssistantRailState("expanded");
+    });
+    assistantRailClose?.addEventListener("click", (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      setAssistantRailState("collapsed", { focus: false });
+      assistantRailTab?.focus();
+    });
+    assistantRail.addEventListener("pointerdown", (event) => event.stopPropagation());
+    assistantRail.addEventListener("click", (event) => event.stopPropagation());
+    assistantRail.addEventListener("keydown", (event) => {
+      event.stopPropagation();
+      if (event.key === "Escape" && assistantRail.dataset.assistantRailState === "expanded") {
+        event.preventDefault();
+        setAssistantRailState("collapsed", { focus: false });
+        assistantRailTab?.focus();
+      }
+    });
+  }
+  window.dashboardAssistantRailRuntime = {
+    open: (options = {}) => setAssistantRailState("expanded", options),
+    close: (options = {}) => setAssistantRailState("collapsed", options),
+    toggle: (options = {}) => setAssistantRailState(assistantRail?.dataset.assistantRailState === "expanded" ? "collapsed" : "expanded", options),
+    state: () => assistantRail?.dataset.assistantRailState || "unavailable",
+    setBusy: setAssistantRailBusy,
+    setResult: setAssistantRailResult,
+    clearResult: clearAssistantRailResult,
+    setPrompt: (prompt = "", options = {}) => {
+      if (assistantRailPrompt) assistantRailPrompt.value = String(prompt || "");
+      if (options.open) setAssistantRailState("expanded");
+      return Boolean(assistantRailPrompt);
+    },
+    focusPrompt: () => {
+      setAssistantRailState("expanded");
+      assistantRailPrompt?.focus();
+      return Boolean(assistantRailPrompt);
+    },
+  };
   const backgroundDefault = "frosted-light";
   const savedBackgroundTone = () => {
     try {
@@ -560,6 +656,8 @@ document.addEventListener("DOMContentLoaded", () => {
   const workspaceLogicGraphKey = (layoutKey, profile = getActivePanelProfile(layoutKey)) => `${workspaceLogicGraphPrefix}${profile}:${layoutKey}`;
   const persistedWorkspaceKey = (layoutKey, profile = getActivePanelProfile(layoutKey)) => `${persistedWorkspacePrefix}${profile}:${layoutKey}`;
   const layoutUndoKey = (layoutKey, profile = getActivePanelProfile(layoutKey)) => `${layoutUndoPrefix}${profile}:${layoutKey}`;
+  const layoutSourceKey = (layoutKey = "builder") => `dashboard-layout-source:${layoutKey}`;
+  const generatedLayoutRegistryKey = (layoutKey = "builder") => `dashboard-generated-layout-sources:${layoutKey}`;
   let layoutUndoCaptureLock = false;
   const layoutScopedPrefixes = (layoutKey, profile = getActivePanelProfile(layoutKey)) => [
     `${panelStoragePrefix}${profile}:${layoutKey}:`,
@@ -752,6 +850,7 @@ document.addEventListener("DOMContentLoaded", () => {
     ".workspace-wire-nodule",
     ".workspace-wire-delete-button",
     ".workspace-minimap-layer",
+    "[data-widget-control-surface='true']",
     "button",
     "a",
     "input",
@@ -6143,15 +6242,31 @@ document.addEventListener("DOMContentLoaded", () => {
     const widget = input?.closest?.(".widget-card[data-widget-definition='timeframe']");
     if (!widget || !widget.contains(input)) return false;
     const part = input.dataset.timeframePart || "customStart";
+    const filterId = input.dataset.timeframeFilterId || "";
     const config = widgetConfigFromElement(widget);
     if (eventType === "change" || eventType === "focusout") captureRuntimeControlBaselineForWidget(widget);
-    setWidgetConfig(widget, {
-      ...config,
-      selectedFilterId: "",
-      selectedPreset: "custom",
-      [part]: input.value,
-      activeLabel: "Custom range",
-    });
+    const runtime = window.dashboardWidgetRuntime;
+    const filters = runtime?.normalizeTimeframeFilters?.(config) || [];
+    const selectedId = filterId || config.selectedFilterId || "";
+    const selectedFilter = filters.find((filter) => filter.id === selectedId);
+    const shouldUpdateFilter = selectedFilter && ["custom", "custom_fixed"].includes(selectedFilter.type);
+    const mappedPart = part === "customStart" ? "start" : part === "customEnd" ? "end" : part;
+    const nextConfig = shouldUpdateFilter
+      ? {
+          ...config,
+          filters: filters.map((filter) => filter.id === selectedId ? { ...filter, [mappedPart]: input.value } : filter),
+          selectedFilterId: selectedId,
+          selectedPreset: selectedFilter.type,
+          activeLabel: selectedFilter.label || config.activeLabel || "Custom range",
+        }
+      : {
+          ...config,
+          selectedFilterId: "",
+          selectedPreset: "custom",
+          [part]: input.value,
+          activeLabel: "Custom range",
+        };
+    setWidgetConfig(widget, nextConfig);
     syncWidgetContextOutputs(widget);
     const timeRange = parseJsonRecord(widget.dataset.contextTimeRange, null);
     widget.querySelector(".timeframe-selector")?.replaceChildren(document.createTextNode(timeRange?.label || "Custom range"));
@@ -6257,12 +6372,14 @@ document.addEventListener("DOMContentLoaded", () => {
         const id = removeFilterButton.dataset.timeframeFilterId || "";
         const filters = normalizedFilters(config).filter((filter) => filter.id !== id);
         const selectedFilterId = config.selectedFilterId === id ? (filters[0]?.id || "") : config.selectedFilterId;
+        const selectedFilter = filters.find((filter) => filter.id === selectedFilterId);
         if (eventType !== "input") captureRuntimeControlBaselineForWidget(widget);
         setTimeframeConfig({
           ...config,
           filters,
           selectedFilterId,
-          selectedPreset: filters.find((filter) => filter.id === selectedFilterId)?.type || "",
+          selectedPreset: selectedFilter?.type || "",
+          activeLabel: selectedFilter?.label || "",
         });
         return true;
       }
@@ -13772,6 +13889,90 @@ document.addEventListener("DOMContentLoaded", () => {
     refresh: (layoutKey = "builder", profile = getActivePanelProfile(layoutKey)) => refreshResolvedContextDebug(layoutKey, profile),
   };
   const demoPresetRuntimes = window.dashboardDemoDataRuntime;
+  const generatedWorkspaceProfile = (kind = "demo", id = "") => `${kind}:${id || "workspace"}`;
+  const generatedProfileSource = (profile = "") => {
+    const [kind, ...rest] = String(profile || "").split(":");
+    const id = rest.join(":");
+    return id && ["demo", "ai-example", "ai-generated", "stress"].includes(kind) ? { kind, id } : null;
+  };
+  const setActiveLayoutSource = (layoutKey = "builder", source = {}) => {
+    try {
+      localStorage.setItem(layoutSourceKey(layoutKey), JSON.stringify({
+        kind: source.kind || "saved",
+        id: source.id || source.slot || "1",
+        label: source.label || "",
+        slot: source.slot || "",
+      }));
+    } catch {}
+  };
+  const activeLayoutSource = (layoutKey = "builder") => {
+    const profileSource = generatedProfileSource(getActivePanelProfile(layoutKey));
+    if (profileSource) return profileSource;
+    const stored = readJsonStore(layoutSourceKey(layoutKey), null);
+    if (stored?.kind && stored.kind !== "saved") return stored;
+    return { kind: "saved", id: getActivePanelProfile(layoutKey), slot: getActivePanelProfile(layoutKey), label: `Layout ${getActivePanelProfile(layoutKey)}` };
+  };
+  const generatedAiExampleDefinitions = () => [
+    { id: "cost-reduction-scenario", label: "Cost Reduction Scenario", scenario: "financial-forecasting", prompt: "What if labor cost dropped by 12%?" },
+    { id: "regional-performance-analysis", label: "Regional Performance Analysis", scenario: "regional-performance-analysis", prompt: "Compare regional performance and show the worst performing areas." },
+    { id: "technician-efficiency-breakdown", label: "Technician Efficiency Breakdown", scenario: "technician-efficiency-breakdown", prompt: "Compare technician performance by region." },
+    { id: "sla-risk-dashboard", label: "SLA Risk Dashboard", scenario: "sla-risk-dashboard", prompt: "Which customers are most at risk?" },
+    { id: "revenue-projection-workspace", label: "Revenue Projection Workspace", scenario: "revenue-projection-workspace", prompt: "Compare current margin to projected margin if material cost rises 8%." },
+  ];
+  const registeredGeneratedLayouts = (layoutKey = "builder") => readJsonStore(generatedLayoutRegistryKey(layoutKey), []);
+  const registerGeneratedLayoutSource = (layoutKey = "builder", entry = {}) => {
+    if (!entry.id || !entry.label) return null;
+    const current = registeredGeneratedLayouts(layoutKey).filter((item) => item.id !== entry.id);
+    const next = {
+      id: entry.id,
+      label: entry.label,
+      kind: entry.kind || "ai-generated",
+      profile: entry.profile || generatedWorkspaceProfile(entry.kind || "ai-generated", entry.id),
+      createdAt: entry.createdAt || new Date().toISOString(),
+    };
+    writeJsonStore(generatedLayoutRegistryKey(layoutKey), [...current, next].slice(-12));
+    renderLayoutSourceMenus();
+    return next;
+  };
+  const resetWorkspaceDomForGeneratedLayout = (layoutKey = "builder", profile = generatedWorkspaceProfile("demo", "workspace")) => {
+    layoutStorageKeys(layoutKey, profile).forEach((key) => {
+      try { localStorage.removeItem(key); } catch {}
+    });
+    setEngineerMode(false, { toast: false, source: "layout-source" });
+    workspaceEvents.splice(0);
+    const widgetLayout = document.querySelector(`.widget-layout[data-widget-layout-key="${CSS.escape(layoutKey)}"]`);
+    const panelLayout = document.querySelector(`.panel-layout[data-layout-key="${CSS.escape(layoutKey)}"]`);
+    const anchorLayer = document.querySelector(`.workspace-anchor-layer[data-anchor-layout-key="${CSS.escape(layoutKey)}"]`);
+    if (widgetLayout) {
+      widgetLayout.querySelectorAll(":scope > .widget-row-break, :scope > .widget-spacer").forEach((node) => node.remove());
+      widgetLayout.querySelectorAll(":scope > .widget-card[data-custom-widget='true']").forEach((node) => node.remove());
+      const hiddenWidgets = [];
+      widgetLayout.querySelectorAll(":scope > .widget-card:not(.workspace-anchor-object)").forEach((widget) => {
+        widget.hidden = true;
+        if (widget.dataset.widgetKey) hiddenWidgets.push(widget.dataset.widgetKey);
+      });
+      writeDraftList(widgetLayout, "hiddenWidgetsDraft", hiddenWidgets);
+    }
+    if (panelLayout) {
+      panelLayout.querySelectorAll(":scope > .db-panel-row-break").forEach((node) => node.remove());
+      panelLayout.querySelectorAll(":scope > .db-panel[data-custom-panel='true']").forEach((node) => node.remove());
+      const hiddenPanels = [];
+      panelLayout.querySelectorAll(":scope > .db-panel").forEach((panel) => {
+        panel.querySelectorAll(".panel-internal-widget-grid").forEach((grid) => grid.remove());
+        panel.hidden = true;
+        if (panel.dataset.panelKey) hiddenPanels.push(panel.dataset.panelKey);
+      });
+      writeDraftList(panelLayout, "hiddenPanelsDraft", hiddenPanels);
+    }
+    anchorLayer?.querySelectorAll(":scope > .workspace-anchor-object").forEach((anchor) => anchor.remove());
+    saveDataSources(layoutKey, profile, []);
+    saveWorkspaceContexts(layoutKey, profile, []);
+    saveAssets(layoutKey, profile, []);
+    saveWorkspaceLogicGraph(layoutKey, { links: [], styleRules: [] }, profile, { history: false, event: false });
+    invalidateManagedWidgetQueriesForLayout(layoutKey);
+    refreshWorkspaceMiniMaps(layoutKey);
+    return { widgetLayout, panelLayout, anchorLayer };
+  };
   const clearDemoPresetObjects = (layoutKey = "builder") => {
     const presetIds = Object.keys(demoPresetRuntimes?.workspacePresets?.() || {});
     const demoPanelKeys = new Set(Object.values(demoPresetRuntimes?.workspacePresets?.() || {})
@@ -13831,7 +14032,8 @@ document.addEventListener("DOMContentLoaded", () => {
     const widgetLayout = document.querySelector(`.widget-layout[data-widget-layout-key="${CSS.escape(layoutKey)}"]`);
     const panelLayout = document.querySelector(`.panel-layout[data-layout-key="${CSS.escape(layoutKey)}"]`);
     if (!widgetLayout || !panelLayout) return { ok: false, error: "Dashboard layout not ready.", presetId };
-    if (options.reset !== false) clearDemoPresetObjects(layoutKey);
+    if (options.replaceWorkspace) resetWorkspaceDomForGeneratedLayout(layoutKey, profile);
+    else if (options.reset !== false) clearDemoPresetObjects(layoutKey);
 
     const sourceBundle = demoPresetRuntimes.scenarioSource(presetId, { seed: options.seed || preset.seed || presetId });
     saveDataSources(layoutKey, profile, [sourceBundle]);
@@ -13882,8 +14084,11 @@ document.addEventListener("DOMContentLoaded", () => {
     refreshResolvedContextDebug(layoutKey, profile);
     refreshEngineerOverlays();
     refreshWorkspaceMiniMaps(layoutKey);
-    saveWidgetLayouts(widgetLayout, profile, { persist: true, history: false });
-    savePanelLayouts(panelLayout, profile, { persist: true, history: false });
+    saveWidgetLayouts(widgetLayout, profile, { persist: options.persist !== false, history: false });
+    savePanelLayouts(panelLayout, profile, { persist: options.persist !== false, history: false });
+    saveFloatingAnchors(layoutKey, profile, { persist: options.persist !== false, history: false });
+    saveWorkspaceContextState(layoutKey, profile, { persist: options.persist !== false, history: false });
+    if (options.persist !== false) savePersistedWorkspaceSnapshot(layoutKey, profile);
     emitWorkspaceEvent({
       type: "demo-preset-applied",
       source: "demo-runtime",
@@ -13911,12 +14116,16 @@ document.addEventListener("DOMContentLoaded", () => {
     "inspectDatasets",
     "inspectSchema",
     "inspectWidgetRegistry",
+    "createDataStore",
     "createWidget",
     "createPanel",
     "createDivider",
     "createFilter",
     "createCalculatedField",
     "createEquationFilter",
+    "createLogicGate",
+    "createBoolean",
+    "createTypeConverter",
     "createChart",
     "createTable",
     "createStat",
@@ -13927,11 +14136,15 @@ document.addEventListener("DOMContentLoaded", () => {
     "groupObjects",
     "createDataflowLink",
     "applyConditionalStyle",
+    "createConditionalStyle",
     "createScenario",
     "duplicateWorkspace",
     "summarizeWorkspace",
     "explainWidget",
     "explainCalculation",
+    "arrangeObjects",
+    "explainWorkspace",
+    "validateWorkspaceAnswer",
   ]);
   const normalizeAiActionType = (type = "") => AI_ACTION_TYPES.has(type) ? type : "";
   const nextAiObjectId = (prefix = "ai") => `${prefix}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`;
@@ -13946,6 +14159,8 @@ document.addEventListener("DOMContentLoaded", () => {
     if (action.type === "createFilter") return "filter";
     if (action.type === "createNote") return "text";
     if (action.type === "createEquationFilter") return "data-filter";
+    if (action.type === "createLogicGate" || action.type === "createTypeConverter") return "data-filter";
+    if (action.type === "createBoolean") return "shift";
     return action.widgetType || action.runtimeType || action.kind || "stat";
   };
   const aiPanelActionConfig = (action = {}) => ({
@@ -13992,6 +14207,23 @@ document.addEventListener("DOMContentLoaded", () => {
       ...(action.config || {}),
       ...(action.title ? { title: action.title } : {}),
     };
+    if (action.type === "createLogicGate") {
+      config.title = config.title || action.title || "Logic Gate";
+      config.operator = config.operator || action.operator || "AND";
+      config.filterMode = config.filterMode || "logic";
+    }
+    if (action.type === "createTypeConverter") {
+      config.title = config.title || action.title || "Type Conversion";
+      config.filterMode = "type-conversion";
+      config.sourceType = config.sourceType || action.sourceType || "string";
+      config.targetType = config.targetType || action.targetType || "number";
+    }
+    if (action.type === "createBoolean") {
+      config.title = config.title || action.title || "Boolean Signal";
+      config.activeLabel = config.activeLabel || action.activeLabel || "True";
+      config.inactiveLabel = config.inactiveLabel || action.inactiveLabel || "False";
+      config.defaultState = action.defaultState ?? config.defaultState ?? false;
+    }
     if (action.type === "createNote" && action.body && !config.body) config.body = action.body;
     if (action.type === "createStat") config.label = config.label || action.title || config.title;
     if (action.type === "createTable") config.columns = visibleFieldsForAiWidget(config, action.columns || []);
@@ -14084,12 +14316,14 @@ document.addEventListener("DOMContentLoaded", () => {
     const profile = options.profile || getActivePanelProfile(layoutKey);
     const link = window.dashboardRelationshipRuntime?.addLink?.(layoutKey, {
       id: action.id || nextAiObjectId("ai-dataflow-link"),
-      source: action.source || { objectId: action.sourceId, role: "output", portId: "output" },
-      target: action.target || { objectId: action.targetId, role: "input", portId: "input" },
+      source: action.source || { objectId: action.sourceId, role: "output" },
+      target: action.target || { objectId: action.targetId, role: "input" },
       signalType: action.signalType || "data",
       signalState: action.signalState,
       enabled: action.enabled !== false,
-    }, profile, { history: options.history !== false, source: "ai-operator" });
+      label: action.label || "AI dataflow",
+      metadata: { createdBy: "ai-operator", planId: options.planId || action.planId || "" },
+    }, profile, { history: options.history !== false, source: "ai-operator", force: true });
     return link ? { ok: true, id: link.id, type: "createDataflowLink", link } : { ok: false, error: "Dataflow link was rejected.", action };
   };
   const applyConditionalStyleFromAction = (action = {}, options = {}) => {
@@ -14135,6 +14369,140 @@ document.addEventListener("DOMContentLoaded", () => {
     }));
     return inspections;
   };
+  const AI_METADATA_ACTION_TYPES = new Set(["inspectDatasets", "inspectSchema", "inspectWidgetRegistry", "createScenario", "createCalculatedField", "explainCalculation", "summarizeWorkspace", "explainWorkspace", "arrangeObjects", "validateWorkspaceAnswer"]);
+  const AI_VISUAL_WIDGET_ACTION_TYPES = new Set(["createWidget", "createStat", "createChart", "createTable", "createMap", "createFilter", "createNote", "createEquationFilter", "createLogicGate", "createBoolean", "createTypeConverter"]);
+  const elementVisiblyRendered = (node) => {
+    if (!node || node.hidden || !node.isConnected) return false;
+    const style = getComputedStyle(node);
+    const rect = node.getBoundingClientRect();
+    return style.display !== "none" && style.visibility !== "hidden" && rect.width > 2 && rect.height > 2;
+  };
+  const widgetRuntimeHasHonestState = (widget) => Boolean(widget?.querySelector?.(".widget-runtime-state, .unsupported-widget-state"));
+  const widgetRuntimeDataIsVisible = (widget) => {
+    if (!widget) return false;
+    const type = widget.dataset.widgetDefinition || widget.dataset.widgetRuntimeType || widget.dataset.widgetType || "";
+    if (type === "text") return /Question:/i.test(widget.textContent || "") && (widget.textContent || "").trim().length > 24;
+    if (type === "stat") return Boolean(widget.querySelector(".stat-val")?.textContent?.trim()) && !widgetRuntimeHasHonestState(widget);
+    if (type === "chart") return widget.querySelectorAll("svg circle, svg rect, svg path, svg line, svg polyline").length > 0 && !widgetRuntimeHasHonestState(widget);
+    if (type === "table") return widget.querySelectorAll("tbody tr").length > 0 && !widgetRuntimeHasHonestState(widget);
+    if (type === "map") return widget.querySelectorAll(".runtime-map-point").length > 0 && !widgetRuntimeHasHonestState(widget);
+    if (type === "data-filter" || type === "shift" || type === "filter") return true;
+    return !widgetRuntimeHasHonestState(widget) || Boolean((widget.textContent || "").trim());
+  };
+  const aiActionWidgetType = (action = {}) => aiWidgetKindForAction(action);
+  const validateAiWorkspaceAnswer = (plan = {}, execution = {}, options = {}) => {
+    const layoutKey = options.layoutKey || "builder";
+    const profile = options.profile || getActivePanelProfile(layoutKey);
+    const errors = [];
+    const warnings = [];
+    const proof = {
+      actionCount: Array.isArray(plan.steps) ? plan.steps.length : 0,
+      visualWidgetIds: [],
+      backendWidgetIds: [],
+      dataflowLinkIds: [],
+      formulaFields: [],
+      capabilityGaps: plan.capabilityGaps || [],
+    };
+    const addError = (code, message, detail = {}) => errors.push({ code, message, ...detail });
+    const addWarning = (code, message, detail = {}) => warnings.push({ code, message, ...detail });
+    const steps = Array.isArray(plan.steps) ? plan.steps : [];
+    steps.forEach((step) => {
+      const type = normalizeAiActionType(step.type || step.action);
+      if (!type) addError("unsupported-ai-action", `Unsupported AI action "${step.type || step.action || "unknown"}".`, { action: step });
+      if (AI_VISUAL_WIDGET_ACTION_TYPES.has(type)) {
+        const runtimeType = aiActionWidgetType({ ...step, type });
+        const definition = widgetDefinitionFor(runtimeType);
+        if (!definition || definition.type === "unsupported") {
+          addError("unsupported-ai-widget", `AI action requested unsupported widget "${runtimeType}".`, { action: step });
+        }
+      }
+    });
+    (execution.results || []).forEach((result) => {
+      if (!result?.ok) addError("ai-action-failed", result?.error || "AI action failed.", { action: result?.action || null, id: result?.id || "" });
+    });
+    const widgets = [...document.querySelectorAll(`.widget-card[data-ai-plan-id="${CSS.escape(String(plan.id || ""))}"]`)];
+    const panels = [...document.querySelectorAll(`.db-panel[data-ai-plan-id="${CSS.escape(String(plan.id || ""))}"]`)];
+    const visualWidgets = widgets.filter((widget) => widget.dataset.widgetLayer !== "backend");
+    const backendWidgets = widgets.filter((widget) => widget.dataset.widgetLayer === "backend" || widget.dataset.engineerOnly === "true");
+    proof.visualWidgetIds = visualWidgets.map((widget) => widget.dataset.widgetKey || "");
+    proof.backendWidgetIds = backendWidgets.map((widget) => widget.dataset.widgetKey || "");
+    if (!widgets.length && plan.status !== "blocked") addError("ai-no-created-widgets", "AI plan did not create inspectable workspace widgets.");
+    widgets.forEach((widget) => {
+      const definition = widget.dataset.widgetDefinition || widget.dataset.widgetRuntimeType || "";
+      if (!definition || widgetDefinitionFor(definition).type === "unsupported" || widget.querySelector(".unsupported-widget-state")) {
+        addError("ai-created-unsupported-widget", "AI created an unsupported widget.", { id: widget.dataset.widgetKey || "", definition });
+      }
+      if (widget.dataset.widgetLayer === "backend") return;
+      if (!elementVisiblyRendered(widget)) {
+        addError("ai-widget-not-visible", "AI-created visual widget is not visible.", { id: widget.dataset.widgetKey || "", definition });
+      } else if (!widgetRuntimeDataIsVisible(widget)) {
+        addError("ai-widget-has-no-visible-runtime-data", "AI-created visual widget does not show runtime data or a valid explanation.", { id: widget.dataset.widgetKey || "", definition });
+      }
+    });
+    panels.forEach((panel) => {
+      if (!elementVisiblyRendered(panel)) addError("ai-panel-not-visible", "AI-created panel is not visible.", { id: panel.dataset.panelKey || "" });
+    });
+    const visualFormulaWidgets = visualWidgets.filter((widget) => {
+      const config = widgetConfigFromElement(widget);
+      const calculated = Array.isArray(config.calculatedFields) ? config.calculatedFields : [];
+      calculated.forEach((field) => {
+        if (field?.name && !proof.formulaFields.includes(field.name)) proof.formulaFields.push(field.name);
+      });
+      return calculated.length > 0;
+    });
+    if (visualFormulaWidgets.length) {
+      const backendFormulaWidgets = backendWidgets.filter((widget) => {
+        const config = widgetConfigFromElement(widget);
+        return widget.dataset.widgetDefinition === "data-filter" && (config.expression || (Array.isArray(config.calculatedFields) && config.calculatedFields.length));
+      });
+      if (!backendFormulaWidgets.length) {
+        addError("ai-formula-not-engineer-visible", "Calculated AI result has no Engineer Mode formula block.");
+      } else {
+        backendFormulaWidgets.forEach((widget) => {
+          const config = widgetConfigFromElement(widget);
+          const backendFields = new Set((config.calculatedFields || []).map((field) => field?.name).filter(Boolean));
+          proof.formulaFields.forEach((fieldName) => {
+            if (fieldName && !backendFields.has(fieldName)) {
+              addWarning("ai-formula-field-not-listed-on-backend", `Formula field "${fieldName}" is not listed on the Engineer Mode formula block.`, { field: fieldName });
+            }
+          });
+        });
+      }
+      const links = window.dashboardRelationshipRuntime?.dataflowLinks?.(layoutKey, profile) || [];
+      const backendIds = new Set(backendFormulaWidgets.map((widget) => widget.dataset.widgetKey));
+      const formulaVisualIds = new Set(visualFormulaWidgets.map((widget) => widget.dataset.widgetKey));
+      const proofLinks = links.filter((link) => backendIds.has(link.source?.objectId) && formulaVisualIds.has(link.target?.objectId));
+      proof.dataflowLinkIds = proofLinks.map((link) => link.id);
+      formulaVisualIds.forEach((targetId) => {
+        if (!proofLinks.some((link) => link.target?.objectId === targetId)) {
+          addError("ai-missing-dataflow-proof", "Calculated visual output is not wired to its Engineer Mode formula block.", { targetId });
+        }
+      });
+      proofLinks.forEach((link) => {
+        if (link.source?.role !== "output" || link.target?.role !== "input") {
+          addError("ai-invalid-dataflow-direction", "AI dataflow proof must be output -> input.", { id: link.id });
+        }
+      });
+    }
+    if (plan.scenario) {
+      const sources = loadDataSources(layoutKey, profile);
+      const sourceRowsMutated = sources.some((source) => sourceRows(source).some((row) => Object.keys(row || {}).some((key) => /^ai(Projected|Adjusted)/.test(key))));
+      if (sourceRowsMutated) addError("ai-scenario-mutated-source-rows", "Scenario fields were written into source rows instead of derived runtime transforms.");
+      if (!backendWidgets.length) addError("ai-scenario-missing-engineer-proof", "Scenario answer has no Engineer Mode proof block.");
+    }
+    const persistence = window.dashboardPersistenceRuntime?.validate?.(layoutKey, profile);
+    if (persistence && !persistence.ok) addError("ai-persistence-invalid", "AI-created workspace did not pass persistence validation.", { diagnostics: persistence.errors || persistence.diagnostics || [] });
+    if ((plan.capabilityGaps || []).some((gap) => gap.type !== "missing-data" && gap.type !== "missing-field") && errors.length === 0) {
+      addWarning("ai-capability-gap-partial", "Plan contains a capability gap and should be treated as partial until the generalized primitive exists.");
+    }
+    return {
+      ok: errors.length === 0,
+      status: errors.length ? "invalid" : ((plan.capabilityGaps || []).length ? "partial" : "valid"),
+      errors,
+      warnings,
+      proof,
+    };
+  };
   const nextSafeWorkspaceRow = (layoutKey = "builder", options = {}) => {
     const excludePlanId = options.excludePlanId || "";
     const rowOf = (node) => {
@@ -14165,15 +14533,17 @@ document.addEventListener("DOMContentLoaded", () => {
     if (type === "inspectDatasets" || type === "inspectSchema") return { ok: true, type, datasets: await inspectDatasetsForAction(layoutKey, profile) };
     if (type === "inspectWidgetRegistry") return { ok: true, type, widgets: window.dashboardWidgetRuntime?.listWidgetDefinitions?.() || [] };
     if (type === "createPanel") return createWorkspacePanelFromAction(action, options);
-    if (type === "createWidget" || type === "createStat" || type === "createChart" || type === "createTable" || type === "createMap" || type === "createFilter" || type === "createNote" || type === "createEquationFilter") {
+    if (type === "createWidget" || type === "createStat" || type === "createChart" || type === "createTable" || type === "createMap" || type === "createFilter" || type === "createNote" || type === "createEquationFilter" || type === "createLogicGate" || type === "createBoolean" || type === "createTypeConverter") {
       return createWorkspaceWidgetFromAction(action, options);
     }
     if (type === "createDivider") return createWorkspacePanelFromAction({ ...action, dashboardObjectKind: "divider", title: action.title || "AI Divider" }, options);
     if (type === "moveObject") return moveWorkspaceObjectFromAction(action, options);
     if (type === "resizeObject") return resizeWorkspaceObjectFromAction(action, options);
     if (type === "createDataflowLink") return createDataflowLinkFromAction(action, options);
-    if (type === "applyConditionalStyle") return applyConditionalStyleFromAction(action, options);
-    if (type === "createScenario" || type === "createCalculatedField" || type === "explainCalculation" || type === "summarizeWorkspace" || type === "explainWidget" || type === "groupObjects" || type === "duplicateWorkspace") {
+    if (type === "applyConditionalStyle" || type === "createConditionalStyle") return applyConditionalStyleFromAction(action, options);
+    if (type === "validateWorkspaceAnswer") return { ok: true, type, validation: validateAiWorkspaceAnswer(action.plan || {}, action.execution || {}, { layoutKey, profile }) };
+    if (type === "createDataStore") return { ok: false, type, error: "Data store creation is not implemented as a workspace primitive yet.", action };
+    if (type === "createScenario" || type === "createCalculatedField" || type === "explainCalculation" || type === "summarizeWorkspace" || type === "explainWidget" || type === "groupObjects" || type === "duplicateWorkspace" || type === "arrangeObjects" || type === "explainWorkspace") {
       return { ok: true, type, metadata: { ...action, handledAsPlanningMetadata: true } };
     }
     return { ok: false, error: `AI action is not implemented: ${type}`, action };
@@ -14183,6 +14553,7 @@ document.addEventListener("DOMContentLoaded", () => {
     validateAction: (action = {}) => ({ ok: Boolean(normalizeAiActionType(action.type || action.action)), type: normalizeAiActionType(action.type || action.action) }),
     inspectDatasets: (layoutKey = "builder", profile = getActivePanelProfile(layoutKey)) => inspectDatasetsForAction(layoutKey, profile),
     inspectWidgetRegistry: () => window.dashboardWidgetRuntime?.listWidgetDefinitions?.() || [],
+    validateWorkspaceAnswer: validateAiWorkspaceAnswer,
     nextSafeRow: nextSafeWorkspaceRow,
     updateWidgetConfig: (widget, patch = {}, options = {}) => {
       const node = typeof widget === "string" ? document.querySelector(widget) : widget;
@@ -14202,7 +14573,8 @@ document.addEventListener("DOMContentLoaded", () => {
       for (const action of (Array.isArray(plan.steps) ? plan.steps : [])) {
         results.push(await executeWorkspaceAiAction(action, { ...options, planId: plan.id || "" }));
       }
-      return { ok: results.every((result) => result.ok), planId: plan.id || "", results };
+      const validation = validateAiWorkspaceAnswer(plan, { results }, options);
+      return { ok: results.every((result) => result.ok) && validation.ok, planId: plan.id || "", results, validation };
     },
   };
   document.querySelectorAll(".panel-layout").forEach((layout) => {
@@ -14227,38 +14599,239 @@ document.addEventListener("DOMContentLoaded", () => {
     return document.querySelector(`.layout-slot-trigger[data-layout-target="${CSS.escape(layoutKey)}"]`)?.dataset.currentSlot || getActivePanelProfile(layoutKey);
   };
 
-  document.querySelectorAll(".layout-slot-picker").forEach((picker) => {
+  const layoutSourceLabel = (source = {}, layoutKey = "builder") => {
+    if (source.kind === "saved") return `Layout ${source.slot || source.id || getActivePanelProfile(layoutKey)}`;
+    const demoPreset = demoPresetRuntimes?.workspacePresets?.()?.[source.id];
+    const aiExample = generatedAiExampleDefinitions().find((entry) => entry.id === source.id);
+    const generated = registeredGeneratedLayouts(layoutKey).find((entry) => entry.id === source.id);
+    return source.label || demoPreset?.label || aiExample?.label || generated?.label || "Workspace";
+  };
+  const layoutSourceGroups = (layoutKey = "builder") => {
+    const demoPresets = demoPresetRuntimes?.workspacePresets?.() || {};
+    const demoIds = [
+      "executive-overview",
+      "operations-command-center",
+      "maintenance-planning",
+      "customer-success",
+      "ai-scenario-analysis",
+      "engineer-dataflow-demo",
+      "panel-containment-stress",
+      "geospatial-operations",
+      "asset-health",
+      "financial-forecasting",
+      "alarm-analytics",
+      "live-dispatch-board",
+    ].filter((id) => demoPresets[id]);
+    return [
+      {
+        id: "saved-layouts",
+        label: "Saved Layouts",
+        entries: Array.from({ length: 10 }, (_, index) => {
+          const slot = String(index + 1);
+          return { kind: "saved", id: slot, slot, label: `Layout ${slot}` };
+        }),
+      },
+      {
+        id: "demo-workspaces",
+        label: "Demo Workspaces",
+        entries: demoIds.map((id) => ({ kind: "demo", id, label: demoPresets[id].label || id })),
+      },
+      {
+        id: "ai-generated-examples",
+        label: "AI Generated Examples",
+        entries: generatedAiExampleDefinitions().map((entry) => ({ kind: "ai-example", ...entry })),
+      },
+      {
+        id: "generated-history",
+        label: "Generated History",
+        entries: registeredGeneratedLayouts(layoutKey).map((entry) => ({
+          kind: entry.kind || "ai-generated",
+          id: entry.id,
+          label: entry.label,
+          profile: entry.profile,
+        })),
+      },
+    ].filter((group) => group.entries.length);
+  };
+  const renderLayoutSourceMenus = () => {
+    document.querySelectorAll(".layout-slot-picker").forEach((picker) => {
+      const layoutKey = picker.dataset.layoutTarget || "default";
+      const trigger = picker.querySelector(".layout-slot-trigger");
+      const triggerLabel = trigger?.querySelector(".layout-slot-label");
+      const menu = picker.querySelector(".layout-slot-menu");
+      const activeSource = activeLayoutSource(layoutKey);
+      const currentSlot = activeSource.kind === "saved" ? (activeSource.slot || activeSource.id || getActivePanelProfile(layoutKey)) : (trigger?.dataset.currentSlot || "1");
+      if (trigger) {
+        trigger.dataset.layoutTarget = layoutKey;
+        trigger.dataset.currentSlot = currentSlot;
+        trigger.dataset.layoutSourceKind = activeSource.kind || "saved";
+        trigger.dataset.layoutSourceId = activeSource.id || currentSlot;
+        if (triggerLabel) triggerLabel.textContent = layoutSourceLabel(activeSource, layoutKey);
+        else trigger.textContent = layoutSourceLabel(activeSource, layoutKey);
+      }
+      if (!menu) return;
+      menu.replaceChildren();
+      layoutSourceGroups(layoutKey).forEach((group) => {
+        const section = document.createElement("div");
+        section.className = "layout-source-group";
+        section.dataset.layoutSourceGroup = group.id;
+        const header = document.createElement("div");
+        header.className = "layout-source-heading";
+        header.textContent = group.label;
+        section.appendChild(header);
+        group.entries.forEach((entry) => {
+          const option = document.createElement("button");
+          option.type = "button";
+          option.className = "layout-source-option";
+          option.setAttribute("role", "menuitem");
+          option.dataset.layoutSourceKind = entry.kind;
+          option.dataset.layoutSourceId = entry.id;
+          option.dataset.layoutSourceLabel = entry.label;
+          if (entry.slot) {
+            option.dataset.slot = entry.slot;
+            option.dataset.layoutSlot = entry.slot;
+          }
+          if (entry.prompt) option.dataset.aiPrompt = entry.prompt;
+          if (entry.scenario) option.dataset.demoScenario = entry.scenario;
+          if (entry.profile) option.dataset.layoutProfile = entry.profile;
+          option.textContent = entry.label;
+          const isActive = (activeSource.kind || "saved") === entry.kind &&
+            String(activeSource.id || activeSource.slot || "") === String(entry.id || entry.slot || "");
+          option.classList.toggle("is-active", isActive);
+          section.appendChild(option);
+        });
+        menu.appendChild(section);
+      });
+    });
+  };
+  renderLayoutSourceMenus();
+  const closeLayoutSourceMenus = () => {
+    document.querySelectorAll(".layout-slot-menu.open").forEach((menu) => menu.classList.remove("open"));
+    document.querySelectorAll(".layout-slot-trigger[aria-expanded='true']").forEach((trigger) => trigger.setAttribute("aria-expanded", "false"));
+  };
+
+  const setLayoutTriggerSelection = (picker, source = {}) => {
     const layoutKey = picker.dataset.layoutTarget || "default";
     const trigger = picker.querySelector(".layout-slot-trigger");
     const triggerLabel = trigger?.querySelector(".layout-slot-label");
-    const menu = picker.querySelector(".layout-slot-menu");
-    const activeSlot = getActivePanelProfile(layoutKey);
-    if (trigger) {
-      trigger.dataset.layoutTarget = layoutKey;
-      trigger.dataset.currentSlot = activeSlot;
-      if (triggerLabel) triggerLabel.textContent = `Layout ${activeSlot}`;
-      else trigger.textContent = `Layout ${activeSlot}`;
-    }
-    menu?.querySelectorAll("[data-slot]").forEach((option) => {
-      option.classList.toggle("is-active", option.dataset.slot === activeSlot);
-      option.addEventListener("click", (event) => {
-        event.preventDefault();
-        event.stopPropagation();
-        const slot = option.dataset.slot || "1";
-        if (trigger) {
-          trigger.dataset.currentSlot = slot;
-          const label = trigger.querySelector(".layout-slot-label");
-          if (label) label.textContent = `Layout ${slot}`;
-          else trigger.textContent = `Layout ${slot}`;
-          trigger.setAttribute("aria-expanded", "false");
-        }
-        menu.classList.remove("open");
-        menu.querySelectorAll("[data-slot]").forEach((item) => item.classList.toggle("is-active", item.dataset.slot === slot));
-      });
+    if (!trigger) return;
+    if (source.kind === "saved") trigger.dataset.currentSlot = source.slot || source.id || "1";
+    trigger.dataset.layoutSourceKind = source.kind || "saved";
+    trigger.dataset.layoutSourceId = source.id || source.slot || "1";
+    if (triggerLabel) triggerLabel.textContent = layoutSourceLabel(source, layoutKey);
+    else trigger.textContent = layoutSourceLabel(source, layoutKey);
+    picker.querySelectorAll(".layout-source-option, [data-slot]").forEach((item) => {
+      const sameKind = (item.dataset.layoutSourceKind || "saved") === (source.kind || "saved");
+      const sameId = String(item.dataset.layoutSourceId || item.dataset.slot || "") === String(source.id || source.slot || "");
+      item.classList.toggle("is-active", sameKind && sameId);
     });
+  };
+
+  const persistGeneratedWorkspaceSelection = (layoutKey, profile, source) => {
+    try {
+      localStorage.setItem(`${panelProfilePrefix}${layoutKey}`, profile);
+    } catch {}
+    setActiveLayoutSource(layoutKey, source);
+  };
+
+  const activateDemoLayoutSource = async (layoutKey = "builder", source = {}) => {
+    const profile = generatedWorkspaceProfile("demo", source.id);
+    persistGeneratedWorkspaceSelection(layoutKey, profile, source);
+    document.body.classList.add("layout-source-loading");
+    try {
+      const result = applyDemoWorkspacePreset(source.id, {
+        layoutKey,
+        profile,
+        seed: source.id,
+        replaceWorkspace: true,
+        persist: true,
+      });
+      if (!result.ok) return result;
+      renderLayoutSourceMenus();
+      closeLayoutSourceMenus();
+      showToast(`${layoutSourceLabel(source, layoutKey)} loaded.`, "info", {
+        type: "layout-source-loaded",
+        source: "layout-selector",
+        layoutKey,
+        payload: { kind: source.kind, id: source.id, profile },
+      });
+      return result;
+    } finally {
+      document.body.classList.remove("layout-source-loading");
+    }
+  };
+
+  const activateAiExampleLayoutSource = async (layoutKey = "builder", source = {}) => {
+    const example = generatedAiExampleDefinitions().find((entry) => entry.id === source.id) || source;
+    const profile = generatedWorkspaceProfile("ai-example", example.id);
+    persistGeneratedWorkspaceSelection(layoutKey, profile, { ...source, label: example.label });
+    document.body.classList.add("layout-source-loading");
+    try {
+      const { widgetLayout, panelLayout } = resetWorkspaceDomForGeneratedLayout(layoutKey, profile);
+      if (!widgetLayout || !panelLayout) return { ok: false, error: "Dashboard layout not ready.", source };
+      const sourceBundle = demoPresetRuntimes.scenarioSource(example.scenario || example.id, { seed: example.id });
+      saveDataSources(layoutKey, profile, [sourceBundle]);
+      saveWorkspaceContexts(layoutKey, profile, [sourceBundle.context]);
+      invalidateManagedWidgetQueriesForLayout(layoutKey);
+      refreshResolvedContextDebug(layoutKey, profile);
+      const result = await window.dashboardAiOperatorRuntime?.runPrompt?.(example.prompt || example.label, {
+        execute: true,
+        layoutKey,
+      });
+      saveWidgetLayouts(widgetLayout, profile, { persist: true, history: false });
+      savePanelLayouts(panelLayout, profile, { persist: true, history: false });
+      saveFloatingAnchors(layoutKey, profile, { persist: true, history: false });
+      savePersistedWorkspaceSnapshot(layoutKey, profile);
+      registerGeneratedLayoutSource(layoutKey, {
+        id: example.id,
+        label: example.label,
+        kind: "ai-example",
+        profile,
+      });
+      renderLayoutSourceMenus();
+      closeLayoutSourceMenus();
+      showToast(`${example.label} loaded.`, "info", {
+        type: "layout-source-loaded",
+        source: "layout-selector",
+        layoutKey,
+        payload: { kind: "ai-example", id: example.id, profile, planId: result?.plan?.id || "" },
+      });
+      return { ok: Boolean(result?.ok), result, profile };
+    } finally {
+      document.body.classList.remove("layout-source-loading");
+    }
+  };
+
+  const activateRegisteredGeneratedLayoutSource = (layoutKey = "builder", source = {}) => {
+    const profile = source.profile || registeredGeneratedLayouts(layoutKey).find((entry) => entry.id === source.id)?.profile;
+    if (!profile) return { ok: false, error: "Generated layout profile not found.", source };
+    persistGeneratedWorkspaceSelection(layoutKey, profile, source);
+    window.location.reload();
+    return { ok: true, profile };
+  };
+
+  const activateLayoutSource = async (layoutKey = "builder", source = {}) => {
+    if ((source.kind || "saved") === "demo") return activateDemoLayoutSource(layoutKey, source);
+    if (source.kind === "ai-example") return activateAiExampleLayoutSource(layoutKey, source);
+    if (source.kind === "ai-generated") return activateRegisteredGeneratedLayoutSource(layoutKey, source);
+    return { ok: false, error: "Unsupported layout source.", source };
+  };
+  window.dashboardLayoutSourceRuntime = {
+    groups: layoutSourceGroups,
+    active: activeLayoutSource,
+    activate: activateLayoutSource,
+    registerGenerated: registerGeneratedLayoutSource,
+    render: renderLayoutSourceMenus,
+  };
+
+  document.querySelectorAll(".layout-slot-picker").forEach((picker) => {
+    const layoutKey = picker.dataset.layoutTarget || "default";
+    const trigger = picker.querySelector(".layout-slot-trigger");
+    const menu = picker.querySelector(".layout-slot-menu");
     let closeTimer;
     const openMenu = () => {
       window.clearTimeout(closeTimer);
+      renderLayoutSourceMenus();
       menu?.classList.add("open");
       trigger?.setAttribute("aria-expanded", "true");
     };
@@ -14281,29 +14854,24 @@ document.addEventListener("DOMContentLoaded", () => {
       event.stopPropagation();
       openMenu();
     });
-    menu?.addEventListener("pointerenter", (event) => {
-      const group = event.target?.closest?.(".object-add-category, .object-add-subcategory");
-      if (!group || !menu.contains(group)) return;
-      setObjectAddSubmenuOpen(group, true);
-    }, true);
-    menu?.addEventListener("focusin", (event) => {
-      const group = event.target?.closest?.(".object-add-category, .object-add-subcategory");
-      if (!group || !menu.contains(group)) return;
-      setObjectAddSubmenuOpen(group, true);
-    });
-    menu?.addEventListener("click", (event) => {
-      const triggerButton = event.target?.closest?.(".object-add-category-trigger, .object-add-subcategory-trigger");
-      if (!triggerButton || !menu.contains(triggerButton)) return;
+    menu?.addEventListener("click", async (event) => {
+      const option = event.target?.closest?.(".layout-source-option, [data-slot]");
+      if (!option || !menu.contains(option)) return;
       event.preventDefault();
       event.stopPropagation();
-      const group = triggerButton.closest(".object-add-category, .object-add-subcategory");
-      const willOpen = !group.classList.contains("is-open");
-      const scope = group.parentElement;
-      scope?.querySelectorAll?.(":scope > .object-add-category.is-open, :scope > .object-add-subcategory.is-open")
-        .forEach((openGroup) => {
-          if (openGroup !== group) setObjectAddSubmenuOpen(openGroup, false);
-        });
-      setObjectAddSubmenuOpen(group, willOpen);
+      const source = {
+        kind: option.dataset.layoutSourceKind || "saved",
+        id: option.dataset.layoutSourceId || option.dataset.slot || "1",
+        slot: option.dataset.layoutSlot || option.dataset.slot || "",
+        label: option.dataset.layoutSourceLabel || option.textContent?.trim() || "",
+        prompt: option.dataset.aiPrompt || "",
+        scenario: option.dataset.demoScenario || "",
+        profile: option.dataset.layoutProfile || "",
+      };
+      setLayoutTriggerSelection(picker, source);
+      closeMenu();
+      if (source.kind === "saved") return;
+      await activateLayoutSource(layoutKey, source);
     });
     document.addEventListener("pointerdown", (event) => {
       if (!picker.contains(event.target)) closeMenu();
@@ -14314,12 +14882,24 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   document.querySelectorAll(".layout-load-button").forEach((button) => {
-    button.addEventListener("click", () => {
+    button.addEventListener("click", async () => {
       const layoutKey = button.dataset.layoutTarget || "default";
+      const trigger = document.querySelector(`.layout-slot-trigger[data-layout-target="${CSS.escape(layoutKey)}"]`);
+      const source = {
+        kind: trigger?.dataset.layoutSourceKind || "saved",
+        id: trigger?.dataset.layoutSourceId || trigger?.dataset.currentSlot || "1",
+        slot: trigger?.dataset.currentSlot || "1",
+        label: trigger?.querySelector(".layout-slot-label")?.textContent?.trim() || "",
+      };
+      if (source.kind !== "saved") {
+        await activateLayoutSource(layoutKey, source);
+        return;
+      }
       const selected = activeLayoutSlot(layoutKey) || "1";
       try {
         localStorage.setItem(`${panelProfilePrefix}${layoutKey}`, selected);
       } catch {}
+      setActiveLayoutSource(layoutKey, { kind: "saved", id: selected, slot: selected, label: `Layout ${selected}` });
       showToast(`Loading layout ${selected}.`, "info", {
         type: "layout-load-completed",
         source: "layout-load",
@@ -14354,6 +14934,8 @@ document.addEventListener("DOMContentLoaded", () => {
       saveFloatingAnchors(layoutKey, selected, { persist: true });
       saveWorkspaceContextState(layoutKey, selected, { persist: true, history: false });
       savePersistedWorkspaceSnapshot(layoutKey, selected);
+      setActiveLayoutSource(layoutKey, { kind: "saved", id: selected, slot: selected, label: `Layout ${selected}` });
+      renderLayoutSourceMenus();
       showToast(`Layout ${selected} saved.`, "info", {
         type: "layout-save-completed",
         source: "layout-save",
@@ -14372,7 +14954,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   document.addEventListener("click", (event) => {
     if (!groupMode || event.button !== 0) return;
-    if (event.target?.closest?.(".app-nav, .panel-tools, .widget-tools, .panel-color-menu, .panel-add-menu, .layout-slot-menu, .nav-status-popover")) return;
+    if (event.target?.closest?.(".app-nav, .workspace-assistant-rail, .panel-tools, .widget-tools, .panel-color-menu, .panel-add-menu, .layout-slot-menu, .nav-status-popover")) return;
     const item = event.target?.closest?.(".widget-layout > .widget-card, .panel-layout > .db-panel");
     if (!item) return;
     event.preventDefault();
@@ -14419,7 +15001,6 @@ document.addEventListener("DOMContentLoaded", () => {
     { category: "media", displayName: "Video", actionClass: "widget-add-action", dataset: { widgetKind: "video" } },
     { category: "media", displayName: "PDF / Document", actionClass: "widget-add-action", dataset: { widgetKind: "document" } },
     { category: "system", displayName: "Activity Feed", actionClass: "widget-add-action", dataset: { widgetKind: "activity-feed" } },
-    { category: "system", displayName: "AI Assistant", actionClass: "widget-add-action", dataset: { widgetKind: "ai-assistant" } },
     { category: "system", displayName: "Context Inspector", actionClass: "widget-add-action", engineerOnly: true, dataset: { widgetKind: "context-inspector" } },
     { category: "system", subcategory: "Reactive", displayName: "Shift Widget", actionClass: "widget-add-action", dataset: { widgetKind: "shift" } },
     { category: "containers", displayName: "Panel", actionClass: "panel-add-action", dataset: { panelKind: "panel" } },

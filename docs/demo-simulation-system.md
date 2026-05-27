@@ -87,10 +87,24 @@ Current presets:
 - `operations-command-center`
 - `maintenance-planning`
 - `customer-success`
+- `ai-scenario-analysis`
 - `engineer-dataflow-demo`
 - `panel-containment-stress`
+- `geospatial-operations`
+- `asset-health`
+- `financial-forecasting`
+- `alarm-analytics`
+- `live-dispatch-board`
 
 Preset layout objects are normal registry-backed widgets and panels. Data source rows are persisted only as demo data sources when a preset is intentionally applied. Transient widget query results are not written into widget config, panel child ownership, or saved layout snapshots.
+
+## Layout Selector Integration
+
+Demo and generated workspaces are first-class layout sources in the existing Layout selector. The selector groups saved user profiles, demo workspaces, AI generated examples, and generated history without adding a second launcher.
+
+Selecting a demo workspace loads it into an isolated generated profile such as `demo:executive-overview`. This keeps user Layout 1-10 storage clean until the user explicitly presses Save, which copies the current generated workspace into the selected user layout slot. Generated profiles are reload-safe and editable, but they are separate from permanent saved layouts.
+
+AI generated examples use the same layout-source path. They seed demo data, ask the local AI Workspace Operator to build a visual answer, persist that generated workspace under an isolated profile such as `ai-example:cost-reduction-scenario`, and register it in generated history for reopening.
 
 ## Validation Expectations
 

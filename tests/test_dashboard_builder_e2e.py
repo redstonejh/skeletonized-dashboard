@@ -857,7 +857,7 @@ def test_panels_are_generic_containers_not_table_panel_types(page: Page, app_ser
     expect(page.locator('.widget-add-action[data-widget-kind="video"]')).to_have_text("Video")
     expect(page.locator('.widget-add-action[data-widget-kind="document"]')).to_have_text("PDF / Document")
     expect(page.locator('.widget-add-action[data-widget-kind="activity-feed"]')).to_have_text("Activity Feed")
-    expect(page.locator('.widget-add-action[data-widget-kind="ai-assistant"]')).to_have_text("AI Assistant")
+    expect(page.locator('.widget-add-action[data-widget-kind="ai-assistant"]')).to_have_count(0)
     expect(page.locator('.widget-add-action[data-widget-kind="context-inspector"]')).to_have_count(0)
     expect(page.locator('.widget-add-action[data-widget-kind="anchor"]')).to_have_count(1)
     expect(page.locator('.divider-add-action[data-divider-kind="context-divider"]')).to_have_count(1)
@@ -2198,6 +2198,159 @@ def test_demo_workspace_presets_render_visible_data_and_persist_panel_scope(page
     assert_clean_browser(page)
 
 
+def test_layout_selector_loads_demo_and_ai_workspace_sources_without_polluting_saved_layouts(page: Page, app_server: str) -> None:
+    goto(page, app_server)
+    page.evaluate("localStorage.clear()")
+    page.reload(wait_until="networkidle")
+    page.wait_for_selector(".page")
+
+    page.locator(".layout-slot-trigger").click()
+    menu = page.locator(".layout-slot-menu")
+    expect(menu).to_have_class(re.compile("open"))
+    expect(menu).to_contain_text("Saved Layouts")
+    expect(menu).to_contain_text("Demo Workspaces")
+    expect(menu).to_contain_text("AI Generated Examples")
+    expect(menu.locator('.layout-source-option[data-layout-source-kind="demo"][data-layout-source-id="executive-overview"]')).to_be_visible()
+    expect(menu.locator('.layout-source-option[data-layout-source-kind="demo"][data-layout-source-id="live-dispatch-board"]')).to_be_visible()
+    menu_geometry = menu.evaluate(
+        """
+        node => {
+          const rect = node.getBoundingClientRect();
+          const headings = [...node.querySelectorAll(".layout-source-heading")].map((heading) => heading.textContent.trim());
+          return {
+            width: rect.width,
+            bottom: rect.bottom,
+            viewportHeight: window.innerHeight,
+            headings,
+            buttonCount: node.querySelectorAll(".layout-source-option").length,
+          };
+        }
+        """
+    )
+    assert menu_geometry["width"] >= 220
+    assert menu_geometry["bottom"] <= menu_geometry["viewportHeight"] + 1
+    assert "Demo Workspaces" in menu_geometry["headings"]
+    assert menu_geometry["buttonCount"] >= 20
+
+    menu.locator('.layout-source-option[data-layout-source-kind="demo"][data-layout-source-id="executive-overview"]').click()
+    expect(page.locator(".layout-slot-label")).to_have_text("Executive Overview")
+    page.wait_for_function(
+        """
+        () => document.querySelectorAll('[data-demo-preset-object="true"].widget-card[data-widget-runtime-status="ready"]').length >= 4
+        """
+    )
+    demo_state = page.evaluate(
+        """
+        () => {
+          const savedSlotKeys = Object.keys(localStorage).filter((key) => key.includes(":1:builder"));
+          const widgets = [...document.querySelectorAll('[data-demo-preset-object="true"].widget-card')];
+          return {
+            profile: localStorage.getItem("dashboard-panel-profile:builder"),
+            source: JSON.parse(localStorage.getItem("dashboard-layout-source:builder") || "{}"),
+            widgets: widgets.map((node) => node.dataset.widgetDefinition),
+            chartMarks: widgets.filter((node) => node.dataset.widgetDefinition === "chart")
+              .map((node) => node.querySelectorAll("svg circle, svg rect, svg path, svg line, svg polyline").length),
+            hiddenDefaults: [...document.querySelectorAll('.widget-layout[data-widget-layout-key="builder"] > .widget-card:not([data-demo-preset-object="true"]), .panel-layout[data-layout-key="builder"] > .db-panel:not([data-demo-preset-object="true"])')]
+              .filter((node) => node.hidden).length,
+            savedSlotPolluted: savedSlotKeys.some((key) => (localStorage.getItem(key) || "").includes("executive-overview-widget")),
+            validation: window.dashboardPersistenceRuntime.validate("builder", "demo:executive-overview").ok,
+          };
+        }
+        """
+    )
+    assert demo_state["profile"] == "demo:executive-overview"
+    assert demo_state["source"]["kind"] == "demo"
+    assert {"stat", "chart", "table"}.issubset(set(demo_state["widgets"]))
+    assert all(count > 0 for count in demo_state["chartMarks"])
+    assert demo_state["hiddenDefaults"] >= 3
+    assert demo_state["savedSlotPolluted"] is False
+    assert demo_state["validation"] is True
+
+    page.locator(".layout-slot-trigger").click()
+    page.locator('.layout-source-option[data-layout-source-kind="saved"][data-slot="2"]').click()
+    page.locator(".layout-save-button").click()
+    expect(page.locator(".toast", has_text="saved")).to_be_visible()
+    saved_copy = page.evaluate(
+        """
+        () => ({
+          profile: localStorage.getItem("dashboard-panel-profile:builder"),
+          source: JSON.parse(localStorage.getItem("dashboard-layout-source:builder") || "{}"),
+          copied: Object.keys(localStorage)
+            .filter((key) => key.includes(":2:builder"))
+            .some((key) => (localStorage.getItem(key) || "").includes("executive-overview-widget")),
+          validation: window.dashboardPersistenceRuntime.validate("builder", "2").ok,
+        })
+        """
+    )
+    assert saved_copy == {
+        "profile": "2",
+        "source": {"kind": "saved", "id": "2", "label": "Layout 2", "slot": "2"},
+        "copied": True,
+        "validation": True,
+    }
+
+    page.locator(".layout-slot-trigger").click()
+    page.locator('.layout-source-option[data-layout-source-kind="demo"][data-layout-source-id="panel-containment-stress"]').click()
+    page.wait_for_function(
+        """
+        () => document.querySelectorAll('.panel-internal-widget-grid > [data-demo-preset-object="true"].widget-card[data-widget-runtime-status="ready"]').length >= 3
+        """
+    )
+    panel_state = page.evaluate(
+        """
+        () => [...document.querySelectorAll('.panel-layout > .db-panel[data-demo-preset-object="true"]')].map((panel) => ({
+          key: panel.dataset.panelKey,
+          childCount: panel.querySelectorAll('.panel-internal-widget-grid > .widget-card[data-demo-preset-object="true"]').length,
+          childParents: [...panel.querySelectorAll('.panel-internal-widget-grid > .widget-card[data-demo-preset-object="true"]')]
+            .map((child) => child.dataset.parentPanelKey),
+        }))
+        """
+    )
+    assert len(panel_state) == 2
+    assert sum(panel["childCount"] for panel in panel_state) >= 3
+    assert all(parent == panel["key"] for panel in panel_state for parent in panel["childParents"])
+
+    page.locator(".layout-slot-trigger").click()
+    page.locator('.layout-source-option[data-layout-source-kind="ai-example"][data-layout-source-id="cost-reduction-scenario"]').click()
+    expect(page.locator(".layout-slot-label")).to_have_text("Cost Reduction Scenario")
+    page.wait_for_function(
+        """
+        () => document.querySelectorAll('.widget-card[data-ai-plan-id]').length >= 4
+        """
+    )
+    page.wait_for_function(
+        """
+        () => JSON.parse(localStorage.getItem("dashboard-generated-layout-sources:builder") || "[]").length >= 1
+        """
+    )
+    ai_state = page.evaluate(
+        """
+        () => {
+          const widgets = [...document.querySelectorAll('.widget-card[data-ai-plan-id]')];
+          return {
+            profile: localStorage.getItem("dashboard-panel-profile:builder"),
+            source: JSON.parse(localStorage.getItem("dashboard-layout-source:builder") || "{}"),
+            widgets: widgets.map((node) => node.dataset.widgetDefinition),
+            unsupported: widgets.filter((node) => node.dataset.widgetDefinition === "unsupported").length,
+            generatedHistory: JSON.parse(localStorage.getItem("dashboard-generated-layout-sources:builder") || "[]").length,
+            sourceRowsPersisted: window.dashboardContextEngine.getDataSources("builder")[0].config.rows.some((row) =>
+              Object.keys(row).some((key) => key.startsWith("aiProjected") || key.startsWith("aiAdjusted"))
+            ),
+            validation: window.dashboardPersistenceRuntime.validate("builder", "ai-example:cost-reduction-scenario").ok,
+          };
+        }
+        """
+    )
+    assert ai_state["profile"] == "ai-example:cost-reduction-scenario"
+    assert ai_state["source"]["kind"] == "ai-example"
+    assert {"stat", "chart", "table", "text"}.issubset(set(ai_state["widgets"]))
+    assert ai_state["unsupported"] == 0
+    assert ai_state["generatedHistory"] >= 1
+    assert ai_state["sourceRowsPersisted"] is False
+    assert ai_state["validation"] is True
+    assert_clean_browser(page)
+
+
 def seed_ai_operator_source(page: Page, scenario: str = "executive-overview") -> None:
     page.evaluate(
         """
@@ -2236,6 +2389,8 @@ def test_ai_operator_plans_executes_and_persists_visual_dashboard(page: Page, ap
     assert any(step["type"] == "createChart" for step in plan["steps"])
     assert any(step["type"] == "createTable" for step in plan["steps"])
     assert result["execution"]["ok"] is True
+    assert result["execution"]["validation"]["ok"] is True
+    assert result["execution"]["validation"]["proof"]["visualWidgetIds"]
 
     page.wait_for_function(
         """
@@ -2305,6 +2460,8 @@ def test_ai_operator_what_if_uses_derived_fields_and_engineer_transparency(page:
     assert plan["scenario"]["destructive"] is False
     assert plan["scenario"]["factor"] == 0.88
     assert any("laborCost is not present" in assumption["text"] for assumption in plan["assumptions"])
+    assert any(gap["type"] == "missing-field" and "laborCost" in gap["missingFields"] for gap in plan["capabilityGaps"])
+    assert result["execution"]["validation"]["ok"] is True
 
     page.wait_for_function(
         """
@@ -2325,6 +2482,13 @@ def test_ai_operator_what_if_uses_derived_fields_and_engineer_transparency(page:
             tableText: table?.textContent || "",
             backendLayer: backend?.dataset.widgetLayer || "",
             backendHiddenNormal: backend ? (backend.hidden || getComputedStyle(backend).display === "none" || backend.offsetParent === null) : false,
+            links: window.dashboardRelationshipRuntime.dataflowLinks("builder").filter((link) => link.id.startsWith(planId)).map((link) => ({
+              id: link.id,
+              sourceRole: link.source.role,
+              targetRole: link.target.role,
+              sourceObjectId: link.source.objectId,
+              targetObjectId: link.target.objectId,
+            })),
             sourceRowsPersisted: window.dashboardContextEngine.getDataSources("builder")[0].config.rows.some((row) =>
               Object.prototype.hasOwnProperty.call(row, "aiAdjustedCost") ||
               Object.keys(row).some((key) => key.startsWith("aiProjected"))
@@ -2337,6 +2501,13 @@ def test_ai_operator_what_if_uses_derived_fields_and_engineer_transparency(page:
     assert state["sourceRowsPersisted"] is False
     assert state["backendLayer"] == "backend"
     assert state["backendHiddenNormal"] is True
+    assert len(state["links"]) >= 3
+    assert all(link["sourceRole"] == "output" and link["targetRole"] == "input" for link in state["links"])
+    assert {link["targetObjectId"] for link in state["links"]}.issuperset({
+        f'{plan["id"]}-savings',
+        f'{plan["id"]}-scenario-chart',
+        f'{plan["id"]}-scenario-table',
+    })
     assert any(field["name"].startswith("aiAdjusted") for field in state["statConfig"]["calculatedFields"])
     assert "aiProjectedSavings" in state["tableConfig"]["columns"]
     assert "Scenario" in state["tableText"]
@@ -2346,6 +2517,20 @@ def test_ai_operator_what_if_uses_derived_fields_and_engineer_transparency(page:
     backend = page.locator(f'.widget-card[data-ai-plan-id="{plan["id"]}"][data-widget-definition="data-filter"]')
     expect(backend).to_be_visible()
     expect(backend).to_contain_text("AND")
+    engineer_proof = page.evaluate(
+        """
+        planId => {
+          const backend = document.querySelector(`.widget-card[data-ai-plan-id="${planId}"][data-widget-definition="data-filter"]`);
+          return {
+            ports: window.dashboardRelationshipRuntime.portsForObject("builder", backend.dataset.widgetKey).map((port) => port.role).sort(),
+            links: window.dashboardRelationshipRuntime.dataflowLinks("builder").filter((link) => link.id.startsWith(planId)).length,
+          };
+        }
+        """,
+        plan["id"],
+    )
+    assert engineer_proof["ports"] == ["input", "output"]
+    assert engineer_proof["links"] >= 3
     assert_clean_browser(page)
 
 
@@ -2384,25 +2569,98 @@ def test_ai_operator_missing_fields_returns_reviewable_partial_plan(page: Page, 
     assert "date" in limitation_text.lower()
     assert "numeric" in limitation_text.lower()
     assert "laborCost" not in str(plan)
+    assert {gap["type"] for gap in plan["capabilityGaps"]} == {"missing-field"}
     assert_clean_browser(page)
 
 
-def test_ai_assistant_widget_builds_workspace_from_prompt(page: Page, app_server: str) -> None:
+def test_ai_operator_strict_validation_rejects_unsupported_and_untraceable_actions(page: Page, app_server: str) -> None:
+    goto(page, app_server)
+    page.evaluate("localStorage.clear()")
+    page.reload(wait_until="networkidle")
+    page.wait_for_selector(".page")
+    seed_ai_operator_source(page, "executive-overview")
+
+    result = page.evaluate(
+        """
+        async () => {
+          const unsupportedPlan = {
+            id: "ai-plan-strict-unsupported",
+            status: "ready",
+            steps: [{ type: "createWidget", id: "ai-plan-strict-unsupported-widget", widgetType: "not-a-real-widget" }],
+            capabilityGaps: [],
+          };
+          const unsupported = await window.dashboardAiOperatorRuntime.executePlan(unsupportedPlan);
+          const untraceablePlan = {
+            id: "ai-plan-strict-untraceable",
+            status: "ready",
+            steps: [{ type: "createStat", id: "ai-plan-strict-untraceable-stat", title: "Magic Number", config: { title: "Magic Number", label: "Magic Number", metric: "sum", valueField: "not_a_field" } }],
+            capabilityGaps: [],
+          };
+          const untraceable = await window.dashboardAiOperatorRuntime.executePlan(untraceablePlan);
+          return { unsupported, untraceable };
+        }
+        """
+    )
+    assert result["unsupported"]["ok"] is False
+    unsupported_errors = {entry["code"] for entry in result["unsupported"]["validation"]["errors"]}
+    assert "unsupported-ai-widget" in unsupported_errors or "ai-action-failed" in unsupported_errors
+    assert result["untraceable"]["ok"] is False
+    untraceable_errors = {entry["code"] for entry in result["untraceable"]["validation"]["errors"]}
+    assert "ai-widget-has-no-visible-runtime-data" in untraceable_errors
+    assert_clean_browser(page)
+
+
+def test_ai_assistant_right_rail_builds_workspace_from_prompt(page: Page, app_server: str) -> None:
     goto(page, app_server)
     page.evaluate("localStorage.clear()")
     page.reload(wait_until="networkidle")
     page.wait_for_selector(".page")
     seed_ai_operator_source(page, "operations-command-center")
 
-    open_add_category(page, "system").locator('.widget-add-action[data-widget-kind="ai-assistant"]').click()
-    assistant = page.locator('.widget-layout > .ai-assistant-widget-card[data-widget-definition="ai-assistant"]').last
-    expect(assistant).to_be_visible()
-    assistant.locator(".ai-operator-prompt").fill("Show trends over time")
-    assistant.locator('.ai-operator-button[data-ai-operator-mode="execute"]').click()
-    expect(assistant.locator(".ai-operator-result")).to_contain_text(re.compile("built|partial|ready", re.I))
-    config = assistant.evaluate("node => JSON.parse(node.dataset.widgetConfig || '{}')")
+    expect(page.locator('.widget-layout > .ai-assistant-widget-card')).to_have_count(0)
+    page.locator(".panel-add-button").click()
+    expect(page.locator('.widget-add-action[data-widget-kind="ai-assistant"]')).to_have_count(0)
+    page.keyboard.press("Escape")
+
+    rail = page.locator(".workspace-assistant-rail")
+    tab = rail.locator(".workspace-assistant-tab")
+    drawer = rail.locator(".workspace-assistant-drawer")
+    expect(rail).to_be_visible()
+    expect(tab).to_be_visible()
+    expect(drawer).to_have_attribute("aria-hidden", "true")
+
+    initial_rect = tab.bounding_box()
+    assert initial_rect
+    page.evaluate("document.body.style.minHeight = '2400px'; window.scrollTo(0, 900)")
+    page.wait_for_function("window.scrollY > 500")
+    scrolled_rect = tab.bounding_box()
+    assert scrolled_rect
+    assert abs(scrolled_rect["y"] - initial_rect["y"]) <= 1
+
+    tab.click()
+    expect(drawer).to_have_attribute("aria-hidden", "false")
+    expect(tab).to_have_attribute("aria-expanded", "true")
+    prompt = rail.locator(".workspace-assistant-prompt")
+    expect(prompt).to_be_focused()
+    prompt.fill("Show trends over time")
+    prompt.press("Control+z")
+    assert page.locator(".toast", has_text=re.compile("undone", re.I)).count() == 0
+    prompt.fill("Show trends over time")
+    rail.locator('.ai-operator-button[data-ai-operator-mode="execute"]').click()
+    expect(rail.locator("[data-assistant-result]")).to_be_visible()
+    expect(rail.locator("[data-assistant-result]")).to_contain_text(re.compile("built|partial|ready", re.I))
+    config = rail.evaluate(
+        """
+        node => ({
+          lastQuestion: node.querySelector(".workspace-assistant-prompt")?.value || "",
+          lastPlanId: node.dataset.lastPlanId || "",
+          state: node.dataset.assistantRailState || "",
+        })
+        """
+    )
     assert config["lastQuestion"] == "Show trends over time"
     assert config["lastPlanId"]
+    assert config["state"] == "expanded"
     page.wait_for_function(
         """
         planId => document.querySelectorAll(`.widget-card[data-ai-plan-id="${planId}"]`).length >= 4
@@ -2446,6 +2704,13 @@ def test_ai_assistant_widget_builds_workspace_from_prompt(page: Page, app_server
     assert built["chartMarks"] and all(count > 0 for count in built["chartMarks"])
     assert "Show trends over time" in built["explanation"]
     assert built["overlapsExisting"] is False
+    rail.locator(".workspace-assistant-close").click()
+    expect(drawer).to_have_attribute("aria-hidden", "true")
+    page.locator(".layout-save-button").click()
+    expect(page.locator(".toast", has_text="saved")).to_be_visible()
+    page.reload(wait_until="networkidle")
+    expect(page.locator(".workspace-assistant-rail .workspace-assistant-drawer")).to_have_attribute("aria-hidden", "true")
+    expect(page.locator('.widget-layout > .ai-assistant-widget-card')).to_have_count(0)
     assert_clean_browser(page)
 
 
@@ -5965,10 +6230,11 @@ def test_workspace_chrome_is_spatial_and_modes_still_work(page: Page, app_server
     )
     assert add_alignment["leftDelta"] <= 1.5
     assert 6 <= add_alignment["topGap"] <= 14
-    for label in ("Stat", "Table", "Bar", "Line", "Area", "Scatter", "Histogram", "Heatmap", "Pie / Donut", "Gauge", "Sparkline", "Timeframe", "Filter Control", "Text / Notes", "Region Summary", "Image", "Video", "PDF / Document", "Activity Feed", "AI Assistant", "Calendar", "Anchor", "Panel", "Divider"):
+    for label in ("Stat", "Table", "Bar", "Line", "Area", "Scatter", "Histogram", "Heatmap", "Pie / Donut", "Gauge", "Sparkline", "Timeframe", "Filter Control", "Text / Notes", "Region Summary", "Image", "Video", "PDF / Document", "Activity Feed", "Calendar", "Anchor", "Panel", "Divider"):
         expect(page.locator(".panel-add-menu")).to_contain_text(label)
     expect(page.locator(".panel-add-menu")).not_to_contain_text("Context Panel")
     expect(page.locator(".panel-add-menu")).not_to_contain_text("Context Inspector")
+    expect(page.locator(".panel-add-menu")).not_to_contain_text("AI Assistant")
     page.mouse.click(24, 24)
     expect(page.locator(".panel-add-menu")).not_to_have_class(re.compile("open"))
 
@@ -9073,7 +9339,8 @@ def test_timeframe_widget_is_createable_and_uses_widget_system(page: Page, app_s
     expect(created.locator(".preset-btn", has_text="Today")).to_have_count(1)
     expect(created.locator(".preset-btn", has_text="Last 7 days")).to_have_count(1)
     expect(created.locator(".preset-btn", has_text="Last 30 days")).to_have_count(1)
-    expect(created.locator(".range-custom-trigger")).to_contain_text("Any time")
+    expect(created.locator(".range-custom-trigger")).to_have_count(0)
+    expect(created.locator(".timeframe-selector")).to_contain_text("Any time")
     expect(created.locator(".timeframe-refresh")).to_have_count(1)
     expect(created.locator(".timeframe-calendar")).to_have_count(1)
 
@@ -9130,7 +9397,7 @@ def test_timeframe_widget_is_createable_and_uses_widget_system(page: Page, app_s
         node => {
           const surface = node.querySelector(".timeframe-command-surface");
           const preset = node.querySelector(".preset-btn");
-          const selector = node.querySelector(".range-custom-trigger");
+          const selector = node.querySelector(".timeframe-selector");
           return {
             span: Number(node.dataset.currentSpan || node.dataset.defaultSpan || 0),
             surfaceGap: parseFloat(getComputedStyle(surface).gap),
@@ -9158,10 +9425,14 @@ def test_timeframe_widget_is_createable_and_uses_widget_system(page: Page, app_s
     expect(created).not_to_have_class(re.compile("widget-tools-open"))
     created.locator(".preset-btn:not(.active)").first.hover()
     hover_transform = created.locator(".preset-btn:not(.active)").first.evaluate("node => getComputedStyle(node).transform")
-    created.locator(".range-custom-trigger").hover()
-    selector_transform = created.locator(".range-custom-trigger").evaluate("node => getComputedStyle(node).transform")
+    widget_transform_on_button_hover = created.evaluate("node => getComputedStyle(node).transform")
+    created.locator(".timeframe-selector").hover()
+    selector_transform = created.locator(".timeframe-selector").evaluate("node => getComputedStyle(node).transform")
+    widget_transform_on_summary_hover = created.evaluate("node => getComputedStyle(node).transform")
     assert hover_transform != "none"
-    assert selector_transform != "none"
+    assert selector_transform == "none"
+    assert widget_transform_on_button_hover == "none"
+    assert widget_transform_on_summary_hover == "none"
 
     page.locator(".layout-save-button").click()
     page.reload(wait_until="networkidle")
@@ -9290,6 +9561,27 @@ def test_timeframe_control_widget_writes_context_time_range_and_persists(page: P
     expect(timeframe.locator(".timeframe-command-surface")).to_have_class(re.compile("timeframe-density-large"))
     page.evaluate(
         """
+        () => {
+          const timeframe = document.querySelector('.widget-layout > .timeframe-widget[data-custom-widget="true"]');
+          const config = JSON.parse(timeframe.dataset.widgetConfig || "{}");
+          const filters = Array.isArray(config.filters) ? config.filters : [];
+          const custom = { id: "custom-range-test", label: "Custom range", type: "custom_fixed", start: "", end: "" };
+          timeframe.dataset.widgetConfig = JSON.stringify({
+            ...config,
+            filters: [...filters.filter((filter) => filter.id !== custom.id), custom],
+            selectedFilterId: custom.id,
+            selectedPreset: "custom_fixed",
+            activeLabel: custom.label
+          });
+          timeframe.dataset.widgetRuntimeStatus = "ready";
+          window.dashboardContextEngine.refresh("builder");
+        }
+        """
+    )
+    expect(timeframe.locator(".timeframe-filter-button.active", has_text="Custom range")).to_have_count(1)
+    expect(timeframe.locator(".timeframe-custom-date")).to_have_count(2)
+    page.evaluate(
+        """
         ({ today }) => {
           const setDate = (part) => {
             const input = document.querySelector(`.widget-layout > .timeframe-widget[data-custom-widget="true"] .timeframe-custom-date[data-timeframe-part="${part}"]`);
@@ -9297,8 +9589,8 @@ def test_timeframe_control_widget_writes_context_time_range_and_persists(page: P
             input.dispatchEvent(new Event("input", { bubbles: true }));
             input.dispatchEvent(new Event("change", { bubbles: true }));
           };
-          setDate("customStart");
-          setDate("customEnd");
+          setDate("start");
+          setDate("end");
         }
         """,
         {"today": setup["today"]},
@@ -9420,9 +9712,19 @@ def test_timeframe_widget_supports_configurable_filters_and_repeating_intervals(
     assert "37, 99, 235" not in workbench_material["removeBackground"]
     assert workbench_material["removeRadius"] == workbench_material["inputRadius"]
     before_count = timeframe.evaluate("node => JSON.parse(node.dataset.widgetConfig || '{}').filters.length")
+    before_buttons = timeframe.locator(".timeframe-filter-button").count()
+    first_filter_label = timeframe.evaluate("node => JSON.parse(node.dataset.widgetConfig || '{}').filters[0].label")
+    workbench.locator(".timeframe-filter-editor").first.locator(".timeframe-remove-filter").click()
+    expect(workbench).to_be_visible()
+    assert timeframe.evaluate("node => JSON.parse(node.dataset.widgetConfig || '{}').filters.length") == before_count - 1
+    expect(timeframe.locator(".timeframe-filter-button", has_text=first_filter_label)).to_have_count(0)
+    assert timeframe.locator(".timeframe-filter-button").count() == before_buttons - 1
     workbench.locator(".timeframe-add-filter").click()
     expect(workbench).to_be_visible()
-    assert timeframe.evaluate("node => JSON.parse(node.dataset.widgetConfig || '{}').filters.length") == before_count + 1
+    assert timeframe.evaluate("node => JSON.parse(node.dataset.widgetConfig || '{}').filters.length") == before_count
+    assert timeframe.locator(".timeframe-filter-button").count() == before_buttons
+    expect(timeframe.locator(".timeframe-filter-button", has_text="New filter")).to_have_count(1)
+    expect(timeframe.locator(".range-custom-trigger")).to_have_count(0)
     workbench.locator('[data-timeframe-config-part="weekStartDay"]').select_option("1")
     expect(workbench).to_be_visible()
     assert timeframe.evaluate("node => JSON.parse(node.dataset.widgetConfig || '{}').weekStartDay") == "1"
@@ -9439,6 +9741,7 @@ def test_timeframe_widget_supports_configurable_filters_and_repeating_intervals(
     editor.locator('[data-timeframe-filter-part="repeatUnit"]').select_option("weeks")
     editor.locator('[data-timeframe-filter-part="selected"]').check()
     expect(workbench).to_be_visible()
+    expect(timeframe.locator(".timeframe-filter-button.active", has_text="Pay period")).to_have_count(1)
     expect(timeframe.locator(".timeframe-selector")).to_contain_text("Pay period")
     before_content = timeframe.locator(".timeframe-selector").evaluate("node => getComputedStyle(node, '::before').content")
     assert before_content in ("none", "normal", '""')
@@ -9455,6 +9758,8 @@ def test_timeframe_widget_supports_configurable_filters_and_repeating_intervals(
     saved = timeframe.evaluate("node => JSON.parse(node.dataset.widgetConfig || '{}')")
     assert any(item["label"] == "Pay period" and item["type"] == "custom_repeating" for item in saved["filters"])
     assert saved["selectedFilterId"]
+    expect(timeframe.locator(".timeframe-filter-button", has_text="Pay period")).to_have_count(1)
+    expect(timeframe.locator(".range-custom-trigger")).to_have_count(0)
     assert_clean_browser(page)
 
 
@@ -9927,7 +10232,8 @@ def test_system_meta_widgets_render_context_and_engineer_gated_inspector(page: P
     )
 
     open_add_category(page, "system").locator('.widget-add-action[data-widget-kind="activity-feed"]').click()
-    open_add_category(page, "system").locator('.widget-add-action[data-widget-kind="ai-assistant"]').click()
+    expect(page.locator(".workspace-assistant-rail")).to_be_visible()
+    expect(page.locator('.widget-add-action[data-widget-kind="ai-assistant"]')).to_have_count(0)
     page.locator(".engineer-mode-button").click()
     expect(page.locator(".engineer-mode-button")).to_have_attribute("aria-pressed", "true")
     open_add_category(page, "system").locator('.widget-add-action[data-widget-kind="context-inspector"]').click()
@@ -9935,41 +10241,28 @@ def test_system_meta_widgets_render_context_and_engineer_gated_inspector(page: P
     expect(page.locator(".engineer-mode-button")).to_have_attribute("aria-pressed", "false")
 
     activity = page.locator('.widget-layout > .activity-feed-widget-card[data-widget-definition="activity-feed"]').last
-    assistant = page.locator('.widget-layout > .ai-assistant-widget-card[data-widget-definition="ai-assistant"]').last
     inspector = page.locator('.widget-layout > .context-inspector-widget-card[data-widget-definition="context-inspector"]').last
     expect(activity).to_be_visible()
-    expect(assistant).to_be_visible()
     expect(inspector).to_be_hidden()
     expect(activity.locator(".activity-feed-widget")).to_be_visible()
     expect(activity.locator(".activity-feed-widget")).to_contain_text(re.compile("added|ready|changed", re.I))
-    expect(assistant.locator(".ai-assistant-widget")).to_be_visible()
-    expect(assistant).to_contain_text("Ask for an analytical workspace")
-    expect(assistant.locator(".ai-operator-prompt")).to_be_visible()
-    expect(assistant.locator('.ai-operator-button[data-ai-operator-mode="plan"]')).to_be_visible()
-    expect(assistant.locator('.ai-operator-button[data-ai-operator-mode="execute"]')).to_be_visible()
-    expect(assistant).to_contain_text("Meta Source")
-    expect(assistant).to_contain_text("Filters")
 
     config_state = page.evaluate(
         """
         () => {
           const activity = document.querySelector('.activity-feed-widget-card[data-widget-definition="activity-feed"]');
-          const assistant = document.querySelector('.ai-assistant-widget-card[data-widget-definition="ai-assistant"]');
           const inspector = document.querySelector('.context-inspector-widget-card[data-widget-definition="context-inspector"]');
           activity.dataset.widgetConfig = JSON.stringify({ title: "Recent Activity", scope: "currentRegion", maxItems: 4, eventTypes: ["object-created", "layout-saved"] });
-          assistant.dataset.widgetConfig = JSON.stringify({ title: "Scoped Assistant", scope: "region", promptTemplate: "Summarize this region" });
           inspector.dataset.widgetConfig = JSON.stringify({ title: "Context Debug", target: "currentRegion", showInheritanceTree: true, showFilters: true, showDataSource: true });
           window.dashboardContextEngine.refresh("builder");
           return {
             activityKey: activity.dataset.widgetKey,
-            assistantKey: assistant.dataset.widgetKey,
             inspectorKey: inspector.dataset.widgetKey,
           };
         }
         """
     )
     expect(activity).to_contain_text("Recent Activity")
-    expect(assistant).to_contain_text("Scoped Assistant")
 
     page.locator(".engineer-mode-button").click()
     expect(page.locator(".engineer-mode-button")).to_have_attribute("aria-pressed", "true")
@@ -10002,47 +10295,10 @@ def test_system_meta_widgets_render_context_and_engineer_gated_inspector(page: P
     page.reload(wait_until="networkidle")
     page.locator(".engineer-mode-button").click()
     reloaded_activity = page.locator(f'.activity-feed-widget-card[data-widget-key="{config_state["activityKey"]}"]')
-    reloaded_assistant = page.locator(f'.ai-assistant-widget-card[data-widget-key="{config_state["assistantKey"]}"]')
     reloaded_inspector = page.locator(f'.context-inspector-widget-card[data-widget-key="{config_state["inspectorKey"]}"]')
     expect(reloaded_activity).to_contain_text("Recent Activity")
-    expect(reloaded_assistant).to_contain_text("Scoped Assistant")
     expect(reloaded_inspector).to_contain_text("Context Debug")
-
-    page.evaluate(
-        """
-        () => {
-          const panel = document.querySelector('[data-panel-key="builder-content"]');
-          const body = panel.querySelector(":scope > .db-panel-body");
-          panel.classList.remove("db-panel-collapsed");
-          panel.dataset.gridCol = "1";
-          panel.dataset.gridRow = "2";
-          panel.dataset.currentSpan = "4";
-          panel.dataset.gridRowSpan = "4";
-          panel.style.gridColumn = "1 / span 4";
-          panel.style.gridRow = "2 / span 4";
-          panel.style.height = "372px";
-          panel.querySelector(".db-panel-hd")?.setAttribute("aria-expanded", "true");
-          let grid = body.querySelector(":scope > .panel-internal-widget-grid");
-          if (!grid) {
-            grid = document.createElement("div");
-            grid.className = "panel-internal-widget-grid widget-layout";
-            grid.dataset.widgetLayoutKey = "builder";
-            body.appendChild(grid);
-          }
-          const assistant = document.querySelector('.widget-layout:not(.panel-internal-widget-grid) > .ai-assistant-widget-card');
-          assistant.dataset.gridCol = "1";
-          assistant.dataset.gridRow = "1";
-          assistant.dataset.currentSpan = "3";
-          assistant.dataset.gridRowSpan = "2";
-          assistant.style.gridColumn = "1 / span 3";
-          assistant.style.gridRow = "1 / span 2";
-          grid.appendChild(assistant);
-          window.dashboardContextEngine.refresh("builder");
-          return Boolean(panel.querySelector(".panel-internal-widget-grid > .ai-assistant-widget-card"));
-        }
-        """
-    )
-    expect(page.locator(".panel-internal-widget-grid > .ai-assistant-widget-card .ai-assistant-widget")).to_be_visible()
+    expect(page.locator('.widget-layout > .ai-assistant-widget-card')).to_have_count(0)
     assert_clean_browser(page)
 
 
@@ -12256,7 +12512,7 @@ def test_timeframe_resize_clamps_to_adaptive_density_minimum(page: Page, app_ser
         """
         node => {
           const root = node.getBoundingClientRect();
-          const visibleControls = [...node.querySelectorAll(".preset-btn, .range-custom-trigger, .range-icon-button, .panel-settings-toggle")]
+          const visibleControls = [...node.querySelectorAll(".preset-btn, .timeframe-selector, .range-icon-button, .panel-settings-toggle")]
             .filter((control) => {
               const styles = getComputedStyle(control);
               return styles.display !== "none" && styles.visibility !== "hidden";
@@ -12271,7 +12527,7 @@ def test_timeframe_resize_clamps_to_adaptive_density_minimum(page: Page, app_ser
             });
           const surface = node.querySelector(".timeframe-command-surface");
           const preset = node.querySelector(".preset-btn");
-          const selector = node.querySelector(".range-custom-trigger");
+          const selector = node.querySelector(".timeframe-selector");
           const icon = node.querySelector(".range-icon-button");
           return {
             span: Number(node.dataset.currentSpan || node.dataset.defaultSpan || 0),
@@ -12299,12 +12555,13 @@ def test_timeframe_resize_clamps_to_adaptive_density_minimum(page: Page, app_ser
     assert state["clipped"] == []
     control.locator(".preset-btn").first.hover()
     hovered = control.locator(".preset-btn").first.evaluate("node => getComputedStyle(node).boxShadow")
+    widget_transform = control.evaluate("node => getComputedStyle(node).transform")
     assert hovered != "none"
-    control.locator(".range-custom-trigger").focus()
-    focused = control.locator(".range-custom-trigger").evaluate(
-        "node => ({ outline: getComputedStyle(node).outlineStyle, border: getComputedStyle(node).borderColor })"
+    assert widget_transform == "none"
+    focused = control.locator(".timeframe-selector").evaluate(
+        "node => ({ transform: getComputedStyle(node).transform, border: getComputedStyle(node).borderColor })"
     )
-    assert focused["outline"] in {"none", "solid"}
+    assert focused["transform"] == "none"
     assert focused["border"]
     assert no_visible_overlaps(page, ".dashboard-layout-grid .widget-card, .dashboard-layout-grid .db-panel") == []
     assert_clean_browser(page)
@@ -16476,9 +16733,24 @@ def test_panel_widget_hover_focus_surface_parity(page: Page, app_server: str) ->
     timeframe.hover()
     page.wait_for_timeout(260)
     timeframe_hover = read_surface(timeframe)
-    assert_material_border_close(timeframe_hover["borderColor"], widget_hover["borderColor"])
     assert_material_shadow(timeframe_hover["boxShadow"])
-    assert_transform_close(timeframe_hover["transform"], widget_hover["transform"])
+    assert_transform_close(timeframe_hover["transform"], "none")
+
+    page.mouse.move(24, 24)
+    timeframe.evaluate(
+        """
+        node => {
+          const rect = node.getBoundingClientRect();
+          const x = rect.right - 8;
+          const y = rect.bottom - 8;
+          const target = document.elementFromPoint(x, y);
+          target?.dispatchEvent(new PointerEvent("pointermove", { bubbles: true, clientX: x, clientY: y, pointerType: "mouse" }));
+        }
+        """
+    )
+    page.wait_for_timeout(180)
+    timeframe_body_hover = read_surface(timeframe)
+    assert_material_shadow(timeframe_body_hover["boxShadow"])
 
     page.mouse.move(24, 24)
     panel.locator(".db-panel-hd").focus()
@@ -16778,7 +17050,7 @@ def test_compact_pressable_controls_depress_without_sinking_large_surfaces(page:
 
     timeframe.hover()
     page.wait_for_timeout(220)
-    assert transform_y(timeframe) < -0.5
+    assert abs(transform_y(timeframe)) <= 0.05
 
     timeframe_preset.hover()
     page.wait_for_timeout(220)

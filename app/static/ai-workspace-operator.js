@@ -73,7 +73,16 @@
   const hasFields = (profile, names = []) => names.every((name) => Boolean(profile[name]));
 
   const safeAssumption = (text) => ({ text, confidence: "medium" });
-  const limitation = (text, missingFields = []) => ({ text, missingFields });
+  const limitation = (text, missingFields = [], gapType = "missing-data") => ({ text, missingFields, gapType });
+  const capabilityGap = (gapType, text, missingFields = [], capability = "") => ({
+    type: gapType,
+    text,
+    missingFields,
+    capability,
+    action: gapType === "missing-data"
+      ? "Provide the missing field or dataset, then rerun the operator."
+      : "Extend the generalized runtime primitive before presenting this as solved.",
+  });
 
   const planBase = (question, intent, dataset, profile) => ({
     id: `ai-plan-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`,
@@ -90,6 +99,7 @@
     } : null,
     assumptions: [],
     limitations: [],
+    capabilityGaps: [],
     steps: [],
     scenario: null,
     explanation: {
@@ -105,6 +115,7 @@
     plan.explanation.summary ? `Answer approach: ${plan.explanation.summary}` : "",
     plan.assumptions.length ? `Assumptions: ${plan.assumptions.map((entry) => entry.text || entry).join("; ")}` : "",
     plan.limitations.length ? `Limitations: ${plan.limitations.map((entry) => entry.text || entry).join("; ")}` : "",
+    plan.capabilityGaps?.length ? `Capability gaps: ${plan.capabilityGaps.map((entry) => entry.text || entry).join("; ")}` : "",
     plan.explanation.nextSteps?.length ? `Inspect next: ${plan.explanation.nextSteps.join("; ")}` : "",
   ].filter((line) => line !== "").join("\n");
 
@@ -126,6 +137,7 @@
         intent: plan.intent,
         assumptions: plan.assumptions,
         limitations: plan.limitations,
+        capabilityGaps: plan.capabilityGaps || [],
       },
     },
   });
@@ -160,7 +172,8 @@
   const requireDatasetPlan = (question, intent, datasets) => {
     const plan = planBase(question, intent, null, {});
     plan.status = "blocked";
-    plan.limitations.push(limitation("No workspace dataset is available. Add or simulate a data source before asking the operator to build an analysis."));
+    plan.limitations.push(limitation("No workspace dataset is available. Add or simulate a data source before asking the operator to build an analysis.", [], "missing-data"));
+    plan.capabilityGaps.push(capabilityGap("missing-data", "No inspectable workspace dataset is available."));
     plan.explanation.summary = "I could not inspect any rows or schema, so I did not create a visual answer.";
     return plan;
   };
@@ -171,12 +184,18 @@
     const baselineField = scenario.target.includes("revenue") ? (profile.revenueField || profile.valueField) : (profile.costField || profile.valueField);
     const revenueField = profile.revenueField;
     const costField = profile.costField;
-    if (!baselineField) plan.limitations.push(limitation("No numeric field is available for the scenario baseline.", ["numeric metric"]));
+    if (!baselineField) {
+      plan.limitations.push(limitation("No numeric field is available for the scenario baseline.", ["numeric metric"], "missing-field"));
+      plan.capabilityGaps.push(capabilityGap("missing-field", "The scenario needs a numeric baseline field.", ["numeric metric"]));
+    }
     if (scenario.target === "laborCost" && !fieldNames(dataset).includes("laborCost")) {
       plan.assumptions.push(safeAssumption(`laborCost is not present; using ${baselineField || "the primary numeric field"} as the available cost baseline.`));
+      plan.limitations.push(limitation("The requested laborCost field is not available; this is a transparent substitute scenario.", ["laborCost"], "missing-field"));
+      plan.capabilityGaps.push(capabilityGap("missing-field", "laborCost is not available in the current dataset.", ["laborCost"]));
     }
     if (!revenueField && !profile.valueField) {
-      plan.limitations.push(limitation("No revenue or value field is available to compare projected impact.", ["revenue or value"]));
+      plan.limitations.push(limitation("No revenue or value field is available to compare projected impact.", ["revenue or value"], "missing-field"));
+      plan.capabilityGaps.push(capabilityGap("missing-field", "Projected impact needs a revenue or value metric.", ["revenue", "value"]));
     }
     plan.requiredData = [baselineField, revenueField || profile.valueField, profile.categoryField || profile.labelField].filter(Boolean);
     plan.scenario = {
@@ -265,7 +284,31 @@
         rows: 2,
         layer: "backend",
         scenarioId: plan.scenario.id,
-        config: { title: "Scenario Formula", operator: "AND", expression: `${baselineField} > ${adjustedField}` },
+        config: { title: "Scenario Formula", operator: "AND", expression: `${baselineField} > ${adjustedField}`, calculatedFields },
+      },
+      {
+        type: "createDataflowLink",
+        id: `${plan.id}-formula-to-savings`,
+        sourceId: `${plan.id}-equation-filter`,
+        targetId: `${plan.id}-savings`,
+        label: "Formula -> savings",
+        signalType: "data",
+      },
+      {
+        type: "createDataflowLink",
+        id: `${plan.id}-formula-to-chart`,
+        sourceId: `${plan.id}-equation-filter`,
+        targetId: `${plan.id}-scenario-chart`,
+        label: "Formula -> chart",
+        signalType: "data",
+      },
+      {
+        type: "createDataflowLink",
+        id: `${plan.id}-formula-to-table`,
+        sourceId: `${plan.id}-equation-filter`,
+        targetId: `${plan.id}-scenario-table`,
+        label: "Formula -> table",
+        signalType: "data",
       },
       createExplanationStep(plan, 1, 16, 4, 2),
     ];
@@ -274,8 +317,14 @@
 
   const buildExecutivePlan = (question, dataset, profile) => {
     const plan = planBase(question, "executive-summary", dataset, profile);
-    if (!profile.valueField && !profile.revenueField) plan.limitations.push(limitation("No numeric metric is available for summary cards.", ["numeric metric"]));
-    if (!profile.dateField) plan.limitations.push(limitation("No time field is available for trend analysis.", ["date/time"]));
+    if (!profile.valueField && !profile.revenueField) {
+      plan.limitations.push(limitation("No numeric metric is available for summary cards.", ["numeric metric"], "missing-field"));
+      plan.capabilityGaps.push(capabilityGap("missing-field", "Executive summaries need a numeric metric.", ["numeric metric"]));
+    }
+    if (!profile.dateField) {
+      plan.limitations.push(limitation("No time field is available for trend analysis.", ["date/time"], "missing-field"));
+      plan.capabilityGaps.push(capabilityGap("missing-field", "Trend components need a date/time field.", ["date/time"]));
+    }
     plan.status = plan.limitations.length ? "partial" : "ready";
     plan.requiredData = [profile.valueField || profile.revenueField, profile.dateField, profile.categoryField, profile.statusField].filter(Boolean);
     plan.assumptions.push(safeAssumption("Summary widgets use the currently resolved workspace dataset and context filters."));
@@ -296,8 +345,14 @@
 
   const buildTrendPlan = (question, dataset, profile) => {
     const plan = planBase(question, "trend", dataset, profile);
-    if (!profile.dateField) plan.limitations.push(limitation("Trend analysis needs a date or timestamp field.", ["date/time"]));
-    if (!profile.valueField && !profile.revenueField) plan.limitations.push(limitation("Trend analysis needs a numeric metric.", ["numeric metric"]));
+    if (!profile.dateField) {
+      plan.limitations.push(limitation("Trend analysis needs a date or timestamp field.", ["date/time"], "missing-field"));
+      plan.capabilityGaps.push(capabilityGap("missing-field", "Trend analysis cannot be encoded without a date/time field.", ["date/time"]));
+    }
+    if (!profile.valueField && !profile.revenueField) {
+      plan.limitations.push(limitation("Trend analysis needs a numeric metric.", ["numeric metric"], "missing-field"));
+      plan.capabilityGaps.push(capabilityGap("missing-field", "Trend analysis cannot be encoded without a numeric metric.", ["numeric metric"]));
+    }
     plan.status = plan.limitations.length ? "partial" : "ready";
     plan.requiredData = [profile.dateField, profile.valueField || profile.revenueField].filter(Boolean);
     plan.explanation.summary = "Created a time-oriented view with a primary trend and supporting table of recent records.";
@@ -313,7 +368,10 @@
 
   const buildRiskPlan = (question, dataset, profile) => {
     const plan = planBase(question, "risk-ranking", dataset, profile);
-    if (!profile.valueField && !profile.revenueField) plan.limitations.push(limitation("Ranking needs a numeric metric.", ["numeric metric"]));
+    if (!profile.valueField && !profile.revenueField) {
+      plan.limitations.push(limitation("Ranking needs a numeric metric.", ["numeric metric"], "missing-field"));
+      plan.capabilityGaps.push(capabilityGap("missing-field", "Ranking needs a numeric metric.", ["numeric metric"]));
+    }
     plan.status = plan.limitations.length ? "partial" : "ready";
     plan.requiredData = [profile.labelField, profile.valueField || profile.revenueField, profile.statusField].filter(Boolean);
     plan.explanation.summary = "Created a ranked table and comparison chart so the user can inspect the records needing attention.";
@@ -365,7 +423,7 @@
   const executePlan = async (plan = {}, options = {}) => {
     const actions = window.dashboardWorkspaceActionRuntime;
     if (!actions?.executeAction) return { ok: false, error: "Workspace action runtime is unavailable.", plan };
-    const metadataActions = ["inspectDatasets", "inspectWidgetRegistry", "createScenario", "createCalculatedField", "explainCalculation", "summarizeWorkspace"];
+    const metadataActions = ["inspectDatasets", "inspectWidgetRegistry", "inspectSchema", "createScenario", "createCalculatedField", "explainCalculation", "summarizeWorkspace", "explainWorkspace", "arrangeObjects", "validateWorkspaceAnswer"];
     const actionable = (plan.steps || []).filter((step) => !metadataActions.includes(step.type));
     const topLevelRows = actionable
       .filter((step) => !step.panelId && Number.isFinite(Number(step.row)))
@@ -385,15 +443,18 @@
       const result = await actions.executeAction(step, { ...options, planId: plan.id || "" });
       results.push(result);
     }
-    const ok = results.every((result) => result.ok);
+    await new Promise((resolve) => window.setTimeout(resolve, 180));
+    const actionOk = results.every((result) => result.ok);
+    const validation = actions.validateWorkspaceAnswer?.(plan, { results }, { ...options, layoutKey: options.layoutKey || DEFAULT_LAYOUT_KEY }) || { ok: actionOk, errors: [], warnings: [], proof: {} };
+    const ok = actionOk && validation.ok;
     window.dashboardWorkspaceEvents?.emit?.({
       type: ok ? "ai-plan-executed" : "ai-plan-partial",
       source: "ai-operator",
       layoutKey: options.layoutKey || DEFAULT_LAYOUT_KEY,
       label: ok ? "AI plan executed" : "AI plan partially executed",
-      payload: { planId: plan.id, goal: plan.goal, resultCount: results.length, rowOffset },
+      payload: { planId: plan.id, goal: plan.goal, resultCount: results.length, rowOffset, validation },
     });
-    return { ok, planId: plan.id || "", results, placement: { plannedStartRow, safeStartRow, rowOffset } };
+    return { ok, planId: plan.id || "", results, validation, placement: { plannedStartRow, safeStartRow, rowOffset } };
   };
 
   const runPrompt = async (question = "", options = {}) => {
@@ -427,32 +488,51 @@
     event.preventDefault();
     event.stopPropagation();
     const widget = form.closest(".widget-card[data-widget-definition='ai-assistant']");
+    const rail = form.closest(".workspace-assistant-rail");
     const prompt = form.querySelector(".ai-operator-prompt")?.value?.trim() || "";
     const submitter = event.submitter?.dataset?.aiOperatorMode || "plan";
-    if (!widget || !prompt) return;
+    if ((!widget && !rail) || !prompt) return;
+    const layoutKey = rail?.dataset?.assistantLayoutKey || widget?.closest?.("[data-widget-layout-key], [data-layout-key]")?.dataset?.widgetLayoutKey || DEFAULT_LAYOUT_KEY;
     form.dataset.aiOperatorBusy = "true";
+    window.dashboardAssistantRailRuntime?.setBusy?.(Boolean(rail));
     try {
       const result = submitter === "execute"
-        ? await runPrompt(prompt, { execute: true })
-        : { ok: true, plan: await createPlan(prompt), execution: null };
+        ? await runPrompt(prompt, { execute: true, layoutKey })
+        : { ok: true, plan: await createPlan(prompt, { layoutKey }), execution: null };
       const plan = result.plan || {};
-      updateAssistantWidget(widget, {
-        lastQuestion: prompt,
-        lastPlanId: plan.id || "",
-        lastPlanStatus: result.execution ? (result.ok ? "built" : "partial") : (plan.status || "planned"),
-        lastPlanSummary: plan.explanation?.summary || (plan.limitations || []).map((entry) => entry.text || entry).join("; ") || "Plan ready for review.",
-        lastPlan: {
-          id: plan.id,
-          intent: plan.intent,
-          goal: plan.goal,
-          status: plan.status,
-          assumptions: plan.assumptions,
-          limitations: plan.limitations,
-          stepCount: Array.isArray(plan.steps) ? plan.steps.length : 0,
-        },
-      });
+      const status = result.execution ? (result.ok ? "built" : "partial") : (plan.status || "planned");
+      const summary = plan.explanation?.summary || (plan.limitations || []).map((entry) => entry.text || entry).join("; ") || "Plan ready for review.";
+      const planSnapshot = {
+        id: plan.id,
+        intent: plan.intent,
+        goal: plan.goal,
+        status: plan.status,
+        assumptions: plan.assumptions,
+        limitations: plan.limitations,
+        stepCount: Array.isArray(plan.steps) ? plan.steps.length : 0,
+      };
+      if (widget) {
+        updateAssistantWidget(widget, {
+          lastQuestion: prompt,
+          lastPlanId: plan.id || "",
+          lastPlanStatus: status,
+          lastPlanSummary: summary,
+          lastPlan: planSnapshot,
+        });
+      }
+      if (rail) {
+        window.dashboardAssistantRailRuntime?.setResult?.({
+          status,
+          summary,
+          prompt,
+          planId: plan.id || "",
+          ok: result.ok,
+          plan: planSnapshot,
+        });
+      }
     } finally {
       delete form.dataset.aiOperatorBusy;
+      window.dashboardAssistantRailRuntime?.setBusy?.(false);
     }
   }, true);
 })();

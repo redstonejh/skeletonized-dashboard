@@ -19,7 +19,7 @@ It is local and deterministic in this version. It does not call an external AI s
   - schema-aware plan generation
   - what-if scenario planning
   - action execution orchestration
-  - AI Assistant widget prompt binding
+  - persistent AI Assistant rail prompt binding
 - `app/static/app.js`
   - exposes `window.dashboardWorkspaceActionRuntime`
   - validates and executes safe workspace actions through existing widget/panel/dataflow systems
@@ -38,6 +38,7 @@ It is local and deterministic in this version. It does not call an external AI s
 - `executeAction(action, options)`
 - `executePlan(plan, options)`
 - `updateWidgetConfig(widget, patch, options)`
+- `validateWorkspaceAnswer(plan, execution, options)`
 
 `window.dashboardAiOperatorRuntime`
 
@@ -47,6 +48,14 @@ It is local and deterministic in this version. It does not call an external AI s
 - `runPrompt(question, options)`
 - `classifyIntent(question)`
 - `supportedActions()`
+
+`window.dashboardLayoutSourceRuntime`
+
+- `groups(layoutKey)`
+- `activate(layoutKey, source)`
+- `registerGenerated(layoutKey, entry)`
+
+AI generated examples in the Layout selector use this same source contract. They seed demo data, execute a local operator prompt, persist the result in an isolated generated profile, and register the generated workspace for reopening without polluting saved user layout slots.
 
 ## Safe Action Model
 
@@ -58,6 +67,9 @@ The operator does not mutate random layout internals directly. It emits actions 
 - `createWidget`
 - `createPanel`
 - `createFilter`
+- `createLogicGate`
+- `createBoolean`
+- `createTypeConverter`
 - `createCalculatedField`
 - `createEquationFilter`
 - `createChart`
@@ -69,7 +81,9 @@ The operator does not mutate random layout internals directly. It emits actions 
 - `resizeObject`
 - `createDataflowLink`
 - `applyConditionalStyle`
+- `createConditionalStyle`
 - `createScenario`
+- `validateWorkspaceAnswer`
 - `summarizeWorkspace`
 - `explainWidget`
 - `explainCalculation`
@@ -95,6 +109,7 @@ Plans are JSON-like records:
   },
   "assumptions": [],
   "limitations": [],
+  "capabilityGaps": [],
   "scenario": {
     "destructive": false
   },
@@ -128,6 +143,27 @@ Dataset inspection exposes:
 
 The planner uses these fields to choose visualizations and to refuse or partially answer unsupported questions. It must not invent unavailable fields.
 
+## Strict Workspace-Computer Rule
+
+The operator may only answer by composing real workspace primitives. It must not use hidden LLM computation, decorative placeholder widgets, invented fields, direct DOM mutation, or unsupported widget types.
+
+If a request cannot be physically encoded with the current runtime, the planner records a capability gap instead of faking the result. Gap types include:
+
+- `missing-data`
+- `missing-field`
+- `missing-transform`
+- `missing-widget-renderer`
+- `missing-aggregation`
+- `missing-equation-capability`
+- `missing-scenario-capability`
+- `missing-dataflow-node`
+- `missing-visual-encoding`
+- `missing-panel-layout-capability`
+- `missing-persistence-support`
+- `missing-engineer-transparency`
+
+Data gaps can produce an honest partial workspace when useful. Program capability gaps must be resolved by extending the relevant generalized primitive before the operator may present the answer as solved.
+
 ## Intent Mapping
 
 Current deterministic mappings:
@@ -156,6 +192,24 @@ The operator creates calculated fields in widget config, for example:
 
 It also creates an Engineer Mode data-filter/equation surface so the logic can be inspected without cluttering normal mode.
 
+For derived/scenario answers, the operator now creates output-to-input dataflow links from the Engineer Mode formula block into each visual output that depends on the calculation. Normal mode remains presentation-focused; Engineer Mode shows the formula surface, ports, and stored dependency graph.
+
+## Answer Validation
+
+After execution, `validateWorkspaceAnswer` checks that:
+
+- every AI action is supported by the safe action contract
+- every created widget is registry-backed
+- visual widgets are visible and show runtime data or an honest explanation
+- charts have marks, tables have rows, maps have points, and stats have runtime values
+- calculated fields have an Engineer Mode formula block
+- calculated visual outputs are wired from formula output to visual input
+- dataflow links preserve output -> input direction
+- scenarios do not mutate source rows
+- persisted workspace validation still passes
+
+If validation fails, `executePlan` returns `ok: false`. The assistant rail reports partial/invalid status instead of success.
+
 ## Explanation Widget
 
 The operator uses the existing Text / Notes widget as the explanation surface. The note records:
@@ -182,6 +236,9 @@ The operator must:
 - keep normal mode calm and uncluttered
 - reveal backend/equation objects only through Engineer Mode
 - avoid claiming causation from correlation
+- reject untraceable values
+- reject unsupported widgets
+- validate lineage before reporting success
 
 ## Current Limits
 

@@ -43,6 +43,11 @@
   transform: translateY(-1px);
 }
 
+.range-bar.widget-card:has([data-widget-control-surface]:hover),
+.range-bar.widget-card:has([data-widget-control-surface]:focus-within) {
+  transform: none;
+}
+
 .range-bar.widget-card .range-controls,
 .range-bar.widget-card .range-presets {
   display: inline-flex;
@@ -69,7 +74,10 @@
   align-items: center;
   flex-wrap: wrap;
   gap: 10px;
+  box-sizing: border-box;
+  width: 100%;
   max-width: 100%;
+  overflow: hidden;
   padding: 6px;
   border: 1.5px solid var(--timeframe-surface-border);
   border-radius: 999px;
@@ -95,6 +103,17 @@
 
 .timeframe-active-cluster {
   background: color-mix(in srgb, var(--surface-raised) 36%, var(--range-control-accent) 24%);
+}
+
+.timeframe-controls {
+  flex: 1 1 180px;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.timeframe-active-cluster {
+  flex: 0 1 auto;
+  min-width: 0;
 }
 
 .timeframe-custom-range {
@@ -128,6 +147,19 @@
 
 .range-presets {
   display: contents;
+}
+
+.range-bar.widget-card .timeframe-controls {
+  display: inline-flex;
+  align-items: center;
+  flex: 1 1 180px;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.range-bar.widget-card .timeframe-presets {
+  display: inline-flex;
+  align-items: center;
 }
 
 .range-bar button,
@@ -490,6 +522,7 @@
 
 .range-bar.widget-card .preset-btn,
 .range-bar.widget-card .range-custom-trigger,
+.range-bar.widget-card .timeframe-selected-summary,
 .range-bar.widget-card .range-icon-button,
 .range-bar.widget-card .timeframe-refresh-icon,
 .range-bar.widget-card .timeframe-calendar-icon {
@@ -502,7 +535,8 @@
   padding: 0 14px;
 }
 
-.timeframe-widget .range-custom-trigger {
+.timeframe-widget .range-custom-trigger,
+.timeframe-widget .timeframe-selected-summary {
   padding: 0 16px;
   font-weight: 760;
 }
@@ -516,6 +550,20 @@
   max-width: 132px;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+.timeframe-widget .range-controls,
+.timeframe-widget .timeframe-presets {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.timeframe-widget .timeframe-presets {
+  flex: 1 1 auto;
+  overflow-x: auto;
+  overflow-y: hidden;
+  overscroll-behavior-inline: contain;
+  scrollbar-width: thin;
 }
 
 .timeframe-filter-editor-list {
@@ -655,14 +703,18 @@
 }
 
 .timeframe-widget[data-current-span="3"] .range-custom-trigger,
-.timeframe-widget[data-default-span="3"]:not([data-current-span]) .range-custom-trigger {
+.timeframe-widget[data-current-span="3"] .timeframe-selected-summary,
+.timeframe-widget[data-default-span="3"]:not([data-current-span]) .range-custom-trigger,
+.timeframe-widget[data-default-span="3"]:not([data-current-span]) .timeframe-selected-summary {
   min-width: 88px;
   padding: 0 12px;
   font-size: 11px;
 }
 
 .timeframe-widget[data-current-span="2"] .range-custom-trigger,
-.timeframe-widget[data-default-span="2"]:not([data-current-span]) .range-custom-trigger {
+.timeframe-widget[data-current-span="2"] .timeframe-selected-summary,
+.timeframe-widget[data-default-span="2"]:not([data-current-span]) .range-custom-trigger,
+.timeframe-widget[data-default-span="2"]:not([data-current-span]) .timeframe-selected-summary {
   min-width: 68px;
   padding: 0 7px;
   font-size: 10px;
@@ -684,12 +736,12 @@
   min-height: 30px;
 }
 
-.timeframe-density-small .timeframe-utility-cluster,
-.timeframe-density-small .timeframe-presets {
+.timeframe-density-small .timeframe-utility-cluster {
   display: none;
 }
 
-.timeframe-density-small .range-custom-trigger {
+.timeframe-density-small .range-custom-trigger,
+.timeframe-density-small .timeframe-selected-summary {
   min-width: 118px;
   max-width: 100%;
 }
@@ -782,6 +834,40 @@
     inset 0 1px 0 var(--panel-hover-inset),
     inset 0 2px 5px color-mix(in srgb, var(--range-control-accent) 8%, rgba(15, 23, 42, .06));
   transform: var(--pressable-hover-transform);
+}
+
+.timeframe-selected-summary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  height: 34px;
+  width: auto;
+  min-width: 104px;
+  min-height: 34px;
+  max-width: 220px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding: 0;
+  border: 1.5px solid var(--range-control-active-border);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--range-control-bg) 78%, var(--panel-hover-tint));
+  color: var(--range-button-fg);
+  line-height: 1;
+  cursor: default;
+  box-shadow:
+    0 3px 8px color-mix(in srgb, var(--range-control-glow) 42%, transparent),
+    inset 0 1px 0 rgba(255, 255, 255, .24),
+    inset 0 2px 5px color-mix(in srgb, var(--range-control-accent) 8%, rgba(15, 23, 42, .06));
+  transform: none;
+  transition: background .15s ease, border-color .15s ease, color .15s ease, box-shadow .15s ease;
+}
+
+.timeframe-selected-summary:hover,
+.timeframe-selected-summary:focus-visible,
+.timeframe-selected-summary.active {
+  transform: none;
 }
 
 .range-custom-trigger.active {

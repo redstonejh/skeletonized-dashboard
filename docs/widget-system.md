@@ -95,14 +95,14 @@ Chart data must react to inherited and wired context. Chart rendering should res
 - First-class widget type, available through the dashboard Add menu.
 - Uses the shared widget shell, widget controls, drag/resize affordances, save/load persistence, and adaptive density rules.
 - Supports configurable preset count, labels, ranges, refresh behavior, and layout mode.
-- Current presets: Today, Yesterday, Last 7 days, Last 30 days, Month to date, Year to date, and Custom range.
+- Timeframe buttons are generated only from the widget's configured filters. Custom ranges are normal configured filter options, not a separate always-visible button.
 - Supports compact mode, dropdown mode, and segmented-pill mode.
 - Emits normalized timeframe context such as `{ preset: "last_7_days", start: "2026-05-19", end: "2026-05-25" }`.
 - Can provide inherited timeframe context to panels and child widgets.
 - Can participate in Engineer Mode wiring as a context source.
 - Must remain theme-aware and avoid stretched toolbar composition.
 - Default layout should be compact and modular, with grouped glass control clusters.
-- Internal preset, selector, refresh, and calendar controls are compact pressable controls and should depress on hover/active while the outer widget body keeps large-object hover presence.
+- Internal preset, selector, refresh, and calendar controls use one hover owner at a time: control hover depresses the control while suppressing outer widget lift/regional hover.
 
 ### Search Widget
 
