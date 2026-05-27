@@ -4574,6 +4574,697 @@ def test_panel_local_drag_displaces_large_child_by_incoming_footprint(page: Page
     assert_clean_browser(page)
 
 
+def test_panel_drag_absorbs_full_size_widgets_by_expanding_panel(page: Page, app_server: str) -> None:
+    goto(page, app_server)
+    page.evaluate("localStorage.clear()")
+    page.reload(wait_until="networkidle")
+    page.wait_for_selector(".page")
+
+    open_add_category(page, "controls").locator('.widget-add-action[data-widget-kind="timeframe"]').evaluate("node => node.click()")
+    open_add_category(page, "visualization", "Charts").locator('.widget-add-action[data-widget-kind="graph"]').evaluate("node => node.click()")
+    open_add_category(page, "data").locator('.widget-add-action[data-widget-kind="table"]').evaluate("node => node.click()")
+    created = page.evaluate(
+        """
+        () => {
+          const byType = (type) => [...document.querySelectorAll(`.widget-layout[data-widget-layout-key="builder"]:not(.panel-internal-widget-grid) > .widget-card[data-custom-widget="true"][data-widget-definition="${type}"]`)].at(-1)?.dataset.widgetKey || "";
+          return {
+            timeframe: byType("timeframe"),
+            chart: byType("chart"),
+            table: byType("table"),
+          };
+        }
+        """
+    )
+    assert all(created.values()), created
+
+    def prepare_case(widget_key: str, span: int, rows: int) -> dict:
+        return page.evaluate(
+            """
+            ({ widgetKey, span, rows }) => {
+              const panel = document.querySelector('[data-panel-key="builder-content"]');
+              const blocker = document.querySelector('[data-panel-key="builder-notes"]');
+              const source = document.querySelector(`.widget-layout[data-widget-layout-key="builder"]:not(.panel-internal-widget-grid) > .widget-card[data-widget-key="${widgetKey}"]`);
+              const panelLayout = document.querySelector('.panel-layout[data-layout-key="builder"]');
+              const widgetLayout = document.querySelector('.widget-layout[data-widget-layout-key="builder"]:not(.panel-internal-widget-grid)');
+              if (!panel || !blocker || !source || !panelLayout || !widgetLayout) return { ready: false };
+              const gridHeight = (layout, rowSpan) => {
+                const styles = getComputedStyle(layout);
+                const gap = parseFloat(styles.rowGap || styles.gap || "16") || 16;
+                const rowHeight = parseFloat(styles.getPropertyValue("--dashboard-grid-row-height")) || 81;
+                return (rowSpan * rowHeight) + (Math.max(0, rowSpan - 1) * gap);
+              };
+              const place = (node, col, row, currentSpan, rowSpan) => {
+                node.hidden = false;
+                node.dataset.gridCol = String(col);
+                node.dataset.gridRow = String(row);
+                node.dataset.currentSpan = String(currentSpan);
+                node.dataset.defaultSpan = String(currentSpan);
+                node.dataset.gridRowSpan = String(rowSpan);
+                node.style.gridColumn = `${col} / span ${currentSpan}`;
+                node.style.gridRow = `${row} / span ${rowSpan}`;
+                if (node.classList.contains("db-panel")) {
+                  node.classList.remove("db-panel-collapsed");
+                  node.querySelector(":scope > .db-panel-hd")?.setAttribute("aria-expanded", "true");
+                  const height = gridHeight(panelLayout, rowSpan);
+                  node.dataset.savedHeight = String(height);
+                  node.style.height = `${height}px`;
+                } else {
+                  node.style.height = `${gridHeight(widgetLayout, rowSpan)}px`;
+                }
+              };
+              document.querySelectorAll(".panel-internal-widget-grid").forEach((node) => node.remove());
+              document.querySelectorAll('.widget-layout[data-widget-layout-key="builder"]:not(.panel-internal-widget-grid) > .widget-card').forEach((node) => {
+                node.hidden = node !== source;
+              });
+              document.querySelectorAll('.panel-layout[data-layout-key="builder"] > .db-panel').forEach((node) => {
+                node.hidden = !(node === panel || node === blocker);
+              });
+              panel.classList.remove("panel-container-drag-active", "panel-header-entry-accept");
+              place(panel, 1, 4, 1, 2);
+              place(blocker, 1, 7, 2, 2);
+              place(source, Math.max(1, 7 - span), 1, span, rows);
+              source.classList.remove("widget-tools-open", "widget-dragging", "dashboard-active-resize", "dashboard-live-resize", "dashboard-resize-source");
+              source.querySelector(".panel-settings-toggle")?.setAttribute("aria-expanded", "false");
+              document.body.classList.remove("group-select-active", "panel-interaction-active", "panel-resize-active");
+              window.scrollTo(0, 0);
+              return {
+                ready: true,
+                blockerRow: Number(blocker.dataset.gridRow || 0),
+                initialPanelSpan: Number(panel.dataset.currentSpan || 0),
+                initialPanelRows: Number(panel.dataset.gridRowSpan || 0)
+              };
+            }
+            """,
+            {"widgetKey": widget_key, "span": span, "rows": rows},
+        )
+
+    def drag_source_into_panel(widget_key: str) -> None:
+        source = page.locator(
+            f'.widget-layout[data-widget-layout-key="builder"]:not(.panel-internal-widget-grid) > .widget-card[data-widget-key="{widget_key}"]'
+        )
+        panel = page.locator('[data-panel-key="builder-content"]')
+        force_open_tools_for_interaction(page, source)
+        handle_box = source.locator(".panel-move-handle").bounding_box()
+        body_box = panel.locator(".db-panel-body").bounding_box()
+        assert handle_box and body_box
+        start_x, start_y = box_center(handle_box)
+        target_x = body_box["x"] + body_box["width"] * 0.5
+        target_y = body_box["y"] + body_box["height"] * 0.55
+        page.mouse.move(start_x, start_y)
+        page.mouse.down()
+        page.mouse.move(target_x, target_y, steps=18)
+        expect(panel.locator(".panel-internal-widget-grid > .widget-placeholder")).to_be_visible()
+        page.mouse.up()
+        page.wait_for_timeout(340)
+
+    cases = [
+        ("timeframe", created["timeframe"], 4, 1),
+        ("chart", created["chart"], 5, 3),
+        ("table", created["table"], 6, 4),
+    ]
+    for label, widget_key, span, rows in cases:
+        setup = prepare_case(widget_key, span, rows)
+        assert setup["ready"] is True, (label, setup)
+        drag_source_into_panel(widget_key)
+        child_selector = f'[data-panel-key="builder-content"] .panel-internal-widget-grid > .widget-card[data-widget-key="{widget_key}"]'
+        expect(page.locator(child_selector)).to_be_visible()
+        expect(page.locator(f'.widget-layout[data-widget-layout-key="builder"]:not(.panel-internal-widget-grid) > .widget-card[data-widget-key="{widget_key}"]')).to_have_count(0)
+        state = page.evaluate(
+            """
+            ({ widgetKey, expectedSpan, expectedRows, blockerRowBefore }) => {
+              const panel = document.querySelector('[data-panel-key="builder-content"]');
+              const grid = panel?.querySelector(".panel-internal-widget-grid");
+              const child = grid?.querySelector(`[data-widget-key="${widgetKey}"]`);
+              const blocker = document.querySelector('[data-panel-key="builder-notes"]');
+              if (!panel || !grid || !child || !blocker) return { ready: false };
+              const panelRect = panel.getBoundingClientRect();
+              const gridRect = grid.getBoundingClientRect();
+              const childRect = child.getBoundingClientRect();
+              const blockerRect = blocker.getBoundingClientRect();
+              const styles = getComputedStyle(grid);
+              const paddingLeft = parseFloat(styles.paddingLeft) || 0;
+              const paddingRight = parseFloat(styles.paddingRight) || 0;
+              const paddingTop = parseFloat(styles.paddingTop) || 0;
+              const bottomGutter = (parseFloat(styles.paddingBottom) || 0) + (parseFloat(styles.rowGap || styles.gap) || 0);
+              return {
+                ready: true,
+                panelSpan: Number(panel.dataset.currentSpan || 0),
+                panelRows: Number(panel.dataset.gridRowSpan || 0),
+                childSpan: Number(child.dataset.currentSpan || child.dataset.defaultSpan || 0),
+                childRows: Number(child.dataset.gridRowSpan || 0),
+                parentPanelKey: child.dataset.parentPanelKey || "",
+                panelChildWidget: child.dataset.panelChildWidget || "",
+                bottomGap: panelRect.bottom - childRect.bottom,
+                bottomGutter,
+                leftInset: childRect.left - gridRect.left,
+                rightInset: gridRect.right - childRect.right,
+                topInset: childRect.top - gridRect.top,
+                paddingLeft,
+                paddingRight,
+                paddingTop,
+                childInsidePanel: childRect.bottom <= panelRect.bottom + 2 && childRect.left >= gridRect.left - 2 && childRect.right <= gridRect.right + 2,
+                blockerRow: Number(blocker.dataset.gridRow || 0),
+                panelBottom: panelRect.bottom,
+                blockerTop: blockerRect.top,
+                blockerMoved: Number(blocker.dataset.gridRow || 0) > blockerRowBefore,
+                expectedSpan,
+                expectedRows
+              };
+            }
+            """,
+            {
+                "widgetKey": widget_key,
+                "expectedSpan": span,
+                "expectedRows": rows,
+                "blockerRowBefore": setup["blockerRow"],
+            },
+        )
+        assert state["ready"] is True, (label, state)
+        assert state["panelSpan"] >= span, (label, state)
+        assert state["panelRows"] > setup["initialPanelRows"], (label, state)
+        assert state["childSpan"] == span, (label, state)
+        assert state["childRows"] == rows, (label, state)
+        assert state["parentPanelKey"] == "builder-content", (label, state)
+        assert state["panelChildWidget"] == "true", (label, state)
+        assert state["childInsidePanel"] is True, (label, state)
+        assert state["leftInset"] >= state["paddingLeft"] - 2, (label, state)
+        assert state["rightInset"] >= state["paddingRight"] - 2, (label, state)
+        assert state["topInset"] >= state["paddingTop"] - 2, (label, state)
+        assert state["bottomGap"] >= state["bottomGutter"] - 2, (label, state)
+        if rows > 1:
+            assert state["blockerMoved"] is True, (label, state["panelRows"], state["blockerRow"], state["panelBottom"], state["blockerTop"])
+        assert no_visible_overlaps(page, ".panel-layout[data-layout-key='builder'] > .db-panel:not([hidden])") == []
+        assert no_visible_overlaps(page, ".panel-internal-widget-grid > .widget-card") == []
+
+    page.locator(".layout-save-button").click()
+    expect(page.locator(".toast", has_text="saved")).to_be_visible()
+    page.reload(wait_until="networkidle")
+    page.wait_for_selector(".page")
+    table_child_selector = f'[data-panel-key="builder-content"] .panel-internal-widget-grid > .widget-card[data-widget-key="{created["table"]}"]'
+    expect(page.locator(table_child_selector)).to_be_visible()
+    assert grid_item_state(page, table_child_selector)["span"] == 6
+    assert page.locator(
+        f'.widget-layout[data-widget-layout-key="builder"]:not(.panel-internal-widget-grid) > .widget-card[data-widget-key="{created["table"]}"]'
+    ).count() == 0
+    page.locator('[data-panel-key="builder-content"] > .db-panel-hd').click(position={"x": 32, "y": 32}, force=True)
+    expect(page.locator('[data-panel-key="builder-content"]')).to_have_class(re.compile("db-panel-collapsed"))
+    page.locator('[data-panel-key="builder-content"] > .db-panel-hd').click(position={"x": 32, "y": 32}, force=True)
+    expect(page.locator('[data-panel-key="builder-content"]')).not_to_have_class(re.compile("db-panel-collapsed"))
+    expect(page.locator(table_child_selector)).to_be_visible()
+    assert_clean_browser(page)
+
+
+def test_panel_contained_widgets_use_same_registry_runtime_contracts(page: Page, app_server: str) -> None:
+    goto(page, app_server)
+    page.evaluate("localStorage.clear()")
+    page.reload(wait_until="networkidle")
+    page.wait_for_selector(".page")
+
+    parity = page.evaluate(
+        """
+        async () => {
+          const widgetLayout = document.querySelector('.widget-layout[data-widget-layout-key="builder"]:not(.panel-internal-widget-grid)');
+          const panelLayout = document.querySelector('.panel-layout[data-layout-key="builder"]');
+          const panel = document.querySelector('[data-panel-key="builder-content"]');
+          const body = panel.querySelector(':scope > .db-panel-body');
+          let grid = body.querySelector(':scope > .panel-internal-widget-grid');
+          if (!grid) {
+            grid = document.createElement('div');
+            grid.className = 'panel-internal-widget-grid widget-layout';
+            grid.dataset.widgetLayoutKey = 'builder:panel:builder-content';
+            grid.dataset.panelContainerKey = 'builder-content';
+            body.appendChild(grid);
+          }
+          panel.classList.remove('db-panel-collapsed');
+          panel.dataset.gridCol = '1';
+          panel.dataset.gridRow = '6';
+          panel.dataset.currentSpan = '6';
+          panel.dataset.gridRowSpan = '14';
+          panel.dataset.savedHeight = '1380';
+          panel.style.gridColumn = '1 / span 6';
+          panel.style.gridRow = '6 / span 14';
+          panel.style.height = '1380px';
+          panel.querySelector(':scope > .db-panel-hd')?.setAttribute('aria-expanded', 'true');
+          document.querySelectorAll('.panel-layout[data-layout-key="builder"] > .db-panel:not([data-panel-key="builder-content"])').forEach((node) => {
+            node.hidden = true;
+          });
+          document.querySelectorAll('.widget-layout[data-widget-layout-key="builder"]:not(.panel-internal-widget-grid) > .widget-card').forEach((node) => {
+            node.hidden = true;
+          });
+          grid.replaceChildren();
+
+          const configs = {
+            stat: { title: 'Parity Stat', label: 'Parity Stat', metric: 'count' },
+            timeframe: { title: 'Parity Time', selectedFilterId: 'time-last-7-days' },
+            search: { title: 'Parity Search', query: 'Alpha', placeholder: 'Search records' },
+            filter: { title: 'Parity Filters', filters: [{ id: 'category', type: 'dropdown', label: 'Category', field: 'category', value: 'Inspection' }] },
+            text: { title: 'Parity Note', body: 'Same note body', placeholder: 'Write a note' },
+            'region-summary': { title: 'Parity Region' },
+            'data-filter': { title: 'Parity Gate', operator: 'AND', inputCount: 2, outputType: 'boolean' },
+            shift: { title: 'Parity Shift', stateALabel: 'Quiet', stateBLabel: 'Active' },
+            'activity-feed': { title: 'Parity Activity', maxItems: 4 },
+            'ai-assistant': { title: 'Parity Assistant', scope: 'region', promptTemplate: 'Summarize this workspace.' },
+            'context-inspector': { title: 'Parity Inspector', showDataSource: true, showFilters: true },
+            image: { title: 'Parity Image', src: 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 80"%3E%3Crect width="120" height="80" fill="%2340c4ff"/%3E%3Ctext x="16" y="45" fill="white"%3EParity%3C/text%3E%3C/svg%3E', alt: 'Parity image', caption: 'Shared image' },
+            video: { title: 'Parity Video', src: 'data:video/mp4;base64,AAAA', caption: 'Shared video' },
+            document: { title: 'Parity Document', documentType: 'text', content: 'Shared document text', caption: 'Shared document' },
+            table: { title: 'Parity Table', columns: ['label', 'value', 'timestamp', 'category'], limit: 6 },
+            chart: { title: 'Parity Chart', chartType: 'bar', xField: 'category', yField: 'revenue', aggregation: 'sum', limit: 20 },
+            map: { title: 'Parity Map', latitudeField: 'latitude', longitudeField: 'longitude', locationField: 'location', limit: 20 },
+            calendar: { title: 'Parity Calendar', dateField: 'timestamp', labelField: 'label', limit: 8 },
+          };
+          const sizeFor = (definition) => ({
+            cols: Math.max(Number(definition.minSize?.cols) || 1, Number(definition.defaultSize?.cols) || 1, ['table', 'chart', 'map'].includes(definition.type) ? 4 : 2),
+            rows: Math.max(Number(definition.minSize?.rows) || 1, Number(definition.defaultSize?.rows) || 1, ['table', 'chart', 'map', 'calendar'].includes(definition.type) ? 3 : 2),
+          });
+          const createWidget = (type, key, col, row, parent = null) => {
+            const definition = window.dashboardWidgetRuntime.getWidgetDefinition(type);
+            const tag = definition.htmlTag || 'div';
+            const widget = document.createElement(tag);
+            widget.className = definition.className || 'stat-card widget-card widget-card-custom';
+            if (tag === 'a') widget.href = '/dashboard';
+            widget.dataset.widgetKey = key;
+            widget.dataset.customWidget = 'true';
+            widget.dataset.widgetRuntimeType = definition.type;
+            widget.dataset.widgetDefinition = definition.type;
+            widget.dataset.widgetType = definition.widgetType || definition.type;
+            widget.dataset.dashboardObjectKind = definition.dashboardObjectKind || definition.type;
+            widget.dataset.contextRole = definition.contextRole || 'content';
+            widget.dataset.workspaceContext = JSON.stringify({
+              id: key,
+              name: `${key} context`,
+              dataSourceId: 'parity-source',
+              semanticMapping: {
+                labelField: 'label',
+                valueField: 'value',
+                dateField: 'timestamp',
+                categoryField: 'category',
+                statusField: 'status',
+                locationField: 'location',
+                latitudeField: 'latitude',
+                longitudeField: 'longitude',
+                custom: { revenueField: 'revenue' },
+              },
+            });
+            widget.dataset.dataSourceId = 'parity-source';
+            widget.dataset.semanticMapping = JSON.stringify({
+              labelField: 'label',
+              valueField: 'value',
+              dateField: 'timestamp',
+              categoryField: 'category',
+              statusField: 'status',
+              locationField: 'location',
+              latitudeField: 'latitude',
+              longitudeField: 'longitude',
+              custom: { revenueField: 'revenue' },
+            });
+            widget.dataset.defaultSpan = String(definition.defaultSize?.cols || 1);
+            const size = sizeFor(definition);
+            widget.dataset.currentSpan = String(size.cols);
+            widget.dataset.gridRowSpan = String(size.rows);
+            widget.dataset.gridCol = String(col);
+            widget.dataset.gridRow = String(row);
+            widget.dataset.minW = String(definition.minSize?.cols || 1);
+            if (definition.minSize?.rows) widget.dataset.minH = String(definition.minSize.rows);
+            widget.dataset.widgetConfig = JSON.stringify({ ...(definition.getDefaultConfig?.() || {}), ...(configs[type] || { title: definition.displayName || type }) });
+            widget.style.gridColumn = `${col} / span ${size.cols}`;
+            widget.style.gridRow = `${row} / span ${size.rows}`;
+            if (parent) {
+              widget.dataset.panelChildWidget = 'true';
+              widget.dataset.parentPanelKey = parent.dataset.panelKey || '';
+            }
+            return widget;
+          };
+          const types = window.dashboardWidgetRuntime.listWidgetDefinitions()
+            .map((definition) => definition.type)
+            .filter((type) => type !== 'unsupported');
+          const pairs = [];
+          let rootRow = 1;
+          let panelRow = 1;
+          types.forEach((type, index) => {
+            const col = type === 'data-filter' ? 5 : 1 + (index % 2) * 3;
+            const row = type === 'data-filter' ? 1 : rootRow;
+            const childRow = type === 'data-filter' ? 1 : panelRow;
+            const root = createWidget(type, `parity-root-${type}`, col, row, null);
+            const child = createWidget(type, `parity-panel-${type}`, col, childRow, panel);
+            widgetLayout.appendChild(root);
+            grid.appendChild(child);
+            widgetLayout.__initWidget?.(root);
+            grid.__initWidget?.(child);
+            pairs.push({ type, root, child });
+            if (index % 2 === 1) {
+              rootRow += 4;
+              panelRow += 4;
+            }
+          });
+          window.dashboardContextEngine.setDataSources('builder', [{
+            id: 'parity-source',
+            name: 'Parity fake data',
+            kind: 'manual',
+            config: {
+              rows: Array.from({ length: 12 }, (_, index) => ({
+                id: `parity-${index + 1}`,
+                label: `Parity ${index + 1}`,
+                value: 20 + index,
+                revenue: 5000 + (index * 350),
+                category: ['Inspection', 'Repair', 'Install'][index % 3],
+                status: ['Normal', 'Warning', 'Positive'][index % 3],
+                timestamp: `2026-05-${String(22 + (index % 5)).padStart(2, '0')}`,
+                location: `Site ${index + 1}`,
+                latitude: 37.62 + (index * 0.01),
+                longitude: -122.48 + (index * 0.01),
+              })),
+            },
+          }]);
+          window.dashboardContextEngine.setWorkspaceContexts('builder', [{
+            id: 'builder:region:root',
+            name: 'Parity root context',
+            dataSourceId: 'parity-source',
+            semanticMapping: {
+              labelField: 'label',
+              valueField: 'value',
+              dateField: 'timestamp',
+              categoryField: 'category',
+              statusField: 'status',
+              locationField: 'location',
+              latitudeField: 'latitude',
+              longitudeField: 'longitude',
+              custom: { revenueField: 'revenue' },
+            },
+          }]);
+          window.dashboardContextEngine.refresh('builder');
+          await Promise.all(pairs.flatMap(({ root, child }) => [
+            window.dashboardQueryRuntime.refreshWidget(root, { force: true }),
+            window.dashboardQueryRuntime.refreshWidget(child, { force: true }),
+          ]));
+          await new Promise((resolve) => setTimeout(resolve, 120));
+          const signature = (node) => {
+            const withoutTools = [...node.childNodes]
+              .filter((child) => !(child.nodeType === Node.ELEMENT_NODE && child.classList.contains('widget-tools')))
+              .map((child) => child.textContent || '')
+              .join(' ')
+              .replace(/\\s+/g, ' ')
+              .trim();
+            const controlText = [...node.querySelectorAll('input, select, textarea, button')]
+              .filter((control) => !control.closest('.widget-tools'))
+              .map((control) => control.value || control.textContent || control.getAttribute('aria-label') || '')
+              .join(' ')
+              .replace(/\\s+/g, ' ')
+              .trim();
+            return {
+              key: node.dataset.widgetKey,
+              type: node.dataset.widgetDefinition,
+              runtimeType: node.dataset.widgetRuntimeType,
+              config: JSON.parse(node.dataset.widgetConfig || '{}'),
+              status: node.dataset.widgetRuntimeStatus || '',
+              mode: node.dataset.widgetRuntimeMode || '',
+              source: node.dataset.resolvedDataSourceId || '',
+              schema: JSON.parse(node.dataset.widgetSettingsSchema || '{"sections":[]}').sections.length,
+              minW: Number(node.dataset.minW || 0),
+              minH: Number(node.dataset.minH || 1),
+              span: Number(node.dataset.currentSpan || 0),
+              rows: Number(node.dataset.gridRowSpan || 0),
+              hasTools: Boolean(node.querySelector(':scope > .widget-tools .panel-settings-toggle')),
+              text: withoutTools,
+              controlText,
+              hasRuntimeTable: Boolean(node.querySelector('.runtime-table')),
+              chartType: node.querySelector('.runtime-chart-widget, .runtime-chart-kpi')?.dataset.chartType || '',
+              hasMap: Boolean(node.querySelector('.runtime-map-svg')),
+              hasCalendar: Boolean(node.querySelector('.runtime-calendar-widget')),
+              mediaKind: node.querySelector('.media-widget')?.dataset.mediaKind || '',
+              lockedInspector: Boolean(node.querySelector('.context-inspector-locked')),
+              panelChild: node.dataset.panelChildWidget || '',
+              parentPanelKey: node.dataset.parentPanelKey || '',
+            };
+          };
+          const beforeSettingsRoot = document.querySelector('[data-widget-key="parity-root-text"]');
+          const beforeSettingsPanel = document.querySelector('[data-widget-key="parity-panel-text"]');
+          window.dashboardWidgetSettingsRuntime.applySetting(beforeSettingsRoot, 'body', 'Updated root note');
+          window.dashboardWidgetSettingsRuntime.applySetting(beforeSettingsPanel, 'body', 'Updated panel note');
+          return pairs.map(({ type, root, child }) => ({
+            type,
+            root: signature(root),
+            child: signature(child),
+          }));
+        }
+        """
+    )
+    assert len(parity) >= 18
+    for pair in parity:
+        root = pair["root"]
+        child = pair["child"]
+        assert root["type"] == child["type"] == pair["type"], pair
+        assert root["runtimeType"] == child["runtimeType"] == pair["type"], pair
+        assert root["config"] == child["config"] or pair["type"] == "text", pair
+        assert root["schema"] == child["schema"], pair
+        assert root["minW"] == child["minW"], pair
+        assert root["minH"] == child["minH"], pair
+        assert root["span"] == child["span"], pair
+        assert root["rows"] == child["rows"], pair
+        assert root["hasTools"] is True and child["hasTools"] is True, pair
+        assert child["panelChild"] == "true", pair
+        assert child["parentPanelKey"] == "builder-content", pair
+        if not (root["lockedInspector"] and child["lockedInspector"]):
+            assert (root["text"] or root["controlText"]) and (child["text"] or child["controlText"]), pair
+        if pair["type"] in {"stat", "table", "chart", "map", "calendar", "filter"}:
+            assert root["status"] == child["status"] == "ready", pair
+            assert root["mode"] == child["mode"], pair
+            assert root["source"] == child["source"] == "parity-source", pair
+        if pair["type"] == "table":
+            assert root["hasRuntimeTable"] is True and child["hasRuntimeTable"] is True
+        if pair["type"] == "chart":
+            assert root["chartType"] == child["chartType"] == "bar"
+        if pair["type"] == "map":
+            assert root["hasMap"] is True and child["hasMap"] is True
+        if pair["type"] == "calendar":
+            assert root["hasCalendar"] is True and child["hasCalendar"] is True
+        if pair["type"] in {"image", "video", "document"}:
+            assert root["mediaKind"] == child["mediaKind"] == pair["type"]
+        if pair["type"] == "text":
+            assert "Updated root note" in root["text"]
+            assert "Updated panel note" in child["text"]
+
+    page.locator(".engineer-mode-button").click()
+    expect(page.locator(".engineer-mode-button")).to_have_attribute("aria-pressed", "true")
+    page.wait_for_function(
+        """
+        () => document.querySelector('.workspace-wire-nodule[data-wire-object-id="parity-root-data-filter"]') &&
+          document.querySelector('.workspace-wire-nodule[data-wire-object-id="parity-panel-data-filter"]')
+        """
+    )
+    open_ports = page.evaluate(
+        """
+        () => ({
+          root: document.querySelectorAll('.workspace-wire-nodule[data-wire-object-id="parity-root-data-filter"]').length,
+          child: document.querySelectorAll('.workspace-wire-nodule[data-wire-object-id="parity-panel-data-filter"]').length,
+        })
+        """
+    )
+    assert open_ports["root"] >= 2
+    assert open_ports["child"] >= 2
+    page.locator('[data-panel-key="builder-content"] > .db-panel-hd').click(position={"x": 32, "y": 32}, force=True)
+    expect(page.locator('[data-panel-key="builder-content"]')).to_have_class(re.compile("db-panel-collapsed"))
+    page.wait_for_timeout(180)
+    collapsed_ports = page.evaluate(
+        """
+        async () => {
+          window.dashboardEngineerMode.refresh();
+          await new Promise((resolve) => requestAnimationFrame(resolve));
+          return {
+            root: document.querySelectorAll('.workspace-wire-nodule[data-wire-object-id="parity-root-data-filter"]').length,
+            child: document.querySelectorAll('.workspace-wire-nodule[data-wire-object-id="parity-panel-data-filter"]').length,
+          };
+        }
+        """
+    )
+    assert collapsed_ports["root"] >= 2
+    assert collapsed_ports["child"] == 0
+    assert_clean_browser(page)
+
+
+def test_panel_context_is_additional_widget_inheritance_layer(page: Page, app_server: str) -> None:
+    goto(page, app_server)
+    page.evaluate("localStorage.clear()")
+    page.reload(wait_until="networkidle")
+    page.wait_for_selector(".page")
+
+    setup = page.evaluate(
+        """
+        async () => {
+          const widgetLayout = document.querySelector('.widget-layout[data-widget-layout-key="builder"]:not(.panel-internal-widget-grid)');
+          const panel = document.querySelector('[data-panel-key="builder-content"]');
+          const body = panel.querySelector(':scope > .db-panel-body');
+          let grid = body.querySelector(':scope > .panel-internal-widget-grid');
+          if (!grid) {
+            grid = document.createElement('div');
+            grid.className = 'panel-internal-widget-grid widget-layout';
+            grid.dataset.widgetLayoutKey = 'builder:panel:builder-content';
+            grid.dataset.panelContainerKey = 'builder-content';
+            body.appendChild(grid);
+          }
+          document.querySelectorAll('.panel-layout[data-layout-key="builder"] > .db-panel:not([data-panel-key="builder-content"])').forEach((node) => {
+            node.hidden = true;
+          });
+          document.querySelectorAll('.widget-layout[data-widget-layout-key="builder"]:not(.panel-internal-widget-grid) > .widget-card').forEach((node) => {
+            node.hidden = true;
+          });
+          grid.replaceChildren();
+          panel.classList.remove('db-panel-collapsed');
+          panel.dataset.gridCol = '1';
+          panel.dataset.gridRow = '4';
+          panel.dataset.currentSpan = '4';
+          panel.dataset.gridRowSpan = '4';
+          panel.dataset.savedHeight = '372';
+          panel.style.gridColumn = '1 / span 4';
+          panel.style.gridRow = '4 / span 4';
+          panel.style.height = '372px';
+          panel.querySelector(':scope > .db-panel-hd')?.setAttribute('aria-expanded', 'true');
+          panel.dataset.workspaceContext = JSON.stringify({
+            id: 'panel-local-context',
+            name: 'Panel local context',
+            dataSourceId: 'panel-source'
+          });
+          panel.dataset.dataSourceId = 'panel-source';
+          const createTable = (key, parent = null) => {
+            const definition = window.dashboardWidgetRuntime.getWidgetDefinition('table');
+            const table = document.createElement('div');
+            table.className = definition.className;
+            table.dataset.widgetKey = key;
+            table.dataset.customWidget = 'true';
+            table.dataset.widgetRuntimeType = 'table';
+            table.dataset.widgetDefinition = 'table';
+            table.dataset.widgetType = definition.widgetType;
+            table.dataset.dashboardObjectKind = definition.dashboardObjectKind;
+            table.dataset.contextRole = definition.contextRole;
+            table.dataset.defaultSpan = '4';
+            table.dataset.currentSpan = '4';
+            table.dataset.gridRowSpan = '3';
+            table.dataset.minW = '2';
+            table.dataset.minH = '2';
+            table.dataset.widgetConfig = JSON.stringify({ title: 'Inherited Table', columns: ['label', 'value', 'timestamp', 'category'], limit: 4 });
+            if (parent) {
+              table.dataset.panelChildWidget = 'true';
+              table.dataset.parentPanelKey = parent.dataset.panelKey || '';
+            }
+            return table;
+          };
+          const rootTable = createTable('context-root-table');
+          rootTable.dataset.workspaceContext = JSON.stringify({
+            id: 'context-root-table',
+            name: 'Root table context',
+            dataSourceId: 'root-source',
+            semanticMapping: {
+              labelField: 'label',
+              valueField: 'value',
+              dateField: 'timestamp',
+              categoryField: 'category'
+            }
+          });
+          rootTable.dataset.dataSourceId = 'root-source';
+          rootTable.dataset.semanticMapping = JSON.stringify({
+            labelField: 'label',
+            valueField: 'value',
+            dateField: 'timestamp',
+            categoryField: 'category'
+          });
+          rootTable.dataset.gridCol = '1';
+          rootTable.dataset.gridRow = '1';
+          rootTable.style.gridColumn = '1 / span 4';
+          rootTable.style.gridRow = '1 / span 3';
+          const panelTable = createTable('context-panel-table', panel);
+          panelTable.dataset.workspaceContext = JSON.stringify({
+            id: 'context-panel-table',
+            name: 'Panel table local mapping',
+            semanticMapping: {
+              labelField: 'label',
+              valueField: 'value',
+              dateField: 'timestamp',
+              categoryField: 'category'
+            }
+          });
+          panelTable.dataset.semanticMapping = JSON.stringify({
+            labelField: 'label',
+            valueField: 'value',
+            dateField: 'timestamp',
+            categoryField: 'category'
+          });
+          panelTable.dataset.gridCol = '1';
+          panelTable.dataset.gridRow = '1';
+          panelTable.style.gridColumn = '1 / span 4';
+          panelTable.style.gridRow = '1 / span 3';
+          widgetLayout.appendChild(rootTable);
+          grid.appendChild(panelTable);
+          widgetLayout.__initWidget?.(rootTable);
+          grid.__initWidget?.(panelTable);
+          window.dashboardContextEngine.setDataSources('builder', [
+            {
+              id: 'root-source',
+              name: 'Root Source',
+              kind: 'manual',
+              config: { rows: [{ label: 'Root Alpha', value: 10, timestamp: '2026-05-01', category: 'Root' }] }
+            },
+            {
+              id: 'panel-source',
+              name: 'Panel Source',
+              kind: 'manual',
+              config: { rows: [{ label: 'Panel Alpha', value: 42, timestamp: '2026-05-02', category: 'Panel' }] }
+            }
+          ]);
+          window.dashboardContextEngine.refresh('builder');
+          await Promise.all([
+            window.dashboardQueryRuntime.refreshWidget(rootTable, { force: true }),
+            window.dashboardQueryRuntime.refreshWidget(panelTable, { force: true }),
+          ]);
+          return {
+            rootSource: rootTable.dataset.resolvedDataSourceId,
+            panelSource: panelTable.dataset.resolvedDataSourceId,
+            panelParent: panelTable.dataset.parentPanelKey,
+            rootText: rootTable.textContent.trim().replace(/\\s+/g, ' '),
+            panelText: panelTable.textContent.trim().replace(/\\s+/g, ' '),
+            panelMapping: window.dashboardContextEngine.resolveContextForElement(panelTable).semanticMapping,
+          };
+        }
+        """
+    )
+    assert setup["rootSource"] == "root-source"
+    assert setup["panelSource"] == "panel-source"
+    assert setup["panelParent"] == "builder-content"
+    assert "Root Alpha" in setup["rootText"]
+    assert "Panel Alpha" in setup["panelText"]
+    assert setup["panelMapping"]["labelField"] == "label"
+    assert setup["panelMapping"]["valueField"] == "value"
+
+    page.locator(".layout-save-button").click()
+    expect(page.locator(".toast", has_text="saved")).to_be_visible()
+    page.reload(wait_until="networkidle")
+    page.evaluate(
+        """
+        async () => {
+          window.dashboardContextEngine.refresh('builder');
+          const rootTable = document.querySelector('[data-widget-key="context-root-table"]');
+          const panelTable = document.querySelector('[data-widget-key="context-panel-table"]');
+          await Promise.all([
+            window.dashboardQueryRuntime.refreshWidget(rootTable, { force: true }),
+            window.dashboardQueryRuntime.refreshWidget(panelTable, { force: true }),
+          ]);
+        }
+        """
+    )
+    expect(page.locator('[data-widget-key="context-root-table"] .runtime-table')).to_contain_text("Root Alpha")
+    expect(page.locator('[data-widget-key="context-panel-table"] .runtime-table')).to_contain_text("Panel Alpha")
+    persisted = page.evaluate(
+        """
+        () => ({
+          rootSource: document.querySelector('[data-widget-key="context-root-table"]').dataset.resolvedDataSourceId,
+          panelSource: document.querySelector('[data-widget-key="context-panel-table"]').dataset.resolvedDataSourceId,
+          parent: document.querySelector('[data-widget-key="context-panel-table"]').dataset.parentPanelKey,
+        })
+        """
+    )
+    assert persisted == {"rootSource": "root-source", "panelSource": "panel-source", "parent": "builder-content"}
+    assert_clean_browser(page)
+
+
 def test_panel_internal_widget_grid_uses_consistent_inset_spacing(page: Page, app_server: str) -> None:
     goto(page, app_server)
     page.evaluate(

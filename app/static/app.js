@@ -2328,7 +2328,7 @@ document.addEventListener("DOMContentLoaded", () => {
     return {
       id: item?.dataset?.contextScopeId || item?.dataset?.workspaceRegionId || workspaceObjectKey(item),
       name: item?.dataset?.contextName || raw.name || item?.dataset?.panelTitle || item?.dataset?.defaultTitle || "Workspace context",
-      dataSourceId,
+      dataSourceId: dataSourceId || undefined,
       semanticMapping: mapping || undefined,
       filters: filters || undefined,
       timeRange: timeRange || undefined,
@@ -2346,24 +2346,32 @@ document.addEventListener("DOMContentLoaded", () => {
     if (context.tags) item.dataset.contextTags = JSON.stringify(context.tags);
     if (context.name) item.dataset.contextName = context.name;
   };
-  const mergeWorkspaceContexts = (...contexts) => contexts.filter(Boolean).reduce((merged, context) => ({
-    ...merged,
-    ...context,
-    semanticMapping: {
-      ...(merged.semanticMapping || {}),
-      ...(context.semanticMapping || {}),
-      custom: {
-        ...(merged.semanticMapping?.custom || {}),
-        ...(context.semanticMapping?.custom || {}),
+  const mergeWorkspaceContexts = (...contexts) => contexts.filter(Boolean).reduce((merged, context) => {
+    const scalarContext = Object.fromEntries(Object.entries(context)
+      .filter(([key, value]) =>
+        !["semanticMapping", "filters", "tags", "visualSettings"].includes(key) &&
+        value !== undefined &&
+        value !== null
+      ));
+    return {
+      ...merged,
+      ...scalarContext,
+      semanticMapping: {
+        ...(merged.semanticMapping || {}),
+        ...(context.semanticMapping || {}),
+        custom: {
+          ...(merged.semanticMapping?.custom || {}),
+          ...(context.semanticMapping?.custom || {}),
+        },
       },
-    },
-    filters: [...(merged.filters || []), ...(context.filters || [])],
-    tags: [...new Set([...(merged.tags || []), ...(context.tags || [])])],
-    visualSettings: {
-      ...(merged.visualSettings || {}),
-      ...(context.visualSettings || {}),
-    },
-  }), {});
+      filters: [...(merged.filters || []), ...(context.filters || [])],
+      tags: [...new Set([...(merged.tags || []), ...(context.tags || [])])],
+      visualSettings: {
+        ...(merged.visualSettings || {}),
+        ...(context.visualSettings || {}),
+      },
+    };
+  }, {});
   const filterControlFieldForType = (filter, semanticMapping = {}) => {
     const explicit = String(filter?.field || "").trim();
     if (explicit) return explicit;
@@ -2538,19 +2546,25 @@ document.addEventListener("DOMContentLoaded", () => {
     if (internalPanel) return internalPanel.dataset.workspaceRegionId || internalPanel.dataset.contextInheritedFrom;
     return item?.dataset?.workspaceRegionId || item?.dataset?.contextInheritedFrom || workspaceRootRegionId(activeLayoutKeyForItem(item));
   };
+  const panelContextForInternalWidget = (item) => {
+    const internalPanel = panelForInternalWidgetLayout(item?.closest?.(".panel-internal-widget-grid"));
+    return internalPanel ? workspaceContextFromElement(internalPanel) : null;
+  };
   const resolveWorkspaceContextForItem = (item, options = {}) => {
     const layoutKey = options.layoutKey || activeLayoutKeyForItem(item);
     const profile = options.profile || getActivePanelProfile(layoutKey);
     const regionId = regionIdForWorkspaceItem(item);
     const objectId = workspaceObjectKey(item);
     const localContext = workspaceContextFromElement(item);
+    const panelContext = panelContextForInternalWidget(item);
     const inheritedContext = resolveWorkspaceRegionContext(layoutKey, profile, regionId, options.contextLinkStack || new Set());
     const objectLinkedContext = objectId
       ? linkedContextForTarget(objectId, layoutKey, profile, {}, options.contextLinkStack || new Set())
       : {};
-    const timeRangeContext = timeRangeContextForRegion(layoutKey, regionId, inheritedContext);
-    const filterContext = filterContextForRegion(layoutKey, regionId, mergeWorkspaceContexts(inheritedContext, objectLinkedContext, timeRangeContext));
-    const resolved = mergeWorkspaceContexts(inheritedContext, objectLinkedContext, timeRangeContext, filterContext, localContext);
+    const scopedContext = mergeWorkspaceContexts(inheritedContext, panelContext);
+    const timeRangeContext = timeRangeContextForRegion(layoutKey, regionId, scopedContext);
+    const filterContext = filterContextForRegion(layoutKey, regionId, mergeWorkspaceContexts(scopedContext, objectLinkedContext, timeRangeContext));
+    const resolved = mergeWorkspaceContexts(scopedContext, objectLinkedContext, timeRangeContext, filterContext, localContext);
     const dataSource = resolved.dataSourceId ? dataSourceById(layoutKey, profile, resolved.dataSourceId) : null;
     const adapter = dataSource ? dataSourceAdapters.get(dataSource.kind) : null;
     return {
@@ -6631,6 +6645,69 @@ document.addEventListener("DOMContentLoaded", () => {
     return true;
   };
 
+  const panelRequiredSpanForInternalItem = (panel, item = null) => {
+    const currentSpan = Number(panel?.dataset?.currentSpan) || Number(panel?.dataset?.defaultSpan) || 1;
+    if (!item) return Math.max(gridItemMinimumSpan(panel), Math.min(DASHBOARD_GRID_COLUMNS, Math.round(currentSpan)));
+    const itemSpan = Number(item.dataset.currentSpan) || Number(item.dataset.defaultSpan) || 1;
+    return Math.max(
+      gridItemMinimumSpan(panel),
+      Math.min(DASHBOARD_GRID_COLUMNS, Math.round(Math.max(currentSpan, itemSpan)))
+    );
+  };
+
+  const openPanelForInternalDrop = (panel) => {
+    if (!panel?.classList?.contains("db-panel-collapsed")) return false;
+    panel.classList.remove("db-panel-collapsed");
+    panel.querySelector(":scope > .db-panel-hd")?.setAttribute("aria-expanded", "true");
+    if (panel.dataset.savedHeight) {
+      applyPanelHeight(panel, panel.dataset.savedHeight);
+    } else {
+      panel.dataset.gridRowSpan = String(panelMinimumRows(panel));
+    }
+    if (panel.dataset.gridCol && panel.dataset.gridRow) {
+      applyPanelGridPosition(panel, panel.dataset.gridCol, panel.dataset.gridRow);
+    }
+    return true;
+  };
+
+  const syncPanelFootprintToInternalItem = (panel, item = null, options = {}) => {
+    if (!panel?.isConnected || !workspaceObjectCapabilities(panel).hasPanelContentArea) return false;
+    const wasOpened = options.openCollapsed ? openPanelForInternalDrop(panel) : false;
+    if (panel.classList.contains("db-panel-collapsed")) return wasOpened;
+    const layout = panel.closest(".panel-layout");
+    const currentSpan = Number(panel.dataset.currentSpan) || Number(panel.dataset.defaultSpan) || 1;
+    const requiredSpan = panelRequiredSpanForInternalItem(panel, item);
+    let spanChanged = false;
+    if (requiredSpan > currentSpan) {
+      applyPanelSpan(panel, requiredSpan);
+      spanChanged = true;
+    }
+    const heightChanged = options.syncHeight === false
+      ? false
+      : syncOpenPanelHeightToInternalGrid(panel, {
+        ...options,
+        reflow: false,
+      });
+    if ((wasOpened || spanChanged || heightChanged) && options.reflow !== false && layout) {
+      const metrics = options.metrics || createGridMetrics(layout);
+      resolveSparseGridLayout(
+        layout,
+        panel,
+        {
+          col: Number(panel.dataset.gridCol) || 1,
+          row: Number(panel.dataset.gridRow) || 1,
+        },
+        {
+          metrics,
+          items: options.items || reflowItemsForLayout(layout, panel),
+          verticalDisplacement: true,
+        }
+      );
+      applyVerticalPanelExpansion(layout, panel);
+    }
+    return wasOpened || spanChanged || heightChanged;
+  };
+
   const sanitizePanelChildWidgetClone = (widget) => {
     const clone = widget.cloneNode(true);
     delete clone.dataset.widgetInitialized;
@@ -9954,14 +10031,15 @@ document.addEventListener("DOMContentLoaded", () => {
     const panels = [...document.querySelectorAll(".panel-layout > .db-panel:not([hidden])")]
       .filter((panel) => panel.isConnected)
       .filter((panel) => panel !== draggedWidget)
-      .filter((panel) => !panel.classList.contains("db-panel-collapsed"))
       .filter((panel) => !panel.classList.contains("db-panel-dragging"))
       .filter((panel) => workspaceObjectCapabilities(panel).hasPanelContentArea);
     for (const panel of panels) {
       const body = panel.querySelector(":scope > .db-panel-body");
       const header = panel.querySelector(":scope > .db-panel-hd");
-      if (!body || body.offsetParent === null || !header) continue;
-      const rect = body.getBoundingClientRect();
+      const collapsed = panel.classList.contains("db-panel-collapsed");
+      if (!body || !header) continue;
+      if (!collapsed && body.offsetParent === null) continue;
+      const rect = collapsed ? null : body.getBoundingClientRect();
       const snapshotBodyRect = panelBodyRectFromSnapshot(panel, options.snapshot);
       const headerRect = header.getBoundingClientRect();
       const snapshotHeaderRect = panelHeaderRectFromSnapshot(panel, options.snapshot);
@@ -10020,11 +10098,14 @@ document.addEventListener("DOMContentLoaded", () => {
     applyWidgetSpan(clone, Math.max(gridItemMinimumSpan(clone), Math.min(DASHBOARD_GRID_COLUMNS, Number(widget.dataset.currentSpan) || Number(widget.dataset.defaultSpan) || 1)));
     widget.remove();
     internalGrid.appendChild(clone);
+    syncPanelFootprintToInternalItem(panel, clone, { openCollapsed: true, reflow: false, syncHeight: false });
     const metrics = createGridMetrics(internalGrid);
     const target = targetCell || gridCellFromPoint(internalGrid, clone, clientX, clientY, metrics);
     applyWidgetGridPosition(clone, target.col, target.row);
     resolveSparseGridLayout(internalGrid, clone, target, { metrics });
-    syncOpenPanelHeightToInternalGrid(panel);
+    syncPanelFootprintToInternalItem(panel, clone);
+    const panelLayout = panel.closest(".panel-layout");
+    if (panelLayout) applyVerticalPanelExpansion(panelLayout, panel);
     initWidgetLayout(internalGrid);
     updatePanelChildEmptyState(panel);
     animateAbsorbedWidgetIntoPanel(clone, fromRect);
@@ -10161,7 +10242,6 @@ document.addEventListener("DOMContentLoaded", () => {
     const canAbsorbIntoPanel = (
       item.classList.contains("widget-card") &&
       !item.classList.contains("workspace-anchor-object") &&
-      item.dataset.dashboardObjectKind !== "timeframe" &&
       layout.classList.contains("widget-layout") &&
       !isPanelInternalWidgetLayout(layout)
     );
@@ -10395,6 +10475,15 @@ document.addEventListener("DOMContentLoaded", () => {
       if (restore) restoreGridLayoutSnapshot(state.snapshot, { exclude: [state.placeholder] });
       if (restore && state.panelLayout && state.panelLayoutSnapshot) {
         restoreGridLayoutSnapshot(state.panelLayoutSnapshot);
+        if (state.wasCollapsed) {
+          state.panel.classList.add("db-panel-collapsed");
+          state.panel.querySelector(":scope > .db-panel-hd")?.setAttribute("aria-expanded", "false");
+          state.panel.dataset.gridRowSpan = "1";
+          state.panel.style.height = "";
+          if (state.panel.dataset.gridCol && state.panel.dataset.gridRow) {
+            applyPanelGridPosition(state.panel, state.panel.dataset.gridCol, state.panel.dataset.gridRow);
+          }
+        }
       }
       state.placeholder.remove();
       updatePanelChildEmptyState(state.panel);
@@ -10429,14 +10518,21 @@ document.addEventListener("DOMContentLoaded", () => {
       }
       const snapshot = snapshotGridLayout(internalGrid);
       const panelLayout = panel.closest(".panel-layout");
+      const panelLayoutSnapshot = panelLayout ? snapshotGridLayout(panelLayout) : null;
       const panelPlaceholder = createPanelDropPlaceholder();
       internalGrid.appendChild(panelPlaceholder);
       panel.classList.add("panel-container-drag-active");
+      const wasCollapsed = panel.classList.contains("db-panel-collapsed");
+      syncPanelFootprintToInternalItem(panel, panelPlaceholder, {
+        includePlaceholders: true,
+        openCollapsed: true,
+        metrics: panelLayout ? createGridMetrics(panelLayout) : null,
+      });
       if (options.zone === "header" || options.zone === "header-tolerance") triggerPanelHeaderEntryFeedback(panel);
       panelDrag = {
         panel,
         panelLayout,
-        panelLayoutSnapshot: panelLayout ? snapshotGridLayout(panelLayout) : null,
+        panelLayoutSnapshot,
         layout: internalGrid,
         placeholder: panelPlaceholder,
         snapshot,
@@ -10445,6 +10541,7 @@ document.addEventListener("DOMContentLoaded", () => {
         targetCell: null,
         entryZone: options.zone || "body",
         entryTransitionPlayed: false,
+        wasCollapsed,
       };
       updatePanelChildEmptyState(panel);
       return panelDrag;
@@ -10487,7 +10584,11 @@ document.addEventListener("DOMContentLoaded", () => {
         restoreGridLayoutSnapshot(state.snapshot, { exclude: [state.placeholder] });
         resolveSparseGridLayout(state.layout, state.placeholder, nextCell, { afterOnly: true, metrics, items: state.reflowItems });
       }, state.placeholder, { items: state.reflowItems, metrics });
-      syncOpenPanelHeightToInternalGrid(state.panel, { includePlaceholders: true });
+      syncPanelFootprintToInternalItem(state.panel, state.placeholder, {
+        includePlaceholders: true,
+        metrics: state.panelLayout ? createGridMetrics(state.panelLayout) : null,
+      });
+      state.metrics = createGridMetrics(state.layout);
       if (shouldPlayEntryTransition) {
         state.entryTransitionPlayed = true;
         animatePanelEntryTransition(state);
@@ -11591,6 +11692,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const initWidget = (widget) => {
       if (widget.dataset.widgetInitialized === "true") return;
       widget.dataset.widgetInitialized = "true";
+      ensureWidgetTools(widget);
       widget.__saveWidgetLayout = () => saveWidgetLayouts(layout);
       delete widget.dataset.widgetRuntimeControlsBound;
       bindWidgetRuntimeControls(widget);
@@ -13577,6 +13679,7 @@ document.addEventListener("DOMContentLoaded", () => {
     onChange: onEngineerModeChange,
     refresh: () => {
       refreshEngineerContextVisibility();
+      refreshEngineerOverlays();
       return { ...engineerModeState };
     },
   };
