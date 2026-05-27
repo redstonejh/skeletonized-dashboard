@@ -146,11 +146,11 @@ body.engineer-mode-active .widget-card[data-widget-layer="both"].widget-tools-op
   --surface-zone-safe-inset: 3px;
   --surface-zone-opacity: .45;
   --surface-zone-wash:
-    linear-gradient(180deg, rgba(255, 255, 255, .052), transparent 58%),
-    linear-gradient(0deg, color-mix(in srgb, var(--panel-accent, var(--blue)) 3%, transparent), transparent 68%);
+    linear-gradient(180deg, rgba(255, 255, 255, .07), transparent 58%),
+    linear-gradient(0deg, color-mix(in srgb, var(--panel-accent, var(--blue)) 4%, transparent), transparent 68%);
   --surface-zone-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, .08),
-    inset 0 -12px 20px rgba(15, 23, 42, .026);
+    inset 0 1px 0 rgba(255, 255, 255, .07),
+    inset 0 -14px 22px rgba(15, 23, 42, .024);
   --workspace-lod-shadow:
     0 1px 3px rgba(15, 23, 42, .045),
     inset 0 1px 0 rgba(255, 255, 255, .11),
@@ -173,6 +173,11 @@ body.engineer-mode-active .widget-card[data-widget-layer="both"].widget-tools-op
   transition: var(--workspace-lod-transition);
 }
 
+.widget-layout > .widget-card,
+.panel-internal-widget-grid > .widget-card {
+  border: 1.5px solid var(--line);
+}
+
 .widget-layout > .widget-card:not(.workspace-anchor-object)::before,
 .panel-internal-widget-grid > .widget-card:not(.workspace-anchor-object)::before,
 .workspace-anchor-layer > .workspace-anchor-object::before {
@@ -180,7 +185,7 @@ body.engineer-mode-active .widget-card[data-widget-layer="both"].widget-tools-op
   position: absolute;
   inset: var(--surface-zone-safe-inset, 3px);
   z-index: 1;
-  border-radius: max(8px, calc(var(--radius-md) - var(--surface-zone-safe-inset, 3px)));
+  border-radius: max(10px, calc(var(--radius-lg) - var(--surface-zone-safe-inset, 3px)));
   background-clip: padding-box;
   pointer-events: none;
   background:
@@ -1695,22 +1700,22 @@ body.anchor-rail-drag-active {
 }
 
 .widget-tools {
-  --widget-control-bg: color-mix(in srgb, var(--glass-surface) 40%, rgba(var(--panel-accent-rgb, 37, 99, 235), .09));
-  --widget-control-hover-bg: color-mix(in srgb, var(--widget-control-bg) 90%, rgba(15, 23, 42, .06));
-  --widget-control-active-bg: color-mix(in srgb, var(--widget-control-bg) 82%, rgba(15, 23, 42, .10));
+  --widget-control-bg: var(--panel-header-control-bg, rgba(71, 85, 105, .12));
+  --widget-control-hover-bg: rgba(71, 85, 105, .20);
+  --widget-control-active-bg: rgba(71, 85, 105, .28);
   --widget-drawer-bg:
     linear-gradient(180deg, color-mix(in srgb, var(--glass-surface-strong) 96%, var(--surface-raised)), color-mix(in srgb, var(--glass-surface-strong) 92%, var(--surface-soft))),
     color-mix(in srgb, var(--surface-raised) 92%, var(--panel-accent, var(--blue)) 8%);
   --panel-lock-bg: var(--widget-control-bg);
-  --panel-lock-fg: var(--panel-accent-text, var(--blue));
-  --panel-lock-border: color-mix(in srgb, var(--panel-accent, var(--blue)) 18%, rgba(15, 23, 42, .28));
-  --panel-lock-glow: color-mix(in srgb, var(--panel-accent, var(--blue)) 5%, transparent);
+  --panel-lock-fg: var(--panel-header-control-fg, var(--muted-strong));
+  --panel-lock-border: var(--panel-header-control-border, rgba(71, 85, 105, .26));
+  --panel-lock-glow: var(--panel-header-control-glow, rgba(71, 85, 105, .18));
   --panel-drawer-bg: color-mix(in srgb, var(--surface-raised) 92%, var(--panel-accent, var(--blue)) 8%);
   --panel-drawer-border: color-mix(in srgb, var(--panel-accent, var(--blue)) 46%, var(--line));
   --panel-control-hover-border: currentColor;
-  --panel-control-rest-shadow: inset 0 1px 1px rgba(255, 255, 255, .13), inset 0 -1px 2px rgba(15, 23, 42, .10), 0 1px 1px rgba(15, 23, 42, .035);
-  --panel-control-hover-shadow: inset 0 1px 1px rgba(255, 255, 255, .12), inset 0 2px 5px rgba(15, 23, 42, .15), 0 1px 1px rgba(15, 23, 42, .04);
-  --panel-control-active-shadow: inset 0 2px 6px rgba(15, 23, 42, .20), inset 0 1px 0 rgba(255, 255, 255, .07), 0 1px 1px rgba(15, 23, 42, .035);
+  --panel-control-rest-shadow: 0 6px 14px var(--panel-lock-glow), inset 0 1px 0 rgba(255, 255, 255, .16);
+  --panel-control-hover-shadow: 0 10px 20px var(--panel-lock-glow), 0 0 12px var(--panel-lock-glow), inset 0 1px 0 var(--panel-hover-inset);
+  --panel-control-active-shadow: 0 3px 8px color-mix(in srgb, var(--panel-lock-glow) 62%, transparent), inset 0 1px 0 rgba(255, 255, 255, .10), inset 0 2px 4px rgba(15, 23, 42, .10);
   --panel-drawer-shadow: 0 14px 32px rgba(15, 23, 42, .18), 0 4px 14px color-mix(in srgb, var(--panel-lock-glow) 62%, transparent), inset 0 1px 0 rgba(255, 255, 255, .16);
   position: absolute;
   top: 50%;
@@ -1968,22 +1973,7 @@ body.layout-tools-active .widget-card:not(.widget-tools-open):not(:has(> .widget
 
 .widget-card .panel-settings-toggle,
 .widget-card .panel-tool-button {
-  background: var(--widget-control-bg, var(--panel-lock-bg));
-  border-color: var(--panel-lock-border);
-  border-radius: 999px;
-  box-shadow: var(--panel-control-rest-shadow);
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 30px;
-  height: 30px;
-  min-width: 30px;
-  max-width: 30px;
-  min-height: 30px;
-  max-height: 30px;
-  padding: 0;
   place-self: center;
-  line-height: 0;
 }
 
 .widget-card .panel-settings-toggle {
@@ -2009,19 +1999,6 @@ body.layout-tools-active .widget-card:not(.widget-tools-open):not(:has(> .widget
   pointer-events: none;
 }
 
-.widget-card .panel-settings-toggle:hover,
-.widget-card .panel-settings-toggle:focus-visible,
-.widget-card.widget-tools-open .panel-settings-toggle,
-.widget-card .panel-tool-button:hover,
-.widget-card .panel-tool-button:focus-visible {
-  background: var(--widget-control-hover-bg, color-mix(in srgb, var(--panel-lock-bg) 75%, var(--panel-hover-tint)));
-}
-
-.widget-card.widget-tools-open .panel-settings-toggle,
-.widget-card .panel-tool-button:active,
-.widget-card .panel-settings-toggle:active {
-  background: var(--widget-control-active-bg, color-mix(in srgb, var(--panel-lock-bg) 75%, var(--panel-hover-tint)));
-}
 
 .widget-card.db-panel-pinned .panel-move-handle,
 .widget-card.db-panel-pinned .panel-resize-handle {
@@ -2288,15 +2265,6 @@ body.resize-auto-zoom-active .dashboard-expanded-footprint-ghost {
     var(--shadow-soft);
 }
 
-.widget-layout > .widget-card:hover,
-.widget-layout > .widget-card:focus-visible {
-  background: #f7faff;
-  border-color: #5f91ee;
-  box-shadow:
-    0 14px 30px rgba(15, 23, 42, .14),
-    0 1px 0 rgba(255, 255, 255, .62) inset;
-  transform: translateY(-1.5px);
-}
 
 .widget-layout > .widget-card.widget-tools-open,
 .widget-layout > .widget-card.widget-tools-open:hover,
@@ -2777,13 +2745,19 @@ body.resize-auto-zoom-active .dashboard-expanded-footprint-ghost {
 }
 
 .db-panel:hover,
-.db-panel:focus-within {
+.db-panel:focus-within,
+.widget-layout > .widget-card:hover,
+.widget-layout > .widget-card:focus-visible {
   transform: translateY(-1.5px);
-  background: #f7faff;
   border-color: #5f91ee;
   box-shadow:
     0 14px 30px rgba(15, 23, 42, .14),
     0 1px 0 rgba(255, 255, 255, .62) inset;
+}
+
+.db-panel:hover,
+.db-panel:focus-within {
+  background: #f7faff;
 }
 
 .db-panel.db-panel-collapsed:hover,
@@ -2867,6 +2841,12 @@ body.resize-auto-zoom-active .dashboard-expanded-footprint-ghost {
   transform: translateY(.5px);
 }
 
+.db-panel-hd,
+.widget-layout > .widget-card,
+.panel-internal-widget-grid > .widget-card {
+  background: var(--surface-soft);
+}
+
 .db-panel-hd {
   --panel-header-control-bg: rgba(71, 85, 105, .12);
   --panel-header-control-fg: var(--muted-strong);
@@ -2882,7 +2862,6 @@ body.resize-auto-zoom-active .dashboard-expanded-footprint-ghost {
   padding: var(--panel-header-pad-y) var(--dashboard-control-inset, var(--panel-header-pad-x)) var(--panel-header-pad-y) var(--panel-header-pad-x);
   min-height: var(--panel-header-min-height);
   border-bottom: 1.5px solid var(--line);
-  background: var(--surface-soft);
   border-radius: 0;
   flex-shrink: 0;
   cursor: pointer;

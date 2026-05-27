@@ -252,6 +252,7 @@
         .filter((panel) => panel.isConnected)
         .filter((panel) => panel !== draggedWidget)
         .filter((panel) => !panel.classList.contains("db-panel-dragging"))
+        .filter((panel) => !panel.classList.contains("db-panel-collapsed"))
         .filter((panel) => deps.workspaceObjectCapabilities(panel).hasPanelContentArea);
       for (const panel of panels) {
         const body = panel.querySelector(":scope > .db-panel-body");

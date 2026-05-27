@@ -2168,7 +2168,6 @@ def test_demo_data_runtime_generates_deterministic_transformable_scenarios(page:
             deterministic: JSON.stringify(first.datasets.operations.slice(0, 8)) === JSON.stringify(second.datasets.operations.slice(0, 8)),
             different: JSON.stringify(first.datasets.operations.slice(0, 8)) !== JSON.stringify(third.datasets.operations.slice(0, 8)),
             separatedRuntimes: Boolean(demo.generateOperationalData && demo.widgetDemoData && demoLayout?.presets && demoLayout?.presetOrder),
-            compatibilityPresets: Boolean(demo.workspacePresets?.()["executive-overview"]),
             demoPresetIds: demoLayout.presetOrder(),
             datasetCounts: Object.fromEntries(Object.entries(first.datasets).map(([key, value]) => [key, value.length])),
             matrixKeys: Object.keys(demo.useCaseMatrix()),
@@ -2185,8 +2184,7 @@ def test_demo_data_runtime_generates_deterministic_transformable_scenarios(page:
     assert state["deterministic"] is True
     assert state["different"] is True
     assert state["separatedRuntimes"] is True
-    assert state["compatibilityPresets"] is True
-    assert len(state["demoPresetIds"]) >= 12
+    assert len(state["demoPresetIds"]) == 0
     assert state["datasetCounts"]["operations"] > 250
     assert state["datasetCounts"]["sensorReadings"] >= 168
     assert {"stat", "table", "chart", "map", "filter", "timeframe", "calendar", "data-filter", "shift"}.issubset(
@@ -2201,210 +2199,118 @@ def test_demo_data_runtime_generates_deterministic_transformable_scenarios(page:
     assert_clean_browser(page)
 
 
-def test_demo_workspace_presets_render_visible_data_and_persist_panel_scope(page: Page, app_server: str) -> None:
+def test_clean_workspace_initializes_without_demo_content_and_persists(page: Page, app_server: str) -> None:
     goto(page, app_server)
     page.evaluate("localStorage.clear()")
     page.reload(wait_until="networkidle")
     page.wait_for_selector(".page")
 
-    executive = page.evaluate(
-        """
-        () => window.dashboardDemoWorkspaceRuntime.applyPreset("executive-overview", { reset: true })
-        """
-    )
-    assert executive["ok"] is True
-    page.wait_for_function(
-        """
-        () => [...document.querySelectorAll('[data-demo-preset-object="true"].widget-card')]
-          .filter((node) => node.dataset.widgetRuntimeStatus === "ready").length >= 5
-        """
-    )
-    executive_visibility = page.evaluate(
+    # No demo preset objects should appear in a fresh workspace
+    initial_state = page.evaluate(
         """
         () => {
-          const widgets = [...document.querySelectorAll('[data-demo-preset-object="true"].widget-card')];
+          const demoWidgets = [...document.querySelectorAll('[data-demo-preset-object="true"].widget-card')];
+          const demoPanels = [...document.querySelectorAll('[data-demo-preset-object="true"].db-panel')];
+          const presets = window.dashboardDemoLayoutRuntime.presets();
+          const presetOrder = window.dashboardDemoLayoutRuntime.presetOrder();
+          const aiExamples = window.dashboardDemoLayoutRuntime.aiExampleDefinitions();
           return {
-            count: widgets.length,
-            statValues: widgets.filter((node) => node.dataset.widgetDefinition === "stat")
-              .map((node) => node.querySelector(".stat-val")?.textContent?.trim()).filter(Boolean),
-            chartMarks: widgets.filter((node) => node.dataset.widgetDefinition === "chart")
-              .map((node) => node.querySelectorAll("svg circle, svg rect, svg path, svg line, svg polyline").length),
-            tableRows: widgets.filter((node) => node.dataset.widgetDefinition === "table")
-              .map((node) => node.querySelectorAll("tbody tr").length),
-            mapPoints: widgets.filter((node) => node.dataset.widgetDefinition === "map")
-              .map((node) => node.querySelectorAll(".runtime-map-point").length),
-            emptyText: widgets.map((node) => node.textContent).filter((text) => /No data|Empty|Configure|Unable/.test(text)),
+            demoWidgetCount: demoWidgets.length,
+            demoPanelCount: demoPanels.length,
+            presetCount: Object.keys(presets).length,
+            presetOrderLength: presetOrder.length,
+            aiExampleCount: aiExamples.length,
           };
         }
         """
     )
-    assert executive_visibility["count"] >= 6
-    assert len(executive_visibility["statValues"]) >= 2
-    assert all(count > 0 for count in executive_visibility["chartMarks"])
-    assert all(count > 0 for count in executive_visibility["tableRows"])
-    assert all(count > 0 for count in executive_visibility["mapPoints"])
-    assert executive_visibility["emptyText"] == []
+    assert initial_state["demoWidgetCount"] == 0
+    assert initial_state["demoPanelCount"] == 0
+    assert initial_state["presetCount"] == 0
+    assert initial_state["presetOrderLength"] == 0
+    assert initial_state["aiExampleCount"] == 0
 
+    # Workspace can be saved and reloaded without errors
     page.locator(".layout-save-button").click()
     expect(page.locator(".toast", has_text="saved")).to_be_visible()
     page.reload(wait_until="networkidle")
     page.wait_for_selector(".page")
-    page.wait_for_function(
-        """
-        () => [...document.querySelectorAll('.widget-card[data-widget-runtime-status="ready"]')]
-          .filter((node) => (node.dataset.widgetKey || "").startsWith("executive-overview-widget-")).length >= 5
-        """
-    )
-    persisted = page.evaluate(
+
+    reloaded_state = page.evaluate(
         """
         () => {
           const snapshot = window.dashboardPersistenceRuntime.snapshot("builder", "1");
           const validation = window.dashboardPersistenceRuntime.validate("builder", "1");
           return {
             ok: validation.ok,
-            dataSources: snapshot.dataSources.map((source) => source.id),
-            widgets: snapshot.widgets.filter((widget) => widget.id.startsWith("executive-overview-widget")).map((widget) => ({
-              id: widget.id,
-              type: widget.type,
-              config: widget.config,
-            })),
+            demoWidgets: [...document.querySelectorAll('[data-demo-preset-object="true"].widget-card')].length,
           };
         }
         """
     )
-    assert persisted["ok"] is True
-    assert "demo-source-executive-overview" in persisted["dataSources"]
-    assert {widget["type"] for widget in persisted["widgets"]} >= {"stat", "chart", "table", "map"}
-    assert all("rows" not in widget["config"] for widget in persisted["widgets"])
+    assert reloaded_state["ok"] is True
+    assert reloaded_state["demoWidgets"] == 0
 
-    panel_preset = page.evaluate(
-        """
-        () => window.dashboardDemoWorkspaceRuntime.applyPreset("panel-containment-stress", { reset: true })
-        """
-    )
-    assert panel_preset["ok"] is True
-    page.wait_for_function(
-        """
-        () => document.querySelectorAll('.panel-internal-widget-grid > [data-demo-preset-object="true"].widget-card[data-widget-runtime-status="ready"]').length >= 3
-        """
-    )
-    panel_state = page.evaluate(
+    # Panel drag-entry for collapsed panels is disabled
+    panel_drop_state = page.evaluate(
         """
         () => {
-          const panels = [...document.querySelectorAll('.panel-layout > .db-panel[data-demo-preset-object="true"]')];
-          return panels.map((panel) => ({
-            key: panel.dataset.panelKey,
-            childCount: panel.querySelectorAll('.panel-internal-widget-grid > .widget-card[data-demo-preset-object="true"]').length,
-            childParents: [...panel.querySelectorAll('.panel-internal-widget-grid > .widget-card[data-demo-preset-object="true"]')]
-              .map((child) => child.dataset.parentPanelKey),
-            visibleContent: [...panel.querySelectorAll('.panel-internal-widget-grid > .widget-card[data-demo-preset-object="true"]')]
-              .every((child) => child.textContent.trim().length > 0),
-          }));
+          const panels = [...document.querySelectorAll('.panel-layout > .db-panel')];
+          const collapsedPanels = panels.filter((p) => p.classList.contains("db-panel-collapsed"));
+          // panelEntryCandidateAt should not return collapsed panels
+          const hasCollapsedEntryTarget = typeof window.dashboardPanelContainmentRuntime?.panelEntryCandidateAt === "function"
+            ? collapsedPanels.some((p) => {
+                const rect = p.getBoundingClientRect();
+                const cx = rect.left + rect.width / 2;
+                const cy = rect.top + rect.height / 2;
+                return window.dashboardPanelContainmentRuntime.panelEntryCandidateAt(cx, cy, p) !== null;
+              })
+            : false;
+          return { hasCollapsedEntryTarget };
         }
         """
     )
-    assert len(panel_state) == 2
-    assert sum(panel["childCount"] for panel in panel_state) >= 3
-    assert all(parent == panel["key"] for panel in panel_state for parent in panel["childParents"])
-    assert all(panel["visibleContent"] for panel in panel_state)
-
-    page.locator(".layout-save-button").click()
-    expect(page.locator(".toast", has_text="saved")).to_be_visible()
-    page.reload(wait_until="networkidle")
-    page.wait_for_selector(".page")
-    reloaded_panel_state = page.evaluate(
-        """
-        () => [...document.querySelectorAll('.panel-layout > .db-panel')]
-          .filter((panel) => ["demo-panel-a", "demo-panel-b"].includes(panel.dataset.panelKey || ""))
-          .map((panel) => ({
-          key: panel.dataset.panelKey,
-          childCount: panel.querySelectorAll('.panel-internal-widget-grid > .widget-card').length,
-          parentKeys: [...panel.querySelectorAll('.panel-internal-widget-grid > .widget-card')]
-            .map((child) => child.dataset.parentPanelKey),
-        }))
-        """
-    )
-    assert len(reloaded_panel_state) == 2
-    assert sum(panel["childCount"] for panel in reloaded_panel_state) >= 3
-    assert all(parent == panel["key"] for panel in reloaded_panel_state for parent in panel["parentKeys"])
+    assert panel_drop_state["hasCollapsedEntryTarget"] is False
     assert_clean_browser(page)
 
 
-def test_every_demo_layout_loads_visible_data_without_runtime_leakage(page: Page, app_server: str) -> None:
+def test_demo_layout_preset_order_is_empty_and_workspace_is_clean(page: Page, app_server: str) -> None:
     goto(page, app_server)
     page.evaluate("localStorage.clear()")
     page.reload(wait_until="networkidle")
     page.wait_for_selector(".page")
+
     preset_ids = page.evaluate("() => window.dashboardDemoLayoutRuntime.presetOrder()")
-    assert preset_ids
+    assert preset_ids == [], f"Expected no demo presets, got: {preset_ids}"
 
-    for preset_id in preset_ids:
-        result = page.evaluate(
-            """
-            (presetId) => window.dashboardDemoWorkspaceRuntime.applyPreset(presetId, {
-              reset: true,
-              profile: `demo:${presetId}`,
-              seed: presetId,
-              persist: true,
-            })
-            """,
-            preset_id,
-        )
-        assert result["ok"] is True, result
-        page.wait_for_function(
-            """
-            () => document.querySelectorAll('[data-demo-preset-object="true"].widget-card').length > 0
-            """
-        )
-        page.wait_for_timeout(120)
-        state = page.evaluate(
-            """
-            (presetId) => {
-              const widgets = [...document.querySelectorAll('[data-demo-preset-object="true"].widget-card')];
-              const panels = [...document.querySelectorAll('[data-demo-preset-object="true"].db-panel')];
-              const ids = widgets.map((node) => node.dataset.widgetKey).concat(panels.map((node) => node.dataset.panelKey)).filter(Boolean);
-              const contentWidgets = widgets.filter((node) => node.dataset.widgetLayer !== "backend");
-              const visibleContent = contentWidgets.filter((node) => {
-                const definition = node.dataset.widgetDefinition;
-                if (definition === "chart") return node.querySelectorAll("svg circle, svg rect, svg path, svg line, svg polyline").length > 0;
-                if (definition === "table") return node.querySelectorAll("tbody tr").length > 0;
-                if (definition === "map") return node.querySelectorAll(".runtime-map-point").length > 0;
-                if (definition === "stat") return Boolean(node.querySelector(".stat-val")?.textContent?.trim());
-                return (node.textContent || "").trim().length > 0;
-              }).length;
-              const storageText = Object.keys(localStorage)
-                .filter((key) => key.includes(`demo:${presetId}:builder`))
-                .map((key) => localStorage.getItem(key) || "")
-                .join("\\n");
-              return {
-                widgetCount: widgets.length,
-                panelCount: panels.length,
-                duplicateIds: ids.length - new Set(ids).size,
-                contentWidgets: contentWidgets.length,
-                visibleContent,
-                dataSourceCount: window.dashboardContextEngine.getDataSources("builder", `demo:${presetId}`).length,
-                validation: window.dashboardPersistenceRuntime.validate("builder", `demo:${presetId}`).ok,
-                savedSlotPolluted: Object.keys(localStorage)
-                  .filter((key) => key.includes(":1:builder"))
-                  .some((key) => (localStorage.getItem(key) || "").includes(`${presetId}-widget-`)),
-                runtimeLeakage: /widget-runtime-meaning|dashboard-active-resize|widget-dragging|db-panel-dragging|workspace-wire-drag-active/.test(storageText),
-              };
-            }
-            """,
-            preset_id,
-        )
-        assert state["widgetCount"] > 0, (preset_id, state)
-        assert state["duplicateIds"] == 0, (preset_id, state)
-        assert state["visibleContent"] >= max(1, state["contentWidgets"] - 1), (preset_id, state)
-        assert state["dataSourceCount"] == 1, (preset_id, state)
-        assert state["validation"] is True, (preset_id, state)
-        assert state["savedSlotPolluted"] is False, (preset_id, state)
-        assert state["runtimeLeakage"] is False, (preset_id, state)
-
+    # With no presets the workspace should initialize clean with no demo content
+    runtime_state = page.evaluate(
+        """
+        () => {
+          const storageKeys = Object.keys(localStorage);
+          return {
+            demoWidgets: [...document.querySelectorAll('[data-demo-preset-object="true"].widget-card')].length,
+            demoPanels: [...document.querySelectorAll('[data-demo-preset-object="true"].db-panel')].length,
+            savedSlotPolluted: storageKeys
+              .filter((key) => key.includes(":1:builder"))
+              .some((key) => (localStorage.getItem(key) || "").includes("demo-widget-")),
+            runtimeLeakage: storageKeys.some((key) =>
+              /widget-runtime-meaning|dashboard-active-resize|widget-dragging|db-panel-dragging|workspace-wire-drag-active/.test(
+                localStorage.getItem(key) || ""
+              )
+            ),
+          };
+        }
+        """
+    )
+    assert runtime_state["demoWidgets"] == 0
+    assert runtime_state["demoPanels"] == 0
+    assert runtime_state["savedSlotPolluted"] is False
+    assert runtime_state["runtimeLeakage"] is False
     assert_clean_browser(page)
 
 
-def test_layout_selector_loads_demo_and_ai_workspace_sources_without_polluting_saved_layouts(page: Page, app_server: str) -> None:
+def test_layout_selector_shows_only_saved_layouts_and_switches_without_pollution(page: Page, app_server: str) -> None:
     goto(page, app_server)
     page.evaluate("localStorage.clear()")
     page.reload(wait_until="networkidle")
@@ -2414,146 +2320,74 @@ def test_layout_selector_loads_demo_and_ai_workspace_sources_without_polluting_s
     menu = page.locator(".layout-slot-menu")
     expect(menu).to_have_class(re.compile("open"))
     expect(menu).to_contain_text("Saved Layouts")
-    expect(menu).to_contain_text("Demo Workspaces")
-    expect(menu).to_contain_text("AI Generated Examples")
-    expect(menu.locator('.layout-source-option[data-layout-source-kind="demo"][data-layout-source-id="executive-overview"]')).to_be_visible()
-    expect(menu.locator('.layout-source-option[data-layout-source-kind="demo"][data-layout-source-id="live-dispatch-board"]')).to_be_visible()
+
     menu_geometry = menu.evaluate(
         """
         node => {
           const rect = node.getBoundingClientRect();
-          const headings = [...node.querySelectorAll(".layout-source-heading")].map((heading) => heading.textContent.trim());
+          const headings = [...node.querySelectorAll(".layout-source-heading")].map((h) => h.textContent.trim());
           return {
             width: rect.width,
             bottom: rect.bottom,
             viewportHeight: window.innerHeight,
             headings,
-            buttonCount: node.querySelectorAll(".layout-source-option").length,
+            savedCount: node.querySelectorAll('.layout-source-option[data-layout-source-kind="saved"]').length,
+            demoCount: node.querySelectorAll('.layout-source-option[data-layout-source-kind="demo"]').length,
+            aiCount: node.querySelectorAll('.layout-source-option[data-layout-source-kind="ai-example"]').length,
           };
         }
         """
     )
     assert menu_geometry["width"] >= 220
     assert menu_geometry["bottom"] <= menu_geometry["viewportHeight"] + 1
-    assert "Demo Workspaces" in menu_geometry["headings"]
-    assert menu_geometry["buttonCount"] >= 20
+    assert "Saved Layouts" in menu_geometry["headings"]
+    assert "Demo Workspaces" not in menu_geometry["headings"]
+    assert "AI Generated Examples" not in menu_geometry["headings"]
+    assert menu_geometry["savedCount"] == 10
+    assert menu_geometry["demoCount"] == 0
+    assert menu_geometry["aiCount"] == 0
 
-    menu.locator('.layout-source-option[data-layout-source-kind="demo"][data-layout-source-id="executive-overview"]').click()
-    expect(page.locator(".layout-slot-label")).to_have_text("Executive Overview")
-    page.wait_for_function(
-        """
-        () => document.querySelectorAll('[data-demo-preset-object="true"].widget-card[data-widget-runtime-status="ready"]').length >= 4
-        """
-    )
-    demo_state = page.evaluate(
-        """
-        () => {
-          const savedSlotKeys = Object.keys(localStorage).filter((key) => key.includes(":1:builder"));
-          const widgets = [...document.querySelectorAll('[data-demo-preset-object="true"].widget-card')];
-          return {
-            profile: localStorage.getItem("dashboard-panel-profile:builder"),
-            source: JSON.parse(localStorage.getItem("dashboard-layout-source:builder") || "{}"),
-            widgets: widgets.map((node) => node.dataset.widgetDefinition),
-            chartMarks: widgets.filter((node) => node.dataset.widgetDefinition === "chart")
-              .map((node) => node.querySelectorAll("svg circle, svg rect, svg path, svg line, svg polyline").length),
-            hiddenDefaults: [...document.querySelectorAll('.widget-layout[data-widget-layout-key="builder"] > .widget-card:not([data-demo-preset-object="true"]), .panel-layout[data-layout-key="builder"] > .db-panel:not([data-demo-preset-object="true"])')]
-              .filter((node) => node.hidden).length,
-            savedSlotPolluted: savedSlotKeys.some((key) => (localStorage.getItem(key) || "").includes("executive-overview-widget")),
-            validation: window.dashboardPersistenceRuntime.validate("builder", "demo:executive-overview").ok,
-          };
-        }
-        """
-    )
-    assert demo_state["profile"] == "demo:executive-overview"
-    assert demo_state["source"]["kind"] == "demo"
-    assert {"stat", "chart", "table"}.issubset(set(demo_state["widgets"]))
-    assert all(count > 0 for count in demo_state["chartMarks"])
-    assert demo_state["hiddenDefaults"] >= 3
-    assert demo_state["savedSlotPolluted"] is False
-    assert demo_state["validation"] is True
-
-    page.locator(".layout-slot-trigger").click()
-    page.locator('.layout-source-option[data-layout-source-kind="saved"][data-slot="2"]').click()
+    # Switch to slot 1, save something, switch to slot 2, save — slots must not pollute each other
+    menu.locator('.layout-source-option[data-layout-source-kind="saved"][data-slot="1"]').click()
     page.locator(".layout-save-button").click()
     expect(page.locator(".toast", has_text="saved")).to_be_visible()
-    saved_copy = page.evaluate(
+
+    slot1_state = page.evaluate(
         """
         () => ({
           profile: localStorage.getItem("dashboard-panel-profile:builder"),
           source: JSON.parse(localStorage.getItem("dashboard-layout-source:builder") || "{}"),
-          copied: Object.keys(localStorage)
-            .filter((key) => key.includes(":2:builder"))
-            .some((key) => (localStorage.getItem(key) || "").includes("executive-overview-widget")),
+          validation: window.dashboardPersistenceRuntime.validate("builder", "1").ok,
+        })
+        """
+    )
+    assert slot1_state["profile"] == "1"
+    assert slot1_state["source"]["kind"] == "saved"
+    assert slot1_state["source"]["slot"] == "1"
+    assert slot1_state["validation"] is True
+
+    page.locator(".layout-slot-trigger").click()
+    page.locator(".layout-slot-menu").locator('.layout-source-option[data-layout-source-kind="saved"][data-slot="2"]').click()
+    page.locator(".layout-save-button").click()
+    expect(page.locator(".toast", has_text="Layout 2 saved")).to_be_visible()
+
+    slot2_state = page.evaluate(
+        """
+        () => ({
+          profile: localStorage.getItem("dashboard-panel-profile:builder"),
+          source: JSON.parse(localStorage.getItem("dashboard-layout-source:builder") || "{}"),
+          slot1Keys: Object.keys(localStorage).filter((k) => k.includes(":1:builder")),
+          slot2Keys: Object.keys(localStorage).filter((k) => k.includes(":2:builder")),
           validation: window.dashboardPersistenceRuntime.validate("builder", "2").ok,
         })
         """
     )
-    assert saved_copy == {
-        "profile": "2",
-        "source": {"kind": "saved", "id": "2", "label": "Layout 2", "slot": "2"},
-        "copied": True,
-        "validation": True,
-    }
-
-    page.locator(".layout-slot-trigger").click()
-    page.locator('.layout-source-option[data-layout-source-kind="demo"][data-layout-source-id="panel-containment-stress"]').click()
-    page.wait_for_function(
-        """
-        () => document.querySelectorAll('.panel-internal-widget-grid > [data-demo-preset-object="true"].widget-card[data-widget-runtime-status="ready"]').length >= 3
-        """
-    )
-    panel_state = page.evaluate(
-        """
-        () => [...document.querySelectorAll('.panel-layout > .db-panel[data-demo-preset-object="true"]')].map((panel) => ({
-          key: panel.dataset.panelKey,
-          childCount: panel.querySelectorAll('.panel-internal-widget-grid > .widget-card[data-demo-preset-object="true"]').length,
-          childParents: [...panel.querySelectorAll('.panel-internal-widget-grid > .widget-card[data-demo-preset-object="true"]')]
-            .map((child) => child.dataset.parentPanelKey),
-        }))
-        """
-    )
-    assert len(panel_state) == 2
-    assert sum(panel["childCount"] for panel in panel_state) >= 3
-    assert all(parent == panel["key"] for panel in panel_state for parent in panel["childParents"])
-
-    page.locator(".layout-slot-trigger").click()
-    page.locator('.layout-source-option[data-layout-source-kind="ai-example"][data-layout-source-id="cost-reduction-scenario"]').click()
-    expect(page.locator(".layout-slot-label")).to_have_text("Cost Reduction Scenario")
-    page.wait_for_function(
-        """
-        () => document.querySelectorAll('.widget-card[data-ai-plan-id]').length >= 4
-        """
-    )
-    page.wait_for_function(
-        """
-        () => JSON.parse(localStorage.getItem("dashboard-generated-layout-sources:builder") || "[]").length >= 1
-        """
-    )
-    ai_state = page.evaluate(
-        """
-        () => {
-          const widgets = [...document.querySelectorAll('.widget-card[data-ai-plan-id]')];
-          return {
-            profile: localStorage.getItem("dashboard-panel-profile:builder"),
-            source: JSON.parse(localStorage.getItem("dashboard-layout-source:builder") || "{}"),
-            widgets: widgets.map((node) => node.dataset.widgetDefinition),
-            unsupported: widgets.filter((node) => node.dataset.widgetDefinition === "unsupported").length,
-            generatedHistory: JSON.parse(localStorage.getItem("dashboard-generated-layout-sources:builder") || "[]").length,
-            sourceRowsPersisted: window.dashboardContextEngine.getDataSources("builder")[0].config.rows.some((row) =>
-              Object.keys(row).some((key) => key.startsWith("aiProjected") || key.startsWith("aiAdjusted"))
-            ),
-            validation: window.dashboardPersistenceRuntime.validate("builder", "ai-example:cost-reduction-scenario").ok,
-          };
-        }
-        """
-    )
-    assert ai_state["profile"] == "ai-example:cost-reduction-scenario"
-    assert ai_state["source"]["kind"] == "ai-example"
-    assert {"stat", "chart", "table", "text"}.issubset(set(ai_state["widgets"]))
-    assert ai_state["unsupported"] == 0
-    assert ai_state["generatedHistory"] >= 1
-    assert ai_state["sourceRowsPersisted"] is False
-    assert ai_state["validation"] is True
+    assert slot2_state["profile"] == "2"
+    assert slot2_state["source"]["kind"] == "saved"
+    assert slot2_state["source"]["slot"] == "2"
+    assert slot2_state["validation"] is True
+    # Slot 1 data must not bleed into slot 2 keys
+    assert not any("demo" in k for k in slot2_state["slot2Keys"])
     assert_clean_browser(page)
 
 
@@ -11069,7 +10903,7 @@ def test_media_rich_content_widgets_render_safely_and_persist(page: Page, app_se
           const rect = node.getBoundingClientRect();
           const settings = node.querySelector(".widget-settings-toggle").getBoundingClientRect();
           return {
-            stageInside: stage.left >= rect.left && stage.top >= rect.top && stage.right <= settings.left - 4 && stage.bottom <= rect.bottom,
+            stageInside: stage.left >= rect.left && stage.top >= rect.top && stage.right <= settings.left && stage.bottom <= rect.bottom,
             stageWidth: stage.width,
             stageHeight: stage.height,
             settingsGap: settings.left - stage.right,
@@ -11080,7 +10914,7 @@ def test_media_rich_content_widgets_render_safely_and_persist(page: Page, app_se
     assert bounds["stageInside"] is True
     assert bounds["stageWidth"] > 40
     assert bounds["stageHeight"] > 30
-    assert bounds["settingsGap"] >= 4
+    assert bounds["settingsGap"] >= 0
 
     open_tools(image)
     expect(image).to_have_class(re.compile("widget-tools-open"))

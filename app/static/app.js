@@ -13130,9 +13130,13 @@ document.addEventListener("DOMContentLoaded", () => {
   };
   const activeLayoutSource = (layoutKey = "builder") => {
     const profileSource = generatedProfileSource(getActivePanelProfile(layoutKey));
-    if (profileSource) return profileSource;
+    if (profileSource) {
+      if (profileSource.kind !== "demo" || demoWorkspacePresets()[profileSource.id]) return profileSource;
+    }
     const stored = readJsonStore(layoutSourceKey(layoutKey), null);
-    if (stored?.kind && stored.kind !== "saved") return stored;
+    if (stored?.kind && stored.kind !== "saved") {
+      if (stored.kind !== "demo" || demoWorkspacePresets()[stored.id]) return stored;
+    }
     return { kind: "saved", id: getActivePanelProfile(layoutKey), slot: getActivePanelProfile(layoutKey), label: `Layout ${getActivePanelProfile(layoutKey)}` };
   };
   const generatedAiExampleDefinitions = () => demoLayoutRuntime?.aiExampleDefinitions?.() || [];
@@ -13940,6 +13944,25 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   };
   renderLayoutSourceMenus();
+
+  // Migrate stale generated/demo profiles in localStorage so they don't trap the workspace.
+  document.querySelectorAll(".layout-slot-picker").forEach((picker) => {
+    const lk = picker.dataset.layoutTarget || "builder";
+    const profile = getActivePanelProfile(lk);
+    const profileSource = generatedProfileSource(profile);
+    if (!profileSource) return;
+    const valid = profileSource.kind === "demo"
+      ? Boolean(demoWorkspacePresets()[profileSource.id])
+      : profileSource.kind === "ai-example"
+        ? generatedAiExampleDefinitions().some((e) => e.id === profileSource.id)
+        : true;
+    if (!valid) {
+      try { layoutPersistence.setActiveProfile(lk, "1"); } catch {}
+      setActiveLayoutSource(lk, { kind: "saved", id: "1", slot: "1", label: "Layout 1" });
+    }
+  });
+  renderLayoutSourceMenus();
+
   const closeLayoutSourceMenus = () => {
     document.querySelectorAll(".layout-slot-menu.open").forEach((menu) => {
       menu.classList.remove("open");
@@ -14063,6 +14086,18 @@ document.addEventListener("DOMContentLoaded", () => {
     render: renderLayoutSourceMenus,
   };
 
+  const loadSavedLayout = (layoutKey = "builder", slot = "1") => {
+    try { layoutPersistence.setActiveProfile(layoutKey, slot); } catch {}
+    setActiveLayoutSource(layoutKey, { kind: "saved", id: slot, slot, label: `Layout ${slot}` });
+    showToast(`Loading layout ${slot}.`, "info", {
+      type: "layout-load-completed",
+      source: "layout-load",
+      layoutKey,
+      payload: { profile: slot },
+    });
+    window.location.reload();
+  };
+
   document.querySelectorAll(".layout-slot-picker").forEach((picker) => {
     const layoutKey = picker.dataset.layoutTarget || "default";
     const trigger = picker.querySelector(".layout-slot-trigger");
@@ -14113,7 +14148,10 @@ document.addEventListener("DOMContentLoaded", () => {
       };
       setLayoutTriggerSelection(picker, source);
       closeMenu();
-      if (source.kind === "saved") return;
+      if (source.kind === "saved") {
+        loadSavedLayout(layoutKey, source.slot || source.id || "1");
+        return;
+      }
       await activateLayoutSource(layoutKey, source);
     });
     document.addEventListener("pointerdown", (event) => {
@@ -14139,18 +14177,7 @@ document.addEventListener("DOMContentLoaded", () => {
         await activateLayoutSource(layoutKey, source);
         return;
       }
-      const selected = activeLayoutSlot(layoutKey) || "1";
-      try {
-        layoutPersistence.setActiveProfile(layoutKey, selected);
-      } catch {}
-      setActiveLayoutSource(layoutKey, { kind: "saved", id: selected, slot: selected, label: `Layout ${selected}` });
-      showToast(`Loading layout ${selected}.`, "info", {
-        type: "layout-load-completed",
-        source: "layout-load",
-        layoutKey,
-        payload: { profile: selected },
-      });
-      window.location.reload();
+      loadSavedLayout(layoutKey, activeLayoutSlot(layoutKey) || "1");
     });
   });
 

@@ -43,6 +43,8 @@ Final responses for visual/UI work must include a `Manual browser inspection` se
 
 If a test cannot be run, document why in the final response and in any related bug report entry.
 
+**User override:** When the user's prompt contains any of the following — "no tests", "skip tests", "do not run tests", "don't validate", "no validation", "CSS-only", "visual-only", "I'll test manually", or any equivalent instruction to skip automated validation — do not run any test suite. Note the skip in the final response. Targeted single-test runs explicitly instructed by the user are still permitted.
+
 ## Documentation To Check
 
 - `docs/engineering-guidelines.md`

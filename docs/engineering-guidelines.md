@@ -177,6 +177,8 @@ For user-facing interaction changes, run:
 
 For visual, styling, layout, animation, hover/focus, theme, glass-material, navbar, widget, panel, menu, or interaction-feel changes, also follow `docs/visual-ui-manual-inspection.md`.
 
+**User override:** When the user's prompt contains any of the following — "no tests", "skip tests", "do not run tests", "don't validate", "no validation", "CSS-only", "visual-only", "I'll test manually", or any equivalent instruction to skip automated validation — do not run any test suite. Note the skip in the final response. Targeted single-test runs explicitly instructed by the user are still permitted.
+
 Also manually inspect any changed interaction for:
 
 - Shared material behavior across default and deep background tones
