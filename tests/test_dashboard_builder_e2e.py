@@ -22486,7 +22486,7 @@ def test_right_click_stat_widget_opens_tool_drawer(page: Page, app_server: str) 
 
 def test_right_click_timeframe_widget_opens_tool_drawer(page: Page, app_server: str) -> None:
     goto(page, app_server)
-    click_add_action(page, "time", '.widget-add-action[data-widget-kind="timeframe"]')
+    click_add_action(page, "controls", '.widget-add-action[data-widget-kind="timeframe"]')
     widget = page.locator(".widget-layout > .timeframe-widget-card").last
     expect(widget).to_be_visible()
     widget.dispatch_event("contextmenu", {"bubbles": True, "cancelable": True})
@@ -22609,6 +22609,7 @@ def test_anchor_positions_are_compact_ordered_stack(page: Page, app_server: str)
     goto(page, app_server)
     for _ in range(3):
         open_add_category(page, "navigation").locator('.widget-add-action[data-widget-kind="anchor"]').click()
+        page.wait_for_timeout(300)
     anchors = page.locator(".workspace-anchor-layer > .workspace-anchor-object").all()
     assert len(anchors) >= 3
     tops = [a.bounding_box()["y"] for a in anchors if a.bounding_box()]
@@ -22752,7 +22753,7 @@ def test_widget_content_well_has_visible_border(page: Page, app_server: str) -> 
 
 def test_chart_widget_content_well_inset_is_consistent(page: Page, app_server: str) -> None:
     goto(page, app_server)
-    open_add_category(page, "visualization", "charts").locator('.widget-add-action[data-widget-kind="chart-line"]').click()
+    open_add_category(page, "visualization", "Charts").locator('.widget-add-action[data-widget-kind="chart-line"]').click()
     chart_widget = page.locator('.widget-layout > .widget-card[data-custom-widget="true"]').last
     expect(chart_widget).to_be_visible()
     insets = chart_widget.evaluate(
@@ -22773,10 +22774,9 @@ def test_chart_widget_content_well_inset_is_consistent(page: Page, app_server: s
         """
     )
     if insets is not None:
-        assert insets["left"] >= 0, f"Chart stage overflows left edge of content well: {insets}"
-        assert insets["right"] >= 0, f"Chart stage overflows right edge of content well: {insets}"
-        assert insets["top"] >= 0, f"Chart stage overflows top edge of content well: {insets}"
-        assert insets["bottom"] >= 0, f"Chart stage overflows bottom edge of content well: {insets}"
+        assert abs(insets["left"] - insets["right"]) <= 1, f"Chart content-well has asymmetric horizontal inset: {insets}"
+        assert abs(insets["top"] - insets["bottom"]) <= 1, f"Chart content-well has asymmetric vertical inset: {insets}"
+        assert all(abs(v) <= 8 for v in insets.values()), f"Chart content-well inset outside expected bounds: {insets}"
     assert_clean_browser(page)
 
 

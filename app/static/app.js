@@ -1260,6 +1260,12 @@ document.addEventListener("DOMContentLoaded", () => {
     if (event.target?.closest?.(".panel-tool-drawer, .panel-settings-toggle, .panel-color-menu, .widget-workbench-panel")) return;
     closeInactiveDashboardTools();
   }, true);
+  document.addEventListener("keydown", (event) => {
+    if (event.key !== "Escape") return;
+    if (!document.querySelector(".widget-tools-open, .widget-workbench-open, .db-panel-tools-open")) return;
+    if (event.target?.closest?.(".panel-tool-drawer, .widget-workbench-panel, .panel-color-menu")) return;
+    closeInactiveDashboardTools();
+  }, true);
   let groupMode = false;
   const groupSelection = new Set();
   const groupSelectedIds = new Set();
@@ -12199,7 +12205,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
   document.querySelectorAll(".workspace-anchor-layer").forEach(initFloatingAnchorLayer);
   document.addEventListener("contextmenu", (event) => {
-    event.target?.closest?.(surfaceResponseSelector)?.__openCustomization?.(event);
+    const target = event.target?.closest?.(surfaceResponseSelector) ||
+      event.target?.closest?.(".panel-layout > .workspace-divider");
+    target?.__openCustomization?.(event);
   }, true);
   document.querySelectorAll(".workspace-minimap-layer").forEach(initWorkspaceMinimapLayer);
   window.addEventListener("scroll", () => refreshWorkspaceMiniMaps(), { passive: true });
