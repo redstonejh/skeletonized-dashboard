@@ -2472,6 +2472,11 @@ body.resize-auto-zoom-active .dashboard-expanded-footprint-ghost {
   padding: 0;
 }
 
+.widget-layout > :is(.widget-card.table-widget-card, .widget-card.map-widget-card, .widget-card.calendar-widget-card, .widget-card.document-widget-card),
+.panel-internal-widget-grid > :is(.widget-card.table-widget-card, .widget-card.map-widget-card, .widget-card.calendar-widget-card, .widget-card.document-widget-card) {
+  padding: var(--widget-composition-stage-pad);
+}
+
 .widget-content-well,
 .widget-library-surface {
   box-sizing: border-box;
@@ -2479,7 +2484,7 @@ body.resize-auto-zoom-active .dashboard-expanded-footprint-ghost {
   min-height: 0;
   overflow: hidden;
   border: 1px solid var(--widget-library-surface-border);
-  border-radius: calc(var(--widget-composition-stage-radius) - 2px);
+  border-radius: calc(var(--radius-md) - var(--widget-composition-stage-pad));
   background: var(--widget-library-surface-bg);
   box-shadow: var(--widget-library-surface-shadow);
   color: var(--widget-library-fg);
@@ -6163,7 +6168,7 @@ body.engineer-mode-active .activity-feed-item[data-event-traceable="true"] .acti
 }
 
 .runtime-chart-widget > .runtime-chart-stage {
-  padding: 2px 3px;
+  border-radius: var(--radius-md);
   border-color: rgba(148, 163, 184, .16);
   background:
     linear-gradient(180deg, color-mix(in srgb, var(--widget-content-stage-bg) 88%, transparent), color-mix(in srgb, var(--widget-content-stage-bg) 66%, transparent)),
@@ -6175,7 +6180,7 @@ body.engineer-mode-active .activity-feed-item[data-event-traceable="true"] .acti
 }
 
 .runtime-chart-widget > .runtime-chart-stage:has(.widget-library-surface) {
-  padding: 2px;
+  padding: var(--widget-composition-stage-pad);
 }
 
 .runtime-chart-legend {

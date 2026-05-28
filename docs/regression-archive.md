@@ -121,4 +121,96 @@ Same ~99 failures as noted in the previous session entry. Not touched.
 
 ### Commit
 
+`59ad0d8` — "Fix workbench panel dismissal via shared overlay close architecture"
+
+---
+
+## Session 2026-05-28 — Content-Well Border Geometry Normalization
+
+### Summary
+
+Content-well border geometry was inconsistent across widget types:
+- Table/map/calendar/document cards inherited `stat-card`'s asymmetric `padding: 10px 14px 9px`, making the left/right inset 14px vs top 10px / bottom 9px.
+- Content-well `border-radius` used `calc(var(--widget-composition-stage-radius) - 2px)` = 6px (wrong base variable, should derive from `var(--radius-md)` = 16px).
+- Chart stage had hardcoded asymmetric `padding: 2px 3px` overriding the shared variable, then `:has(.widget-library-surface)` overrode that with `2px`.
+- Chart stage `border-radius: 8px` from a shared rule produced corner mismatch with card's 16px outer radius.
+
+Root cause: multiple hardcoded per-widget overrides diverged from shared geometry contract variables.
+
+Fix: added a library-widget-card padding rule using `var(--widget-composition-stage-pad)`, corrected content-well `border-radius` formula, removed asymmetric chart stage `padding`, set chart stage `border-radius: var(--radius-md)`, and changed chart stage `:has(.widget-library-surface)` padding to use the variable.
+
+5 content-well tests pass. 37-test scoped suite passes.
+
+### Root cause
+
+| Cause | Location | Effect |
+|-------|---------|--------|
+| No library-widget-card padding override | `dashboard-grid.css` ~2480 | Table/map/calendar/document inherit `stat-card`'s asymmetric `padding: 10px 14px 9px` |
+| Wrong `border-radius` base variable | `dashboard-grid.css` `.widget-content-well` rule | `calc(var(--widget-composition-stage-radius) - 2px)` = 6px; correct is `calc(var(--radius-md) - var(--widget-composition-stage-pad))` = 12px |
+| Hardcoded chart stage `padding: 2px 3px` | `dashboard-grid.css` ~6165 | Overrides shared `var(--widget-composition-stage-pad)` with asymmetric values |
+| Hardcoded `padding: 2px` in `:has()` rule | `dashboard-grid.css` ~6177 | Applies wrong pad when library-surface present in stage |
+| Chart stage `border-radius: 8px` | Shared stage rule `dashboard-grid.css` ~6134 | Concentric corner mismatch with card's `var(--radius-md)` = 16px |
+
+### Files changed
+
+| File | Change |
+|------|--------|
+| `app/static/dashboard-grid.css` | 5 edits: add library-widget-card `padding: var(--widget-composition-stage-pad)` rule; fix `border-radius` to `calc(var(--radius-md) - var(--widget-composition-stage-pad))`; remove asymmetric chart stage padding; add chart stage `border-radius: var(--radius-md)`; update `:has()` padding to use variable |
+| `tests/test_dashboard_builder_e2e.py` | Updated `test_table_widget_content_well_inset_is_consistent` (was trivially 0 — same element); updated `test_chart_widget_content_well_inset_is_consistent` tighter bounds; added `test_chart_and_table_content_well_outer_gap_are_comparable`; added `test_content_well_border_radius_is_rounded` |
+
+### Geometry values standardized
+
+| Property | Value (standard density) | Formula |
+|----------|--------------------------|---------|
+| Library widget card padding | 4px | `var(--widget-composition-stage-pad)` |
+| Chart stage padding | 4px | `var(--widget-composition-stage-pad)` |
+| Chart stage outer border-radius | 16px | `var(--radius-md)` |
+| Content-well border-radius | 12px | `calc(var(--radius-md) - var(--widget-composition-stage-pad))` |
+| Content-well border width | 1px | unchanged |
+| Table card-to-well measured gap | 5px (all sides) | 1px card border + 4px card padding |
+| Chart card-to-well measured gap | 6px (all sides) | 1px card border + 1px stage border + 4px stage padding |
+| Density scaling | automatic | `--widget-composition-stage-pad`: 2/3/4/5/6px for tiny/compact/standard/expanded/rich |
+
+### Exact tests run
+
+```
+.venv\Scripts\python.exe -m pytest -q tests/test_dashboard_builder_e2e.py -k "content_well"
+```
+Result: **5 passed, 226 deselected**
+
+37-test scoped suite also run and passes.
+
+### Manual browser verification
+
+Playwright headless geometry dump confirmed:
+
+```
+table-widget-card
+  outer gap   top=5  right=5  bottom=5  left=5
+  well radius 12px  |  well border 1px
+  horiz sym diff: 0  vert sym diff: 0
+
+chart-widget-card
+  outer gap   top=6  right=6  bottom=6  left=6
+  well radius 12px  |  well border 1px
+  horiz sym diff: 0  vert sym diff: 0
+```
+
+Both gaps are symmetric (zero horizontal and vertical diff). The 1px difference between table (5px) and chart (6px) is structural: chart has an extra stage border between card and well.
+
+### What was intentionally not changed
+
+- Widget shell material (colors, gradients, shadows, backgrounds)
+- Chart rendering behavior beyond stage containment geometry
+- Table data styling (`runtime-table-tanstack` internals)
+- Stat, timeframe, search, filter, image, video, map, calendar, document shell shapes beyond card padding correction
+- Drag, resize, collision, persistence code paths
+- Full test suite (only `content_well` tests targeted)
+
+### Deferred: legacy full-suite failures
+
+Same ~99 failures as noted in previous session entries. Not touched.
+
+### Commit
+
 (pending)

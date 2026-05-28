@@ -22752,6 +22752,7 @@ def test_widget_content_well_has_visible_border(page: Page, app_server: str) -> 
 
 
 def test_chart_widget_content_well_inset_is_consistent(page: Page, app_server: str) -> None:
+    """Stage-to-well inset is symmetric and reflects the shared --widget-composition-stage-pad."""
     goto(page, app_server)
     open_add_category(page, "visualization", "Charts").locator('.widget-add-action[data-widget-kind="chart-line"]').click()
     chart_widget = page.locator('.widget-layout > .widget-card[data-custom-widget="true"]').last
@@ -22776,37 +22777,102 @@ def test_chart_widget_content_well_inset_is_consistent(page: Page, app_server: s
     if insets is not None:
         assert abs(insets["left"] - insets["right"]) <= 1, f"Chart content-well has asymmetric horizontal inset: {insets}"
         assert abs(insets["top"] - insets["bottom"]) <= 1, f"Chart content-well has asymmetric vertical inset: {insets}"
-        assert all(abs(v) <= 8 for v in insets.values()), f"Chart content-well inset outside expected bounds: {insets}"
+        assert all(4 <= abs(v) <= 6 for v in insets.values()), f"Chart content-well stage inset should be ~5px (1px border + 4px pad): {insets}"
     assert_clean_browser(page)
 
 
 def test_table_widget_content_well_inset_is_consistent(page: Page, app_server: str) -> None:
+    """Card-to-well outer gap is symmetric and uses the shared --widget-composition-stage-pad."""
     goto(page, app_server)
     click_add_action(page, "data", '.widget-add-action[data-widget-kind="table"]')
     table_widget = page.locator('.widget-layout > .widget-card[data-custom-widget="true"]').last
     expect(table_widget).to_be_visible()
-    insets = table_widget.evaluate(
+    gaps = table_widget.evaluate(
         """
         node => {
           const well = node.querySelector(".widget-content-well");
-          const surface = node.querySelector(".runtime-table-library-surface");
-          if (!well || !surface) return null;
+          if (!well) return null;
+          const cardRect = node.getBoundingClientRect();
           const wellRect = well.getBoundingClientRect();
-          const surfaceRect = surface.getBoundingClientRect();
           return {
-            left: Math.round(surfaceRect.left - wellRect.left),
-            right: Math.round(wellRect.right - surfaceRect.right),
-            top: Math.round(surfaceRect.top - wellRect.top),
-            bottom: Math.round(wellRect.bottom - surfaceRect.bottom),
+            top: Math.round(wellRect.top - cardRect.top),
+            left: Math.round(wellRect.left - cardRect.left),
+            bottom: Math.round(cardRect.bottom - wellRect.bottom),
+            right: Math.round(cardRect.right - wellRect.right),
           };
         }
         """
     )
-    if insets is not None:
-        assert insets["left"] >= 0, f"Table surface overflows left edge of content well: {insets}"
-        assert insets["right"] >= 0, f"Table surface overflows right edge of content well: {insets}"
-        assert insets["top"] >= 0, f"Table surface overflows top edge of content well: {insets}"
-        assert insets["bottom"] >= 0, f"Table surface overflows bottom edge of content well: {insets}"
+    if gaps is not None:
+        assert abs(gaps["left"] - gaps["right"]) <= 1, f"Table content-well has asymmetric horizontal gap: {gaps}"
+        assert abs(gaps["top"] - gaps["bottom"]) <= 1, f"Table content-well has asymmetric vertical gap: {gaps}"
+        assert abs(gaps["left"] - gaps["top"]) <= 2, f"Table content-well horizontal/vertical gap mismatch: {gaps}"
+        assert all(3 <= v <= 10 for v in gaps.values()), f"Table content-well gap outside expected range [3, 10]px: {gaps}"
+    assert_clean_browser(page)
+
+
+def test_chart_and_table_content_well_outer_gap_are_comparable(page: Page, app_server: str) -> None:
+    """Card-to-well outer gap is within 2px between chart and table — shared geometry contract."""
+    goto(page, app_server)
+    click_add_action(page, "data", '.widget-add-action[data-widget-kind="table"]')
+    open_add_category(page, "visualization", "Charts").locator('.widget-add-action[data-widget-kind="chart-line"]').click()
+    widgets = page.locator('.widget-layout > .widget-card[data-custom-widget="true"]').all()
+    assert len(widgets) >= 2
+    table_widget = None
+    chart_widget = None
+    for w in widgets:
+        classes = w.evaluate("node => node.className")
+        if "table-widget-card" in classes:
+            table_widget = w
+        elif "chart-widget-card" in classes:
+            chart_widget = w
+    if table_widget is None or chart_widget is None:
+        pytest.skip("Could not find both table and chart widgets")
+    table_gap = table_widget.evaluate(
+        """
+        node => {
+          const well = node.querySelector(".widget-content-well");
+          if (!well) return null;
+          const cardRect = node.getBoundingClientRect();
+          const wellRect = well.getBoundingClientRect();
+          return Math.round(wellRect.left - cardRect.left);
+        }
+        """
+    )
+    chart_gap = chart_widget.evaluate(
+        """
+        node => {
+          const well = node.querySelector(".widget-content-well");
+          if (!well) return null;
+          const cardRect = node.getBoundingClientRect();
+          const wellRect = well.getBoundingClientRect();
+          return Math.round(wellRect.left - cardRect.left);
+        }
+        """
+    )
+    if table_gap is not None and chart_gap is not None:
+        assert abs(table_gap - chart_gap) <= 2, f"Chart outer gap ({chart_gap}px) and table outer gap ({table_gap}px) differ by more than 2px"
+    assert_clean_browser(page)
+
+
+def test_content_well_border_radius_is_rounded(page: Page, app_server: str) -> None:
+    """Content-well border-radius is derived from card radius minus stage pad — produces visibly rounded corners."""
+    goto(page, app_server)
+    click_add_action(page, "data", '.widget-add-action[data-widget-kind="table"]')
+    table_widget = page.locator('.widget-layout > .widget-card[data-custom-widget="true"]').last
+    expect(table_widget).to_be_visible()
+    radius = table_widget.evaluate(
+        """
+        node => {
+          const well = node.querySelector(".widget-content-well");
+          if (!well) return null;
+          const styles = getComputedStyle(well);
+          return parseFloat(styles.borderTopLeftRadius);
+        }
+        """
+    )
+    if radius is not None:
+        assert radius >= 8, f"Content-well border-radius ({radius}px) should be at least 8px (follows card geometry)"
     assert_clean_browser(page)
 
 
