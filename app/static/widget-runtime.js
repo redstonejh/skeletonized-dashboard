@@ -455,7 +455,6 @@
           </div>
           <div class="widget-settings-schema-panel" role="menu" aria-label="Widget settings" hidden></div>
           <div class="widget-workbench-panel" role="dialog" aria-label="Widget workbench" hidden></div>
-          <button class="panel-settings-toggle widget-settings-toggle" type="button" aria-label="Widget appearance" aria-expanded="false" title="Widget appearance"><span class="settings-icon" aria-hidden="true"></span></button>
         </div>`);
     };
     const syncRenderedHeightToFootprint = (widget, rowSpan = null, metrics = null) => {

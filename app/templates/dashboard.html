@@ -9,7 +9,6 @@
       <button class="panel-tool-button panel-title-handle" type="button" aria-label="Rename panel" title="Rename panel"><span class="text-icon" aria-hidden="true"></span></button>
       <button class="panel-tool-button panel-color-toggle" type="button" aria-label="Panel colors" aria-expanded="false" title="Panel colors" data-default-theme="{{ color }}"><span class="color-icon" aria-hidden="true"></span></button>
     </div>
-    <button class="panel-settings-toggle" type="button" aria-label="Panel settings" aria-expanded="false" title="Panel settings"><span class="settings-icon" aria-hidden="true"></span></button>
   </div>
 {%- endmacro %}
 
@@ -181,24 +180,11 @@
 
 <div class="dashboard-layout-grid" data-dashboard-layout-key="builder">
   <div class="stat-band widget-layout" data-widget-layout-key="builder">
-    <nav class="range-bar widget-card timeframe-widget" data-widget-key="builder-search" data-widget-type="controls" data-default-span="4" data-min-w="2" aria-label="Dashboard timeframe controls">
-      <div class="timeframe-command-surface" data-widget-control-surface="true">
-        <div class="range-controls timeframe-controls">
-          <div class="range-presets timeframe-presets" role="group" aria-label="Timeframe presets">
-            <a class="preset-btn active" href="/dashboard">Today</a>
-            <a class="preset-btn" href="/dashboard">7 days</a>
-            <a class="preset-btn" href="/dashboard">30 days</a>
-          </div>
-        </div>
-        <div class="timeframe-active-cluster">
-          <span class="timeframe-selected-summary timeframe-selector active" role="status" aria-live="polite" aria-label="Selected timeframe" title="Selected timeframe">This week</span>
-        </div>
-        <div class="range-search timeframe-range timeframe-utility-cluster" role="group" aria-label="Timeframe utilities">
-          <button class="range-icon-button timeframe-refresh" type="button" aria-label="Refresh timeframe" title="Refresh timeframe"><span class="timeframe-refresh-icon" aria-hidden="true"></span></button>
-          <button class="range-icon-button timeframe-calendar" type="button" aria-label="Open date range" title="Open date range"><span class="timeframe-calendar-icon" aria-hidden="true"></span></button>
-        </div>
+    <div class="stat-card widget-card widget-card-custom timeframe-widget-card" data-widget-key="builder-search" data-widget-definition="timeframe" data-widget-type="timeframe" data-widget-runtime-type="timeframe" data-default-span="4" data-min-w="2" aria-label="Time filter controls">
+      <div class="timeframe-body timeframe-body-empty">
+        <span class="timeframe-empty-hint">Add time controls in settings</span>
       </div>
-    </nav>
+    </div>
     {% for widget in widgets if widget.widget_type != "controls" %}
     {% set stat_col = 5 + (loop.index0 % 2) %}
     {% set stat_row = 1 + (loop.index0 // 2) %}

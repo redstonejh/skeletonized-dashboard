@@ -285,7 +285,12 @@
   pointer-events: none;
   transform: translateY(-4px) scale(.98);
   transform-origin: top left;
-  transition: opacity .14s ease, transform .16s ease, visibility 0s linear .16s;
+  transition:
+    opacity .14s ease,
+    transform .16s cubic-bezier(.2, .8, .2, 1),
+    max-height .22s cubic-bezier(.2, .8, .2, 1),
+    padding .16s ease,
+    visibility 0s linear .16s;
 }
 
 .panel-add-menu:not(.open) {
@@ -297,7 +302,6 @@
 }
 
 .panel-add-menu.open {
-  height: auto;
   max-height: var(--panel-add-menu-max-height, calc(100vh - 120px));
   overflow: visible;
   opacity: 1;
@@ -382,7 +386,8 @@
   display: grid;
   gap: 6px;
   min-width: 138px;
-  max-height: min(320px, calc(100vh - 140px));
+  --layout-slot-menu-max-height: min(320px, calc(100vh - 140px));
+  max-height: 0;
   padding: 8px;
   border: 1px solid var(--line-soft);
   border-radius: 14px;
@@ -393,13 +398,20 @@
   pointer-events: none;
   transform: translateY(-4px) scale(.98);
   transform-origin: top left;
-  overflow-y: auto;
+  overflow: hidden;
   overscroll-behavior: contain;
   scrollbar-width: thin;
-  transition: opacity .14s ease, transform .16s ease, visibility 0s linear .16s;
+  transition:
+    opacity .14s ease,
+    transform .16s cubic-bezier(.2, .8, .2, 1),
+    max-height .22s cubic-bezier(.2, .8, .2, 1),
+    padding .16s ease,
+    visibility 0s linear .16s;
 }
 
 .layout-slot-menu.open {
+  max-height: var(--layout-slot-menu-max-height);
+  overflow-y: auto;
   opacity: 1;
   visibility: visible;
   pointer-events: auto;
@@ -1806,54 +1818,6 @@ body::-webkit-scrollbar-thumb:hover {
   color: var(--widget-surface-fg) !important;
 }
 
-.widget-layout > .timeframe-widget.db-panel-custom-color,
-.panel-internal-widget-grid > .timeframe-widget.db-panel-custom-color {
-  --widget-surface-fg: #ffffff;
-  --widget-surface-muted: rgba(255, 255, 255, .76);
-  --panel-accent-text: #ffffff !important;
-}
-
-.widget-layout > .timeframe-widget.db-panel-custom-color .preset-btn,
-.widget-layout > .timeframe-widget.db-panel-custom-color .range-icon-button,
-.panel-internal-widget-grid > .timeframe-widget.db-panel-custom-color .preset-btn,
-.panel-internal-widget-grid > .timeframe-widget.db-panel-custom-color .range-icon-button {
-  background: color-mix(in srgb, var(--panel-accent) 28%, rgba(255, 255, 255, .20)) !important;
-  border-color: color-mix(in srgb, var(--panel-accent) 36%, rgba(255, 255, 255, .26)) !important;
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, .12),
-    inset 0 2px 5px rgba(15, 23, 42, .08),
-    0 1px 2px rgba(15, 23, 42, .04) !important;
-}
-
-.widget-layout > .timeframe-widget.db-panel-custom-color .timeframe-selector,
-.panel-internal-widget-grid > .timeframe-widget.db-panel-custom-color .timeframe-selector {
-  background: color-mix(in srgb, var(--panel-accent) 30%, rgba(255, 255, 255, .20)) !important;
-  border-color: color-mix(in srgb, var(--panel-accent) 42%, rgba(255, 255, 255, .30)) !important;
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, .12),
-    inset 0 2px 6px rgba(15, 23, 42, .09),
-    0 1px 2px rgba(15, 23, 42, .04) !important;
-}
-
-.widget-layout > .timeframe-widget.db-panel-custom-color .preset-btn:hover,
-.widget-layout > .timeframe-widget.db-panel-custom-color .range-icon-button:hover,
-.panel-internal-widget-grid > .timeframe-widget.db-panel-custom-color .preset-btn:hover,
-.panel-internal-widget-grid > .timeframe-widget.db-panel-custom-color .range-icon-button:hover {
-  background: color-mix(in srgb, var(--panel-accent) 32%, rgba(255, 255, 255, .22)) !important;
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, .13),
-    inset 0 2px 6px rgba(15, 23, 42, .10),
-    0 1px 2px rgba(15, 23, 42, .045) !important;
-}
-
-.widget-layout > .timeframe-widget.db-panel-custom-color .preset-btn.active,
-.widget-layout > .timeframe-widget.db-panel-custom-color .range-icon-button:active,
-.panel-internal-widget-grid > .timeframe-widget.db-panel-custom-color .preset-btn.active,
-.panel-internal-widget-grid > .timeframe-widget.db-panel-custom-color .range-icon-button:active {
-  background: color-mix(in srgb, var(--panel-accent) 34%, rgba(255, 255, 255, .22)) !important;
-  border-color: color-mix(in srgb, var(--panel-accent) 48%, rgba(255, 255, 255, .32)) !important;
-}
-
 .widget-layout > .widget-card.db-panel-custom-color:hover,
 .widget-layout > .widget-card.db-panel-custom-color:focus-visible,
 .widget-layout > .widget-card.db-panel-custom-color.active,
@@ -3171,6 +3135,12 @@ body {
   transform: translate(50%, 0) scale(1);
 }
 
+.app-nav.workspace-chrome .panel-add-menu:not(.open),
+.app-nav.workspace-chrome .layout-slot-menu:not(.open) {
+  max-height: 0;
+  overflow: hidden;
+}
+
 .app-nav.workspace-chrome .panel-add-action,
 .app-nav.workspace-chrome .widget-add-action,
 .app-nav.workspace-chrome .layout-slot-menu button,
@@ -4055,6 +4025,18 @@ body {
   transform: translateY(0) scale(1);
 }
 
+.app-nav.workspace-chrome .panel-add-menu:not(.open) {
+  padding-top: 0;
+  padding-bottom: 0;
+}
+
+.app-nav.workspace-chrome .panel-add-menu.open {
+  max-height: var(--panel-add-menu-max-height, calc(100vh - 120px));
+  padding-top: 8px;
+  padding-bottom: 8px;
+  transition-delay: 0s;
+}
+
 .object-add-browser {
   display: grid;
   gap: 5px;
@@ -4124,12 +4106,12 @@ body {
   transition: opacity var(--motion-fast), transform var(--motion-fast), visibility 0s linear var(--motion-fast);
 }
 
-.object-add-category:hover > .object-add-submenu,
-.object-add-category:focus-within > .object-add-submenu,
-.object-add-category.is-open > .object-add-submenu,
-.object-add-subcategory:hover > .object-add-submenu,
-.object-add-subcategory:focus-within > .object-add-submenu,
-.object-add-subcategory.is-open > .object-add-submenu {
+.panel-add-menu.open .object-add-category:hover > .object-add-submenu,
+.panel-add-menu.open .object-add-category:focus-within > .object-add-submenu,
+.panel-add-menu.open .object-add-category.is-open > .object-add-submenu,
+.panel-add-menu.open .object-add-subcategory:hover > .object-add-submenu,
+.panel-add-menu.open .object-add-subcategory:focus-within > .object-add-submenu,
+.panel-add-menu.open .object-add-subcategory.is-open > .object-add-submenu {
   display: grid;
   opacity: 1;
   visibility: visible;
@@ -4144,8 +4126,7 @@ body {
 
 .app-nav.workspace-chrome .layout-slot-menu {
   min-width: 226px;
-  max-height: min(68vh, 560px);
-  overflow-y: auto;
+  --layout-slot-menu-max-height: min(68vh, 560px);
   overscroll-behavior: contain;
   padding: 6px;
   background:
@@ -4153,11 +4134,20 @@ body {
   scrollbar-width: thin;
 }
 
+.app-nav.workspace-chrome .layout-slot-menu:not(.open) {
+  padding-top: 0;
+  padding-bottom: 0;
+}
+
 .app-nav.workspace-chrome .layout-slot-menu.open {
+  max-height: var(--layout-slot-menu-max-height);
+  overflow-y: auto;
   opacity: 1;
   visibility: visible;
   pointer-events: auto;
   transform: translateY(0) scale(1);
+  padding-top: 6px;
+  padding-bottom: 6px;
 }
 
 .app-nav.workspace-chrome .layout-slot-menu .layout-source-option {
@@ -4611,17 +4601,6 @@ button[aria-disabled="true"]:hover {
   transform: none;
 }
 
-.widget-layout > .timeframe-widget:has([data-widget-control-surface]:hover),
-.widget-layout > .timeframe-widget:has([data-widget-control-surface]:focus-within),
-.panel-internal-widget-grid > .timeframe-widget:has([data-widget-control-surface]:hover),
-.panel-internal-widget-grid > .timeframe-widget:has([data-widget-control-surface]:focus-within),
-.range-bar.widget-card:has([data-widget-control-surface]:hover),
-.range-bar.widget-card:has([data-widget-control-surface]:focus-within) {
-  border-color: var(--line);
-  box-shadow: var(--shadow-soft);
-  transform: none;
-}
-
 /* Pseudo-LOD visual effects: paint cost changes only, never geometry or layout state. */
 .dashboard-layout-grid .widget-card[data-lod],
 .dashboard-layout-grid .db-panel[data-lod] {
@@ -4684,9 +4663,7 @@ button[aria-disabled="true"]:hover {
 .widget-layout > .widget-card:has(:is(.widget-tools, .panel-tool-drawer, [data-widget-control-surface="true"], button, input, select, textarea, [contenteditable="true"]):hover),
 .widget-layout > .widget-card:has(:is(.widget-tools, .panel-tool-drawer, [data-widget-control-surface="true"], input, select, textarea, [contenteditable="true"]):focus-within),
 .panel-internal-widget-grid > .widget-card:has(:is(.widget-tools, .panel-tool-drawer, [data-widget-control-surface="true"], button, input, select, textarea, [contenteditable="true"]):hover),
-.panel-internal-widget-grid > .widget-card:has(:is(.widget-tools, .panel-tool-drawer, [data-widget-control-surface="true"], input, select, textarea, [contenteditable="true"]):focus-within),
-.range-bar.widget-card:has(:is([data-widget-control-surface="true"], button, input, select, textarea):hover),
-.range-bar.widget-card:has(:is([data-widget-control-surface="true"], input, select, textarea):focus-within) {
+.panel-internal-widget-grid > .widget-card:has(:is(.widget-tools, .panel-tool-drawer, [data-widget-control-surface="true"], input, select, textarea, [contenteditable="true"]):focus-within) {
   border-color: var(--line) !important;
   box-shadow: var(--shadow-soft) !important;
   transform: none !important;
@@ -4844,9 +4821,8 @@ body:is(.panel-interaction-active, .panel-resize-active, .workspace-wire-drag-ac
 
 :is(.app-nav.workspace-chrome, .workspace-menu-overlay-layer) .layout-slot-menu.nav-menu-shell {
   min-width: 246px;
-  max-height: min(var(--menu-portal-max-height, 72vh), 580px);
+  --layout-slot-menu-max-height: min(var(--menu-portal-max-height, 72vh), 580px);
   padding: 8px;
-  overflow-y: auto;
   overscroll-behavior: contain;
 }
 
@@ -4857,10 +4833,31 @@ body:is(.panel-interaction-active, .panel-resize-active, .workspace-wire-drag-ac
 }
 
 :is(.app-nav.workspace-chrome, .workspace-menu-overlay-layer) .panel-add-menu.nav-menu-shell:not(.open) {
-  padding: 8px;
+  max-height: 0;
+  overflow: hidden;
+  padding-top: 0;
+  padding-bottom: 0;
   border-width: 1px;
+}
+
+:is(.app-nav.workspace-chrome, .workspace-menu-overlay-layer) .panel-add-menu.nav-menu-shell.open {
   max-height: var(--panel-add-menu-max-height, calc(100vh - 120px));
-  overflow: visible;
+  padding-top: 8px;
+  padding-bottom: 8px;
+}
+
+:is(.app-nav.workspace-chrome, .workspace-menu-overlay-layer) .layout-slot-menu.nav-menu-shell:not(.open) {
+  max-height: 0;
+  overflow: hidden;
+  padding-top: 0;
+  padding-bottom: 0;
+}
+
+:is(.app-nav.workspace-chrome, .workspace-menu-overlay-layer) .layout-slot-menu.nav-menu-shell.open {
+  max-height: var(--layout-slot-menu-max-height);
+  overflow-y: auto;
+  padding-top: 8px;
+  padding-bottom: 8px;
 }
 
 :is(.app-nav.workspace-chrome, .workspace-menu-overlay-layer) .panel-add-menu.nav-menu-shell.menu-scroll.submenu-active {
@@ -5054,12 +5051,12 @@ body:is(.panel-interaction-active, .panel-resize-active, .workspace-wire-drag-ac
   bottom: 0;
 }
 
-.object-add-category:hover > .object-add-submenu.glass-submenu-panel,
-.object-add-category:focus-within > .object-add-submenu.glass-submenu-panel,
-.object-add-category.is-open > .object-add-submenu.glass-submenu-panel,
-.object-add-subcategory:hover > .object-add-submenu.glass-submenu-panel,
-.object-add-subcategory:focus-within > .object-add-submenu.glass-submenu-panel,
-.object-add-subcategory.is-open > .object-add-submenu.glass-submenu-panel {
+.panel-add-menu.open .object-add-category:hover > .object-add-submenu.glass-submenu-panel,
+.panel-add-menu.open .object-add-category:focus-within > .object-add-submenu.glass-submenu-panel,
+.panel-add-menu.open .object-add-category.is-open > .object-add-submenu.glass-submenu-panel,
+.panel-add-menu.open .object-add-subcategory:hover > .object-add-submenu.glass-submenu-panel,
+.panel-add-menu.open .object-add-subcategory:focus-within > .object-add-submenu.glass-submenu-panel,
+.panel-add-menu.open .object-add-subcategory.is-open > .object-add-submenu.glass-submenu-panel {
   opacity: 1;
   visibility: visible;
   pointer-events: auto;
@@ -5092,272 +5089,6 @@ body:is(.panel-interaction-active, .panel-resize-active, .workspace-wire-drag-ac
   pointer-events: auto;
   transform: translateY(0) scale(1);
   transition-delay: 0s;
-}
-
-/* Timeframe widget: adaptive temporal instrument surface. */
-.widget-layout > .timeframe-widget.range-bar.widget-card,
-.panel-internal-widget-grid > .timeframe-widget.range-bar.widget-card {
-  --timeframe-control-bg: var(--panel-header-control-bg, rgba(71, 85, 105, .12));
-  --timeframe-control-hover-bg: rgba(71, 85, 105, .20);
-  --timeframe-control-active-bg: rgba(71, 85, 105, .28);
-  --timeframe-control-border: var(--panel-header-control-border, rgba(71, 85, 105, .26));
-  --timeframe-control-active-border: rgba(71, 85, 105, .46);
-  align-items: center;
-  justify-content: center;
-  min-width: 0;
-  padding: 0 var(--widget-control-space, 50px) 0 16px;
-  cursor: pointer;
-  overflow: visible;
-}
-
-/* Timeframe widget flat control row — cinematic instrument panel */
-.timeframe-widget .timeframe-control-row {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  width: 100%;
-  flex-wrap: nowrap;
-  overflow: hidden;
-}
-
-.timeframe-widget .timeframe-kicker {
-  color: var(--widget-surface-muted, var(--muted));
-  font-size: 9px;
-  font-weight: 760;
-  line-height: 1.05;
-  text-transform: uppercase;
-  letter-spacing: .05em;
-  white-space: nowrap;
-  flex-shrink: 0;
-}
-
-.timeframe-widget .timeframe-selected-summary {
-  display: inline-flex;
-  align-items: center;
-  min-width: 0;
-  min-height: 28px;
-  max-width: 180px;
-  overflow: hidden;
-  color: var(--widget-surface-fg, var(--muted-strong));
-  font-size: 13px;
-  font-weight: 760;
-  line-height: 1.1;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  flex-shrink: 0;
-}
-
-.timeframe-widget .timeframe-presets,
-.range-bar.widget-card .timeframe-presets {
-  display: flex;
-  flex: 1 1 auto;
-  align-items: center;
-  min-width: 0;
-  max-width: none;
-  gap: 5px;
-  overflow: hidden;
-}
-
-.timeframe-widget[data-current-span="2"] .timeframe-control-row,
-.timeframe-widget[data-default-span="2"]:not([data-current-span]) .timeframe-control-row {
-  gap: 4px;
-}
-
-.timeframe-widget[data-current-span="3"] .timeframe-control-row,
-.timeframe-widget[data-default-span="3"]:not([data-current-span]) .timeframe-control-row {
-  gap: 6px;
-}
-
-.timeframe-widget .preset-btn,
-.timeframe-widget .range-icon-button,
-.timeframe-widget .timeframe-custom-date,
-.timeframe-widget .timeframe-calendar-apply {
-  height: 30px;
-  min-height: 30px;
-  border: 1px solid var(--timeframe-control-border);
-  background: var(--timeframe-control-bg);
-  color: var(--widget-surface-fg, var(--muted-strong));
-  box-shadow:
-    0 1px 3px rgba(15, 23, 42, .04),
-    inset 0 1px 0 color-mix(in srgb, var(--glass-highlight) 42%, transparent),
-    inset 0 -4px 9px rgba(15, 23, 42, .025);
-  transform: none;
-}
-
-.timeframe-widget .preset-btn {
-  width: auto;
-  min-width: max-content;
-  max-width: none;
-  padding: 0 11px;
-  border-radius: 999px;
-  font-size: 11px;
-  font-weight: 760;
-  text-overflow: clip;
-}
-
-.timeframe-widget .timeframe-more-button {
-  padding-inline: 12px;
-}
-
-.timeframe-widget .range-icon-button {
-  width: 30px;
-  min-width: 30px;
-  border-radius: 999px;
-}
-
-.timeframe-widget .preset-btn:hover,
-.timeframe-widget .preset-btn:focus-visible,
-.timeframe-widget .range-icon-button:hover,
-.timeframe-widget .range-icon-button:focus-visible,
-.timeframe-widget .timeframe-custom-date:hover,
-.timeframe-widget .timeframe-custom-date:focus,
-.timeframe-widget .timeframe-calendar-apply:hover,
-.timeframe-widget .timeframe-calendar-apply:focus-visible {
-  outline: none;
-  border-color: var(--timeframe-control-active-border);
-  background: var(--timeframe-control-hover-bg);
-  color: var(--widget-surface-fg, var(--muted-strong));
-  box-shadow:
-    0 2px 8px color-mix(in srgb, var(--panel-accent, var(--blue)) 10%, transparent),
-    inset 0 1px 0 color-mix(in srgb, var(--glass-highlight) 48%, transparent),
-    inset 0 2px 7px rgba(15, 23, 42, .035);
-  transform: var(--pressable-hover-transform);
-}
-
-.timeframe-widget .preset-btn:active,
-.timeframe-widget .preset-btn.active,
-.timeframe-widget .range-icon-button:active,
-.timeframe-widget .timeframe-calendar-apply:active {
-  border-color: var(--timeframe-control-active-border);
-  background: var(--timeframe-control-active-bg);
-  color: var(--widget-surface-fg, var(--muted-strong));
-  box-shadow:
-    inset 0 1px 0 color-mix(in srgb, var(--glass-highlight) 42%, transparent),
-    inset 0 2px 8px color-mix(in srgb, var(--panel-accent, var(--blue)) 10%, rgba(15, 23, 42, .08));
-  transform: var(--pressable-active-transform);
-}
-
-.timeframe-widget .timeframe-selector:hover,
-.timeframe-widget .timeframe-selector:focus-visible,
-.timeframe-widget .timeframe-selector.active {
-  transform: none;
-}
-
-.timeframe-widget .timeframe-preset-menu,
-.timeframe-widget .timeframe-calendar-popover,
-.workspace-menu-overlay-layer > .timeframe-preset-menu,
-.workspace-menu-overlay-layer > .timeframe-calendar-popover {
-  position: absolute;
-  left: 0;
-  top: calc(100% + 8px);
-  display: grid;
-  gap: 6px;
-  min-width: 224px;
-  max-height: min(var(--menu-portal-max-height, 72vh), 520px);
-  padding: 8px;
-  overflow-y: auto;
-  opacity: 0;
-  visibility: hidden;
-  pointer-events: none;
-  transform: translateY(-4px) scale(.985);
-  transform-origin: top left;
-  transition:
-    opacity .14s ease,
-    transform .16s cubic-bezier(.2, .8, .2, 1),
-    visibility 0s linear .16s;
-}
-
-.timeframe-widget .timeframe-calendar-popover,
-.workspace-menu-overlay-layer > .timeframe-calendar-popover {
-  min-width: 260px;
-  overflow: visible;
-}
-
-.workspace-menu-overlay-layer > :is(.timeframe-preset-menu, .timeframe-calendar-popover).nav-menu-shell.menu-portaled {
-  z-index: calc(var(--z-menu-overlay, 2600) + 1);
-  pointer-events: auto;
-}
-
-.timeframe-widget .timeframe-preset-menu.open,
-.timeframe-widget .timeframe-calendar-popover.open,
-.workspace-menu-overlay-layer > .timeframe-preset-menu.open,
-.workspace-menu-overlay-layer > .timeframe-calendar-popover.open {
-  opacity: 1;
-  visibility: visible;
-  pointer-events: auto;
-  transform: translateY(0) scale(1);
-  transition-delay: 0s;
-}
-
-.timeframe-menu-heading {
-  padding: 1px 7px 2px;
-  color: var(--glass-menu-muted);
-  font-size: 10px;
-  font-weight: 780;
-  line-height: 1.2;
-}
-
-.timeframe-calendar-field {
-  display: grid;
-  gap: 5px;
-  color: var(--glass-menu-muted);
-  font-size: 10px;
-  font-weight: 760;
-}
-
-.timeframe-widget .timeframe-custom-date,
-.workspace-menu-overlay-layer .timeframe-custom-date {
-  box-sizing: border-box;
-  width: 100%;
-  min-width: 0;
-  padding: 0 10px;
-  border-radius: 11px;
-  color: var(--ink-strong);
-  font-size: 12px;
-}
-
-.timeframe-widget .timeframe-calendar-apply,
-.workspace-menu-overlay-layer .timeframe-calendar-apply {
-  justify-content: center;
-  width: 100%;
-  margin-top: 2px;
-  border-radius: 11px;
-  font-size: 12px;
-  font-weight: 760;
-}
-
-.timeframe-widget .timeframe-density-small .timeframe-kicker {
-  display: none;
-}
-
-.timeframe-widget .timeframe-density-small .timeframe-presets,
-.timeframe-widget[data-current-span="2"] .timeframe-presets,
-.timeframe-widget[data-default-span="2"]:not([data-current-span]) .timeframe-presets {
-  display: none;
-}
-
-.timeframe-widget .timeframe-density-small .timeframe-selected-summary {
-  font-size: 13px;
-  max-width: 140px;
-}
-
-.timeframe-widget[data-current-span="2"] .timeframe-selected-summary,
-.timeframe-widget[data-default-span="2"]:not([data-current-span]) .timeframe-selected-summary {
-  max-width: 120px;
-}
-
-.timeframe-widget .timeframe-density-small .range-icon-button,
-.timeframe-widget[data-current-span="2"] .range-icon-button,
-.timeframe-widget[data-default-span="2"]:not([data-current-span]) .range-icon-button {
-  width: 30px;
-  min-width: 30px;
-  height: 30px;
-  min-height: 30px;
-}
-
-.timeframe-widget:has(.timeframe-control-row:hover),
-.timeframe-widget:has(.timeframe-control-row:focus-within) {
-  transform: none !important;
 }
 
 /* Shared object shell material for panels and widgets. Keep content renderers separate. */
@@ -5539,21 +5270,6 @@ body:is(.panel-interaction-active, .panel-resize-active, .workspace-wire-drag-ac
   border-color: var(--object-control-hover-border) !important;
 }
 
-.range-bar.widget-card .preset-btn,
-.range-bar.widget-card .range-custom-trigger,
-.range-bar.widget-card .timeframe-selected-summary,
-.range-bar.widget-card .range-icon-button {
-  border-color: var(--object-control-border) !important;
-}
-
-.range-bar.widget-card .preset-btn:hover,
-.range-bar.widget-card .range-custom-trigger:hover,
-.range-bar.widget-card .timeframe-selected-summary:hover,
-.range-bar.widget-card .range-icon-button:hover,
-.range-bar.widget-card .preset-btn.active,
-.range-bar.widget-card .timeframe-selected-summary.active {
-  border-color: var(--object-control-hover-border) !important;
-}
 
 .db-panel.db-panel-custom-color > .db-panel-hd::before,
 .db-panel.db-panel-custom-color > .db-panel-hd .db-panel-count,

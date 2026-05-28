@@ -853,6 +853,14 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     return true;
   };
+  const OBJECT_SURFACE_SINGLE_CLICK_DELAY_MS = 280;
+  const isWorkspaceObjectInteractiveSurfaceTarget = (event) => {
+    return Boolean(
+      event?.target?.closest?.(
+        `${surfaceResponseControlSelector}, .media-widget-stage`,
+      ),
+    );
+  };
   const surfaceResponseState = dashboardInteractionState.createSurfaceResponseState(window);
   const clearSurfaceResponse = (target = surfaceResponseState.target) => {
     if (!target) return;
@@ -4583,7 +4591,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const gridItemMinimumSpan = (item) => {
     const explicit = Number(item?.dataset?.minW || item?.dataset?.minSpan);
     if (Number.isFinite(explicit) && explicit > 0) return Math.max(1, Math.min(6, Math.ceil(explicit)));
-    if (item?.dataset?.widgetType === "controls" || item?.classList?.contains("timeframe-widget")) return 2;
+    if (item?.dataset?.widgetType === "controls") return 2;
     return 1;
   };
 
@@ -5125,7 +5133,6 @@ document.addEventListener("DOMContentLoaded", () => {
           <div class="panel-tool-drawer" aria-label="Panel tools">
             ${panelToolButtonsMarkup(definition.color || "#2563eb", true)}
           </div>
-          <button class="panel-settings-toggle" type="button" aria-label="Panel settings" aria-expanded="false" title="Panel settings"><span class="settings-icon" aria-hidden="true"></span></button>
         </div>
       </div>
       <div class="db-panel-body workspace-divider-body" hidden></div>` : `
@@ -5136,7 +5143,6 @@ document.addEventListener("DOMContentLoaded", () => {
           <div class="panel-tool-drawer" aria-label="Panel tools">
             ${panelToolButtonsMarkup(definition.color || "#2563eb", true)}
           </div>
-          <button class="panel-settings-toggle" type="button" aria-label="Panel settings" aria-expanded="false" title="Panel settings"><span class="settings-icon" aria-hidden="true"></span></button>
         </div>
       </div>
       <div class="db-panel-body">
@@ -5308,6 +5314,25 @@ document.addEventListener("DOMContentLoaded", () => {
     const maxTop = window.innerHeight - viewportGutter - anchorRect.top - drawerHeight;
     const clampedTop = Math.max(minTop, Math.min(top, maxTop));
     drawer.style.setProperty("--dashboard-tool-drawer-top", `${Math.round(clampedTop)}px`);
+    drawer.style.setProperty("--dashboard-tool-drawer-right", `${Math.round(right)}px`);
+  };
+
+  const positionDashboardToolDrawerAtPointer = (item, drawer, clientX, clientY) => {
+    if (!item || !drawer || clientX == null || clientY == null) return;
+    const anchor = drawer.offsetParent || item;
+    const anchorRect = anchor.getBoundingClientRect();
+    const drawerWidth = drawer.offsetWidth || drawer.getBoundingClientRect().width;
+    const drawerHeight = drawer.offsetHeight || drawer.getBoundingClientRect().height;
+    if (!drawerWidth || !drawerHeight) return;
+    const viewportGutter = 8;
+    let right = Math.max(0, anchorRect.right - clientX);
+    const maxRight = Math.max(0, anchorRect.right - viewportGutter - drawerWidth);
+    right = Math.min(right, maxRight);
+    let top = clientY - anchorRect.top;
+    const minTop = viewportGutter - anchorRect.top;
+    const maxTop = window.innerHeight - viewportGutter - anchorRect.top - drawerHeight;
+    top = Math.max(minTop, Math.min(top, maxTop));
+    drawer.style.setProperty("--dashboard-tool-drawer-top", `${Math.round(top)}px`);
     drawer.style.setProperty("--dashboard-tool-drawer-right", `${Math.round(right)}px`);
   };
 
@@ -5886,15 +5911,27 @@ document.addEventListener("DOMContentLoaded", () => {
   };
   const renderWidgetSettingsSchemaPanel = (widget, surface = "appearance") => {
     const definition = widgetDefinitionForElement(widget);
+    const isTimeframeCustomization = surface === "appearance" && (
+      definition.type === "timeframe" || widget?.dataset?.widgetDefinition === "timeframe"
+    );
     const schema = widgetSettingsSchemaForSurface(definition, surface);
     const config = widgetConfigFromElement(widget, definition);
     const sections = schema.sections || [];
+    const renderableSections = sections
+      .map((section) => {
+        const fields = (section.fields || []).filter(Boolean);
+        return fields.length ? { ...section, fields } : null;
+      })
+      .filter(Boolean);
+    if (surface === "appearance" && (isTimeframeCustomization || renderableSections.length === 0)) {
+      return "";
+    }
     return `<div class="widget-settings-schema-head">
       <span>${escapeHtml(definition.displayName || "Widget")} ${surface === "logic" ? "workbench" : "appearance"}</span>
     </div>
-    ${sections.length ? sections.map((section) => `<fieldset class="widget-settings-section" data-widget-settings-section="${escapeHtml(section.id)}" data-widget-settings-surface="${escapeHtml(surface)}">
+    ${renderableSections.length ? renderableSections.map((section) => `<fieldset class="widget-settings-section" data-widget-settings-section="${escapeHtml(section.id)}" data-widget-settings-surface="${escapeHtml(surface)}">
       <legend>${escapeHtml(section.label || "Settings")}</legend>
-      ${(section.fields || []).map((field) => renderWidgetSettingField(widget, field, config, surface)).join("")}
+      ${section.fields.map((field) => renderWidgetSettingField(widget, field, config, surface)).join("")}
     </fieldset>`).join("") : widgetSchemaEmptyState(definition, surface)}`;
   };
   const timeframeWorkbenchOptions = (options = [], selected = "") => options.map((option) => {
@@ -5989,12 +6026,13 @@ document.addEventListener("DOMContentLoaded", () => {
       tools.appendChild(panel);
     }
     const isOpen = widget.classList.contains("widget-settings-schema-open");
+    const renderedMarkup = renderWidgetSettingsSchemaPanel(widget, "appearance");
     if (isOpen) {
-      panel.innerHTML = renderWidgetSettingsSchemaPanel(widget, "appearance");
+      panel.innerHTML = renderedMarkup;
       normalizeWidgetMenuFormControls(panel);
     }
     else panel.replaceChildren();
-    panel.toggleAttribute("hidden", !isOpen);
+    panel.hidden = !isOpen || !renderedMarkup?.trim();
     return panel;
   };
   const renderWidgetWorkbenchPanel = (widget) => {
@@ -6027,10 +6065,15 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     const isOpen = widget.classList.contains("widget-workbench-open");
     if (isOpen) {
+      window.dashboardWidgetRuntime?.destroyTimeframeFlatpickr?.(panel);
       panel.innerHTML = renderWidgetWorkbenchPanel(widget);
       normalizeWidgetMenuFormControls(panel);
+      window.dashboardWidgetRuntime?.mountTimeframeFlatpickr?.(panel);
     }
-    else panel.replaceChildren();
+    else {
+      window.dashboardWidgetRuntime?.destroyTimeframeFlatpickr?.(panel);
+      panel.replaceChildren();
+    }
     panel.toggleAttribute("hidden", !isOpen);
     return panel;
   };
@@ -6336,118 +6379,11 @@ document.addEventListener("DOMContentLoaded", () => {
     },
     sourceForAsset: assetSourceRef,
   };
-  const commitTimeframeDateInput = (input, eventType = "input") => {
-    const ownerKey = input?.closest?.("[data-timeframe-widget-key]")?.dataset?.timeframeWidgetKey || "";
-    const widget = input?.closest?.(".widget-card[data-widget-definition='timeframe']") ||
-      (ownerKey ? document.querySelector(`.widget-card[data-widget-definition='timeframe'][data-widget-key="${CSS.escape(ownerKey)}"]`) : null);
-    if (!widget) return false;
-    const part = input.dataset.timeframePart || "customStart";
-    const filterId = input.dataset.timeframeFilterId || "";
-    const config = widgetConfigFromElement(widget);
-    if (eventType === "change" || eventType === "focusout") captureRuntimeControlBaselineForWidget(widget);
-    const runtime = window.dashboardWidgetRuntime;
-    const filters = runtime?.normalizeTimeframeFilters?.(config) || [];
-    const selectedId = filterId || config.selectedFilterId || "";
-    const selectedFilter = filters.find((filter) => filter.id === selectedId);
-    const shouldUpdateFilter = selectedFilter && ["custom", "custom_fixed"].includes(selectedFilter.type);
-    const mappedPart = part === "customStart" ? "start" : part === "customEnd" ? "end" : part;
-    const nextConfig = shouldUpdateFilter
-      ? {
-          ...config,
-          filters: filters.map((filter) => filter.id === selectedId ? { ...filter, [mappedPart]: input.value } : filter),
-          selectedFilterId: selectedId,
-          selectedPreset: selectedFilter.type,
-          activeLabel: selectedFilter.label || config.activeLabel || "Custom range",
-        }
-      : {
-          ...config,
-          selectedFilterId: "",
-          selectedPreset: "custom",
-          [part]: input.value,
-          activeLabel: "Custom range",
-        };
-    setWidgetConfig(widget, nextConfig);
-    syncWidgetContextOutputs(widget);
-    const timeRange = parseJsonRecord(widget.dataset.contextTimeRange, null);
-    widget.querySelector(".timeframe-selector")?.replaceChildren(document.createTextNode(timeRange?.label || "Custom range"));
-    widget.querySelector(".timeframe-range-display")?.replaceChildren(document.createTextNode(
-      timeRange?.start && timeRange?.end ? `${timeRange.start} - ${timeRange.end}` : "No active range"
-    ));
-    widget.querySelectorAll("[data-timeframe-preset]").forEach((button) => {
-      const active = button.dataset.timeframePreset === "custom";
-      button.classList.toggle("active", active);
-      button.setAttribute("aria-pressed", active ? "true" : "false");
-    });
-    widget.dataset.widgetRuntimeStatus = "ready";
-    if (eventType === "change" || eventType === "focusout") {
-      renderWidgetRuntimeContent(widget, {
-        resolvedContext: resolveWorkspaceContextForItem(widget),
-        status: widget.dataset.widgetRuntimeStatus || "ready",
-      });
-    }
-    persistRuntimeControlChangeForWidget(widget, { history: eventType === "change" || eventType === "focusout" });
-    return true;
-  };
   const bindWidgetRuntimeControls = (widget) => {
     if (!widget || widget.dataset.widgetRuntimeControlsBound === "true") return;
     widget.dataset.widgetRuntimeControlsBound = "true";
     const persistRuntimeControlChange = (options = {}) => persistRuntimeControlChangeForWidget(widget, options);
     const widgetRuntimeKey = () => widget.dataset.widgetKey || "";
-    const timeframeControlBelongsToWidget = (control) => {
-      if (!control) return false;
-      if (widget.contains(control)) return true;
-      const key = widgetRuntimeKey();
-      const owner = key ? control.closest?.(`[data-timeframe-widget-key="${CSS.escape(key)}"]`) : null;
-      return Boolean(owner);
-    };
-    const timeframeFloatingMenus = () => {
-      const key = widgetRuntimeKey();
-      if (!key) return [];
-      return [...document.querySelectorAll(`[data-timeframe-widget-key="${CSS.escape(key)}"].timeframe-preset-menu, [data-timeframe-widget-key="${CSS.escape(key)}"].timeframe-calendar-popover`)];
-    };
-    const closeTimeframeFloatingMenus = () => {
-      timeframeFloatingMenus().forEach((menu) => {
-        menu.classList.remove("open");
-        restoreFloatingMenu(menu);
-      });
-      widget.querySelectorAll(".timeframe-more-button, .timeframe-calendar").forEach((button) => button.setAttribute("aria-expanded", "false"));
-    };
-    const openTimeframeFloatingMenu = (menu, trigger, options = {}) => {
-      if (!menu || !trigger) return false;
-      timeframeFloatingMenus().forEach((other) => {
-        if (other !== menu) {
-          other.classList.remove("open");
-          restoreFloatingMenu(other);
-        }
-      });
-      menu.classList.add("open");
-      portalFloatingMenu(menu, trigger, { align: options.align || "left", offset: 8, minWidth: options.minWidth || trigger.getBoundingClientRect?.().width || 0 });
-      trigger.setAttribute("aria-expanded", "true");
-      requestAnimationFrame(() => positionPortaledMenu(menu, trigger, { align: options.align || "left", offset: 8, minWidth: options.minWidth || trigger.getBoundingClientRect?.().width || 0 }));
-      return true;
-    };
-    const toggleTimeframePresetMenu = (button) => {
-      if (!timeframeControlBelongsToWidget(button)) return false;
-      const menu = widget.querySelector(".timeframe-preset-menu") || document.querySelector(`.workspace-menu-overlay-layer > .timeframe-preset-menu[data-timeframe-widget-key="${CSS.escape(widgetRuntimeKey())}"]`);
-      if (!menu) return false;
-      if (menu.classList.contains("open")) {
-        closeTimeframeFloatingMenus();
-        return true;
-      }
-      return openTimeframeFloatingMenu(menu, button, { minWidth: 220 });
-    };
-    const toggleTimeframeCalendarMenu = (button) => {
-      if (!timeframeControlBelongsToWidget(button)) return false;
-      const menu = widget.querySelector(".timeframe-calendar-popover") || document.querySelector(`.workspace-menu-overlay-layer > .timeframe-calendar-popover[data-timeframe-widget-key="${CSS.escape(widgetRuntimeKey())}"]`);
-      if (!menu) return false;
-      if (menu.classList.contains("open")) {
-        closeTimeframeFloatingMenus();
-        return true;
-      }
-      const opened = openTimeframeFloatingMenu(menu, button, { align: "right", minWidth: 260 });
-      if (opened) requestAnimationFrame(() => menu.querySelector(".timeframe-custom-date")?.focus?.());
-      return opened;
-    };
     const updateFilterWidgetConfig = (target) => {
       const input = target?.closest?.(".filter-widget-input");
       const control = input?.closest?.(".filter-widget-control");
@@ -6493,15 +6429,10 @@ document.addEventListener("DOMContentLoaded", () => {
     };
     const updateTimeframeWidgetConfig = (target, eventType = "input") => {
       if (widget.dataset.widgetDefinition !== "timeframe") return false;
-      const presetButton = target?.closest?.("[data-timeframe-preset]");
-      const filterButton = target?.closest?.("[data-timeframe-filter-id].timeframe-filter-button, [data-timeframe-filter-id].timeframe-menu-option");
-      const dateInput = target?.closest?.(".timeframe-custom-date");
       const globalConfigInput = target?.closest?.(".timeframe-config-input");
       const filterConfigInput = target?.closest?.(".timeframe-filter-config-input");
       const addFilterButton = target?.closest?.(".timeframe-add-filter");
       const removeFilterButton = target?.closest?.(".timeframe-remove-filter");
-      const refreshButton = target?.closest?.(".timeframe-refresh");
-      const resetButton = target?.closest?.(".timeframe-reset");
       const runtime = window.dashboardWidgetRuntime;
       const normalizedFilters = (config) => runtime?.normalizeTimeframeFilters?.(config) || [];
       const setTimeframeConfig = (nextConfig, options = {}) => {
@@ -6516,7 +6447,7 @@ document.addEventListener("DOMContentLoaded", () => {
           ensureWidgetWorkbenchPanel(widget);
         }
       };
-      if (addFilterButton && timeframeControlBelongsToWidget(addFilterButton)) {
+      if (addFilterButton && widget.contains(addFilterButton)) {
         if (addFilterButton.dataset.timeframeAddHandled === "true") return true;
         addFilterButton.dataset.timeframeAddHandled = "true";
         const config = widgetConfigFromElement(widget);
@@ -6532,7 +6463,7 @@ document.addEventListener("DOMContentLoaded", () => {
         });
         return true;
       }
-      if (removeFilterButton && timeframeControlBelongsToWidget(removeFilterButton)) {
+      if (removeFilterButton && widget.contains(removeFilterButton)) {
         const config = widgetConfigFromElement(widget);
         const id = removeFilterButton.dataset.timeframeFilterId || "";
         const filters = normalizedFilters(config).filter((filter) => filter.id !== id);
@@ -6548,7 +6479,7 @@ document.addEventListener("DOMContentLoaded", () => {
         });
         return true;
       }
-      if (globalConfigInput && timeframeControlBelongsToWidget(globalConfigInput)) {
+      if (globalConfigInput && widget.contains(globalConfigInput)) {
         const config = widgetConfigFromElement(widget);
         const part = globalConfigInput.dataset.timeframeConfigPart || "";
         if (!part) return false;
@@ -6559,7 +6490,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }, { refreshWorkbench: eventType !== "input" });
         return true;
       }
-      if (filterConfigInput && timeframeControlBelongsToWidget(filterConfigInput)) {
+      if (filterConfigInput && widget.contains(filterConfigInput)) {
         const config = widgetConfigFromElement(widget);
         const id = filterConfigInput.dataset.timeframeFilterId || "";
         const part = filterConfigInput.dataset.timeframeFilterPart || "";
@@ -6583,54 +6514,6 @@ document.addEventListener("DOMContentLoaded", () => {
           selectedPreset: selectedFilter?.type || config.selectedPreset || "",
           activeLabel: selectedFilter?.label || config.activeLabel || "",
         }, { refreshWorkbench: eventType !== "input" });
-        return true;
-      }
-      if (filterButton && timeframeControlBelongsToWidget(filterButton)) {
-        const config = widgetConfigFromElement(widget);
-        const filters = normalizedFilters(config);
-        const filterId = filterButton.dataset.timeframeFilterId || "";
-        const selectedFilter = filters.find((filter) => filter.id === filterId);
-        captureRuntimeControlBaselineForWidget(widget);
-        setTimeframeConfig({
-          ...config,
-          selectedFilterId: filterId,
-          selectedPreset: selectedFilter?.type || filterButton.dataset.timeframePreset || "",
-          activeLabel: selectedFilter?.label || config.activeLabel,
-        }, { refreshWorkbench: false });
-        closeTimeframeFloatingMenus();
-        return true;
-      }
-      if (presetButton && timeframeControlBelongsToWidget(presetButton)) {
-        const preset = presetButton.dataset.timeframePreset || "";
-        const config = widgetConfigFromElement(widget);
-        const filters = normalizedFilters(config);
-        const selectedFilter = filters.find((filter) => filter.type === preset || filter.id === presetButton.dataset.timeframeFilterId);
-        captureRuntimeControlBaselineForWidget(widget);
-        setTimeframeConfig({
-          ...config,
-          selectedFilterId: selectedFilter?.id || (preset === "custom" ? "" : config.selectedFilterId || ""),
-          selectedPreset: preset,
-          activeLabel: selectedFilter?.label || (preset === "custom" ? "Custom range" : config.activeLabel),
-        });
-        closeTimeframeFloatingMenus();
-        return true;
-      }
-      if (dateInput && timeframeControlBelongsToWidget(dateInput)) {
-        return commitTimeframeDateInput(dateInput, eventType);
-      }
-      if ((refreshButton || resetButton) && timeframeControlBelongsToWidget(refreshButton || resetButton)) {
-        const config = widgetConfigFromElement(widget);
-        captureRuntimeControlBaselineForWidget(widget);
-        setTimeframeConfig({
-          ...config,
-          selectedFilterId: "",
-          selectedPreset: "",
-          activeLabel: "Any time",
-          customStart: "",
-          customEnd: "",
-        }, { refreshWorkbench: false });
-        syncWidgetContextOutputs(widget);
-        closeTimeframeFloatingMenus();
         return true;
       }
       return false;
@@ -6663,41 +6546,36 @@ document.addEventListener("DOMContentLoaded", () => {
     };
     const handleRuntimeControlClick = (event) => {
       if (event.__widgetRuntimeHandledBy === widget) return;
-      const moreButton = event.target?.closest?.(".timeframe-more-button");
-      if (moreButton && timeframeControlBelongsToWidget(moreButton)) {
+      const filterBtn = event.target?.closest?.(".timeframe-filter-btn[data-filter-id]");
+      if (filterBtn && widget.contains(filterBtn) && widget.dataset.widgetDefinition === "timeframe") {
         event.preventDefault();
         event.stopImmediatePropagation?.();
         event.stopPropagation();
-        toggleTimeframePresetMenu(moreButton);
-        event.__widgetRuntimeHandledBy = widget;
-        return;
-      }
-      const calendarButton = event.target?.closest?.(".timeframe-calendar");
-      if (calendarButton && timeframeControlBelongsToWidget(calendarButton)) {
-        event.preventDefault();
-        event.stopImmediatePropagation?.();
-        event.stopPropagation();
-        toggleTimeframeCalendarMenu(calendarButton);
-        event.__widgetRuntimeHandledBy = widget;
-        return;
-      }
-      const calendarApply = event.target?.closest?.(".timeframe-calendar-apply");
-      if (calendarApply && timeframeControlBelongsToWidget(calendarApply)) {
-        event.preventDefault();
-        event.stopImmediatePropagation?.();
-        event.stopPropagation();
-        const menu = calendarApply.closest(".timeframe-calendar-popover");
-        const input = menu?.querySelector(".timeframe-custom-date");
-        if (input) updateTimeframeWidgetConfig(input, "change");
-        closeTimeframeFloatingMenus();
+        const filterId = filterBtn.dataset.filterId;
+        const config = widgetConfigFromElement(widget);
+        const filters = window.dashboardWidgetRuntime?.normalizeTimeframeFilters?.(config) || [];
+        const selectedFilter = filters.find((f) => f.id === filterId);
+        captureRuntimeControlBaselineForWidget(widget);
+        setWidgetConfig(widget, {
+          ...config,
+          selectedFilterId: filterId,
+          selectedPreset: selectedFilter?.type || "",
+          activeLabel: selectedFilter?.label || "",
+        });
+        renderWidgetRuntimeContent(widget, {
+          resolvedContext: resolveWorkspaceContextForItem(widget),
+          status: "ready",
+        });
+        syncWidgetContextOutputs(widget);
+        widget.dataset.widgetRuntimeStatus = "ready";
         event.__widgetRuntimeHandledBy = widget;
         persistRuntimeControlChange({ history: true });
         return;
       }
       const clickableTimeframeControl = event.target?.closest?.(
-        ".timeframe-add-filter, .timeframe-remove-filter, .timeframe-filter-button, .timeframe-menu-option, .timeframe-filter-config-input[type='radio'], [data-timeframe-preset], .timeframe-refresh, .timeframe-reset"
+        ".timeframe-add-filter, .timeframe-remove-filter, .timeframe-filter-config-input[type='radio']"
       );
-      if (!clickableTimeframeControl || !timeframeControlBelongsToWidget(clickableTimeframeControl)) return;
+      if (!clickableTimeframeControl || !widget.contains(clickableTimeframeControl)) return;
       if (updateTimeframeWidgetConfig(event.target, event.type)) {
         event.preventDefault();
         event.stopImmediatePropagation?.();
@@ -6705,50 +6583,13 @@ document.addEventListener("DOMContentLoaded", () => {
         persistRuntimeControlChange({ history: true });
       }
     };
-    const handleTimeframeDateCommit = (event) => {
-      if (event.__widgetRuntimeHandledBy === widget) return;
-      const dateInput = event.target?.closest?.(".timeframe-custom-date");
-      if (!dateInput || !timeframeControlBelongsToWidget(dateInput)) return;
-      if (updateTimeframeWidgetConfig(dateInput, event.type)) {
-        event.__widgetRuntimeHandledBy = widget;
-        persistRuntimeControlChange({ history: event.type === "change" || event.type === "focusout" });
-      }
-    };
     widget.addEventListener("click", handleRuntimeControlClick, true);
-    document.addEventListener("click", handleRuntimeControlClick, true);
-    widget.addEventListener("input", handleTimeframeDateCommit, true);
-    widget.addEventListener("change", handleTimeframeDateCommit, true);
-    widget.addEventListener("focusout", handleTimeframeDateCommit, true);
-    document.addEventListener("input", handleTimeframeDateCommit, true);
-    document.addEventListener("change", handleTimeframeDateCommit, true);
-    document.addEventListener("focusout", handleTimeframeDateCommit, true);
     widget.addEventListener("input", handleRuntimeControlChange, true);
     widget.addEventListener("input", handleRuntimeControlChange);
     widget.addEventListener("change", handleRuntimeControlChange, true);
     widget.addEventListener("change", handleRuntimeControlChange);
     widget.addEventListener("focusout", handleRuntimeControlChange);
-    document.addEventListener("pointerdown", (event) => {
-      const key = widgetRuntimeKey();
-      const ownedMenu = key ? event.target?.closest?.(`[data-timeframe-widget-key="${CSS.escape(key)}"]`) : null;
-      if (widget.contains(event.target) || ownedMenu) return;
-      closeTimeframeFloatingMenus();
-    }, true);
-    document.addEventListener("keydown", (event) => {
-      if (event.key === "Escape") closeTimeframeFloatingMenus();
-    });
   };
-  ["input", "change", "focusout"].forEach((eventName) => {
-    document.addEventListener(eventName, (event) => {
-      if (event.__widgetRuntimeHandledBy) return;
-      const input = event.target?.closest?.(".timeframe-custom-date");
-      const widget = input?.closest?.(".widget-card[data-widget-definition='timeframe']");
-      if (!input || !widget) return;
-      if (commitTimeframeDateInput(input, event.type)) {
-        event.__widgetRuntimeHandledBy = widget;
-      }
-    }, true);
-  });
-
   const createCustomWidget = (definition) => widgetRuntimeController.createCustomWidget(definition);
 
   const panelChildWidgets = (panel) => dashboardPanelContainment.panelChildWidgets(panel);
@@ -7152,7 +6993,6 @@ document.addEventListener("DOMContentLoaded", () => {
             extraButtons: '<button class="panel-tool-button anchor-link-toggle" type="button" aria-label="Link anchor to divider" aria-expanded="false" title="Link anchor"><span class="anchor-link-icon" aria-hidden="true"></span></button>',
           })}
         </span>
-        <button class="panel-settings-toggle widget-settings-toggle anchor-settings-toggle" type="button" aria-label="Anchor settings" aria-expanded="false" title="Anchor settings"><span class="settings-icon" aria-hidden="true"></span></button>
         <span class="anchor-link-menu" role="menu" aria-label="Anchor divider link"></span>
       </span>`;
     applyAnchorColor(anchor, definition.color || "#2563eb");
@@ -7246,11 +7086,14 @@ document.addEventListener("DOMContentLoaded", () => {
     const linkToggle = anchor.querySelector(".anchor-link-toggle");
     const linkMenu = anchor.querySelector(".anchor-link-menu");
     const colorMenu = buildPanelColorMenu(anchor, layer, colorToggle);
-    const openTools = () => {
+    const openTools = (pointerCoords = null) => {
       if (!canOpenDashboardTools(anchor)) return;
       closeInactiveDashboardTools(anchor);
       drawer?.style.removeProperty("--dashboard-tool-drawer-top");
       drawer?.style.removeProperty("--dashboard-tool-drawer-right");
+      if (pointerCoords) {
+        positionDashboardToolDrawerAtPointer(anchor, drawer, pointerCoords.clientX, pointerCoords.clientY);
+      }
       anchor.classList.add("widget-tools-open");
       settings?.setAttribute("aria-expanded", "true");
       syncLayoutToolsActive();
@@ -7515,6 +7358,16 @@ document.addEventListener("DOMContentLoaded", () => {
         openTools();
       }
     });
+    anchor.addEventListener("dblclick", (event) => {
+      if (event.target?.closest?.(".anchor-tools, input, textarea, select, button, video, iframe, [contenteditable='true']")) return;
+      event.preventDefault();
+      event.stopPropagation();
+      if (anchor.classList.contains("widget-tools-open")) {
+        closeTools();
+      } else {
+        openTools({ clientX: event.clientX, clientY: event.clientY });
+      }
+    }, true);
     linkToggle?.addEventListener("click", (event) => {
       event.preventDefault();
       event.stopPropagation();
@@ -9095,9 +8948,42 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const workspaceWidgetLayoutForPanel = (panel) => panelContainmentRuntime.workspaceWidgetLayoutForPanel(panel);
 
-  const absorbWidgetIntoPanel = (options) => panelContainmentRuntime.absorbWidgetIntoPanel(options);
+  const refreshPanelContainedWidgetRuntime = (widget, options = {}) => {
+    if (!widget || !widget.classList?.contains("widget-card") || !widget.isConnected) return;
+    const layout = widget.closest(".widget-layout");
+    const panelLayout = widget.closest(".panel-layout");
+    if (panelLayout) syncWorkspaceRegions(panelLayout);
+    if (layout) syncWorkspaceRegions(layout);
+    const layoutKey = options.layoutKey || activeLayoutKeyForItem(widget);
+    const resolved = resolveWorkspaceContextForItem(widget, { layoutKey, profile: options.profile || getActivePanelProfile(layoutKey) });
+    cancelManagedWidgetQueryForWidget(widget);
+    invalidateManagedWidgetQueryForWidget(widget);
+    syncWidgetContextOutputs(widget);
+    void refreshWidgetRuntimeData(widget, resolved, { force: true });
+  };
 
-  const extractPanelChildWidgetToWorkspace = (options) => panelContainmentRuntime.extractPanelChildWidgetToWorkspace(options);
+  const absorbWidgetIntoPanel = (options) => {
+    const result = panelContainmentRuntime.absorbWidgetIntoPanel(options);
+    if (!result) return null;
+    const panelLayout = options?.panel?.closest?.(".panel-layout");
+    if (panelLayout) syncWorkspaceRegions(panelLayout);
+    refreshPanelContainedWidgetRuntime(result, {
+      layoutKey: options?.widget?.dataset?.widgetLayoutKey || options?.widget?.dataset?.layoutKey,
+      profile: options?.layout?.dataset?.layoutProfile || null,
+    });
+    return result;
+  };
+
+  const extractPanelChildWidgetToWorkspace = (options) => {
+    const result = panelContainmentRuntime.extractPanelChildWidgetToWorkspace(options);
+    if (!result?.widget) return null;
+    const targetLayout = options?.targetLayout;
+    if (targetLayout) syncWorkspaceRegions(targetLayout);
+    refreshPanelContainedWidgetRuntime(result.widget, {
+      layoutKey: options?.targetLayout?.dataset?.widgetLayoutKey || options?.targetLayout?.dataset?.layoutKey,
+    });
+    return result;
+  };
 
   const orderedInsertionIndexFromPoint = (layout, placeholder, activeItem, clientX, clientY) => {
     const target = gridCellFromPoint(layout, activeItem, clientX, clientY);
@@ -10658,6 +10544,7 @@ document.addEventListener("DOMContentLoaded", () => {
         });
       }
       let closeTimer;
+      let widgetSingleClickTimer = null;
       let suppressToolOpenUntil = 0;
       let suppressWidgetClickUntil = 0;
       let dragging = false;
@@ -10683,11 +10570,15 @@ document.addEventListener("DOMContentLoaded", () => {
         document.addEventListener("pointermove", releaseToolLeaveCloseResume, { capture: true, once: true });
         document.addEventListener("pointerdown", releaseToolLeaveCloseResume, { capture: true, once: true });
       };
-      const openTools = () => {
+      const openTools = (pointerCoords = null) => {
         if (performance.now() < suppressToolOpenUntil) return;
         if (!canOpenDashboardTools(widget)) return;
         window.clearTimeout(closeTimer);
-        positionDashboardToolDrawer(widget, settings, drawer);
+        if (pointerCoords) {
+          positionDashboardToolDrawerAtPointer(widget, drawer, pointerCoords.clientX, pointerCoords.clientY);
+        } else {
+          positionDashboardToolDrawer(widget, settings, drawer);
+        }
         setWidgetLinkNavigationSuspended(widget, true);
         widget.classList.add("widget-tools-open");
         settings?.setAttribute("aria-expanded", "true");
@@ -10737,7 +10628,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
         syncLayoutToolsActive();
       };
-      const toggleAppearanceSettings = () => {
+      const toggleAppearanceSettings = (pointerCoords = null) => {
         releaseToolLeaveClose();
         closeWorkbench();
         if (!canOpenDashboardTools(widget)) return;
@@ -10751,14 +10642,17 @@ document.addEventListener("DOMContentLoaded", () => {
         }
         suppressToolOpenUntil = 0;
         closeInactiveDashboardTools(widget);
-        openTools();
+        openTools(pointerCoords);
         colorMenu?.classList.remove("panel-color-menu-open");
         colorToggle?.setAttribute("aria-expanded", "false");
         widget.classList.add("widget-settings-schema-open");
         const panel = ensureWidgetSettingsSchemaPanel(widget);
         if (panel) {
-          panel.hidden = false;
-          positionDashboardToolDrawer(widget, settings, drawer);
+          if (pointerCoords) {
+            positionDashboardToolDrawerAtPointer(widget, drawer, pointerCoords.clientX, pointerCoords.clientY);
+          } else {
+            positionDashboardToolDrawer(widget, settings, drawer);
+          }
         }
       };
       const pointerIntersectsSettingsToggle = (event) => {
@@ -10791,6 +10685,12 @@ document.addEventListener("DOMContentLoaded", () => {
       });
       settings?.addEventListener("mouseenter", resumeToolHoverClose);
       settings?.addEventListener("pointermove", resumeToolHoverClose, { passive: true });
+      const isInteractiveWidgetSurfaceTarget = (event) => {
+        const interactiveTarget = event.target?.closest?.(
+          `${surfaceResponseControlSelector}, .media-widget-stage, [contenteditable='true']`,
+        );
+        return interactiveTarget && widget.contains(interactiveTarget);
+      };
       widget.addEventListener("click", (event) => {
         if (!event.target?.closest?.(".widget-tools") && pointerIntersectsSettingsToggle(event)) {
           event.preventDefault();
@@ -10800,18 +10700,31 @@ document.addEventListener("DOMContentLoaded", () => {
           return;
         }
         if (event.target?.closest?.(".widget-tools")) return;
-        const interactiveTarget = event.target?.closest?.("input, textarea, select, button, video, iframe, .media-widget-stage, [contenteditable='true']");
-        if (interactiveTarget && widget.contains(interactiveTarget)) return;
+        if (event.detail > 1) {
+          window.clearTimeout(widgetSingleClickTimer);
+          return;
+        }
+        if (isInteractiveWidgetSurfaceTarget(event)) return;
         event.preventDefault();
         event.stopPropagation();
         if (performance.now() < suppressWidgetClickUntil) return;
         suppressToolOpenUntil = 0;
-        openWorkbench();
-        try {
-          widget.focus?.({ preventScroll: true });
-        } catch {
-          widget.focus?.();
-        }
+        window.clearTimeout(widgetSingleClickTimer);
+        widgetSingleClickTimer = window.setTimeout(() => {
+          openWorkbench();
+          try {
+            widget.focus?.({ preventScroll: true });
+          } catch {
+            widget.focus?.();
+          }
+        }, OBJECT_SURFACE_SINGLE_CLICK_DELAY_MS);
+      }, true);
+      widget.addEventListener("dblclick", (event) => {
+        if (event.target?.closest?.(".widget-tools") || isInteractiveWidgetSurfaceTarget(event)) return;
+        event.preventDefault();
+        event.stopPropagation();
+        window.clearTimeout(widgetSingleClickTimer);
+        toggleAppearanceSettings({ clientX: event.clientX, clientY: event.clientY });
       }, true);
       widget.addEventListener("pointermove", (event) => {
         if (event.target?.closest?.(".widget-tools")) return;
@@ -11032,7 +10945,12 @@ document.addEventListener("DOMContentLoaded", () => {
       };
       widget.__beginWidgetMoveFromDragRuntime = beginWidgetMove;
       moveHandle?.addEventListener("pointerdown", beginWidgetMove);
-      widget.addEventListener("pointerdown", (event) => beginWidgetMove(event, { surfaceShortcut: true }));
+      widget.addEventListener("pointerdown", (event) => {
+        if (!isInteractiveWidgetSurfaceTarget(event) && !event.target?.closest?.(".panel-settings-toggle, .panel-tool-button")) {
+          event.preventDefault();
+        }
+        beginWidgetMove(event, { surfaceShortcut: true });
+      });
       const beginWidgetResize = (event, resizeEdge = "right") => {
         if (widget.classList.contains("db-panel-pinned") || widget.dataset.locked === "true" || widget.dataset.resizable === "false") return;
         const restoreToolsAfterResize = widget.classList.contains("widget-tools-open") ||
@@ -11476,6 +11394,7 @@ document.addEventListener("DOMContentLoaded", () => {
       let toolPointerCapture = false;
       let suppressHeaderToggleUntil = 0;
       let suppressToolOpenUntil = 0;
+      let panelToggleTimer = null;
       let ignorePanelToolLeaveCloseUntilPointerActivity = false;
       let releasePanelToolLeaveCloseResume = null;
       let panelToolsOpenedByApproach = false;
@@ -11497,11 +11416,15 @@ document.addEventListener("DOMContentLoaded", () => {
         document.addEventListener("pointermove", releasePanelToolLeaveCloseResume, { capture: true, once: true });
         document.addEventListener("pointerdown", releasePanelToolLeaveCloseResume, { capture: true, once: true });
       };
-      const openPanelTools = () => {
+      const openPanelTools = (pointerCoords = null) => {
         if (performance.now() < suppressToolOpenUntil) return;
         if (!canOpenDashboardTools(panel)) return;
         window.clearTimeout(toolsCloseTimer);
-        positionDashboardToolDrawer(panel, settingsButton, panelToolDrawer);
+        if (pointerCoords) {
+          positionDashboardToolDrawerAtPointer(panel, panelToolDrawer, pointerCoords.clientX, pointerCoords.clientY);
+        } else {
+          positionDashboardToolDrawer(panel, settingsButton, panelToolDrawer);
+        }
         panel.classList.add("db-panel-tools-open");
         settingsButton?.setAttribute("aria-expanded", "true");
         syncLayoutToolsActive();
@@ -11563,6 +11486,11 @@ document.addEventListener("DOMContentLoaded", () => {
         if (isDashboardInteractionActive()) return;
         if (!toolPointerCapture) closePanelTools();
       });
+      const isInteractivePanelSurfaceTarget = (event) => {
+        if (event?.target?.closest?.(".panel-internal-widget-grid > .widget-card")) return true;
+        const interactiveTarget = event?.target?.closest?.(`${surfaceResponseControlSelector}, [contenteditable='true']`);
+        return interactiveTarget && panel.contains(interactiveTarget);
+      };
 
       settingsButton?.addEventListener("click", (event) => {
         event.preventDefault();
@@ -11738,9 +11666,24 @@ document.addEventListener("DOMContentLoaded", () => {
       };
       header.addEventListener("click", (event) => {
         if (event.target?.closest?.(".panel-tools")) return;
+        if (event.detail > 1) {
+          window.clearTimeout(panelToggleTimer);
+          return;
+        }
         if (performance.now() < suppressHeaderToggleUntil) return;
-        togglePanel();
+        window.clearTimeout(panelToggleTimer);
+        panelToggleTimer = window.setTimeout(togglePanel, OBJECT_SURFACE_SINGLE_CLICK_DELAY_MS);
       });
+      panel.addEventListener("dblclick", (event) => {
+        if (event.target?.closest?.(".panel-tools") || isInteractivePanelSurfaceTarget(event)) return;
+        event.preventDefault();
+        event.stopPropagation();
+        window.clearTimeout(panelToggleTimer);
+        releasePanelToolLeaveClose();
+        if (!canOpenDashboardTools(panel)) return;
+        closeInactiveDashboardTools(panel);
+        openPanelTools({ clientX: event.clientX, clientY: event.clientY });
+      }, true);
       header.addEventListener("keydown", (event) => {
         if (event.target?.closest?.(".panel-tools")) return;
         if (event.target?.isContentEditable) return;
@@ -11802,7 +11745,10 @@ document.addEventListener("DOMContentLoaded", () => {
         });
       };
       moveHandle?.addEventListener("pointerdown", beginPanelMove);
-      panel.addEventListener("pointerdown", (event) => beginPanelMove(event, { surfaceShortcut: true }));
+      panel.addEventListener("pointerdown", (event) => {
+        if (!isInteractivePanelSurfaceTarget(event)) event.preventDefault();
+        beginPanelMove(event, { surfaceShortcut: true });
+      });
 
       const beginPanelResize = (event, resizeEdge = "right") => {
         if (panel.classList.contains("db-panel-pinned") || panel.dataset.locked === "true" || panel.dataset.resizable === "false") return;
@@ -14383,6 +14329,11 @@ document.addEventListener("DOMContentLoaded", () => {
       submenu.style.setProperty("--glass-submenu-max-height", `${Math.max(120, window.innerHeight - viewportPadding - Math.max(viewportPadding, nextRect.top))}px`);
     }
   };
+  const closeObjectAddSubmenus = (menu) => {
+    if (!menu) return;
+    const activeGroups = menu.querySelectorAll(".object-add-category.is-open, .object-add-subcategory.is-open");
+    activeGroups.forEach((group) => setObjectAddSubmenuOpen(group, false));
+  };
   const openObjectAddSubmenuBranch = (group) => {
     if (!group) return;
     group.parentElement?.querySelectorAll?.(":scope > .object-add-category.is-open, :scope > .object-add-subcategory.is-open")
@@ -14442,6 +14393,7 @@ document.addEventListener("DOMContentLoaded", () => {
       menu.classList.toggle("menu-scroll", Boolean(browser && browser.scrollHeight > browserMaxHeight + 1));
     };
     const openMenu = () => {
+      closeObjectAddSubmenus(menu);
       window.clearTimeout(closeTimer);
       syncMenuViewportSize();
       menu?.classList.add("open");
@@ -14460,6 +14412,7 @@ document.addEventListener("DOMContentLoaded", () => {
     };
     const closeMenu = () => {
       window.clearTimeout(closeTimer);
+      closeObjectAddSubmenus(menu);
       menu?.classList.remove("open");
       menu?.classList.remove("menu-scroll");
       menu?.classList.remove("submenu-active");
@@ -14517,6 +14470,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const picker = button?.closest?.(".panel-add-picker") || originalMenuParent(menu);
     const trigger = picker?.querySelector?.(".panel-add-button");
     const activeMenu = menu || picker?.querySelector?.(".panel-add-menu");
+    closeObjectAddSubmenus(activeMenu);
     activeMenu?.classList.remove("open");
     activeMenu?.classList.remove("menu-scroll", "submenu-active");
     restoreFloatingMenu(activeMenu);

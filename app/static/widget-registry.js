@@ -397,11 +397,12 @@
     return normalizeTimeframeFilter({ id: `time-${record.id || index}`, label: record.label, type: record.id }, index);
   };
   const normalizeTimeframeFilters = (config = {}) => {
-    const configured = Array.isArray(config.filters) && config.filters.length
-      ? config.filters.map(normalizeTimeframeFilter)
-      : Array.isArray(config.presets) && config.presets.length
-        ? config.presets.map(legacyPresetToFilter)
-        : DEFAULT_TIMEFRAME_FILTERS.map((filter, index) => normalizeTimeframeFilter(filter, index));
+    if (Array.isArray(config.filters)) {
+      return config.filters.map(normalizeTimeframeFilter).filter((filter) => filter.id && filter.type);
+    }
+    const configured = Array.isArray(config.presets) && config.presets.length
+      ? config.presets.map(legacyPresetToFilter)
+      : DEFAULT_TIMEFRAME_FILTERS.map((filter, index) => normalizeTimeframeFilter(filter, index));
     return configured.filter((filter) => filter.id && filter.type);
   };
   const selectedTimeframeFilterId = (config = {}, filters = normalizeTimeframeFilters(config)) => {
@@ -545,7 +546,6 @@
 
   const chartDefinitions = new Map();
   const CHART_AGGREGATIONS = ["count", "sum", "avg", "min", "max"];
-  const CHART_PALETTE = ["one", "two", "three", "four", "five", "six"];
   const chartTypeAliases = {
     horizontalBar: "horizontal-bar",
     groupedBar: "grouped-bar",
@@ -668,22 +668,6 @@
         ${contextLabel ? `<div class="runtime-chart-context">${escapeHtml(contextLabel)}</div>` : ""}
         ${legend}
       </div>`;
-  };
-  const chartSvg = (content, options = {}) => `
-    <svg class="runtime-chart-svg" viewBox="0 0 ${options.width || 100} ${options.height || 64}" preserveAspectRatio="none" role="img" aria-label="${escapeHtml(options.label || "Chart")}">
-      ${content}
-    </svg>`;
-  const axisLayer = () => `
-    <line class="runtime-chart-grid" x1="8" y1="20" x2="96" y2="20"></line>
-    <line class="runtime-chart-grid" x1="8" y1="32" x2="96" y2="32"></line>
-    <line class="runtime-chart-grid" x1="8" y1="44" x2="96" y2="44"></line>
-    <line class="runtime-chart-axis" x1="8" y1="56" x2="96" y2="56"></line>
-    <line class="runtime-chart-axis" x1="8" y1="8" x2="8" y2="56"></line>`;
-  const chartLegend = (items, density) => {
-    if (!items.length || density === "tiny") return "";
-    return `<div class="runtime-chart-legend">${items.slice(0, density === "small" ? 3 : 6).map((item, index) => `
-      <span class="runtime-chart-legend-item"><i class="runtime-chart-swatch runtime-chart-fill-${CHART_PALETTE[index % CHART_PALETTE.length]}"></i>${escapeHtml(item)}</span>
-    `).join("")}</div>`;
   };
   const renderEchartsChartFrame = ({ instance, definition, rows, resolvedContext, data }) => {
     const config = instance.config || {};
@@ -956,6 +940,193 @@
     }
     return { ...base, series: [] };
   };
+  let tanstackTableLoadPromise = null;
+  const loadTanstackTable = () => {
+    if (window.TableCore?.createTable) return Promise.resolve(window.TableCore);
+    if (!tanstackTableLoadPromise) {
+      tanstackTableLoadPromise = new Promise((resolve, reject) => {
+        const existing = document.querySelector("script[data-dashboard-tanstack-table]");
+        if (existing) {
+          existing.addEventListener("load", () => window.TableCore?.createTable ? resolve(window.TableCore) : reject(new Error("TanStack Table failed to initialize")), { once: true });
+          existing.addEventListener("error", () => reject(new Error("TanStack Table failed to load")), { once: true });
+          return;
+        }
+        const script = document.createElement("script");
+        script.src = "https://cdn.jsdelivr.net/npm/@tanstack/table-core@8/build/umd/index.development.js";
+        script.async = true;
+        script.dataset.dashboardTanstackTable = "true";
+        script.onload = () => window.TableCore?.createTable ? resolve(window.TableCore) : reject(new Error("TanStack Table failed to initialize"));
+        script.onerror = () => reject(new Error("TanStack Table failed to load"));
+        document.head.appendChild(script);
+      });
+    }
+    return tanstackTableLoadPromise;
+  };
+
+  const mountTableBodyRenderer = ({ contentRoot, instance, resolvedContext, data, status }) => {
+    const target = contentRoot?.querySelector?.(".runtime-table-tanstack");
+    if (!target || status !== "ready") return null;
+    const config = instance?.config || {};
+    const rows = Array.isArray(data?.rows) ? data.rows : [];
+    const configuredColumns = tableConfiguredColumns(config);
+    const semanticFields = tableSemanticFields(resolvedContext);
+    const schemaFields = data?.schema?.fields?.map((f) => f.name) || Object.keys(rows[0] || {});
+    const allFields = unique(configuredColumns.length ? configuredColumns : semanticFields.length ? semanticFields : schemaFields);
+    const visibleFields = allFields.slice(0, tableVisibleColumnCount(instance.cols));
+    const visibleRows = rows.slice(0, tableVisibleRowCount(instance.rows, config.limit));
+    let disposed = false;
+    loadTanstackTable()
+      .then((TableCore) => {
+        if (disposed || !target.isConnected) return;
+        const { createTable, getCoreRowModel } = TableCore;
+        const columnDefs = visibleFields.map((key) => ({
+          id: key,
+          accessorKey: key,
+          header: key,
+        }));
+        const tableInitialState = {
+          columnOrder: [],
+          columnVisibility: {},
+          columnPinning: { left: [], right: [] },
+          columnSizing: {},
+          columnSizingInfo: { columnSizingStart: [], deltaOffset: null, deltaPercentage: null, isResizingColumn: false, startOffset: null, startSize: null },
+          expanded: {},
+          globalFilter: "",
+          grouping: [],
+          pagination: { pageIndex: 0, pageSize: 50 },
+          rowPinning: { top: [], bottom: [] },
+          rowSelection: {},
+          sorting: [],
+          columnFilters: [],
+        };
+        const table = createTable({
+          data: visibleRows,
+          columns: columnDefs,
+          getCoreRowModel: getCoreRowModel(),
+          state: tableInitialState,
+          onStateChange: () => {},
+          renderFallbackValue: "",
+        });
+        const tableEl = document.createElement("table");
+        tableEl.className = "runtime-table";
+        tableEl.setAttribute("role", "grid");
+        tableEl.setAttribute("aria-label", config.title || "Table");
+        const thead = document.createElement("thead");
+        const headerTr = document.createElement("tr");
+        table.getHeaderGroups().forEach((hg) => {
+          hg.headers.forEach((header) => {
+            const th = document.createElement("th");
+            const label = String(header.column.columnDef.header || header.id);
+            th.textContent = label;
+            th.title = label;
+            headerTr.appendChild(th);
+          });
+        });
+        thead.appendChild(headerTr);
+        tableEl.appendChild(thead);
+        const tbody = document.createElement("tbody");
+        table.getRowModel().rows.forEach((row) => {
+          const tr = document.createElement("tr");
+          row.getVisibleCells().forEach((cell) => {
+            const td = document.createElement("td");
+            const value = String(cell.getValue() ?? "");
+            td.textContent = value;
+            td.title = value;
+            tr.appendChild(td);
+          });
+          tbody.appendChild(tr);
+        });
+        tableEl.appendChild(tbody);
+        target.appendChild(tableEl);
+      })
+      .catch((error) => {
+        if (disposed || !target.isConnected) return;
+        target.innerHTML = `<div class="widget-runtime-state" data-runtime-state="error"><span class="stat-lbl">${escapeHtml(error?.message || "Unable to load table renderer")}</span></div>`;
+      });
+    return () => {
+      disposed = true;
+      if (target.isConnected) target.innerHTML = "";
+    };
+  };
+
+  let monacoLoadPromise = null;
+  const loadMonaco = () => {
+    if (window.monaco?.editor?.create) return Promise.resolve(window.monaco);
+    if (!monacoLoadPromise) {
+      monacoLoadPromise = new Promise((resolve, reject) => {
+        if (!window.MonacoEnvironment) {
+          window.MonacoEnvironment = {
+            getWorkerUrl: () => URL.createObjectURL(new Blob([""], { type: "text/javascript" })),
+          };
+        }
+        const existing = document.querySelector("script[data-dashboard-monaco]");
+        const afterLoad = () => {
+          window.require.config({ paths: { vs: "https://cdn.jsdelivr.net/npm/monaco-editor@0.52.0/min/vs" } });
+          window.require(["vs/editor/editor.main"], () =>
+            window.monaco?.editor ? resolve(window.monaco) : reject(new Error("Monaco failed to initialize"))
+          );
+        };
+        if (existing) {
+          existing.addEventListener("load", afterLoad, { once: true });
+          existing.addEventListener("error", () => reject(new Error("Monaco failed to load")), { once: true });
+          return;
+        }
+        const script = document.createElement("script");
+        script.src = "https://cdn.jsdelivr.net/npm/monaco-editor@0.52.0/min/vs/loader.js";
+        script.async = true;
+        script.dataset.dashboardMonaco = "true";
+        script.onload = afterLoad;
+        script.onerror = () => reject(new Error("Monaco failed to load"));
+        document.head.appendChild(script);
+      });
+    }
+    return monacoLoadPromise;
+  };
+
+  const mountMonacoBodyRenderer = ({ contentRoot, content, language }) => {
+    const target = contentRoot?.querySelector?.(".runtime-monaco-editor");
+    if (!target) return null;
+    let disposed = false;
+    let editor = null;
+    let resizeObserver = null;
+    loadMonaco()
+      .then((monaco) => {
+        if (disposed || !target.isConnected) return;
+        editor = monaco.editor.create(target, {
+          value: content,
+          language,
+          readOnly: true,
+          theme: "vs",
+          minimap: { enabled: false },
+          scrollBeyondLastLine: false,
+          automaticLayout: false,
+          wordWrap: "on",
+          fontSize: 12,
+          lineNumbers: "off",
+          folding: false,
+          renderLineHighlight: "none",
+          overviewRulerLanes: 0,
+          hideCursorInOverviewRuler: true,
+          scrollbar: { verticalScrollbarSize: 6, horizontalScrollbarSize: 6 },
+          contextmenu: false,
+          links: false,
+        });
+        resizeObserver = new ResizeObserver(() => editor?.layout());
+        resizeObserver.observe(target);
+        requestAnimationFrame(() => editor?.layout());
+      })
+      .catch((error) => {
+        if (disposed || !target.isConnected) return;
+        target.innerHTML = `<div class="widget-runtime-state" data-runtime-state="error"><span class="stat-lbl">${escapeHtml(error?.message || "Unable to load editor")}</span></div>`;
+      });
+    return () => {
+      disposed = true;
+      resizeObserver?.disconnect();
+      editor?.dispose();
+      editor = null;
+    };
+  };
+
   const mountChartBodyRenderer = ({ contentRoot, instance, definition, resolvedContext, data, status }) => {
     const target = contentRoot?.querySelector?.(".runtime-chart-echarts");
     if (!target || status !== "ready") return null;
@@ -1682,12 +1853,12 @@
     aliases: ["controls", "time-range"],
     defaultSize: { cols: 4, rows: 1 },
     minSize: { cols: 2, rows: 1 },
-    widgetType: "controls",
+    widgetType: "timeframe",
     dashboardObjectKind: "timeframe",
     contextRole: "timeframe-control",
-    htmlTag: "nav",
-    className: "range-bar widget-card timeframe-widget widget-card-custom",
-    ariaLabel: "Timeframe controls",
+    htmlTag: "div",
+    className: "stat-card widget-card widget-card-custom timeframe-widget-card",
+    ariaLabel: "Time filter controls",
     capabilities: {
       readsContext: true,
       writesContext: true,
@@ -1695,20 +1866,8 @@
       supportsTimeRange: true,
       supportsResize: true,
     },
-    supportedSettings: ["timeRange", "color", "pin", "delete"],
-    settingsSchema: {
-      sections: [{
-        id: "timeframe",
-        label: "Timeframe",
-        fields: [
-          { key: "title", label: "Title", type: "text", defaultValue: "Timeframe" },
-          { key: "weekStartDay", label: "Week starts on", type: "select", defaultValue: 0, options: WEEKDAY_OPTIONS, affectsContext: true },
-          { key: "selectedPreset", label: "Preset", type: "select", defaultValue: "", options: TIMEFRAME_PRESETS.map((preset) => ({ value: preset.id, label: preset.label })), affectsContext: true },
-          { key: "customStart", label: "Custom start", type: "date", affectsContext: true },
-          { key: "customEnd", label: "Custom end", type: "date", affectsContext: true },
-        ],
-      }],
-    },
+    supportedSettings: ["color", "pin", "delete"],
+    settingsSchema: { sections: [] },
     queryRequirements: { timeRange: true },
     getDefaultConfig: () => ({
       title: "Timeframe",
@@ -1718,63 +1877,24 @@
       selectedPreset: "",
       customStart: "",
       customEnd: "",
-      filters: DEFAULT_TIMEFRAME_FILTERS.map((filter) => ({ ...filter })),
-      presets: ["today", "last_7_days", "last_30_days", "yesterday", "custom"],
+      filters: [],
     }),
     resolveQuery: () => null,
-    render: ({ instance, resolvedContext, density: densityProp = instance.density || "standard" }) => {
+    render: ({ instance }) => {
       const config = instance.config || {};
       const filters = normalizeTimeframeFilters(config);
       const selectedFilterId = selectedTimeframeFilterId(config, filters);
-      const selectedFilter = filters.find((filter) => filter.id === selectedFilterId) || null;
-      const selectedPreset = selectedFilter?.type || String(config.selectedPreset || config.preset || "").trim();
-      const timeRange = resolveTimeRangeConfig(config, resolvedContext);
-      const label = timeframeLabel(timeRange, config.activeLabel || "Any time");
-      const densityTier = normalizeDensity(densityProp);
-      const cols = Number(instance.cols) || 4;
-      const rows = Number(instance.rows) || 1;
-      const density = cols <= 2
-        ? "small"
-        : rows >= 2 || cols >= 5 || richDensity(densityTier)
-          ? "large"
-          : compactDensity(densityTier)
-            ? "small"
-            : "medium";
-      const selectedIsCustom = ["custom", "custom_fixed"].includes(selectedFilter?.type || selectedPreset);
-      const customStart = selectedFilter?.start || config.customStart || timeRange?.start || "";
-      const customEnd = selectedFilter?.end || config.customEnd || timeRange?.end || "";
-      const visibleLimit = density === "small" ? 0 : density === "large" ? 5 : 4;
-      const visibleFilters = filters.slice(0, visibleLimit);
-      const overflowFilters = filters.slice(visibleLimit);
-      const hasMoreFilters = filters.length > visibleFilters.length;
-      const widgetKey = instance.id || "";
-      const rangeDisplay = timeframeRangeDisplay(timeRange);
-      const selectedStateClass = selectedFilterId || timeRange ? " active" : "";
-      const inlineFilterButton = (filter) => `<button class="preset-btn timeframe-filter-button timeframe-inline-preset${filter.id === selectedFilterId ? " active" : ""}" type="button" data-timeframe-widget-key="${escapeHtml(widgetKey)}" data-timeframe-filter-id="${escapeHtml(filter.id)}" data-timeframe-preset="${escapeHtml(filter.type)}" aria-pressed="${filter.id === selectedFilterId ? "true" : "false"}">${escapeHtml(filter.label)}</button>`;
-      const menuFilterButton = (filter) => `<button class="timeframe-menu-option glass-menu-item${filter.id === selectedFilterId ? " is-active" : ""}" type="button" role="menuitem" data-timeframe-widget-key="${escapeHtml(widgetKey)}" data-timeframe-filter-id="${escapeHtml(filter.id)}" data-timeframe-preset="${escapeHtml(filter.type)}" aria-pressed="${filter.id === selectedFilterId ? "true" : "false"}">${escapeHtml(filter.label)}</button>`;
-      return `
-        <div class="timeframe-control-row timeframe-density-${density} widget-density-${densityTier}" data-density="${escapeHtml(densityTier)}" data-timeframe-current-label="${escapeHtml(label)}" data-widget-control-surface="true">
-          <span class="timeframe-kicker">${escapeHtml(config.title || "Time range")}</span>
-          <span class="timeframe-selected-summary timeframe-selector${selectedStateClass}" role="status" aria-live="polite" aria-label="Selected time range" title="${escapeHtml(label)}">${escapeHtml(label)}</span>
-          <div class="timeframe-presets" role="group" aria-label="Pinned time filters">
-            ${visibleFilters.map((filter) => inlineFilterButton(filter)).join("")}
-          </div>
-          ${hasMoreFilters ? `<button class="preset-btn timeframe-more-button" type="button" aria-haspopup="true" aria-expanded="false" data-timeframe-widget-key="${escapeHtml(widgetKey)}">More</button>` : ""}
-          <div class="timeframe-actions">
-            <button class="range-icon-button timeframe-refresh" type="button" aria-label="Reset timeframe" title="Reset timeframe" data-timeframe-widget-key="${escapeHtml(widgetKey)}"><span class="timeframe-refresh-icon" aria-hidden="true"></span></button>
-            <button class="range-icon-button timeframe-calendar" type="button" aria-label="Open date range" title="Open date range" aria-haspopup="true" aria-expanded="false" data-timeframe-widget-key="${escapeHtml(widgetKey)}"><span class="timeframe-calendar-icon" aria-hidden="true"></span></button>
-          </div>
-          <div class="timeframe-preset-menu nav-menu-shell floating-glass-menu glass-menu-scroll-region" role="menu" aria-label="Configured time filters" data-timeframe-widget-key="${escapeHtml(widgetKey)}">
-            <div class="timeframe-menu-heading">Configured ranges</div>
-            ${filters.map((filter) => menuFilterButton(filter)).join("")}
-          </div>
-          <div class="timeframe-calendar-popover nav-menu-shell floating-glass-menu" role="dialog" aria-label="Date range" data-timeframe-widget-key="${escapeHtml(widgetKey)}">
-            <div class="timeframe-menu-heading">Date range</div>
-            <label class="timeframe-calendar-field"><span>Start</span><input class="timeframe-custom-date" type="date" data-timeframe-filter-id="${escapeHtml(selectedFilterId)}" data-timeframe-part="start" value="${escapeHtml(customStart)}" aria-label="Custom start date"></label>
-            <label class="timeframe-calendar-field"><span>End</span><input class="timeframe-custom-date" type="date" data-timeframe-filter-id="${escapeHtml(selectedFilterId)}" data-timeframe-part="end" value="${escapeHtml(customEnd)}" aria-label="Custom end date"></label>
-            <button class="timeframe-calendar-apply glass-menu-item" type="button" data-timeframe-widget-key="${escapeHtml(widgetKey)}">${escapeHtml(selectedIsCustom ? "Apply range" : "Use custom range")}</button>
-          </div>
-        </div>`;
+
+      if (!filters.length) {
+        return `<div class="timeframe-body timeframe-body-empty"><span class="timeframe-empty-hint">Add time controls in settings</span></div>`;
+      }
+
+      const buttons = filters.map((filter) => {
+        const isActive = filter.id === selectedFilterId;
+        return `<button class="timeframe-filter-btn${isActive ? " is-active" : ""}" type="button" data-filter-id="${escapeHtml(filter.id)}" aria-pressed="${isActive ? "true" : "false"}">${escapeHtml(filter.label)}</button>`;
+      }).join("");
+
+      return `<div class="timeframe-body" role="group" aria-label="${escapeHtml(config.title || "Time filters")}">${buttons}</div>`;
     },
   });
 
@@ -2637,25 +2757,47 @@
               <strong>${persistenceWarnings.length ? `${persistenceWarnings.length} warning${persistenceWarnings.length === 1 ? "" : "s"}` : "OK"}</strong>
             </section>
           </div>
-          <pre class="context-inspector-code">${escapeHtml(JSON.stringify({
-            contextId: context.id || "",
-            regionId: context.regionId || snapshot.region?.id || "",
-            semanticMapping: mapping,
-            filters,
-            timeRange: context.timeRange || null,
-            selectedObject: snapshot.selectedObject || null,
-            regions: config.showInheritanceTree === false ? undefined : regions.slice(0, 6),
-            persistence: {
-              version: persistence.version || 0,
-              ok: persistence.ok !== false,
-              diagnostics: persistenceWarnings.map((entry) => ({
-                code: entry.code,
-                objectId: entry.objectId,
-                message: entry.message,
-              })),
-            },
-          }, null, 2))}</pre>
+          <div class="widget-content-well widget-library-surface runtime-monaco-library-surface">
+            <div class="runtime-monaco-editor" data-editor-language="json" role="region" aria-label="Context JSON"></div>
+          </div>
         </div>`;
+    },
+    mountBodyRenderer: ({ contentRoot, instance, resolvedContext }) => {
+      const config = instance?.config || {};
+      if (!Boolean(window.dashboardMetaRuntime?.isEngineerMode?.())) return null;
+      const snapshot = window.dashboardMetaRuntime?.contextSnapshot?.({
+        instanceId: instance.id,
+        target: config.target || "currentRegion",
+        resolvedContext,
+      }) || {};
+      const context = snapshot.context || resolvedContext || {};
+      const mapping = context.semanticMapping || {};
+      const filters = Array.isArray(context.filters) ? context.filters : [];
+      const regions = Array.isArray(snapshot.regions) ? snapshot.regions : [];
+      const persistence = snapshot.persistence || {};
+      const persistenceWarnings = [
+        ...(Array.isArray(persistence.errors) ? persistence.errors : []),
+        ...(Array.isArray(persistence.warnings) ? persistence.warnings : []),
+      ];
+      const content = JSON.stringify({
+        contextId: context.id || "",
+        regionId: context.regionId || snapshot.region?.id || "",
+        semanticMapping: mapping,
+        filters,
+        timeRange: context.timeRange || null,
+        selectedObject: snapshot.selectedObject || null,
+        regions: config.showInheritanceTree === false ? undefined : regions.slice(0, 6),
+        persistence: {
+          version: persistence.version || 0,
+          ok: persistence.ok !== false,
+          diagnostics: persistenceWarnings.map((entry) => ({
+            code: entry.code,
+            objectId: entry.objectId,
+            message: entry.message,
+          })),
+        },
+      }, null, 2);
+      return mountMonacoBodyRenderer({ contentRoot, content, language: "json" });
     },
   });
 
@@ -2831,7 +2973,9 @@
         return `
           <div class="media-widget document-widget document-widget-text-mode" data-media-kind="document" data-document-type="${escapeHtml(kind)}" data-media-status="ready">
             <div class="media-widget-header"><span class="stat-lbl">${escapeHtml(title)}</span></div>
-            <pre class="document-widget-text">${escapeHtml(content)}</pre>
+            <div class="widget-content-well widget-library-surface runtime-monaco-library-surface">
+              <div class="runtime-monaco-editor" data-editor-language="${escapeHtml(kind)}" role="region" aria-label="${escapeHtml(title)}"></div>
+            </div>
             ${mediaCaptionMarkup(caption)}
           </div>`;
       }
@@ -2855,6 +2999,14 @@
           </div>
           ${mediaCaptionMarkup(caption)}
         </div>`;
+    },
+    mountBodyRenderer: ({ contentRoot, instance }) => {
+      const config = instance?.config || {};
+      const content = String(config.content || "").trim();
+      const kind = documentPreviewKind(config);
+      if (!content || !["text", "markdown", "unknown"].includes(kind)) return null;
+      const language = kind === "markdown" ? "markdown" : "plaintext";
+      return mountMonacoBodyRenderer({ contentRoot, content, language });
     },
   });
 
@@ -2895,6 +3047,7 @@
     queryRequirements: { fields: "semantic-or-configured", limit: 50, sort: true },
     getDefaultConfig: () => ({ title: "Table", columns: [], limit: 50, sortBy: "", sortDirection: "asc" }),
     getDemoData: (config = {}) => demoDataResult({ widgetType: "table", config }),
+    mountBodyRenderer: mountTableBodyRenderer,
     resolveQuery: (config, resolvedContext) => {
       if (!resolvedContext?.canQuery) return null;
       const columns = tableConfiguredColumns(config);
@@ -2939,11 +3092,8 @@
             <span class="stat-lbl">${escapeHtml(title)}</span>
             <span class="runtime-table-meta">${escapeHtml(runtimeMeta(`${visibleRows.length} of ${total} rows`, data))}</span>
           </div>
-          <div class="runtime-table-scroll">
-            <table class="runtime-table">
-              <thead><tr>${visibleFields.map((field) => `<th title="${escapeHtml(field)}">${escapeHtml(field)}</th>`).join("")}</tr></thead>
-              <tbody>${visibleRows.map((row) => `<tr>${visibleFields.map((field) => `<td title="${escapeHtml(row?.[field] ?? "")}">${escapeHtml(row?.[field] ?? "")}</td>`).join("")}</tr>`).join("")}</tbody>
-            </table>
+          <div class="widget-content-well widget-library-surface runtime-table-library-surface">
+            <div class="runtime-table-tanstack" data-table-renderer="tanstack" role="region" aria-label="${escapeHtml(title)}"></div>
           </div>
         </div>`;
     },
@@ -3059,6 +3209,52 @@
     },
   });
 
+  let leafletLoadPromise = null;
+  const loadLeaflet = () => {
+    if (window.L?.map) return Promise.resolve(window.L);
+    if (!leafletLoadPromise) {
+      leafletLoadPromise = new Promise((resolve, reject) => {
+        if (!document.querySelector("link[data-dashboard-leaflet]")) {
+          const link = document.createElement("link");
+          link.rel = "stylesheet";
+          link.href = "https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.min.css";
+          link.dataset.dashboardLeaflet = "true";
+          document.head.appendChild(link);
+        }
+        const existing = document.querySelector("script[data-dashboard-leaflet]");
+        const afterLoad = () => window.L?.map ? resolve(window.L) : reject(new Error("Leaflet failed to initialize"));
+        if (existing) {
+          existing.addEventListener("load", afterLoad, { once: true });
+          existing.addEventListener("error", () => reject(new Error("Leaflet failed to load")), { once: true });
+          return;
+        }
+        const script = document.createElement("script");
+        script.src = "https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.min.js";
+        script.async = true;
+        script.dataset.dashboardLeaflet = "true";
+        script.onload = afterLoad;
+        script.onerror = () => reject(new Error("Leaflet failed to load"));
+        document.head.appendChild(script);
+      });
+    }
+    return leafletLoadPromise;
+  };
+
+  const mapExtractPoints = (data, config, mapping) => {
+    const rows = Array.isArray(data?.rows) ? data.rows : [];
+    const latitudeField = String(config.latitudeField || mapping.latitudeField || "").trim();
+    const longitudeField = String(config.longitudeField || mapping.longitudeField || "").trim();
+    const locationField = String(config.locationField || mapping.locationField || "").trim();
+    return rows.map((row) => ({
+      label: String(row?.[locationField] || row?.[mapping.labelField] || row?.label || "Point"),
+      category: String(row?.[mapping.categoryField] || row?.category || ""),
+      latitude: numberValue(row?.[latitudeField]),
+      longitude: numberValue(row?.[longitudeField]),
+      value: numberValue(row?.[mapping.valueField] ?? row?.value),
+    })).filter((point) => point.latitude != null && point.longitude != null)
+      .slice(0, Math.max(1, Number(config.limit) || 250));
+  };
+
   registerWidgetDefinition({
     type: "map",
     displayName: "Map",
@@ -3149,26 +3345,9 @@
       if (status === "error") return runtimeState(title, data?.error || "Unable to load map data");
       const rows = Array.isArray(data?.rows) ? data.rows : [];
       if (!rows.length) return runtimeState(title, "No map rows match the current context");
-      const points = rows.map((row) => ({
-        label: String(row?.[locationField] || row?.[mapping.labelField] || row?.label || "Point"),
-        category: String(row?.[mapping.categoryField] || row?.category || ""),
-        latitude: numberValue(row?.[latitudeField]),
-        longitude: numberValue(row?.[longitudeField]),
-        value: numberValue(row?.[mapping.valueField] ?? row?.value),
-      })).filter((point) => point.latitude != null && point.longitude != null).slice(0, Math.max(1, Number(config.limit) || 250));
+      const points = mapExtractPoints(data, config, mapping);
       if (!points.length) return runtimeState(title, "No coordinates");
-      const minLat = Math.min(...points.map((point) => point.latitude));
-      const maxLat = Math.max(...points.map((point) => point.latitude), minLat + 0.01);
-      const minLon = Math.min(...points.map((point) => point.longitude));
-      const maxLon = Math.max(...points.map((point) => point.longitude), minLon + 0.01);
-      const maxValue = Math.max(...points.map((point) => point.value || 1), 1);
       const density = chartVisualDensity(instance.density || "standard");
-      const marks = points.map((point, index) => {
-        const x = 8 + (((point.longitude - minLon) / Math.max(0.01, maxLon - minLon)) * 84);
-        const y = 56 - (((point.latitude - minLat) / Math.max(0.01, maxLat - minLat)) * 48);
-        const r = 1.8 + (((point.value || 1) / maxValue) * 2.8);
-        return `<circle class="runtime-map-point runtime-chart-fill-${CHART_PALETTE[index % CHART_PALETTE.length]}" cx="${x.toFixed(2)}" cy="${y.toFixed(2)}" r="${r.toFixed(2)}"><title>${escapeHtml(point.label)}</title></circle>`;
-      }).join("");
       const labels = points.slice(0, density === "large" ? 4 : 2).map((point) => `<span>${escapeHtml(point.label)}</span>`).join("");
       return `
         <div class="runtime-map-widget runtime-map-density-${escapeHtml(density)}" data-runtime-state="ready" data-runtime-source="${escapeHtml(runtimeSource(data))}" data-map-layer="${escapeHtml(config.layerType || "points")}" data-map-demo="${data?.demo ? "true" : "false"}">
@@ -3176,17 +3355,100 @@
             <span class="stat-lbl">${escapeHtml(title)}</span>
             <span class="runtime-map-meta">${escapeHtml(runtimeMeta(`${points.length} point${points.length === 1 ? "" : "s"}`, data))}</span>
           </div>
-          <div class="runtime-map-stage">
-            <svg class="runtime-map-svg" viewBox="0 0 100 64" preserveAspectRatio="none" role="img" aria-label="${escapeHtml(title)}">
-              <path class="runtime-map-gridline" d="M 8 16 H 92 M 8 32 H 92 M 8 48 H 92 M 24 8 V 58 M 50 8 V 58 M 76 8 V 58"></path>
-              <rect class="runtime-map-boundary" x="7" y="7" width="86" height="52" rx="4"></rect>
-              ${marks}
-            </svg>
+          <div class="widget-content-well widget-library-surface runtime-map-leaflet-surface">
+            <div class="runtime-map-leaflet" role="region" aria-label="${escapeHtml(title)}"></div>
           </div>
           <div class="runtime-map-legend">${labels}</div>
         </div>`;
     },
+    mountBodyRenderer: ({ contentRoot, instance, resolvedContext, data, status }) => {
+      const target = contentRoot?.querySelector?.(".runtime-map-leaflet");
+      if (!target || status !== "ready") return null;
+      const config = instance?.config || {};
+      const mapping = resolvedContext?.semanticMapping || {};
+      const points = mapExtractPoints(data, config, mapping);
+      if (!points.length) return null;
+      let disposed = false;
+      let map = null;
+      let resizeObserver = null;
+      loadLeaflet()
+        .then((L) => {
+          if (disposed || !target.isConnected) return;
+          map = L.map(target, {
+            zoomControl: false,
+            attributionControl: false,
+            scrollWheelZoom: false,
+          });
+          L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+            maxZoom: 19,
+            opacity: 0.85,
+          }).addTo(map);
+          const markerStyle = { radius: 6, fillColor: "#3b82f6", color: "#1d4ed8", weight: 1.2, opacity: 1, fillOpacity: 0.82 };
+          points.forEach((point) => {
+            L.circleMarker([point.latitude, point.longitude], markerStyle)
+              .bindTooltip(point.label, { sticky: false, offset: [0, -4] })
+              .addTo(map);
+          });
+          if (points.length === 1) {
+            map.setView([points[0].latitude, points[0].longitude], 12);
+          } else {
+            map.fitBounds(
+              L.latLngBounds(points.map((p) => [p.latitude, p.longitude])),
+              { padding: [16, 16], maxZoom: 14 }
+            );
+          }
+          resizeObserver = new ResizeObserver(() => map?.invalidateSize());
+          resizeObserver.observe(target);
+          requestAnimationFrame(() => map?.invalidateSize());
+        })
+        .catch((error) => {
+          if (disposed || !target.isConnected) return;
+          target.innerHTML = `<div class="widget-runtime-state" data-runtime-state="error"><span class="stat-lbl">${escapeHtml(error?.message || "Unable to load map renderer")}</span></div>`;
+        });
+      return () => {
+        disposed = true;
+        resizeObserver?.disconnect();
+        map?.remove();
+        map = null;
+      };
+    },
   });
+
+  let fullCalendarLoadPromise = null;
+  const loadFullCalendar = () => {
+    if (window.FullCalendar?.Calendar) return Promise.resolve(window.FullCalendar);
+    if (!fullCalendarLoadPromise) {
+      fullCalendarLoadPromise = new Promise((resolve, reject) => {
+        const existing = document.querySelector("script[data-dashboard-fullcalendar]");
+        const afterLoad = () => window.FullCalendar?.Calendar ? resolve(window.FullCalendar) : reject(new Error("FullCalendar failed to initialize"));
+        if (existing) {
+          existing.addEventListener("load", afterLoad, { once: true });
+          existing.addEventListener("error", () => reject(new Error("FullCalendar failed to load")), { once: true });
+          return;
+        }
+        const script = document.createElement("script");
+        script.src = "https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js";
+        script.async = true;
+        script.dataset.dashboardFullcalendar = "true";
+        script.onload = afterLoad;
+        script.onerror = () => reject(new Error("FullCalendar failed to load"));
+        document.head.appendChild(script);
+      });
+    }
+    return fullCalendarLoadPromise;
+  };
+
+  const calendarExtractEvents = (data, config, mapping) => {
+    const rows = Array.isArray(data?.rows) ? data.rows : [];
+    const dateField = String(config.dateField || mapping.dateField || "").trim();
+    const labelField = String(config.labelField || mapping.labelField || "").trim();
+    return rows.map((row) => {
+      const timestamp = Date.parse(row?.[dateField]);
+      return Number.isFinite(timestamp)
+        ? { date: new Date(timestamp), label: String(row?.[labelField] || row?.label || "Item"), state: String(row?.[mapping.statusField] || row?.state || "") }
+        : null;
+    }).filter(Boolean).sort((a, b) => a.date - b.date).slice(0, Number(config.limit) || 12);
+  };
 
   registerWidgetDefinition({
     type: "calendar",
@@ -3237,47 +3499,128 @@
       const config = instance.config || {};
       const mapping = resolvedContext?.semanticMapping || {};
       const dateField = String(config.dateField || mapping.dateField || "").trim();
-      const labelField = String(config.labelField || mapping.labelField || "").trim();
       if (!resolvedContext?.dataSourceId) return runtimeState(title, "Configure a data source");
       if (!dateField) return runtimeState(title, "Configure date field");
       if (status === "loading") return runtimeState(title, "Loading");
       if (status === "error") return runtimeState(title, data?.error || "Unable to load dates");
       const rows = Array.isArray(data?.rows) ? data.rows : [];
       if (!rows.length) return runtimeState(title, "No date rows match the current context");
-      const events = rows.map((row) => {
-        const timestamp = Date.parse(row?.[dateField]);
-        return Number.isFinite(timestamp)
-          ? { date: new Date(timestamp), label: String(row?.[labelField] || row?.label || "Item"), state: String(row?.[mapping.statusField] || row?.state || "") }
-          : null;
-      }).filter(Boolean).sort((a, b) => a.date - b.date).slice(0, Number(config.limit) || 12);
+      const events = calendarExtractEvents(data, config, mapping);
       if (!events.length) return runtimeState(title, "No valid dates");
       const first = events[0].date;
-      const monthStart = new Date(first.getFullYear(), first.getMonth(), 1);
       const monthName = first.toLocaleDateString(undefined, { month: "short", year: "numeric" });
-      const cells = Array.from({ length: 14 }, (_, index) => {
-        const date = new Date(monthStart);
-        date.setDate(index + 1);
-        const dayEvents = events.filter((event) => event.date.toDateString() === date.toDateString());
-        return { date, dayEvents };
-      });
+      const initialDate = first.toISOString().split("T")[0];
       return `
         <div class="runtime-calendar-widget" data-runtime-state="ready" data-runtime-source="${escapeHtml(runtimeSource(data))}" data-calendar-demo="${data?.demo ? "true" : "false"}">
           <div class="runtime-calendar-header">
             <span class="stat-lbl">${escapeHtml(title)}</span>
             <span class="runtime-calendar-meta">${escapeHtml(runtimeMeta(monthName, data))}</span>
           </div>
-          <div class="runtime-calendar-grid" aria-label="${escapeHtml(monthName)}">
-            ${cells.map(({ date, dayEvents }) => `<div class="runtime-calendar-cell${dayEvents.length ? " has-events" : ""}">
-              <span>${date.getDate()}</span>
-              ${dayEvents.slice(0, 2).map((event) => `<i title="${escapeHtml(event.label)}"></i>`).join("")}
-            </div>`).join("")}
+          <div class="widget-content-well widget-library-surface runtime-calendar-fullcalendar-surface">
+            <div class="runtime-calendar-fullcalendar" data-calendar-initial="${escapeHtml(initialDate)}" role="region" aria-label="${escapeHtml(monthName)}"></div>
           </div>
           <div class="runtime-calendar-list">
             ${events.slice(0, 3).map((event) => `<span><b>${escapeHtml(String(event.date.getDate()))}</b>${escapeHtml(event.label)}</span>`).join("")}
           </div>
         </div>`;
     },
+    mountBodyRenderer: ({ contentRoot, instance, resolvedContext, data, status }) => {
+      const target = contentRoot?.querySelector?.(".runtime-calendar-fullcalendar");
+      if (!target || status !== "ready") return null;
+      const config = instance?.config || {};
+      const mapping = resolvedContext?.semanticMapping || {};
+      const events = calendarExtractEvents(data, config, mapping);
+      if (!events.length) return null;
+      const initialDate = target.dataset.calendarInitial || events[0].date.toISOString().split("T")[0];
+      const fcEvents = events.map((event) => ({
+        title: event.label,
+        start: event.date,
+        allDay: true,
+        extendedProps: { state: event.state },
+      }));
+      let disposed = false;
+      let calendar = null;
+      let resizeObserver = null;
+      loadFullCalendar()
+        .then((FC) => {
+          if (disposed || !target.isConnected) return;
+          calendar = new FC.Calendar(target, {
+            initialView: "dayGridMonth",
+            initialDate,
+            events: fcEvents,
+            headerToolbar: false,
+            height: "100%",
+            editable: false,
+            selectable: false,
+            eventDisplay: "block",
+            dayMaxEvents: 2,
+            fixedWeekCount: false,
+          });
+          calendar.render();
+          resizeObserver = new ResizeObserver(() => calendar?.updateSize());
+          resizeObserver.observe(target);
+          requestAnimationFrame(() => calendar?.updateSize());
+        })
+        .catch((error) => {
+          if (disposed || !target.isConnected) return;
+          target.innerHTML = `<div class="widget-runtime-state" data-runtime-state="error"><span class="stat-lbl">${escapeHtml(error?.message || "Unable to load calendar renderer")}</span></div>`;
+        });
+      return () => {
+        disposed = true;
+        resizeObserver?.disconnect();
+        calendar?.destroy();
+        calendar = null;
+      };
+    },
   });
+
+  let flatpickrLoadPromise = null;
+  const loadFlatpickr = () => {
+    if (window.flatpickr) return Promise.resolve(window.flatpickr);
+    if (!flatpickrLoadPromise) {
+      flatpickrLoadPromise = new Promise((resolve, reject) => {
+        const existing = document.querySelector("script[data-dashboard-flatpickr]");
+        if (existing) {
+          existing.addEventListener("load", () => window.flatpickr ? resolve(window.flatpickr) : reject(new Error("Flatpickr failed to initialize")), { once: true });
+          existing.addEventListener("error", () => reject(new Error("Flatpickr failed to load")), { once: true });
+          return;
+        }
+        if (!document.querySelector("link[data-dashboard-flatpickr-css]")) {
+          const link = document.createElement("link");
+          link.rel = "stylesheet";
+          link.href = "https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css";
+          link.dataset.dashboardFlatpickrCss = "true";
+          document.head.appendChild(link);
+        }
+        const script = document.createElement("script");
+        script.src = "https://cdn.jsdelivr.net/npm/flatpickr";
+        script.async = true;
+        script.dataset.dashboardFlatpickr = "true";
+        script.onload = () => window.flatpickr ? resolve(window.flatpickr) : reject(new Error("Flatpickr failed to initialize"));
+        script.onerror = () => { flatpickrLoadPromise = null; reject(new Error("Flatpickr failed to load")); };
+        document.head.appendChild(script);
+      });
+    }
+    return flatpickrLoadPromise;
+  };
+  const timeframeFlatpickrInstances = new WeakMap();
+  const mountTimeframeFlatpickr = (container) => {
+    const dateInputs = container.querySelectorAll("input[type='date'][data-timeframe-filter-part]");
+    if (!dateInputs.length) return;
+    loadFlatpickr().then((fp) => {
+      dateInputs.forEach((input) => {
+        if (timeframeFlatpickrInstances.has(input) || !input.isConnected) return;
+        const instance = fp(input, { dateFormat: "Y-m-d", allowInput: true, disableMobile: true });
+        timeframeFlatpickrInstances.set(input, instance);
+      });
+    }).catch(() => { /* fallback: native date inputs remain */ });
+  };
+  const destroyTimeframeFlatpickr = (container) => {
+    container.querySelectorAll("input[type='date'][data-timeframe-filter-part]").forEach((input) => {
+      const instance = timeframeFlatpickrInstances.get(input);
+      if (instance) { try { instance.destroy(); } catch (_) {} timeframeFlatpickrInstances.delete(input); }
+    });
+  };
 
   window.dashboardWidgetRuntime = {
     registerWidgetDefinition,
@@ -3288,6 +3631,8 @@
     resolveTimeRangeConfig,
     resolveTimeframeFilter,
     normalizeTimeframeFilters,
+    mountTimeframeFlatpickr,
+    destroyTimeframeFlatpickr,
     timeframeFilterTypes: () => TIMEFRAME_FILTER_TYPES.map((type) => ({ ...type })),
     weekStartOptions: () => WEEKDAY_OPTIONS.map((option) => ({ ...option })),
     densityTiers: () => [...DENSITY_TIERS],
