@@ -258,4 +258,4 @@ Same ~99 failures as prior sessions. Not touched.
 
 ### Commit
 
-(pending)
+`31fb4cd` — "Add grid-interval resize regression test and verify commit path"
