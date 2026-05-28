@@ -23001,3 +23001,115 @@ def test_opening_tool_drawer_closes_open_workbench(page: Page, app_server: str) 
     first_workbench_still_open = first.evaluate("node => node.classList.contains('widget-workbench-open')")
     assert not first_workbench_still_open, "Opening another widget's tool drawer did not close the open workbench"
     assert_clean_browser(page)
+
+
+# ---------------------------------------------------------------------------
+# Regression: Grid-interval resize commit — all widget types
+# ---------------------------------------------------------------------------
+
+def test_widget_resize_commits_whole_grid_cell_intervals(page: Page, app_server: str) -> None:
+    goto(page, app_server)
+    # Add a stat widget and a table widget
+    click_add_action(page, "data", '.widget-add-action[data-widget-kind="stat"]')
+    stat = page.locator('.widget-layout > .stat-card.widget-card[data-custom-widget="true"]').last
+    expect(stat).to_be_visible()
+    click_add_action(page, "data", '.widget-add-action[data-widget-kind="table"]')
+    table = page.locator('.widget-layout > .table-widget-card[data-custom-widget="true"]').last
+    expect(table).to_be_visible()
+
+    grid = page.locator(".dashboard-layout-grid")
+    metrics = grid.evaluate(
+        """
+        node => {
+          const cs = getComputedStyle(node);
+          const rowHeight = parseFloat(cs.getPropertyValue("--dashboard-grid-row-height")) || 81;
+          const gap = parseFloat(cs.rowGap || cs.gap || "18") || 18;
+          return { rowHeight, gap };
+        }
+        """
+    )
+    row_h = metrics["rowHeight"]
+    gap = metrics["gap"]
+
+    def expected_height(row_span: int) -> int:
+        return int(row_span * row_h + max(0, row_span - 1) * gap)
+
+    def place_at_top(widget, col: int, span: int, row_span: int) -> None:
+        widget.evaluate(
+            f"""
+            node => {{
+              node.dataset.gridCol = "{col}";
+              node.dataset.gridRow = "1";
+              node.dataset.currentSpan = "{span}";
+              node.dataset.gridRowSpan = "{row_span}";
+              node.style.gridColumn = "{col} / span {span}";
+              node.style.gridRow = "1 / span {row_span}";
+              if ({row_span} > 1) {{
+                node.style.height = "{expected_height(row_span)}px";
+              }} else {{
+                node.style.removeProperty("height");
+              }}
+            }}
+            """
+        )
+        page.wait_for_timeout(200)
+
+    place_at_top(stat, col=1, span=2, row_span=1)
+    place_at_top(table, col=3, span=3, row_span=2)
+
+    def resize_widget_right_edge(widget, dx: int, dy: int) -> None:
+        box = widget.bounding_box()
+        assert box, "widget has no bounding box"
+        x = box["x"] + box["width"] - 5
+        y = box["y"] + box["height"] / 2
+        page.mouse.move(x, y)
+        page.mouse.down()
+        page.mouse.move(x + dx, y + dy, steps=18)
+        page.wait_for_timeout(200)
+        page.mouse.up()
+        page.wait_for_timeout(400)
+
+    # Resize stat: drag right-and-down to grow both dimensions
+    resize_widget_right_edge(stat, dx=220, dy=180)
+    stat_after = stat.evaluate(
+        """
+        node => {
+          const r = node.getBoundingClientRect();
+          return {
+            rowSpan: Number(node.dataset.gridRowSpan || 1),
+            span: Number(node.dataset.currentSpan || 1),
+            height: r.height,
+            heightStyle: node.style.height,
+          };
+        }
+        """
+    )
+    stat_expected_h = expected_height(stat_after["rowSpan"])
+    assert abs(stat_after["height"] - stat_expected_h) <= 1, (
+        f"stat widget height {stat_after['height']} not grid-aligned for "
+        f"rowSpan={stat_after['rowSpan']} (expected {stat_expected_h})"
+    )
+
+    # Resize table: drag right-and-down to grow both dimensions
+    resize_widget_right_edge(table, dx=100, dy=180)
+    table_after = table.evaluate(
+        """
+        node => {
+          const r = node.getBoundingClientRect();
+          return {
+            rowSpan: Number(node.dataset.gridRowSpan || 1),
+            span: Number(node.dataset.currentSpan || 1),
+            height: r.height,
+            heightStyle: node.style.height,
+          };
+        }
+        """
+    )
+    table_expected_h = expected_height(table_after["rowSpan"])
+    assert abs(table_after["height"] - table_expected_h) <= 1, (
+        f"table widget height {table_after['height']} not grid-aligned for "
+        f"rowSpan={table_after['rowSpan']} (expected {table_expected_h})"
+    )
+
+    assert_no_resize_artifacts(page)
+    assert_clean_browser(page)

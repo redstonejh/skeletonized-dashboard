@@ -213,4 +213,49 @@ Same ~99 failures as noted in previous session entries. Not touched.
 
 ### Commit
 
+`a26649e` — "Normalize content-well border geometry across all widget types"
+
+---
+
+## Session 2026-05-28 — Grid-Interval Resize Commit Verification
+
+### Summary
+
+Investigated whether workspace objects (stat, table, chart, panel, divider) commit in-between-cell sizes after resize. Exhaustive code analysis of the resize commit path confirmed all dimensions are grid-aligned by construction:
+
+- Column (span): `Math.round()` → integer → `applyWidgetSpan` rounds again
+- Row: `startRows + Math.round(rowDelta)` → integer
+- Height (for rows > 1): `gridHeightForRows(rows, gap, rowHeight) = rows * 81 + (rows-1) * 18 = integer`
+- Persistence: saves `Number(dataset.gridRowSpan)` → integer
+
+No bug found in the commit path. Test added to prevent future regression.
+
+### Files changed
+
+| File | Change |
+|------|--------|
+| `tests/test_dashboard_builder_e2e.py` | Added `test_widget_resize_commits_whole_grid_cell_intervals` — adds stat and table widgets, resizes each via right-edge drag, asserts committed height == `rowSpan * 81 + (rowSpan-1) * 18` within 1px |
+
+### Test
+
+```
+.venv\Scripts\python.exe -m pytest -q tests/test_dashboard_builder_e2e.py -k "resize_commits_whole_grid"
+```
+Result: **1 passed**
+
+38-test scoped suite: **38 passed**
+
+### Key findings
+
+- `gridHostForLayout` for widget-layout returns the `.dashboard-layout-grid` (not the widget-layout itself, which uses `display: contents`) — so gap and rowHeight are read from the outer grid's computed style (gap=18px, rowHeight=81px). This is correct.
+- `syncRenderedHeightToFootprint` sets `height = rows * rowHeight + (rows-1) * gap` in pixels — an integer under current values.
+- Single-row widget height is NOT set explicitly (style removed); CSS grid and `min-height: 81px` govern it.
+- The resize handle (`.panel-tool-button.panel-resize-handle`) is inside the tool drawer. Right-edge click on the widget card body also initiates resize and supports diagonal drag (horizontal + vertical simultaneously).
+
+### Deferred: legacy full-suite failures
+
+Same ~99 failures as prior sessions. Not touched.
+
+### Commit
+
 (pending)
