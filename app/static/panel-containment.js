@@ -50,8 +50,12 @@
       const headerHeight = Math.ceil(panel.querySelector(":scope > .db-panel-hd")?.getBoundingClientRect().height || 0);
       const bodyBorder = 1;
       const insets = panelInternalGridBlockInsets(grid);
-      const bottomGutter = insets.bottom + insets.gap;
-      const contentHeight = insets.top + deps.gridHeightForRows(maxBottom, metrics.gap, metrics.rowHeight) + bottomGutter;
+      // padding-bottom only — there is no extra row-gap below the last
+      // widget. Adding insets.gap inflated the required height by one
+      // gap, which tipped gridRowsFromHeight() over a row boundary and
+      // caused the panel to report rowSpan one row too tall during
+      // collision/reflow previews.
+      const contentHeight = insets.top + deps.gridHeightForRows(maxBottom, metrics.gap, metrics.rowHeight) + insets.bottom;
       return Math.ceil(headerHeight + bodyBorder + contentHeight);
     };
 

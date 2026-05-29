@@ -8524,10 +8524,22 @@ document.addEventListener("DOMContentLoaded", () => {
       includePlaceholders: options.includePlaceholders !== false,
       exclude: [...excluded],
     });
+    // Defensive: when resolving against a workspace-level layout (not a
+    // panel-internal grid), panel-contained widgets must never enter the
+    // global occupancy set — the panel container is the single global
+    // object/footprint. Upstream callers (reflowItemsForLayout,
+    // globalGridItems) filter this, but this final-mile filter catches
+    // any path that supplies a provided `items` array that leaks panel-
+    // internal widgets, which would otherwise cause unrelated widgets in
+    // the row above the panel to be displaced downward during drag
+    // preview by the panel-local widgets' panel-local row positions
+    // being interpreted as global rows.
+    const allowPanelInternal = isPanelInternalWidgetLayout(layout);
     return [...new Set(items)]
       .filter((item) => (
         item?.isConnected &&
         !excluded.has(item) &&
+        (allowPanelInternal || !isPanelInternalGridItem(item)) &&
         !item.classList.contains("workspace-anchor-object") &&
         !item.classList.contains("widget-dragging") &&
         !item.classList.contains("db-panel-dragging") &&
