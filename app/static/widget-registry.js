@@ -290,7 +290,11 @@
   ];
   const LEGACY_TIMEFRAME_PRESETS = [
     { id: "last_7_days", label: "Last 7 days" },
+    { id: "last_14_days", label: "Last 14 days" },
     { id: "last_30_days", label: "Last 30 days" },
+    { id: "last_60_days", label: "Last 60 days" },
+    { id: "last_180_days", label: "Last 180 days" },
+    { id: "last_365_days", label: "Last 365 days" },
     { id: "month_to_date", label: "Month to date" },
     { id: "year_to_date", label: "Year to date" },
     { id: "custom", label: "Custom range" },
@@ -298,13 +302,13 @@
   const TIMEFRAME_PRESETS = [...TIMEFRAME_FILTER_TYPES, ...LEGACY_TIMEFRAME_PRESETS];
   const DEFAULT_TIMEFRAME_FILTERS = [
     { id: "time-today", label: "Today", type: "today" },
-    { id: "time-this-week", label: "This week", type: "this_week" },
-    { id: "time-last-7-days", label: "Last 7 days", type: "last_7_days" },
-    { id: "time-last-30-days", label: "Last 30 days", type: "last_30_days" },
     { id: "time-yesterday", label: "Yesterday", type: "yesterday" },
-    { id: "time-last-week", label: "Last week", type: "last_week" },
-    { id: "time-this-month", label: "This month", type: "this_month" },
-    { id: "time-last-month", label: "Last month", type: "last_month" },
+    { id: "time-last-7-days", label: "1w", type: "last_7_days" },
+    { id: "time-last-14-days", label: "2w", type: "last_14_days" },
+    { id: "time-last-30-days", label: "1m", type: "last_30_days" },
+    { id: "time-last-60-days", label: "2m", type: "last_60_days" },
+    { id: "time-last-180-days", label: "6m", type: "last_180_days" },
+    { id: "time-last-365-days", label: "1yr", type: "last_365_days" },
   ];
   const WEEKDAY_OPTIONS = [
     { value: 0, label: "Sunday" },
@@ -473,7 +477,11 @@
     }
     if (normalized.type === "custom_repeating") range = repeatingIntervalRange(normalized, today);
     if (normalized.type === "last_7_days") range = { start: dateOnly(shiftedDate(today, -6)), end: dateOnly(today) };
+    if (normalized.type === "last_14_days") range = { start: dateOnly(shiftedDate(today, -13)), end: dateOnly(today) };
     if (normalized.type === "last_30_days") range = { start: dateOnly(shiftedDate(today, -29)), end: dateOnly(today) };
+    if (normalized.type === "last_60_days") range = { start: dateOnly(shiftedDate(today, -59)), end: dateOnly(today) };
+    if (normalized.type === "last_180_days") range = { start: dateOnly(shiftedDate(today, -179)), end: dateOnly(today) };
+    if (normalized.type === "last_365_days") range = { start: dateOnly(shiftedDate(today, -364)), end: dateOnly(today) };
     if (normalized.type === "month_to_date") range = { start: dateOnly(new Date(today.getFullYear(), today.getMonth(), 1)), end: dateOnly(today) };
     if (normalized.type === "year_to_date") range = { start: dateOnly(new Date(today.getFullYear(), 0, 1)), end: dateOnly(today) };
     if (!range?.start && !range?.end) return null;
@@ -516,11 +524,27 @@
     } else if (preset === "last_7_days") {
       start = dateOnly(shiftedDate(today, -6));
       end = dateOnly(today);
-      label = "Last 7 days";
+      label = "1w";
+    } else if (preset === "last_14_days") {
+      start = dateOnly(shiftedDate(today, -13));
+      end = dateOnly(today);
+      label = "2w";
     } else if (preset === "last_30_days") {
       start = dateOnly(shiftedDate(today, -29));
       end = dateOnly(today);
-      label = "Last 30 days";
+      label = "1m";
+    } else if (preset === "last_60_days") {
+      start = dateOnly(shiftedDate(today, -59));
+      end = dateOnly(today);
+      label = "2m";
+    } else if (preset === "last_180_days") {
+      start = dateOnly(shiftedDate(today, -179));
+      end = dateOnly(today);
+      label = "6m";
+    } else if (preset === "last_365_days") {
+      start = dateOnly(shiftedDate(today, -364));
+      end = dateOnly(today);
+      label = "1yr";
     } else if (preset === "month_to_date") {
       start = dateOnly(new Date(today.getFullYear(), today.getMonth(), 1));
       end = dateOnly(today);

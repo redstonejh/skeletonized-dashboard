@@ -435,65 +435,15 @@ document.addEventListener("DOMContentLoaded", () => {
     backgroundToneLuminanceCache.set(tone, computed);
     return computed;
   };
-  const setBackgroundExposureCompensation = (tone, palette, targets = getBackgroundThemeRoots()) => {
-    const root = targets[0] || document.documentElement;
-    const rootStyle = getComputedStyle(root);
-    const paletteBg = parseRgbFromColorValue(palette?.bg);
-    const backgroundColor = paletteBg || parseRgbFromColorValue(rootStyle.getPropertyValue("--bg"));
-    const effectiveColor = backgroundColor || parseRgbFromColorValue(String(tone || ""));
-    const fallbackLuminance = clamp01(parseFloat(rootStyle.getPropertyValue("--workspace-bg-luminance")) || 0.78);
-    // Absolute mapping — purely a function of target luminance, no baseline-relative delta.
-    // whiteMixCompensation: scales highlight and accent-wash alphas. Increases slightly on
-    //   dark bgs so white inset highlights stay visible, but starts lower than before.
-    // saturationCompensation: exceeds 1.0 on bright bgs (up to ~1.08) for stained-glass depth;
-    //   drops to ~0.78 on very dark bgs for calmer objects. Drives accent-wash intensity.
-    // surfaceGlassAlpha: new — reduces glass-surface opacity on dark bgs so widgets don't
-    //   appear blown-out against a very dark workspace.
-    const getCompensation = (targetLuminance) => {
-      const d = clamp01(1 - targetLuminance);
-      return {
-        exposureCompensation:     clamp01(0.24 - d * 0.22),
-        whiteMixCompensation:     clamp01(0.70 + d * 0.22),
-        saturationCompensation:   Math.min(1.10, 1.08 - Math.max(0, d - 0.10) * 0.34),
-        surfaceGlassAlpha:        clamp01(0.68 - d * 0.18),
-      };
-    };
-    if (!effectiveColor) {
-      const fallbackDarkness = clamp01(1 - fallbackLuminance);
-      const {
-        exposureCompensation: targetExposureCompensation,
-        whiteMixCompensation: targetWhiteMixCompensation,
-        saturationCompensation: targetSaturationCompensation,
-        surfaceGlassAlpha: targetSurfaceGlassAlpha,
-      } = getCompensation(fallbackLuminance);
-      targets.forEach((themeRoot) => {
-        themeRoot.style.setProperty("--workspace-bg-luminance", fallbackLuminance.toFixed(4));
-        themeRoot.style.setProperty("--workspace-bg-darkness", fallbackDarkness.toFixed(4));
-        themeRoot.style.setProperty("--surface-exposure-compensation", targetExposureCompensation.toFixed(4));
-        themeRoot.style.setProperty("--surface-white-mix-compensation", targetWhiteMixCompensation.toFixed(4));
-        themeRoot.style.setProperty("--surface-saturation-compensation", targetSaturationCompensation.toFixed(4));
-        themeRoot.style.setProperty("--surface-glass-alpha", targetSurfaceGlassAlpha.toFixed(4));
-      });
-      return;
-    }
-
-    const luminance = clamp01(computeRelativeLuminance(effectiveColor));
-    const darkness = clamp01(1 - luminance);
-    const {
-      exposureCompensation,
-      whiteMixCompensation,
-      saturationCompensation,
-      surfaceGlassAlpha,
-    } = getCompensation(luminance);
-    targets.forEach((themeRoot) => {
-      themeRoot.style.setProperty("--workspace-bg-luminance", luminance.toFixed(4));
-      themeRoot.style.setProperty("--workspace-bg-darkness", darkness.toFixed(4));
-      themeRoot.style.setProperty("--surface-exposure-compensation", exposureCompensation.toFixed(4));
-      themeRoot.style.setProperty("--surface-white-mix-compensation", whiteMixCompensation.toFixed(4));
-      themeRoot.style.setProperty("--surface-saturation-compensation", saturationCompensation.toFixed(4));
-      themeRoot.style.setProperty("--surface-glass-alpha", surfaceGlassAlpha.toFixed(4));
-    });
-  };
+  // Adaptive material compensation was removed: objects now use one stable
+  // material recipe regardless of background luminance. The fixed default
+  // values in tokens.css for --workspace-bg-luminance,
+  // --workspace-bg-darkness, --surface-exposure-compensation,
+  // --surface-white-mix-compensation, --surface-saturation-compensation,
+  // and --surface-glass-alpha are the single source of truth. This
+  // function is kept as a no-op so existing call sites stay valid; no
+  // adaptive vars are written.
+  const setBackgroundExposureCompensation = () => {};
   // ── Photo / image background system ───────────────────────────────
   const PHOTO_BACKGROUNDS = {
     "photo-bark":        { src: "/static/backgrounds/nature/bark.jpg",        luminance: 0.08 },
@@ -603,21 +553,10 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     document.documentElement.classList.add("has-photo-background");
     document.body.classList.add("has-photo-background");
-    const lum = clamp01(meta.luminance ?? 0.08);
-    const dark = clamp01(1 - lum);
-    const d = dark;
-    const ec = clamp01(0.24 - d * 0.22);
-    const wm = clamp01(0.70 + d * 0.22);
-    const sc = Math.min(1.10, 1.08 - Math.max(0, d - 0.10) * 0.34);
-    const ga = clamp01(0.68 - d * 0.18);
-    getBackgroundThemeRoots().forEach((root) => {
-      root.style.setProperty("--workspace-bg-luminance", lum.toFixed(4));
-      root.style.setProperty("--workspace-bg-darkness", dark.toFixed(4));
-      root.style.setProperty("--surface-exposure-compensation", ec.toFixed(4));
-      root.style.setProperty("--surface-white-mix-compensation", wm.toFixed(4));
-      root.style.setProperty("--surface-saturation-compensation", sc.toFixed(4));
-      root.style.setProperty("--surface-glass-alpha", ga.toFixed(4));
-    });
+    // Adaptive material vars intentionally NOT written here. Photo
+    // backgrounds use the same fixed token values as solid backgrounds;
+    // photo-specific glass comes from the body.has-photo-background CSS
+    // block in themes.css with its own fixed tokens.
     photoEnsureEnoughPanels();
     photoSyncScroll();
   };
@@ -2140,7 +2079,16 @@ document.addEventListener("DOMContentLoaded", () => {
         if (key && !hidden.includes(key)) hidden.push(key);
         hiddenByLayout.set(cacheKey, hidden);
         entry.item.hidden = true;
+        if (entry.kind === "panel" && entry.layout && entry.item.__activeExpansionSource) {
+          relaxCollapsedExpansionDisplacement(entry.layout, null);
+          endPanelExpansionSession(entry.layout, entry.item);
+        }
       } else {
+        if (entry.kind === "panel" && entry.layout && entry.item.__activeExpansionSource) {
+          entry.item.hidden = true;
+          relaxCollapsedExpansionDisplacement(entry.layout, null);
+          endPanelExpansionSession(entry.layout, entry.item);
+        }
         entry.item.remove();
       }
     });
@@ -5518,7 +5466,7 @@ document.addEventListener("DOMContentLoaded", () => {
         <button class="panel-tool-button panel-move-handle" type="button" aria-label="Move panel" title="Move panel"><span class="move-icon" aria-hidden="true"></span></button>
         ${options.includeResize === false ? "" : '<button class="panel-tool-button panel-resize-handle" type="button" aria-label="Resize panel" title="Resize panel"><span class="resize-icon" aria-hidden="true"></span></button>'}
         ${options.includePin === false ? "" : '<button class="panel-tool-button panel-pin-toggle" type="button" aria-label="Pin panel" aria-pressed="false" title="Pin panel"><span class="pin-icon" aria-hidden="true"></span></button>'}
-        <button class="panel-tool-button panel-title-handle" type="button" aria-label="Rename panel" title="Rename panel"><span class="text-icon" aria-hidden="true"></span></button>
+        ${options.includeTitle === false ? "" : '<button class="panel-tool-button panel-title-handle" type="button" aria-label="Rename panel" title="Rename panel"><span class="text-icon" aria-hidden="true"></span></button>'}
         <button class="panel-tool-button panel-color-toggle" type="button" aria-label="Panel colors" aria-expanded="false" title="Panel colors" data-default-theme="${theme}"><span class="color-icon" aria-hidden="true"></span></button>
         ${options.extraButtons || ""}
         ${includeDelete ? '<button class="panel-tool-button panel-delete-handle" type="button" aria-label="Delete panel" title="Delete panel"><span class="trash-icon" aria-hidden="true"></span></button>' : ""}`;
@@ -7054,7 +7002,10 @@ document.addEventListener("DOMContentLoaded", () => {
     document.querySelector(`.workspace-anchor-layer[data-anchor-layout-key="${CSS.escape(layoutKey)}"]`);
 
   const ANCHOR_RAIL_START = 126;
-  const ANCHOR_RAIL_STACK_GAP = 0;
+  // Anchor stacking gap matches the workspace --panel-gap rhythm (18px)
+  // so anchors don't visually touch each other. Diagnostic confirmed
+  // anchors were stacking with 0px gap (anchor1.bottom === anchor2.top).
+  const ANCHOR_RAIL_STACK_GAP = 18;
   // Canonical anchor slot height — must match .workspace-anchor-object min-height in CSS.
   // Used for ALL layout math so positioning is deterministic and independent of render timing.
   const ANCHOR_SLOT_HEIGHT = 81;
@@ -7324,6 +7275,26 @@ document.addEventListener("DOMContentLoaded", () => {
     anchor.setAttribute("aria-label", `${targetLabel} spatial anchor`);
   };
 
+  // When a divider title changes, anchors that link to it should re-derive
+  // their labels from the new title. The divider's identity stays on
+  // dataset.panelKey / dataset.workspaceRegionId / dataset.contextScopeId,
+  // any of which the anchor may have stored as its linkedDividerId
+  // (anchorLinkedDividerTarget tries all three).
+  const refreshAnchorsLinkedToDivider = (divider) => {
+    if (!divider) return;
+    const candidateIds = [
+      divider.dataset.panelKey,
+      divider.dataset.workspaceRegionId,
+      divider.dataset.contextScopeId,
+    ].filter(Boolean);
+    if (!candidateIds.length) return;
+    document.querySelectorAll(".workspace-anchor-layer > .workspace-anchor-object").forEach((anchor) => {
+      const linkedId = anchor.dataset.linkedDividerId || "";
+      if (!linkedId) return;
+      if (candidateIds.includes(linkedId)) syncAnchorNavigationTarget(anchor);
+    });
+  };
+
   const dividerOptionsForAnchor = (layoutKey = "builder") => [
     ...document.querySelectorAll(`.panel-layout[data-layout-key="${CSS.escape(layoutKey)}"] .workspace-divider[data-workspace-object-type="divider"]`)
   ];
@@ -7425,6 +7396,10 @@ document.addEventListener("DOMContentLoaded", () => {
           ${panelToolButtonsMarkup(definition.color || "#2563eb", true, {
             includeResize: false,
             includePin: false,
+            // Anchors derive their label from the linked divider (or "Top"
+            // when unlinked) via syncAnchorNavigationTarget. There's no
+            // independent name to rename, so the title button is dropped.
+            includeTitle: false,
             extraButtons: '<button class="panel-tool-button anchor-link-toggle" type="button" aria-label="Link anchor to divider" aria-expanded="false" title="Link anchor"><span class="anchor-link-icon" aria-hidden="true"></span></button>',
           })}
         </span>
@@ -7546,6 +7521,15 @@ document.addEventListener("DOMContentLoaded", () => {
       restoreDashboardToolDrawer(drawer);
       syncLayoutToolsActive();
     };
+    // Move the link menu to the shared menu overlay layer so its
+    // positioning isn't constrained by the anchor's absolute-positioning
+    // ancestor (which sits at the left edge of the viewport). The menu
+    // will be positioned with viewport coordinates at open time, next
+    // to the link toggle (which itself lives in the portalled tool
+    // drawer somewhere else on screen).
+    if (linkMenu && linkMenu.parentElement !== menuOverlayLayer()) {
+      menuOverlayLayer().appendChild(linkMenu);
+    }
     const toggleLinkMenu = () => {
       if (!linkMenu || !linkToggle) return;
       const nextOpen = !linkMenu.classList.contains("anchor-link-menu-open");
@@ -7553,6 +7537,10 @@ document.addEventListener("DOMContentLoaded", () => {
         refreshAnchorDividerMenu(anchor, linkMenu, layoutKey);
         colorMenu?.classList.remove("panel-color-menu-open");
         colorToggle?.setAttribute("aria-expanded", "false");
+        // Position next to the link toggle in viewport coordinates,
+        // clamping to viewport edges. Reuses the same clamping logic
+        // the color menu uses so behavior is consistent.
+        positionPanelColorMenu(linkToggle, linkMenu);
       }
       linkMenu.classList.toggle("anchor-link-menu-open", nextOpen);
       linkToggle.setAttribute("aria-expanded", String(nextOpen));
@@ -7863,7 +7851,23 @@ document.addEventListener("DOMContentLoaded", () => {
     });
     document.addEventListener("pointerdown", (event) => {
       if (!anchor.classList.contains("widget-tools-open")) return;
-      if (anchor.contains(event.target) || colorMenu?.contains(event.target)) return;
+      // The tool drawer is portalled to the menu overlay layer when
+      // open, so `anchor.contains(drawer button)` is false even though
+      // the button logically belongs to the anchor. Without checking
+      // the drawer directly, pointerdown on a tool button (delete /
+      // color toggle / link toggle) ran closeTools(), which then
+      // restoreFloatingMenu()s the drawer back to the anchor — moving
+      // the button mid-event. By the time pointerup fired the button
+      // was at a different screen position, so the click never
+      // dispatched to it and the action handler never ran. Including
+      // the drawer in the inside-test fixes this for every tool
+      // button + any submenu inside the drawer.
+      if (
+        anchor.contains(event.target) ||
+        colorMenu?.contains(event.target) ||
+        drawer?.contains(event.target) ||
+        linkMenu?.contains(event.target)
+      ) return;
       closeTools();
     });
   };
@@ -8041,7 +8045,7 @@ document.addEventListener("DOMContentLoaded", () => {
   };
 
   const snapshotGridLayout = (layout) => new Map(
-    [...gridHostForLayout(layout).querySelectorAll(".widget-layout > .widget-card, .panel-layout > .db-panel")]
+    [...gridHostForLayout(layout).querySelectorAll(".widget-layout > .widget-card:not([hidden]), .panel-layout > .db-panel:not([hidden])")]
       .filter((item) => gridHostForLayout(layout) === layout || !isPanelInternalGridItem(item))
       .map((item) => [item, {
         gridCol: item.dataset.gridCol,
@@ -10908,7 +10912,13 @@ document.addEventListener("DOMContentLoaded", () => {
       if (saved?.minH) widget.dataset.minH = String(saved.minH);
       if (saved?.locked) widget.dataset.locked = "true";
       if (saved?.resizable === false) widget.dataset.resizable = "false";
-      applyPanelColor(widget, saved?.color || widget.querySelector(".panel-color-toggle")?.dataset.defaultTheme);
+      // Preserve widget.dataset.panelColor when re-initializing — panel-
+      // containment re-runs initWidgetLayout on the cloned widget (the
+      // panel-internal layout has no saved store, so `saved` is null).
+      // Falling straight through to defaultTheme would reset any custom
+      // color the widget carried, making widgets revert to default blue
+      // after being dropped into a panel.
+      applyPanelColor(widget, saved?.color || widget.dataset.panelColor || widget.querySelector(".panel-color-toggle")?.dataset.defaultTheme);
       applyPanelTitleColor(widget, "");
       if (saved?.title) {
         widget.dataset.panelTitle = saved.title;
@@ -11724,6 +11734,7 @@ document.addEventListener("DOMContentLoaded", () => {
     let defaultPanelCol = 1;
     let defaultPanelRow = 1;
     [...layout.querySelectorAll(":scope > .db-panel")].forEach((panel) => {
+      if (panel.hidden) return;
       if (panel.dataset.gridCol && panel.dataset.gridRow) return;
       if (layout.closest(".dashboard-layout-grid")) return;
       const span = Number(panel.dataset.currentSpan) || Number(panel.dataset.defaultSpan) || 6;
@@ -11985,6 +11996,11 @@ document.addEventListener("DOMContentLoaded", () => {
           } else {
             delete panel.dataset.panelTitle;
             titleEl.textContent = panel.dataset.defaultTitle || originalTitle;
+          }
+          // If the renamed panel is a divider, refresh any anchors that
+          // link to it so their labels track the new divider title.
+          if (panel.classList.contains("workspace-divider")) {
+            refreshAnchorsLinkedToDivider(panel);
           }
           savePanelLayouts(layout);
         };

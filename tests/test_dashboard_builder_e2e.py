@@ -23603,3 +23603,106 @@ def test_photo_background_persists_on_reload(page: Page, app_server: str) -> Non
     data_bg = page.evaluate("document.documentElement.dataset.background")
     assert data_bg == "photo-moss", f"photo background must be restored after reload, got {data_bg!r}"
     assert page.locator(".workspace-photo-backdrop").count() == 1
+
+
+def test_deleting_expanded_panel_clears_stale_expansion_footprint(page: Page, app_server: str) -> None:
+    """Deleting a panel while it is expanded must call relaxCollapsedExpansionDisplacement so that
+    displaced neighbours are saved at their pre-expansion positions, not the pushed-down ones."""
+    goto(page, app_server)
+    page.evaluate("localStorage.clear()")
+    page.reload(wait_until="networkidle")
+    page.wait_for_selector(".page")
+
+    setup = page.evaluate(
+        """
+        () => {
+          const panelLayout = document.querySelector('.panel-layout[data-layout-key="builder"]');
+          const expander = panelLayout.querySelector('[data-panel-key="builder-notes"]');
+          const neighbour = panelLayout.querySelector('[data-panel-key="builder-content"]');
+          const other1 = panelLayout.querySelector('[data-panel-key="builder-menu"]');
+          if (!expander || !neighbour) return null;
+
+          const place = (node, col, row, span, rowSpan, height = null) => {
+            node.dataset.gridCol = String(col);
+            node.dataset.gridRow = String(row);
+            node.dataset.currentSpan = String(span);
+            node.dataset.gridRowSpan = String(rowSpan);
+            node.style.gridColumn = `${col} / span ${span}`;
+            node.style.gridRow = `${row} / span ${rowSpan}`;
+            if (height) {
+              node.dataset.savedHeight = String(height);
+              if (!node.classList.contains("db-panel-collapsed")) node.style.height = `${height}px`;
+            } else {
+              delete node.dataset.savedHeight;
+              node.style.height = "";
+            }
+          };
+
+          // expander: collapsed at row 8, will expand to push neighbour at row 9
+          expander.classList.add("db-panel-collapsed");
+          expander.querySelector(".db-panel-hd")?.setAttribute("aria-expanded", "false");
+          place(expander, 1, 8, 3, 1, 275);
+          expander.style.height = "";
+
+          // neighbour: not collapsed, sits right below the expander
+          neighbour.classList.remove("db-panel-collapsed");
+          neighbour.querySelector(".db-panel-hd")?.setAttribute("aria-expanded", "true");
+          place(neighbour, 1, 9, 3, 3, 275);
+
+          if (other1) {
+            other1.classList.add("db-panel-collapsed");
+            place(other1, 4, 8, 2, 1);
+          }
+
+          return {
+            expanderKey: expander.dataset.panelKey,
+            neighbourKey: neighbour.dataset.panelKey,
+            neighbourRow: Number(neighbour.dataset.gridRow),
+          };
+        }
+        """
+    )
+    assert setup is not None, "required builder panels not found"
+    assert setup["neighbourRow"] == 9
+
+    expander_key = setup["expanderKey"]
+    neighbour_key = setup["neighbourKey"]
+    expander_panel = page.locator(f'.panel-layout > .db-panel[data-panel-key="{expander_key}"]')
+    neighbour_panel = page.locator(f'.panel-layout > .db-panel[data-panel-key="{neighbour_key}"]')
+
+    # Click expander header to expand it — this pushes the neighbour down
+    expander_panel.locator(".db-panel-hd").click(position={"x": 18, "y": 18}, force=True)
+    page.wait_for_timeout(350)
+
+    pushed_row = neighbour_panel.evaluate("node => Number(node.dataset.gridRow)")
+    assert pushed_row > setup["neighbourRow"], "neighbour should have been pushed down by expansion"
+
+    # Delete the expanded panel — this is the bug scenario
+    open_tools(expander_panel)
+    expander_panel.locator(".panel-delete-handle").click(force=True)
+    dialog = page.locator("#panel-delete-dialog")
+    if dialog.evaluate("node => Boolean(node.open)"):
+        page.locator(".confirm-dialog-danger").click()
+    page.wait_for_timeout(400)
+
+    expect(expander_panel).not_to_be_visible()
+
+    # Neighbour should be back at or above its pre-expansion row
+    restored_row = neighbour_panel.evaluate("node => Number(node.dataset.gridRow)")
+    assert restored_row <= setup["neighbourRow"], (
+        f"neighbour should have been restored to row {setup['neighbourRow']} after deleting "
+        f"expanded panel, but is at row {restored_row} — stale expansion footprint not cleared"
+    )
+
+    # Verify the fix persists across reload
+    page.reload(wait_until="networkidle")
+    page.wait_for_selector(".page")
+    page.wait_for_timeout(400)
+
+    reloaded_row = page.locator(f'.panel-layout > .db-panel[data-panel-key="{neighbour_key}"]').evaluate(
+        "node => Number(node.dataset.gridRow)"
+    )
+    assert reloaded_row <= setup["neighbourRow"], (
+        f"after reload, neighbour should stay at row {setup['neighbourRow']}, "
+        f"but is at row {reloaded_row} — stale footprint persisted across reload"
+    )
