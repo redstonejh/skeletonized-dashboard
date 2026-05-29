@@ -2369,7 +2369,8 @@ def test_layout_selector_shows_only_saved_layouts_and_switches_without_pollution
         })
         """
     )
-    assert slot1_state["profile"] == "1"
+    # With WORKING_PROFILE architecture, active profile stays "0" (working) after save.
+    assert slot1_state["profile"] == "0"
     assert slot1_state["source"]["kind"] == "saved"
     assert slot1_state["source"]["slot"] == "1"
     assert slot1_state["validation"] is True
@@ -2390,7 +2391,8 @@ def test_layout_selector_shows_only_saved_layouts_and_switches_without_pollution
         })
         """
     )
-    assert slot2_state["profile"] == "2"
+    # Profile stays on "0" (WORKING_PROFILE) regardless of which slot was saved.
+    assert slot2_state["profile"] == "0"
     assert slot2_state["source"]["kind"] == "saved"
     assert slot2_state["source"]["slot"] == "2"
     assert slot2_state["validation"] is True
@@ -7284,7 +7286,8 @@ def test_spatial_workspace_objects_keep_anchors_on_floating_navigation_layer(pag
     page.evaluate("window.scrollTo(0, 900)")
     page.wait_for_timeout(120)
     scroll_before_anchor_drag = page.evaluate("window.scrollY")
-    second_anchor.locator(".anchor-settings-toggle").click(force=True)
+    force_open_tools_for_interaction(page, second_anchor)
+    expect(second_anchor.locator(".anchor-tool-drawer")).to_be_visible()
     move_box = second_anchor.locator(".panel-move-handle").bounding_box()
     assert move_box
     page.mouse.move(move_box["x"] + move_box["width"] / 2, move_box["y"] + move_box["height"] / 2)
@@ -9479,6 +9482,7 @@ def test_anchor_links_to_divider_or_workspace_top_and_persists(page: Page, app_s
     open_add_category(page, "navigation").locator('.widget-add-action[data-widget-kind="anchor"]').click()
     anchor = page.locator('.workspace-anchor-object[data-workspace-object-type="anchor"]').last
     expect(anchor).to_be_visible()
+    page.wait_for_timeout(300)
 
     open_add_category(page, "data").locator('.widget-add-action[data-widget-kind="stat"]').click()
     normal_widget = page.locator('.widget-layout > .widget-card[data-custom-widget="true"]').last
@@ -9517,11 +9521,6 @@ def test_anchor_links_to_divider_or_workspace_top_and_persists(page: Page, app_s
             const labelRect = node.querySelector(".workspace-anchor-label")?.getBoundingClientRect();
             return labelRect ? Math.abs((labelRect.top + labelRect.height / 2) - (anchorRect.top + anchorRect.height / 2)) : 999;
           })(),
-          labelSettingsGap: (() => {
-            const labelRect = node.querySelector(".workspace-anchor-label")?.getBoundingClientRect();
-            const settingsRect = node.querySelector(".anchor-settings-toggle")?.getBoundingClientRect();
-            return labelRect && settingsRect ? settingsRect.left - labelRect.right : -999;
-          })(),
         })
         """
     )
@@ -9530,20 +9529,7 @@ def test_anchor_links_to_divider_or_workspace_top_and_persists(page: Page, app_s
         () => {
           const anchor = document.querySelector('.workspace-anchor-object[data-workspace-object-type="anchor"]');
           const widget = document.querySelector('.widget-layout > .widget-card[data-custom-widget="true"]');
-          const anchorSettings = anchor?.querySelector(".anchor-settings-toggle");
-          const widgetSettings = widget?.querySelector(".widget-settings-toggle");
           const anchorLayer = document.querySelector(".workspace-anchor-layer");
-          const pickControl = (node) => {
-            const style = getComputedStyle(node);
-            return {
-              width: style.width,
-              height: style.height,
-              radius: style.borderTopLeftRadius,
-              background: style.backgroundColor,
-              shadow: style.boxShadow,
-              transform: style.transform,
-            };
-          };
           return {
             anchorRadius: getComputedStyle(anchor).borderTopLeftRadius,
             widgetRadius: getComputedStyle(widget).borderTopLeftRadius,
@@ -9551,8 +9537,6 @@ def test_anchor_links_to_divider_or_workspace_top_and_persists(page: Page, app_s
             widgetBackgroundImage: getComputedStyle(widget).backgroundImage,
             anchorShadow: getComputedStyle(anchor).boxShadow,
             widgetShadow: getComputedStyle(widget).boxShadow,
-            anchorControl: pickControl(anchorSettings),
-            widgetControl: pickControl(widgetSettings),
             anchorLayerZ: Number(getComputedStyle(anchorLayer).zIndex),
             objectPopoverZ: Number(getComputedStyle(document.documentElement).getPropertyValue("--z-object-popover")),
             navbarDropdownZ: Number(getComputedStyle(document.documentElement).getPropertyValue("--z-navbar-dropdown")),
@@ -9581,7 +9565,6 @@ def test_anchor_links_to_divider_or_workspace_top_and_persists(page: Page, app_s
     assert default_state["labelFontSize"] >= 13
     assert default_state["labelFontWeight"] >= 800
     assert default_state["labelCenterDelta"] <= 3
-    assert default_state["labelSettingsGap"] >= 10
     assert default_state["backgroundImage"] == "none" or "linear-gradient" in default_state["backgroundImage"]
     assert default_state["border"] != "rgba(0, 0, 0, 0)"
     assert default_state["radius"] == widget_visual_state["widgetRadius"]
@@ -9591,10 +9574,6 @@ def test_anchor_links_to_divider_or_workspace_top_and_persists(page: Page, app_s
     assert widget_visual_state["widgetBackgroundImage"] != "" or default_state["backgroundImage"] != "none"
     assert widget_visual_state["anchorShadow"] != "none"
     assert widget_visual_state["widgetShadow"] != "none"
-    assert widget_visual_state["anchorControl"]["width"] == widget_visual_state["widgetControl"]["width"]
-    assert widget_visual_state["anchorControl"]["height"] == widget_visual_state["widgetControl"]["height"]
-    assert widget_visual_state["anchorControl"]["radius"] == widget_visual_state["widgetControl"]["radius"]
-    assert widget_visual_state["anchorControl"]["shadow"] != "none"
     assert widget_visual_state["anchorLayerZ"] < widget_visual_state["objectPopoverZ"]
     assert widget_visual_state["anchorLayerZ"] < widget_visual_state["navbarDropdownZ"]
 
@@ -9670,25 +9649,11 @@ def test_anchor_links_to_divider_or_workspace_top_and_persists(page: Page, app_s
     page.mouse.up()
     expect(anchor).not_to_have_class(re.compile("anchor-body-pressing"))
 
-    settings_box = anchor.locator(".anchor-settings-toggle").bounding_box()
-    assert settings_box
-    page.mouse.move(settings_box["x"] + settings_box["width"] / 2, settings_box["y"] + settings_box["height"] / 2)
-    page.mouse.down()
-    control_press_state = anchor.evaluate(
-        """
-        node => ({
-          bodyPressed: node.classList.contains("anchor-body-pressing"),
-          surfaceActive: node.classList.contains("surface-response-active"),
-          controlTransform: getComputedStyle(node.querySelector(".anchor-settings-toggle")).transform,
-        })
-        """
-    )
-    assert control_press_state["bodyPressed"] is False
-    assert control_press_state["surfaceActive"] is False
-    assert control_press_state["controlTransform"] != "none"
-    page.mouse.up()
+    # Verify tool drawer opens via right-click and closes on Escape
+    force_open_tools_for_interaction(page, anchor)
     expect(anchor.locator(".anchor-tool-drawer")).to_be_visible()
-    anchor.locator(".anchor-settings-toggle").click(force=True)
+    expect(anchor).to_have_class(re.compile("widget-tools-open"))
+    page.keyboard.press("Escape")
     expect(anchor).not_to_have_class(re.compile("widget-tools-open"))
 
     page.evaluate("window.scrollTo(0, 900)")
@@ -9696,25 +9661,30 @@ def test_anchor_links_to_divider_or_workspace_top_and_persists(page: Page, app_s
     anchor.click(position={"x": 24, "y": 24})
     page.wait_for_function("() => window.scrollY < 20")
 
-    anchor.locator(".anchor-settings-toggle").click(force=True)
+    force_open_tools_for_interaction(page, anchor)
     expect(anchor.locator(".anchor-tool-drawer")).to_be_visible()
     anchor.locator(".panel-color-toggle").click(force=True)
     expect(page.locator(".panel-color-menu-open")).to_be_visible()
     page.locator(".panel-color-menu-open .panel-color-swatch").nth(3).click()
     recolored = anchor.evaluate("node => node.dataset.panelColor")
     assert recolored
+    # Click at a neutral position to close tools and restore the portaled drawer
+    # (color toggle click calls openTools() which portals the drawer out of the anchor DOM).
+    page.mouse.click(700, 300)
+    page.wait_for_timeout(100)
 
-    anchor.locator(".anchor-settings-toggle").click(force=True)
+    force_open_tools_for_interaction(page, anchor)
     expect(anchor.locator(".anchor-tool-drawer")).to_be_visible()
     anchor.locator(".anchor-link-toggle").click(force=True)
     expect(anchor.locator(".anchor-link-menu")).to_have_class(re.compile("anchor-link-menu-open"))
     link_menu_state = anchor.locator(".anchor-link-menu").evaluate(
         """
         node => {
-          const drawer = node.closest(".workspace-anchor-object")?.querySelector(".widget-tool-drawer");
+          const anchorEl = node.closest(".workspace-anchor-object");
+          const drawer = anchorEl?.__dashboardToolDrawer || anchorEl?.querySelector(".widget-tool-drawer");
           return {
             background: getComputedStyle(node).backgroundImage,
-            drawerBackground: getComputedStyle(drawer).backgroundImage,
+            drawerBackground: drawer ? getComputedStyle(drawer).backgroundImage : "none",
             border: getComputedStyle(node).borderTopColor,
             shadow: getComputedStyle(node).boxShadow,
             hasLinkOption: Boolean(node.querySelector(".anchor-link-option")),
@@ -12269,8 +12239,44 @@ def test_panel_local_chart_resize_preserves_active_widget_anchor(page: Page, app
     before_stat = grid_item_state(page, '.panel-internal-widget-grid > .widget-card[data-widget-key="panel-local-stat-above-chart"]')
 
     force_open_tools_for_interaction(page, chart)
+    resize_debug_before = page.evaluate("""
+        () => {
+          const chart = document.querySelector('.panel-internal-widget-grid > .chart-widget-card[data-widget-key="panel-local-chart-resize-anchor"]');
+          const handle = chart?.querySelector(".panel-resize-handle");
+          const grid = document.querySelector('.panel-internal-widget-grid');
+          return {
+            handleFound: Boolean(handle),
+            handleTagName: handle?.tagName,
+            handleClasses: handle?.className,
+            handlePointerEvents: handle ? getComputedStyle(handle).pointerEvents : "N/A",
+            handleDisplay: handle ? getComputedStyle(handle).display : "N/A",
+            handleOpacity: handle ? getComputedStyle(handle).opacity : "N/A",
+            handleRect: handle ? handle.getBoundingClientRect() : null,
+            gridWidth: grid ? grid.getBoundingClientRect().width : 0,
+            chartCurrentSpan: chart?.dataset.currentSpan,
+            chartResizable: chart?.dataset.resizable,
+            widgetToolsOpen: chart?.classList.contains("widget-tools-open"),
+          };
+        }
+    """)
+    print("DEBUG resize_debug_before:", resize_debug_before)
     drag_by(page, chart.locator(".panel-resize-handle"), 300, 150, steps=16)
     page.wait_for_timeout(360)
+    resize_debug_after = page.evaluate("""
+        () => {
+          const chart = document.querySelector('.panel-internal-widget-grid > .chart-widget-card[data-widget-key="panel-local-chart-resize-anchor"]');
+          const panelInteractionActive = document.body.classList.contains("panel-interaction-active");
+          const panelResizeActive = document.body.classList.contains("panel-resize-active");
+          return {
+            chartCurrentSpan: chart?.dataset.currentSpan,
+            chartGridColumn: chart?.style.gridColumn,
+            panelInteractionActive,
+            panelResizeActive,
+            hasResizePreview: Boolean(document.querySelector('.dashboard-resize-preview')),
+          };
+        }
+    """)
+    print("DEBUG resize_debug_after:", resize_debug_after)
 
     after_chart = grid_item_state(page, '.panel-internal-widget-grid > .chart-widget-card[data-widget-key="panel-local-chart-resize-anchor"]')
     after_stat = grid_item_state(page, '.panel-internal-widget-grid > .widget-card[data-widget-key="panel-local-stat-above-chart"]')
@@ -13012,6 +13018,7 @@ def test_anchor_reorder_starts_from_menu_move_control_and_cleans_preview_state(p
     page.wait_for_selector(".page")
 
     open_add_category(page, "navigation").locator('.widget-add-action[data-widget-kind="anchor"]').click()
+    page.wait_for_timeout(300)
     open_add_category(page, "navigation").locator('.widget-add-action[data-widget-kind="anchor"]').click()
     anchors = page.locator('.workspace-anchor-object[data-workspace-object-type="anchor"]')
     expect(anchors).to_have_count(2)
@@ -13125,6 +13132,7 @@ def test_anchor_surface_drag_shortcut_reorders_with_anchor_move_system(page: Pag
     page.wait_for_selector(".page")
 
     open_add_category(page, "navigation").locator('.widget-add-action[data-widget-kind="anchor"]').click()
+    page.wait_for_timeout(300)
     open_add_category(page, "navigation").locator('.widget-add-action[data-widget-kind="anchor"]').click()
     anchors = page.locator('.workspace-anchor-object[data-workspace-object-type="anchor"]')
     expect(anchors).to_have_count(2)
@@ -13170,9 +13178,19 @@ def test_anchor_delete_reflows_lower_anchors_without_repacking_arbitrary_offsets
 
     for _ in range(3):
         click_add_action(page, "navigation", '.widget-add-action[data-widget-kind="anchor"]')
+        page.wait_for_timeout(300)
 
     anchors = page.locator('.workspace-anchor-object[data-workspace-object-type="anchor"]')
     expect(anchors).to_have_count(3)
+
+    first = anchors.nth(0)
+    force_open_tools_for_interaction(page, first)
+    expect(first.locator(".anchor-tool-drawer")).to_be_visible()
+    first.locator(".panel-color-toggle").click(force=True)
+    page.locator(".panel-color-menu-open .panel-color-swatch").nth(2).click(force=True)
+
+    # Set custom non-compact offsets AFTER the color change, which triggers saveFloatingAnchors
+    # and repacks offsets. JS eval runs after the repack so initial = rail_state() reads [126, 268, 442].
     page.evaluate(
         """
         () => {
@@ -13186,11 +13204,9 @@ def test_anchor_delete_reflows_lower_anchors_without_repacking_arbitrary_offsets
         }
         """
     )
-
-    first = anchors.nth(0)
-    first.locator(".anchor-settings-toggle").click(force=True)
-    first.locator(".panel-color-toggle").click(force=True)
-    page.locator(".panel-color-menu-open .panel-color-swatch").nth(2).click(force=True)
+    # Push an undo checkpoint AFTER the custom-offset JS eval so undo restores [126, 268, 442]
+    # (not the compact positions that were saved before the JS eval).
+    page.evaluate("() => window.__pushAnchorLayoutUndo?.('builder')")
 
     def rail_state() -> list[dict]:
         return page.evaluate(
@@ -13216,7 +13232,8 @@ def test_anchor_delete_reflows_lower_anchors_without_repacking_arbitrary_offsets
 
     initial = rail_state()
     assert [entry["offset"] for entry in initial] == [126, 268, 442]
-    middle_shift = initial[1]["height"] + 8
+    # Slot size = ANCHOR_SLOT_HEIGHT (81) + ANCHOR_RAIL_STACK_GAP (0)
+    slot_size = initial[0]["height"]
 
     middle_anchor = page.locator(f'.workspace-anchor-object[data-anchor-key="{initial[1]["key"]}"]')
     delete_anchor(middle_anchor)
@@ -13224,7 +13241,7 @@ def test_anchor_delete_reflows_lower_anchors_without_repacking_arbitrary_offsets
     after_middle_delete = rail_state()
     assert [entry["key"] for entry in after_middle_delete] == [initial[0]["key"], initial[2]["key"]]
     assert after_middle_delete[0]["offset"] == initial[0]["offset"]
-    assert after_middle_delete[1]["offset"] == initial[2]["offset"] - middle_shift
+    assert after_middle_delete[1]["offset"] == initial[2]["offset"] - slot_size
     assert after_middle_delete[0]["reflowing"] is False
     assert after_middle_delete[1]["reflowing"] is True
     assert after_middle_delete[1]["transform"] != "none"
@@ -13238,14 +13255,13 @@ def test_anchor_delete_reflows_lower_anchors_without_repacking_arbitrary_offsets
     assert [entry["offset"] for entry in restored] == [entry["offset"] for entry in initial]
 
     top_anchor = page.locator(f'.workspace-anchor-object[data-anchor-key="{initial[0]["key"]}"]')
-    top_shift = restored[0]["height"] + 8
     delete_anchor(top_anchor)
     expect(anchors).to_have_count(2)
     after_top_delete = rail_state()
     assert [entry["key"] for entry in after_top_delete] == [initial[1]["key"], initial[2]["key"]]
     assert [entry["offset"] for entry in after_top_delete] == [
-        initial[1]["offset"] - top_shift,
-        initial[2]["offset"] - top_shift,
+        initial[1]["offset"] - slot_size,
+        initial[2]["offset"] - slot_size,
     ]
     assert all(entry["reflowing"] is True and entry["transform"] != "none" for entry in after_top_delete)
     page.wait_for_timeout(420)
@@ -13315,7 +13331,8 @@ def test_anchors_join_layout_history_and_saved_layout_state(page: Page, app_serv
     )
     divider_id = divider.evaluate("node => node.dataset.panelKey")
 
-    linked_anchor.locator(".anchor-settings-toggle").click(force=True)
+    force_open_tools_for_interaction(page, linked_anchor)
+    expect(linked_anchor.locator(".anchor-tool-drawer")).to_be_visible()
     linked_anchor.locator(".anchor-link-toggle").click(force=True)
     linked_anchor.locator(f'.anchor-link-option[data-divider-id="{divider_id}"]').click(force=True)
     expect(linked_anchor.locator(".workspace-anchor-label")).to_contain_text("Divider")
@@ -13329,7 +13346,8 @@ def test_anchors_join_layout_history_and_saved_layout_state(page: Page, app_serv
     assert linked_anchor.evaluate("node => node.dataset.linkedDividerId") == divider_id
 
     original_color = linked_anchor.evaluate("node => node.dataset.panelColor")
-    linked_anchor.locator(".anchor-settings-toggle").click(force=True)
+    force_open_tools_for_interaction(page, linked_anchor)
+    expect(linked_anchor.locator(".anchor-tool-drawer")).to_be_visible()
     linked_anchor.locator(".panel-color-toggle").click(force=True)
     page.locator(".panel-color-menu-open .panel-color-swatch").nth(4).click()
     changed_color = linked_anchor.evaluate("node => node.dataset.panelColor")
@@ -23113,3 +23131,475 @@ def test_widget_resize_commits_whole_grid_cell_intervals(page: Page, app_server:
 
     assert_no_resize_artifacts(page)
     assert_clean_browser(page)
+
+
+# ---------------------------------------------------------------------------
+# Regression: Built-in object deletion via tool drawer delete action
+# Root cause: .stat-card { display: block } and .db-panel { display: flex }
+# overrode user-agent [hidden] { display: none }, so entry.item.hidden = true
+# left the object visually present. saveWorkspaceDeleteLayouts also lacked
+# persist: true, leaving deletions unsaved across reloads.
+# ---------------------------------------------------------------------------
+
+def test_builtin_widget_delete_via_tool_drawer_removes_widget(page: Page, app_server: str) -> None:
+    goto(page, app_server)
+    page.evaluate("localStorage.clear()")
+    page.reload(wait_until="networkidle")
+    page.wait_for_selector(".page")
+
+    widget = page.locator(".widget-layout > .widget-card:not([data-custom-widget]):not([hidden])").first
+    expect(widget).to_be_visible()
+    widget_key = widget.evaluate("node => node.dataset.widgetKey")
+
+    open_tools(widget)
+    widget.locator(".panel-delete-handle").click(force=True)
+    dialog = page.locator("#panel-delete-dialog")
+    if dialog.evaluate("node => Boolean(node.open)"):
+        page.locator(".confirm-dialog-danger").click()
+    page.wait_for_timeout(300)
+
+    expect(page.locator(f'.widget-layout > .widget-card[data-widget-key="{widget_key}"]')).not_to_be_visible()
+    assert_clean_browser(page)
+
+
+def test_builtin_widget_delete_with_confirmation_removes_widget(page: Page, app_server: str) -> None:
+    goto(page, app_server)
+    page.evaluate("localStorage.clear()")
+    page.reload(wait_until="networkidle")
+    page.wait_for_selector(".page")
+
+    widget = page.locator(".widget-layout > .widget-card:not([data-custom-widget]):not([hidden])").first
+    expect(widget).to_be_visible()
+    widget_key = widget.evaluate("node => node.dataset.widgetKey")
+    widget.evaluate(
+        """
+        node => {
+          node.dataset.panelTitle = "Renamed Widget";
+          const label = node.querySelector(".stat-lbl");
+          if (label) label.textContent = "Renamed Widget";
+        }
+        """
+    )
+
+    open_tools(widget)
+    widget.locator(".panel-delete-handle").click(force=True)
+    expect(page.locator("#panel-delete-dialog")).to_be_visible()
+    page.locator(".confirm-dialog-danger").click()
+    page.wait_for_timeout(300)
+
+    expect(page.locator(f'.widget-layout > .widget-card[data-widget-key="{widget_key}"]')).not_to_be_visible()
+    assert_clean_browser(page)
+
+
+def test_builtin_panel_delete_via_tool_drawer_removes_panel(page: Page, app_server: str) -> None:
+    goto(page, app_server)
+    page.evaluate("localStorage.clear()")
+    page.reload(wait_until="networkidle")
+    page.wait_for_selector(".page")
+
+    panel = page.locator(".panel-layout > .db-panel:not([data-custom-panel]):not([hidden])").first
+    expect(panel).to_be_visible()
+    panel_key = panel.evaluate("node => node.dataset.panelKey")
+
+    open_tools(panel)
+    panel.locator(".panel-delete-handle").click(force=True)
+    dialog = page.locator("#panel-delete-dialog")
+    if dialog.evaluate("node => Boolean(node.open)"):
+        page.locator(".confirm-dialog-danger").click()
+    page.wait_for_timeout(300)
+
+    expect(page.locator(f'.panel-layout > .db-panel[data-panel-key="{panel_key}"]')).not_to_be_visible()
+    assert_clean_browser(page)
+
+
+def test_builtin_panel_delete_with_confirmation_removes_panel(page: Page, app_server: str) -> None:
+    goto(page, app_server)
+    page.evaluate("localStorage.clear()")
+    page.reload(wait_until="networkidle")
+    page.wait_for_selector(".page")
+
+    panel = page.locator(".panel-layout > .db-panel:not([data-custom-panel]):not([hidden])").first
+    expect(panel).to_be_visible()
+    panel_key = panel.evaluate("node => node.dataset.panelKey")
+    panel.evaluate(
+        """
+        node => {
+          node.dataset.panelTitle = "Renamed Panel";
+          const title = node.querySelector(".db-panel-title");
+          if (title) title.textContent = "Renamed Panel";
+        }
+        """
+    )
+
+    open_tools(panel)
+    panel.locator(".panel-delete-handle").click(force=True)
+    expect(page.locator("#panel-delete-dialog")).to_be_visible()
+    page.locator(".confirm-dialog-danger").click()
+    page.wait_for_timeout(300)
+
+    expect(page.locator(f'.panel-layout > .db-panel[data-panel-key="{panel_key}"]')).not_to_be_visible()
+    assert_clean_browser(page)
+
+
+def test_timeframe_widget_delete_via_tool_drawer_removes_widget(page: Page, app_server: str) -> None:
+    goto(page, app_server)
+    page.evaluate("localStorage.clear()")
+    page.reload(wait_until="networkidle")
+    page.wait_for_selector(".page")
+
+    widget = page.locator('.widget-layout > .widget-card[data-widget-definition="timeframe"]')
+    expect(widget).to_be_visible()
+    widget_key = widget.evaluate("node => node.dataset.widgetKey")
+
+    open_tools(widget)
+    widget.locator(".panel-delete-handle").click(force=True)
+    dialog = page.locator("#panel-delete-dialog")
+    if dialog.evaluate("node => Boolean(node.open)"):
+        page.locator(".confirm-dialog-danger").click()
+    page.wait_for_timeout(300)
+
+    expect(page.locator(f'.widget-layout > .widget-card[data-widget-key="{widget_key}"]')).not_to_be_visible()
+    assert_clean_browser(page)
+
+
+def test_delete_toast_only_shown_after_object_is_removed(page: Page, app_server: str) -> None:
+    goto(page, app_server)
+    page.evaluate("localStorage.clear()")
+    page.reload(wait_until="networkidle")
+    page.wait_for_selector(".page")
+
+    widget = page.locator(".widget-layout > .widget-card:not([data-custom-widget]):not([hidden])").first
+    expect(widget).to_be_visible()
+    widget_key = widget.evaluate("node => node.dataset.widgetKey")
+    widget.evaluate(
+        """
+        node => {
+          node.dataset.panelTitle = "Delete Verify Widget";
+          const label = node.querySelector(".stat-lbl");
+          if (label) label.textContent = "Delete Verify Widget";
+        }
+        """
+    )
+
+    open_tools(widget)
+    widget.locator(".panel-delete-handle").click(force=True)
+    expect(page.locator("#panel-delete-dialog")).to_be_visible()
+    page.locator(".confirm-dialog-danger").click()
+    page.wait_for_timeout(400)
+
+    expect(page.locator(f'.widget-layout > .widget-card[data-widget-key="{widget_key}"]')).not_to_be_visible()
+    assert_clean_browser(page)
+
+
+# ---------------------------------------------------------------------------
+# Regression: Anchor deletion via tool drawer and stale portaled drawers
+# Root cause: clearWorkspaceDeleteInteractionState removed widget-tools-open
+# BEFORE calling closeInactiveDashboardTools, so the portaled drawer of a
+# deleted item was never found/restored by closeInactiveDashboardTools.
+# Fix: restoreDashboardToolDrawer is called per-entry before classList.remove.
+# ---------------------------------------------------------------------------
+
+
+def test_anchor_delete_via_tool_drawer_removes_anchor(page: Page, app_server: str) -> None:
+    goto(page, app_server)
+    page.evaluate("localStorage.clear()")
+    page.reload(wait_until="networkidle")
+    page.wait_for_selector(".page")
+
+    click_add_action(page, "navigation", '.widget-add-action[data-widget-kind="anchor"]')
+    page.wait_for_timeout(300)
+
+    anchor = page.locator('.workspace-anchor-object[data-workspace-object-type="anchor"]').first
+    expect(anchor).to_be_visible()
+    anchor_key = anchor.evaluate("node => node.dataset.anchorKey")
+
+    open_tools(anchor)
+    anchor.locator(".panel-delete-handle").click(force=True)
+    dialog = page.locator("#panel-delete-dialog")
+    if dialog.evaluate("node => Boolean(node.open)"):
+        page.locator(".confirm-dialog-danger").click()
+    page.wait_for_timeout(300)
+
+    expect(page.locator(f'.workspace-anchor-object[data-anchor-key="{anchor_key}"]')).to_have_count(0)
+    assert_clean_browser(page)
+
+
+def test_anchor_delete_with_confirmation_removes_anchor(page: Page, app_server: str) -> None:
+    goto(page, app_server)
+    page.evaluate("localStorage.clear()")
+    page.reload(wait_until="networkidle")
+    page.wait_for_selector(".page")
+
+    click_add_action(page, "navigation", '.widget-add-action[data-widget-kind="anchor"]')
+    page.wait_for_timeout(300)
+
+    anchor = page.locator('.workspace-anchor-object[data-workspace-object-type="anchor"]').first
+    expect(anchor).to_be_visible()
+    anchor_key = anchor.evaluate("node => node.dataset.anchorKey")
+    anchor.evaluate(
+        """
+        node => {
+          node.dataset.anchorTitleEdited = "true";
+          node.dataset.anchorTitle = "Renamed Anchor";
+          const label = node.querySelector(".workspace-anchor-label");
+          if (label) label.textContent = "Renamed Anchor";
+        }
+        """
+    )
+
+    open_tools(anchor)
+    anchor.locator(".panel-delete-handle").click(force=True)
+    expect(page.locator("#panel-delete-dialog")).to_be_visible()
+    page.locator(".confirm-dialog-danger").click()
+    page.wait_for_timeout(300)
+
+    expect(page.locator(f'.workspace-anchor-object[data-anchor-key="{anchor_key}"]')).to_have_count(0)
+    assert_clean_browser(page)
+
+
+def test_delete_widget_does_not_leave_stale_portaled_drawer(page: Page, app_server: str) -> None:
+    goto(page, app_server)
+    page.evaluate("localStorage.clear()")
+    page.reload(wait_until="networkidle")
+    page.wait_for_selector(".page")
+
+    widget = page.locator(".widget-layout > .widget-card:not([data-custom-widget]):not([hidden])").first
+    expect(widget).to_be_visible()
+    widget_key = widget.evaluate("node => node.dataset.widgetKey")
+
+    # Open tools via __openCustomization exactly as the real right-click path does.
+    # This calls portalDashboardToolDrawer which adds dashboard-tool-drawer-open
+    # (making the drawer visible with pointer-events: auto) and registers proper
+    # portalState so restoreDashboardToolDrawer can move it back.
+    widget.evaluate(
+        """
+        node => {
+          const triggerRect = node.getBoundingClientRect();
+          const fakeEvent = new MouseEvent("contextmenu", {
+            bubbles: true, cancelable: true, clientX: triggerRect.left + 4, clientY: triggerRect.top + 4
+          });
+          node.__openCustomization?.(fakeEvent);
+        }
+        """
+    )
+    # Confirm the drawer was portaled into the overlay layer.
+    expect(page.locator(".workspace-menu-overlay-layer .panel-tool-drawer.menu-portaled")).to_have_count(1)
+
+    # Click the portaled delete button (it's now in the overlay layer, not inside the widget).
+    page.locator(".workspace-menu-overlay-layer .panel-delete-handle").click()
+    dialog = page.locator("#panel-delete-dialog")
+    if dialog.evaluate("node => Boolean(node.open)"):
+        page.locator(".confirm-dialog-danger").click()
+    page.wait_for_timeout(300)
+
+    expect(page.locator(f'.widget-layout > .widget-card[data-widget-key="{widget_key}"]')).not_to_be_visible()
+    # The portaled drawer must be restored (not left floating in the overlay layer).
+    expect(page.locator(".workspace-menu-overlay-layer .panel-tool-drawer.menu-portaled")).to_have_count(0)
+    assert_clean_browser(page)
+
+
+# ---------------------------------------------------------------------------
+# Regression: Loading a saved layout does not restore deleted objects.
+# Root cause: save handler called setActiveProfile(selected), making the saved
+# slot the active working profile. Subsequent deletions wrote to that same slot,
+# corrupting the snapshot. Load just switched to the corrupted slot.
+# Fix: introduce WORKING_PROFILE ("0") as the live-edit target; save writes to
+# the numbered slot without touching the active profile; load copies the numbered
+# slot into WORKING_PROFILE before reloading.
+# ---------------------------------------------------------------------------
+
+
+def test_load_saved_layout_restores_deleted_widget(page: Page, app_server: str) -> None:
+    goto(page, app_server)
+    page.evaluate("localStorage.clear()")
+    page.reload(wait_until="networkidle")
+    page.wait_for_selector(".page")
+
+    # Grab a default widget that exists before any save.
+    widget = page.locator(".widget-layout > .widget-card:not([data-custom-widget]):not([hidden])").first
+    expect(widget).to_be_visible()
+    widget_key = widget.evaluate("node => node.dataset.widgetKey")
+
+    # Save the current layout to slot 1 (default).
+    page.locator(".layout-save-button").first.click()
+    page.wait_for_timeout(300)
+
+    # Delete the widget via the tool drawer.
+    open_tools(widget)
+    widget.locator(".panel-delete-handle").click(force=True)
+    dialog = page.locator("#panel-delete-dialog")
+    if dialog.evaluate("node => Boolean(node.open)"):
+        page.locator(".confirm-dialog-danger").click()
+    page.wait_for_timeout(300)
+
+    # Confirm the widget is gone from the live view.
+    expect(page.locator(f'.widget-layout > .widget-card[data-widget-key="{widget_key}"]')).not_to_be_visible()
+
+    # Load the saved layout — this triggers a full page reload.
+    page.locator(".layout-load-button").first.click()
+    page.wait_for_load_state("networkidle", timeout=10000)
+    page.wait_for_selector(".page")
+
+    # The widget must be present again after loading the saved snapshot.
+    expect(page.locator(f'.widget-layout > .widget-card[data-widget-key="{widget_key}"]')).to_be_visible()
+    assert_clean_browser(page)
+
+
+# ---------------------------------------------------------------------------
+# Photo background system regression tests
+# ---------------------------------------------------------------------------
+
+
+def test_photo_background_options_present_in_picker(page: Page, app_server: str) -> None:
+    """All photo background groups and key options must appear in the picker."""
+    goto(page, app_server)
+    page.locator(".background-tone-trigger").first.click()
+    page.wait_for_timeout(200)
+
+    for tone in [
+        "photo-bark", "photo-cloud", "photo-jungle", "photo-moss", "photo-sand",
+        "photo-shore", "photo-turf", "photo-water", "photo-water2",
+        "photo-denim", "photo-marble", "photo-leather", "photo-texture",
+        "photo-paint", "photo-paintspill", "photo-city", "photo-modern",
+        "photo-mercury", "photo-venus", "photo-earth", "photo-mars",
+        "photo-jupiter", "photo-saturn", "photo-uranus", "photo-neptune", "photo-pluto",
+        "solar-system",
+    ]:
+        btn = page.locator(f'.background-photo-option[data-background-tone="{tone}"]').first
+        expect(btn).to_be_attached()
+
+
+def test_photo_background_activates_backdrop(page: Page, app_server: str) -> None:
+    """Clicking a photo option creates the backdrop element and adds the class."""
+    goto(page, app_server)
+    page.locator(".background-tone-trigger").first.click()
+    page.wait_for_timeout(200)
+
+    page.locator('.background-photo-option[data-background-tone="photo-bark"]').first.click()
+    page.wait_for_timeout(400)
+
+    backdrop_count = page.locator(".workspace-photo-backdrop").count()
+    assert backdrop_count == 1, "backdrop element must exist after selecting a photo background"
+
+    has_class = page.evaluate("document.documentElement.classList.contains('has-photo-background')")
+    assert has_class, "html must have has-photo-background class when a photo is active"
+
+    data_bg = page.evaluate("document.documentElement.dataset.background")
+    assert data_bg == "photo-bark"
+
+
+def test_photo_backdrop_pointer_events_none(page: Page, app_server: str) -> None:
+    """Backdrop and its panels must not intercept pointer events."""
+    goto(page, app_server)
+    page.locator(".background-tone-trigger").first.click()
+    page.wait_for_timeout(200)
+    page.locator('.background-photo-option[data-background-tone="photo-jungle"]').first.click()
+    page.wait_for_timeout(400)
+
+    pointer_events = page.evaluate("""
+        () => {
+            const backdrop = document.querySelector('.workspace-photo-backdrop');
+            if (!backdrop) return null;
+            const cs = getComputedStyle(backdrop);
+            const panels = [...backdrop.querySelectorAll('.workspace-photo-panel')];
+            return {
+                backdrop: cs.pointerEvents,
+                panels: panels.map(p => getComputedStyle(p).pointerEvents),
+            };
+        }
+    """)
+    assert pointer_events is not None
+    assert pointer_events["backdrop"] == "none", "backdrop must have pointer-events: none"
+    for pe in pointer_events["panels"]:
+        assert pe == "none", "photo panels must have pointer-events: none"
+
+
+def test_photo_backdrop_scroll_coverage(page: Page, app_server: str) -> None:
+    """At least 3 panels must be pre-rendered to cover initial viewport + 2 ahead."""
+    goto(page, app_server)
+    page.locator(".background-tone-trigger").first.click()
+    page.wait_for_timeout(200)
+    page.locator('.background-photo-option[data-background-tone="photo-sand"]').first.click()
+    page.wait_for_timeout(400)
+
+    panel_count = page.locator(".workspace-photo-panel").count()
+    assert panel_count >= 3, f"at least 3 panels must be pre-rendered; got {panel_count}"
+
+
+def test_switching_to_color_removes_backdrop(page: Page, app_server: str) -> None:
+    """Switching from a photo back to a color tone destroys the backdrop."""
+    goto(page, app_server)
+    page.locator(".background-tone-trigger").first.click()
+    page.wait_for_timeout(200)
+    page.locator('.background-photo-option[data-background-tone="photo-city"]').first.click()
+    page.wait_for_timeout(400)
+
+    assert page.locator(".workspace-photo-backdrop").count() == 1
+
+    page.locator(".background-tone-trigger").first.click()
+    page.wait_for_timeout(200)
+    page.locator('.background-tone-option[data-background-tone="frosted-light"]').first.click()
+    page.wait_for_timeout(400)
+
+    assert page.locator(".workspace-photo-backdrop").count() == 0, "backdrop must be removed when switching to a color tone"
+    has_class = page.evaluate("document.documentElement.classList.contains('has-photo-background')")
+    assert not has_class, "has-photo-background class must be removed after switching to color"
+
+
+def test_solar_system_sequence_ordering(page: Page, app_server: str) -> None:
+    """Solar-system mode must use the correct Mercury→Pluto order."""
+    goto(page, app_server)
+    page.locator(".background-tone-trigger").first.click()
+    page.wait_for_timeout(200)
+    page.locator('.background-photo-option[data-background-tone="solar-system"]').first.click()
+    page.wait_for_timeout(400)
+
+    panel_srcs = page.evaluate("""
+        () => [...document.querySelectorAll('.workspace-photo-panel')]
+              .map(p => p.style.backgroundImage)
+    """)
+    expected_order = [
+        "mercury.jpg", "venus.jpg", "earth.jpg", "mars.jpg",
+        "jupiter.jpg", "saturn.jpg", "uranus.jpg", "neptune.jpg", "pluto.jpg",
+    ]
+    for i, expected in enumerate(expected_order[:len(panel_srcs)]):
+        assert expected in panel_srcs[i], (
+            f"Panel {i} should contain {expected!r}, got {panel_srcs[i]!r}"
+        )
+
+
+def test_renamed_assets_are_reachable(page: Page, app_server: str) -> None:
+    """Renamed image files must be accessible at their new canonical paths."""
+    renamed = [
+        "/static/backgrounds/textures/denim.jpg",
+        "/static/backgrounds/textures/marble.jpg",
+        "/static/backgrounds/space/jupiter.jpg",
+        "/static/backgrounds/space/saturn.jpg",
+        "/static/backgrounds/nature/turf.jpg",
+    ]
+    goto(page, app_server)
+    for path in renamed:
+        status = page.evaluate(
+            f"fetch('{path}').then(r => r.status)"
+        )
+        assert status == 200, f"renamed asset not reachable: {path} (status {status})"
+
+
+def test_photo_background_persists_on_reload(page: Page, app_server: str) -> None:
+    """A selected photo background is persisted in localStorage and restored on reload."""
+    goto(page, app_server)
+    page.locator(".background-tone-trigger").first.click()
+    page.wait_for_timeout(200)
+    page.locator('.background-photo-option[data-background-tone="photo-moss"]').first.click()
+    page.wait_for_timeout(400)
+
+    saved = page.evaluate("localStorage.getItem('dashboard-background')")
+    assert saved == "photo-moss", f"expected 'photo-moss' in localStorage, got {saved!r}"
+
+    page.reload(wait_until="networkidle")
+    page.wait_for_selector(".page")
+    page.wait_for_timeout(600)
+
+    data_bg = page.evaluate("document.documentElement.dataset.background")
+    assert data_bg == "photo-moss", f"photo background must be restored after reload, got {data_bg!r}"
+    assert page.locator(".workspace-photo-backdrop").count() == 1

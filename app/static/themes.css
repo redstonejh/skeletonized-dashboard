@@ -5372,3 +5372,119 @@ body:is(.panel-interaction-active, .panel-resize-active, .workspace-wire-drag-ac
   box-shadow: var(--object-shell-shadow) !important;
 }
 
+/* ── Photo / image background system ─────────────────────────────── */
+
+/* Suppress the color gradient when a photo backdrop is active.
+ * body gets isolation: isolate so z-index: -1 on the backdrop renders
+ * above body's background but below all body content. */
+html.has-photo-background,
+html.has-photo-background body {
+  background: none !important;
+  background-color: #080808 !important;
+  transition: none !important;
+}
+
+body.has-photo-background {
+  isolation: isolate;
+}
+
+/* Photo picker groups — use background-photo-group so the brightness-sort
+ * function (which only queries .background-tone-group) leaves them intact. */
+.background-photo-group {
+  display: grid;
+  gap: 8px;
+}
+
+.background-tone-popover .background-photo-group {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  padding-top: 4px;
+  border-top: 1px solid var(--glass-border);
+  margin-top: 4px;
+}
+
+.background-photo-option {
+  border: 1.5px solid var(--glass-border);
+  background: color-mix(in srgb, var(--glass-surface-strong) 86%, var(--surface-soft));
+  color: var(--muted-strong);
+  box-shadow: var(--shadow-control);
+  transition:
+    transform var(--motion-fast),
+    border-color var(--motion-fast),
+    background var(--motion-fast),
+    color var(--motion-fast),
+    box-shadow var(--motion-fast);
+  display: inline-flex;
+  align-items: center;
+  min-height: 34px;
+  justify-content: flex-start;
+  gap: 8px;
+  padding: 0 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 760;
+  line-height: 1;
+  text-align: left;
+  cursor: pointer;
+  width: 100%;
+}
+
+.background-photo-option::before {
+  content: "";
+  width: 14px;
+  height: 14px;
+  min-width: 14px;
+  border: 1px solid rgba(148, 163, 184, .38);
+  border-radius: 4px;
+  background-size: cover;
+  background-position: center;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .20), 0 2px 6px rgba(15, 23, 42, .14);
+}
+
+.background-photo-option[data-background-tone="photo-bark"]::before       { background-image: url("/static/backgrounds/nature/bark.jpg"); }
+.background-photo-option[data-background-tone="photo-cloud"]::before      { background-image: url("/static/backgrounds/nature/cloud.jpg"); }
+.background-photo-option[data-background-tone="photo-jungle"]::before     { background-image: url("/static/backgrounds/nature/jungle.jpg"); }
+.background-photo-option[data-background-tone="photo-moss"]::before       { background-image: url("/static/backgrounds/nature/moss.jpg"); }
+.background-photo-option[data-background-tone="photo-sand"]::before       { background-image: url("/static/backgrounds/nature/sand.jpg"); }
+.background-photo-option[data-background-tone="photo-shore"]::before      { background-image: url("/static/backgrounds/nature/shore.jpg"); }
+.background-photo-option[data-background-tone="photo-turf"]::before       { background-image: url("/static/backgrounds/nature/turf.jpg"); }
+.background-photo-option[data-background-tone="photo-water"]::before      { background-image: url("/static/backgrounds/nature/water.jpg"); }
+.background-photo-option[data-background-tone="photo-water2"]::before     { background-image: url("/static/backgrounds/nature/water2.jpg"); }
+.background-photo-option[data-background-tone="photo-denim"]::before      { background-image: url("/static/backgrounds/textures/denim.jpg"); }
+.background-photo-option[data-background-tone="photo-marble"]::before     { background-image: url("/static/backgrounds/textures/marble.jpg"); }
+.background-photo-option[data-background-tone="photo-leather"]::before    { background-image: url("/static/backgrounds/textures/leather.jpg"); }
+.background-photo-option[data-background-tone="photo-texture"]::before    { background-image: url("/static/backgrounds/textures/texture.jpg"); }
+.background-photo-option[data-background-tone="photo-paint"]::before      { background-image: url("/static/backgrounds/abstract/paint.jpg"); }
+.background-photo-option[data-background-tone="photo-paintspill"]::before { background-image: url("/static/backgrounds/abstract/paintspill.jpg"); }
+.background-photo-option[data-background-tone="photo-city"]::before       { background-image: url("/static/backgrounds/urban/city.jpg"); }
+.background-photo-option[data-background-tone="photo-modern"]::before     { background-image: url("/static/backgrounds/urban/modern.jpg"); }
+.background-photo-option[data-background-tone="photo-mercury"]::before    { background-image: url("/static/backgrounds/space/mercury.jpg"); }
+.background-photo-option[data-background-tone="photo-venus"]::before      { background-image: url("/static/backgrounds/space/venus.jpg"); }
+.background-photo-option[data-background-tone="photo-earth"]::before      { background-image: url("/static/backgrounds/space/earth.jpg"); }
+.background-photo-option[data-background-tone="photo-mars"]::before       { background-image: url("/static/backgrounds/space/mars.jpg"); }
+.background-photo-option[data-background-tone="photo-jupiter"]::before    { background-image: url("/static/backgrounds/space/jupiter.jpg"); }
+.background-photo-option[data-background-tone="photo-saturn"]::before     { background-image: url("/static/backgrounds/space/saturn.jpg"); }
+.background-photo-option[data-background-tone="photo-uranus"]::before     { background-image: url("/static/backgrounds/space/uranus.jpg"); }
+.background-photo-option[data-background-tone="photo-neptune"]::before    { background-image: url("/static/backgrounds/space/neptune.jpg"); }
+.background-photo-option[data-background-tone="photo-pluto"]::before      { background-image: url("/static/backgrounds/space/pluto.jpg"); }
+.background-photo-option[data-background-tone="solar-system"]::before {
+  background-image: url("/static/backgrounds/space/earth.jpg");
+}
+
+.background-photo-option.is-selected {
+  border-color: color-mix(in srgb, var(--blue) 62%, var(--glass-border));
+  background: color-mix(in srgb, var(--blue) 16%, var(--glass-surface-strong));
+  color: var(--blue);
+  box-shadow:
+    0 10px 24px color-mix(in srgb, var(--blue) 18%, transparent),
+    inset 0 1px 0 var(--glass-highlight);
+}
+
+.background-photo-option:hover,
+.background-photo-option:focus-visible {
+  border-color: color-mix(in srgb, var(--blue) 48%, var(--glass-border));
+  background: color-mix(in srgb, var(--glass-surface-strong) 78%, var(--blue-soft));
+  color: var(--blue);
+  box-shadow:
+    0 12px 26px color-mix(in srgb, var(--blue) 16%, transparent),
+    inset 0 1px 0 var(--glass-highlight);
+}

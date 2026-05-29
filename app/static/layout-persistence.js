@@ -47,12 +47,13 @@
   ]);
   let workspaceClipboard = null;
 
+  const WORKING_PROFILE = "0";
   const profileKey = (layoutKey = "builder") => `${prefixes.panelProfile}${layoutKey}`;
   const getActiveProfile = (layoutKey = "builder") => {
     try {
-      return localStorage.getItem(profileKey(layoutKey)) || "1";
+      return localStorage.getItem(profileKey(layoutKey)) || WORKING_PROFILE;
     } catch {
-      return "1";
+      return WORKING_PROFILE;
     }
   };
   const setActiveProfile = (layoutKey = "builder", profile = "1") => {
@@ -178,13 +179,39 @@
   });
   const nextObjectId = (prefix = "object") => `${prefix}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`;
 
+  const SCOPABLE_PREFIXES = [
+    "panelStorage", "customPanels", "hiddenPanels", "widgetStorage", "customWidgets",
+    "hiddenWidgets", "floatingAnchors", "dataSources", "workspaceContexts",
+    "workspaceAssets", "workspaceLogicGraph", "persistedWorkspace",
+  ];
+  const copyProfile = (layoutKey, fromProfile, toProfile) => {
+    if (!fromProfile || !toProfile || fromProfile === toProfile) return;
+    clearScopedStorage(layoutKey, toProfile);
+    storageKeys(layoutKey, fromProfile).forEach((fromKey) => {
+      for (const name of SCOPABLE_PREFIXES) {
+        const globalPrefix = prefixes[name];
+        const scopedFrom = `${globalPrefix}${fromProfile}:`;
+        if (fromKey.startsWith(scopedFrom)) {
+          const toKey = `${globalPrefix}${toProfile}:${fromKey.slice(scopedFrom.length)}`;
+          try {
+            const value = localStorage.getItem(fromKey);
+            if (value !== null) localStorage.setItem(toKey, value);
+          } catch {}
+          break;
+        }
+      }
+    });
+  };
+
   window.dashboardLayoutPersistence = Object.freeze({
     version: PERSISTED_WORKSPACE_VERSION,
+    WORKING_PROFILE,
     prefixes,
     transientClasses,
     runtimeMeaningDatasetKeys,
     getActiveProfile,
     setActiveProfile,
+    copyProfile,
     key,
     scopedPrefixes,
     storageKeys,

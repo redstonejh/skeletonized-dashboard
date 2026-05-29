@@ -494,6 +494,153 @@ document.addEventListener("DOMContentLoaded", () => {
       themeRoot.style.setProperty("--surface-glass-alpha", surfaceGlassAlpha.toFixed(4));
     });
   };
+  // ── Photo / image background system ───────────────────────────────
+  const PHOTO_BACKGROUNDS = {
+    "photo-bark":        { src: "/static/backgrounds/nature/bark.jpg",        luminance: 0.08 },
+    "photo-cloud":       { src: "/static/backgrounds/nature/cloud.jpg",       luminance: 0.70 },
+    "photo-jungle":      { src: "/static/backgrounds/nature/jungle.jpg",      luminance: 0.06 },
+    "photo-moss":        { src: "/static/backgrounds/nature/moss.jpg",        luminance: 0.10 },
+    "photo-sand":        { src: "/static/backgrounds/nature/sand.jpg",        luminance: 0.65 },
+    "photo-shore":       { src: "/static/backgrounds/nature/shore.jpg",       luminance: 0.42 },
+    "photo-turf":        { src: "/static/backgrounds/nature/turf.jpg",        luminance: 0.12 },
+    "photo-water":       { src: "/static/backgrounds/nature/water.jpg",       luminance: 0.08 },
+    "photo-water2":      { src: "/static/backgrounds/nature/water2.jpg",      luminance: 0.58 },
+    "photo-denim":       { src: "/static/backgrounds/textures/denim.jpg",     luminance: 0.08 },
+    "photo-marble":      { src: "/static/backgrounds/textures/marble.jpg",    luminance: 0.72 },
+    "photo-leather":     { src: "/static/backgrounds/textures/leather.jpg",   luminance: 0.22 },
+    "photo-texture":     { src: "/static/backgrounds/textures/texture.jpg",   luminance: 0.55 },
+    "photo-paint":       { src: "/static/backgrounds/abstract/paint.jpg",     luminance: 0.50 },
+    "photo-paintspill":  { src: "/static/backgrounds/abstract/paintspill.jpg",luminance: 0.05 },
+    "photo-city":        { src: "/static/backgrounds/urban/city.jpg",         luminance: 0.04 },
+    "photo-modern":      { src: "/static/backgrounds/urban/modern.jpg",       luminance: 0.40 },
+    "photo-mercury":     { src: "/static/backgrounds/space/mercury.jpg",      luminance: 0.04 },
+    "photo-venus":       { src: "/static/backgrounds/space/venus.jpg",        luminance: 0.12 },
+    "photo-earth":       { src: "/static/backgrounds/space/earth.jpg",        luminance: 0.06 },
+    "photo-mars":        { src: "/static/backgrounds/space/mars.jpg",         luminance: 0.08 },
+    "photo-jupiter":     { src: "/static/backgrounds/space/jupiter.jpg",      luminance: 0.12 },
+    "photo-saturn":      { src: "/static/backgrounds/space/saturn.jpg",       luminance: 0.06 },
+    "photo-uranus":      { src: "/static/backgrounds/space/uranus.jpg",       luminance: 0.10 },
+    "photo-neptune":     { src: "/static/backgrounds/space/neptune.jpg",      luminance: 0.08 },
+    "photo-pluto":       { src: "/static/backgrounds/space/pluto.jpg",        luminance: 0.06 },
+    "solar-system":      { luminance: 0.06, solarSystem: true },
+  };
+  const SOLAR_SYSTEM_SEQUENCE = [
+    "/static/backgrounds/space/mercury.jpg",
+    "/static/backgrounds/space/venus.jpg",
+    "/static/backgrounds/space/earth.jpg",
+    "/static/backgrounds/space/mars.jpg",
+    "/static/backgrounds/space/jupiter.jpg",
+    "/static/backgrounds/space/saturn.jpg",
+    "/static/backgrounds/space/uranus.jpg",
+    "/static/backgrounds/space/neptune.jpg",
+    "/static/backgrounds/space/pluto.jpg",
+  ];
+  const isPhotoTone = (tone) => tone && (tone.startsWith("photo-") || tone === "solar-system");
+  const getPhotoImages = (tone) =>
+    tone === "solar-system"
+      ? [...SOLAR_SYSTEM_SEQUENCE]
+      : (PHOTO_BACKGROUNDS[tone]?.src ? [PHOTO_BACKGROUNDS[tone].src] : []);
+
+  let photoBackdropEl = null;
+  let photoTrackEl = null;
+  let photoScrollHandler = null;
+  let photoResizeObserver = null;
+  let photoPanelCount = 0;
+  let photoCurrentTone = null;
+  let photoCurrentImages = [];
+
+  const photoEnsurePanel = (panelIndex) => {
+    if (!photoTrackEl || !photoCurrentImages.length) return;
+    const src = photoCurrentImages[panelIndex % photoCurrentImages.length];
+    const panel = document.createElement("div");
+    panel.className = "workspace-photo-panel";
+    panel.style.backgroundImage = `url("${src}")`;
+    photoTrackEl.appendChild(panel);
+    photoPanelCount++;
+  };
+
+  const photoEnsureEnoughPanels = () => {
+    if (!photoTrackEl) return;
+    const vh = window.innerHeight || 1;
+    const needed = Math.max(3, Math.ceil((window.scrollY + vh * 3) / vh));
+    while (photoPanelCount < needed) photoEnsurePanel(photoPanelCount);
+  };
+
+  const photoSyncScroll = () => {
+    if (!photoTrackEl) return;
+    photoTrackEl.style.transform = `translateY(${-window.scrollY}px)`;
+    photoEnsureEnoughPanels();
+  };
+
+  const applyPhotoBackground = (tone) => {
+    const meta = PHOTO_BACKGROUNDS[tone];
+    if (!meta) return;
+    const newImages = getPhotoImages(tone);
+    const toneChanged = tone !== photoCurrentTone;
+    if (toneChanged) {
+      if (photoTrackEl) photoTrackEl.replaceChildren();
+      photoPanelCount = 0;
+      photoCurrentTone = tone;
+      photoCurrentImages = newImages;
+    }
+    if (!photoBackdropEl) {
+      photoBackdropEl = document.createElement("div");
+      photoBackdropEl.className = "workspace-photo-backdrop";
+      photoBackdropEl.setAttribute("aria-hidden", "true");
+      photoTrackEl = document.createElement("div");
+      photoTrackEl.className = "workspace-photo-track";
+      photoBackdropEl.appendChild(photoTrackEl);
+      document.body.insertBefore(photoBackdropEl, document.body.firstChild);
+    }
+    photoBackdropEl.hidden = false;
+    if (!photoScrollHandler) {
+      photoScrollHandler = () => photoSyncScroll();
+      window.addEventListener("scroll", photoScrollHandler, { passive: true });
+    }
+    if (!photoResizeObserver) {
+      photoResizeObserver = new ResizeObserver(() => photoEnsureEnoughPanels());
+      photoResizeObserver.observe(document.documentElement);
+    }
+    document.documentElement.classList.add("has-photo-background");
+    document.body.classList.add("has-photo-background");
+    const lum = clamp01(meta.luminance ?? 0.08);
+    const dark = clamp01(1 - lum);
+    const d = dark;
+    const ec = clamp01(0.24 - d * 0.22);
+    const wm = clamp01(0.70 + d * 0.22);
+    const sc = Math.min(1.10, 1.08 - Math.max(0, d - 0.10) * 0.34);
+    const ga = clamp01(0.68 - d * 0.18);
+    getBackgroundThemeRoots().forEach((root) => {
+      root.style.setProperty("--workspace-bg-luminance", lum.toFixed(4));
+      root.style.setProperty("--workspace-bg-darkness", dark.toFixed(4));
+      root.style.setProperty("--surface-exposure-compensation", ec.toFixed(4));
+      root.style.setProperty("--surface-white-mix-compensation", wm.toFixed(4));
+      root.style.setProperty("--surface-saturation-compensation", sc.toFixed(4));
+      root.style.setProperty("--surface-glass-alpha", ga.toFixed(4));
+    });
+    photoEnsureEnoughPanels();
+    photoSyncScroll();
+  };
+
+  const destroyPhotoBackground = () => {
+    if (photoScrollHandler) {
+      window.removeEventListener("scroll", photoScrollHandler, { passive: true });
+      photoScrollHandler = null;
+    }
+    if (photoResizeObserver) {
+      photoResizeObserver.disconnect();
+      photoResizeObserver = null;
+    }
+    photoBackdropEl?.remove();
+    photoBackdropEl = null;
+    photoTrackEl = null;
+    photoPanelCount = 0;
+    photoCurrentTone = null;
+    photoCurrentImages = [];
+    document.documentElement.classList.remove("has-photo-background");
+    document.body.classList.remove("has-photo-background");
+  };
+
   const sortBackgroundToneMenuOptionsByBrightness = () => {
     document.querySelectorAll(".background-tone-menu").forEach((menu) => {
       const popover = menu.querySelector(".background-tone-popover");
@@ -537,6 +684,35 @@ document.addEventListener("DOMContentLoaded", () => {
   const applyBackgroundTone = (tone = savedBackgroundTone(), options = {}) => {
     const themeRoots = getBackgroundThemeRoots();
     const selectedTone = options.preview ? savedBackgroundTone() : tone;
+    const syncSelectionUI = (activeTone) => {
+      document.querySelectorAll(".background-tone-option, .background-photo-option").forEach((btn) => {
+        const sel = btn.dataset.backgroundTone === activeTone;
+        btn.classList.toggle("is-selected", sel);
+        btn.setAttribute("aria-pressed", sel.toString());
+      });
+      document.querySelectorAll(".background-tone-trigger").forEach((trigger) => {
+        trigger.setAttribute("aria-label", `Workspace background: ${(activeTone || tone).replace(/-/g, " ")}`);
+      });
+    };
+
+    if (isPhotoTone(tone)) {
+      themeRoots.forEach((root) => { root.dataset.background = tone; });
+      applyPhotoBackground(tone);
+      syncSelectionUI(selectedTone);
+      return;
+    }
+
+    // Color tone — hide backdrop during preview (cheap), destroy on commit (clean).
+    if (photoBackdropEl) {
+      if (options.preview) {
+        photoBackdropEl.hidden = true;
+        document.documentElement.classList.remove("has-photo-background");
+        document.body.classList.remove("has-photo-background");
+      } else {
+        destroyPhotoBackground();
+      }
+    }
+
     const palette = getBackgroundTonePalette(tone);
     if (palette?.bg) {
       themeRoots.forEach((themeRoot) => {
@@ -554,14 +730,7 @@ document.addEventListener("DOMContentLoaded", () => {
       });
     }
     setBackgroundExposureCompensation(tone, palette, themeRoots);
-    document.querySelectorAll(".background-tone-option").forEach((button) => {
-      const selected = button.dataset.backgroundTone === selectedTone;
-      button.classList.toggle("is-selected", selected);
-      button.setAttribute("aria-pressed", selected.toString());
-    });
-    document.querySelectorAll(".background-tone-trigger").forEach((trigger) => {
-      trigger.setAttribute("aria-label", `Workspace background: ${tone.replace(/-/g, " ")}`);
-    });
+    syncSelectionUI(selectedTone);
   };
   sortBackgroundToneMenuOptionsByBrightness();
   const previewBackgroundOption = (button) => {
@@ -576,7 +745,7 @@ document.addEventListener("DOMContentLoaded", () => {
     applyBackgroundTone(savedBackgroundTone());
   };
   applyBackgroundTone(savedBackgroundTone());
-  document.querySelectorAll(".background-tone-option").forEach((button) => {
+  document.querySelectorAll(".background-tone-option, .background-photo-option").forEach((button) => {
     button.addEventListener("pointerenter", () => previewBackgroundOption(button));
     button.addEventListener("focus", () => previewBackgroundOption(button));
     button.addEventListener("click", (event) => {
@@ -901,6 +1070,21 @@ document.addEventListener("DOMContentLoaded", () => {
   if (new URLSearchParams(window.location.search).has("saved")) showToast("Settings saved.");
 
   const layoutPersistence = window.dashboardLayoutPersistence;
+  // One-time migration: move working data from numbered save slots to WORKING_PROFILE.
+  // Old code set active profile = save slot on save; this migrates any such state so
+  // the numbered slots become immutable save snapshots.
+  (() => {
+    const WORKING = layoutPersistence.WORKING_PROFILE;
+    document.querySelectorAll("[data-layout-key]").forEach((el) => {
+      const lk = el.dataset.layoutKey;
+      if (!lk) return;
+      const current = layoutPersistence.getActiveProfile(lk);
+      if (current !== WORKING && /^[1-9][0-9]*$/.test(current)) {
+        layoutPersistence.copyProfile(lk, current, WORKING);
+        layoutPersistence.setActiveProfile(lk, WORKING);
+      }
+    });
+  })();
   const PERSISTED_WORKSPACE_VERSION = layoutPersistence.version;
   const getActivePanelProfile = layoutPersistence.getActiveProfile;
   const panelStorageKey = layoutPersistence.key.panelStorage;
@@ -1664,7 +1848,7 @@ document.addEventListener("DOMContentLoaded", () => {
       syncAnchorNavigationTarget(anchor);
       initFloatingAnchor(anchor, layer);
     });
-    normalizeAnchorLayer(layer);
+    preserveAnchorRailPositions(layer);
   };
   const restoreLiveLayoutSnapshot = (snapshot) => {
     cleanupDashboardUndoArtifacts();
@@ -1864,15 +2048,16 @@ document.addEventListener("DOMContentLoaded", () => {
     const touched = new Map();
     entries.forEach((entry) => {
       if (entry.kind === "anchor") {
-        normalizeAnchorLayer(entry.layout);
+        preserveAnchorRailPositions(entry.layout);
+        saveFloatingAnchors(entry.layoutKey, getActivePanelProfile(entry.layoutKey), { persist: true, history: false });
         touched.set(`${entry.layoutKey}:anchor`, { layoutKey: entry.layoutKey, profile: getActivePanelProfile(entry.layoutKey) });
       } else if (entry.kind === "widget") {
         cleanupWidgetRowBreaks(entry.layout);
-        saveWidgetLayouts(entry.layout, getActivePanelProfile(entry.layoutKey), { history: false });
+        saveWidgetLayouts(entry.layout, getActivePanelProfile(entry.layoutKey), { persist: true, history: false });
         touched.set(`${entry.layoutKey}:grid`, { layoutKey: entry.layoutKey, profile: getActivePanelProfile(entry.layoutKey) });
       } else {
         cleanupPanelRowBreaks(entry.layout);
-        savePanelLayouts(entry.layout, getActivePanelProfile(entry.layoutKey), { history: false });
+        savePanelLayouts(entry.layout, getActivePanelProfile(entry.layoutKey), { persist: true, history: false });
         touched.set(`${entry.layoutKey}:grid`, { layoutKey: entry.layoutKey, profile: getActivePanelProfile(entry.layoutKey) });
       }
     });
@@ -1881,6 +2066,7 @@ document.addEventListener("DOMContentLoaded", () => {
   };
   const clearWorkspaceDeleteInteractionState = (entries) => {
     entries.forEach((entry) => {
+      restoreDashboardToolDrawer(entry.item.__dashboardToolDrawer);
       entry.item.classList.remove("widget-tools-open", "db-panel-tools-open", "group-selected");
       dashboardSettingsToggleForItem(entry.item)?.setAttribute("aria-expanded", "false");
       dashboardColorToggleForItem(entry.item)?.setAttribute("aria-expanded", "false");
@@ -6868,16 +7054,16 @@ document.addEventListener("DOMContentLoaded", () => {
     document.querySelector(`.workspace-anchor-layer[data-anchor-layout-key="${CSS.escape(layoutKey)}"]`);
 
   const ANCHOR_RAIL_START = 126;
-  const ANCHOR_RAIL_STACK_GAP = 4;
+  const ANCHOR_RAIL_STACK_GAP = 0;
   // Canonical anchor slot height — must match .workspace-anchor-object min-height in CSS.
   // Used for ALL layout math so positioning is deterministic and independent of render timing.
-  const ANCHOR_SLOT_HEIGHT = 44;
+  const ANCHOR_SLOT_HEIGHT = 81;
 
   // Only used for animation delta measurement (where actual rendered height matters).
   const anchorRailSlotHeight = (anchor) => Math.max(1, Math.round(anchor?.getBoundingClientRect?.().height || ANCHOR_SLOT_HEIGHT));
 
   const clampAnchorOffset = (offset, anchor = null) => {
-    const height = Math.ceil(anchor?.getBoundingClientRect?.().height || 38);
+    const height = Math.ceil(anchor?.getBoundingClientRect?.().height || ANCHOR_SLOT_HEIGHT);
     const min = ANCHOR_RAIL_START;
     const max = Math.max(min, window.innerHeight - height - 22);
     return Math.max(min, Math.min(max, Math.round(Number(offset) || min)));
@@ -7019,9 +7205,21 @@ document.addEventListener("DOMContentLoaded", () => {
       anchorRailAnchors(layer).forEach((anchor) => {
         before.set(anchor, anchor.getBoundingClientRect().top);
       });
+      // Capture deleted anchors' offsets before removal for shift calculation.
+      const slotSize = ANCHOR_SLOT_HEIGHT + ANCHOR_RAIL_STACK_GAP;
+      const deletedOffsets = anchorEntries.map((entry) => Number(entry.item.dataset.anchorOffset || 0));
       anchorEntries.forEach((entry) => entry.item.remove());
+      // Shift each remaining anchor up by one slot per deleted anchor that was above it,
+      // preserving relative spacing rather than fully repacking to compact positions.
       const remaining = anchorRailAnchors(layer);
-      commitAnchorRailOrder(layer, remaining);
+      remaining.forEach((anchor, index) => {
+        const candidateOffset = Number(anchor.dataset.anchorOffset || 0);
+        const shiftCount = deletedOffsets.filter((dOff) => dOff < candidateOffset).length;
+        anchor.dataset.anchorRailOrder = String(index);
+        anchor.dataset.anchorOffset = String(clampAnchorOffset(candidateOffset - shiftCount * slotSize));
+        anchor.style.setProperty("--anchor-offset", `${anchor.dataset.anchorOffset}px`);
+        layer.appendChild(anchor);
+      });
       remaining.forEach((anchor) => {
         const previousTop = before.get(anchor);
         if (previousTop != null) animateAnchorRailOffsetShift(anchor, previousTop);
@@ -12219,6 +12417,7 @@ document.addEventListener("DOMContentLoaded", () => {
     refreshMiniMaps: refreshWorkspaceMiniMaps,
     regionSummaryForWidget: (widgetKey) => workspaceRegionSummaryForItem(widgetKey),
   };
+  window.__pushAnchorLayoutUndo = (layoutKey = "builder") => pushLiveLayoutUndo(layoutKey, getActivePanelProfile(layoutKey));
   const canonicalWidgetInstanceForPersistence = (widget, parentPanel = null) => {
     const definition = widgetDefinitionForElement(widget);
     const instance = widgetInstanceFromElement(widget, definition);
@@ -13292,10 +13491,14 @@ document.addEventListener("DOMContentLoaded", () => {
       if (profileSource.kind !== "demo" || demoWorkspacePresets()[profileSource.id]) return profileSource;
     }
     const stored = readJsonStore(layoutSourceKey(layoutKey), null);
-    if (stored?.kind && stored.kind !== "saved") {
+    if (stored?.kind) {
+      if (stored.kind === "saved") {
+        const slot = stored.slot || stored.id || "1";
+        return { kind: "saved", id: slot, slot, label: stored.label || `Layout ${slot}` };
+      }
       if (stored.kind !== "demo" || demoWorkspacePresets()[stored.id]) return stored;
     }
-    return { kind: "saved", id: getActivePanelProfile(layoutKey), slot: getActivePanelProfile(layoutKey), label: `Layout ${getActivePanelProfile(layoutKey)}` };
+    return { kind: "saved", id: "1", slot: "1", label: "Layout 1" };
   };
   const generatedAiExampleDefinitions = () => demoLayoutRuntime?.aiExampleDefinitions?.() || [];
   const registeredGeneratedLayouts = (layoutKey = "builder") => readJsonStore(generatedLayoutRegistryKey(layoutKey), []);
@@ -14245,7 +14448,10 @@ document.addEventListener("DOMContentLoaded", () => {
   };
 
   const loadSavedLayout = (layoutKey = "builder", slot = "1") => {
-    try { layoutPersistence.setActiveProfile(layoutKey, slot); } catch {}
+    try {
+      layoutPersistence.copyProfile(layoutKey, slot, layoutPersistence.WORKING_PROFILE);
+      layoutPersistence.setActiveProfile(layoutKey, layoutPersistence.WORKING_PROFILE);
+    } catch {}
     setActiveLayoutSource(layoutKey, { kind: "saved", id: slot, slot, label: `Layout ${slot}` });
     showToast(`Loading layout ${slot}.`, "info", {
       type: "layout-load-completed",
@@ -14368,7 +14574,6 @@ document.addEventListener("DOMContentLoaded", () => {
       const currentAssets = loadAssets(layoutKey, currentProfile);
       const currentLogicGraph = loadWorkspaceLogicGraph(layoutKey, currentProfile);
       try {
-        layoutPersistence.setActiveProfile(layoutKey, selected);
         clearLayoutStorage(layoutKey, selected);
       } catch {}
       saveDataSources(layoutKey, selected, currentDataSources);
@@ -14382,6 +14587,9 @@ document.addEventListener("DOMContentLoaded", () => {
       saveFloatingAnchors(layoutKey, selected, { persist: true });
       saveWorkspaceContextState(layoutKey, selected, { persist: true, history: false });
       savePersistedWorkspaceSnapshot(layoutKey, selected);
+      if (selected !== layoutPersistence.WORKING_PROFILE) {
+        layoutPersistence.copyProfile(layoutKey, selected, layoutPersistence.WORKING_PROFILE);
+      }
       setActiveLayoutSource(layoutKey, { kind: "saved", id: selected, slot: selected, label: `Layout ${selected}` });
       renderLayoutSourceMenus();
       showToast(`Layout ${selected} saved.`, "info", {
