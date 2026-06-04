@@ -5745,25 +5745,6 @@ body.has-photo-background .panel-internal-widget-grid > .widget-card {
     inset -1px 0 0 rgba(255, 255, 255, 0.14);
 }
 
-body.has-photo-background .workspace-anchor-layer > .workspace-anchor-object {
-  background:
-    linear-gradient(150deg,
-      rgba(255, 255, 255, var(--glass-photo-sheen-alpha)) 0%,
-      rgba(255, 255, 255, 0.05) 30%,
-      rgba(255, 255, 255, 0) 58%,
-      rgba(255, 255, 255, 0.06) 100%
-    ),
-    rgba(255, 255, 255, var(--glass-photo-base-alpha));
-  border-color: rgba(255, 255, 255, var(--glass-photo-rim-alpha));
-  backdrop-filter: blur(var(--glass-photo-blur)) saturate(var(--glass-photo-saturate));
-  -webkit-backdrop-filter: blur(var(--glass-photo-blur)) saturate(var(--glass-photo-saturate));
-  box-shadow:
-    0 12px 26px rgba(0, 0, 0, calc(var(--glass-photo-drop-shadow-alpha) - 0.06)),
-    inset 0 1px 0 rgba(255, 255, 255, var(--glass-photo-rim-highlight-alpha)),
-    inset 1px 0 0 rgba(255, 255, 255, var(--glass-photo-side-highlight-alpha)),
-    inset -1px 0 0 rgba(255, 255, 255, var(--glass-photo-side-highlight-alpha));
-}
-
 body.has-photo-background .workspace-divider.db-panel,
 body.has-photo-background .workspace-divider.db-panel:hover,
 body.has-photo-background .workspace-divider.db-panel:focus-within {
@@ -6886,11 +6867,6 @@ body.has-photo-background .workspace-anchor-object.widget-card.db-panel-custom-c
  * .db-panel-count (which shows their internal widget count) is
  * untouched. */
 .workspace-divider .db-panel-hd > .db-panel-count {
-  display: none !important;
-}
-
-/* Engineer-mode debug badge from prior round — leave hidden too. */
-.workspace-divider > .workspace-context-badge {
   display: none !important;
 }
 
