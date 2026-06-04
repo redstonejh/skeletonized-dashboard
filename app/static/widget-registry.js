@@ -1910,54 +1910,6 @@
   });
 
   registerWidgetDefinition({
-    type: "search",
-    displayName: "Search Bar",
-    category: "controls",
-    defaultSize: { cols: 2, rows: 1 },
-    minSize: { cols: 2, rows: 1 },
-    widgetType: "search",
-    dashboardObjectKind: "search",
-    contextRole: "search-control",
-    htmlTag: "div",
-    className: "stat-card widget-card widget-card-custom search-widget-card",
-    capabilities: {
-      readsContext: true,
-      writesContext: true,
-      requiresDataSource: false,
-      supportsFilters: true,
-      supportsResize: true,
-    },
-    supportedSettings: ["placeholder", "scope", "color", "pin", "delete"],
-    settingsSchema: {
-      sections: [{
-        id: "search",
-        label: "Search",
-        fields: [
-          { key: "title", label: "Title", type: "text", defaultValue: "Search" },
-          { key: "placeholder", label: "Placeholder", type: "text", defaultValue: " " },
-          { key: "field", label: "Search field", type: "fieldPicker", affectsContext: true },
-          { key: "query", label: "Query", type: "text", defaultValue: "", affectsContext: true },
-        ],
-      }],
-    },
-    queryRequirements: { filters: true },
-    getDefaultConfig: () => ({ title: "Search", query: "", placeholder: " " }),
-    resolveQuery: (config) => config.query
-      ? { filters: [{ field: config.field || "query", operator: "contains", value: config.query }] }
-      : null,
-    render: ({ instance, density = instance.density || "standard" }) => {
-      const title = instance.config.title || "Search";
-      const densityTier = normalizeDensity(density);
-      return `
-        <div class="search-widget-content search-widget-density-${densityTier}" data-density="${escapeHtml(densityTier)}">
-          <div class="range-search search-widget-control" role="search" aria-label="${escapeHtml(title)}">
-            <input class="range-search-input search-widget-input" type="search" placeholder="${escapeHtml(instance.config.placeholder || " ")}" autocomplete="off" aria-label="${escapeHtml(title)}" value="${escapeHtml(instance.config.query || "")}">
-          </div>
-        </div>`;
-    },
-  });
-
-  registerWidgetDefinition({
     type: "text",
     displayName: "Text / Notes",
     category: "content",

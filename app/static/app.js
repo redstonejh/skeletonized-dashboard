@@ -14555,7 +14555,6 @@ document.addEventListener("DOMContentLoaded", () => {
     { category: "visualization", subcategory: "Charts", displayName: "Gauge", actionClass: "widget-add-action", dataset: { widgetKind: "chart-gauge", widgetCreateKind: "graph", objectDisplayName: "Gauge", widgetConfig: JSON.stringify({ title: "Gauge", chartType: "gauge" }), chartType: "gauge" } },
     { category: "visualization", subcategory: "Charts", displayName: "Sparkline", actionClass: "widget-add-action", dataset: { widgetKind: "chart-sparkline", widgetCreateKind: "graph", objectDisplayName: "Sparkline", widgetConfig: JSON.stringify({ title: "Sparkline", chartType: "sparkline" }), chartType: "sparkline" } },
     { category: "visualization", subcategory: "Geospatial", displayName: "Map", actionClass: "widget-add-action", dataset: { widgetKind: "map" } },
-    { category: "controls", displayName: "Search Bar", actionClass: "widget-add-action", dataset: { widgetKind: "search" } },
     { category: "controls", displayName: "Timeframe", actionClass: "widget-add-action", dataset: { widgetKind: "timeframe" } },
     { category: "controls", displayName: "Calendar", actionClass: "widget-add-action", dataset: { widgetKind: "calendar" } },
     { category: "content", displayName: "Text / Notes", actionClass: "widget-add-action", dataset: { widgetKind: "text" } },
