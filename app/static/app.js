@@ -37,6 +37,7 @@ import { seedInitialLayoutHistory } from "./modules/layout-history-seeding.js";
 import { createWorkspaceMinimapRuntime } from "./modules/workspace-minimap-runtime.js";
 import { createWorkspaceObjectModel } from "./modules/workspace-object-model.js";
 import { createDashboardToolDrawerRuntime } from "./modules/dashboard-tool-drawer-runtime.js";
+import { createReflowAnimationRuntime } from "./modules/reflow-animation-runtime.js";
 import {
   applyPanelColor,
   applyPanelTitleColor,
@@ -1836,66 +1837,13 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   };
 
-  const animatePanelReflow = (layout, update, excludeItem = null) => {
-    const host = gridHostForLayout(layout);
-    const selector = host !== layout
-      ? ".panel-layout > .db-panel, .panel-layout > .db-panel-placeholder, .widget-layout > .widget-card, .widget-layout > .widget-placeholder"
-      : ":scope > .db-panel, :scope > .db-panel-placeholder";
-    const items = [...host.querySelectorAll(selector)]
-      .filter((item) => item !== excludeItem && (host === layout || !isPanelInternalGridItem(item)) && !item.classList.contains("db-panel-dragging") && !item.classList.contains("widget-dragging"));
-    const before = new Map(items.map((item) => [item, item.getBoundingClientRect()]));
-    update();
-    const afterItems = [...host.querySelectorAll(selector)]
-      .filter((item) => item !== excludeItem && (host === layout || !isPanelInternalGridItem(item)) && !item.classList.contains("db-panel-dragging") && !item.classList.contains("widget-dragging"));
-    afterItems.forEach((item) => {
-      const first = before.get(item);
-      if (!first) return;
-      const last = item.getBoundingClientRect();
-      const dx = first.left - last.left;
-      const dy = first.top - last.top;
-      if (Math.abs(dx) < 1 && Math.abs(dy) < 1) return;
-      item.animate(
-        [
-          { transform: `translate(${dx}px, ${dy}px)` },
-          { transform: "translate(0, 0)" },
-        ],
-        {
-          duration: 180,
-          easing: "cubic-bezier(.2, .8, .2, 1)",
-        }
-      );
-    });
-  };
-  const animateWidgetReflow = (layout, update, excludeItem = null) => {
-    const host = gridHostForLayout(layout);
-    const selector = host !== layout
-      ? ".widget-layout > .widget-card, .widget-layout > .widget-placeholder, .widget-layout > .widget-spacer, .panel-layout > .db-panel, .panel-layout > .db-panel-placeholder"
-      : ":scope > .widget-card, :scope > .widget-placeholder, :scope > .widget-spacer";
-    const items = [...host.querySelectorAll(selector)]
-      .filter((item) => item !== excludeItem && (host === layout || !isPanelInternalGridItem(item)) && !item.classList.contains("widget-dragging") && !item.classList.contains("db-panel-dragging"));
-    const before = new Map(items.map((item) => [item, item.getBoundingClientRect()]));
-    update();
-    const afterItems = [...host.querySelectorAll(selector)]
-      .filter((item) => item !== excludeItem && (host === layout || !isPanelInternalGridItem(item)) && !item.classList.contains("widget-dragging") && !item.classList.contains("db-panel-dragging"));
-    afterItems.forEach((item) => {
-      const first = before.get(item);
-      if (!first) return;
-      const last = item.getBoundingClientRect();
-      const dx = first.left - last.left;
-      const dy = first.top - last.top;
-      if (Math.abs(dx) < 1 && Math.abs(dy) < 1) return;
-      item.animate(
-        [
-          { transform: `translate(${dx}px, ${dy}px)` },
-          { transform: "translate(0, 0)" },
-        ],
-        {
-          duration: 180,
-          easing: "cubic-bezier(.2, .8, .2, 1)",
-        }
-      );
-    });
-  };
+  const {
+    animatePanelReflow,
+    animateWidgetReflow,
+  } = createReflowAnimationRuntime({
+    gridHostForLayout,
+    isPanelInternalGridItem,
+  });
 
   const widgetRuntimeController = window.dashboardWidgetRuntimeController.createRuntime({
     escapeHtml,
