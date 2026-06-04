@@ -8,7 +8,6 @@
     widgetStorage: "dashboard-widget-six-grid-layout:",
     customWidgets: "dashboard-custom-six-grid-widgets:",
     hiddenWidgets: "dashboard-hidden-six-grid-widgets:",
-    floatingAnchors: "dashboard-floating-anchors:",
     dataSources: "dashboard-data-sources:",
     workspaceContexts: "dashboard-workspace-contexts:",
     workspaceAssets: "dashboard-assets:",
@@ -28,9 +27,6 @@
     "group-transform-member",
     "db-panel-tools-open",
     "widget-tools-open",
-    "anchor-rail-source",
-    "anchor-dragging",
-    "anchor-rail-previewing",
     "panel-header-entry-accept",
     "panel-boundary-exit-release",
     "panel-entry-ghost-transition",
@@ -87,7 +83,6 @@
     widgetStorage: (layoutKey, itemKey, profile = getActiveProfile(layoutKey)) => `${prefixes.widgetStorage}${profile}:${layoutKey}:${itemKey}`,
     customWidgets: (layoutKey, profile = getActiveProfile(layoutKey)) => `${prefixes.customWidgets}${profile}:${layoutKey}`,
     hiddenWidgets: (layoutKey, profile = getActiveProfile(layoutKey)) => `${prefixes.hiddenWidgets}${profile}:${layoutKey}`,
-    floatingAnchors: (layoutKey, profile = getActiveProfile(layoutKey)) => `${prefixes.floatingAnchors}${profile}:${layoutKey}`,
     dataSources: (layoutKey, profile = getActiveProfile(layoutKey)) => `${prefixes.dataSources}${profile}:${layoutKey}`,
     workspaceContexts: (layoutKey, profile = getActiveProfile(layoutKey)) => `${prefixes.workspaceContexts}${profile}:${layoutKey}`,
     workspaceAssets: (layoutKey, profile = getActiveProfile(layoutKey)) => `${prefixes.workspaceAssets}${profile}:${layoutKey}`,
@@ -104,7 +99,6 @@
     `${prefixes.widgetStorage}${profile}:${layoutKey}:`,
     `${prefixes.customWidgets}${profile}:${layoutKey}`,
     `${prefixes.hiddenWidgets}${profile}:${layoutKey}`,
-    `${prefixes.floatingAnchors}${profile}:${layoutKey}`,
     `${prefixes.dataSources}${profile}:${layoutKey}`,
     `${prefixes.workspaceContexts}${profile}:${layoutKey}`,
     `${prefixes.workspaceAssets}${profile}:${layoutKey}`,
@@ -183,11 +177,10 @@
     clone.style.removeProperty("left");
     clone.style.removeProperty("top");
     clone.style.removeProperty("width");
-    clone.querySelectorAll(".panel-settings-toggle, .panel-color-toggle, .anchor-link-toggle").forEach((button) => {
+    clone.querySelectorAll(".panel-settings-toggle, .panel-color-toggle").forEach((button) => {
       button.setAttribute("aria-expanded", "false");
     });
     clone.querySelectorAll(".panel-color-menu-open").forEach((menu) => menu.classList.remove("panel-color-menu-open"));
-    clone.querySelectorAll(".anchor-link-menu-open").forEach((menu) => menu.classList.remove("anchor-link-menu-open"));
     return clone;
   };
   const sanitizeHtml = (element) => sanitizeElementForPersistence(element).outerHTML;
@@ -200,7 +193,7 @@
 
   const SCOPABLE_PREFIXES = [
     "panelStorage", "customPanels", "hiddenPanels", "widgetStorage", "customWidgets",
-    "hiddenWidgets", "floatingAnchors", "dataSources", "workspaceContexts",
+    "hiddenWidgets", "dataSources", "workspaceContexts",
     "workspaceAssets", "workspaceLogicGraph", "persistedWorkspace",
   ];
   const copyProfile = (layoutKey, fromProfile, toProfile) => {

@@ -7,7 +7,7 @@
     activePointerState: null,
     currentInteractionMode: "idle",
     activeAutoScroll: null,
-    activeWorkspaceWireDrag: null,
+    activeWorkspaceDrag: null,
     activeResizeLifecycle: null,
   };
   const activeModes = new Set();
@@ -43,8 +43,7 @@
     activeModes.size > 0 ||
     body?.classList?.contains("panel-interaction-active") ||
     body?.classList?.contains("panel-resize-active") ||
-    body?.classList?.contains("anchor-rail-drag-active") ||
-    body?.classList?.contains("workspace-wire-drag-active")
+    body?.classList?.contains("workspace-drag-active")
   );
 
   const createSurfaceResponseState = (viewport = window) => ({
