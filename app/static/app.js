@@ -31,6 +31,7 @@ import { hydratePanelLayout } from "./modules/panel-layout-hydration.js";
 import { hydrateWidgetLayout } from "./modules/widget-layout-hydration.js";
 import { initializePersistedWorkspaceRuntime } from "./modules/persisted-workspace-runtime.js";
 import { initializeWorkspacePostInit } from "./modules/workspace-post-init.js";
+import { initializeGroupSelectionControls } from "./modules/group-selection-controls.js";
 
 bindInitialRangeControls();
 
@@ -7784,22 +7785,12 @@ document.addEventListener("DOMContentLoaded", () => {
   const {
     setActiveLayoutSource, activeLayoutSource, activeLayoutSlot, layoutSourceLabel, layoutSourceGroups, renderLayoutSourceMenus, closeLayoutSourceMenus, setLayoutTriggerSelection, activateLayoutSource, loadSavedLayout,
   } = layoutSourceRuntime;
-  document.querySelectorAll(".layout-group-button").forEach((button) => {
-    button.addEventListener("click", () => {
-      setGroupMode(!groupMode);
-      showToast(groupMode ? "Select mode enabled." : "Selection cleared.");
-    });
+  initializeGroupSelectionControls({
+    getGroupMode: () => groupMode,
+    setGroupMode,
+    toggleGroupItem,
+    showToast,
   });
-
-  document.addEventListener("click", (event) => {
-    if (!groupMode || event.button !== 0) return;
-    if (event.target?.closest?.(".app-nav, .workspace-menu-overlay-layer, .panel-tools, .widget-tools, .panel-color-menu, .panel-add-menu, .layout-slot-menu, .nav-status-popover")) return;
-    const item = event.target?.closest?.(".widget-layout > .widget-card, .panel-layout > .db-panel");
-    if (!item) return;
-    event.preventDefault();
-    event.stopPropagation();
-    toggleGroupItem(item);
-  }, true);
 
   const objectAddRuntime = initializeObjectAddRuntime({
     positionPortaledMenu,
