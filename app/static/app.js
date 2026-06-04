@@ -57,6 +57,7 @@ import { bindWidgetActionControls } from "./modules/widget-action-controls.js";
 import { bindPanelActionControls } from "./modules/panel-action-controls.js";
 import { bindPanelChildHoverRuntime } from "./modules/panel-child-hover-runtime.js";
 import { bindWidgetMoveRuntime } from "./modules/widget-move-runtime.js";
+import { bindPanelMoveRuntime } from "./modules/panel-move-runtime.js";
 import {
   applyPanelColor,
   applyPanelTitleColor,
@@ -5594,62 +5595,33 @@ document.addEventListener("DOMContentLoaded", () => {
         openPanelTools,
       });
 
-      const beginPanelMove = (event, options = {}) => {
-        if (event.button !== 0) return;
-        if (panel.classList.contains("db-panel-pinned")) return;
-        const surfaceShortcut = Boolean(options.surfaceShortcut);
-        if (surfaceShortcut && !isWorkspaceSurfaceDragStart(event, panel)) return;
-        const restoreToolsAfterDrag = panel.classList.contains("db-panel-tools-open") ||
-          settingsButton?.getAttribute("aria-expanded") === "true" ||
-          panelToolDrawer?.matches(":hover") ||
-          isDashboardToolInteractionTarget(event);
-        window.clearTimeout(toolsCloseTimer);
-        toolPointerCapture = true;
-        if (!surfaceShortcut) openPanelTools();
-        runOrderedDrag({
-          layout,
-          item: panel,
-          event,
-          draggingClass: "db-panel-dragging",
-          placeholderClass: "db-panel-placeholder",
-          threshold: 6,
-          deferStartEventHandling: surfaceShortcut,
-          onCommit: () => {
-            cleanupPanelRowBreaks(layout);
-            saveSharedGridLayouts(layout);
-            emitWorkspaceEvent({
-              type: workspaceObjectType(panel) === WORKSPACE_OBJECT_TYPES.divider ? "divider-moved" : "object-moved",
-              source: "drag",
-              layoutKey,
-              objectId: panel.dataset.panelKey || "",
-              objectType: workspaceObjectType(panel) === WORKSPACE_OBJECT_TYPES.divider ? "divider" : "panel",
-              regionId: regionIdForWorkspaceItem(panel),
-              label: `${panel.dataset.panelTitle || panel.dataset.defaultTitle || "Panel"} moved`,
-              payload: {
-                col: Number(panel.dataset.gridCol) || 0,
-                row: Number(panel.dataset.gridRow) || 0,
-              },
-            });
-          },
-          onEnd: (didDrag) => {
-            toolPointerCapture = false;
-            if (restoreToolsAfterDrag) {
-              armPanelToolLeaveCloseResume();
-              openPanelTools();
-            } else {
-              closePanelTools();
-            }
-            movedDuringPointer = didDrag;
-            requestAnimationFrame(() => {
-              movedDuringPointer = false;
-            });
-          },
-        });
-      };
-      moveHandle?.addEventListener("pointerdown", beginPanelMove);
-      panel.addEventListener("pointerdown", (event) => {
-        if (!isInteractivePanelSurfaceTarget(event)) event.preventDefault();
-        beginPanelMove(event, { surfaceShortcut: true });
+      bindPanelMoveRuntime({
+        panel,
+        layout,
+        layoutKey,
+        moveHandle,
+        settingsButton,
+        panelToolDrawer,
+        isWorkspaceSurfaceDragStart,
+        isDashboardToolInteractionTarget,
+        runOrderedDrag,
+        cleanupPanelRowBreaks,
+        saveSharedGridLayouts,
+        emitWorkspaceEvent,
+        workspaceObjectType,
+        WORKSPACE_OBJECT_TYPES,
+        regionIdForWorkspaceItem,
+        isInteractivePanelSurfaceTarget,
+        openPanelTools,
+        closePanelTools,
+        armPanelToolLeaveCloseResume,
+        clearToolsCloseTimer: () => window.clearTimeout(toolsCloseTimer),
+        setToolPointerCapture: (value) => {
+          toolPointerCapture = value;
+        },
+        setMovedDuringPointer: (value) => {
+          movedDuringPointer = value;
+        },
       });
 
       const beginPanelResize = (event, resizeEdge = "right") => {
