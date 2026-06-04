@@ -1011,7 +1011,6 @@ document.addEventListener("DOMContentLoaded", () => {
   const widgetStorageKey = layoutPersistence.key.widgetStorage;
   const customWidgetsKey = layoutPersistence.key.customWidgets;
   const hiddenWidgetsKey = layoutPersistence.key.hiddenWidgets;
-  const floatingAnchorsKey = layoutPersistence.key.floatingAnchors;
   const dataSourcesKey = layoutPersistence.key.dataSources;
   const workspaceContextsKey = layoutPersistence.key.workspaceContexts;
   const workspaceAssetsKey = layoutPersistence.key.workspaceAssets;
