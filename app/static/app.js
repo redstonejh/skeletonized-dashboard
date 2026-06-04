@@ -7721,7 +7721,7 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
 
-  const layoutSourceRuntime = initializeLayoutSourceRuntime({
+  initializeLayoutSourceRuntime({
     layoutSourceKey,
     readJsonStore,
     writeJsonStore,
@@ -7740,9 +7740,6 @@ document.addEventListener("DOMContentLoaded", () => {
     saveWorkspaceContextState,
     savePersistedWorkspaceSnapshot,
   });
-  const {
-    setActiveLayoutSource, activeLayoutSource, activeLayoutSlot, layoutSourceLabel, layoutSourceGroups, renderLayoutSourceMenus, closeLayoutSourceMenus, setLayoutTriggerSelection, activateLayoutSource, loadSavedLayout,
-  } = layoutSourceRuntime;
   initializeGroupSelectionControls({
     getGroupMode: () => groupMode,
     setGroupMode,
