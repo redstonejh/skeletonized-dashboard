@@ -39,6 +39,7 @@ import { createWorkspaceObjectModel } from "./modules/workspace-object-model.js"
 import { createDashboardToolDrawerRuntime } from "./modules/dashboard-tool-drawer-runtime.js";
 import { createReflowAnimationRuntime } from "./modules/reflow-animation-runtime.js";
 import { createDashboardDomFactories } from "./modules/dashboard-dom-factories.js";
+import { createWorkspaceLogicGraphRuntime } from "./modules/workspace-logic-graph-runtime.js";
 import {
   applyPanelColor,
   applyPanelTitleColor,
@@ -1214,25 +1215,23 @@ document.addEventListener("DOMContentLoaded", () => {
     };
   };
 
-  const emptyWorkspaceLogicGraph = () => ({ version: 1, links: [], relationships: [], operators: [], styleRules: [], contextLinks: [] });
-  const normalizeWorkspaceLogicGraph = () => emptyWorkspaceLogicGraph();
-  const persistedWorkspaceEndpointIds = (snapshot = {}) => new Set([
-    ...(snapshot.widgets || []).map((widget) => widget.id),
-    ...(snapshot.panels || []).map((panel) => panel.id),
-    ...(snapshot.dividers || []).map((divider) => divider.id),
-    ...(snapshot.contexts || []).map((context) => context.id),
-  ].map(String).filter(Boolean));
-  const pruneWorkspaceLogicGraphForEndpointIds = () => emptyWorkspaceLogicGraph();
-  const workspaceLogicGraphFromPersistedSnapshot = () => emptyWorkspaceLogicGraph();
-  const loadWorkspaceLogicGraph = () => emptyWorkspaceLogicGraph();
-  const saveWorkspaceLogicGraph = (layoutKey = "builder", _graph = {}, profile = getActivePanelProfile(layoutKey), options = {}) => {
-    removeStore(workspaceLogicGraphKey(layoutKey, profile));
-    if (options.history !== false) pushLiveLayoutUndo(layoutKey, profile);
-    return emptyWorkspaceLogicGraph();
-  };
-  const deriveWorkspaceRelationships = () => [];
-  const inspectDataSubstrate = () => [];
-  const datasetOriginExposedDatasets = () => [];
+  const {
+    emptyWorkspaceLogicGraph,
+    normalizeWorkspaceLogicGraph,
+    persistedWorkspaceEndpointIds,
+    pruneWorkspaceLogicGraphForEndpointIds,
+    workspaceLogicGraphFromPersistedSnapshot,
+    loadWorkspaceLogicGraph,
+    saveWorkspaceLogicGraph,
+    deriveWorkspaceRelationships,
+    inspectDataSubstrate,
+    datasetOriginExposedDatasets,
+  } = createWorkspaceLogicGraphRuntime({
+    getActivePanelProfile,
+    removeStore,
+    workspaceLogicGraphKey,
+    pushLiveLayoutUndo,
+  });
   const workspaceMinimapRuntime = createWorkspaceMinimapRuntime({
     isEngineerMode,
     gridHostForLayout,
