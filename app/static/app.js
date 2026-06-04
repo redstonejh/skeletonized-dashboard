@@ -1076,10 +1076,9 @@ document.addEventListener("DOMContentLoaded", () => {
     item?.classList?.contains("db-panel-dragging") ||
     item?.classList?.contains("dashboard-active-resize"));
   const surfaceResponseSelector = [
-    ".widget-layout > .widget-card:not(.workspace-anchor-object)",
-    ".panel-internal-widget-grid > .widget-card:not(.workspace-anchor-object)",
+    ".widget-layout > .widget-card",
+    ".panel-internal-widget-grid > .widget-card",
     ".panel-layout > .db-panel:not(.workspace-divider)",
-    ".workspace-anchor-layer > .workspace-anchor-object",
   ].join(", ");
   const surfaceResponseControlSelector = [
     ".app-nav",
@@ -1089,8 +1088,6 @@ document.addEventListener("DOMContentLoaded", () => {
     ".panel-tool-button",
     ".panel-tool-drawer",
     ".panel-color-menu",
-    ".anchor-tools",
-    ".anchor-link-menu",
     ".widget-workbench-panel",
     ".panel-add-menu",
     ".layout-slot-menu",
@@ -1630,7 +1627,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const cleanupDashboardUndoArtifacts = () => {
     endResizeAutoZoomCamera({ immediate: true });
     document.querySelectorAll(
-      ".dashboard-live-resize, .dashboard-resize-preview, .dashboard-expanded-footprint-ghost, .dashboard-group-boundary, .dashboard-group-member-preview, .widget-placeholder, .db-panel-placeholder, .workspace-anchor-drag-ghost, .workspace-anchor-rail-placeholder"
+      ".dashboard-live-resize, .dashboard-resize-preview, .dashboard-expanded-footprint-ghost, .dashboard-group-boundary, .dashboard-group-member-preview, .widget-placeholder, .db-panel-placeholder"
     ).forEach((node) => {
       if (!node.isConnected) return;
       try {
@@ -1649,7 +1646,6 @@ document.addEventListener("DOMContentLoaded", () => {
       "group-transform-active",
       "dashboard-auto-scroll-active",
       "dashboard-interaction-scroll-extended",
-      "anchor-rail-drag-active"
     );
     document.body.style.removeProperty("padding-bottom");
     document.documentElement.style.removeProperty("overflow-anchor");
@@ -1660,10 +1656,6 @@ document.addEventListener("DOMContentLoaded", () => {
     document.querySelectorAll(".dashboard-layout-grid").forEach((host) => host.style.removeProperty("overflow-anchor"));
     document.querySelectorAll(".dashboard-active-resize, .dashboard-resize-source, .group-transform-member").forEach((item) => {
       item.classList.remove("dashboard-active-resize", "dashboard-resize-source", "group-transform-member");
-    });
-    document.querySelectorAll(".anchor-rail-source, .anchor-dragging, .anchor-rail-previewing").forEach((item) => {
-      item.classList.remove("anchor-rail-source", "anchor-dragging", "anchor-rail-previewing");
-      item.style.removeProperty("--anchor-drag-x");
     });
   };
   const restoreLayoutItems = (layout, items, initItem) => {
@@ -1680,22 +1672,6 @@ document.addEventListener("DOMContentLoaded", () => {
       layout.appendChild(element);
       if (!item.rowBreak && !item.spacer) initItem?.(element);
     });
-  };
-  const restoreAnchorItems = (layer, items) => {
-    layer.replaceChildren();
-    items.forEach((item) => {
-      const template = document.createElement("template");
-      template.innerHTML = item.html;
-      const anchor = template.content.firstElementChild;
-      if (!anchor) return;
-      anchor.hidden = Boolean(item.hidden);
-      delete anchor.dataset.anchorInitialized;
-      anchor.classList.remove(...undoTransientItemClasses);
-      layer.appendChild(anchor);
-      syncAnchorNavigationTarget(anchor);
-      initFloatingAnchor(anchor, layer);
-    });
-    preserveAnchorRailPositions(layer);
   };
   const restoreLiveLayoutSnapshot = (snapshot) => {
     cleanupDashboardUndoArtifacts();
@@ -1780,27 +1756,25 @@ document.addEventListener("DOMContentLoaded", () => {
     panelDeleteDialog?.close();
   };
   const workspaceDeleteKind = (item) => {
-    if (item?.classList?.contains("workspace-anchor-object")) return "anchor";
     if (item?.dataset?.workspaceObjectType === "divider" || item?.classList?.contains("workspace-divider")) return "divider";
     if (item?.classList?.contains("widget-card")) return "widget";
     if (item?.classList?.contains("db-panel")) return "panel";
     return "";
   };
-  const workspaceDeleteLayout = (item) => item?.closest?.(".widget-layout, .panel-layout, .workspace-anchor-layer");
+  const workspaceDeleteLayout = (item) => item?.closest?.(".widget-layout, .panel-layout");
   const workspaceDeleteLayoutKey = (item) => {
     const layout = workspaceDeleteLayout(item);
     if (isPanelInternalWidgetLayout(layout)) return gridItemLayoutKey(layout);
-    return layout?.dataset.widgetLayoutKey || layout?.dataset.layoutKey || layout?.dataset.anchorLayoutKey || "default";
+    return layout?.dataset.widgetLayoutKey || layout?.dataset.layoutKey || "default";
   };
   const workspaceDeleteTitle = (item) => {
     const kind = workspaceDeleteKind(item);
-    if (kind === "anchor") return item.querySelector(".workspace-anchor-label")?.textContent?.trim() || item.dataset.anchorTitle || "Anchor";
     if (kind === "widget") return item.dataset.panelTitle || item.querySelector(".stat-lbl")?.textContent?.trim() || "Widget";
     return item.dataset.panelTitle || item.querySelector(".db-panel-title")?.textContent?.trim() || (kind === "divider" ? "Divider" : "Panel");
   };
   const workspaceDeleteId = (item) => {
     const kind = workspaceDeleteKind(item);
-    const key = kind === "anchor" ? item?.dataset?.anchorKey : kind === "widget" ? item?.dataset?.widgetKey : item?.dataset?.panelKey;
+    const key = kind === "widget" ? item?.dataset?.widgetKey : item?.dataset?.panelKey;
     return key ? `${workspaceDeleteLayoutKey(item)}:${kind}:${key}` : "";
   };
   const defaultColorForWorkspaceObject = (item) =>
@@ -1813,7 +1787,6 @@ document.addEventListener("DOMContentLoaded", () => {
   };
   const hasRenamedWorkspaceObject = (item) => {
     const kind = workspaceDeleteKind(item);
-    if (kind === "anchor") return Boolean(item?.dataset?.anchorTitleEdited === "true");
     const title = item?.dataset?.panelTitle;
     if (!title) return false;
     const defaultTitle = item?.dataset?.defaultTitle || "";
@@ -1958,9 +1931,6 @@ document.addEventListener("DOMContentLoaded", () => {
     };
     entries.forEach(extractPanelChildrenBeforeDelete);
     entries.forEach((entry) => {
-      if (entry.kind === "anchor") {
-        return;
-      }
       const hiddenKey = entry.kind === "widget" ? "hiddenWidgetsDraft" : "hiddenPanelsDraft";
       const customKey = entry.kind === "widget" ? "customWidget" : "customPanel";
       const itemKey = entry.kind === "widget" ? "widgetKey" : "panelKey";
@@ -2001,10 +1971,10 @@ document.addEventListener("DOMContentLoaded", () => {
     syncLayoutToolsActive();
     entries.forEach((entry) => {
       emitWorkspaceEvent({
-        type: entry.kind === "anchor" ? "anchor-deleted" : "object-deleted",
+        type: "object-deleted",
         source: "object-delete",
         layoutKey: entry.layoutKey,
-        objectId: entry.item.dataset.anchorKey || entry.item.dataset.widgetKey || entry.item.dataset.panelKey || "",
+        objectId: entry.item.dataset.widgetKey || entry.item.dataset.panelKey || "",
         objectType: entry.kind,
         regionId: regionIdForWorkspaceItem(entry.item),
         panelId: entry.item.dataset.parentPanelKey || entry.item.closest?.(".db-panel")?.dataset?.panelKey || "",
@@ -2122,7 +2092,7 @@ document.addEventListener("DOMContentLoaded", () => {
   };
 
   const isWidgetGridItem = (item) => (
-    (item?.classList?.contains("widget-card") && !item?.classList?.contains("workspace-anchor-object")) ||
+    item?.classList?.contains("widget-card") ||
     item?.classList?.contains("widget-placeholder")
   );
 
@@ -2130,7 +2100,6 @@ document.addEventListener("DOMContentLoaded", () => {
     widget: "widget",
     panel: "panel",
     divider: "divider",
-    anchor: "anchor",
   });
   const WORKSPACE_OBJECT_CAPABILITIES = Object.freeze({
     [WORKSPACE_OBJECT_TYPES.widget]: Object.freeze({
@@ -2163,16 +2132,6 @@ document.addEventListener("DOMContentLoaded", () => {
       usesAnchorLayer: false,
       usesDividerSurface: true,
     }),
-    [WORKSPACE_OBJECT_TYPES.anchor]: Object.freeze({
-      canExpand: false,
-      isOpenable: false,
-      hasExpandedFootprint: false,
-      participatesInGridCollision: false,
-      hasPanelContentArea: false,
-      usesPanelHeader: false,
-      usesAnchorLayer: true,
-      usesDividerSurface: false,
-    }),
   });
   const WORKSPACE_CONTEXT_MODEL_VERSION = "workspace-context-v1";
   const escapeHtml = (value) => String(value || "").replace(/[&<>"']/g, (char) => ({
@@ -2184,14 +2143,12 @@ document.addEventListener("DOMContentLoaded", () => {
   }[char]));
   const workspaceObjectTypeFromDefinition = (definition, fallback) => {
     const rawType = definition?.workspaceObjectType || definition?.objectType || definition?.type || definition?.dashboardObjectKind || fallback;
-    if (rawType === "anchor") return WORKSPACE_OBJECT_TYPES.anchor;
     if (rawType === "divider" || rawType === "context-divider") return WORKSPACE_OBJECT_TYPES.divider;
     if (rawType === "panel") return WORKSPACE_OBJECT_TYPES.panel;
     return fallback || WORKSPACE_OBJECT_TYPES.widget;
   };
   const workspaceObjectType = (item) => {
     const rawType = item?.dataset?.workspaceObjectType || item?.dataset?.dashboardObjectKind || item?.dataset?.widgetType;
-    if (rawType === WORKSPACE_OBJECT_TYPES.anchor) return WORKSPACE_OBJECT_TYPES.anchor;
     if (rawType === WORKSPACE_OBJECT_TYPES.divider || rawType === "context-divider") return WORKSPACE_OBJECT_TYPES.divider;
     if (item?.classList?.contains("db-panel")) return WORKSPACE_OBJECT_TYPES.panel;
     return WORKSPACE_OBJECT_TYPES.widget;
@@ -2206,7 +2163,7 @@ document.addEventListener("DOMContentLoaded", () => {
       item.dataset[key] = String(Boolean(value));
     });
   };
-  const workspaceObjectKey = (item) => item?.dataset?.anchorKey || item?.dataset?.widgetKey || item?.dataset?.panelKey || "";
+  const workspaceObjectKey = (item) => item?.dataset?.widgetKey || item?.dataset?.panelKey || "";
   const workspaceRootRegionId = (layoutKey) => `${layoutKey}:region:root`;
   const workspaceRegionIdForDivider = (divider, layoutKey) => {
     const key = workspaceObjectKey(divider) || "divider";
@@ -2241,7 +2198,6 @@ document.addEventListener("DOMContentLoaded", () => {
     return document.querySelector(`.widget-layout[data-widget-layout-key="${CSS.escape(layoutKey)}"] .widget-card[data-widget-key="${escaped}"]`) ||
       document.querySelector(`.panel-layout[data-layout-key="${CSS.escape(layoutKey)}"] .panel-internal-widget-grid .widget-card[data-widget-key="${escaped}"]`) ||
       document.querySelector(`.panel-layout[data-layout-key="${CSS.escape(layoutKey)}"] .db-panel[data-panel-key="${escaped}"]`) ||
-      document.querySelector(`.workspace-anchor-layer[data-anchor-layout-key="${CSS.escape(layoutKey)}"] .workspace-anchor-object[data-anchor-key="${escaped}"]`) ||
       document.querySelector(`.panel-layout[data-layout-key="${CSS.escape(layoutKey)}"] .db-panel[data-context-scope-id="${escaped}"], .panel-layout[data-layout-key="${CSS.escape(layoutKey)}"] .db-panel[data-workspace-region-id="${escaped}"]`) ||
       null;
   };
@@ -2261,10 +2217,6 @@ document.addEventListener("DOMContentLoaded", () => {
       item.dataset.contextRole = metadata.contextRole || "semantic-boundary";
       item.dataset.contextScopeId = metadata.contextScopeId || workspaceRegionIdForDivider(item, groupItemLayoutKey(item));
       item.dataset.workspaceRegionId = item.dataset.contextScopeId;
-    } else if (inferredType === WORKSPACE_OBJECT_TYPES.anchor) {
-      item.dataset.dashboardObjectKind = metadata.dashboardObjectKind || "anchor";
-      item.dataset.navigationTargetType = metadata.navigationTargetType || "workspace-region";
-      item.dataset.contextRole = metadata.contextRole || item.dataset.contextRole || "navigation-reference";
     } else if (inferredType === WORKSPACE_OBJECT_TYPES.panel) {
       item.dataset.dashboardObjectKind = metadata.dashboardObjectKind || item.dataset.dashboardObjectKind || "panel";
       item.dataset.contextRole = metadata.contextRole || item.dataset.contextRole || "container";
@@ -3129,7 +3081,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (panelLayout) syncWorkspaceRegions(panelLayout);
     if (widgetLayout) syncWorkspaceRegions(widgetLayout);
     const items = [
-      ...document.querySelectorAll(`.widget-layout[data-widget-layout-key="${CSS.escape(layoutKey)}"] > .widget-card:not(.workspace-anchor-object)`),
+      ...document.querySelectorAll(`.widget-layout[data-widget-layout-key="${CSS.escape(layoutKey)}"] > .widget-card`),
       ...document.querySelectorAll(`.panel-layout[data-layout-key="${CSS.escape(layoutKey)}"] > .db-panel`),
       ...document.querySelectorAll(`.panel-layout[data-layout-key="${CSS.escape(layoutKey)}"] .panel-internal-widget-grid > .widget-card`),
     ];
@@ -3183,9 +3135,6 @@ document.addEventListener("DOMContentLoaded", () => {
       }
       item.dataset.workspaceRegionId = activeRegion;
       item.dataset.contextInheritedFrom = activeRegion;
-      if (workspaceObjectType(item) === WORKSPACE_OBJECT_TYPES.anchor && item.dataset.navigationTargetType === "workspace-region") {
-        item.dataset.navigationTargetId = activeRegion;
-      }
     });
     if (contextByRegion.size !== contextDefinitions.length || [...contextByRegion.values()].some((context, index) => context !== contextDefinitions[index])) {
       saveWorkspaceContexts(layoutKey, profile, [...contextByRegion.values()]);
@@ -3317,13 +3266,6 @@ document.addEventListener("DOMContentLoaded", () => {
       else acc.widgets += 1;
       return acc;
     }, { widgets: 0, panels: 0, dividers: 0 });
-    const anchors = [...document.querySelectorAll(`.workspace-anchor-layer[data-anchor-layout-key="${CSS.escape(layoutKey)}"] > .workspace-anchor-object`)]
-      .filter((anchor) => {
-        const linkedDividerId = anchor.dataset.linkedDividerId || "";
-        if (!linkedDividerId) return regionId === workspaceRootRegionId(layoutKey);
-        const divider = document.querySelector(`.workspace-divider[data-panel-key="${CSS.escape(linkedDividerId)}"], .workspace-divider[data-navigation-target-id="${CSS.escape(linkedDividerId)}"]`);
-        return divider ? workspaceRegionIdForDivider(divider, layoutKey) === regionId : false;
-      });
     const context = resolveWorkspaceContextForItem(item || committedContextRegionLayout(layoutKey), { layoutKey, profile });
     return {
       id: regionId,
@@ -3333,7 +3275,6 @@ document.addEventListener("DOMContentLoaded", () => {
       widgets: counts.widgets,
       panels: counts.panels,
       dividers: counts.dividers,
-      anchors: anchors.length,
       totalObjects: counts.widgets + counts.panels + counts.dividers,
       dataSourceName: context?.dataSourceName || context?.dataSourceId || "",
       tags: Array.isArray(context?.tags) ? context.tags : [],
@@ -3738,7 +3679,6 @@ document.addEventListener("DOMContentLoaded", () => {
     ...(snapshot.widgets || []).map((widget) => widget.id),
     ...(snapshot.panels || []).map((panel) => panel.id),
     ...(snapshot.dividers || []).map((divider) => divider.id),
-    ...(snapshot.anchors || []).map((anchor) => anchor.id),
     ...(snapshot.contexts || []).map((context) => context.id),
   ].map(String).filter(Boolean));
   const pruneWorkspaceLogicGraphForEndpointIds = (graph = {}, endpointIds = new Set()) => {
@@ -3787,7 +3727,6 @@ document.addEventListener("DOMContentLoaded", () => {
     return document.querySelector(`.widget-layout[data-widget-layout-key="${CSS.escape(layoutKey)}"] .widget-card[data-widget-key="${escaped}"]`) ||
       document.querySelector(`.panel-layout[data-layout-key="${CSS.escape(layoutKey)}"] .panel-internal-widget-grid .widget-card[data-widget-key="${escaped}"]`) ||
       document.querySelector(`.panel-layout[data-layout-key="${CSS.escape(layoutKey)}"] .db-panel[data-panel-key="${escaped}"]`) ||
-      document.querySelector(`.workspace-anchor-layer[data-anchor-layout-key="${CSS.escape(layoutKey)}"] .workspace-anchor-object[data-anchor-key="${escaped}"]`) ||
       document.querySelector(`.panel-layout[data-layout-key="${CSS.escape(layoutKey)}"] .db-panel[data-context-scope-id="${escaped}"], .panel-layout[data-layout-key="${CSS.escape(layoutKey)}"] .db-panel[data-workspace-region-id="${escaped}"]`) ||
       null;
   };
@@ -3867,8 +3806,6 @@ document.addEventListener("DOMContentLoaded", () => {
       item?.isConnected &&
       !item.hidden &&
       list.indexOf(item) === index &&
-      workspaceObjectType(item) !== WORKSPACE_OBJECT_TYPES.anchor &&
-      !item.closest(".workspace-anchor-layer") &&
       !item.closest(".workspace-minimap-layer") &&
       !isPanelChildElementHiddenForPorts(item)
     ));
@@ -4601,17 +4538,6 @@ document.addEventListener("DOMContentLoaded", () => {
       });
     });
 
-    const anchors = [...document.querySelectorAll(`.workspace-anchor-layer[data-anchor-layout-key="${CSS.escape(layoutKey)}"] > .workspace-anchor-object`)];
-    anchors.forEach((anchor, index) => {
-      const offset = Number(anchor.dataset.anchorOffset || anchor.style.getPropertyValue("--anchor-offset").replace("px", "")) || (120 + (index * 44));
-      svg.appendChild(createMinimapSvgElement("circle", {
-        class: "workspace-minimap-anchor-dot",
-        cx: 5,
-        cy: clampMinimapValue((offset / Math.max(window.innerHeight, 1)) * mapHeight, 5, mapHeight - 5),
-        r: 2.6,
-      }));
-    });
-
     const hostTop = host.getBoundingClientRect().top + window.scrollY;
     const navBottom = document.querySelector(".app-nav")?.getBoundingClientRect().bottom || 0;
     const visibleTop = Math.max(0, window.scrollY + navBottom + 8 - hostTop);
@@ -4986,9 +4912,6 @@ document.addEventListener("DOMContentLoaded", () => {
     panel.style.setProperty("--panel-accent", panel.dataset.panelColor);
     panel.style.setProperty("--panel-accent-rgb", `${rgb.r}, ${rgb.g}, ${rgb.b}`);
     panel.style.setProperty("--panel-accent-text", readableTextFor(rgb));
-    if (panel.classList.contains("workspace-anchor-object")) {
-      panel.style.setProperty("--anchor-accent", panel.dataset.panelColor);
-    }
   };
 
   const styleRulePathValue = (source, path) => {
@@ -5149,7 +5072,7 @@ document.addEventListener("DOMContentLoaded", () => {
   };
 
   const applyStyleRulesForWidget = (widget, options = {}) => {
-    if (!widget?.classList?.contains("widget-card") || widget.classList.contains("workspace-anchor-object")) return [];
+    if (!widget?.classList?.contains("widget-card")) return [];
     const layoutKey = activeLayoutKeyForItem(widget);
     const graph = loadWorkspaceLogicGraph(layoutKey, getActivePanelProfile(layoutKey));
     const targetId = widget.dataset.widgetKey || "";
@@ -6258,7 +6181,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   };
   const refreshWidgetRuntimeData = async (widget, resolvedContext, options = {}) => {
-    if (!widget?.isConnected || widget.classList.contains("workspace-anchor-object")) return;
+    if (!widget?.isConnected) return;
     if (widget.contains(document.activeElement) && !options.allowFocused) return;
     const definition = widgetDefinitionForElement(widget);
     const instance = widgetInstanceFromElement(widget, definition);
@@ -6728,898 +6651,6 @@ document.addEventListener("DOMContentLoaded", () => {
   const ensurePanelInternalWidgetGrid = (panel) => panelContainmentRuntime.ensurePanelInternalWidgetGrid(panel);
 
   const restorePanelChildWidgets = (panel, definitions = []) => panelContainmentRuntime.restorePanelChildWidgets(panel, definitions);
-
-  const anchorLayerForLayoutKey = (layoutKey = "default") =>
-    document.querySelector(`.workspace-anchor-layer[data-anchor-layout-key="${CSS.escape(layoutKey)}"]`);
-
-  const ANCHOR_RAIL_START = 126;
-  // Anchor stacking gap matches the workspace --panel-gap rhythm (18px)
-  // so anchors don't visually touch each other. Diagnostic confirmed
-  // anchors were stacking with 0px gap (anchor1.bottom === anchor2.top).
-  const ANCHOR_RAIL_STACK_GAP = 18;
-  // Canonical anchor slot height — must match .workspace-anchor-object min-height in CSS.
-  // Used for ALL layout math so positioning is deterministic and independent of render timing.
-  const ANCHOR_SLOT_HEIGHT = 81;
-
-  // Only used for animation delta measurement (where actual rendered height matters).
-  const anchorRailSlotHeight = (anchor) => Math.max(1, Math.round(anchor?.getBoundingClientRect?.().height || ANCHOR_SLOT_HEIGHT));
-
-  const clampAnchorOffset = (offset, anchor = null) => {
-    const height = Math.ceil(anchor?.getBoundingClientRect?.().height || ANCHOR_SLOT_HEIGHT);
-    const min = ANCHOR_RAIL_START;
-    const max = Math.max(min, window.innerHeight - height - 22);
-    return Math.max(min, Math.min(max, Math.round(Number(offset) || min)));
-  };
-
-  const anchorOrderValue = (anchor, fallback = 0) => {
-    const order = Number(anchor?.dataset?.anchorRailOrder);
-    if (Number.isFinite(order)) return order;
-    const offset = Number(anchor?.dataset?.anchorOffset);
-    return Number.isFinite(offset) ? offset : fallback;
-  };
-
-  const anchorRailAnchors = (layer) => [...layer.querySelectorAll(":scope > .workspace-anchor-object:not(.workspace-anchor-drag-ghost)")]
-    .sort((a, b) => anchorOrderValue(a) - anchorOrderValue(b));
-
-  // Positions are derived purely from index so the layout is always compact regardless of
-  // stored offsets, render timing, or measured heights.  slotHeights is accepted for compat
-  // with callers but is intentionally ignored here.
-  const anchorRailOffsetsForOrder = (orderedAnchors, _slotHeights) => {
-    const offsets = new Map();
-    orderedAnchors.forEach((anchor, index) => {
-      offsets.set(anchor, ANCHOR_RAIL_START + index * (ANCHOR_SLOT_HEIGHT + ANCHOR_RAIL_STACK_GAP));
-    });
-    return offsets;
-  };
-
-  const nextAnchorRailOffset = (layer) => {
-    const count = anchorRailAnchors(layer).length;
-    return clampAnchorOffset(ANCHOR_RAIL_START + count * (ANCHOR_SLOT_HEIGHT + ANCHOR_RAIL_STACK_GAP));
-  };
-
-  const anchorDefinitionFromElement = (anchor) => ({
-    key: anchor.dataset.anchorKey,
-    title: anchor.dataset.anchorTitle || "Anchor",
-    side: "left",
-    railOrder: Number(anchor.dataset.anchorRailOrder) || 0,
-    offset: Number(anchor.dataset.anchorOffset) || 148,
-    color: anchor.dataset.panelColor || "#2563eb",
-    linkedDividerId: anchor.dataset.linkedDividerId || null,
-    workspaceObjectType: WORKSPACE_OBJECT_TYPES.anchor,
-    dashboardObjectKind: "anchor",
-    contextRole: anchor.dataset.contextRole || "navigation-reference",
-    workspaceRegionId: anchor.dataset.workspaceRegionId || null,
-    contextScopeId: anchor.dataset.contextScopeId || null,
-    navigationTargetType: anchor.dataset.navigationTargetType || (anchor.dataset.linkedDividerId ? "divider" : "workspace-top"),
-    navigationTargetId: anchor.dataset.navigationTargetId || null,
-  });
-
-  const applyAnchorColor = (anchor, color) => {
-    const rgb = hexToRgb(color);
-    if (!rgb) return;
-    anchor.dataset.panelColor = `#${String(color).replace("#", "")}`;
-    anchor.style.setProperty("--panel-accent", anchor.dataset.panelColor);
-    anchor.style.setProperty("--panel-accent-rgb", `${rgb.r}, ${rgb.g}, ${rgb.b}`);
-    anchor.style.setProperty("--panel-accent-text", readableTextFor(rgb));
-    anchor.style.setProperty("--anchor-accent", anchor.dataset.panelColor);
-  };
-
-  const applyAnchorPosition = (anchor) => {
-    const offset = Math.max(ANCHOR_RAIL_START, Math.round(Number(anchor.dataset.anchorOffset) || ANCHOR_RAIL_START));
-    anchor.dataset.anchorSide = "left";
-    anchor.dataset.anchorOffset = String(offset);
-    anchor.style.setProperty("--anchor-offset", `${offset}px`);
-  };
-
-  const commitAnchorRailOrder = (layer, orderedAnchors = anchorRailAnchors(layer), slotHeights = new Map()) => {
-    const offsets = anchorRailOffsetsForOrder(orderedAnchors, slotHeights);
-    orderedAnchors.forEach((anchor, index) => {
-      anchor.dataset.anchorSide = "left";
-      anchor.dataset.anchorRailOrder = String(index);
-      anchor.dataset.anchorOffset = String(offsets.get(anchor) || ANCHOR_RAIL_START);
-      applyAnchorPosition(anchor);
-      layer.appendChild(anchor);
-    });
-  };
-
-  const preserveAnchorRailPositions = (layer, orderedAnchors = anchorRailAnchors(layer)) => {
-    orderedAnchors.forEach((anchor, index) => {
-      anchor.dataset.anchorSide = "left";
-      anchor.dataset.anchorRailOrder = String(index);
-      anchor.dataset.anchorOffset = String(clampAnchorOffset(anchor.dataset.anchorOffset, anchor));
-      applyAnchorPosition(anchor);
-      layer.appendChild(anchor);
-    });
-  };
-
-  const normalizeAnchorLayer = (layer) => {
-    commitAnchorRailOrder(layer);
-  };
-
-  const previewIndexForPointer = (ghostOffset, peers) => {
-    // Compare ghost top against each peer's current visual midpoint.
-    // Peers have their --anchor-offset updated each preview frame so this
-    // correctly tracks what the user sees.  Height is always ANCHOR_SLOT_HEIGHT.
-    for (let index = 0; index < peers.length; index += 1) {
-      const peer = peers[index];
-      const peerOffset = parseFloat(peer.style.getPropertyValue("--anchor-offset")) ||
-                         Math.round(peer.getBoundingClientRect().top);
-      if (ghostOffset < peerOffset + ANCHOR_SLOT_HEIGHT / 2) return index;
-    }
-    return peers.length;
-  };
-
-  const animateAnchorRailOffsetShift = (anchor, previousTop) => {
-    const nextTop = anchor.getBoundingClientRect().top;
-    const deltaY = Math.round(previousTop - nextTop);
-    if (Math.abs(deltaY) < 1) return;
-    anchor.classList.add("anchor-rail-reflowing");
-    anchor.style.transition = "none";
-    anchor.style.transform = `translate3d(0, ${deltaY}px, 0)`;
-    anchor.getBoundingClientRect();
-    const clear = () => {
-      anchor.classList.remove("anchor-rail-reflowing");
-      anchor.style.removeProperty("transition");
-      anchor.style.removeProperty("transform");
-      anchor.removeEventListener("transitionend", clear);
-      anchor.removeEventListener("transitioncancel", clear);
-    };
-    anchor.addEventListener("transitionend", clear);
-    anchor.addEventListener("transitioncancel", clear);
-    requestAnimationFrame(() => {
-      anchor.style.removeProperty("transition");
-      anchor.style.removeProperty("transform");
-    });
-  };
-
-  const removeAnchorsWithRailReflow = (entries) => {
-    const byLayer = new Map();
-    entries
-      .filter((entry) => entry.kind === "anchor")
-      .forEach((entry) => {
-        const group = byLayer.get(entry.layout) || [];
-        group.push(entry);
-        byLayer.set(entry.layout, group);
-      });
-    byLayer.forEach((anchorEntries, layer) => {
-      // Snapshot visual tops before removal so animations can play from the old positions.
-      const before = new Map();
-      anchorRailAnchors(layer).forEach((anchor) => {
-        before.set(anchor, anchor.getBoundingClientRect().top);
-      });
-      // Capture deleted anchors' offsets before removal for shift calculation.
-      const slotSize = ANCHOR_SLOT_HEIGHT + ANCHOR_RAIL_STACK_GAP;
-      const deletedOffsets = anchorEntries.map((entry) => Number(entry.item.dataset.anchorOffset || 0));
-      anchorEntries.forEach((entry) => entry.item.remove());
-      // Shift each remaining anchor up by one slot per deleted anchor that was above it,
-      // preserving relative spacing rather than fully repacking to compact positions.
-      const remaining = anchorRailAnchors(layer);
-      remaining.forEach((anchor, index) => {
-        const candidateOffset = Number(anchor.dataset.anchorOffset || 0);
-        const shiftCount = deletedOffsets.filter((dOff) => dOff < candidateOffset).length;
-        anchor.dataset.anchorRailOrder = String(index);
-        anchor.dataset.anchorOffset = String(clampAnchorOffset(candidateOffset - shiftCount * slotSize));
-        anchor.style.setProperty("--anchor-offset", `${anchor.dataset.anchorOffset}px`);
-        layer.appendChild(anchor);
-      });
-      remaining.forEach((anchor) => {
-        const previousTop = before.get(anchor);
-        if (previousTop != null) animateAnchorRailOffsetShift(anchor, previousTop);
-      });
-    });
-  };
-
-  const anchorLinkedDividerTarget = (anchor) => {
-    const dividerId = anchor?.dataset?.linkedDividerId || "";
-    if (!dividerId) return null;
-    const escapedDividerId = CSS.escape(dividerId);
-    return document.querySelector([
-      `.workspace-divider[data-panel-key="${escapedDividerId}"]`,
-      `.workspace-divider[data-workspace-region-id="${escapedDividerId}"]`,
-      `.workspace-divider[data-context-scope-id="${escapedDividerId}"]`,
-    ].join(", "));
-  };
-
-  const anchorTargetViewportTop = (target) => {
-    const currentScroll = window.scrollY || document.documentElement.scrollTop || 0;
-    const grid = target.closest(".dashboard-layout-grid") || document.querySelector(".dashboard-layout-grid");
-    const nav = document.querySelector(".app-nav.workspace-chrome, .app-nav");
-    const navStyles = nav ? getComputedStyle(nav) : null;
-    const stickyTop = Number.parseFloat(navStyles?.top || "");
-    const navBottom = nav
-      ? Math.max(0, Math.round(
-        (navStyles?.position === "sticky" || navStyles?.position === "fixed") && Number.isFinite(stickyTop)
-          ? stickyTop + nav.offsetHeight
-          : nav.getBoundingClientRect().bottom
-      ))
-      : 0;
-    if (!grid) return navBottom + 8;
-    const firstWorkspaceObject = [...grid.querySelectorAll(".widget-layout > .widget-card:not(.workspace-anchor-object):not([hidden]), .panel-layout > .db-panel:not([hidden])")]
-      .filter((item) => item.offsetParent !== null)
-      .sort((a, b) => {
-        const aTop = a.getBoundingClientRect().top + currentScroll;
-        const bTop = b.getBoundingClientRect().top + currentScroll;
-        return aTop - bTop;
-      })[0];
-    const firstObjectRect = firstWorkspaceObject?.getBoundingClientRect?.();
-    const gridTop = grid.getBoundingClientRect().top + currentScroll;
-    const firstObjectTop = firstObjectRect ? firstObjectRect.top + currentScroll : gridTop;
-    const navMarginBottom = Number.parseFloat(navStyles?.marginBottom || "");
-    const navDocumentBottom = nav ? Math.round(nav.getBoundingClientRect().bottom + currentScroll) : 0;
-    const measuredTopGutter = Math.round(firstObjectTop - navDocumentBottom);
-    const topObjectGutter = Math.max(8, Math.round(Number.isFinite(navMarginBottom) && navMarginBottom > 0 ? navMarginBottom : measuredTopGutter));
-    return navBottom + topObjectGutter;
-  };
-
-  const anchorNavigationRunway = () => {
-    let runway = document.querySelector(".workspace-anchor-scroll-runway");
-    if (!runway) {
-      runway = document.createElement("div");
-      runway.className = "workspace-anchor-scroll-runway";
-      runway.setAttribute("aria-hidden", "true");
-      document.body.appendChild(runway);
-    }
-    return runway;
-  };
-
-  const clearAnchorNavigationRunway = () => {
-    document.querySelector(".workspace-anchor-scroll-runway")?.remove();
-  };
-
-  const ensureAnchorNavigationRunway = (target, viewportTop) => {
-    const runway = anchorNavigationRunway();
-    const currentScroll = window.scrollY || document.documentElement.scrollTop || 0;
-    const targetTop = target.getBoundingClientRect().top + currentScroll;
-    const requiredScrollHeight = Math.ceil(targetTop + window.innerHeight - viewportTop + 32);
-    const currentRunwayHeight = Number.parseFloat(runway.style.height || "0") || 0;
-    const baseScrollHeight = document.documentElement.scrollHeight - currentRunwayHeight;
-    const missingHeight = Math.max(0, requiredScrollHeight - baseScrollHeight);
-    runway.style.height = `${missingHeight}px`;
-  };
-
-  const anchorTargetScrollTop = (target) => {
-    const currentScroll = window.scrollY || document.documentElement.scrollTop || 0;
-    const targetTop = target.getBoundingClientRect().top + currentScroll;
-    const viewportTop = anchorTargetViewportTop(target);
-    ensureAnchorNavigationRunway(target, viewportTop);
-    const maxScroll = Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
-    return Math.max(0, Math.min(maxScroll, Math.round(targetTop - viewportTop)));
-  };
-
-  const syncAnchorNavigationTarget = (anchor) => {
-    const target = anchorLinkedDividerTarget(anchor);
-    if (target) {
-      anchor.dataset.navigationTargetType = "divider";
-      anchor.dataset.navigationTargetId = target.dataset.contextScopeId || target.dataset.workspaceRegionId || target.dataset.panelKey;
-      anchor.dataset.workspaceRegionId = target.dataset.workspaceRegionId || target.dataset.contextScopeId || "";
-      anchor.dataset.contextScopeId = target.dataset.contextScopeId || "";
-    } else {
-      delete anchor.dataset.linkedDividerId;
-      anchor.dataset.navigationTargetType = "workspace-top";
-      anchor.dataset.navigationTargetId = "";
-      anchor.dataset.workspaceRegionId = "";
-      anchor.dataset.contextScopeId = "";
-    }
-    const label = anchor.querySelector(".workspace-anchor-label");
-    const targetLabel = target ? target.querySelector(".db-panel-title")?.textContent?.trim() || "Divider" : "Top";
-    if (label) label.textContent = targetLabel;
-    anchor.setAttribute("aria-label", `${targetLabel} spatial anchor`);
-  };
-
-  // When a divider title changes, anchors that link to it should re-derive
-  // their labels from the new title. The divider's identity stays on
-  // dataset.panelKey / dataset.workspaceRegionId / dataset.contextScopeId,
-  // any of which the anchor may have stored as its linkedDividerId
-  // (anchorLinkedDividerTarget tries all three).
-  const refreshAnchorsLinkedToDivider = (divider) => {
-    if (!divider) return;
-    const candidateIds = [
-      divider.dataset.panelKey,
-      divider.dataset.workspaceRegionId,
-      divider.dataset.contextScopeId,
-    ].filter(Boolean);
-    if (!candidateIds.length) return;
-    document.querySelectorAll(".workspace-anchor-layer > .workspace-anchor-object").forEach((anchor) => {
-      const linkedId = anchor.dataset.linkedDividerId || "";
-      if (!linkedId) return;
-      if (candidateIds.includes(linkedId)) syncAnchorNavigationTarget(anchor);
-    });
-  };
-
-  const dividerOptionsForAnchor = (layoutKey = "builder") => [
-    ...document.querySelectorAll(`.panel-layout[data-layout-key="${CSS.escape(layoutKey)}"] .workspace-divider[data-workspace-object-type="divider"]`)
-  ];
-
-  const refreshAnchorDividerMenu = (anchor, menu, layoutKey) => {
-    if (!anchor || !menu) return;
-    menu.replaceChildren();
-    const makeOption = ({ label, dividerId = "" }) => {
-      const option = document.createElement("button");
-      option.className = "anchor-link-option";
-      option.type = "button";
-      option.dataset.dividerId = dividerId;
-      option.setAttribute("aria-pressed", String((anchor.dataset.linkedDividerId || "") === dividerId));
-      option.textContent = label;
-      option.addEventListener("click", (event) => {
-        event.preventDefault();
-        event.stopPropagation();
-        if (dividerId) {
-          anchor.dataset.linkedDividerId = dividerId;
-        } else {
-          delete anchor.dataset.linkedDividerId;
-        }
-        syncAnchorNavigationTarget(anchor);
-        refreshAnchorDividerMenu(anchor, menu, layoutKey);
-        anchor.classList.remove("widget-tools-open");
-        anchor.querySelector(".anchor-settings-toggle")?.setAttribute("aria-expanded", "false");
-        menu.classList.remove("anchor-link-menu-open");
-        anchor.querySelector(".anchor-link-toggle")?.setAttribute("aria-expanded", "false");
-        syncLayoutToolsActive();
-        saveFloatingAnchors(layoutKey, getActivePanelProfile(layoutKey));
-        emitWorkspaceEvent({
-          type: "anchor-linked",
-          source: "anchor-menu",
-          layoutKey,
-          objectId: anchor.dataset.anchorKey || "",
-          objectType: "anchor",
-          regionId: anchor.dataset.workspaceRegionId || "",
-          label: dividerId ? "Anchor linked to divider" : "Anchor link cleared",
-          payload: {
-            linkedDividerId: anchor.dataset.linkedDividerId || null,
-            navigationTargetType: anchor.dataset.navigationTargetType || "workspace-top",
-          },
-        });
-      });
-      menu.appendChild(option);
-    };
-    makeOption({ label: "Top of workspace" });
-    dividerOptionsForAnchor(layoutKey).forEach((divider) => {
-      makeOption({
-        label: divider.querySelector(".db-panel-title")?.textContent?.trim() || "Divider",
-        dividerId: divider.dataset.panelKey || "",
-      });
-    });
-    if (menu.children.length === 1) {
-      const empty = document.createElement("span");
-      empty.className = "anchor-link-empty";
-      empty.textContent = "No dividers yet";
-      menu.appendChild(empty);
-    }
-  };
-
-  const createFloatingAnchor = (definition = {}) => {
-    const anchor = document.createElement("div");
-    const title = definition.title || "Anchor";
-    const key = definition.key || `anchor-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`;
-    const layoutKey = definition.layoutKey || "builder";
-    anchor.className = "workspace-anchor-object widget-card stat-card db-panel-custom-color";
-    anchor.setAttribute("role", "button");
-    anchor.tabIndex = 0;
-    anchor.dataset.anchorKey = key;
-    anchor.dataset.anchorTitle = title;
-    anchor.dataset.anchorSide = "left";
-    anchor.dataset.anchorRailOrder = String(Number.isFinite(Number(definition.railOrder)) ? Number(definition.railOrder) : 0);
-    anchor.dataset.anchorOffset = String(definition.offset || ANCHOR_RAIL_START);
-    if (definition.linkedDividerId) anchor.dataset.linkedDividerId = definition.linkedDividerId;
-    anchor.dataset.workspaceObjectType = WORKSPACE_OBJECT_TYPES.anchor;
-    anchor.dataset.dashboardObjectKind = "anchor";
-    anchor.dataset.contextRole = definition.contextRole || "navigation-reference";
-    anchor.dataset.workspaceContextModel = WORKSPACE_CONTEXT_MODEL_VERSION;
-    anchor.dataset.navigationTargetType = definition.navigationTargetType || (definition.linkedDividerId ? "divider" : "workspace-top");
-    anchor.dataset.navigationTargetId = definition.navigationTargetId || "";
-    if (definition.workspaceRegionId) anchor.dataset.workspaceRegionId = definition.workspaceRegionId;
-    if (definition.contextScopeId) anchor.dataset.contextScopeId = definition.contextScopeId;
-    ensureWorkspaceObjectMetadata(anchor, {
-      ...definition,
-      workspaceObjectType: WORKSPACE_OBJECT_TYPES.anchor,
-      dashboardObjectKind: "anchor",
-      contextRole: definition.contextRole || "navigation-reference",
-      navigationTargetType: definition.navigationTargetType || (definition.linkedDividerId ? "divider" : "workspace-top"),
-      navigationTargetId: definition.navigationTargetId || "",
-    });
-    anchor.setAttribute("aria-label", `${title} spatial anchor`);
-    anchor.innerHTML = `
-      <span class="workspace-anchor-content">
-        <span class="workspace-anchor-label stat-lbl">Top</span>
-      </span>
-      <span class="widget-tools anchor-tools">
-        <span class="panel-tool-drawer widget-tool-drawer anchor-tool-drawer" aria-label="Anchor tools">
-          ${panelToolButtonsMarkup(definition.color || "#2563eb", true, {
-            includeResize: false,
-            includePin: false,
-            // Anchors derive their label from the linked divider (or "Top"
-            // when unlinked) via syncAnchorNavigationTarget. There's no
-            // independent name to rename, so the title button is dropped.
-            includeTitle: false,
-            extraButtons: '<button class="panel-tool-button anchor-link-toggle" type="button" aria-label="Link anchor to divider" aria-expanded="false" title="Link anchor"><span class="anchor-link-icon" aria-hidden="true"></span></button>',
-          })}
-        </span>
-        <span class="anchor-link-menu" role="menu" aria-label="Anchor divider link"></span>
-      </span>`;
-    applyAnchorColor(anchor, definition.color || "#2563eb");
-    syncAnchorNavigationTarget(anchor);
-    applyAnchorPosition(anchor);
-    return anchor;
-  };
-
-  const saveFloatingAnchors = (layoutKey = "default", profile = getActivePanelProfile(layoutKey), options = {}) => {
-    const layer = anchorLayerForLayoutKey(layoutKey);
-    if (!layer) return;
-    normalizeAnchorLayer(layer);
-    if (!options.persist) {
-      if (options.history !== false) pushLiveLayoutUndo(layoutKey, profile);
-      return;
-    }
-    try {
-      writeJsonStore(
-        floatingAnchorsKey(layoutKey, profile),
-        [...layer.querySelectorAll(":scope > .workspace-anchor-object")].map(anchorDefinitionFromElement)
-      );
-    } catch {}
-  };
-
-  const legacyAnchorDefinitions = (layoutKey, profile) => {
-    try {
-      return readJsonStore(customWidgetsKey(layoutKey, profile), [])
-        .filter((definition) => workspaceObjectTypeFromDefinition(definition, WORKSPACE_OBJECT_TYPES.widget) === WORKSPACE_OBJECT_TYPES.anchor)
-        .map((definition, index) => ({
-          ...definition,
-          side: "left",
-          railOrder: Number.isFinite(Number(definition.railOrder)) ? Number(definition.railOrder) : index,
-          offset: definition.offset || 148 + (index * 48),
-          navigationTargetType: definition.navigationTargetType || (definition.linkedDividerId ? "divider" : "workspace-top"),
-          navigationTargetId: definition.navigationTargetId || "",
-        }));
-    } catch {
-      return [];
-    }
-  };
-
-  const loadFloatingAnchorDefinitions = (layoutKey, profile) => {
-    try {
-      const saved = readJsonStore(floatingAnchorsKey(layoutKey, profile), []);
-      if (Array.isArray(saved) && saved.length) {
-        return saved
-          .map((definition, index) => ({
-            ...definition,
-            side: "left",
-            railOrder: Number.isFinite(Number(definition.railOrder)) ? Number(definition.railOrder) : index,
-          }))
-          .sort((a, b) => Number(a.railOrder) - Number(b.railOrder));
-      }
-    } catch {}
-    return legacyAnchorDefinitions(layoutKey, profile);
-  };
-
-  const navigateToAnchorTarget = (anchor) => {
-    if (isDashboardInteractionActive()) return;
-    const target = anchorLinkedDividerTarget(anchor);
-    if (anchor.dataset.linkedDividerId && !target) {
-      syncAnchorNavigationTarget(anchor);
-      saveFloatingAnchors(anchor.closest(".workspace-anchor-layer")?.dataset.anchorLayoutKey || "builder");
-    }
-    if (!target) clearAnchorNavigationRunway();
-    const top = target ? anchorTargetScrollTop(target) : 0;
-    window.scrollTo({ top, behavior: window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches ? "auto" : "smooth" });
-  };
-
-  const initFloatingAnchor = (anchor, layer) => {
-    if (anchor.dataset.anchorInitialized === "true") return;
-    anchor.dataset.anchorInitialized = "true";
-    let dragging = false;
-    let didDrag = false;
-    let startX = 0;
-    let startY = 0;
-    let pointerOffsetY = 0;
-    let dragState = null;
-    let dragInteractionToken = null;
-    let activeMovePointerId = null;
-    let activeMovePointerTarget = null;
-    const layoutKey = layer.dataset.anchorLayoutKey || "default";
-    anchor.__saveWidgetLayout = () => saveFloatingAnchors(layoutKey, getActivePanelProfile(layoutKey));
-    const tools = anchor.querySelector(".anchor-tools");
-    const settings = anchor.querySelector(".anchor-settings-toggle");
-    const drawer = anchor.querySelector(".anchor-tool-drawer");
-    anchor.__dashboardToolDrawer = drawer;
-    const moveHandle = anchor.querySelector(".panel-move-handle");
-    const titleButton = anchor.querySelector(".panel-title-handle");
-    const colorToggle = anchor.querySelector(".panel-color-toggle");
-    const deleteButton = anchor.querySelector(".panel-delete-handle");
-    const linkToggle = anchor.querySelector(".anchor-link-toggle");
-    const linkMenu = anchor.querySelector(".anchor-link-menu");
-    const colorMenu = buildPanelColorMenu(anchor, layer, colorToggle);
-    const openTools = (pointerCoords = null) => {
-      if (!canOpenDashboardTools(anchor)) return;
-      closeInactiveDashboardTools(anchor);
-      portalDashboardToolDrawer(drawer, settings || anchor);
-      drawer?.style.removeProperty("--dashboard-tool-drawer-top");
-      drawer?.style.removeProperty("--dashboard-tool-drawer-right");
-      if (pointerCoords) {
-        positionDashboardToolDrawerAtPointer(anchor, drawer, pointerCoords.clientX, pointerCoords.clientY);
-      }
-      anchor.classList.add("widget-tools-open");
-      settings?.setAttribute("aria-expanded", "true");
-      syncLayoutToolsActive();
-    };
-    const closeTools = (options = {}) => {
-      if (options.cancelMove !== false) cancelAnchorMoveFromMenuClose();
-      anchor.classList.remove("widget-tools-open");
-      settings?.setAttribute("aria-expanded", "false");
-      linkToggle?.setAttribute("aria-expanded", "false");
-      linkMenu?.classList.remove("anchor-link-menu-open");
-      colorToggle?.setAttribute("aria-expanded", "false");
-      colorMenu?.classList.remove("panel-color-menu-open");
-      restoreDashboardToolDrawer(drawer);
-      syncLayoutToolsActive();
-    };
-    // Move the link menu to the shared menu overlay layer so its
-    // positioning isn't constrained by the anchor's absolute-positioning
-    // ancestor (which sits at the left edge of the viewport). The menu
-    // will be positioned with viewport coordinates at open time, next
-    // to the link toggle (which itself lives in the portalled tool
-    // drawer somewhere else on screen).
-    if (linkMenu && linkMenu.parentElement !== menuOverlayLayer()) {
-      menuOverlayLayer().appendChild(linkMenu);
-    }
-    const toggleLinkMenu = () => {
-      if (!linkMenu || !linkToggle) return;
-      const nextOpen = !linkMenu.classList.contains("anchor-link-menu-open");
-      if (nextOpen) {
-        refreshAnchorDividerMenu(anchor, linkMenu, layoutKey);
-        colorMenu?.classList.remove("panel-color-menu-open");
-        colorToggle?.setAttribute("aria-expanded", "false");
-        // Position next to the link toggle in viewport coordinates,
-        // clamping to viewport edges. Reuses the same clamping logic
-        // the color menu uses so behavior is consistent.
-        positionPanelColorMenu(linkToggle, linkMenu);
-      }
-      linkMenu.classList.toggle("anchor-link-menu-open", nextOpen);
-      linkToggle.setAttribute("aria-expanded", String(nextOpen));
-    };
-
-    function removeAnchorMoveListeners() {
-      document.removeEventListener("pointermove", handleAnchorMovePointerMove);
-      document.removeEventListener("pointerup", finishAnchorMove);
-      document.removeEventListener("pointercancel", finishAnchorMove);
-      document.removeEventListener("keydown", handleAnchorMoveKeydown);
-      window.removeEventListener("blur", handleAnchorMoveWindowBlur);
-      activeMovePointerTarget?.removeEventListener?.("lostpointercapture", handleAnchorLostPointerCapture);
-    }
-
-    function releaseAnchorMovePointer() {
-      if (activeMovePointerId == null || !activeMovePointerTarget?.hasPointerCapture?.(activeMovePointerId)) return;
-      try {
-        activeMovePointerTarget.releasePointerCapture(activeMovePointerId);
-      } catch {
-        // Pointer capture may already be released by cancel, blur, or browser focus changes.
-      }
-    }
-
-    const startAnchorMove = (event, options = {}) => {
-      if (event.button !== 0) return;
-      const surfaceShortcut = Boolean(options.surfaceShortcut);
-      if (surfaceShortcut && !isWorkspaceSurfaceDragStart(event, anchor)) return;
-      if (!surfaceShortcut) {
-        event.preventDefault();
-        event.stopPropagation();
-      }
-      if (activeMovePointerId != null || dragState) finishAnchorMove({ type: "pointercancel" });
-      startX = event.clientX;
-      startY = event.clientY;
-      pointerOffsetY = event.clientY - anchor.getBoundingClientRect().top;
-      dragging = false;
-      didDrag = false;
-      activeMovePointerId = event.pointerId;
-      activeMovePointerTarget = anchor;
-      try {
-        activeMovePointerTarget?.setPointerCapture?.(event.pointerId);
-      } catch {
-        // Document-level listeners still cover browsers that decline capture.
-      }
-      document.addEventListener("pointermove", handleAnchorMovePointerMove);
-      document.addEventListener("pointerup", finishAnchorMove);
-      document.addEventListener("pointercancel", finishAnchorMove);
-      document.addEventListener("keydown", handleAnchorMoveKeydown);
-      window.addEventListener("blur", handleAnchorMoveWindowBlur);
-      activeMovePointerTarget?.addEventListener?.("lostpointercapture", handleAnchorLostPointerCapture);
-    };
-
-    const orderedAnchorsWithSourceAt = (source, insertIndex) => {
-      const peers = anchorRailAnchors(layer).filter((candidate) => candidate !== source);
-      const ordered = [...peers];
-      ordered.splice(Math.max(0, Math.min(insertIndex, ordered.length)), 0, source);
-      return ordered;
-    };
-
-    const applyAnchorRailPreview = (state, ghostOffset) => {
-      const insertIndex = previewIndexForPointer(ghostOffset, state.peers);
-      const ordered = orderedAnchorsWithSourceAt(anchor, insertIndex);
-      const offsets = anchorRailOffsetsForOrder(ordered);
-      ordered.forEach((candidate) => {
-        if (candidate === anchor) return;
-        candidate.style.setProperty("--anchor-offset", `${offsets.get(candidate)}px`);
-        candidate.classList.add("anchor-rail-previewing");
-      });
-      state.placeholder.style.setProperty("--anchor-offset", `${offsets.get(anchor) || ANCHOR_RAIL_START}px`);
-      state.previewOrder = ordered;
-      state.previewIndex = insertIndex;
-    };
-
-    const beginAnchorRailDrag = (event) => {
-      closeTools({ cancelMove: false });
-      const rect = anchor.getBoundingClientRect();
-      const ghost = anchor.cloneNode(true);
-      ghost.classList.remove("widget-tools-open");
-      ghost.classList.add("workspace-anchor-drag-ghost", "anchor-dragging");
-      ghost.removeAttribute("id");
-      ghost.removeAttribute("data-anchor-initialized");
-      ghost.setAttribute("aria-hidden", "true");
-      ghost.style.width = `${rect.width}px`;
-      ghost.style.height = `${ANCHOR_SLOT_HEIGHT}px`;
-      ghost.style.setProperty("--anchor-offset", `${rect.top}px`);
-      const placeholder = document.createElement("div");
-      placeholder.className = "workspace-anchor-rail-placeholder";
-      placeholder.style.width = `${rect.width}px`;
-      placeholder.style.height = `${ANCHOR_SLOT_HEIGHT}px`;
-      placeholder.style.setProperty("--anchor-offset", `${rect.top}px`);
-      const peers = anchorRailAnchors(layer).filter((candidate) => candidate !== anchor);
-      // slotHeights kept for animation delta measurement in removeAnchorsWithRailReflow,
-      // but anchorRailOffsetsForOrder ignores it — all layout math uses ANCHOR_SLOT_HEIGHT.
-      const slotHeights = new Map();
-      peers.forEach((peer) => slotHeights.set(peer, anchorRailSlotHeight(peer)));
-      slotHeights.set(anchor, ANCHOR_SLOT_HEIGHT);
-      layer.appendChild(placeholder);
-      layer.appendChild(ghost);
-      anchor.classList.add("anchor-rail-source", "anchor-dragging");
-      document.body.classList.add("anchor-rail-drag-active");
-      clearSurfaceResponse();
-      dragInteractionToken = dashboardInteractionState.beginInteraction("anchor-drag", {
-        pointerId: activeMovePointerId,
-        pointerType: event.pointerType,
-        target: anchor,
-        clientX: event.clientX,
-        clientY: event.clientY,
-      });
-      dragState = {
-        ghost,
-        placeholder,
-        peers,
-        slotHeights,
-        previewOrder: anchorRailAnchors(layer),
-        previewIndex: Number(anchor.dataset.anchorRailOrder) || 0,
-      };
-      dashboardInteractionState.state.activeDragState = { layout: layer, item: anchor, pointerId: activeMovePointerId, startedAt: performance.now() };
-      dragging = true;
-      didDrag = true;
-      updateAnchorRailDrag(event);
-    };
-
-    const updateAnchorRailDrag = (event) => {
-      if (!dragState) return;
-      event.preventDefault();
-      const ghostOffset = clampAnchorOffset(event.clientY - pointerOffsetY, anchor);
-      dragState.ghost.style.setProperty("--anchor-offset", `${ghostOffset}px`);
-      dragState.ghost.style.setProperty("--anchor-drag-x", "0px");
-      // Pass ghostOffset (anchor top in viewport) rather than raw pointer Y so the
-      // insertion index is determined by where the ghost visually is, not where the
-      // pointer is within the anchor.
-      applyAnchorRailPreview(dragState, ghostOffset);
-    };
-
-    const cleanupAnchorRailDrag = (commit) => {
-      const state = dragState;
-      dragState = null;
-      dashboardInteractionState.state.activeDragState = null;
-      dragInteractionToken?.end?.();
-      dragInteractionToken = null;
-      anchor.classList.remove("anchor-rail-source", "anchor-dragging");
-      document.body.classList.remove("anchor-rail-drag-active");
-      state?.ghost.remove();
-      state?.placeholder.remove();
-      anchorRailAnchors(layer).forEach((candidate) => {
-        candidate.classList.remove("anchor-rail-previewing");
-        candidate.style.removeProperty("--anchor-drag-x");
-      });
-      if (commit && state?.previewOrder?.length) {
-        commitAnchorRailOrder(layer, state.previewOrder, state.slotHeights);
-        saveFloatingAnchors(layoutKey, getActivePanelProfile(layoutKey));
-        emitWorkspaceEvent({
-          type: "anchor-reordered",
-          source: "anchor-rail",
-          layoutKey,
-          objectId: anchor.dataset.anchorKey || "",
-          objectType: "anchor",
-          label: "Anchor reordered",
-          payload: {
-            railOrder: Number(anchor.dataset.anchorRailOrder) || 0,
-            offset: Number(anchor.dataset.anchorOffset) || 0,
-          },
-        });
-      } else {
-        commitAnchorRailOrder(layer);
-      }
-    };
-
-    function handleAnchorMovePointerMove(event) {
-      if (activeMovePointerId == null) return;
-      if (event.pointerId !== undefined && event.pointerId !== activeMovePointerId) return;
-      if (event.buttons !== 1) {
-        finishAnchorMove({ type: "pointercancel", pointerId: activeMovePointerId });
-        return;
-      }
-      const distance = Math.hypot(event.clientX - startX, event.clientY - startY);
-      if (!dragging && distance < 4) return;
-      event.preventDefault();
-      event.stopPropagation();
-      if (!dragState) beginAnchorRailDrag(event);
-      updateAnchorRailDrag(event);
-    }
-
-    function finishAnchorMove(event = {}) {
-      if (activeMovePointerId == null && !dragState) return;
-      if (event.pointerId !== undefined && activeMovePointerId != null && event.pointerId !== activeMovePointerId) return;
-      const commit = event.type !== "pointercancel" && event.type !== "keydown" && event.type !== "blur" && event.type !== "lostpointercapture";
-      removeAnchorMoveListeners();
-      releaseAnchorMovePointer();
-      if (dragState) cleanupAnchorRailDrag(commit);
-      activeMovePointerId = null;
-      activeMovePointerTarget = null;
-      dragging = false;
-    }
-
-    function handleAnchorMoveKeydown(event) {
-      if (event.key !== "Escape") return;
-      event.preventDefault();
-      finishAnchorMove({ type: "keydown" });
-    }
-
-    function handleAnchorMoveWindowBlur() {
-      finishAnchorMove({ type: "blur" });
-    }
-
-    function handleAnchorLostPointerCapture(event) {
-      if (activeMovePointerId != null && event.pointerId !== activeMovePointerId) return;
-      finishAnchorMove({ type: "lostpointercapture", pointerId: event.pointerId });
-    }
-
-    function cancelAnchorMoveFromMenuClose() {
-      if (activeMovePointerId == null && !dragState) return;
-      finishAnchorMove({ type: "pointercancel", pointerId: activeMovePointerId });
-    }
-
-    const clearAnchorBodyPress = () => {
-      anchor.classList.remove("anchor-body-pressing");
-      document.removeEventListener("pointerup", clearAnchorBodyPress, true);
-      document.removeEventListener("pointercancel", clearAnchorBodyPress, true);
-      window.removeEventListener("blur", clearAnchorBodyPress);
-    };
-
-    anchor.addEventListener("pointerdown", (event) => {
-      if (event.button !== 0) return;
-      if (event.target?.closest?.(".anchor-tools, .panel-color-menu, .anchor-link-menu")) return;
-      anchor.classList.add("anchor-body-pressing");
-      document.addEventListener("pointerup", clearAnchorBodyPress, { capture: true, once: true });
-      document.addEventListener("pointercancel", clearAnchorBodyPress, { capture: true, once: true });
-      window.addEventListener("blur", clearAnchorBodyPress, { once: true });
-    });
-    anchor.addEventListener("pointerleave", clearAnchorBodyPress);
-
-    tools?.addEventListener("click", (event) => {
-      event.preventDefault();
-      event.stopPropagation();
-    });
-    settings?.addEventListener("click", (event) => {
-      event.preventDefault();
-      event.stopPropagation();
-      if (anchor.classList.contains("widget-tools-open")) {
-        closeTools();
-      } else {
-        openTools();
-      }
-    });
-    anchor.__openCustomization = (event) => {
-      if (event.target?.closest?.(".anchor-tools, input, textarea, select, button, video, iframe, [contenteditable='true']")) return;
-      event.preventDefault();
-      event.stopPropagation();
-      if (anchor.classList.contains("widget-tools-open")) {
-        closeTools();
-      } else {
-        openTools({ clientX: event.clientX, clientY: event.clientY });
-      }
-    };
-    linkToggle?.addEventListener("click", (event) => {
-      event.preventDefault();
-      event.stopPropagation();
-      openTools();
-      toggleLinkMenu();
-    });
-    colorToggle?.addEventListener("click", (event) => {
-      event.preventDefault();
-      event.stopPropagation();
-      openTools();
-      linkMenu?.classList.remove("anchor-link-menu-open");
-      linkToggle?.setAttribute("aria-expanded", "false");
-      const nextOpen = !colorMenu?.classList.contains("panel-color-menu-open");
-      if (nextOpen) {
-        syncPanelThemeVars(anchor, colorMenu);
-        colorToggle.__refreshPanelColorMenu?.();
-        positionPanelColorMenu(colorToggle, colorMenu);
-      }
-      colorMenu?.classList.toggle("panel-color-menu-open", nextOpen);
-      colorToggle.setAttribute("aria-expanded", String(nextOpen));
-    });
-    titleButton?.addEventListener("click", (event) => {
-      event.preventDefault();
-      event.stopPropagation();
-      anchor.dataset.anchorTitle = anchor.dataset.anchorTitle || anchor.querySelector(".workspace-anchor-label")?.textContent?.trim() || "Anchor";
-      saveFloatingAnchors(layoutKey, getActivePanelProfile(layoutKey));
-      closeTools();
-    });
-    deleteButton?.addEventListener("click", (event) => {
-      event.preventDefault();
-      event.stopPropagation();
-      closeTools();
-      requestWorkspaceObjectDelete({ targets: [anchor] });
-    });
-    moveHandle?.addEventListener("pointerdown", startAnchorMove);
-    anchor.addEventListener("pointerdown", (event) => startAnchorMove(event, { surfaceShortcut: true }));
-
-    anchor.addEventListener("click", (event) => {
-      if (event.target?.closest?.(".anchor-tools, .panel-color-menu, .anchor-link-menu")) return;
-      if (dragging || didDrag) {
-        event.preventDefault();
-        event.stopPropagation();
-        didDrag = false;
-        return;
-      }
-      navigateToAnchorTarget(anchor);
-    });
-    anchor.addEventListener("keydown", (event) => {
-      if (event.target?.closest?.(".anchor-tools, .panel-color-menu, .anchor-link-menu")) return;
-      if (event.key !== "Enter" && event.key !== " ") return;
-      event.preventDefault();
-      navigateToAnchorTarget(anchor);
-    });
-    document.addEventListener("pointerdown", (event) => {
-      if (!anchor.classList.contains("widget-tools-open")) return;
-      // The tool drawer is portalled to the menu overlay layer when
-      // open, so `anchor.contains(drawer button)` is false even though
-      // the button logically belongs to the anchor. Without checking
-      // the drawer directly, pointerdown on a tool button (delete /
-      // color toggle / link toggle) ran closeTools(), which then
-      // restoreFloatingMenu()s the drawer back to the anchor — moving
-      // the button mid-event. By the time pointerup fired the button
-      // was at a different screen position, so the click never
-      // dispatched to it and the action handler never ran. Including
-      // the drawer in the inside-test fixes this for every tool
-      // button + any submenu inside the drawer.
-      if (
-        anchor.contains(event.target) ||
-        colorMenu?.contains(event.target) ||
-        drawer?.contains(event.target) ||
-        linkMenu?.contains(event.target)
-      ) return;
-      closeTools();
-    });
-  };
-
-  const initFloatingAnchorLayer = (layer) => {
-    const layoutKey = layer.dataset.anchorLayoutKey || "default";
-    const profile = getActivePanelProfile(layoutKey);
-    const definitions = loadFloatingAnchorDefinitions(layoutKey, profile);
-    layer.replaceChildren();
-    definitions.forEach((definition) => {
-      const anchor = createFloatingAnchor({
-        ...definition,
-        layoutKey,
-        navigationTargetType: definition.navigationTargetType || (definition.linkedDividerId ? "divider" : "workspace-top"),
-        navigationTargetId: definition.navigationTargetId || "",
-      });
-      layer.appendChild(anchor);
-      initFloatingAnchor(anchor, layer);
-    });
-    normalizeAnchorLayer(layer);
-  };
 
   const ensureWidgetTools = (widget, theme = "#2563eb") => widgetRuntimeController.ensureTools(widget, theme);
 
@@ -8235,7 +7266,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const orderedGridItems = (layout, { includePlaceholders = false, exclude = [] } = {}) => {
     const excluded = new Set([].concat(exclude || []).filter(Boolean));
     return [...layout.querySelectorAll(orderedGridSelectorForLayout(layout, includePlaceholders))]
-      .filter((item) => !excluded.has(item) && !item.classList.contains("workspace-anchor-object"));
+      .filter((item) => !excluded.has(item));
   };
 
   const globalGridItems = (layout, { includePlaceholders = false, exclude = [] } = {}) => {
@@ -8245,7 +7276,7 @@ document.addEventListener("DOMContentLoaded", () => {
       ? ".widget-layout > .widget-card:not([hidden]), .widget-layout > .widget-placeholder, .panel-layout > .db-panel:not([hidden]), .panel-layout > .db-panel-placeholder"
       : ".widget-layout > .widget-card:not([hidden]), .panel-layout > .db-panel:not([hidden])";
     return [...host.querySelectorAll(selector)]
-      .filter((item) => !excluded.has(item) && (host === layout || !isPanelInternalGridItem(item)) && !item.classList.contains("workspace-anchor-object") && !item.classList.contains("widget-dragging") && !item.classList.contains("db-panel-dragging") && !item.classList.contains("dashboard-live-resize") && !item.classList.contains("dashboard-resize-source") && !item.classList.contains("dashboard-group-source") && !item.classList.contains("dashboard-group-member-preview"));
+      .filter((item) => !excluded.has(item) && (host === layout || !isPanelInternalGridItem(item)) && !item.classList.contains("widget-dragging") && !item.classList.contains("db-panel-dragging") && !item.classList.contains("dashboard-live-resize") && !item.classList.contains("dashboard-resize-source") && !item.classList.contains("dashboard-group-source") && !item.classList.contains("dashboard-group-member-preview"));
   };
 
   const layoutItemsForLogicalResolution = (layout, options = {}) => {
@@ -8271,7 +7302,6 @@ document.addEventListener("DOMContentLoaded", () => {
         item?.isConnected &&
         !excluded.has(item) &&
         (allowPanelInternal || !isPanelInternalGridItem(item)) &&
-        !item.classList.contains("workspace-anchor-object") &&
         !item.classList.contains("widget-dragging") &&
         !item.classList.contains("db-panel-dragging") &&
         !item.classList.contains("dashboard-live-resize") &&
@@ -8317,11 +7347,6 @@ document.addEventListener("DOMContentLoaded", () => {
   };
 
   const workspaceVisualLodForItem = (item, metrics = null, viewport = workspaceVisualViewport()) => {
-    if (item.closest?.(".workspace-anchor-layer")) {
-      return item.classList.contains("anchor-dragging") || item.classList.contains("anchor-rail-source")
-        ? WORKSPACE_VISUAL_LOD_TIERS.active
-        : WORKSPACE_VISUAL_LOD_TIERS.visible;
-    }
     if (
       item.matches?.(":focus-within") ||
       item.classList.contains("active") ||
@@ -8362,12 +7387,6 @@ document.addEventListener("DOMContentLoaded", () => {
         item.dataset.lod = lod;
       });
     });
-    [...scope.querySelectorAll?.(".workspace-anchor-layer > .workspace-anchor-object:not([hidden])") || []]
-      .forEach((item) => {
-        const lod = workspaceVisualLodForItem(item, null, viewport);
-        item.dataset.visualLod = lod;
-        item.dataset.lod = lod;
-      });
   };
 
   let visualLodRefreshFrame = null;
@@ -8796,7 +7815,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const layoutKey = groupItemLayoutKey(roots[0]);
     const selectedIds = new Set(roots.flatMap((item) => {
       const ids = [workspaceObjectKey(item)].filter(Boolean);
-      item.querySelectorAll?.("[data-widget-key], [data-panel-key], [data-anchor-key]").forEach((node) => {
+      item.querySelectorAll?.("[data-widget-key], [data-panel-key]").forEach((node) => {
         const id = workspaceObjectKey(node);
         if (id) ids.push(id);
       });
@@ -8839,11 +7858,11 @@ document.addEventListener("DOMContentLoaded", () => {
       node.classList.remove("group-selected");
       node.removeAttribute("aria-selected");
     });
-    element.querySelectorAll(".panel-settings-toggle, .panel-color-toggle, .anchor-link-toggle").forEach((button) => {
+    element.querySelectorAll(".panel-settings-toggle, .panel-color-toggle").forEach((button) => {
       button.setAttribute("aria-expanded", "false");
     });
-    element.querySelectorAll(".panel-color-menu-open, .anchor-link-menu-open").forEach((menu) => {
-      menu.classList.remove("panel-color-menu-open", "anchor-link-menu-open");
+    element.querySelectorAll(".panel-color-menu-open").forEach((menu) => {
+      menu.classList.remove("panel-color-menu-open");
     });
 
     const panelNodes = [
@@ -9242,7 +8261,6 @@ document.addEventListener("DOMContentLoaded", () => {
     };
     const canAbsorbIntoPanel = (
       item.classList.contains("widget-card") &&
-      !item.classList.contains("workspace-anchor-object") &&
       layout.classList.contains("widget-layout") &&
       !isPanelInternalWidgetLayout(layout)
     );
@@ -9255,7 +8273,6 @@ document.addEventListener("DOMContentLoaded", () => {
       : null;
     const canExitPanelToWorkspace = (
       item.classList.contains("widget-card") &&
-      !item.classList.contains("workspace-anchor-object") &&
       !groupDrag &&
       Boolean(sourcePanelForPanelLocalDrag) &&
       Boolean(workspaceExitLayout)
@@ -10531,7 +9548,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     captureLayoutUndo(layoutKey, profile);
     const expansionBaselineSnapshot = expansionBaselineSnapshotForLayoutKey(layoutKey);
-    [...layout.querySelectorAll(":scope > .widget-card:not(.workspace-anchor-object):not([hidden])")].forEach((widget, index) => {
+    [...layout.querySelectorAll(":scope > .widget-card:not([hidden])")].forEach((widget, index) => {
       const key = widget.dataset.widgetKey;
       const expansionBaseline = serializableExpansionBaselineState(expansionBaselineSnapshot, widget);
       if (!key) return;
@@ -10560,7 +9577,7 @@ document.addEventListener("DOMContentLoaded", () => {
         });
       } catch {}
     });
-    const customWidgets = [...layout.querySelectorAll(':scope > .widget-card[data-custom-widget="true"]:not(.workspace-anchor-object):not([hidden])')]
+    const customWidgets = [...layout.querySelectorAll(':scope > .widget-card[data-custom-widget="true"]:not([hidden])')]
       .map((widget) => ({
         key: widget.dataset.widgetKey,
         title: widget.dataset.panelTitle || widget.querySelector(".stat-lbl")?.textContent?.trim() || "Widget",
@@ -10601,7 +9618,6 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     }
     customDefinitions
-      .filter((definition) => workspaceObjectTypeFromDefinition(definition, WORKSPACE_OBJECT_TYPES.widget) !== WORKSPACE_OBJECT_TYPES.anchor)
       .filter((definition) => definition?.key && !layout.querySelector(`:scope > .widget-card[data-widget-key="${CSS.escape(definition.key)}"]`))
       .forEach((definition) => layout.appendChild(createCustomWidget(definition)));
     let hiddenWidgets = [];
@@ -10617,7 +9633,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const widget = layout.querySelector(`:scope > .widget-card[data-widget-key="${CSS.escape(key)}"]`);
       if (widget) widget.hidden = true;
     });
-    const widgets = [...layout.querySelectorAll(":scope > .widget-card:not(.workspace-anchor-object)")];
+    const widgets = [...layout.querySelectorAll(":scope > .widget-card")];
     const savedByWidget = new Map();
     widgets.forEach((widget, index) => {
       const key = widget.dataset.widgetKey || `widget-${index}`;
@@ -10683,7 +9699,7 @@ document.addEventListener("DOMContentLoaded", () => {
     cleanupWidgetRowBreaks(layout);
     let defaultCol = 1;
     let defaultRow = 1;
-    [...layout.querySelectorAll(":scope > .widget-card:not(.workspace-anchor-object)")].forEach((widget) => {
+    [...layout.querySelectorAll(":scope > .widget-card")].forEach((widget) => {
       if (widget.dataset.gridCol && widget.dataset.gridRow) return;
       if (!internalLayout && layout.closest(".dashboard-layout-grid")) return;
       const span = Number(widget.dataset.currentSpan) || Number(widget.dataset.defaultSpan) || 1;
@@ -12170,7 +11186,6 @@ document.addEventListener("DOMContentLoaded", () => {
     refreshMiniMaps: refreshWorkspaceMiniMaps,
     regionSummaryForWidget: (widgetKey) => workspaceRegionSummaryForItem(widgetKey),
   };
-  window.__pushAnchorLayoutUndo = (layoutKey = "builder") => pushLiveLayoutUndo(layoutKey, getActivePanelProfile(layoutKey));
   const canonicalWidgetInstanceForPersistence = (widget, parentPanel = null) => {
     const definition = widgetDefinitionForElement(widget);
     const instance = widgetInstanceFromElement(widget, definition);
@@ -12290,7 +11305,7 @@ document.addEventListener("DOMContentLoaded", () => {
           .map(canonicalPanelInstanceForPersistence)
       : [];
     const rootWidgets = widgetLayout
-      ? [...widgetLayout.querySelectorAll(":scope > .widget-card:not(.workspace-anchor-object):not([hidden])")]
+      ? [...widgetLayout.querySelectorAll(":scope > .widget-card:not([hidden])")]
           .map((widget) => canonicalWidgetInstanceForPersistence(widget, null))
       : [];
     const childWidgets = panelLayout
@@ -12323,7 +11338,6 @@ document.addEventListener("DOMContentLoaded", () => {
       widgets,
       panels,
       dividers,
-      anchors: [],
       contexts,
       dataSources,
       links: logicGraph.links,
@@ -12797,15 +11811,15 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const selectedWorkspaceObjectSummary = () => {
     const selected = selectedGroupItems(null);
-    const active = document.querySelector(".widget-tools-open, .db-panel-tools-open, .workspace-anchor-object.anchor-tools-open") ||
-      document.activeElement?.closest?.(".widget-card, .db-panel, .workspace-anchor-object") ||
+    const active = document.querySelector(".widget-tools-open, .db-panel-tools-open") ||
+      document.activeElement?.closest?.(".widget-card, .db-panel") ||
       selected[0] || null;
     if (!active) return null;
     return {
-      id: active.dataset.widgetKey || active.dataset.panelKey || active.dataset.anchorKey || "",
+      id: active.dataset.widgetKey || active.dataset.panelKey || "",
       type: workspaceObjectType(active),
       label: active.dataset.panelTitle || active.dataset.widgetDisplayName || active.querySelector?.(".stat-lbl, .db-panel-title")?.textContent?.trim() || "Workspace object",
-      regionId: active.classList.contains("workspace-anchor-object") ? "" : regionIdForWorkspaceItem(active),
+      regionId: regionIdForWorkspaceItem(active),
       selectionCount: selected.length,
     };
   };
@@ -13137,12 +12151,11 @@ document.addEventListener("DOMContentLoaded", () => {
     workspaceEvents.splice(0);
     const widgetLayout = document.querySelector(`.widget-layout[data-widget-layout-key="${CSS.escape(layoutKey)}"]`);
     const panelLayout = document.querySelector(`.panel-layout[data-layout-key="${CSS.escape(layoutKey)}"]`);
-    const anchorLayer = document.querySelector(`.workspace-anchor-layer[data-anchor-layout-key="${CSS.escape(layoutKey)}"]`);
     if (widgetLayout) {
       widgetLayout.querySelectorAll(":scope > .widget-row-break, :scope > .widget-spacer").forEach((node) => node.remove());
       widgetLayout.querySelectorAll(":scope > .widget-card[data-custom-widget='true']").forEach((node) => node.remove());
       const hiddenWidgets = [];
-      widgetLayout.querySelectorAll(":scope > .widget-card:not(.workspace-anchor-object)").forEach((widget) => {
+      widgetLayout.querySelectorAll(":scope > .widget-card").forEach((widget) => {
         widget.hidden = true;
         if (widget.dataset.widgetKey) hiddenWidgets.push(widget.dataset.widgetKey);
       });
@@ -13159,14 +12172,13 @@ document.addEventListener("DOMContentLoaded", () => {
       });
       writeDraftList(panelLayout, "hiddenPanelsDraft", hiddenPanels);
     }
-    anchorLayer?.querySelectorAll(":scope > .workspace-anchor-object").forEach((anchor) => anchor.remove());
     saveDataSources(layoutKey, profile, []);
     saveWorkspaceContexts(layoutKey, profile, []);
     saveAssets(layoutKey, profile, []);
     saveWorkspaceLogicGraph(layoutKey, { links: [], styleRules: [] }, profile, { history: false, event: false });
     invalidateManagedWidgetQueriesForLayout(layoutKey);
     refreshWorkspaceMiniMaps(layoutKey);
-    return { widgetLayout, panelLayout, anchorLayer };
+    return { widgetLayout, panelLayout };
   };
   const clearDemoPresetObjects = (layoutKey = "builder") => {
     const presetIds = Object.keys(demoWorkspacePresets());
@@ -13285,7 +12297,6 @@ document.addEventListener("DOMContentLoaded", () => {
     refreshWorkspaceMiniMaps(layoutKey);
     saveWidgetLayouts(widgetLayout, profile, { persist: options.persist !== false, history: false });
     savePanelLayouts(panelLayout, profile, { persist: options.persist !== false, history: false });
-    saveFloatingAnchors(layoutKey, profile, { persist: options.persist !== false, history: false });
     saveWorkspaceContextState(layoutKey, profile, { persist: options.persist !== false, history: false });
     if (options.persist !== false) savePersistedWorkspaceSnapshot(layoutKey, profile);
     emitWorkspaceEvent({
@@ -14018,7 +13029,6 @@ document.addEventListener("DOMContentLoaded", () => {
       });
       saveWidgetLayouts(widgetLayout, profile, { persist: true, history: false });
       savePanelLayouts(panelLayout, profile, { persist: true, history: false });
-      saveFloatingAnchors(layoutKey, profile, { persist: true, history: false });
       savePersistedWorkspaceSnapshot(layoutKey, profile);
       registerGeneratedLayoutSource(layoutKey, {
         id: example.id,
@@ -14199,7 +13209,6 @@ document.addEventListener("DOMContentLoaded", () => {
       if (layout) savePanelLayouts(layout, selected, { persist: true });
       const widgetLayout = document.querySelector(`.widget-layout[data-widget-layout-key="${CSS.escape(layoutKey)}"]`);
       if (widgetLayout) saveWidgetLayouts(widgetLayout, selected, { persist: true });
-      saveFloatingAnchors(layoutKey, selected, { persist: true });
       saveWorkspaceContextState(layoutKey, selected, { persist: true, history: false });
       savePersistedWorkspaceSnapshot(layoutKey, selected);
       if (selected !== layoutPersistence.WORKING_PROFILE) {
@@ -14271,7 +13280,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const objectAddItemRuntimeDefinition = (item = {}) => {
     if (item.actionClass !== "widget-add-action") return null;
     const kind = item.dataset?.widgetCreateKind || item.dataset?.widgetKind || "";
-    if (!kind || kind === "anchor") return null;
+    if (!kind) return null;
     return widgetDefinitionFor(kind);
   };
   const objectAddItemLayer = (item = {}) => (
@@ -14653,39 +13662,6 @@ document.addEventListener("DOMContentLoaded", () => {
       const layoutKey = button.dataset.widgetTarget || "default";
       const layout = document.querySelector(`.widget-layout[data-widget-layout-key="${CSS.escape(layoutKey)}"]`);
       const kind = button.dataset.widgetCreateKind || button.dataset.widgetKind || "widget";
-      if (kind === "anchor") {
-        const layer = anchorLayerForLayoutKey(layoutKey);
-        if (!layer) return;
-        const selected = getActivePanelProfile(layoutKey);
-        const customCount = layer.querySelectorAll(":scope > .workspace-anchor-object").length;
-        const nextColor = panelThemePresets[customCount % panelThemePresets.length];
-        const title = `Anchor ${customCount + 1}`;
-        const anchor = createFloatingAnchor({
-          key: `anchor-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`,
-          layoutKey,
-          title,
-          color: nextColor,
-          side: "left",
-          railOrder: customCount,
-          offset: nextAnchorRailOffset(layer),
-          navigationTargetType: "workspace-top",
-          navigationTargetId: "",
-        });
-        layer.appendChild(anchor);
-        initFloatingAnchor(anchor, layer);
-        normalizeAnchorLayer(layer);
-        saveFloatingAnchors(layoutKey, selected);
-        refreshWorkspaceMiniMaps(layoutKey);
-        showToast(`${title} added.`, "info", {
-          type: "object-created",
-          source: "object-add",
-          layoutKey,
-          objectId: anchor.dataset.anchorKey,
-          objectType: "anchor",
-          payload: { title, railOrder: Number(anchor.dataset.anchorRailOrder) || 0, offset: Number(anchor.dataset.anchorOffset) || 0 },
-        });
-        return;
-      }
       if (!layout) return;
       const selected = getActivePanelProfile(layoutKey);
       saveWidgetLayouts(layout, selected);
@@ -14859,7 +13835,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (event.defaultPrevented || event.key !== "Delete") return;
     if (isEditableUndoTarget(event.target)) return;
     if (panelDeleteDialog?.open) return;
-    const focusedObject = event.target?.closest?.(".workspace-anchor-object, .widget-layout > .widget-card, .panel-layout > .db-panel");
+    const focusedObject = event.target?.closest?.(".widget-layout > .widget-card, .panel-layout > .db-panel");
     const selectedTargets = selectedGroupItems(null);
     const targets = focusedObject && !focusedObject.classList.contains("group-selected")
       ? [focusedObject]
@@ -14876,7 +13852,6 @@ document.addEventListener("DOMContentLoaded", () => {
       const profile = getActivePanelProfile(layoutKey);
       const layouts = [...document.querySelectorAll(`.panel-layout[data-layout-key="${CSS.escape(layoutKey)}"]`)];
       const widgetLayouts = [...document.querySelectorAll(`.widget-layout[data-widget-layout-key="${CSS.escape(layoutKey)}"]`)];
-      const anchorLayers = [...document.querySelectorAll(`.workspace-anchor-layer[data-anchor-layout-key="${CSS.escape(layoutKey)}"]`)];
       captureLayoutUndo(layoutKey, profile);
       removeStore(dataSourcesKey(layoutKey, profile));
       removeStore(workspaceContextsKey(layoutKey, profile));
@@ -14963,7 +13938,6 @@ document.addEventListener("DOMContentLoaded", () => {
       syncDefaultDashboardGrid(layoutKey, { force: true });
       widgetLayouts.filter((layout) => !layout.closest(".dashboard-layout-grid")).forEach((layout) => normalizeGridLayout(layout));
       layouts.filter((layout) => !layout.closest(".dashboard-layout-grid")).forEach((layout) => normalizeGridLayout(layout));
-      anchorLayers.forEach((layer) => layer.replaceChildren());
       showToast("Layout reset to default.");
       pushLiveLayoutUndo(layoutKey, profile);
     });
