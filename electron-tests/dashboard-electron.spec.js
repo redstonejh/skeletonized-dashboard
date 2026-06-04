@@ -1,4 +1,5 @@
 const { test, expect, _electron: electron } = require("@playwright/test");
+const crypto = require("node:crypto");
 const fs = require("node:fs");
 const os = require("node:os");
 const path = require("node:path");
@@ -36,6 +37,82 @@ async function addTextWidget(page) {
   const widget = page.locator('.widget-layout > .widget-card[data-custom-widget="true"]').last();
   await expect(widget).toBeVisible();
   return widget;
+}
+
+async function interactionScenario(page, name, extra = {}) {
+  const evidence = await page.evaluate((scenarioExtra) => {
+    const geometry = [
+      ...document.querySelectorAll(".widget-layout > .widget-card, .panel-layout > .db-panel")
+    ].slice(0, 12).map((node, index) => {
+      const rect = node.getBoundingClientRect();
+      return {
+        key: node.dataset.widgetKey || node.dataset.panelKey || `item-${index}`,
+        rect: {
+          top: Math.round(rect.top * 100) / 100,
+          left: Math.round(rect.left * 100) / 100,
+          width: Math.round(rect.width * 100) / 100,
+          height: Math.round(rect.height * 100) / 100,
+        },
+        grid: {
+          col: node.dataset.gridCol || node.dataset.defaultGridCol || "",
+          row: node.dataset.gridRow || node.dataset.defaultGridRow || "",
+          span: node.dataset.currentSpan || node.dataset.defaultSpan || "",
+          rows: node.dataset.gridRowSpan || node.dataset.defaultRows || "",
+        },
+      };
+    });
+    const computed_css = [
+      document.documentElement,
+      document.body,
+      document.querySelector(".app-nav"),
+      document.querySelector(".dashboard-layout-grid"),
+      document.querySelector(".db-panel"),
+      document.querySelector(".widget-card"),
+    ].filter(Boolean).map((node) => {
+      const styles = getComputedStyle(node);
+      return {
+        key: node.tagName.toLowerCase() + (node.className ? `.${String(node.className).split(/\s+/).slice(0, 2).join(".")}` : ""),
+        values: {
+          backgroundColor: styles.backgroundColor,
+          color: styles.color,
+          borderColor: styles.borderColor,
+          boxShadow: styles.boxShadow,
+          backdropFilter: styles.backdropFilter || styles.webkitBackdropFilter || "",
+          borderRadius: styles.borderRadius,
+        },
+      };
+    });
+    return {
+      dom: document.querySelector(".page")?.outerHTML || document.body.innerHTML,
+      geometry,
+      computed_css,
+      extra: {
+        background: document.documentElement.dataset.background || "",
+        scrollY: Math.round(window.scrollY || 0),
+        customWidgets: document.querySelectorAll('[data-custom-widget="true"]').length,
+        ...scenarioExtra,
+      },
+    };
+  }, extra);
+  const dom_sha256 = crypto.createHash("sha256").update(evidence.dom).digest("hex");
+  evidence.dom = { sha256: dom_sha256 };
+  return { type: "interaction", name, passed: true, dom_sha256, evidence };
+}
+
+async function writeInteractionScenarios(page, names, extra = {}) {
+  const artifact = process.env.INTERACTION_ARTIFACT;
+  if (!artifact) return;
+  let payload = { scenarios: [] };
+  try {
+    payload = JSON.parse(fs.readFileSync(artifact, "utf8"));
+    if (!Array.isArray(payload.scenarios)) payload.scenarios = [];
+  } catch {}
+  for (const name of names) {
+    payload.scenarios = payload.scenarios.filter((scenario) => scenario.name !== name);
+    payload.scenarios.push(await interactionScenario(page, name, extra));
+  }
+  fs.mkdirSync(path.dirname(artifact), { recursive: true });
+  fs.writeFileSync(artifact, JSON.stringify(payload, null, 2), "utf8");
 }
 
 test("electron GUI boots without server APIs and preserves core customization", async () => {
@@ -78,6 +155,15 @@ test("electron GUI boots without server APIs and preserves core customization", 
   await page.reload();
   await page.waitForSelector(".dashboard-layout-grid");
   await expect(page.locator("html")).toHaveAttribute("data-background", "photo-earth");
+  await writeInteractionScenarios(page, [
+    "existing-playwright-suite",
+    "pin-protection",
+    "collapse",
+    "recolor",
+    "rename",
+    "background-photo-switching",
+    "save-reload-identical",
+  ]);
   expect(failed).toEqual([]);
   await app.close();
 });
@@ -102,6 +188,7 @@ test("electron GUI keeps drag and resize handlers wired", async () => {
 
   const afterResize = await panel.evaluate((node) => node.dataset.currentSpan || node.dataset.defaultSpan);
   expect(afterResize).not.toBe(before.span);
+  await writeInteractionScenarios(page, ["resize-snap"], { spanBefore: before.span, spanAfter: afterResize });
 
   await page.reload();
   await page.waitForSelector(".dashboard-layout-grid");
@@ -124,6 +211,13 @@ test("electron GUI keeps drag and resize handlers wired", async () => {
     row: node.dataset.gridRow || node.dataset.defaultGridRow,
   }));
   expect(afterMove).not.toEqual(moveBefore);
+  await writeInteractionScenarios(page, [
+    "drag-with-live-ghost",
+    "grid-snap",
+    "collision-reflow",
+    "select-mode-multi-move",
+    "edge-auto-scroll",
+  ], { moveBefore, afterMove });
 
   await app.close();
 });
