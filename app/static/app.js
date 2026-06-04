@@ -12,6 +12,8 @@ import "./collision-reflow.js";
 import { showGlobalToast } from "./modules/toast.js";
 import { bindInitialRangeControls } from "./modules/range-controls.js";
 import { initializeBackgroundController } from "./modules/background-controller.js";
+import { initializeNavStatusMenus } from "./modules/nav-status-menu.js";
+import { initializeOverflowTitles } from "./modules/overflow-titles.js";
 
 bindInitialRangeControls();
 
@@ -78,95 +80,9 @@ document.addEventListener("DOMContentLoaded", () => {
   document.body.classList.remove("engineer-mode-active");
   document.documentElement.dataset.engineerMode = "false";
 
-  document.querySelectorAll(".nav-status-menu").forEach((menu) => {
-    let closeTimer;
-    let closeAfterAnimationTimer;
-    const closeMenu = (targetMenu = menu) => {
-      window.clearTimeout(closeAfterAnimationTimer);
-      targetMenu.classList.remove("is-open");
-      closeAfterAnimationTimer = window.setTimeout(() => {
-        if (!targetMenu.classList.contains("is-open")) targetMenu.open = false;
-      }, 220);
-    };
-    const openMenu = () => {
-      window.clearTimeout(closeTimer);
-      window.clearTimeout(closeAfterAnimationTimer);
-      document.querySelectorAll(".nav-status-menu[open]").forEach((otherMenu) => {
-        if (otherMenu !== menu) {
-          otherMenu.classList.remove("is-open");
-          otherMenu.open = false;
-        }
-      });
-      menu.open = true;
-      menu.classList.remove("is-open");
-      void menu.offsetWidth;
-      window.requestAnimationFrame(() => menu.classList.add("is-open"));
-    };
-    const scheduleClose = () => {
-      window.clearTimeout(closeTimer);
-      closeTimer = window.setTimeout(() => {
-        if (!menu.matches(":hover") && !menu.contains(document.activeElement)) closeMenu();
-      }, 140);
-    };
-    menu.addEventListener("mouseenter", openMenu);
-    menu.addEventListener("mouseleave", scheduleClose);
-    menu.addEventListener("focusin", openMenu);
-    menu.addEventListener("focusout", scheduleClose);
-    menu.addEventListener("toggle", () => {
-      if (!menu.open) return;
-      document.querySelectorAll(".nav-status-menu[open]").forEach((otherMenu) => {
-        if (otherMenu !== menu) {
-          otherMenu.classList.remove("is-open");
-          otherMenu.open = false;
-        }
-      });
-    });
-  });
+  initializeNavStatusMenus();
 
-  document.addEventListener("click", (event) => {
-    if (event.target?.closest?.(".nav-status-menu")) return;
-    document.querySelectorAll(".nav-status-menu[open]").forEach((menu) => {
-      menu.classList.remove("is-open");
-      menu.open = false;
-    });
-  });
-
-  const refreshOverflowTitles = () => {
-    const skipTags = new Set(["SCRIPT", "STYLE", "SVG", "PATH", "INPUT", "TEXTAREA", "SELECT", "OPTION"]);
-    document.querySelectorAll("body *").forEach((element) => {
-      if (skipTags.has(element.tagName)) return;
-      const text = (element.textContent || "").replace(/\s+/g, " ").trim();
-      if (!text || text.length < 2) return;
-      const style = window.getComputedStyle(element);
-      const canClip = style.textOverflow === "ellipsis" || style.overflow === "hidden" || style.whiteSpace === "nowrap";
-      if (!canClip || !element.clientWidth) return;
-      const clipped = element.scrollWidth > element.clientWidth + 1 || element.scrollHeight > element.clientHeight + 1;
-      if (clipped) {
-        if (!element.getAttribute("title") || element.dataset.autoTitle === "true") {
-          element.setAttribute("title", text);
-          element.dataset.autoTitle = "true";
-        }
-      } else if (element.dataset.autoTitle === "true") {
-        element.removeAttribute("title");
-        delete element.dataset.autoTitle;
-      }
-    });
-  };
-
-  let overflowTitleTimer;
-  const scheduleOverflowTitles = () => {
-    window.clearTimeout(overflowTitleTimer);
-    overflowTitleTimer = window.setTimeout(refreshOverflowTitles, 80);
-  };
-  refreshOverflowTitles();
-  window.addEventListener("load", scheduleOverflowTitles);
-  window.addEventListener("resize", scheduleOverflowTitles);
-  new MutationObserver(scheduleOverflowTitles).observe(document.body, {
-    childList: true,
-    subtree: true,
-    characterData: true,
-  });
-
+  const { scheduleOverflowTitles } = initializeOverflowTitles();
   const dashboardSearchForms = document.querySelectorAll(".range-search");
   const searchableItemsForPanel = (panel) => {
     const emptyStates = [...panel.querySelectorAll(".empty-state")];
