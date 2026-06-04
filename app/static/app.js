@@ -56,6 +56,7 @@ import { createLayoutSnapshotRuntime } from "./modules/layout-snapshot-runtime.j
 import { bindWidgetActionControls } from "./modules/widget-action-controls.js";
 import { bindPanelActionControls } from "./modules/panel-action-controls.js";
 import { bindPanelChildHoverRuntime } from "./modules/panel-child-hover-runtime.js";
+import { bindWidgetMoveRuntime } from "./modules/widget-move-runtime.js";
 import {
   applyPanelColor,
   applyPanelTitleColor,
@@ -5034,69 +5035,34 @@ document.addEventListener("DOMContentLoaded", () => {
           suppressToolOpenUntil = value;
         },
       });
-      const beginWidgetMove = (event, options = {}) => {
-        if (event.button !== 0 || (widget.classList.contains("db-panel-pinned") && !isPanelInternalGridItem(widget))) return;
-        const surfaceShortcut = Boolean(options.surfaceShortcut);
-        if (surfaceShortcut && !isWorkspaceSurfaceDragStart(event, widget)) return;
-        const restoreToolsAfterDrag = widget.classList.contains("widget-tools-open") ||
-          settings?.getAttribute("aria-expanded") === "true" ||
-          drawer?.matches(":hover") ||
-          isDashboardToolInteractionTarget(event);
-        window.clearTimeout(closeTimer);
-        if (surfaceShortcut) {
-          setWidgetLinkNavigationSuspended(widget, true);
-        } else {
-          openTools();
-        }
-        runOrderedDrag({
-          layout,
-          item: widget,
-          event,
-          draggingClass: "widget-dragging",
-          placeholderClass: "widget-placeholder",
-          threshold: 5,
-          deferStartEventHandling: surfaceShortcut,
-          onCommit: () => {
-            cleanupWidgetRowBreaks(layout);
-            saveSharedGridLayouts(layout);
-            emitWorkspaceEvent({
-              type: "object-moved",
-              source: "drag",
-              layoutKey,
-              objectId: widget.dataset.widgetKey || "",
-              objectType: "widget",
-              regionId: regionIdForWorkspaceItem(widget),
-              panelId: widget.dataset.parentPanelKey || "",
-              label: `${widget.dataset.widgetDisplayName || "Widget"} moved`,
-              payload: {
-                col: Number(widget.dataset.gridCol) || 0,
-                row: Number(widget.dataset.gridRow) || 0,
-              },
-            });
-          },
-          onEnd: (didDrag) => {
-            dragging = false;
-            if (didDrag) suppressWidgetClickUntil = performance.now() + 360;
-            if (restoreToolsAfterDrag) {
-              armToolLeaveCloseResume();
-              openTools();
-            } else {
-              closeTools();
-            }
-          },
-          onStart: () => {
-            dragging = true;
-            window.clearTimeout(closeTimer);
-          },
-        });
-      };
-      widget.__beginWidgetMoveFromDragRuntime = beginWidgetMove;
-      moveHandle?.addEventListener("pointerdown", beginWidgetMove);
-      widget.addEventListener("pointerdown", (event) => {
-        if (!isInteractiveWidgetSurfaceTarget(event) && !event.target?.closest?.(".panel-settings-toggle, .panel-tool-button")) {
-          event.preventDefault();
-        }
-        beginWidgetMove(event, { surfaceShortcut: true });
+      bindWidgetMoveRuntime({
+        widget,
+        layout,
+        layoutKey,
+        moveHandle,
+        settings,
+        drawer,
+        isPanelInternalGridItem,
+        isWorkspaceSurfaceDragStart,
+        isDashboardToolInteractionTarget,
+        setWidgetLinkNavigationSuspended,
+        runOrderedDrag,
+        cleanupWidgetRowBreaks,
+        saveSharedGridLayouts,
+        emitWorkspaceEvent,
+        regionIdForWorkspaceItem,
+        openTools,
+        closeTools,
+        armToolLeaveCloseResume,
+        isInteractiveWidgetSurfaceTarget,
+        clearToolCloseTimer: () => window.clearTimeout(closeTimer),
+        setDragging: (value) => {
+          dragging = value;
+          if (value) window.clearTimeout(closeTimer);
+        },
+        setSuppressWidgetClickUntil: (value) => {
+          suppressWidgetClickUntil = value;
+        },
       });
       const beginWidgetResize = (event, resizeEdge = "right") => {
         if (widget.classList.contains("db-panel-pinned") || widget.dataset.locked === "true" || widget.dataset.resizable === "false") return;
