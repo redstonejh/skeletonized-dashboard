@@ -14563,7 +14563,6 @@ document.addEventListener("DOMContentLoaded", () => {
     { category: "media", displayName: "Video", actionClass: "widget-add-action", dataset: { widgetKind: "video" } },
     { category: "media", displayName: "PDF / Document", actionClass: "widget-add-action", dataset: { widgetKind: "document" } },
     { category: "containers", displayName: "Panel", actionClass: "panel-add-action", dataset: { panelKind: "panel" } },
-    { category: "navigation", displayName: "Anchor", actionClass: "widget-add-action", dataset: { widgetKind: "anchor" } },
     { category: "dividers", displayName: "Divider", actionClass: "divider-add-action", dataset: { dividerKind: "context-divider" } },
   ];
   const objectAddItemRuntimeDefinition = (item = {}) => {
