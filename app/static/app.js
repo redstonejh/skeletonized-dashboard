@@ -28,6 +28,7 @@ import { createResizeAutoZoomRuntime } from "./modules/resize-auto-zoom.js";
 import { createLayoutHistoryRuntime } from "./modules/layout-history-runtime.js";
 import { initializePanelRuntimes } from "./modules/panel-runtime-setup.js";
 import { hydratePanelLayout } from "./modules/panel-layout-hydration.js";
+import { hydrateWidgetLayout } from "./modules/widget-layout-hydration.js";
 
 bindInitialRangeControls();
 
@@ -6213,116 +6214,37 @@ document.addEventListener("DOMContentLoaded", () => {
   }));
 
   const initWidgetLayout = (layout) => {
-    const internalLayout = isPanelInternalWidgetLayout(layout);
-    const layoutKey = internalLayout ? gridItemLayoutKey(layout) : (layout.dataset.widgetLayoutKey || "default");
-    const profile = getActivePanelProfile(layoutKey);
-    let customDefinitions = [];
-    if (!internalLayout) {
-      try {
-        customDefinitions = readJsonStore(customWidgetsKey(layoutKey, profile), []);
-      } catch {
-        customDefinitions = [];
-      }
-    }
-    customDefinitions
-      .filter((definition) => definition?.key && !layout.querySelector(`:scope > .widget-card[data-widget-key="${CSS.escape(definition.key)}"]`))
-      .forEach((definition) => layout.appendChild(createCustomWidget(definition)));
-    let hiddenWidgets = [];
-    if (!internalLayout) {
-      try {
-        hiddenWidgets = parseJsonRecord(readRawStore(hiddenWidgetsKey(layoutKey, profile), "[]"), []);
-      } catch {
-        hiddenWidgets = [];
-      }
-    }
-    writeDraftList(layout, "hiddenWidgetsDraft", hiddenWidgets);
-    hiddenWidgets.forEach((key) => {
-      const widget = layout.querySelector(`:scope > .widget-card[data-widget-key="${CSS.escape(key)}"]`);
-      if (widget) widget.hidden = true;
+    const { internalLayout, layoutKey, widgets } = hydrateWidgetLayout(layout, {
+      isPanelInternalWidgetLayout,
+      gridItemLayoutKey,
+      getActivePanelProfile,
+      readJsonStore,
+      customWidgetsKey,
+      createCustomWidget,
+      parseJsonRecord,
+      readRawStore,
+      hiddenWidgetsKey,
+      writeDraftList,
+      widgetStorageKey,
+      hydrateWidgetRuntime,
+      ensureWidgetTools,
+      markLoadedExpansionBaseline,
+      ensureWorkspaceObjectMetadata,
+      workspaceObjectType,
+      applyWorkspaceContextToElement,
+      applyWidgetSpan,
+      applyWidgetGridPosition,
+      applyPanelColor,
+      applyPanelTitleColor,
+      setWidgetConfig,
+      widgetConfigFromElement,
+      createWidgetRowBreak,
+      createWidgetSpacer,
+      cleanupWidgetRowBreaks,
+      syncDefaultDashboardGrid,
+      normalizeGridLayout,
+      syncWorkspaceRegions,
     });
-    const widgets = [...layout.querySelectorAll(":scope > .widget-card")];
-    const savedByWidget = new Map();
-    widgets.forEach((widget, index) => {
-      const key = widget.dataset.widgetKey || `widget-${index}`;
-      widget.dataset.defaultOrder = String(index);
-      widget.dataset.defaultTitle = widget.querySelector(".stat-lbl")?.textContent?.trim() || "Widget";
-      let saved = null;
-      if (!internalLayout) {
-        try {
-          saved = readJsonStore(widgetStorageKey(layoutKey, key, profile), null);
-        } catch {}
-      }
-      if (saved?.runtimeType) widget.dataset.widgetRuntimeType = saved.runtimeType;
-      if (saved?.type && !widget.dataset.widgetRuntimeType) widget.dataset.widgetRuntimeType = saved.type;
-      if (saved?.config) widget.dataset.widgetConfig = saved.config;
-      const runtimeDefinition = hydrateWidgetRuntime(widget, saved);
-      ensureWidgetTools(widget);
-      savedByWidget.set(widget, saved);
-      markLoadedExpansionBaseline(widget, saved?.expansionBaseline);
-      ensureWorkspaceObjectMetadata(widget, {
-        workspaceObjectType: saved?.workspaceObjectType || widget.dataset.workspaceObjectType || workspaceObjectType(widget),
-        dashboardObjectKind: saved?.dashboardObjectKind || widget.dataset.dashboardObjectKind || runtimeDefinition?.dashboardObjectKind,
-        workspaceRegionId: saved?.workspaceRegionId,
-        contextScopeId: saved?.contextScopeId,
-        contextRole: saved?.contextRole || runtimeDefinition?.contextRole,
-        navigationTargetType: saved?.navigationTargetType,
-        navigationTargetId: saved?.navigationTargetId,
-      });
-      if (saved?.workspaceContext) applyWorkspaceContextToElement(widget, saved.workspaceContext);
-      const defaultWidgetSpan = widget.dataset.widgetType === "controls" ? 6 : 1;
-      applyWidgetSpan(widget, saved?.span ?? widget.dataset.currentSpan ?? widget.dataset.defaultSpan ?? defaultWidgetSpan);
-      if (saved?.gridCol && saved?.gridRow) applyWidgetGridPosition(widget, saved.gridCol, saved.gridRow, saved?.rowSpan);
-      widget.classList.toggle("db-panel-pinned", Boolean(saved?.pinned));
-      widget.querySelector(".panel-pin-toggle")?.setAttribute("aria-pressed", Boolean(saved?.pinned).toString());
-      if (saved?.minW) widget.dataset.minW = String(saved.minW);
-      if (saved?.minH) widget.dataset.minH = String(saved.minH);
-      if (saved?.locked) widget.dataset.locked = "true";
-      if (saved?.resizable === false) widget.dataset.resizable = "false";
-      // Preserve widget.dataset.panelColor when re-initializing — panel-
-      // containment re-runs initWidgetLayout on the cloned widget (the
-      // panel-internal layout has no saved store, so `saved` is null).
-      // Falling straight through to defaultTheme would reset any custom
-      // color the widget carried, making widgets revert to default blue
-      // after being dropped into a panel.
-      applyPanelColor(widget, saved?.color || widget.dataset.panelColor || widget.querySelector(".panel-color-toggle")?.dataset.defaultTheme);
-      applyPanelTitleColor(widget, "");
-      if (saved?.title) {
-        widget.dataset.panelTitle = saved.title;
-        setWidgetConfig(widget, { ...widgetConfigFromElement(widget), title: saved.title });
-        const label = widget.querySelector(".stat-lbl");
-        if (label) label.textContent = saved.title;
-      }
-    });
-    widgets
-      .sort((a, b) => Number(savedByWidget.get(a)?.order ?? a.dataset.defaultOrder ?? 0) - Number(savedByWidget.get(b)?.order ?? b.dataset.defaultOrder ?? 0))
-      .forEach((widget) => {
-        if (savedByWidget.get(widget)?.breakBefore) layout.appendChild(createWidgetRowBreak());
-        const spacerCount = Math.max(0, Math.min(11, Number(savedByWidget.get(widget)?.spacerBefore) || 0));
-        for (let index = 0; index < spacerCount; index += 1) {
-          layout.appendChild(createWidgetSpacer(savedByWidget.get(widget)?.span || widget.dataset.defaultSpan || 3));
-        }
-        layout.appendChild(widget);
-      });
-    cleanupWidgetRowBreaks(layout);
-    let defaultCol = 1;
-    let defaultRow = 1;
-    [...layout.querySelectorAll(":scope > .widget-card")].forEach((widget) => {
-      if (widget.dataset.gridCol && widget.dataset.gridRow) return;
-      if (!internalLayout && layout.closest(".dashboard-layout-grid")) return;
-      const span = Number(widget.dataset.currentSpan) || Number(widget.dataset.defaultSpan) || 1;
-      if (defaultCol + span - 1 > 6) {
-        defaultRow += 1;
-        defaultCol = 1;
-      }
-      applyWidgetGridPosition(widget, defaultCol, defaultRow);
-      defaultCol += span;
-    });
-    if (!internalLayout && layout.closest(".dashboard-layout-grid")) {
-      syncDefaultDashboardGrid(layoutKey);
-    } else {
-      normalizeGridLayout(layout);
-    }
-    syncWorkspaceRegions(layout);
 
     const initWidget = (widget) => {
       if (widget.dataset.widgetInitialized === "true") return;
