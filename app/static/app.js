@@ -719,80 +719,17 @@ document.addEventListener("DOMContentLoaded", () => {
 
   let refreshWorkspaceMiniMaps = () => {};
   let refreshEngineerOverlays = () => {};
-  const engineerModeListeners = new Set();
-  const engineerModeState = {
-    enabled: false,
-    source: "initial",
-    updatedAt: Date.now(),
-  };
-  const isEngineerMode = () => Boolean(engineerModeState.enabled);
-  const syncEngineerModeDom = () => {
-    document.body.classList.toggle("engineer-mode-active", engineerModeState.enabled);
-    document.documentElement.dataset.engineerMode = engineerModeState.enabled ? "true" : "false";
-    document.querySelectorAll(".engineer-mode-button").forEach((button) => {
-      button.setAttribute("aria-pressed", String(engineerModeState.enabled));
-    });
-  };
+  const engineerModeState = Object.freeze({ enabled: false, source: "removed", updatedAt: 0 });
+  const isEngineerMode = () => false;
   const refreshEngineerContextVisibility = () => {
-    document.querySelectorAll(".panel-layout").forEach((layout) => {
-      const layoutKey = layout.dataset.layoutKey || "default";
-      refreshResolvedContextDebug(layoutKey, getActivePanelProfile(layoutKey));
-    });
-    if (!isEngineerMode()) {
-      const layer = document.querySelector(".workspace-engineer-overlay-layer");
-      if (layer) {
-        layer.replaceChildren();
-        layer.hidden = true;
-      }
-      document.querySelectorAll(".workspace-engineer-underlay-plane").forEach((underlay) => {
-        underlay.hidden = true;
-      });
-    }
     refreshWorkspaceMiniMaps();
-    refreshEngineerOverlays();
     refreshWorkspaceMetaWidgets();
   };
-  const setEngineerMode = (enabled, options = {}) => {
-    const nextEnabled = Boolean(enabled);
-    if (engineerModeState.enabled === nextEnabled && !options.force) return engineerModeState.enabled;
-    engineerModeState.enabled = nextEnabled;
-    engineerModeState.source = options.source || "api";
-    engineerModeState.updatedAt = Date.now();
-    if (!nextEnabled) {
-      selectedWorkspaceRelationship = null;
-    }
-    syncEngineerModeDom();
-    refreshEngineerContextVisibility();
-    engineerModeListeners.forEach((listener) => {
-      try {
-        listener({ ...engineerModeState });
-      } catch (error) {
-        console.warn("Engineer Mode listener failed", error);
-      }
-    });
-    if (options.toast !== false) {
-      showToast(`Engineer ${nextEnabled ? "enabled" : "disabled"}.`, "info", {
-        type: "engineer-mode-toggled",
-        source: "engineer-mode",
-        payload: { enabled: nextEnabled },
-      });
-    }
-    return engineerModeState.enabled;
-  };
-  const toggleEngineerMode = () => setEngineerMode(!engineerModeState.enabled, { source: "button" });
-  const onEngineerModeChange = (listener) => {
-    if (typeof listener !== "function") return () => {};
-    engineerModeListeners.add(listener);
-    return () => engineerModeListeners.delete(listener);
-  };
-  syncEngineerModeDom();
-  document.querySelectorAll(".workspace-mode-button").forEach((button) => {
-    button.addEventListener("click", () => {
-      const mode = button.dataset.workspaceMode || "";
-      if (mode !== "engineer") return;
-      toggleEngineerMode();
-    });
-  });
+  const setEngineerMode = () => false;
+  const toggleEngineerMode = () => false;
+  const onEngineerModeChange = () => () => {};
+  document.body.classList.remove("engineer-mode-active");
+  document.documentElement.dataset.engineerMode = "false";
 
   document.querySelectorAll(".nav-status-menu").forEach((menu) => {
     let closeTimer;
