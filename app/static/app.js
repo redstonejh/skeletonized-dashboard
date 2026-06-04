@@ -30,6 +30,7 @@ import { initializePanelRuntimes } from "./modules/panel-runtime-setup.js";
 import { hydratePanelLayout } from "./modules/panel-layout-hydration.js";
 import { hydrateWidgetLayout } from "./modules/widget-layout-hydration.js";
 import { initializePersistedWorkspaceRuntime } from "./modules/persisted-workspace-runtime.js";
+import { initializeWorkspacePostInit } from "./modules/workspace-post-init.js";
 
 bindInitialRangeControls();
 
@@ -7622,22 +7623,13 @@ document.addEventListener("DOMContentLoaded", () => {
     layout.__initPanel = initPanel;
   });
 
-  [...new Set([
-    ...[...document.querySelectorAll(".panel-layout")].map((layout) => layout.dataset.layoutKey || "default"),
-  ])].forEach(restoreLoadedExpansionBaseline);
-
-  document.addEventListener("contextmenu", (event) => {
-    const target = event.target?.closest?.(surfaceResponseSelector) ||
-      event.target?.closest?.(".panel-layout > .workspace-divider");
-    target?.__openCustomization?.(event);
-  }, true);
-  document.querySelectorAll(".workspace-minimap-layer").forEach(initWorkspaceMinimapLayer);
-  window.addEventListener("scroll", () => refreshWorkspaceMiniMaps(), { passive: true });
-  window.addEventListener("resize", () => refreshWorkspaceMiniMaps(), { passive: true });
-  window.dashboardSpatialRuntime = {
-    refreshMiniMaps: refreshWorkspaceMiniMaps,
-    regionSummaryForWidget: (widgetKey) => workspaceRegionSummaryForItem(widgetKey),
-  };
+  initializeWorkspacePostInit({
+    restoreLoadedExpansionBaseline,
+    surfaceResponseSelector,
+    initWorkspaceMinimapLayer,
+    refreshWorkspaceMiniMaps,
+    workspaceRegionSummaryForItem,
+  });
   const canonicalWidgetInstanceForPersistence = (widget, parentPanel = null) => {
     const definition = widgetDefinitionForElement(widget);
     const instance = widgetInstanceFromElement(widget, definition);
