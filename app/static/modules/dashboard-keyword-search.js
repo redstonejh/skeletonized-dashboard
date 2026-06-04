@@ -64,5 +64,8 @@ export function initializeDashboardKeywordSearch({ scheduleOverflowTitles }) {
     input.addEventListener("input", () => applyDashboardKeywordSearch(input));
     applyDashboardKeywordSearch(input);
   });
-  
+
+  return {
+    applyDashboardKeywordSearch,
+  };
 }
