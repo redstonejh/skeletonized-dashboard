@@ -26,6 +26,7 @@ import { initializeHistoryResetRuntime } from "./modules/history-reset-runtime.j
 import { initializeDeleteRuntime } from "./modules/delete-runtime.js";
 import { createResizeAutoZoomRuntime } from "./modules/resize-auto-zoom.js";
 import { createLayoutHistoryRuntime } from "./modules/layout-history-runtime.js";
+import { initializePanelRuntimes } from "./modules/panel-runtime-setup.js";
 
 bindInitialRangeControls();
 
@@ -6968,27 +6969,22 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   };
 
-  panelRuntime = dashboardPanelRuntime.createRuntime({
-    columns: DASHBOARD_GRID_COLUMNS,
+  ({
+    panelRuntime,
+    panelContainmentRuntime,
+  } = initializePanelRuntimes({
+    dashboardPanelRuntime,
+    dashboardPanelContainment,
+    DASHBOARD_GRID_COLUMNS,
+    DASHBOARD_GRID_ROW_HEIGHT,
     workspaceObjectCapabilities,
     gridRowsFromHeight,
     gridHeightForRows,
     gridGapForLayout,
     gridItemRowSpan,
     gridItemMinimumSpan,
-  });
-
-  panelContainmentRuntime = dashboardPanelContainment.createRuntime({
-    columns: DASHBOARD_GRID_COLUMNS,
-    rowHeight: DASHBOARD_GRID_ROW_HEIGHT,
-    workspaceObjectCapabilities,
     createGridMetrics,
     gridBoundsForItem,
-    gridHeightForRows,
-    gridRowsFromHeight,
-    gridGapForLayout,
-    gridItemRowSpan,
-    gridItemMinimumSpan,
     getPanelMinimumHeight,
     panelMinimumRows,
     applyPanelHeight,
@@ -7010,7 +7006,7 @@ document.addEventListener("DOMContentLoaded", () => {
     emitWorkspaceEvent,
     commitActiveDropSlot,
     cleanupWidgetRowBreaks,
-  });
+  }));
 
   document.querySelectorAll(".widget-layout").forEach(initWidgetLayout);
 
