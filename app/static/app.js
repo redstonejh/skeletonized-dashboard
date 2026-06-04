@@ -12853,18 +12853,6 @@ document.addEventListener("DOMContentLoaded", () => {
       },
     };
   };
-  window.dashboardEngineerMode = {
-    isEnabled: isEngineerMode,
-    getState: () => ({ ...engineerModeState }),
-    set: (enabled) => setEngineerMode(Boolean(enabled), { source: "api" }),
-    toggle: () => toggleEngineerMode(),
-    onChange: onEngineerModeChange,
-    refresh: () => {
-      refreshEngineerContextVisibility();
-      refreshEngineerOverlays();
-      return { ...engineerModeState };
-    },
-  };
   window.dashboardMetaRuntime = {
     isEngineerMode,
     recordActivity: recordWorkspaceActivity,
@@ -14426,7 +14414,6 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   };
   renderObjectAddMenus();
-  onEngineerModeChange(renderObjectAddMenus);
 
   document.querySelectorAll(".panel-add-picker").forEach((picker) => {
     const trigger = picker.querySelector(".panel-add-button");
