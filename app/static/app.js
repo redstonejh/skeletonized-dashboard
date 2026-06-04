@@ -7634,11 +7634,7 @@ document.addEventListener("DOMContentLoaded", () => {
     workspaceRegionSummaryForItem,
   });
   const {
-    currentPersistedWorkspaceSnapshot,
-    validatePersistedWorkspaceSnapshot,
     savePersistedWorkspaceSnapshot,
-    loadPersistedWorkspaceSnapshot,
-    migratePersistedWorkspaceSnapshot,
   } = initializePersistedWorkspaceRuntime({
     PERSISTED_WORKSPACE_VERSION,
     getActivePanelProfile,
@@ -7670,7 +7666,6 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   const {
-    bindRangeCustomControls,
     bindDashboardKeywordForms,
   } = createDashboardFormBindings({
     applyDashboardKeywordSearch,
@@ -7747,7 +7742,7 @@ document.addEventListener("DOMContentLoaded", () => {
     showToast,
   });
 
-  const objectAddRuntime = initializeObjectAddRuntime({
+  initializeObjectAddRuntime({
     positionPortaledMenu,
     portalFloatingMenu,
     restoreFloatingMenu,
@@ -7785,7 +7780,6 @@ document.addEventListener("DOMContentLoaded", () => {
     regionIdForWorkspaceItem,
     WORKSPACE_OBJECT_TYPES,
   });
-  const { renderObjectAddMenus, closeObjectAddMenu, handlePanelAddAction, handleDividerAddAction, handleWidgetAddAction } = objectAddRuntime;
   initializeHistoryResetRuntime({
     restoreLayoutUndo,
     restoreLayoutRedo,
