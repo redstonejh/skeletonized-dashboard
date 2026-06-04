@@ -55,6 +55,7 @@ import { createWidgetSettingsService } from "./modules/widget-settings-service.j
 import { createLayoutSnapshotRuntime } from "./modules/layout-snapshot-runtime.js";
 import { bindWidgetActionControls } from "./modules/widget-action-controls.js";
 import { bindPanelActionControls } from "./modules/panel-action-controls.js";
+import { bindPanelChildHoverRuntime } from "./modules/panel-child-hover-runtime.js";
 import {
   applyPanelColor,
   applyPanelTitleColor,
@@ -5428,35 +5429,13 @@ document.addEventListener("DOMContentLoaded", () => {
       const internalWidgetGrid = capabilities.hasPanelContentArea ? ensurePanelInternalWidgetGrid(panel) : null;
       if (internalWidgetGrid) initWidgetLayout(internalWidgetGrid);
       if (internalWidgetGrid) syncOpenPanelHeightToInternalGrid(panel, { reflow: false });
-      if (internalWidgetGrid && !panel.__panelChildHoverOwnershipBound) {
-        panel.__panelChildHoverOwnershipBound = true;
-        const childWidgetFromEvent = (event) => {
-          const child = event.target?.closest?.(".panel-internal-widget-grid > .widget-card");
-          return child && internalWidgetGrid.contains(child) ? child : null;
-        };
-        internalWidgetGrid.addEventListener("pointerover", (event) => {
-          if (childWidgetFromEvent(event)) panel.classList.add("panel-child-hover-active");
-        });
-        internalWidgetGrid.addEventListener("pointerout", (event) => {
-          const relatedChild = event.relatedTarget?.closest?.(".panel-internal-widget-grid > .widget-card");
-          if (relatedChild && internalWidgetGrid.contains(relatedChild)) return;
-          panel.classList.remove("panel-child-hover-active");
-          if (event.relatedTarget && panel.contains(event.relatedTarget) && !isDashboardInteractionActive()) {
-            surfaceResponseState.target = panel;
-            surfaceResponseState.rect = panel.getBoundingClientRect();
-            surfaceResponseState.clientX = event.clientX;
-            surfaceResponseState.clientY = event.clientY;
-            surfaceResponseState.scrollX = window.scrollX || 0;
-            surfaceResponseState.scrollY = window.scrollY || 0;
-            if (!surfaceResponseState.frame) {
-              surfaceResponseState.frame = requestAnimationFrame(updateSurfaceResponse);
-            }
-          }
-        });
-        panel.addEventListener("pointerleave", () => {
-          panel.classList.remove("panel-child-hover-active");
-        });
-      }
+      bindPanelChildHoverRuntime({
+        panel,
+        internalWidgetGrid,
+        isDashboardInteractionActive,
+        surfaceResponseState,
+        updateSurfaceResponse,
+      });
       const colorMenu = buildPanelColorMenu(panel, layout, colorToggle);
       pinButton?.setAttribute("aria-pressed", panel.classList.contains("db-panel-pinned").toString());
       let movedDuringPointer = false;
