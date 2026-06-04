@@ -4,19 +4,131 @@ export const initializePersistedWorkspaceRuntime = ({
   syncWorkspaceRegions,
   workspaceObjectType,
   WORKSPACE_OBJECT_TYPES,
-  canonicalPanelInstanceForPersistence,
-  canonicalWidgetInstanceForPersistence,
+  widgetDefinitionForElement,
+  widgetInstanceFromElement,
+  mediaWidgetAssetState,
+  isMediaWidgetDefinition,
+  setWidgetConfig,
+  widgetLayerForElement,
+  workspaceContextFromElement,
+  gridBoundsForItem,
+  serializableExpansionBaselineState,
+  expansionBaselineSnapshotForLayoutKey,
+  activeLayoutKeyForItem,
+  workspaceObjectPersistence,
+  workspaceObjectKey,
+  undoTransientItemClasses,
   panelChildWidgets,
   loadWorkspaceContexts,
   loadDataSources,
   loadAssets,
-  assetReferencesFromWidget,
   widgetRuntime,
-  currentTransientPersistenceWarnings,
   writeJsonStore,
   readJsonStore,
   persistedWorkspaceKey,
 }) => {
+  const canonicalWidgetInstanceForPersistence = (widget, parentPanel = null) => {
+    const definition = widgetDefinitionForElement(widget);
+    const instance = widgetInstanceFromElement(widget, definition);
+    const mediaState = mediaWidgetAssetState(widget, instance.config || {}, definition);
+    const config = isMediaWidgetDefinition(definition) ? mediaState.persistedConfig : instance.config || {};
+    if (mediaState.changed) setWidgetConfig(widget, config);
+    const parentPanelId = parentPanel?.dataset?.panelKey || widget.dataset.parentPanelKey || null;
+    return {
+      id: instance.id || widget.dataset.widgetKey || "",
+      type: instance.type || definition.type || "unsupported",
+      layer: widgetLayerForElement(widget, definition),
+      layoutDomain: parentPanelId ? "panel-internal-grid" : "global-workspace-grid",
+      parentPanelId,
+      x: instance.x,
+      y: instance.y,
+      cols: instance.cols,
+      rows: instance.rows,
+      config,
+      contextOverrideId: instance.contextOverrideId || widget.dataset.contextOverrideId || null,
+      color: widget.dataset.panelColor || null,
+      title: widget.dataset.panelTitle || instance.config?.title || null,
+      pinned: widget.classList.contains("db-panel-pinned"),
+      locked: widget.dataset.locked === "true",
+      resizable: widget.dataset.resizable === "false" ? false : true,
+      minSize: {
+        cols: Number(widget.dataset.minW) || definition.minSize?.cols || 1,
+        rows: Number(widget.dataset.minH) || definition.minSize?.rows || 1,
+      },
+      workspaceObjectType: WORKSPACE_OBJECT_TYPES.widget,
+      context: workspaceContextFromElement(widget),
+    };
+  };
+
+  const canonicalPanelInstanceForPersistence = (panel) => {
+    const isDivider = workspaceObjectType(panel) === WORKSPACE_OBJECT_TYPES.divider;
+    const bounds = gridBoundsForItem(panel);
+    return {
+      id: panel.dataset.panelKey || "",
+      type: isDivider ? WORKSPACE_OBJECT_TYPES.divider : WORKSPACE_OBJECT_TYPES.panel,
+      layoutDomain: "global-workspace-grid",
+      x: bounds.col,
+      y: bounds.row,
+      cols: bounds.span,
+      rows: bounds.rowSpan,
+      title: panel.dataset.panelTitle || panel.querySelector(":scope > .db-panel-hd .db-panel-title")?.textContent?.trim() || null,
+      color: panel.dataset.panelColor || null,
+      collapsed: panel.classList.contains("db-panel-collapsed"),
+      pinned: panel.classList.contains("db-panel-pinned"),
+      locked: panel.dataset.locked === "true",
+      resizable: panel.dataset.resizable === "false" ? false : true,
+      savedHeight: panel.dataset.savedHeight ? Number(panel.dataset.savedHeight) : null,
+      expansionBaseline: serializableExpansionBaselineState(expansionBaselineSnapshotForLayoutKey(activeLayoutKeyForItem(panel)), panel),
+      childWidgetIds: panelChildWidgets(panel).map((widget) => widget.dataset.widgetKey).filter(Boolean),
+      context: workspaceContextFromElement(panel),
+      ...workspaceObjectPersistence(panel),
+    };
+  };
+
+  const assetReferencesFromWidget = (widgetRecord) => {
+    if (!["image", "video", "document"].includes(widgetRecord.type)) return [];
+    const assetIdValue = String(widgetRecord.config?.assetId || "").trim();
+    if (!assetIdValue) return [];
+    return [{
+      id: assetIdValue,
+      widgetId: widgetRecord.id,
+      kind: widgetRecord.type,
+      persistence: "registry",
+    }];
+  };
+
+  const currentTransientPersistenceWarnings = (layoutKey = "builder") => {
+    const objectSelector = [
+      `.widget-layout[data-widget-layout-key="${CSS.escape(layoutKey)}"] .widget-card`,
+      `.panel-layout[data-layout-key="${CSS.escape(layoutKey)}"] .db-panel`,
+    ].join(",");
+    const warnings = [];
+    document.querySelectorAll(objectSelector).forEach((item) => {
+      const classes = undoTransientItemClasses.filter((className) => item.classList.contains(className));
+      if (!classes.length) return;
+      warnings.push({
+        severity: "warning",
+        code: "transient-object-state",
+        objectId: workspaceObjectKey(item),
+        objectType: workspaceObjectType(item),
+        message: `Transient UI classes are active and will not be persisted: ${classes.join(", ")}`,
+      });
+    });
+    const transientNodes = document.querySelectorAll(
+      ".dashboard-live-resize, .dashboard-resize-preview, .dashboard-expanded-footprint-ghost, .dashboard-group-boundary, .dashboard-group-member-preview, .widget-placeholder, .db-panel-placeholder"
+    );
+    if (transientNodes.length) {
+      warnings.push({
+        severity: "warning",
+        code: "transient-preview-nodes",
+        objectId: "",
+        objectType: "workspace",
+        message: `${transientNodes.length} transient preview node(s) are active and excluded from persistence.`,
+      });
+    }
+    return warnings;
+  };
+
   const currentPersistedWorkspaceSnapshot = (layoutKey = "builder", profile = getActivePanelProfile(layoutKey)) => {
     const panelLayout = document.querySelector(`.panel-layout[data-layout-key="${CSS.escape(layoutKey)}"]`);
     const widgetLayout = document.querySelector(`.widget-layout[data-widget-layout-key="${CSS.escape(layoutKey)}"]`);
