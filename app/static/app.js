@@ -4986,36 +4986,7 @@ document.addEventListener("DOMContentLoaded", () => {
       status: finalState.status,
     });
   };
-  window.dashboardQueryRuntime = {
-    statusValues: ["idle", "loading", "ready", "empty", "error", "stale"],
-    keyForWidget: (widget) => {
-      const node = typeof widget === "string" ? document.querySelector(widget) : widget;
-      if (!node) return "";
-      const definition = widgetDefinitionForElement(node);
-      const instance = widgetInstanceFromElement(node, definition);
-      const resolvedContext = resolveWorkspaceContextForItem(node);
-      const query = typeof definition.resolveQuery === "function"
-        ? definition.resolveQuery(instance.config, resolvedContext)
-        : null;
-      return query ? widgetQueryKeyFor({ definition, instance, resolvedContext, query }) : "";
-    },
-    stateForWidget: (widget) => managedQueryStateForWidget(typeof widget === "string" ? document.querySelector(widget) : widget),
-    refreshWidget: (widget, options = {}) => {
-      const node = typeof widget === "string" ? document.querySelector(widget) : widget;
-      if (!node) return Promise.resolve(false);
-      return refreshWidgetRuntimeData(node, resolveWorkspaceContextForItem(node), { force: options.force !== false }).then(() => true);
-    },
-    retryWidget: (widget) => window.dashboardQueryRuntime.refreshWidget(widget, { force: true }),
-    cancelWidget: (widget) => cancelManagedWidgetQueryForWidget(typeof widget === "string" ? document.querySelector(widget) : widget),
-    cancelKey: cancelManagedWidgetQueryKey,
-    invalidate: () => invalidateManagedWidgetQueries(),
-    invalidateLayout: invalidateManagedWidgetQueriesForLayout,
-    stats: () => ({
-      cacheSize: widgetQueryCache.size,
-      inflight: widgetQueryInflight.size,
-      keys: [...widgetQueryCache.keys()],
-    }),
-  };
+
   window.dashboardWidgetRuntimeMeaning = {
     derive: (options = {}) => widgetRuntimeController.deriveRuntimeMeaning(options),
     apply: (widget, options = {}) => widgetRuntimeController.applyRuntimeMeaning(
@@ -10197,108 +10168,7 @@ document.addEventListener("DOMContentLoaded", () => {
     ...[...document.querySelectorAll(".widget-layout")].map((layout) => layout.dataset.widgetLayoutKey || "default"),
   ])].forEach((layoutKey) => pushLiveLayoutUndo(layoutKey));
 
-  window.dashboardContextEngine = {
-    registerAdapter: registerDataSourceAdapter,
-    adapters: () => [...dataSourceAdapters.keys()],
-    setDataSources: (layoutKey = "builder", sources = [], profile = getActivePanelProfile(layoutKey)) => {
-      saveDataSources(layoutKey, profile, sources);
-      invalidateManagedWidgetQueriesForLayout(layoutKey);
-      refreshResolvedContextDebug(layoutKey, profile);
-      pushLiveLayoutUndo(layoutKey, profile);
-      emitWorkspaceEvent({
-        type: "context-changed",
-        source: "context-engine",
-        layoutKey,
-        label: "Data sources changed",
-        payload: { profile, dataSourceCount: Array.isArray(sources) ? sources.length : 0 },
-      });
-      return loadDataSources(layoutKey, profile);
-    },
-    getDataSources: (layoutKey = "builder", profile = getActivePanelProfile(layoutKey)) => loadDataSources(layoutKey, profile),
-    setWorkspaceContexts: (layoutKey = "builder", contexts = [], profile = getActivePanelProfile(layoutKey)) => {
-      saveWorkspaceContexts(layoutKey, profile, contexts);
-      invalidateManagedWidgetQueriesForLayout(layoutKey);
-      refreshResolvedContextDebug(layoutKey, profile);
-      pushLiveLayoutUndo(layoutKey, profile);
-      emitWorkspaceEvent({
-        type: "context-changed",
-        source: "context-engine",
-        layoutKey,
-        label: "Workspace contexts changed",
-        payload: { profile, contextCount: Array.isArray(contexts) ? contexts.length : 0 },
-      });
-      return loadWorkspaceContexts(layoutKey, profile);
-    },
-    setWorkspaceContext: (layoutKey = "builder", context, profile = getActivePanelProfile(layoutKey)) => {
-      const contexts = loadWorkspaceContexts(layoutKey, profile).filter((entry) => entry.id !== context?.id);
-      if (context?.id) contexts.push(context);
-      saveWorkspaceContexts(layoutKey, profile, contexts);
-      invalidateManagedWidgetQueriesForLayout(layoutKey);
-      refreshResolvedContextDebug(layoutKey, profile);
-      pushLiveLayoutUndo(layoutKey, profile);
-      emitWorkspaceEvent({
-        type: "context-changed",
-        source: "context-engine",
-        layoutKey,
-        regionId: context?.id || "",
-        label: "Workspace context changed",
-        payload: { profile, contextId: context?.id || "" },
-      });
-      return context;
-    },
-    getWorkspaceContexts: (layoutKey = "builder", profile = getActivePanelProfile(layoutKey)) => loadWorkspaceContexts(layoutKey, profile),
-    assignContextToDivider: (divider, context, profile = null) => {
-      const node = typeof divider === "string" ? document.querySelector(divider) : divider;
-      if (!node) return null;
-      ensureWorkspaceObjectMetadata(node);
-      const layoutKey = activeLayoutKeyForItem(node);
-      const resolvedProfile = profile || getActivePanelProfile(layoutKey);
-      const regionId = workspaceRegionIdForDivider(node, layoutKey);
-      const nextContext = { ...context, id: regionId, name: context?.name || node.dataset.defaultTitle || "Workspace context" };
-      applyWorkspaceContextToElement(node, nextContext);
-      invalidateManagedWidgetQueriesForLayout(layoutKey);
-      saveWorkspaceContextState(layoutKey, resolvedProfile);
-      emitWorkspaceEvent({
-        type: "divider-context-changed",
-        source: "context-engine",
-        layoutKey,
-        objectId: node.dataset.panelKey || "",
-        objectType: "divider",
-        regionId,
-        label: "Divider context changed",
-        payload: { profile: resolvedProfile, contextId: regionId },
-      });
-      return nextContext;
-    },
-    resolveContextForElement: (item) => resolveWorkspaceContextForItem(typeof item === "string" ? document.querySelector(item) : item),
-    deriveContextRegions: (layoutKey = "builder") => deriveWorkspaceContextRegions(layoutKey),
-    getNearestDividerAbove: (value, layoutKey = "builder") => {
-      const entry = nearestDividerAboveCommittedRow(value, layoutKey);
-      return entry ? {
-        divider: entry.divider,
-        key: entry.key,
-        regionId: entry.regionId,
-        row: entry.bounds.row,
-        col: entry.bounds.col,
-        rowSpan: entry.bounds.rowSpan,
-        colSpan: entry.bounds.colSpan,
-      } : null;
-    },
-    resolveRegionForY: (value, layoutKey = "builder") => resolveWorkspaceRegionForY(value, layoutKey),
-    resolveObjectContext: (item) => resolveWorkspaceContextForItem(typeof item === "string" ? document.querySelector(item) : item),
-    mergeContext: (inheritedContext, localOverride) => mergeWorkspaceContexts(inheritedContext, localOverride),
-    queryContext: (context, request = {}) => queryResolvedWorkspaceContext(context, request),
-    queryWidget: (widget, request = {}) => {
-      const node = typeof widget === "string" ? document.querySelector(widget) : widget;
-      return queryResolvedWorkspaceContext(resolveWorkspaceContextForItem(node), request);
-    },
-    introspectContext: async (context) => {
-      const source = dataSourceById(context.layoutKey, context.profile, context.dataSourceId);
-      const adapter = source ? dataSourceAdapters.get(source.kind) : null;
-      return adapter ? adapter.introspect(source) : { fields: [] };
-    },
-    refresh: (layoutKey = "builder", profile = getActivePanelProfile(layoutKey)) => refreshResolvedContextDebug(layoutKey, profile),
-  };
+
   const setActiveLayoutSource = (layoutKey = "builder", source = {}) => {
     const slot = source.slot || source.id || "1";
     writeJsonStore(layoutSourceKey(layoutKey), {
