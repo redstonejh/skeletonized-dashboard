@@ -1943,7 +1943,6 @@ document.addEventListener("DOMContentLoaded", () => {
     const kind = workspaceDeleteKind(item);
     if (!kind) return true;
     if (hasRenamedWorkspaceObject(item) || hasCustomWorkspaceColor(item)) return true;
-    if (kind === "anchor") return Boolean(item.dataset.linkedDividerId);
     if (kind === "divider") return dividerHasConfiguredContext(item);
     if (kind === "panel") return panelHasConfiguredContent(item);
     if (kind === "widget") return widgetHasConfiguredContent(item);
@@ -1964,11 +1963,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const saveWorkspaceDeleteLayouts = (entries) => {
     const touched = new Map();
     entries.forEach((entry) => {
-      if (entry.kind === "anchor") {
-        preserveAnchorRailPositions(entry.layout);
-        saveFloatingAnchors(entry.layoutKey, getActivePanelProfile(entry.layoutKey), { persist: true, history: false });
-        touched.set(`${entry.layoutKey}:anchor`, { layoutKey: entry.layoutKey, profile: getActivePanelProfile(entry.layoutKey) });
-      } else if (entry.kind === "widget") {
+      if (entry.kind === "widget") {
         cleanupWidgetRowBreaks(entry.layout);
         saveWidgetLayouts(entry.layout, getActivePanelProfile(entry.layoutKey), { persist: true, history: false });
         touched.set(`${entry.layoutKey}:grid`, { layoutKey: entry.layoutKey, profile: getActivePanelProfile(entry.layoutKey) });
@@ -1987,8 +1982,8 @@ document.addEventListener("DOMContentLoaded", () => {
       entry.item.classList.remove("widget-tools-open", "db-panel-tools-open", "group-selected");
       dashboardSettingsToggleForItem(entry.item)?.setAttribute("aria-expanded", "false");
       dashboardColorToggleForItem(entry.item)?.setAttribute("aria-expanded", "false");
-      entry.item.querySelectorAll?.(".panel-color-menu-open, .anchor-link-menu-open").forEach((menu) => {
-        menu.classList.remove("panel-color-menu-open", "anchor-link-menu-open");
+      entry.item.querySelectorAll?.(".panel-color-menu-open").forEach((menu) => {
+        menu.classList.remove("panel-color-menu-open");
       });
       groupSelection.delete(entry.item);
       groupSelectedIds.delete(groupItemId(entry.item));
@@ -1999,7 +1994,6 @@ document.addEventListener("DOMContentLoaded", () => {
   const performWorkspaceObjectDelete = (entries) => {
     clearWorkspaceDeleteInteractionState(entries);
     const hiddenByLayout = new Map();
-    removeAnchorsWithRailReflow(entries);
     const extractedByLayout = new Map();
     const extractPanelChildrenBeforeDelete = (entry) => {
       if (entry.kind !== "panel") return;
@@ -11987,11 +11981,6 @@ document.addEventListener("DOMContentLoaded", () => {
             delete panel.dataset.panelTitle;
             titleEl.textContent = panel.dataset.defaultTitle || originalTitle;
           }
-          // If the renamed panel is a divider, refresh any anchors that
-          // link to it so their labels track the new divider title.
-          if (panel.classList.contains("workspace-divider")) {
-            refreshAnchorsLinkedToDivider(panel);
-          }
           savePanelLayouts(layout);
         };
 
@@ -12481,22 +12470,6 @@ document.addEventListener("DOMContentLoaded", () => {
     };
   };
 
-  const canonicalAnchorInstanceForPersistence = (anchor) => ({
-    id: anchor.dataset.anchorKey || "",
-    type: WORKSPACE_OBJECT_TYPES.anchor,
-    layoutDomain: "anchor-rail",
-    railOrder: Number(anchor.dataset.anchorRailOrder) || 0,
-    railY: Number(anchor.dataset.anchorOffset) || ANCHOR_RAIL_START,
-    side: "left",
-    title: anchor.dataset.anchorTitle || anchor.querySelector(".workspace-anchor-label")?.textContent?.trim() || "Anchor",
-    color: anchor.dataset.panelColor || null,
-    linkedDividerId: anchor.dataset.linkedDividerId || null,
-    navigationTargetType: anchor.dataset.navigationTargetType || (anchor.dataset.linkedDividerId ? "divider" : "workspace-top"),
-    navigationTargetId: anchor.dataset.navigationTargetId || null,
-    workspaceObjectType: WORKSPACE_OBJECT_TYPES.anchor,
-    contextRole: anchor.dataset.contextRole || "navigation-reference",
-  });
-
   const assetReferencesFromWidget = (widgetRecord) => {
     if (!["image", "video", "document"].includes(widgetRecord.type)) return [];
     const assetIdValue = String(widgetRecord.config?.assetId || "").trim();
@@ -12513,7 +12486,6 @@ document.addEventListener("DOMContentLoaded", () => {
     const objectSelector = [
       `.widget-layout[data-widget-layout-key="${CSS.escape(layoutKey)}"] .widget-card`,
       `.panel-layout[data-layout-key="${CSS.escape(layoutKey)}"] .db-panel`,
-      `.workspace-anchor-layer[data-anchor-layout-key="${CSS.escape(layoutKey)}"] .workspace-anchor-object`,
     ].join(",");
     const warnings = [];
     document.querySelectorAll(objectSelector).forEach((item) => {
@@ -12528,7 +12500,7 @@ document.addEventListener("DOMContentLoaded", () => {
       });
     });
     const transientNodes = document.querySelectorAll(
-      ".dashboard-live-resize, .dashboard-resize-preview, .dashboard-expanded-footprint-ghost, .dashboard-group-boundary, .dashboard-group-member-preview, .widget-placeholder, .db-panel-placeholder, .workspace-anchor-drag-ghost, .workspace-anchor-rail-placeholder"
+      ".dashboard-live-resize, .dashboard-resize-preview, .dashboard-expanded-footprint-ghost, .dashboard-group-boundary, .dashboard-group-member-preview, .widget-placeholder, .db-panel-placeholder"
     );
     if (transientNodes.length) {
       warnings.push({
@@ -12567,8 +12539,6 @@ document.addEventListener("DOMContentLoaded", () => {
           .flatMap((panel) => panelChildWidgets(panel).map((widget) => canonicalWidgetInstanceForPersistence(widget, panel)))
       : [];
     const widgets = [...rootWidgets, ...childWidgets];
-    const anchorLayer = anchorLayerForLayoutKey(layoutKey);
-    const anchors = anchorLayer ? anchorRailAnchors(anchorLayer).map(canonicalAnchorInstanceForPersistence) : [];
     const contexts = loadWorkspaceContexts(layoutKey, profile);
     const dataSources = loadDataSources(layoutKey, profile);
     const assets = loadAssets(layoutKey, profile);
@@ -12577,7 +12547,6 @@ document.addEventListener("DOMContentLoaded", () => {
       widgets,
       panels,
       dividers,
-      anchors,
       contexts,
     });
     const logicGraph = pruneWorkspaceLogicGraphForEndpointIds(rawLogicGraph, logicEndpointIds);
@@ -12585,7 +12554,6 @@ document.addEventListener("DOMContentLoaded", () => {
       ...widgets.map((widget) => ({ id: widget.id, type: WORKSPACE_OBJECT_TYPES.widget, layoutDomain: widget.layoutDomain, parentId: widget.parentPanelId || null })),
       ...panels.map((panel) => ({ id: panel.id, type: WORKSPACE_OBJECT_TYPES.panel, layoutDomain: panel.layoutDomain, parentId: null })),
       ...dividers.map((divider) => ({ id: divider.id, type: WORKSPACE_OBJECT_TYPES.divider, layoutDomain: divider.layoutDomain, parentId: null })),
-      ...anchors.map((anchor) => ({ id: anchor.id, type: WORKSPACE_OBJECT_TYPES.anchor, layoutDomain: anchor.layoutDomain, parentId: null })),
     ];
     return {
       version: PERSISTED_WORKSPACE_VERSION,
@@ -12596,7 +12564,7 @@ document.addEventListener("DOMContentLoaded", () => {
       widgets,
       panels,
       dividers,
-      anchors,
+      anchors: [],
       contexts,
       dataSources,
       links: logicGraph.links,
@@ -12659,15 +12627,6 @@ document.addEventListener("DOMContentLoaded", () => {
         addDiagnostic("warning", "divider-context-id-format", "Divider context id does not look like a workspace region id.", divider.id, WORKSPACE_OBJECT_TYPES.divider);
       }
     });
-    (snapshot.anchors || []).forEach((anchor) => {
-      addId(WORKSPACE_OBJECT_TYPES.anchor, anchor.id);
-      if (anchor.linkedDividerId && !dividerIds.has(anchor.linkedDividerId)) {
-        addDiagnostic("warning", "missing-linked-divider", `Anchor references missing divider "${anchor.linkedDividerId}" and will fall back to Top.`, anchor.id, WORKSPACE_OBJECT_TYPES.anchor);
-      }
-      if ("linkedDividerTop" in anchor || "targetTop" in anchor || "scrollTop" in anchor) {
-        addDiagnostic("error", "anchor-stores-pixel-target", "Anchor persistence must store divider identity only, not cached pixel coordinates.", anchor.id, WORKSPACE_OBJECT_TYPES.anchor);
-      }
-    });
     (snapshot.contexts || []).forEach((context) => {
       if (!context?.id) {
         addDiagnostic("error", "missing-context-id", "Workspace context is missing an id.", "", "context");
@@ -12693,7 +12652,6 @@ document.addEventListener("DOMContentLoaded", () => {
       ...(snapshot.widgets || []).map((widget) => widget.id),
       ...(snapshot.panels || []).map((panel) => panel.id),
       ...(snapshot.dividers || []).map((divider) => divider.id),
-      ...(snapshot.anchors || []).map((anchor) => anchor.id),
       ...operatorIds,
       ...(snapshot.contexts || []).map((context) => context.id),
     ].filter(Boolean));
