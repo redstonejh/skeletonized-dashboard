@@ -1481,12 +1481,6 @@ document.addEventListener("DOMContentLoaded", () => {
           : serializeLayoutElement(item, "widgetKey")
       )),
     })),
-    anchors: [...document.querySelectorAll(`.workspace-anchor-layer[data-anchor-layout-key="${CSS.escape(layoutKey)}"]`)].map((layer) => ({
-      selector: `.workspace-anchor-layer[data-anchor-layout-key="${CSS.escape(layer.dataset.anchorLayoutKey || layoutKey)}"]`,
-      items: [...layer.querySelectorAll(":scope > .workspace-anchor-object:not(.workspace-anchor-drag-ghost)")].map((item) => (
-        serializeLayoutElement(item, "anchorKey")
-      )),
-    })),
     dataSources: readRawStore(dataSourcesKey(layoutKey, profile), "[]"),
     workspaceContexts: readRawStore(workspaceContextsKey(layoutKey, profile), "[]"),
     workspaceLogicGraph: readRawStore(workspaceLogicGraphKey(layoutKey, profile), ""),
@@ -1495,7 +1489,6 @@ document.addEventListener("DOMContentLoaded", () => {
   const liveLayoutUndoSignature = (snapshot) => JSON.stringify({
     panels: snapshot.panels,
     widgets: snapshot.widgets,
-    anchors: snapshot.anchors,
     dataSources: snapshot.dataSources,
     workspaceContexts: snapshot.workspaceContexts,
     workspaceLogicGraph: snapshot.workspaceLogicGraph,
@@ -1791,11 +1784,6 @@ document.addEventListener("DOMContentLoaded", () => {
       layout.dataset.hiddenPanelsDraft = panelSnapshot.hiddenDraft;
       restoreLayoutItems(layout, panelSnapshot.items, layout.__initPanel);
       cleanupPanelRowBreaks(layout);
-    });
-    snapshot.anchors?.forEach((anchorSnapshot) => {
-      const layer = document.querySelector(anchorSnapshot.selector);
-      if (!layer) return;
-      restoreAnchorItems(layer, anchorSnapshot.items);
     });
     restoreGroupSelection();
     refreshResolvedContextDebug(layoutKeyForSnapshot, snapshot.profile);
