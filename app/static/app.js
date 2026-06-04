@@ -15,27 +15,6 @@ function showGlobalToast(message, tone = "success") {
   }, 3600);
 }
 
-async function postAction(url, button) {
-  const oldText = button.textContent;
-  button.disabled = true;
-  button.textContent = "Working...";
-  try {
-    const response = await fetch(url, { method: "POST" });
-    const payload = await response.json();
-    if (!response.ok) throw new Error(payload.detail || "Request failed");
-    showGlobalToast(payload.message + (payload.detail ? " " + JSON.stringify(payload.detail) : ""));
-  } catch (error) {
-    showGlobalToast(error.message, "warn");
-  } finally {
-    button.disabled = false;
-    button.textContent = oldText;
-  }
-}
-
-  document.querySelectorAll("[data-action]").forEach((button) => {
-    button.addEventListener("click", () => postAction(button.dataset.action, button));
-  });
-
 document.querySelectorAll(".range-custom").forEach((form) => {
   const startInput = form.querySelector('input[name="start"]');
   const endInput = form.querySelector('input[name="end"]');
@@ -13291,101 +13270,6 @@ document.addEventListener("DOMContentLoaded", () => {
   };
   bindDashboardKeywordForms();
 
-  const updatePanelFromFetchedPanel = (panel, nextPanel) => {
-    const nextTitle = nextPanel.querySelector(".db-panel-title");
-    const title = panel.querySelector(".db-panel-title");
-    if (title && nextTitle && !panel.dataset.panelTitle) title.textContent = nextTitle.textContent;
-    const nextCount = nextPanel.querySelector(".db-panel-count");
-    const count = panel.querySelector(".db-panel-count");
-    if (count && nextCount) {
-      count.textContent = nextCount.textContent;
-      panel.dataset.originalPanelCount = nextCount.textContent.trim();
-    }
-    const nextBody = nextPanel.querySelector(".db-panel-body");
-    const body = panel.querySelector(".db-panel-body");
-    if (body && nextBody) {
-      body.className = nextBody.className;
-      body.innerHTML = nextBody.innerHTML;
-    }
-  };
-
-  const replaceDashboardFilterContent = (nextDocument) => {
-    nextDocument.querySelectorAll(".widget-layout").forEach((nextLayout) => {
-      const key = nextLayout.dataset.widgetLayoutKey || "default";
-      const layout = document.querySelector(`.widget-layout[data-widget-layout-key="${CSS.escape(key)}"]`);
-      if (!layout) return;
-      layout.replaceWith(nextLayout);
-      initWidgetLayout(nextLayout);
-      bindRangeCustomControls(nextLayout);
-      bindDashboardKeywordForms(nextLayout);
-    });
-
-    nextDocument.querySelectorAll(".panel-layout").forEach((nextLayout) => {
-      const key = nextLayout.dataset.layoutKey || "default";
-      const layout = document.querySelector(`.panel-layout[data-layout-key="${CSS.escape(key)}"]`);
-      if (!layout) return;
-      nextLayout.querySelectorAll(":scope > .db-panel").forEach((nextPanel) => {
-        const panelKey = nextPanel.dataset.panelKey;
-        if (!panelKey) return;
-        const panel = layout.querySelector(`:scope > .db-panel[data-panel-key="${CSS.escape(panelKey)}"]`);
-        if (panel) updatePanelFromFetchedPanel(panel, nextPanel);
-      });
-    });
-
-    restoreGroupSelection();
-    scheduleOverflowTitles();
-  };
-
-  const loadDashboardFilter = async (url, { push = true } = {}) => {
-    document.body.classList.add("dashboard-filter-loading");
-    try {
-      const response = await fetch(url, {
-        headers: { "X-Requested-With": "fetch" },
-      });
-      if (!response.ok) throw new Error("Filter request failed");
-      const html = await response.text();
-      const nextDocument = new DOMParser().parseFromString(html, "text/html");
-      replaceDashboardFilterContent(nextDocument);
-      if (push) window.history.pushState({ dashboardFilterUrl: url }, "", url);
-    } catch (error) {
-      window.location.href = url;
-    } finally {
-      document.body.classList.remove("dashboard-filter-loading");
-    }
-  };
-
-  document.addEventListener("click", (event) => {
-    if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
-    // Stat widget (tracker) click-to-filter intentionally disabled — drilldown/context contract not yet formalized.
-    const filterTarget = event.target?.closest?.(".range-bar a[href]");
-    if (!filterTarget || filterTarget.closest(".widget-tools")) return;
-    const href = filterTarget.getAttribute("href");
-    if (!href) return;
-    const url = new URL(href, window.location.href);
-    if (url.origin !== window.location.origin) return;
-    if (url.pathname !== "/dashboard" && url.pathname !== "/") return;
-    event.preventDefault();
-    loadDashboardFilter(url.toString());
-  });
-
-  document.addEventListener("submit", (event) => {
-    const form = event.target?.closest?.(".range-custom");
-    if (!form) return;
-    const action = form.getAttribute("action") || window.location.pathname;
-    const url = new URL(action, window.location.href);
-    if (url.origin !== window.location.origin) return;
-    if (url.pathname !== "/dashboard" && url.pathname !== "/") return;
-    event.preventDefault();
-    const params = new URLSearchParams(new FormData(form));
-    url.search = params.toString();
-    loadDashboardFilter(url.toString());
-  });
-
-  window.addEventListener("popstate", () => {
-    if (window.location.pathname !== "/dashboard" && window.location.pathname !== "/") return;
-    loadDashboardFilter(window.location.href, { push: false });
-  });
-
   [...new Set([
     ...[...document.querySelectorAll(".panel-layout")].map((layout) => layout.dataset.layoutKey || "default"),
     ...[...document.querySelectorAll(".widget-layout")].map((layout) => layout.dataset.widgetLayoutKey || "default"),
@@ -15394,52 +15278,4 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 
-  const form = document.getElementById("settings-form");
-  const dashboardBtn = document.getElementById("settings-dashboard-btn");
-  const saveButton = document.getElementById("settings-save-btn");
-  const dirtyNote = document.getElementById("settings-dirty-note");
-
-  if (!form || !dashboardBtn) return;
-
-  const serialize = (targetForm) => {
-    const data = [...new FormData(targetForm).entries()];
-    return data.sort(([a], [b]) => a.localeCompare(b)).map(([key, value]) => `${key}=${encodeURIComponent(value)}`).join("&");
-  };
-
-  const initialState = serialize(form);
-  const isDirty = () => serialize(form) !== initialState;
-
-  const updateDirtyState = () => {
-    const dirty = isDirty();
-    form.classList.toggle("is-dirty", dirty);
-    if (dirtyNote) dirtyNote.textContent = dirty ? "Unsaved changes pending." : "Changes are saved to the local dashboard database.";
-  };
-
-  form.addEventListener("input", updateDirtyState);
-  form.addEventListener("change", updateDirtyState);
-
-  window.addEventListener("beforeunload", (event) => {
-    if (!isDirty() || form.dataset.submitting === "true") return;
-    event.preventDefault();
-    event.returnValue = "";
-  });
-
-  dashboardBtn.addEventListener("click", (event) => {
-    if (!isDirty()) return;
-    event.preventDefault();
-    const saveFirst = window.confirm(
-      "You have unsaved settings changes. OK to save and go back to Dashboard, or Cancel to discard changes and go back."
-    );
-    if (saveFirst) {
-      form.submit();
-    } else {
-      window.location.href = dashboardBtn.dataset.href || "/dashboard";
-    }
-  });
-
-  form.addEventListener("submit", () => {
-    form.dataset.submitting = "true";
-    saveButton?.classList.add("is-saving");
-    if (saveButton) saveButton.disabled = true;
-  });
 });
