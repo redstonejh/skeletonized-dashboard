@@ -46,19 +46,38 @@
     "runtimeUrgency",
   ]);
   let workspaceClipboard = null;
+  const bridgeStorage = window.dashboardPersistence;
+  const storage = {
+    getItem(key) {
+      if (bridgeStorage?.getItem) return bridgeStorage.getItem(key);
+      return localStorage.getItem(key);
+    },
+    setItem(key, value) {
+      if (bridgeStorage?.setItem) return bridgeStorage.setItem(key, value);
+      return localStorage.setItem(key, value);
+    },
+    removeItem(key) {
+      if (bridgeStorage?.removeItem) return bridgeStorage.removeItem(key);
+      return localStorage.removeItem(key);
+    },
+    keys() {
+      if (bridgeStorage?.keys) return bridgeStorage.keys();
+      return Object.keys(localStorage);
+    },
+  };
 
   const WORKING_PROFILE = "0";
   const profileKey = (layoutKey = "builder") => `${prefixes.panelProfile}${layoutKey}`;
   const getActiveProfile = (layoutKey = "builder") => {
     try {
-      return localStorage.getItem(profileKey(layoutKey)) || WORKING_PROFILE;
+      return storage.getItem(profileKey(layoutKey)) || WORKING_PROFILE;
     } catch {
       return WORKING_PROFILE;
     }
   };
   const setActiveProfile = (layoutKey = "builder", profile = "1") => {
     try {
-      localStorage.setItem(profileKey(layoutKey), String(profile || "1"));
+      storage.setItem(profileKey(layoutKey), String(profile || "1"));
     } catch {}
   };
   const key = {
@@ -95,7 +114,7 @@
   const storageKeys = (layoutKey, profile = getActiveProfile(layoutKey)) => {
     const matchers = scopedPrefixes(layoutKey, profile);
     try {
-      return Object.keys(localStorage).filter((candidate) => matchers.some((prefix) => candidate.startsWith(prefix)));
+      return storage.keys().filter((candidate) => matchers.some((prefix) => candidate.startsWith(prefix)));
     } catch {
       return [];
     }
@@ -103,7 +122,7 @@
   const clearScopedStorage = (layoutKey, profile = getActiveProfile(layoutKey)) => {
     storageKeys(layoutKey, profile).forEach((storageKey) => {
       try {
-        localStorage.removeItem(storageKey);
+        storage.removeItem(storageKey);
       } catch {}
     });
   };
@@ -118,31 +137,31 @@
   };
   const readJson = (storageKey, fallback) => {
     try {
-      return JSON.parse(localStorage.getItem(storageKey) || JSON.stringify(fallback));
+      return JSON.parse(storage.getItem(storageKey) || JSON.stringify(fallback));
     } catch {
       return fallback;
     }
   };
   const writeJson = (storageKey, value) => {
     try {
-      localStorage.setItem(storageKey, JSON.stringify(value));
+      storage.setItem(storageKey, JSON.stringify(value));
     } catch {}
   };
   const readRaw = (storageKey, fallback = "") => {
     try {
-      return localStorage.getItem(storageKey) ?? fallback;
+      return storage.getItem(storageKey) ?? fallback;
     } catch {
       return fallback;
     }
   };
   const writeRaw = (storageKey, value = "") => {
     try {
-      localStorage.setItem(storageKey, String(value));
+      storage.setItem(storageKey, String(value));
     } catch {}
   };
   const remove = (storageKey) => {
     try {
-      localStorage.removeItem(storageKey);
+      storage.removeItem(storageKey);
     } catch {}
   };
   const readDraftList = (element, draftKey) => {
@@ -194,8 +213,8 @@
         if (fromKey.startsWith(scopedFrom)) {
           const toKey = `${globalPrefix}${toProfile}:${fromKey.slice(scopedFrom.length)}`;
           try {
-            const value = localStorage.getItem(fromKey);
-            if (value !== null) localStorage.setItem(toKey, value);
+            const value = storage.getItem(fromKey);
+            if (value !== null) storage.setItem(toKey, value);
           } catch {}
           break;
         }

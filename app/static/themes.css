@@ -1,4 +1,4 @@
-﻿/* Cohesive polish layer */
+/* Cohesive polish layer */
 .page {
   max-width: var(--workspace-shell-width, 1224px);
 }
@@ -5452,34 +5452,34 @@ body.has-photo-background {
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, .20), 0 2px 6px rgba(15, 23, 42, .14);
 }
 
-.background-photo-option[data-background-tone="photo-bark"]::before       { background-image: url("/static/backgrounds/nature/bark.jpg"); }
-.background-photo-option[data-background-tone="photo-cloud"]::before      { background-image: url("/static/backgrounds/nature/cloud.jpg"); }
-.background-photo-option[data-background-tone="photo-jungle"]::before     { background-image: url("/static/backgrounds/nature/jungle.jpg"); }
-.background-photo-option[data-background-tone="photo-moss"]::before       { background-image: url("/static/backgrounds/nature/moss.jpg"); }
-.background-photo-option[data-background-tone="photo-sand"]::before       { background-image: url("/static/backgrounds/nature/sand.jpg"); }
-.background-photo-option[data-background-tone="photo-shore"]::before      { background-image: url("/static/backgrounds/nature/shore.jpg"); }
-.background-photo-option[data-background-tone="photo-turf"]::before       { background-image: url("/static/backgrounds/nature/turf.jpg"); }
-.background-photo-option[data-background-tone="photo-water"]::before      { background-image: url("/static/backgrounds/nature/water.jpg"); }
-.background-photo-option[data-background-tone="photo-water2"]::before     { background-image: url("/static/backgrounds/nature/water2.jpg"); }
-.background-photo-option[data-background-tone="photo-denim"]::before      { background-image: url("/static/backgrounds/textures/denim.jpg"); }
-.background-photo-option[data-background-tone="photo-marble"]::before     { background-image: url("/static/backgrounds/textures/marble.jpg"); }
-.background-photo-option[data-background-tone="photo-leather"]::before    { background-image: url("/static/backgrounds/textures/leather.jpg"); }
-.background-photo-option[data-background-tone="photo-texture"]::before    { background-image: url("/static/backgrounds/textures/texture.jpg"); }
-.background-photo-option[data-background-tone="photo-paint"]::before      { background-image: url("/static/backgrounds/abstract/paint.jpg"); }
-.background-photo-option[data-background-tone="photo-paintspill"]::before { background-image: url("/static/backgrounds/abstract/paintspill.jpg"); }
-.background-photo-option[data-background-tone="photo-city"]::before       { background-image: url("/static/backgrounds/urban/city.jpg"); }
-.background-photo-option[data-background-tone="photo-modern"]::before     { background-image: url("/static/backgrounds/urban/modern.jpg"); }
-.background-photo-option[data-background-tone="photo-mercury"]::before    { background-image: url("/static/backgrounds/space/mercury.jpg"); }
-.background-photo-option[data-background-tone="photo-venus"]::before      { background-image: url("/static/backgrounds/space/venus.jpg"); }
-.background-photo-option[data-background-tone="photo-earth"]::before      { background-image: url("/static/backgrounds/space/earth.jpg"); }
-.background-photo-option[data-background-tone="photo-mars"]::before       { background-image: url("/static/backgrounds/space/mars.jpg"); }
-.background-photo-option[data-background-tone="photo-jupiter"]::before    { background-image: url("/static/backgrounds/space/jupiter.jpg"); }
-.background-photo-option[data-background-tone="photo-saturn"]::before     { background-image: url("/static/backgrounds/space/saturn.jpg"); }
-.background-photo-option[data-background-tone="photo-uranus"]::before     { background-image: url("/static/backgrounds/space/uranus.jpg"); }
-.background-photo-option[data-background-tone="photo-neptune"]::before    { background-image: url("/static/backgrounds/space/neptune.jpg"); }
-.background-photo-option[data-background-tone="photo-pluto"]::before      { background-image: url("/static/backgrounds/space/pluto.jpg"); }
+.background-photo-option[data-background-tone="photo-bark"]::before       { background-image: url("backgrounds/nature/bark.jpg"); }
+.background-photo-option[data-background-tone="photo-cloud"]::before      { background-image: url("backgrounds/nature/cloud.jpg"); }
+.background-photo-option[data-background-tone="photo-jungle"]::before     { background-image: url("backgrounds/nature/jungle.jpg"); }
+.background-photo-option[data-background-tone="photo-moss"]::before       { background-image: url("backgrounds/nature/moss.jpg"); }
+.background-photo-option[data-background-tone="photo-sand"]::before       { background-image: url("backgrounds/nature/sand.jpg"); }
+.background-photo-option[data-background-tone="photo-shore"]::before      { background-image: url("backgrounds/nature/shore.jpg"); }
+.background-photo-option[data-background-tone="photo-turf"]::before       { background-image: url("backgrounds/nature/turf.jpg"); }
+.background-photo-option[data-background-tone="photo-water"]::before      { background-image: url("backgrounds/nature/water.jpg"); }
+.background-photo-option[data-background-tone="photo-water2"]::before     { background-image: url("backgrounds/nature/water2.jpg"); }
+.background-photo-option[data-background-tone="photo-denim"]::before      { background-image: url("backgrounds/textures/denim.jpg"); }
+.background-photo-option[data-background-tone="photo-marble"]::before     { background-image: url("backgrounds/textures/marble.jpg"); }
+.background-photo-option[data-background-tone="photo-leather"]::before    { background-image: url("backgrounds/textures/leather.jpg"); }
+.background-photo-option[data-background-tone="photo-texture"]::before    { background-image: url("backgrounds/textures/texture.jpg"); }
+.background-photo-option[data-background-tone="photo-paint"]::before      { background-image: url("backgrounds/abstract/paint.jpg"); }
+.background-photo-option[data-background-tone="photo-paintspill"]::before { background-image: url("backgrounds/abstract/paintspill.jpg"); }
+.background-photo-option[data-background-tone="photo-city"]::before       { background-image: url("backgrounds/urban/city.jpg"); }
+.background-photo-option[data-background-tone="photo-modern"]::before     { background-image: url("backgrounds/urban/modern.jpg"); }
+.background-photo-option[data-background-tone="photo-mercury"]::before    { background-image: url("backgrounds/space/mercury.jpg"); }
+.background-photo-option[data-background-tone="photo-venus"]::before      { background-image: url("backgrounds/space/venus.jpg"); }
+.background-photo-option[data-background-tone="photo-earth"]::before      { background-image: url("backgrounds/space/earth.jpg"); }
+.background-photo-option[data-background-tone="photo-mars"]::before       { background-image: url("backgrounds/space/mars.jpg"); }
+.background-photo-option[data-background-tone="photo-jupiter"]::before    { background-image: url("backgrounds/space/jupiter.jpg"); }
+.background-photo-option[data-background-tone="photo-saturn"]::before     { background-image: url("backgrounds/space/saturn.jpg"); }
+.background-photo-option[data-background-tone="photo-uranus"]::before     { background-image: url("backgrounds/space/uranus.jpg"); }
+.background-photo-option[data-background-tone="photo-neptune"]::before    { background-image: url("backgrounds/space/neptune.jpg"); }
+.background-photo-option[data-background-tone="photo-pluto"]::before      { background-image: url("backgrounds/space/pluto.jpg"); }
 .background-photo-option[data-background-tone="solar-system"]::before {
-  background-image: url("/static/backgrounds/space/earth.jpg");
+  background-image: url("backgrounds/space/earth.jpg");
 }
 
 .background-photo-option.is-selected {

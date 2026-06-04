@@ -1,16 +1,24 @@
-{% extends "base.html" %}
-{% block content %}
-{% macro panel_tools(color) -%}
-  <div class="panel-tools">
-    <div class="panel-tool-drawer" aria-label="Panel tools">
-      <button class="panel-tool-button panel-move-handle" type="button" aria-label="Move panel" title="Move panel"><span class="move-icon" aria-hidden="true"></span></button>
-      <button class="panel-tool-button panel-resize-handle" type="button" aria-label="Resize panel" title="Resize panel"><span class="resize-icon" aria-hidden="true"></span></button>
-      <button class="panel-tool-button panel-pin-toggle" type="button" aria-label="Pin panel" aria-pressed="false" title="Pin panel"><span class="pin-icon" aria-hidden="true"></span></button>
-      <button class="panel-tool-button panel-title-handle" type="button" aria-label="Rename panel" title="Rename panel"><span class="text-icon" aria-hidden="true"></span></button>
-      <button class="panel-tool-button panel-color-toggle" type="button" aria-label="Panel colors" aria-expanded="false" title="Panel colors" data-default-theme="{{ color }}"><span class="color-icon" aria-hidden="true"></span></button>
-    </div>
-  </div>
-{%- endmacro %}
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Configurable Dashboard Builder</title>
+  <script>
+    (() => {
+      try {
+        const background = localStorage.getItem("dashboard-background") || "frosted-light";
+        document.documentElement.dataset.background = background;
+      } catch {}
+    })();
+  </script>
+  <link rel="stylesheet" href="./app/static/style.css">
+</head>
+<body>
+  <main class="page">
+    
+    
+
 
 <header class="app-nav workspace-chrome">
   <div class="app-nav-brand-group">
@@ -26,8 +34,8 @@
         <button class="dash-switch-opt dash-switch-profile dash-switch-opt-active" type="button" disabled>
           <span><strong>Workspace User</strong><small>user@example.com</small></span>
         </button>
-        <a class="dash-switch-opt" href="/dashboard" aria-current="page">
-          <span><strong>{{ dashboard.title }}</strong><small>Current workspace</small></span>
+        <a class="dash-switch-opt" href="#" aria-current="page">
+          <span><strong>Configurable Dashboard Builder</strong><small>Current workspace</small></span>
         </a>
         <button class="dash-switch-opt dash-switch-profile" type="button" disabled>
           <span><strong>Sign out</strong><small>Available with account sessions</small></span>
@@ -42,7 +50,7 @@
         <div class="layout-slot-picker" data-layout-target="builder">
           <button class="layout-slot-trigger" type="button" data-current-slot="1" aria-haspopup="true" aria-expanded="false"><span class="layout-slot-label">Layout 1</span></button>
           <div class="layout-slot-menu nav-menu-shell floating-glass-menu glass-menu-scroll-region" role="menu">
-            {% for slot in range(1, 11) %}<button type="button" role="menuitem" data-slot="{{ slot }}">Layout {{ slot }}</button>{% endfor %}
+            <button type="button" role="menuitem" data-slot="1">Layout 1</button><button type="button" role="menuitem" data-slot="2">Layout 2</button><button type="button" role="menuitem" data-slot="3">Layout 3</button><button type="button" role="menuitem" data-slot="4">Layout 4</button><button type="button" role="menuitem" data-slot="5">Layout 5</button><button type="button" role="menuitem" data-slot="6">Layout 6</button><button type="button" role="menuitem" data-slot="7">Layout 7</button><button type="button" role="menuitem" data-slot="8">Layout 8</button><button type="button" role="menuitem" data-slot="9">Layout 9</button><button type="button" role="menuitem" data-slot="10">Layout 10</button>
           </div>
         </div>
         <button class="layout-slot-button layout-save-button" type="button" data-layout-target="builder">Save</button>
@@ -60,7 +68,6 @@
     </div>
     <div class="workspace-command-island mode-command-island" aria-label="Interaction modes">
       <button class="layout-slot-button layout-group-button" type="button" data-layout-target="builder" aria-pressed="false" title="Select widgets or panels">Select</button>
-      <button class="workspace-mode-button engineer-mode-button" type="button" data-workspace-mode="engineer" aria-pressed="false" title="Engineer Mode">Engineer</button>
     </div>
   </div>
   <div class="app-nav-actions">
@@ -176,51 +183,6 @@
 </header>
 
 <div class="workspace-menu-overlay-layer" aria-hidden="true"></div>
-<div class="workspace-anchor-layer" data-anchor-layout-key="builder" aria-label="Spatial anchors"></div>
-<aside class="workspace-assistant-rail" data-assistant-layout-key="builder" data-assistant-rail-state="collapsed" aria-label="AI workspace operator">
-  <button class="workspace-assistant-tab" type="button" aria-label="Open AI assistant" aria-controls="workspace-assistant-drawer" aria-expanded="false">
-    <span class="workspace-assistant-tab-kicker">AI</span>
-    <span class="workspace-assistant-tab-label">Assistant</span>
-    <span class="workspace-assistant-activity" aria-hidden="true"></span>
-  </button>
-  <section class="workspace-assistant-drawer" id="workspace-assistant-drawer" aria-label="AI assistant drawer" aria-hidden="true">
-    <div class="workspace-assistant-head">
-      <div>
-        <span>AI Operator</span>
-        <small>Build analytical workspaces</small>
-      </div>
-      <button class="workspace-assistant-close" type="button" aria-label="Close AI assistant">Close</button>
-    </div>
-    <div class="workspace-assistant-body">
-      <div class="workspace-assistant-intro">
-        <strong>Ask the workspace what to build.</strong>
-        <p>The operator inspects available data, plans safe actions, and creates registry-backed dashboard objects.</p>
-      </div>
-      <form class="ai-operator-form workspace-assistant-form" data-ai-operator-form="true" data-assistant-rail-form="true">
-        <textarea class="ai-operator-prompt workspace-assistant-prompt" name="prompt" rows="4" placeholder="Show trends in alarms over time"></textarea>
-        <div class="ai-operator-actions workspace-assistant-actions">
-          <button class="ai-operator-button" type="submit" data-ai-operator-mode="plan">Plan</button>
-          <button class="ai-operator-button ai-operator-primary" type="submit" data-ai-operator-mode="execute">Build</button>
-        </div>
-      </form>
-      <div class="workspace-assistant-result" data-assistant-result hidden>
-        <span data-assistant-result-status>Ready</span>
-        <p data-assistant-result-summary>Ask a question to generate a workspace plan.</p>
-      </div>
-    </div>
-  </section>
-</aside>
-<div class="workspace-minimap-layer" data-minimap-layout-key="builder" aria-label="Workspace mini-map">
-  <button class="workspace-minimap-toggle" type="button" aria-label="Show workspace mini-map" aria-pressed="true" title="Show workspace mini-map">Map</button>
-  <div class="workspace-minimap-surface" role="navigation" aria-label="Workspace mini-map overview">
-    <div class="workspace-minimap-head">
-      <span>Map</span>
-      <button class="workspace-minimap-collapse" type="button" aria-label="Hide workspace mini-map" title="Hide workspace mini-map">Hide</button>
-    </div>
-    <svg class="workspace-minimap-svg" viewBox="0 0 160 240" preserveAspectRatio="none" aria-hidden="true"></svg>
-  </div>
-</div>
-
 <div class="dashboard-layout-grid" data-dashboard-layout-key="builder">
   <div class="stat-band widget-layout" data-widget-layout-key="builder">
     <div class="stat-card widget-card widget-card-custom timeframe-widget-card" data-widget-key="builder-search" data-widget-definition="timeframe" data-widget-type="timeframe" data-widget-runtime-type="timeframe" data-default-span="4" data-min-w="2" aria-label="Time filter controls">
@@ -228,14 +190,35 @@
         <span class="timeframe-empty-hint">Add time controls in settings</span>
       </div>
     </div>
-    {% for widget in widgets if widget.widget_type != "controls" %}
-    {% set stat_col = 5 + (loop.index0 % 2) %}
-    {% set stat_row = 1 + (loop.index0 // 2) %}
-    <a class="stat-card widget-card" data-widget-key="{{ widget.key }}" data-widget-type="{{ widget.widget_type }}" data-default-span="{{ widget.span }}" data-default-grid-col="{{ stat_col }}" data-default-grid-row="{{ stat_row }}" data-grid-col="{{ stat_col }}" data-grid-row="{{ stat_row }}" data-default-title="{{ widget.title }}" href="/dashboard">
-      <span class="stat-val">{{ widget.value }}</span>
-      <span class="stat-lbl">{{ widget.title }}</span>
+    
+    
+    
+    <a class="stat-card widget-card" data-widget-key="widget-1" data-widget-type="tracker" data-default-span="1" data-default-grid-col="5" data-default-grid-row="1" data-grid-col="5" data-grid-row="1" data-default-title="Widget 1" href="#">
+      <span class="stat-val">0</span>
+      <span class="stat-lbl">Widget 1</span>
     </a>
-    {% endfor %}
+    
+    
+    
+    <a class="stat-card widget-card" data-widget-key="widget-2" data-widget-type="tracker" data-default-span="1" data-default-grid-col="6" data-default-grid-row="1" data-grid-col="6" data-grid-row="1" data-default-title="Widget 2" href="#">
+      <span class="stat-val">0</span>
+      <span class="stat-lbl">Widget 2</span>
+    </a>
+    
+    
+    
+    <a class="stat-card widget-card" data-widget-key="widget-3" data-widget-type="tracker" data-default-span="1" data-default-grid-col="5" data-default-grid-row="2" data-grid-col="5" data-grid-row="2" data-default-title="Widget 3" href="#">
+      <span class="stat-val">0</span>
+      <span class="stat-lbl">Widget 3</span>
+    </a>
+    
+    
+    
+    <a class="stat-card widget-card" data-widget-key="widget-4" data-widget-type="tracker" data-default-span="1" data-default-grid-col="6" data-default-grid-row="2" data-grid-col="6" data-grid-row="2" data-default-title="Widget 4" href="#">
+      <span class="stat-val">0</span>
+      <span class="stat-lbl">Widget 4</span>
+    </a>
+    
   </div>
 
   <div class="panel-layout" data-layout-key="builder">
@@ -243,7 +226,15 @@
       <div class="db-panel-hd db-panel-hd-items">
         <span class="db-panel-title">Content</span>
         <span class="db-panel-count">0</span>
-        {{ panel_tools("#2563eb") }}
+        <div class="panel-tools">
+    <div class="panel-tool-drawer" aria-label="Panel tools">
+      <button class="panel-tool-button panel-move-handle" type="button" aria-label="Move panel" title="Move panel"><span class="move-icon" aria-hidden="true"></span></button>
+      <button class="panel-tool-button panel-resize-handle" type="button" aria-label="Resize panel" title="Resize panel"><span class="resize-icon" aria-hidden="true"></span></button>
+      <button class="panel-tool-button panel-pin-toggle" type="button" aria-label="Pin panel" aria-pressed="false" title="Pin panel"><span class="pin-icon" aria-hidden="true"></span></button>
+      <button class="panel-tool-button panel-title-handle" type="button" aria-label="Rename panel" title="Rename panel"><span class="text-icon" aria-hidden="true"></span></button>
+      <button class="panel-tool-button panel-color-toggle" type="button" aria-label="Panel colors" aria-expanded="false" title="Panel colors" data-default-theme="#2563eb"><span class="color-icon" aria-hidden="true"></span></button>
+    </div>
+  </div>
       </div>
       <div class="db-panel-body">
         <div class="empty-state panel-empty-state" data-panel-placeholder="empty">
@@ -258,7 +249,15 @@
       <div class="db-panel-hd db-panel-hd-items">
         <span class="db-panel-title">Menu</span>
         <span class="db-panel-count">0</span>
-        {{ panel_tools("#16a34a") }}
+        <div class="panel-tools">
+    <div class="panel-tool-drawer" aria-label="Panel tools">
+      <button class="panel-tool-button panel-move-handle" type="button" aria-label="Move panel" title="Move panel"><span class="move-icon" aria-hidden="true"></span></button>
+      <button class="panel-tool-button panel-resize-handle" type="button" aria-label="Resize panel" title="Resize panel"><span class="resize-icon" aria-hidden="true"></span></button>
+      <button class="panel-tool-button panel-pin-toggle" type="button" aria-label="Pin panel" aria-pressed="false" title="Pin panel"><span class="pin-icon" aria-hidden="true"></span></button>
+      <button class="panel-tool-button panel-title-handle" type="button" aria-label="Rename panel" title="Rename panel"><span class="text-icon" aria-hidden="true"></span></button>
+      <button class="panel-tool-button panel-color-toggle" type="button" aria-label="Panel colors" aria-expanded="false" title="Panel colors" data-default-theme="#16a34a"><span class="color-icon" aria-hidden="true"></span></button>
+    </div>
+  </div>
       </div>
       <div class="db-panel-body">
         <div class="empty-state panel-empty-state" data-panel-placeholder="empty">
@@ -273,7 +272,15 @@
       <div class="db-panel-hd db-panel-hd-items">
         <span class="db-panel-title">Notes</span>
         <span class="db-panel-count">0</span>
-        {{ panel_tools("#9333ea") }}
+        <div class="panel-tools">
+    <div class="panel-tool-drawer" aria-label="Panel tools">
+      <button class="panel-tool-button panel-move-handle" type="button" aria-label="Move panel" title="Move panel"><span class="move-icon" aria-hidden="true"></span></button>
+      <button class="panel-tool-button panel-resize-handle" type="button" aria-label="Resize panel" title="Resize panel"><span class="resize-icon" aria-hidden="true"></span></button>
+      <button class="panel-tool-button panel-pin-toggle" type="button" aria-label="Pin panel" aria-pressed="false" title="Pin panel"><span class="pin-icon" aria-hidden="true"></span></button>
+      <button class="panel-tool-button panel-title-handle" type="button" aria-label="Rename panel" title="Rename panel"><span class="text-icon" aria-hidden="true"></span></button>
+      <button class="panel-tool-button panel-color-toggle" type="button" aria-label="Panel colors" aria-expanded="false" title="Panel colors" data-default-theme="#9333ea"><span class="color-icon" aria-hidden="true"></span></button>
+    </div>
+  </div>
       </div>
       <div class="db-panel-body">
         <div class="empty-state panel-empty-state" data-panel-placeholder="empty">
@@ -285,4 +292,35 @@
     </section>
   </div>
 </div>
-{% endblock %}
+
+  </main>
+  <dialog class="confirm-dialog" id="panel-delete-dialog" aria-labelledby="panel-delete-title">
+    <div class="confirm-dialog-head">
+      <span>Confirm action</span>
+      <button type="button" class="confirm-dialog-close" aria-label="Cancel deletion">x</button>
+    </div>
+    <strong id="panel-delete-title">Delete item?</strong>
+    <p id="panel-delete-message">Are you sure you want to delete this item?</p>
+    <div class="confirm-dialog-actions">
+      <button type="button" class="confirm-dialog-btn confirm-dialog-cancel">Cancel</button>
+      <button type="button" class="confirm-dialog-btn confirm-dialog-danger">Delete</button>
+    </div>
+  </dialog>
+  <div class="toast-stack" aria-live="polite" aria-atomic="true"></div>
+  <script src="./app/static/demo-data.js"></script>
+  <script src="./app/static/demo-layout.js"></script>
+  <script src="./app/static/widget-registry.js"></script>
+  <script src="./app/static/widget-runtime.js"></script>
+  <script src="./app/static/interaction-state.js"></script>
+  <script src="./app/static/menu-overlay.js"></script>
+  <script src="./app/static/layout-persistence.js"></script>
+  <script src="./app/static/drag-runtime.js"></script>
+  <script src="./app/static/resize-runtime.js"></script>
+  <script src="./app/static/dashboard-geometry.js"></script>
+  <script src="./app/static/panel-runtime.js"></script>
+  <script src="./app/static/panel-containment.js"></script>
+  <script src="./app/static/collision-reflow.js"></script>
+  <script src="./app/static/app.js"></script>
+  <script src="./app/static/liquid-glass-webgl.js"></script>
+</body>
+</html>
