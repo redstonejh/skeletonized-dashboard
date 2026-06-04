@@ -47,231 +47,8 @@ document.querySelectorAll(".range-custom").forEach((form) => {
 });
 
 document.addEventListener("DOMContentLoaded", () => {
-  let refreshWorkspaceMetaWidgets = () => {};
-  const workspaceEvents = [];
-  const workspaceEventListeners = new Map();
-  let workspaceEventRetention = 120;
-  let workspaceEventSequence = 0;
-  const pendingMetaRefreshLayoutKeys = new Set();
-  let workspaceMetaRefreshScheduled = false;
-  const scheduleWorkspaceMetaRefresh = (layoutKey = "builder") => {
-    pendingMetaRefreshLayoutKeys.add(layoutKey || "builder");
-    if (workspaceMetaRefreshScheduled) return;
-    workspaceMetaRefreshScheduled = true;
-    requestAnimationFrame(() => {
-      workspaceMetaRefreshScheduled = false;
-      const keys = [...pendingMetaRefreshLayoutKeys];
-      pendingMetaRefreshLayoutKeys.clear();
-      keys.forEach((key) => refreshWorkspaceMetaWidgets(key));
-    });
-  };
-  const normalizeWorkspaceEvent = (event = {}) => {
-    const timestamp = Number(event.timestamp) || Date.now();
-    const layoutKey = event.layoutKey || event.payload?.layoutKey || document.querySelector(".panel-layout")?.dataset.layoutKey || "builder";
-    const payload = event.payload && typeof event.payload === "object" ? { ...event.payload } : {};
-    const rawSeverity = String(event.severity || payload.severity || event.tone || payload.tone || "").toLowerCase();
-    const type = String(event.type || "workspace-update");
-    const severity = rawSeverity ||
-      (/(error|failed|deleted|removed|breach)/.test(type) ? "critical" :
-        /(warn|risk|blocked|collision|stale)/.test(type) ? "warning" :
-          /(saved|loaded|created|signal|dataflow|scenario|ai)/.test(type) ? "active" : "info");
-    const ageMs = Date.now() - timestamp;
-    const freshness = ageMs <= 2 * 60 * 1000 ? "recent" : ageMs <= 24 * 60 * 60 * 1000 ? "fresh" : "stale";
-    return {
-      id: event.id || `workspace-event-${timestamp.toString(36)}-${(++workspaceEventSequence).toString(36)}`,
-      type,
-      timestamp,
-      time: event.time || new Date(timestamp).toISOString(),
-      source: event.source || "workspace",
-      objectId: event.objectId || "",
-      objectType: event.objectType || "",
-      regionId: event.regionId || "",
-      panelId: event.panelId || "",
-      layoutKey,
-      label: String(event.label || event.payload?.label || "Workspace updated"),
-      detail: event.detail || "",
-      severity,
-      freshness,
-      traceable: Boolean(event.traceable || payload.traceable || event.objectId || payload.objectId || payload.linkId),
-      lineage: event.lineage && typeof event.lineage === "object" ? { ...event.lineage } : (payload.lineage && typeof payload.lineage === "object" ? { ...payload.lineage } : null),
-      payload,
-    };
-  };
-  const emitWorkspaceEvent = (event = {}) => {
-    const normalized = normalizeWorkspaceEvent(event);
-    workspaceEvents.unshift(normalized);
-    workspaceEvents.splice(Math.max(1, workspaceEventRetention));
-    const listeners = [
-      ...(workspaceEventListeners.get(normalized.type) || []),
-      ...(workspaceEventListeners.get("*") || []),
-    ];
-    listeners.forEach((listener) => {
-      try {
-        listener(normalized);
-      } catch (error) {
-        console.warn("Workspace event listener failed", error);
-      }
-    });
-    scheduleWorkspaceMetaRefresh(normalized.layoutKey);
-    return normalized;
-  };
-  const onWorkspaceEvent = (type, listener) => {
-    if (typeof listener !== "function") return () => {};
-    const key = String(type || "*");
-    const listeners = workspaceEventListeners.get(key) || new Set();
-    listeners.add(listener);
-    workspaceEventListeners.set(key, listeners);
-    return () => {
-      const current = workspaceEventListeners.get(key);
-      current?.delete(listener);
-      if (current && current.size <= 0) workspaceEventListeners.delete(key);
-    };
-  };
-  const recentWorkspaceEvents = (options = {}) => {
-    const maxItems = Math.max(1, Math.min(100, Number(options.maxItems) || 20));
-    const eventTypes = Array.isArray(options.eventTypes) ? options.eventTypes.filter(Boolean) : [];
-    const layoutKey = options.layoutKey || "";
-    const scope = options.scope || "workspace";
-    const regionId = options.regionId || options.resolvedContext?.regionId || "";
-    return workspaceEvents.filter((event) => {
-      if (eventTypes.length && !eventTypes.includes(event.type)) return false;
-      if (layoutKey && event.layoutKey !== layoutKey) return false;
-      if (scope === "currentRegion" && regionId && event.regionId && event.regionId !== regionId) return false;
-      if (scope === "currentPanel" && options.panelId && event.panelId && event.panelId !== options.panelId) return false;
-      return true;
-    }).slice(0, maxItems);
-  };
-  const activityTypeFromMessage = (message = "", tone = "info") => {
-    const text = String(message || "").toLowerCase();
-    if (text.includes("deleted")) return "object-deleted";
-    if (text.includes("added") || text.includes("pasted")) return "object-created";
-    if (text.includes("saved")) return "layout-saved";
-    if (text.includes("loading layout") || text.includes("loaded")) return "layout-loaded";
-    if (text.includes("undone") || text.includes("redone")) return "history";
-    if (text.includes("error") || tone === "error" || tone === "warn") return "error";
-    if (text.includes("engineer") || text.includes("select mode")) return "workspace-mode";
-    return "workspace-update";
-  };
-  const recordWorkspaceActivity = (type, label, detail = {}) => {
-    return emitWorkspaceEvent({
-      type: type || "workspace-update",
-      label,
-      severity: detail.severity || detail.tone || "",
-      traceable: Boolean(detail.traceable || detail.objectId || detail.payload?.linkId),
-      lineage: detail.lineage || null,
-      source: detail.source || "activity",
-      objectId: detail.objectId || "",
-      objectType: detail.objectType || "",
-      regionId: detail.regionId || "",
-      panelId: detail.panelId || "",
-      layoutKey: detail.layoutKey || document.querySelector(".panel-layout")?.dataset.layoutKey || "builder",
-      detail: detail.detail || detail.tone || "",
-      payload: detail.payload || {},
-    });
-  };
-  const showToast = (message, tone = "info", detail = {}) => {
-    if (detail.activity !== false) {
-      recordWorkspaceActivity(detail.type || activityTypeFromMessage(message, tone), message, { ...detail, tone });
-    }
-    showGlobalToast(message, tone);
-  };
-  const assistantRail = document.querySelector(".workspace-assistant-rail");
-  const assistantRailDrawer = assistantRail?.querySelector(".workspace-assistant-drawer");
-  const assistantRailTab = assistantRail?.querySelector(".workspace-assistant-tab");
-  const assistantRailClose = assistantRail?.querySelector(".workspace-assistant-close");
-  const assistantRailPrompt = assistantRail?.querySelector(".workspace-assistant-prompt");
-  const assistantRailResult = assistantRail?.querySelector("[data-assistant-result]");
-  const assistantRailResultStatus = assistantRail?.querySelector("[data-assistant-result-status]");
-  const assistantRailResultSummary = assistantRail?.querySelector("[data-assistant-result-summary]");
-  const setAssistantRailState = (state = "collapsed", options = {}) => {
-    if (!assistantRail) return false;
-    const expanded = state === "expanded";
-    assistantRail.dataset.assistantRailState = expanded ? "expanded" : "collapsed";
-    assistantRailTab?.setAttribute("aria-expanded", expanded ? "true" : "false");
-    assistantRailDrawer?.setAttribute("aria-hidden", expanded ? "false" : "true");
-    document.body.classList.toggle("assistant-rail-open", expanded);
-    if (expanded) {
-      delete assistantRail.dataset.assistantUnread;
-      if (options.focus !== false) window.setTimeout(() => assistantRailPrompt?.focus(), 180);
-    }
-    return true;
-  };
-  const setAssistantRailBusy = (busy = false) => {
-    if (!assistantRail) return false;
-    assistantRail.dataset.assistantBusy = busy ? "true" : "false";
-    assistantRail.querySelectorAll(".ai-operator-button").forEach((button) => {
-      button.disabled = Boolean(busy);
-    });
-    return true;
-  };
-  const setAssistantRailResult = ({
-    status = "ready",
-    summary = "Plan ready for review.",
-    prompt = "",
-    planId = "",
-    ok = true,
-  } = {}) => {
-    if (!assistantRail) return false;
-    if (assistantRailResult) assistantRailResult.hidden = false;
-    if (assistantRailResultStatus) assistantRailResultStatus.textContent = status || (ok ? "ready" : "partial");
-    if (assistantRailResultSummary) assistantRailResultSummary.textContent = summary || "Plan ready for review.";
-    if (prompt && assistantRailPrompt) assistantRailPrompt.value = prompt;
-    assistantRail.dataset.lastPlanId = planId || "";
-    assistantRail.dataset.lastPlanStatus = status || "";
-    if (assistantRail.dataset.assistantRailState !== "expanded") assistantRail.dataset.assistantUnread = "true";
-    return true;
-  };
-  const clearAssistantRailResult = () => {
-    if (!assistantRail) return false;
-    if (assistantRailResult) assistantRailResult.hidden = true;
-    delete assistantRail.dataset.lastPlanId;
-    delete assistantRail.dataset.lastPlanStatus;
-    delete assistantRail.dataset.assistantUnread;
-    return true;
-  };
-  if (assistantRail) {
-    assistantRailTab?.addEventListener("click", (event) => {
-      event.preventDefault();
-      event.stopPropagation();
-      setAssistantRailState("expanded");
-    });
-    assistantRailClose?.addEventListener("click", (event) => {
-      event.preventDefault();
-      event.stopPropagation();
-      setAssistantRailState("collapsed", { focus: false });
-      assistantRailTab?.focus();
-    });
-    assistantRail.addEventListener("pointerdown", (event) => event.stopPropagation());
-    assistantRail.addEventListener("click", (event) => event.stopPropagation());
-    assistantRail.addEventListener("keydown", (event) => {
-      event.stopPropagation();
-      if (event.key === "Escape" && assistantRail.dataset.assistantRailState === "expanded") {
-        event.preventDefault();
-        setAssistantRailState("collapsed", { focus: false });
-        assistantRailTab?.focus();
-      }
-    });
-  }
-  window.dashboardAssistantRailRuntime = {
-    open: (options = {}) => setAssistantRailState("expanded", options),
-    close: (options = {}) => setAssistantRailState("collapsed", options),
-    toggle: (options = {}) => setAssistantRailState(assistantRail?.dataset.assistantRailState === "expanded" ? "collapsed" : "expanded", options),
-    state: () => assistantRail?.dataset.assistantRailState || "unavailable",
-    setBusy: setAssistantRailBusy,
-    setResult: setAssistantRailResult,
-    clearResult: clearAssistantRailResult,
-    setPrompt: (prompt = "", options = {}) => {
-      if (assistantRailPrompt) assistantRailPrompt.value = String(prompt || "");
-      if (options.open) setAssistantRailState("expanded");
-      return Boolean(assistantRailPrompt);
-    },
-    focusPrompt: () => {
-      setAssistantRailState("expanded");
-      assistantRailPrompt?.focus();
-      return Boolean(assistantRailPrompt);
-    },
-  };
-  const dashboardInteractionState = window.dashboardInteractionState;
+  const emitWorkspaceEvent = () => null;
+  const showToast = (message, tone = "info") => showGlobalToast(message, tone);  const dashboardInteractionState = window.dashboardInteractionState;
   const dashboardDragRuntime = window.dashboardDragRuntime;
   const dashboardResizeRuntime = window.dashboardResizeRuntime;
   const dashboardPanelRuntime = window.dashboardPanelRuntime;
@@ -722,7 +499,6 @@ document.addEventListener("DOMContentLoaded", () => {
   const isEngineerMode = () => false;
   const refreshEngineerContextVisibility = () => {
     refreshWorkspaceMiniMaps();
-    refreshWorkspaceMetaWidgets();
   };
   const setEngineerMode = () => false;
   const toggleEngineerMode = () => false;
@@ -1972,7 +1748,7 @@ document.addEventListener("DOMContentLoaded", () => {
         payload: { title: entry.title, extractedPanelChildren: entry.kind === "panel" ? panelChildWidgets(entry.item).length : 0 },
       });
     });
-    showToast(entries.length > 1 ? `${entries.length} objects deleted.` : `${entries[0].title} ${entries[0].kind} deleted.`, "info", { activity: false });
+    showToast(entries.length > 1 ? `${entries.length} objects deleted.` : `${entries[0].title} ${entries[0].kind} deleted.`, "info");
   };
   const requestWorkspaceObjectDelete = ({ targets }) => {
     const entries = workspaceDeleteEntries(targets);
@@ -3087,7 +2863,6 @@ document.addEventListener("DOMContentLoaded", () => {
       if (item.classList.contains("widget-card")) void refreshWidgetRuntimeData(item, resolved);
     });
     refreshWorkspaceMiniMaps(layoutKey);
-    refreshWorkspaceMetaWidgets(layoutKey);
   };
   const saveWorkspaceContextState = (layoutKey, profile = getActivePanelProfile(layoutKey), options = {}) => {
     const persist = Boolean(options.persist);
@@ -4686,7 +4461,7 @@ document.addEventListener("DOMContentLoaded", () => {
         : condition === "stale"
           ? "low"
           : "normal";
-    const activity = condition === "loading" || refreshing || condition === "active"
+    const motion = condition === "loading" || refreshing || condition === "active"
       ? "active"
       : condition === "stale" || status === "empty"
         ? "inactive"
@@ -4695,7 +4470,7 @@ document.addEventListener("DOMContentLoaded", () => {
       condition,
       urgency,
       freshness,
-      activity,
+      motion,
       confidence: runtimeMeaningConfidence(data, config),
       counts,
     };
@@ -4707,7 +4482,7 @@ document.addEventListener("DOMContentLoaded", () => {
     widget.dataset.runtimeCondition = meaning.condition;
     widget.dataset.runtimeUrgency = meaning.urgency;
     widget.dataset.runtimeFreshness = meaning.freshness;
-    widget.dataset.runtimeActivity = meaning.activity;
+    widget.dataset.runtimeMotion = meaning.motion;
     widget.dataset.runtimeConfidence = meaning.confidence;
     widget.dataset.runtimeMeaningSummary = [
       meaning.condition,
@@ -5249,22 +5024,6 @@ document.addEventListener("DOMContentLoaded", () => {
     ),
   };
   const hydrateWidgetRuntime = (widget, saved = null) => widgetRuntimeController.hydrateRuntime(widget, saved);
-  refreshWorkspaceMetaWidgets = (layoutKey = "builder") => {
-    const selector = [
-      `.widget-layout[data-widget-layout-key="${CSS.escape(layoutKey)}"] > .widget-card[data-widget-definition="activity-feed"]`,
-      `.widget-layout[data-widget-layout-key="${CSS.escape(layoutKey)}"] > .widget-card[data-widget-definition="ai-assistant"]`,
-      `.widget-layout[data-widget-layout-key="${CSS.escape(layoutKey)}"] > .widget-card[data-widget-definition="context-inspector"]`,
-      `.panel-layout[data-layout-key="${CSS.escape(layoutKey)}"] .panel-internal-widget-grid > .widget-card[data-widget-definition="activity-feed"]`,
-      `.panel-layout[data-layout-key="${CSS.escape(layoutKey)}"] .panel-internal-widget-grid > .widget-card[data-widget-definition="ai-assistant"]`,
-      `.panel-layout[data-layout-key="${CSS.escape(layoutKey)}"] .panel-internal-widget-grid > .widget-card[data-widget-definition="context-inspector"]`,
-    ].join(",");
-    document.querySelectorAll(selector).forEach((widget) => {
-      renderWidgetRuntimeContent(widget, {
-        resolvedContext: resolveWorkspaceContextForItem(widget),
-        status: "ready",
-      });
-    });
-  };
   const persistRuntimeControlChangeForWidget = (widget, options = {}) => {
     const layoutKey = activeLayoutKeyForItem(widget);
     const profile = getActivePanelProfile(layoutKey);
@@ -5272,12 +5031,6 @@ document.addEventListener("DOMContentLoaded", () => {
     if (options.invalidateQuery !== false) invalidateManagedWidgetQueryForWidget(widget);
     if (layout) saveWidgetLayouts(layout, profile, { history: false });
     refreshResolvedContextDebug(layoutKey, profile);
-    if (options.activity !== false) {
-      recordWorkspaceActivity("widget-config-changed", `${widget.dataset.widgetDisplayName || "Widget"} config changed`, {
-        layoutKey,
-        regionId: regionIdForWorkspaceItem(widget),
-      });
-    }
     if (options.history !== false) pushLiveLayoutUndo(layoutKey, profile);
   };
   const captureRuntimeControlBaselineForWidget = (widget) => {
@@ -10388,133 +10141,6 @@ document.addEventListener("DOMContentLoaded", () => {
     validateSnapshot: validatePersistedWorkspaceSnapshot,
   };
 
-  const selectedWorkspaceObjectSummary = () => {
-    const selected = selectedGroupItems(null);
-    const active = document.querySelector(".widget-tools-open, .db-panel-tools-open") ||
-      document.activeElement?.closest?.(".widget-card, .db-panel") ||
-      selected[0] || null;
-    if (!active) return null;
-    return {
-      id: active.dataset.widgetKey || active.dataset.panelKey || "",
-      type: workspaceObjectType(active),
-      label: active.dataset.panelTitle || active.dataset.widgetDisplayName || active.querySelector?.(".stat-lbl, .db-panel-title")?.textContent?.trim() || "Workspace object",
-      regionId: regionIdForWorkspaceItem(active),
-      selectionCount: selected.length,
-    };
-  };
-  const currentContextInspectorSnapshot = ({ instanceId = "", target = "currentRegion", resolvedContext = null } = {}) => {
-    const widget = instanceId ? document.querySelector(`.widget-card[data-widget-key="${CSS.escape(instanceId)}"]`) : null;
-    const layoutKey = widget ? activeLayoutKeyForItem(widget) : "builder";
-    const context = resolvedContext || (widget ? resolveWorkspaceContextForItem(widget) : mergeWorkspaceContexts(
-      contextById(layoutKey, getActivePanelProfile(layoutKey), workspaceRootRegionId(layoutKey))
-    ));
-    const selectedObject = selectedWorkspaceObjectSummary();
-    const regionSummary = widget
-      ? workspaceRegionSummaryForItem(widget)
-      : workspaceRegionSummaryForItem(null, { layoutKey });
-    const persistenceValidation = validatePersistedWorkspaceSnapshot(currentPersistedWorkspaceSnapshot(layoutKey, getActivePanelProfile(layoutKey)));
-    return {
-      engineerMode: isEngineerMode(),
-      target,
-      layoutKey,
-      objectId: widget?.dataset.widgetKey || "",
-      objectKind: widget?.dataset.dashboardObjectKind || "",
-      selectedObject,
-      region: regionSummary,
-      context: {
-        id: context?.id || "",
-        name: context?.name || "",
-        regionId: context?.regionId || regionSummary?.id || "",
-        dataSourceId: context?.dataSourceId || "",
-        dataSourceName: context?.dataSourceName || "",
-        filters: Array.isArray(context?.filters) ? context.filters : [],
-        timeRange: context?.timeRange || null,
-        tags: Array.isArray(context?.tags) ? context.tags : [],
-        semanticMapping: context?.semanticMapping || {},
-      },
-      regions: deriveWorkspaceContextRegions(layoutKey).map((region) => ({
-        id: region.id,
-        label: regionLabelForSummary(region.id, layoutKey),
-        startRow: region.startRow,
-        endRow: region.endRow,
-      })),
-      persistence: {
-        version: persistenceValidation.version,
-        ok: persistenceValidation.ok,
-        errors: persistenceValidation.errors,
-        warnings: persistenceValidation.warnings.slice(0, 12),
-      },
-    };
-  };
-  window.dashboardMetaRuntime = {
-    isEngineerMode,
-    recordActivity: recordWorkspaceActivity,
-    recentActivity: (options = {}) => {
-      const maxItems = Math.max(1, Math.min(20, Number(options.maxItems) || 8));
-      const filtered = recentWorkspaceEvents({ ...options, maxItems });
-      return (filtered.length ? filtered : [{
-        id: "activity-workspace-ready",
-        type: "workspace-update",
-        label: "Workspace ready",
-        detail: "Local activity will appear here",
-        layoutKey: "builder",
-        regionId: "",
-        time: new Date().toISOString(),
-      }]).slice(0, maxItems);
-    },
-    assistantScope: ({ scope = "region", instanceId = "", resolvedContext = null } = {}) => {
-      const widget = instanceId ? document.querySelector(`.widget-card[data-widget-key="${CSS.escape(instanceId)}"]`) : null;
-      const context = resolvedContext || (widget ? resolveWorkspaceContextForItem(widget) : null);
-      const region = widget ? workspaceRegionSummaryForItem(widget) : null;
-      const selectedObject = selectedWorkspaceObjectSummary();
-      const scopedObject = scope === "selection" ? selectedObject : scope === "panel" ? widget?.closest(".db-panel") : null;
-      return {
-        scope,
-        regionLabel: region?.label || context?.name || "Workspace",
-        dataSourceId: context?.dataSourceId || "",
-        dataSourceName: context?.dataSourceName || "",
-        filters: Array.isArray(context?.filters) ? context.filters : [],
-        timeRange: context?.timeRange || null,
-        selectedObject,
-        scopedObjectLabel: scopedObject?.dataset?.panelTitle || scopedObject?.querySelector?.(".db-panel-title")?.textContent?.trim() || "",
-      };
-    },
-    contextSnapshot: currentContextInspectorSnapshot,
-    selectedObject: selectedWorkspaceObjectSummary,
-  };
-  window.dashboardWorkspaceEvents = {
-    emit: emitWorkspaceEvent,
-    on: onWorkspaceEvent,
-    subscribe: onWorkspaceEvent,
-    recent: recentWorkspaceEvents,
-    history: () => [...workspaceEvents],
-    clear: () => {
-      workspaceEvents.splice(0);
-      scheduleWorkspaceMetaRefresh();
-    },
-    configure: ({ retention } = {}) => {
-      if (Number.isFinite(Number(retention))) {
-        workspaceEventRetention = Math.max(1, Math.min(1000, Number(retention)));
-        workspaceEvents.splice(workspaceEventRetention);
-      }
-      return { retention: workspaceEventRetention };
-    },
-    retention: () => workspaceEventRetention,
-  };
-
-  document.addEventListener("click", (event) => {
-    const item = event.target?.closest?.(".activity-feed-item");
-    if (!item) return;
-    item.classList.toggle("activity-feed-expanded");
-    item.setAttribute("aria-expanded", item.classList.contains("activity-feed-expanded") ? "true" : "false");
-  });
-  document.addEventListener("keydown", (event) => {
-    const item = event.target?.closest?.(".activity-feed-item");
-    if (!item || (event.key !== "Enter" && event.key !== " ")) return;
-    event.preventDefault();
-    item.click();
-  });
-
   const bindRangeCustomControls = (root = document) => {
     root.querySelectorAll(".range-custom").forEach((form) => {
       if (form.dataset.rangeCustomBound === "true") return;
@@ -10958,7 +10584,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   document.addEventListener("click", (event) => {
     if (!groupMode || event.button !== 0) return;
-    if (event.target?.closest?.(".app-nav, .workspace-menu-overlay-layer, .workspace-assistant-rail, .panel-tools, .widget-tools, .panel-color-menu, .panel-add-menu, .layout-slot-menu, .nav-status-popover")) return;
+    if (event.target?.closest?.(".app-nav, .workspace-menu-overlay-layer, .panel-tools, .widget-tools, .panel-color-menu, .panel-add-menu, .layout-slot-menu, .nav-status-popover")) return;
     const item = event.target?.closest?.(".widget-layout > .widget-card, .panel-layout > .db-panel");
     if (!item) return;
     event.preventDefault();
