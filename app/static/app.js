@@ -278,7 +278,6 @@ document.addEventListener("DOMContentLoaded", () => {
   const dashboardPanelContainment = window.dashboardPanelContainment;
   const dashboardCollisionReflowRuntime = window.dashboardCollisionReflowRuntime;
   const dashboardMenuOverlayRuntime = window.dashboardMenuOverlayRuntime;
-  const workspaceWireDragState = dashboardInteractionState.slot("activeWorkspaceWireDrag");
   const positionPortaledMenu = (menu, trigger, options = {}) => dashboardMenuOverlayRuntime?.position?.(menu, trigger, options);
   const portalFloatingMenu = (menu, trigger, options = {}) => dashboardMenuOverlayRuntime?.portal?.(menu, trigger, options);
   const restoreFloatingMenu = (menu) => dashboardMenuOverlayRuntime?.restore?.(menu);
@@ -1092,8 +1091,6 @@ document.addEventListener("DOMContentLoaded", () => {
     ".panel-add-menu",
     ".layout-slot-menu",
     ".background-tone-popover",
-    ".workspace-wire-nodule",
-    ".workspace-wire-delete-button",
     ".workspace-minimap-layer",
     "[data-widget-control-surface='true']",
     "button",
@@ -1106,7 +1103,6 @@ document.addEventListener("DOMContentLoaded", () => {
   const isWorkspaceSurfaceDragStart = (event, item) => {
     if (!event || !item || event.button !== 0) return false;
     if (isDashboardInteractionActive() || isInteractionSource(item)) return false;
-    if (event.target?.closest?.(".workspace-wire-nodule, .workspace-wire-delete-button")) return false;
     const controlTarget = event.target?.closest?.(surfaceResponseControlSelector);
     if (controlTarget && controlTarget !== item) return false;
     if (item.classList?.contains("db-panel")) {
@@ -1417,7 +1413,6 @@ document.addEventListener("DOMContentLoaded", () => {
     })),
     dataSources: readRawStore(dataSourcesKey(layoutKey, profile), "[]"),
     workspaceContexts: readRawStore(workspaceContextsKey(layoutKey, profile), "[]"),
-    workspaceLogicGraph: readRawStore(workspaceLogicGraphKey(layoutKey, profile), ""),
     profile,
   });
   const liveLayoutUndoSignature = (snapshot) => JSON.stringify({
@@ -1425,7 +1420,6 @@ document.addEventListener("DOMContentLoaded", () => {
     widgets: snapshot.widgets,
     dataSources: snapshot.dataSources,
     workspaceContexts: snapshot.workspaceContexts,
-    workspaceLogicGraph: snapshot.workspaceLogicGraph,
     profile: snapshot.profile,
   });
   const pushLiveLayoutUndo = (layoutKey, profile = getActivePanelProfile(layoutKey)) => {
@@ -1680,10 +1674,6 @@ document.addEventListener("DOMContentLoaded", () => {
       "builder";
     if (snapshot.dataSources != null) writeRawStore(dataSourcesKey(layoutKeyForSnapshot, snapshot.profile), snapshot.dataSources);
     if (snapshot.workspaceContexts != null) writeRawStore(workspaceContextsKey(layoutKeyForSnapshot, snapshot.profile), snapshot.workspaceContexts);
-    if (snapshot.workspaceLogicGraph != null) {
-      if (snapshot.workspaceLogicGraph) writeRawStore(workspaceLogicGraphKey(layoutKeyForSnapshot, snapshot.profile), snapshot.workspaceLogicGraph);
-      else removeStore(workspaceLogicGraphKey(layoutKeyForSnapshot, snapshot.profile));
-    }
     snapshot.widgets?.forEach((widgetSnapshot) => {
       const layout = document.querySelector(widgetSnapshot.selector);
       if (!layout) return;
@@ -3281,82 +3271,23 @@ document.addEventListener("DOMContentLoaded", () => {
     };
   };
 
-  const WORKSPACE_RELATIONSHIP_TYPES = Object.freeze({
-    query: "query",
-  });
-  const WORKSPACE_SIGNAL_TYPES = Object.freeze({
-    data: "data",
-  });
-  const WORKSPACE_PORT_ROLES = Object.freeze({
-    input: "input",
-    output: "output",
-  });
-  const WORKSPACE_PORT_SIDES = Object.freeze({
-    input: "left",
-    output: "right",
-  });
-  const LOGICAL_OPERATOR_TYPES = Object.freeze({
-    and: "AND",
-    or: "OR",
-    not: "NOT",
-  });
-  const STYLE_RULE_EFFECT_PROPERTIES = Object.freeze({
-    accentColor: "accentColor",
-    textColor: "textColor",
-    backgroundTint: "backgroundTint",
-    rimState: "rimState",
-    iconState: "iconState",
-    visibility: "visibility",
-  });
-  const LOGIC_COMPARISON_OPERATORS = new Set(["<", ">", "=", "!=", "<=", ">="]);
-  const relationshipId = () => `relationship-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
-  const graphLinkId = () => `link-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
-  const operatorNodeId = () => `operator-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
-  const styleRuleId = () => `style-rule-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
-  const styleRuleGraphId = (id) => `style-rule:${String(id || "")}`;
-  const styleRuleIdFromGraphId = (id) => String(id || "").startsWith("style-rule:") ? String(id).slice("style-rule:".length) : "";
-  const normalizeRelationshipType = (type) => (
-    Object.values(WORKSPACE_RELATIONSHIP_TYPES).includes(type) ? type : WORKSPACE_RELATIONSHIP_TYPES.query
-  );
-  const relationshipTypeForSignal = () => WORKSPACE_RELATIONSHIP_TYPES.query;
-  const normalizeSignalType = (type) => (
-    Object.values(WORKSPACE_SIGNAL_TYPES).includes(type) ? type : WORKSPACE_SIGNAL_TYPES.data
-  );
-  const coerceBooleanSignalValue = (value) => {
-    if (typeof value === "boolean") return value;
-    if (typeof value === "number") return Number.isFinite(value) && value !== 0;
-    if (typeof value === "string") {
-      const normalized = value.trim().toLowerCase();
-      if (["true", "1", "active", "on", "yes"].includes(normalized)) return true;
-      if (["false", "0", "inactive", "off", "no", ""].includes(normalized)) return false;
-    }
-    return Boolean(value);
+  const emptyWorkspaceLogicGraph = () => ({ version: 1, links: [], relationships: [], operators: [], styleRules: [], contextLinks: [] });
+  const normalizeWorkspaceLogicGraph = () => emptyWorkspaceLogicGraph();
+  const persistedWorkspaceEndpointIds = (snapshot = {}) => new Set([
+    ...(snapshot.widgets || []).map((widget) => widget.id),
+    ...(snapshot.panels || []).map((panel) => panel.id),
+    ...(snapshot.dividers || []).map((divider) => divider.id),
+    ...(snapshot.contexts || []).map((context) => context.id),
+  ].map(String).filter(Boolean));
+  const pruneWorkspaceLogicGraphForEndpointIds = () => emptyWorkspaceLogicGraph();
+  const workspaceLogicGraphFromPersistedSnapshot = () => emptyWorkspaceLogicGraph();
+  const loadWorkspaceLogicGraph = () => emptyWorkspaceLogicGraph();
+  const saveWorkspaceLogicGraph = (layoutKey = "builder", _graph = {}, profile = getActivePanelProfile(layoutKey), options = {}) => {
+    removeStore(workspaceLogicGraphKey(layoutKey, profile));
+    if (options.history !== false) pushLiveLayoutUndo(layoutKey, profile);
+    return emptyWorkspaceLogicGraph();
   };
-  const optionalBooleanSignalValue = (...values) => {
-    const value = values.find((entry) => entry !== undefined && entry !== null);
-    return value === undefined ? undefined : coerceBooleanSignalValue(value);
-  };
-  const normalizePortRole = (role) => (
-    Object.values(WORKSPACE_PORT_ROLES).includes(role) ? role : WORKSPACE_PORT_ROLES.output
-  );
-  const graphPortId = (objectId, role = WORKSPACE_PORT_ROLES.output, name = "main") =>
-    `${String(objectId || "")}:${normalizePortRole(role)}:${String(name || "main")}`;
-  const normalizePortRef = (ref = {}, fallbackRole = WORKSPACE_PORT_ROLES.output, fallbackObjectId = "") => {
-    const objectId = String(ref.objectId || ref.nodeId || ref.object || fallbackObjectId || "");
-    const role = normalizePortRole(ref.role || fallbackRole);
-    const name = String(ref.name || ref.portName || "main");
-    return {
-      objectId,
-      portId: String(ref.portId || graphPortId(objectId, role, name)),
-      role,
-      side: WORKSPACE_PORT_SIDES[role],
-      name,
-      signalTypes: Array.isArray(ref.signalTypes) && ref.signalTypes.length
-        ? ref.signalTypes.map(normalizeSignalType)
-        : [WORKSPACE_SIGNAL_TYPES.data],
-      metadata: ref.metadata && typeof ref.metadata === "object" ? { ...ref.metadata } : {},
-    };
-  };
+  const deriveWorkspaceRelationships = () => [];
   const dataSubstrateSampleRows = (rows = [], count = 3) => rows.slice(0, count).map((row) => ({ ...(row || {}) }));
   const dataSubstrateFreshness = (rows = [], schema = { fields: [] }, source = {}) => {
     const configured = source?.config?.metadata?.freshness || source?.config?.freshness || source?.config?.lastUpdated || source?.lastUpdated;
@@ -3458,30 +3389,6 @@ document.addEventListener("DOMContentLoaded", () => {
     return datasets.filter((dataset) => selected.has(dataset.id));
   };
   const datasetOriginConfigFromElement = (item) => parseJsonRecord(item?.dataset?.widgetConfig, {}) || {};
-  const datasetOriginPortsForElement = (item, layoutKey = "builder", profile = getActivePanelProfile(layoutKey)) => {
-    const objectId = workspaceObjectKey(item);
-    if (!objectId) return [];
-    return datasetOriginExposedDatasets(datasetOriginConfigFromElement(item), layoutKey, profile).map((dataset) => normalizePortRef({
-      objectId,
-      role: WORKSPACE_PORT_ROLES.output,
-      name: dataset.id,
-      signalTypes: [WORKSPACE_SIGNAL_TYPES.data],
-      metadata: {
-        objectType: "dataset-origin",
-        streamType: "dataset",
-        datasetId: dataset.id,
-        datasetName: dataset.name,
-        originType: dataset.originType || dataset.sourceKind || dataset.kind,
-        originLabel: dataset.originLabel || dataset.sourceType,
-        sourceType: dataset.sourceType,
-        sourceKind: dataset.sourceKind || dataset.kind,
-        rowCount: dataset.rowCount,
-        fieldCount: dataset.fields.length,
-        fields: dataset.fields.map((field) => ({ name: field.name, type: field.type })),
-        lineage: dataset.lineage || null,
-      },
-    }, WORKSPACE_PORT_ROLES.output, objectId));
-  };
   window.dashboardDataSubstrateRuntime = {
     originTypes: () => [...dataOriginDefinitions.values()].map((definition) => ({ ...definition })),
     registerOriginType: registerDataOriginDefinition,
@@ -3501,10 +3408,6 @@ document.addEventListener("DOMContentLoaded", () => {
     },
     originDatasetsForConfig: (config = {}, layoutKey = "builder", profile = getActivePanelProfile(layoutKey)) =>
       datasetOriginExposedDatasets(config, layoutKey, profile),
-    portsForOrigin: (widget, layoutKey = "builder", profile = getActivePanelProfile(layoutKey)) => {
-      const node = typeof widget === "string" ? document.querySelector(widget) : widget;
-      return datasetOriginPortsForElement(node, layoutKey, profile);
-    },
     registerDerivedDataset: (layoutKey = "builder", definition = {}, profile = getActivePanelProfile(layoutKey)) => {
       const sourceId = String(definition.sourceId || definition.baseSourceId || "").trim();
       const id = String(definition.id || `derived-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`).trim();
@@ -3547,922 +3450,6 @@ document.addEventListener("DOMContentLoaded", () => {
         parent: parentId ? window.dashboardDataSubstrateRuntime.datasetLineage(parentId, layoutKey, profile, [...stack, datasetId]) : null,
       };
     },
-  };
-  const normalizeWorkspaceLink = (link = {}) => {
-    const legacySource = String(link.sourceId || link.sourceObjectId || "");
-    const legacyTarget = String(link.targetId || link.targetObjectId || "");
-    let source = normalizePortRef(link.source || {}, WORKSPACE_PORT_ROLES.output, legacySource);
-    let target = normalizePortRef(link.target || {}, WORKSPACE_PORT_ROLES.input, legacyTarget);
-    if (source.role === WORKSPACE_PORT_ROLES.input && target.role === WORKSPACE_PORT_ROLES.output) {
-      [source, target] = [target, source];
-    }
-    if (source.role !== WORKSPACE_PORT_ROLES.output || target.role !== WORKSPACE_PORT_ROLES.input) return null;
-    if (!source.objectId || !target.objectId || source.objectId === target.objectId) return null;
-    const signalState = optionalBooleanSignalValue(
-      link.signalState,
-      link.signalValue,
-      link.metadata?.signalState,
-      link.metadata?.signalValue,
-      link.metadata?.active,
-      link.metadata?.value
-    );
-    return {
-      id: String(link.id || graphLinkId()),
-      source,
-      target,
-      signalType: WORKSPACE_SIGNAL_TYPES.data,
-      ...(signalState !== undefined ? { signalState } : {}),
-      direction: String(link.direction || "source-to-target"),
-      label: String(link.label || "Dataflow"),
-      enabled: link.enabled !== false,
-      visualState: String(link.visualState || "ambient"),
-      metadata: {
-        linkKind: "dataflow",
-        ...(link.metadata?.createdBy ? { createdBy: String(link.metadata.createdBy) } : {}),
-      },
-    };
-  };
-  const normalizeLogicalOperatorType = (type) => {
-    const normalized = String(type || "AND").toUpperCase();
-    return Object.values(LOGICAL_OPERATOR_TYPES).includes(normalized) ? normalized : LOGICAL_OPERATOR_TYPES.and;
-  };
-  const normalizeWorkspaceRelationship = (relationship = {}) => ({
-    id: String(relationship.id || relationshipId()),
-    sourceId: String(relationship.sourceId || ""),
-    targetId: String(relationship.targetId || ""),
-    type: normalizeRelationshipType(relationship.type),
-    visualState: String(relationship.visualState || "ambient"),
-    label: String(relationship.label || ""),
-    metadata: relationship.metadata && typeof relationship.metadata === "object" ? { ...relationship.metadata } : {},
-  });
-  const normalizeLogicalOperatorNode = (node = {}) => ({
-    id: String(node.id || operatorNodeId()),
-    operatorType: normalizeLogicalOperatorType(node.operatorType),
-    inputs: Array.isArray(node.inputs) ? node.inputs.map(String).filter(Boolean) : [],
-    outputs: Array.isArray(node.outputs) ? node.outputs.map(String).filter(Boolean) : [],
-    x: Number.isFinite(Number(node.x)) ? Number(node.x) : Math.round(window.scrollX + (window.innerWidth * .5)),
-    y: Number.isFinite(Number(node.y)) ? Number(node.y) : Math.round(window.scrollY + (window.innerHeight * .42)),
-    label: String(node.label || node.operatorType || "AND"),
-    collapsed: Boolean(node.collapsed),
-  });
-  const normalizeLogicExpression = (expression = {}) => {
-    if (!expression || typeof expression !== "object") {
-      return { type: "comparison", left: "metric.value", operator: ">", right: Number.POSITIVE_INFINITY };
-    }
-    const type = String(expression.type || "comparison").toLowerCase();
-    if (type === "and") {
-      return {
-        type,
-        inputs: Array.isArray(expression.inputs) ? expression.inputs.map(normalizeLogicExpression) : [],
-      };
-    }
-    if (type === "or") {
-      return {
-        type,
-        inputs: Array.isArray(expression.inputs) ? expression.inputs.map(normalizeLogicExpression) : [],
-      };
-    }
-    if (type === "not") {
-      return {
-        type,
-        input: normalizeLogicExpression(expression.input || {}),
-      };
-    }
-    const operator = LOGIC_COMPARISON_OPERATORS.has(expression.operator) ? expression.operator : "=";
-    return {
-      type: "comparison",
-      left: String(expression.left || "metric.value"),
-      operator,
-      right: expression.right,
-    };
-  };
-  const normalizeStyleRuleEffect = (effect = {}) => {
-    const property = Object.values(STYLE_RULE_EFFECT_PROPERTIES).includes(effect.property)
-      ? effect.property
-      : STYLE_RULE_EFFECT_PROPERTIES.accentColor;
-    return {
-      property,
-      value: effect.value,
-    };
-  };
-  const normalizeStyleRule = (rule = {}) => ({
-    id: String(rule.id || styleRuleId()),
-    targetObjectId: String(rule.targetObjectId || ""),
-    condition: normalizeLogicExpression(rule.condition || {}),
-    effects: Array.isArray(rule.effects) ? rule.effects.map(normalizeStyleRuleEffect) : [],
-    label: String(rule.label || ""),
-    enabled: rule.enabled !== false,
-    metadata: rule.metadata && typeof rule.metadata === "object" ? { ...rule.metadata } : {},
-  });
-  const normalizeWorkspaceLogicGraph = (graph = {}) => ({
-    version: 1,
-    links: (() => {
-      const seen = new Set();
-      return (Array.isArray(graph.links) ? graph.links : [])
-        .map(normalizeWorkspaceLink)
-        .filter((link) => {
-          if (!link?.source?.objectId || !link?.target?.objectId) return false;
-          const key = `${link.source.objectId}:${link.source.portId}->${link.target.objectId}:${link.target.portId}`;
-          if (seen.has(key)) return false;
-          seen.add(key);
-          return true;
-        });
-    })(),
-    relationships: [],
-    operators: [],
-    styleRules: Array.isArray(graph.styleRules)
-      ? graph.styleRules.map(normalizeStyleRule).filter((rule) => rule.id && rule.targetObjectId && rule.effects.length)
-      : [],
-    contextLinks: [],
-  });
-  const persistedWorkspaceEndpointIds = (snapshot = {}) => new Set([
-    ...(snapshot.widgets || []).map((widget) => widget.id),
-    ...(snapshot.panels || []).map((panel) => panel.id),
-    ...(snapshot.dividers || []).map((divider) => divider.id),
-    ...(snapshot.contexts || []).map((context) => context.id),
-  ].map(String).filter(Boolean));
-  const pruneWorkspaceLogicGraphForEndpointIds = (graph = {}, endpointIds = new Set()) => {
-    const normalized = normalizeWorkspaceLogicGraph(graph);
-    const hasEndpoint = (id) => endpointIds.has(String(id || ""));
-    return normalizeWorkspaceLogicGraph({
-      ...normalized,
-      links: normalized.links.filter((link) => hasEndpoint(link.source.objectId) && hasEndpoint(link.target.objectId)),
-      styleRules: normalized.styleRules.filter((rule) => hasEndpoint(rule.targetObjectId)),
-      relationships: [],
-      operators: [],
-      contextLinks: [],
-    });
-  };
-  const workspaceLogicGraphFromPersistedSnapshot = (snapshot = {}) => normalizeWorkspaceLogicGraph({
-    links: snapshot.links || [],
-    styleRules: snapshot.styleRules || [],
-  });
-  const loadWorkspaceLogicGraph = (layoutKey = "builder", profile = getActivePanelProfile(layoutKey)) =>
-    normalizeWorkspaceLogicGraph(readJsonStore(workspaceLogicGraphKey(layoutKey, profile), { version: 1, links: [], relationships: [], operators: [], styleRules: [], contextLinks: [] }));
-  const saveWorkspaceLogicGraph = (layoutKey = "builder", graph = {}, profile = getActivePanelProfile(layoutKey), options = {}) => {
-    const normalized = normalizeWorkspaceLogicGraph(graph);
-    writeJsonStore(workspaceLogicGraphKey(layoutKey, profile), normalized);
-    if (options.history !== false) pushLiveLayoutUndo(layoutKey, profile);
-    if (options.event !== false) {
-      emitWorkspaceEvent({
-        type: "logic-graph-changed",
-        source: "logic-graph",
-        layoutKey,
-        label: "Workspace logic graph changed",
-        payload: {
-          profile,
-          linkCount: normalized.links.length,
-          styleRuleCount: normalized.styleRules.length,
-        },
-      });
-    }
-    refreshResolvedContextDebug(layoutKey, profile);
-    refreshEngineerOverlays();
-    return normalized;
-  };
-  const workspaceElementByGraphId = (id, layoutKey = "builder") => {
-    const key = String(id || "");
-    if (!key) return null;
-    const escaped = CSS.escape(key);
-    return document.querySelector(`.widget-layout[data-widget-layout-key="${CSS.escape(layoutKey)}"] .widget-card[data-widget-key="${escaped}"]`) ||
-      document.querySelector(`.panel-layout[data-layout-key="${CSS.escape(layoutKey)}"] .panel-internal-widget-grid .widget-card[data-widget-key="${escaped}"]`) ||
-      document.querySelector(`.panel-layout[data-layout-key="${CSS.escape(layoutKey)}"] .db-panel[data-panel-key="${escaped}"]`) ||
-      document.querySelector(`.panel-layout[data-layout-key="${CSS.escape(layoutKey)}"] .db-panel[data-context-scope-id="${escaped}"], .panel-layout[data-layout-key="${CSS.escape(layoutKey)}"] .db-panel[data-workspace-region-id="${escaped}"]`) ||
-      null;
-  };
-  const graphIdForWorkspaceElement = (item) => workspaceObjectKey(item);
-  const isPanelChildElementHiddenForPorts = (item) => {
-    const internalGrid = item?.closest?.(".panel-internal-widget-grid");
-    if (!internalGrid) return false;
-    const parentPanel = internalGrid.closest(".db-panel");
-    return !parentPanel ||
-      parentPanel.hidden ||
-      parentPanel.classList.contains("db-panel-collapsed") ||
-      internalGrid.hidden ||
-      getComputedStyle(internalGrid).display === "none";
-  };
-  const addUniqueRelationship = (relationships, relationship) => {
-    const normalized = normalizeWorkspaceRelationship(relationship);
-    if (!normalized.sourceId || !normalized.targetId || normalized.sourceId === normalized.targetId) return;
-    const key = `${normalized.sourceId}->${normalized.targetId}:${normalized.type}`;
-    if (relationships.some((entry) => `${entry.sourceId}->${entry.targetId}:${entry.type}` === key)) return;
-    relationships.push(normalized);
-  };
-  const dividerKeyForRegion = (regionId, layoutKey = "builder") =>
-    committedDividerRegionEntries(layoutKey).find((entry) => entry.regionId === regionId)?.key || "";
-  const activeStyleRuleIdsForTarget = (targetId, layoutKey = "builder") => {
-    const element = workspaceElementByGraphId(targetId, layoutKey);
-    if (!element?.dataset?.activeStyleRuleIds) return new Set();
-    return new Set(String(element.dataset.activeStyleRuleIds).split(",").map((id) => id.trim()).filter(Boolean));
-  };
-  const explicitWorkspaceRelationships = (graph = loadWorkspaceLogicGraph("builder")) => {
-    const relationships = [];
-    (graph.links || []).forEach((link) => {
-      addUniqueRelationship(relationships, {
-        id: `link-${link.id}`,
-        sourceId: link.source.objectId,
-        targetId: link.target.objectId,
-        type: relationshipTypeForSignal(link.signalType),
-        visualState: link.visualState || (link.enabled === false ? "ambient" : "active"),
-        label: link.label,
-        metadata: {
-          ...(link.metadata || {}),
-          linkId: link.id,
-          sourcePortId: link.source.portId,
-          sourcePortRole: link.source.role,
-          targetPortId: link.target.portId,
-          targetPortRole: link.target.role,
-          direction: link.direction,
-          signalType: link.signalType,
-        },
-      });
-    });
-
-    return relationships;
-  };
-  const deriveWorkspaceRelationships = (layoutKey = "builder", graph = loadWorkspaceLogicGraph(layoutKey)) => {
-    return explicitWorkspaceRelationships(graph);
-  };
-  const styleRuleEndpointPoint = (id, layoutKey, styleRules = []) => {
-    const ruleId = styleRuleIdFromGraphId(id);
-    if (!ruleId) return null;
-    const rule = styleRules.find((entry) => entry.id === ruleId);
-    if (!rule) return null;
-    const target = workspaceElementByGraphId(rule.targetObjectId, layoutKey);
-    if (!target || !target.isConnected || target.hidden) return null;
-    const rect = target.getBoundingClientRect();
-    if (rect.width <= 0 || rect.height <= 0) return null;
-    return {
-      x: rect.left + Math.min(rect.width - 18, Math.max(18, rect.width * .72)),
-      y: rect.top - 18,
-      kind: "style-rule",
-    };
-  };
-  const connectableWorkspaceElements = (layoutKey = "builder") => {
-    const items = [
-      ...allCommittedWorkspaceGridItems(layoutKey),
-      ...document.querySelectorAll(`.panel-layout[data-layout-key="${CSS.escape(layoutKey)}"] .panel-internal-widget-grid > .widget-card:not([hidden])`),
-    ].filter((item, index, list) => (
-      item?.isConnected &&
-      !item.hidden &&
-      list.indexOf(item) === index &&
-      !item.closest(".workspace-minimap-layer") &&
-      !isPanelChildElementHiddenForPorts(item)
-    ));
-    return items;
-  };
-  const nodulePointForElement = (element, role = WORKSPACE_PORT_ROLES.input) => {
-    if (!element || !element.isConnected || element.hidden) return null;
-    if (isPanelChildElementHiddenForPorts(element)) return null;
-    const rect = element.getBoundingClientRect();
-    if (rect.width <= 0 || rect.height <= 0) return null;
-    const normalizedRole = normalizePortRole(role);
-    return {
-      x: normalizedRole === WORKSPACE_PORT_ROLES.output ? rect.right : rect.left,
-      y: rect.top + (rect.height / 2),
-      rect,
-      role: normalizedRole,
-    };
-  };
-  const operatorPortPoint = (operator, role = WORKSPACE_PORT_ROLES.input) => {
-    if (!operator) return null;
-    const normalizedRole = normalizePortRole(role);
-    return {
-      x: operator.x - window.scrollX + (normalizedRole === WORKSPACE_PORT_ROLES.output ? 24 : -24),
-      y: operator.y - window.scrollY,
-      kind: "operator",
-      role: normalizedRole,
-    };
-  };
-  const relationshipEndpointPoint = (id, layoutKey, operators = [], styleRules = [], portRole = WORKSPACE_PORT_ROLES.input) => {
-    const operator = operators.find((node) => node.id === id);
-    if (operator) {
-      return operatorPortPoint(operator, portRole);
-    }
-    const styleRulePoint = styleRuleEndpointPoint(id, layoutKey, styleRules);
-    if (styleRulePoint) return styleRulePoint;
-    const element = workspaceElementByGraphId(id, layoutKey);
-    const point = nodulePointForElement(element, portRole);
-    if (!point) return null;
-    return {
-      x: point.x,
-      y: point.y,
-      kind: workspaceObjectType(element),
-    };
-  };
-  const createRelationshipSvgElement = (name, attrs = {}) => {
-    const node = document.createElementNS("http://www.w3.org/2000/svg", name);
-    Object.entries(attrs).forEach(([key, value]) => node.setAttribute(key, String(value)));
-    return node;
-  };
-  const clampWireControl = (value, min, max) => Math.max(min, Math.min(max, value));
-  const workspaceWirePath = (source, target) => {
-    const sx = Number(source?.x) || 0;
-    const sy = Number(source?.y) || 0;
-    const tx = Number(target?.x) || 0;
-    const ty = Number(target?.y) || 0;
-    const dx = tx - sx;
-    const dy = ty - sy;
-    const absDx = Math.abs(dx);
-    const absDy = Math.abs(dy);
-    const direction = dx === 0 ? 1 : Math.sign(dx);
-    let c1x;
-    let c1y;
-    let c2x;
-    let c2y;
-    if (absDx < 36) {
-      const bow = Math.min(82, Math.max(28, absDy * .18 + 28));
-      const verticalTension = Math.min(96, Math.max(28, absDy * .32));
-      c1x = sx + bow;
-      c2x = tx + bow;
-      c1y = sy + Math.sign(dy || 1) * verticalTension;
-      c2y = ty - Math.sign(dy || 1) * verticalTension;
-    } else {
-      const minX = Math.min(sx, tx);
-      const maxX = Math.max(sx, tx);
-      const offset = Math.min(Math.max(absDx * .42, 42), Math.max(42, absDx * .5));
-      c1x = clampWireControl(sx + (direction * offset), minX, maxX);
-      c2x = clampWireControl(tx - (direction * offset), minX, maxX);
-      c1y = sy + (dy * .08);
-      c2y = ty - (dy * .08);
-    }
-    return `M ${sx.toFixed(1)} ${sy.toFixed(1)} C ${c1x.toFixed(1)} ${c1y.toFixed(1)}, ${c2x.toFixed(1)} ${c2y.toFixed(1)}, ${tx.toFixed(1)} ${ty.toFixed(1)}`;
-  };
-  let selectedWorkspaceRelationship = null;
-  const relationshipStorageRef = (relationship = {}) => {
-    const linkId = relationship.metadata?.linkId || "";
-    if (linkId) return { type: "link", id: linkId };
-    return { type: "link", id: "" };
-  };
-  const clearSelectedWorkspaceRelationship = () => {
-    if (!selectedWorkspaceRelationship) return;
-    selectedWorkspaceRelationship = null;
-    refreshEngineerOverlays();
-  };
-  const deleteSelectedWorkspaceRelationship = () => {
-    if (!selectedWorkspaceRelationship || !isEngineerMode()) return false;
-    const { layoutKey, storageType, storageId } = selectedWorkspaceRelationship;
-    const profile = getActivePanelProfile(layoutKey);
-    const removed = storageType === "link"
-      ? window.dashboardRelationshipRuntime?.removeLink?.(layoutKey, storageId, profile)
-      : false;
-    if (!removed) return false;
-    selectedWorkspaceRelationship = null;
-    refreshEngineerOverlays();
-    return true;
-  };
-  const selectWorkspaceRelationship = (relationship, layoutKey = "builder") => {
-    if (!relationship || !isEngineerMode()) return;
-    const storage = relationshipStorageRef(relationship);
-    if (!storage.id) return;
-    selectedWorkspaceRelationship = {
-      layoutKey,
-      relationshipId: relationship.id,
-      storageType: storage.type,
-      storageId: storage.id,
-    };
-    refreshEngineerOverlays();
-  };
-  const selectedWorkspaceRelationshipMatches = (relationship, layoutKey = "builder") => {
-    if (!selectedWorkspaceRelationship || selectedWorkspaceRelationship.layoutKey !== layoutKey) return false;
-    const storage = relationshipStorageRef(relationship);
-    return selectedWorkspaceRelationship.relationshipId === relationship.id &&
-      selectedWorkspaceRelationship.storageType === storage.type &&
-      selectedWorkspaceRelationship.storageId === storage.id;
-  };
-  const workspaceGraphPortFromHandle = (handle) => ({
-    objectId: handle?.dataset?.wireObjectId || "",
-    portId: handle?.dataset?.wirePortId || graphPortId(handle?.dataset?.wireObjectId || "", handle?.dataset?.wirePortRole || WORKSPACE_PORT_ROLES.output),
-    role: normalizePortRole(handle?.dataset?.wirePortRole || WORKSPACE_PORT_ROLES.output),
-    name: handle?.dataset?.wirePortName || "main",
-    signalTypes: String(handle?.dataset?.wireSignalTypes || WORKSPACE_SIGNAL_TYPES.data).split(",").map((entry) => entry.trim()).filter(Boolean),
-    metadata: parseJsonRecord(handle?.dataset?.wirePortMetadata, {}) || {},
-  });
-  const normalizedWorkspaceWireConnection = (sourcePort = {}, targetPort = {}) => {
-    const source = normalizePortRef(sourcePort, sourcePort.role || WORKSPACE_PORT_ROLES.output, sourcePort.objectId || "");
-    const target = normalizePortRef(targetPort, targetPort.role || WORKSPACE_PORT_ROLES.input, targetPort.objectId || "");
-    if (!source.objectId || !target.objectId || source.objectId === target.objectId) return null;
-    if (source.role === WORKSPACE_PORT_ROLES.output && target.role === WORKSPACE_PORT_ROLES.input) {
-      return { source, target };
-    }
-    if (source.role === WORKSPACE_PORT_ROLES.input && target.role === WORKSPACE_PORT_ROLES.output) {
-      return { source: target, target: source };
-    }
-    return null;
-  };
-  const canCreateDataflowLink = (sourcePort = {}, targetPort = {}, graphState = loadWorkspaceLogicGraph("builder")) => {
-    const connection = normalizedWorkspaceWireConnection(sourcePort, targetPort);
-    if (!connection) return { ok: false, reason: "invalid-port-direction", connection: null };
-    const duplicate = (graphState?.links || []).some((link) => (
-      link.source?.objectId === connection.source.objectId &&
-      link.source?.portId === connection.source.portId &&
-      link.target?.objectId === connection.target.objectId &&
-      link.target?.portId === connection.target.portId &&
-      link.signalType === WORKSPACE_SIGNAL_TYPES.data
-    ));
-    if (duplicate) return { ok: false, reason: "duplicate-dataflow-link", connection };
-    return { ok: true, reason: "valid", connection };
-  };
-  const workspaceWireHandleIsValidTarget = (sourcePort = {}, handle = null, graphState = loadWorkspaceLogicGraph("builder")) => {
-    if (!handle || !handle.isConnected) return false;
-    return canCreateDataflowLink(sourcePort, workspaceGraphPortFromHandle(handle), graphState).ok;
-  };
-  const updateWorkspaceWireTargetClasses = (sourcePort = {}, targetHandle = null, graphState = loadWorkspaceLogicGraph("builder")) => {
-    document.querySelectorAll(".workspace-wire-nodule").forEach((handle) => {
-      const samePort = handle.dataset.wireObjectId === sourcePort.objectId &&
-        handle.dataset.wirePortId === sourcePort.portId;
-      const validTarget = !samePort && workspaceWireHandleIsValidTarget(sourcePort, handle, graphState);
-      handle.classList.toggle("is-link-source", samePort);
-      handle.classList.toggle("is-valid-link-target", validTarget);
-      handle.classList.toggle("is-invalid-link-target", !samePort && !validTarget);
-      handle.classList.toggle("is-muted-during-link-drag", !samePort && !validTarget);
-      handle.classList.toggle("workspace-wire-nodule-target", handle === targetHandle && validTarget);
-    });
-  };
-  const clearWorkspaceWireTargetClasses = () => {
-    document.querySelectorAll(".workspace-wire-nodule").forEach((handle) => {
-      handle.classList.remove(
-        "workspace-wire-nodule-source",
-        "workspace-wire-nodule-target",
-        "is-link-source",
-        "is-valid-link-target",
-        "is-invalid-link-target",
-        "is-muted-during-link-drag"
-      );
-    });
-  };
-  const deleteWorkspaceConnectionsForPort = (layoutKey = "builder", port = {}, profile = getActivePanelProfile(layoutKey), options = {}) => {
-    if (!logicEditAllowed(options)) return 0;
-    const normalizedPort = normalizePortRef(port, port.role || WORKSPACE_PORT_ROLES.input, port.objectId || "");
-    if (!normalizedPort.objectId || !normalizedPort.portId) return 0;
-    const graph = loadWorkspaceLogicGraph(layoutKey, profile);
-    const isInput = normalizedPort.role === WORKSPACE_PORT_ROLES.input;
-    const removedLinks = graph.links.filter((link) => isInput
-      ? link.target.objectId === normalizedPort.objectId && link.target.portId === normalizedPort.portId
-      : link.source.objectId === normalizedPort.objectId && link.source.portId === normalizedPort.portId);
-    if (!removedLinks.length) return 0;
-    const links = graph.links.filter((link) => !removedLinks.some((removed) => removed.id === link.id));
-    saveWorkspaceLogicGraph(layoutKey, { ...graph, links }, profile, options);
-    refreshSignalConsumerWidgetsForLinks(layoutKey, removedLinks);
-    if (selectedWorkspaceRelationship) {
-      const selectedStillExists = links.some((link) => selectedWorkspaceRelationship.storageType === "link" && link.id === selectedWorkspaceRelationship.storageId);
-      if (!selectedStillExists) selectedWorkspaceRelationship = null;
-    }
-    return removedLinks.length;
-  };
-  const renderWorkspaceRelationshipDeleteControl = (layer, relationship, path, layoutKey = "builder") => {
-    if (!selectedWorkspaceRelationshipMatches(relationship, layoutKey)) return;
-    let point = null;
-    try {
-      const length = path.getTotalLength();
-      point = path.getPointAtLength(length * .5);
-    } catch {
-      point = null;
-    }
-    if (!point) return;
-    const button = document.createElement("button");
-    button.type = "button";
-    button.className = "workspace-wire-delete-button";
-    button.dataset.relationshipId = relationship.id;
-    button.setAttribute("aria-label", "Delete selected wire");
-    button.title = "Delete wire";
-    button.textContent = "x";
-    button.style.left = `${Math.round(point.x)}px`;
-    button.style.top = `${Math.round(point.y)}px`;
-    button.addEventListener("pointerdown", (event) => {
-      event.preventDefault();
-      event.stopPropagation();
-    });
-    button.addEventListener("click", (event) => {
-      event.preventDefault();
-      event.stopPropagation();
-      deleteSelectedWorkspaceRelationship();
-    });
-    layer.appendChild(button);
-  };
-  const renderWorkspaceRelationshipSelectTarget = (layer, relationship, path, onSelect) => {
-    let point = null;
-    try {
-      const length = path.getTotalLength();
-      point = path.getPointAtLength(length * .5);
-    } catch {
-      point = null;
-    }
-    if (!point) return;
-    const target = document.createElement("button");
-    target.type = "button";
-    target.className = "workspace-wire-select-target";
-    target.dataset.relationshipId = relationship.id;
-    target.setAttribute("aria-label", "Select wire");
-    target.style.left = `${Math.round(point.x)}px`;
-    target.style.top = `${Math.round(point.y)}px`;
-    target.addEventListener("pointerenter", () => {
-      path.dataset.relationshipHovered = "true";
-    });
-    target.addEventListener("pointerleave", () => {
-      delete path.dataset.relationshipHovered;
-    });
-    target.addEventListener("pointerdown", (event) => {
-      event.preventDefault();
-      event.stopPropagation();
-    });
-    target.addEventListener("click", (event) => {
-      event.preventDefault();
-      event.stopPropagation();
-      onSelect(event);
-    });
-    layer.appendChild(target);
-  };
-  const setWorkspaceRelationshipLayerDataset = (relationshipId, name, value) => {
-    document.querySelectorAll(`[data-relationship-id="${CSS.escape(String(relationshipId || ""))}"]`).forEach((node) => {
-      if (value == null || value === "") {
-        delete node.dataset[name];
-      } else {
-        node.dataset[name] = value;
-      }
-    });
-  };
-  const workspaceRelationshipLayerAttributes = (relationship, storage, selected) => ({
-    "data-relationship-id": relationship.id,
-    "data-relationship-storage-type": storage.type,
-    "data-relationship-storage-id": storage.id,
-    "data-relationship-type": relationship.type,
-    "data-relationship-signal-type": relationship.metadata?.signalType || relationship.type,
-    "data-relationship-state": relationship.visualState || "ambient",
-    "data-relationship-selected": selected ? "true" : "false",
-    "data-relationship-source-id": relationship.sourceId,
-    "data-relationship-target-id": relationship.targetId,
-    "data-relationship-source-port": relationship.metadata?.sourcePortId || "",
-    "data-relationship-target-port": relationship.metadata?.targetPortId || "",
-    "data-relationship-direction": relationship.metadata?.direction || "source-to-target",
-    "data-relationship-label": relationship.label || "",
-  });
-  const renderWorkspaceRelationships = (layer, layoutKey = "builder") => {
-    const graph = loadWorkspaceLogicGraph(layoutKey);
-    const relationships = explicitWorkspaceRelationships(graph);
-    const svg = createRelationshipSvgElement("svg", {
-      class: "workspace-relationship-svg",
-      "aria-hidden": "true",
-      width: window.innerWidth,
-      height: window.innerHeight,
-      viewBox: `0 0 ${window.innerWidth} ${window.innerHeight}`,
-    });
-    relationships.forEach((relationship) => {
-      const source = relationshipEndpointPoint(
-        relationship.sourceId,
-        layoutKey,
-        graph.operators,
-        graph.styleRules,
-        relationship.metadata?.sourcePortRole || WORKSPACE_PORT_ROLES.output
-      );
-      const target = relationshipEndpointPoint(
-        relationship.targetId,
-        layoutKey,
-        graph.operators,
-        graph.styleRules,
-        relationship.metadata?.targetPortRole || WORKSPACE_PORT_ROLES.input
-      );
-      if (!source || !target) return;
-      const min = -120;
-      const maxX = window.innerWidth + 120;
-      const maxY = window.innerHeight + 120;
-      if ((source.x < min && target.x < min) || (source.x > maxX && target.x > maxX) || (source.y < min && target.y < min) || (source.y > maxY && target.y > maxY)) return;
-      const storage = relationshipStorageRef(relationship);
-      const selected = selectedWorkspaceRelationshipMatches(relationship, layoutKey);
-      const pathData = workspaceWirePath(source, target);
-      const relationshipAttrs = workspaceRelationshipLayerAttributes(relationship, storage, selected);
-      const underlay = createRelationshipSvgElement("path", {
-        class: "workspace-relationship-underlay",
-        ...relationshipAttrs,
-        d: pathData,
-      });
-      const path = createRelationshipSvgElement("path", {
-        class: "workspace-relationship-path",
-        ...relationshipAttrs,
-        d: pathData,
-      });
-      const highlight = createRelationshipSvgElement("path", {
-        class: "workspace-relationship-highlight",
-        ...relationshipAttrs,
-        d: pathData,
-      });
-      const hitPath = createRelationshipSvgElement("path", {
-        class: "workspace-relationship-hit-path",
-        ...relationshipAttrs,
-        d: pathData,
-      });
-      const handleRelationshipClick = (event) => {
-        event.preventDefault();
-        event.stopPropagation();
-        selectWorkspaceRelationship(relationship, layoutKey);
-      };
-      const setRelationshipHover = () => {
-        setWorkspaceRelationshipLayerDataset(relationship.id, "relationshipHovered", "true");
-      };
-      const clearRelationshipHover = () => {
-        setWorkspaceRelationshipLayerDataset(relationship.id, "relationshipHovered", "");
-      };
-      path.addEventListener("click", handleRelationshipClick);
-      hitPath.addEventListener("click", handleRelationshipClick);
-      path.addEventListener("pointerenter", setRelationshipHover);
-      path.addEventListener("pointerleave", clearRelationshipHover);
-      hitPath.addEventListener("pointerenter", setRelationshipHover);
-      hitPath.addEventListener("pointerleave", clearRelationshipHover);
-      svg.appendChild(underlay);
-      svg.appendChild(path);
-      svg.appendChild(highlight);
-      svg.appendChild(hitPath);
-      renderWorkspaceRelationshipSelectTarget(layer, relationship, path, handleRelationshipClick);
-      renderWorkspaceRelationshipDeleteControl(layer, relationship, path, layoutKey);
-    });
-    layer.appendChild(svg);
-
-  };
-  const cleanupWorkspaceWireDrag = () => {
-    const activeWorkspaceWireDrag = workspaceWireDragState.get();
-    if (!activeWorkspaceWireDrag) return;
-    activeWorkspaceWireDrag.previewSvg?.remove();
-    clearWorkspaceWireTargetClasses();
-    document.body.classList.remove("workspace-wire-drag-active");
-    window.cancelAnimationFrame(activeWorkspaceWireDrag.frame || 0);
-    window.removeEventListener("pointermove", activeWorkspaceWireDrag.onMove, true);
-    window.removeEventListener("pointerup", activeWorkspaceWireDrag.onUp, true);
-    window.removeEventListener("pointercancel", activeWorkspaceWireDrag.onCancel, true);
-    window.removeEventListener("keydown", activeWorkspaceWireDrag.onKeyDown, true);
-    window.removeEventListener("scroll", activeWorkspaceWireDrag.onScroll);
-    window.removeEventListener("resize", activeWorkspaceWireDrag.onResize);
-    if (dashboardInteractionState.state.activeDragState?.item === activeWorkspaceWireDrag.sourceHandle) {
-      dashboardInteractionState.state.activeDragState = null;
-    }
-    activeWorkspaceWireDrag.interactionToken?.end?.();
-    workspaceWireDragState.clear(activeWorkspaceWireDrag);
-  };
-  const createWorkspaceWirePreview = () => {
-    const svg = createRelationshipSvgElement("svg", {
-      class: "workspace-wire-drag-svg",
-      "aria-hidden": "true",
-      width: window.innerWidth,
-      height: window.innerHeight,
-      viewBox: `0 0 ${window.innerWidth} ${window.innerHeight}`,
-    });
-    const underlay = createRelationshipSvgElement("path", {
-      class: "workspace-wire-drag-underlay",
-      d: "",
-    });
-    const path = createRelationshipSvgElement("path", {
-      class: "workspace-wire-drag-path",
-      d: "",
-    });
-    svg.appendChild(underlay);
-    svg.appendChild(path);
-    document.body.appendChild(svg);
-    return { svg, path, underlay };
-  };
-  const workspaceWireHandleFromPoint = (x, y) => {
-    const target = document.elementFromPoint(x, y);
-    return target?.closest?.(".workspace-wire-nodule") || null;
-  };
-  const commitWorkspaceDataflowWireConnection = (layoutKey, sourcePort = {}, targetPort = {}) => {
-    const profile = getActivePanelProfile(layoutKey);
-    const graph = loadWorkspaceLogicGraph(layoutKey, profile);
-    const validation = canCreateDataflowLink(sourcePort, targetPort, graph);
-    if (!validation.ok) return null;
-    const { source: normalizedSource, target: normalizedTarget } = validation.connection;
-    return window.dashboardRelationshipRuntime?.addLink?.(layoutKey, {
-      source: normalizedSource,
-      target: normalizedTarget,
-      signalType: WORKSPACE_SIGNAL_TYPES.data,
-      visualState: "active",
-      label: "Dataflow",
-      metadata: {
-        linkKind: "dataflow",
-        createdBy: "engineer-wire",
-      },
-    }, profile) || null;
-  };
-  const liveWorkspaceWireEndpointPoint = (objectId, layoutKey, fallbackHandle = null, role = WORKSPACE_PORT_ROLES.output) => {
-    const graph = loadWorkspaceLogicGraph(layoutKey);
-    const point = relationshipEndpointPoint(objectId, layoutKey, graph.operators, graph.styleRules, role);
-    if (point) return point;
-    const rect = fallbackHandle?.isConnected ? fallbackHandle.getBoundingClientRect() : null;
-    if (rect && rect.width > 0 && rect.height > 0) {
-      return { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 };
-    }
-    return null;
-  };
-  const startWorkspaceWireDrag = (event, handle, layoutKey = "builder") => {
-    if (!isEngineerMode() || event.button !== 0) return;
-    if (event.detail >= 2) {
-      event.preventDefault();
-      event.stopPropagation();
-      return;
-    }
-    const sourceId = handle?.dataset?.wireObjectId || "";
-    const sourceRole = normalizePortRole(handle?.dataset?.wirePortRole || WORKSPACE_PORT_ROLES.output);
-    const initialSourcePoint = liveWorkspaceWireEndpointPoint(sourceId, layoutKey, handle, sourceRole);
-    if (!sourceId) return;
-    event.preventDefault();
-    event.stopPropagation();
-    cleanupWorkspaceWireDrag();
-    const preview = createWorkspaceWirePreview();
-    document.body.classList.add("workspace-wire-drag-active");
-    handle.classList.add("workspace-wire-nodule-source");
-    handle.classList.add("is-link-source");
-    const interactionToken = dashboardInteractionState.beginInteraction("wire-drag", {
-      pointerId: event.pointerId,
-      pointerType: event.pointerType,
-      target: handle,
-      clientX: event.clientX,
-      clientY: event.clientY,
-    });
-    const dragState = {
-      layoutKey,
-      sourceId,
-      interactionToken,
-      sourcePort: {
-        objectId: sourceId,
-        portId: handle.dataset.wirePortId || graphPortId(sourceId, sourceRole),
-        role: sourceRole,
-        name: handle.dataset.wirePortName || "main",
-      },
-      lastClientX: event.clientX,
-      lastClientY: event.clientY,
-      frame: 0,
-      sourceHandle: handle,
-      targetHandle: null,
-      previewSvg: preview.svg,
-      previewPath: preview.path,
-      previewUnderlay: preview.underlay,
-      onMove: null,
-      onUp: null,
-      onCancel: null,
-      onKeyDown: null,
-      onScroll: null,
-      onResize: null,
-    };
-    dashboardInteractionState.state.activeDragState = { layoutKey, item: handle, pointerId: event.pointerId, startedAt: performance.now() };
-    const updateTarget = (targetHandle) => {
-      if (dragState.targetHandle === targetHandle) return;
-      dragState.targetHandle?.classList.remove("workspace-wire-nodule-target");
-      dragState.targetHandle = targetHandle;
-      dragState.targetHandle?.classList.add("workspace-wire-nodule-target");
-      updateWorkspaceWireTargetClasses(dragState.sourcePort, targetHandle, loadWorkspaceLogicGraph(layoutKey));
-    };
-    const updatePreview = (clientX = dragState.lastClientX, clientY = dragState.lastClientY) => {
-      dragState.lastClientX = clientX;
-      dragState.lastClientY = clientY;
-      dragState.previewSvg.setAttribute("width", String(window.innerWidth));
-      dragState.previewSvg.setAttribute("height", String(window.innerHeight));
-      dragState.previewSvg.setAttribute("viewBox", `0 0 ${window.innerWidth} ${window.innerHeight}`);
-      const sourcePoint = liveWorkspaceWireEndpointPoint(sourceId, layoutKey, dragState.sourceHandle, sourceRole) || initialSourcePoint;
-      if (!sourcePoint) return;
-      const graph = loadWorkspaceLogicGraph(layoutKey);
-      const targetHandle = workspaceWireHandleFromPoint(clientX, clientY);
-      const validTarget = workspaceWireHandleIsValidTarget(dragState.sourcePort, targetHandle, graph) ? targetHandle : null;
-      updateTarget(validTarget);
-      const endPoint = validTarget
-        ? {
-          x: Number(validTarget.dataset.wireX) || clientX,
-          y: Number(validTarget.dataset.wireY) || clientY,
-        }
-        : { x: clientX, y: clientY };
-      const previewPathData = workspaceWirePath(sourcePoint, endPoint);
-      dragState.previewUnderlay.setAttribute("d", previewPathData);
-      dragState.previewPath.setAttribute("d", previewPathData);
-      dragState.previewUnderlay.dataset.validTarget = validTarget ? "true" : "false";
-      dragState.previewPath.dataset.validTarget = validTarget ? "true" : "false";
-    };
-    const schedulePreviewUpdate = (clientX = dragState.lastClientX, clientY = dragState.lastClientY) => {
-      dragState.lastClientX = clientX;
-      dragState.lastClientY = clientY;
-      window.cancelAnimationFrame(dragState.frame || 0);
-      dragState.frame = window.requestAnimationFrame(() => {
-        dragState.frame = 0;
-        updatePreview();
-      });
-    };
-    dragState.onMove = (moveEvent) => {
-      moveEvent.preventDefault();
-      moveEvent.stopPropagation();
-      schedulePreviewUpdate(moveEvent.clientX, moveEvent.clientY);
-    };
-    dragState.onUp = (upEvent) => {
-      upEvent.preventDefault();
-      upEvent.stopPropagation();
-      const targetHandle = workspaceWireHandleFromPoint(upEvent.clientX, upEvent.clientY);
-      const targetId = targetHandle?.dataset?.wireObjectId || "";
-      const targetRole = normalizePortRole(targetHandle?.dataset?.wirePortRole || WORKSPACE_PORT_ROLES.input);
-      const targetPort = targetHandle ? {
-        objectId: targetId,
-        portId: targetHandle.dataset.wirePortId || graphPortId(targetId, targetRole),
-        role: targetRole,
-        name: targetHandle.dataset.wirePortName || "main",
-      } : null;
-      const valid = canCreateDataflowLink(dragState.sourcePort, targetPort || {}, loadWorkspaceLogicGraph(layoutKey)).ok;
-      cleanupWorkspaceWireDrag();
-      if (valid) {
-        commitWorkspaceDataflowWireConnection(layoutKey, dragState.sourcePort, targetPort);
-      }
-    };
-    dragState.onCancel = (cancelEvent) => {
-      cancelEvent.preventDefault();
-      cancelEvent.stopPropagation();
-      cleanupWorkspaceWireDrag();
-    };
-    dragState.onKeyDown = (keyEvent) => {
-      if (keyEvent.key !== "Escape") return;
-      keyEvent.preventDefault();
-      keyEvent.stopPropagation();
-      cleanupWorkspaceWireDrag();
-    };
-    dragState.onScroll = () => schedulePreviewUpdate();
-    dragState.onResize = () => schedulePreviewUpdate();
-    workspaceWireDragState.set(dragState);
-    window.addEventListener("pointermove", dragState.onMove, true);
-    window.addEventListener("pointerup", dragState.onUp, true);
-    window.addEventListener("pointercancel", dragState.onCancel, true);
-    window.addEventListener("keydown", dragState.onKeyDown, true);
-    window.addEventListener("scroll", dragState.onScroll, { passive: true });
-    window.addEventListener("resize", dragState.onResize, { passive: true });
-    updateWorkspaceWireTargetClasses(dragState.sourcePort, null, loadWorkspaceLogicGraph(layoutKey));
-    updatePreview(event.clientX, event.clientY);
-  };
-  const renderWorkspaceWireNodules = (layer, layoutKey = "builder") => {
-    const isolateWireHandleClick = (event) => {
-      event.preventDefault();
-      event.stopPropagation();
-    };
-    const deleteWireConnectionsFromHandle = (event, handle) => {
-      if (!isEngineerMode()) return;
-      event.preventDefault();
-      event.stopPropagation();
-      cleanupWorkspaceWireDrag();
-      deleteWorkspaceConnectionsForPort(layoutKey, workspaceGraphPortFromHandle(handle), getActivePanelProfile(layoutKey));
-    };
-    const setWireHoverTrace = (objectId = "") => {
-      document.querySelectorAll(".workspace-relationship-path, .workspace-relationship-underlay, .workspace-relationship-highlight").forEach((path) => {
-        const connected = objectId && (
-          path.dataset.relationshipSourceId === objectId ||
-          path.dataset.relationshipTargetId === objectId
-        );
-        if (!objectId) {
-          delete path.dataset.relationshipHighlight;
-        } else {
-          path.dataset.relationshipHighlight = connected ? "connected" : "unrelated";
-        }
-      });
-    };
-    const bindWireHoverTrace = (handle) => {
-      const objectId = handle.dataset.wireObjectId || "";
-      handle.addEventListener("pointerenter", () => setWireHoverTrace(objectId));
-      handle.addEventListener("focus", () => setWireHoverTrace(objectId));
-      handle.addEventListener("pointerleave", () => setWireHoverTrace(""));
-      handle.addEventListener("blur", () => setWireHoverTrace(""));
-    };
-    connectableWorkspaceElements(layoutKey).forEach((item) => {
-      const objectId = graphIdForWorkspaceElement(item);
-      if (!objectId) return;
-      const ports = graphPortsForObject(layoutKey, objectId);
-      const portsByRole = ports.reduce((groups, port) => {
-        const role = normalizePortRole(port.role);
-        groups[role] = groups[role] || [];
-        groups[role].push(port);
-        return groups;
-      }, {});
-      ports.forEach((port) => {
-        const role = normalizePortRole(port.role);
-        const point = nodulePointForElement(item, role);
-        if (!point) return;
-        if (point.rect.bottom < -40 || point.rect.top > window.innerHeight + 40) return;
-        const rolePorts = portsByRole[role] || [port];
-        const roleIndex = rolePorts.indexOf(port);
-        const offsetY = rolePorts.length > 1
-          ? point.rect.top + (point.rect.height * ((roleIndex + 1) / (rolePorts.length + 1)))
-          : point.y;
-        const handle = document.createElement("button");
-        handle.type = "button";
-        handle.className = `workspace-wire-nodule workspace-wire-nodule-${role}`;
-        handle.dataset.wireObjectId = objectId;
-        handle.dataset.wireObjectType = workspaceObjectType(item);
-        handle.dataset.wirePortId = port.portId || graphPortId(objectId, role, port.name || "main");
-        handle.dataset.wirePortRole = role;
-        handle.dataset.wirePortSide = WORKSPACE_PORT_SIDES[role];
-        handle.dataset.wirePortName = port.name || "main";
-        handle.dataset.wireSignalTypes = (port.signalTypes || [WORKSPACE_SIGNAL_TYPES.data]).join(",");
-        handle.dataset.wirePortMetadata = JSON.stringify(port.metadata || {});
-        handle.dataset.wireX = String(point.x);
-        handle.dataset.wireY = String(offsetY);
-        handle.setAttribute("aria-label", `${role === WORKSPACE_PORT_ROLES.output ? "Output" : "Input"} port ${port.name || "main"} for ${objectId}`);
-        handle.title = role === WORKSPACE_PORT_ROLES.output ? `Output port: ${port.name || "main"}` : `Input port: ${port.name || "main"}`;
-        handle.style.left = `${Math.round(point.x)}px`;
-        handle.style.top = `${Math.round(offsetY)}px`;
-        handle.addEventListener("pointerdown", (event) => startWorkspaceWireDrag(event, handle, layoutKey));
-        handle.addEventListener("click", isolateWireHandleClick);
-        handle.addEventListener("dblclick", (event) => deleteWireConnectionsFromHandle(event, handle));
-        bindWireHoverTrace(handle);
-        layer.appendChild(handle);
-      });
-    });
   };
   const clampMinimapValue = (value, min, max) => Math.max(min, Math.min(max, value));
   const createMinimapSvgElement = (name, attrs = {}) => {
@@ -5073,32 +4060,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const applyStyleRulesForWidget = (widget, options = {}) => {
     if (!widget?.classList?.contains("widget-card")) return [];
-    const layoutKey = activeLayoutKeyForItem(widget);
-    const graph = loadWorkspaceLogicGraph(layoutKey, getActivePanelProfile(layoutKey));
-    const targetId = widget.dataset.widgetKey || "";
-    const rules = graph.styleRules.filter((rule) => rule.enabled !== false && rule.targetObjectId === targetId);
-    if (!rules.length) {
-      clearConditionalStyleForWidget(widget);
-      return [];
-    }
-    const environment = styleRuleEnvironmentForWidget(widget, options);
-    const activeRules = [];
-    rules.forEach((rule) => {
-      try {
-        if (evaluateLogicExpression(rule.condition, environment)) activeRules.push(rule);
-      } catch {
-        // Broken logic should never break a widget render.
-      }
-    });
-    if (!activeRules.length) {
-      clearConditionalStyleForWidget(widget);
-      return [];
-    }
     clearConditionalStyleForWidget(widget);
-    widget.classList.add("widget-conditional-style");
-    activeRules.forEach((rule) => applyConditionalStyleEffects(widget, rule.effects));
-    widget.dataset.activeStyleRuleIds = activeRules.map((rule) => rule.id).join(",");
-    return activeRules;
+    return [];
   };
 
   const applyPanelTitleColor = (panel, color) => {
@@ -5593,26 +4556,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const dataflowSignalStateForWidget = (widget, layoutKey = activeLayoutKeyForItem(widget), profile = getActivePanelProfile(layoutKey)) => {
     const targetId = widget?.dataset?.widgetKey || "";
     if (!targetId) return { connected: false, active: false, incomingCount: 0, sourceIds: [] };
-    const graph = loadWorkspaceLogicGraph(layoutKey, profile);
-    const incoming = (graph.links || []).filter((link) =>
-      link.enabled !== false &&
-      link.signalType === WORKSPACE_SIGNAL_TYPES.data &&
-      link.target?.objectId === targetId
-    );
-    const explicit = incoming.find((link) => link.signalState !== undefined);
-    return {
-      connected: incoming.length > 0,
-      active: explicit ? coerceBooleanSignalValue(explicit.signalState) : false,
-      incomingCount: incoming.length,
-      sourceIds: incoming.map((link) => link.source?.objectId).filter(Boolean),
-      sourceLabels: incoming.map((link) => {
-        const id = link.source?.objectId || "";
-        const source = id ? workspaceElementByGraphId(id, layoutKey) : null;
-        return source?.dataset?.widgetDisplayName || source?.dataset?.widgetDefinition || id;
-      }).filter(Boolean),
-      linkIds: incoming.map((link) => link.id).filter(Boolean),
-      activeLinkId: explicit?.id || "",
-    };
+    return { connected: false, active: false, incomingCount: 0, sourceIds: [], sourceLabels: [], linkIds: [], activeLinkId: "" };
   };
   const applySignalConsumerState = (widget, signalState = {}, config = {}) => {
     if (!widget) return;
@@ -11316,14 +10260,6 @@ document.addEventListener("DOMContentLoaded", () => {
     const contexts = loadWorkspaceContexts(layoutKey, profile);
     const dataSources = loadDataSources(layoutKey, profile);
     const assets = loadAssets(layoutKey, profile);
-    const rawLogicGraph = loadWorkspaceLogicGraph(layoutKey, profile);
-    const logicEndpointIds = persistedWorkspaceEndpointIds({
-      widgets,
-      panels,
-      dividers,
-      contexts,
-    });
-    const logicGraph = pruneWorkspaceLogicGraphForEndpointIds(rawLogicGraph, logicEndpointIds);
     const objects = [
       ...widgets.map((widget) => ({ id: widget.id, type: WORKSPACE_OBJECT_TYPES.widget, layoutDomain: widget.layoutDomain, parentId: widget.parentPanelId || null })),
       ...panels.map((panel) => ({ id: panel.id, type: WORKSPACE_OBJECT_TYPES.panel, layoutDomain: panel.layoutDomain, parentId: null })),
@@ -11340,11 +10276,6 @@ document.addEventListener("DOMContentLoaded", () => {
       dividers,
       contexts,
       dataSources,
-      links: logicGraph.links,
-      relationships: logicGraph.relationships,
-      operators: logicGraph.operators,
-      styleRules: logicGraph.styleRules,
-      contextLinks: logicGraph.contextLinks,
       assets,
       assetReferences: widgets.flatMap(assetReferencesFromWidget),
     };
@@ -11375,7 +10306,6 @@ document.addEventListener("DOMContentLoaded", () => {
     const dividerIds = new Set((snapshot.dividers || []).map((divider) => divider.id).filter(Boolean));
     const assetIds = new Set((snapshot.assets || []).map((asset) => asset.id).filter(Boolean));
     const contextIds = new Set();
-    const operatorIds = new Set();
     const widgetTypes = knownWidgetRuntimeTypes();
     (snapshot.widgets || []).forEach((widget) => {
       addId(WORKSPACE_OBJECT_TYPES.widget, widget.id);
@@ -11414,97 +10344,6 @@ document.addEventListener("DOMContentLoaded", () => {
         addDiagnostic("warning", "temporary-asset-reference", "Temporary blob URLs are not durable saved asset references.", asset.id, "asset");
       }
     });
-    (snapshot.operators || []).forEach((operator) => {
-      addId("logical-operator", operator.id);
-      operatorIds.add(operator.id);
-      if (!Object.values(LOGICAL_OPERATOR_TYPES).includes(operator.operatorType)) {
-        addDiagnostic("error", "invalid-logical-operator", `Unsupported logical operator "${operator.operatorType}".`, operator.id, "logical-operator");
-      }
-    });
-    const relationshipEndpointIds = new Set([
-      ...(snapshot.widgets || []).map((widget) => widget.id),
-      ...(snapshot.panels || []).map((panel) => panel.id),
-      ...(snapshot.dividers || []).map((divider) => divider.id),
-      ...operatorIds,
-      ...(snapshot.contexts || []).map((context) => context.id),
-    ].filter(Boolean));
-    (snapshot.relationships || []).forEach((relationship) => {
-      addId("relationship", relationship.id);
-      if (!relationship.sourceId || !relationship.targetId) {
-        addDiagnostic("error", "relationship-missing-endpoint", "Relationship must include both sourceId and targetId.", relationship.id, "relationship");
-      }
-      if (relationship.type && !Object.values(WORKSPACE_RELATIONSHIP_TYPES).includes(relationship.type)) {
-        addDiagnostic("error", "invalid-relationship-type", `Unsupported relationship type "${relationship.type}".`, relationship.id, "relationship");
-      }
-      if (relationship.sourceId && !relationshipEndpointIds.has(relationship.sourceId)) {
-        addDiagnostic("warning", "missing-relationship-source", `Relationship source "${relationship.sourceId}" is not present in persisted objects.`, relationship.id, "relationship");
-      }
-      if (relationship.targetId && !relationshipEndpointIds.has(relationship.targetId)) {
-        addDiagnostic("warning", "missing-relationship-target", `Relationship target "${relationship.targetId}" is not present in persisted objects.`, relationship.id, "relationship");
-      }
-    });
-    (snapshot.links || []).forEach((link) => {
-      addId("link", link.id);
-      const source = normalizePortRef(link.source || {}, WORKSPACE_PORT_ROLES.output);
-      const target = normalizePortRef(link.target || {}, WORKSPACE_PORT_ROLES.input);
-      if (!source.objectId || !target.objectId) {
-        addDiagnostic("error", "link-missing-port-endpoint", "Link must include source and target port object ids.", link.id, "link");
-      }
-      if (source.objectId === target.objectId) {
-        addDiagnostic("error", "link-self-cycle", "Link source and target must be different objects.", link.id, "link");
-      }
-      if (source.role !== WORKSPACE_PORT_ROLES.output || target.role !== WORKSPACE_PORT_ROLES.input) {
-        addDiagnostic("error", "invalid-dataflow-direction", "Dataflow links must be stored as output source to input target.", link.id, "link");
-      }
-      if (link.signalType && !Object.values(WORKSPACE_SIGNAL_TYPES).includes(link.signalType)) {
-        addDiagnostic("error", "invalid-link-signal-type", `Unsupported link signal type "${link.signalType}".`, link.id, "link");
-      }
-      if (source.objectId && !relationshipEndpointIds.has(source.objectId)) {
-        addDiagnostic("warning", "missing-link-source", `Link source "${source.objectId}" is not present in persisted objects.`, link.id, "link");
-      }
-      if (target.objectId && !relationshipEndpointIds.has(target.objectId)) {
-        addDiagnostic("warning", "missing-link-target", `Link target "${target.objectId}" is not present in persisted objects.`, link.id, "link");
-      }
-    });
-    (snapshot.contextLinks || []).forEach((link) => {
-      addId("context-link", link.id);
-      if (!link.sourceObjectId || !link.targetObjectId) {
-        addDiagnostic("error", "context-link-missing-endpoint", "Context link must include both sourceObjectId and targetObjectId.", link.id, "context-link");
-      }
-      if (link.sourceObjectId === link.targetObjectId) {
-        addDiagnostic("error", "context-link-self-cycle", "Context link source and target must be different objects.", link.id, "context-link");
-      }
-      if (link.mode && !Object.values(CONTEXT_LINK_MODES).includes(link.mode)) {
-        addDiagnostic("error", "invalid-context-link-mode", `Unsupported context link mode "${link.mode}".`, link.id, "context-link");
-      }
-      if (link.sourceObjectId && !relationshipEndpointIds.has(link.sourceObjectId)) {
-        addDiagnostic("warning", "missing-context-link-source", `Context link source "${link.sourceObjectId}" is not present in persisted objects.`, link.id, "context-link");
-      }
-      if (link.targetObjectId && !relationshipEndpointIds.has(link.targetObjectId)) {
-        addDiagnostic("warning", "missing-context-link-target", `Context link target "${link.targetObjectId}" is not present in persisted objects.`, link.id, "context-link");
-      }
-    });
-    const styleRuleProperties = new Set(Object.values(STYLE_RULE_EFFECT_PROPERTIES));
-    (snapshot.styleRules || []).forEach((rule) => {
-      addId("style-rule", rule.id);
-      if (!rule.targetObjectId) {
-        addDiagnostic("error", "style-rule-missing-target", "Style rule must include a target object id.", rule.id, "style-rule");
-      } else if (!relationshipEndpointIds.has(rule.targetObjectId)) {
-        addDiagnostic("warning", "missing-style-rule-target", `Style rule target "${rule.targetObjectId}" is not present in persisted objects.`, rule.id, "style-rule");
-      }
-      if (!rule.condition || typeof rule.condition !== "object") {
-        addDiagnostic("error", "style-rule-missing-condition", "Style rule must include a logic condition.", rule.id, "style-rule");
-      }
-      if (!Array.isArray(rule.effects) || !rule.effects.length) {
-        addDiagnostic("error", "style-rule-missing-effects", "Style rule must include at least one visual effect.", rule.id, "style-rule");
-      } else {
-        rule.effects.forEach((effect) => {
-          if (!styleRuleProperties.has(effect.property)) {
-            addDiagnostic("error", "invalid-style-rule-effect", `Unsupported style effect "${effect.property}".`, rule.id, "style-rule");
-          }
-        });
-      }
-    });
     currentTransientPersistenceWarnings(snapshot.layoutKey).forEach((warning) => diagnostics.push(warning));
     const errors = diagnostics.filter((entry) => entry.severity === "error");
     const warnings = diagnostics.filter((entry) => entry.severity !== "error");
@@ -11528,23 +10367,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const loadPersistedWorkspaceSnapshot = (layoutKey = "builder", profile = getActivePanelProfile(layoutKey)) => {
     const saved = readJsonStore(persistedWorkspaceKey(layoutKey, profile), null);
     if (!saved || Number(saved.version) !== PERSISTED_WORKSPACE_VERSION) return currentPersistedWorkspaceSnapshot(layoutKey, profile);
-    const logicGraph = pruneWorkspaceLogicGraphForEndpointIds(
-      workspaceLogicGraphFromPersistedSnapshot(saved),
-      persistedWorkspaceEndpointIds(saved)
-    );
-    const hydrated = {
-      ...saved,
-      links: logicGraph.links,
-      relationships: logicGraph.relationships,
-      operators: logicGraph.operators,
-      styleRules: logicGraph.styleRules,
-      contextLinks: logicGraph.contextLinks,
-    };
-    writeJsonStore(workspaceLogicGraphKey(layoutKey, profile), logicGraph);
-    writeJsonStore(persistedWorkspaceKey(layoutKey, profile), hydrated);
-    refreshResolvedContextDebug(layoutKey, profile);
-    refreshEngineerOverlays();
-    return hydrated;
+    return saved;
   };
 
   const migratePersistedWorkspaceSnapshot = (layoutKey = "builder", profile = getActivePanelProfile(layoutKey)) => {
@@ -11563,250 +10386,6 @@ document.addEventListener("DOMContentLoaded", () => {
     validate: (layoutKey = "builder", profile = getActivePanelProfile(layoutKey)) =>
       validatePersistedWorkspaceSnapshot(currentPersistedWorkspaceSnapshot(layoutKey, profile)),
     validateSnapshot: validatePersistedWorkspaceSnapshot,
-  };
-
-  const logicEditAllowed = (options = {}) => isEngineerMode() || options.force === true;
-  const graphPortsForObject = (layoutKey = "builder", objectId = "", profile = getActivePanelProfile(layoutKey)) => {
-    const id = String(objectId || "");
-    if (!id) return [];
-    const graph = loadWorkspaceLogicGraph(layoutKey, profile);
-    const element = workspaceElementByGraphId(id, layoutKey);
-    const objectType = element ? workspaceObjectType(element) : "external";
-    if (!element) return [];
-    if ((element.dataset.widgetDefinition || element.dataset.widgetRuntimeType) === "dataset-origin") {
-      return datasetOriginPortsForElement(element, layoutKey, profile);
-    }
-    return [WORKSPACE_PORT_ROLES.input, WORKSPACE_PORT_ROLES.output].map((role) => normalizePortRef({
-      objectId: id,
-      role,
-      name: "main",
-      signalTypes: [WORKSPACE_SIGNAL_TYPES.data],
-      metadata: { objectType },
-    }, role, id));
-  };
-  const allGraphPorts = (layoutKey = "builder", profile = getActivePanelProfile(layoutKey)) => {
-    return connectableWorkspaceElements(layoutKey).flatMap((item) => graphPortsForObject(layoutKey, graphIdForWorkspaceElement(item), profile));
-  };
-  const lineageForWorkspaceObject = (layoutKey = "builder", objectId = "", profile = getActivePanelProfile(layoutKey), stack = []) => {
-    const id = String(objectId || "");
-    if (!id) return null;
-    if (stack.includes(id)) return { objectId: id, cycle: true, upstream: [], originStreams: [], derivedStreams: [] };
-    const element = workspaceElementByGraphId(id, layoutKey);
-    const definition = element?.dataset?.widgetDefinition || element?.dataset?.widgetRuntimeType || workspaceObjectType(element) || "unknown";
-    const graph = loadWorkspaceLogicGraph(layoutKey, profile);
-    const inbound = (graph.links || []).filter((link) => link.target?.objectId === id && link.enabled !== false);
-    const transformConfig = definition === "data-filter" ? widgetConfigFromElement(element) : null;
-    const ownOriginStreams = definition === "dataset-origin"
-      ? datasetOriginPortsForElement(element, layoutKey, profile).map((port) => {
-        const datasetId = port.metadata?.datasetId || "";
-        return {
-          port,
-          datasetId,
-          lineage: datasetId ? window.dashboardDataSubstrateRuntime?.datasetLineage?.(datasetId, layoutKey, profile) : null,
-        };
-      })
-      : [];
-    const upstream = inbound.map((link) => {
-      const sourceId = link.source?.objectId || "";
-      const sourceElement = workspaceElementByGraphId(sourceId, layoutKey);
-      const sourceDefinition = sourceElement?.dataset?.widgetDefinition || sourceElement?.dataset?.widgetRuntimeType || workspaceObjectType(sourceElement) || "unknown";
-      const sourceLineage = lineageForWorkspaceObject(layoutKey, sourceId, profile, [...stack, id]);
-      const sourcePort = sourceDefinition === "dataset-origin"
-        ? datasetOriginPortsForElement(sourceElement, layoutKey, profile).find((port) => port.portId === link.source?.portId || port.name === link.source?.name) || null
-        : null;
-      return {
-        linkId: link.id,
-        sourceObjectId: sourceId,
-        sourceDefinition,
-        sourcePort,
-        sourceLineage,
-      };
-    });
-    const originStreams = [
-      ...ownOriginStreams,
-      ...upstream.flatMap((entry) => entry.sourceLineage?.originStreams || []),
-    ];
-    const derivedStreams = originStreams
-      .filter((entry) => entry?.lineage?.dataset?.originType === "derived" || entry?.lineage?.dataset?.lineage)
-      .map((entry) => entry.lineage?.dataset)
-      .filter(Boolean);
-    return {
-      objectId: id,
-      definition,
-      transformConfig,
-      inboundLinkIds: inbound.map((link) => link.id),
-      upstream,
-      originStreams,
-      derivedStreams,
-      traceable: originStreams.length > 0,
-    };
-  };
-  const normalizedOperatorCondition = (operator) => ({
-    id: operator.id,
-    operator: String(operator.operatorType || "AND").toLowerCase(),
-    inputs: [...(operator.inputs || [])],
-    outputs: [...(operator.outputs || [])],
-  });
-  window.dashboardRelationshipRuntime = {
-    types: () => ({ ...WORKSPACE_RELATIONSHIP_TYPES }),
-    signalTypes: () => ({ ...WORKSPACE_SIGNAL_TYPES }),
-    portRoles: () => ({ ...WORKSPACE_PORT_ROLES }),
-    operatorTypes: () => ({ ...LOGICAL_OPERATOR_TYPES }),
-    getGraph: (layoutKey = "builder", profile = getActivePanelProfile(layoutKey)) => loadWorkspaceLogicGraph(layoutKey, profile),
-    setGraph: (layoutKey = "builder", graph = {}, profile = getActivePanelProfile(layoutKey), options = {}) => {
-      if (!logicEditAllowed(options)) return loadWorkspaceLogicGraph(layoutKey, profile);
-      return saveWorkspaceLogicGraph(layoutKey, graph, profile, options);
-    },
-    ports: (layoutKey = "builder", profile = getActivePanelProfile(layoutKey)) => allGraphPorts(layoutKey, profile),
-    portsForObject: (layoutKey = "builder", objectId = "", profile = getActivePanelProfile(layoutKey)) =>
-      graphPortsForObject(layoutKey, objectId, profile),
-    lineageForObject: (layoutKey = "builder", objectId = "", profile = getActivePanelProfile(layoutKey)) =>
-      lineageForWorkspaceObject(layoutKey, objectId, profile),
-    links: (layoutKey = "builder", profile = getActivePanelProfile(layoutKey)) =>
-      loadWorkspaceLogicGraph(layoutKey, profile).links,
-    dataflowLinks: (layoutKey = "builder", profile = getActivePanelProfile(layoutKey)) =>
-      loadWorkspaceLogicGraph(layoutKey, profile).links,
-    addLink: (layoutKey = "builder", link = {}, profile = getActivePanelProfile(layoutKey), options = {}) => {
-      if (!logicEditAllowed(options)) return null;
-      const graph = loadWorkspaceLogicGraph(layoutKey, profile);
-      const next = normalizeWorkspaceLink(link);
-      if (!next?.source?.objectId || !next?.target?.objectId || next.source.objectId === next.target.objectId) return null;
-      const validation = canCreateDataflowLink(next.source, next.target, {
-        ...graph,
-        links: graph.links.filter((entry) => entry.id !== next.id),
-      });
-      if (!validation.ok) return null;
-      const links = graph.links.filter((entry) => entry.id !== next.id)
-        .filter((entry) => !(
-          entry.source.objectId === next.source.objectId &&
-          entry.target.objectId === next.target.objectId &&
-          entry.source.portId === next.source.portId &&
-          entry.target.portId === next.target.portId &&
-          entry.signalType === next.signalType
-        ));
-      links.push(next);
-      saveWorkspaceLogicGraph(layoutKey, { ...graph, links }, profile, options);
-      refreshSignalConsumerWidgetsForLinks(layoutKey, [next]);
-      emitWorkspaceEvent({
-        type: "dataflow-link-created",
-        source: "dataflow",
-        layoutKey,
-        objectId: next.target.objectId,
-        objectType: "dataflow",
-        label: "Dataflow link created",
-        detail: `${next.source.objectId} -> ${next.target.objectId}`,
-        severity: "active",
-        traceable: true,
-        payload: { linkId: next.id, sourceId: next.source.objectId, targetId: next.target.objectId },
-      });
-      return next;
-    },
-    removeLink: (layoutKey = "builder", linkId = "", profile = getActivePanelProfile(layoutKey), options = {}) => {
-      if (!logicEditAllowed(options)) return false;
-      const graph = loadWorkspaceLogicGraph(layoutKey, profile);
-      const removed = graph.links.filter((link) => link.id === linkId);
-      const links = graph.links.filter((link) => link.id !== linkId);
-      if (links.length === graph.links.length) return false;
-      saveWorkspaceLogicGraph(layoutKey, { ...graph, links }, profile, options);
-      refreshSignalConsumerWidgetsForLinks(layoutKey, removed);
-      return true;
-    },
-    setSignalState: (layoutKey = "builder", linkId = "", value = false, profile = getActivePanelProfile(layoutKey), options = {}) => {
-      if (!logicEditAllowed(options)) return null;
-      const graph = loadWorkspaceLogicGraph(layoutKey, profile);
-      let updated = null;
-      const links = graph.links.map((link) => {
-        if (link.id !== linkId) return link;
-        updated = { ...link, signalState: coerceBooleanSignalValue(value) };
-        return updated;
-      });
-      if (!updated) return null;
-      saveWorkspaceLogicGraph(layoutKey, { ...graph, links }, profile, options);
-      refreshSignalConsumerWidgetsForLinks(layoutKey, [updated]);
-      emitWorkspaceEvent({
-        type: "dataflow-signal-updated",
-        source: "dataflow",
-        layoutKey,
-        objectId: updated.target.objectId,
-        objectType: "signal",
-        label: coerceBooleanSignalValue(value) ? "Signal engaged" : "Signal cleared",
-        detail: `${updated.source.objectId} -> ${updated.target.objectId}`,
-        severity: coerceBooleanSignalValue(value) ? "active" : "info",
-        traceable: true,
-        payload: {
-          linkId: updated.id,
-          sourceId: updated.source.objectId,
-          targetId: updated.target.objectId,
-          signalState: updated.signalState,
-        },
-      });
-      return updated;
-    },
-    signalStateForObject: (layoutKey = "builder", objectId = "", profile = getActivePanelProfile(layoutKey)) => {
-      const widget = workspaceElementByGraphId(objectId, layoutKey);
-      return dataflowSignalStateForWidget(widget, layoutKey, profile);
-    },
-    removeConnectionsForPort: (layoutKey = "builder", port = {}, profile = getActivePanelProfile(layoutKey), options = {}) =>
-      deleteWorkspaceConnectionsForPort(layoutKey, port, profile, options),
-    relationships: (layoutKey = "builder", options = {}) => {
-      const graph = loadWorkspaceLogicGraph(layoutKey, options.profile || getActivePanelProfile(layoutKey));
-      return deriveWorkspaceRelationships(layoutKey, graph);
-    },
-    contextLinkModes: () => ({ ...CONTEXT_LINK_MODES }),
-    contextLinks: () => [],
-    addContextLink: () => null,
-    updateContextLink: () => null,
-    removeContextLink: () => false,
-    addRelationship: (layoutKey = "builder", relationship = {}, profile = getActivePanelProfile(layoutKey), options = {}) => {
-      return null;
-    },
-    removeRelationship: () => false,
-    styleRules: (layoutKey = "builder", profile = getActivePanelProfile(layoutKey)) =>
-      loadWorkspaceLogicGraph(layoutKey, profile).styleRules,
-    addStyleRule: (layoutKey = "builder", rule = {}, profile = getActivePanelProfile(layoutKey), options = {}) => {
-      if (!logicEditAllowed(options)) return null;
-      const graph = loadWorkspaceLogicGraph(layoutKey, profile);
-      const next = normalizeStyleRule(rule);
-      if (!next.targetObjectId || !next.effects.length) return null;
-      const styleRules = graph.styleRules.filter((entry) => entry.id !== next.id);
-      styleRules.push(next);
-      saveWorkspaceLogicGraph(layoutKey, { ...graph, styleRules }, profile, options);
-      return next;
-    },
-    updateStyleRule: (layoutKey = "builder", ruleId = "", patch = {}, profile = getActivePanelProfile(layoutKey), options = {}) => {
-      if (!logicEditAllowed(options)) return null;
-      const graph = loadWorkspaceLogicGraph(layoutKey, profile);
-      const styleRules = graph.styleRules.map((rule) => rule.id === ruleId
-        ? normalizeStyleRule({ ...rule, ...patch, id: rule.id })
-        : rule);
-      const updated = styleRules.find((rule) => rule.id === ruleId) || null;
-      if (!updated) return null;
-      saveWorkspaceLogicGraph(layoutKey, { ...graph, styleRules }, profile, options);
-      return updated;
-    },
-    removeStyleRule: (layoutKey = "builder", ruleId = "", profile = getActivePanelProfile(layoutKey), options = {}) => {
-      if (!logicEditAllowed(options)) return false;
-      const graph = loadWorkspaceLogicGraph(layoutKey, profile);
-      const styleRules = graph.styleRules.filter((rule) => rule.id !== ruleId);
-      if (styleRules.length === graph.styleRules.length) return false;
-      saveWorkspaceLogicGraph(layoutKey, { ...graph, styleRules }, profile, options);
-      return true;
-    },
-    evaluateStyleRulesForWidget: (widget, options = {}) => {
-      const node = typeof widget === "string" ? document.querySelector(widget) : widget;
-      return node ? applyStyleRulesForWidget(node, options).map((rule) => rule.id) : [];
-    },
-    addOperator: (layoutKey = "builder", operator = {}, profile = getActivePanelProfile(layoutKey), options = {}) => {
-      return null;
-    },
-    updateOperator: () => null,
-    connectOperator: () => null,
-    operatorConditions: () => [],
-    refresh: (layoutKey = "builder") => {
-      refreshResolvedContextDebug(layoutKey, getActivePanelProfile(layoutKey));
-      refreshEngineerOverlays();
-      return deriveWorkspaceRelationships(layoutKey, loadWorkspaceLogicGraph(layoutKey));
-    },
   };
 
   const selectedWorkspaceObjectSummary = () => {
@@ -12175,7 +10754,6 @@ document.addEventListener("DOMContentLoaded", () => {
     saveDataSources(layoutKey, profile, []);
     saveWorkspaceContexts(layoutKey, profile, []);
     saveAssets(layoutKey, profile, []);
-    saveWorkspaceLogicGraph(layoutKey, { links: [], styleRules: [] }, profile, { history: false, event: false });
     invalidateManagedWidgetQueriesForLayout(layoutKey);
     refreshWorkspaceMiniMaps(layoutKey);
     return { widgetLayout, panelLayout };
@@ -13197,14 +11775,6 @@ document.addEventListener("DOMContentLoaded", () => {
       const currentDataSources = loadDataSources(layoutKey, currentProfile);
       const currentWorkspaceContexts = loadWorkspaceContexts(layoutKey, currentProfile);
       const currentAssets = loadAssets(layoutKey, currentProfile);
-      const currentLogicGraph = loadWorkspaceLogicGraph(layoutKey, currentProfile);
-      try {
-        clearLayoutStorage(layoutKey, selected);
-      } catch {}
-      saveDataSources(layoutKey, selected, currentDataSources);
-      saveWorkspaceContexts(layoutKey, selected, currentWorkspaceContexts);
-      saveAssets(layoutKey, selected, currentAssets);
-      saveWorkspaceLogicGraph(layoutKey, currentLogicGraph, selected, { history: false, event: false });
       const layout = document.querySelector(`.panel-layout[data-layout-key="${CSS.escape(layoutKey)}"]`);
       if (layout) savePanelLayouts(layout, selected, { persist: true });
       const widgetLayout = document.querySelector(`.widget-layout[data-widget-layout-key="${CSS.escape(layoutKey)}"]`);
