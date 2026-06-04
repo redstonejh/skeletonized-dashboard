@@ -33,6 +33,7 @@ import { initializePersistedWorkspaceRuntime } from "./modules/persisted-workspa
 import { initializeWorkspacePostInit } from "./modules/workspace-post-init.js";
 import { initializeGroupSelectionControls } from "./modules/group-selection-controls.js";
 import { createDashboardFormBindings } from "./modules/dashboard-form-bindings.js";
+import { seedInitialLayoutHistory } from "./modules/layout-history-seeding.js";
 
 bindInitialRangeControls();
 
@@ -7715,10 +7716,9 @@ document.addEventListener("DOMContentLoaded", () => {
     saveWidgetLayouts,
   }));
 
-  [...new Set([
-    ...[...document.querySelectorAll(".panel-layout")].map((layout) => layout.dataset.layoutKey || "default"),
-    ...[...document.querySelectorAll(".widget-layout")].map((layout) => layout.dataset.widgetLayoutKey || "default"),
-  ])].forEach((layoutKey) => pushLiveLayoutUndo(layoutKey));
+  seedInitialLayoutHistory({
+    pushLiveLayoutUndo,
+  });
 
 
   const layoutSourceRuntime = initializeLayoutSourceRuntime({
