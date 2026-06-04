@@ -12411,7 +12411,6 @@ document.addEventListener("DOMContentLoaded", () => {
     ...[...document.querySelectorAll(".panel-layout")].map((layout) => layout.dataset.layoutKey || "default"),
   ])].forEach(restoreLoadedExpansionBaseline);
 
-  document.querySelectorAll(".workspace-anchor-layer").forEach(initFloatingAnchorLayer);
   document.addEventListener("contextmenu", (event) => {
     const target = event.target?.closest?.(surfaceResponseSelector) ||
       event.target?.closest?.(".panel-layout > .workspace-divider");
