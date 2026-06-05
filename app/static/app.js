@@ -80,7 +80,6 @@ import { createWidgetLayoutSaveRuntime } from "./modules/widget-layout-save-runt
 import { createPanelLayoutSaveRuntime } from "./modules/panel-layout-save-runtime.js";
 import { createWidgetCompatibilityRuntime } from "./modules/widget-compatibility-runtime.js";
 import { createInteractionLifecycleRuntime } from "./modules/interaction-lifecycle-runtime.js";
-import { createWidgetContentRuntime } from "./modules/widget-content-runtime.js";
 import {
   applyPanelColor,
   applyPanelTitleColor,
@@ -881,14 +880,9 @@ document.addEventListener("DOMContentLoaded", () => {
     widgetDefinitionForElement,
     uniqueValues,
   });
-  const {
-    widgetInstanceFromElement,
-    setWidgetRuntimeContent,
-    renderWidgetRuntimeContent,
-  } = createWidgetContentRuntime({
-    widgetDefinitionForElement,
-    widgetRuntimeController,
-  });
+  const widgetInstanceFromElement = (widget, definition = widgetDefinitionForElement(widget)) => widgetRuntimeController.instanceFromElement(widget, definition);
+  const setWidgetRuntimeContent = (widget, html) => widgetRuntimeController.setRuntimeContent(widget, html);
+  const renderWidgetRuntimeContent = (widget, options = {}) => widgetRuntimeController.renderRuntimeContent(widget, options);
   const {
     renderWidgetSettingsSchemaPanel,
     renderWidgetWorkbenchPanel,
