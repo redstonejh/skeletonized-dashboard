@@ -72,6 +72,7 @@ import { createGridItemGeometry } from "./modules/grid-item-geometry.js";
 import { createWorkspaceVisualLodRuntime } from "./modules/workspace-visual-lod-runtime.js";
 import { createWorkspaceScrollFloorRuntime } from "./modules/workspace-scroll-floor-runtime.js";
 import { createPanelFootprintFacade } from "./modules/panel-footprint-facade.js";
+import { createMenuOverlayFacade } from "./modules/menu-overlay-facade.js";
 import {
   applyPanelColor,
   applyPanelTitleColor,
@@ -95,11 +96,13 @@ document.addEventListener("DOMContentLoaded", () => {
   const dashboardPanelContainment = window.dashboardPanelContainment;
   const dashboardCollisionReflowRuntime = window.dashboardCollisionReflowRuntime;
   const dashboardMenuOverlayRuntime = window.dashboardMenuOverlayRuntime;
-  const positionPortaledMenu = (menu, trigger, options = {}) => dashboardMenuOverlayRuntime?.position?.(menu, trigger, options);
-  const portalFloatingMenu = (menu, trigger, options = {}) => dashboardMenuOverlayRuntime?.portal?.(menu, trigger, options);
-  const restoreFloatingMenu = (menu) => dashboardMenuOverlayRuntime?.restore?.(menu);
-  const originalMenuParent = (menu) => dashboardMenuOverlayRuntime?.originalParent?.(menu);
-  const menuOverlayLayer = () => dashboardMenuOverlayRuntime?.ensureLayer?.() || document.body;
+  const {
+    menuOverlayLayer,
+    originalMenuParent,
+    portalFloatingMenu,
+    positionPortaledMenu,
+    restoreFloatingMenu,
+  } = createMenuOverlayFacade({ dashboardMenuOverlayRuntime });
   const {
     portalDashboardToolDrawer,
     restoreDashboardToolDrawer,
