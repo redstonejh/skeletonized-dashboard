@@ -71,6 +71,7 @@ import { createWidgetRuntimeFacade } from "./modules/widget-runtime-facade.js";
 import { createGridItemGeometry } from "./modules/grid-item-geometry.js";
 import { createWorkspaceVisualLodRuntime } from "./modules/workspace-visual-lod-runtime.js";
 import { createWorkspaceScrollFloorRuntime } from "./modules/workspace-scroll-floor-runtime.js";
+import { createPanelFootprintFacade } from "./modules/panel-footprint-facade.js";
 import {
   applyPanelColor,
   applyPanelTitleColor,
@@ -1942,13 +1943,12 @@ document.addEventListener("DOMContentLoaded", () => {
     clearSurfaceResponse,
   });
 
-  const expandedPanelFootprintRows = (panel, layout, proposedRows = null, metrics = null) => (
-    panelRuntime.expandedPanelFootprintRows(panel, layout, proposedRows, metrics)
-  );
-
-  const expandedPanelFootprintHeight = (panel, layout, proposedRows = null, metrics = null) => (
-    panelRuntime.expandedPanelFootprintHeight(panel, layout, proposedRows, metrics)
-  );
+  const {
+    expandedPanelFootprintHeight,
+    expandedPanelFootprintRows,
+  } = createPanelFootprintFacade({
+    getPanelRuntime: () => panelRuntime,
+  });
 
   const {
     beginLiveResizeSurface,
