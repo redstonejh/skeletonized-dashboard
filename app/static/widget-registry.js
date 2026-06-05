@@ -2010,7 +2010,6 @@
           <div class="region-summary-metrics" aria-label="Region object counts">
             <span><b>${Number(summary.widgets) || 0}</b> Widgets</span>
             <span><b>${Number(summary.panels) || 0}</b> Panels</span>
-            <span><b>${Number(summary.anchors) || 0}</b> Anchors</span>
           </div>
           ${density === "compact" || !source ? "" : `<div class="region-summary-context">${escapeHtml(source)}</div>`}
         </div>`;

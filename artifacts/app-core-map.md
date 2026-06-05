@@ -335,3 +335,7 @@ rg -n "layoutPersistence|refreshWorkspaceMiniMaps|panelRuntime|panelContainmentR
 ```
 
 Spot-check assertion: PASS. Each Part B symbol or convention has direct source references in `app/static/app.js`; readers/writers above are grouped by the current line regions that contain those references.
+
+## 2026-06-05 Removed Feature Update
+
+The legacy debug-mode shim, workspace minimap runtime, empty relationship graph shim, object rail selector branches, and relationship-copy clipboard path were deleted after the KEEP-only baseline was re-frozen. Older references in this map to those removed clusters are historical and no longer describe live runtime code. Current KEEP-fused leftovers are tracked in `artifacts/feature-removal-deferred.md`.

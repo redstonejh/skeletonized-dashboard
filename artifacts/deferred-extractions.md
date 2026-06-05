@@ -77,3 +77,7 @@ The remaining `app/static/app.js` core is init-order-sensitive and still owns li
 - Why deferred: this is the previously identified load-bearing mixed compatibility island. It is not active product behavior, but KEEP code still calls pieces for panel color menu, resize span, hydration, and persistence compatibility.
 - KEEP interaction entangled: panel/widget hydration, panel color menu, resize span persistence, save/load/reset.
 - Needed to finish safely: isolate the exact KEEP persistence/hydration helpers into a minimal compatibility module, then remove dormant query/context naming in a separate gutting pass with full parity.
+
+## 2026-06-05 Removed Feature Update
+
+The previous removed-mode shim and empty relationship graph shim are no longer deferred extraction candidates because they were deleted. Any remaining broad-term scan hit that could not be deleted without breaking KEEP behavior is tracked in `artifacts/feature-removal-deferred.md`.

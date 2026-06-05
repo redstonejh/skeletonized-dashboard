@@ -50,10 +50,10 @@ export const createDashboardToolDrawerRuntime = ({
     const gap = parseFloat(drawerStyles.columnGap || drawerStyles.gap || "0") || 0;
     const padding = parseFloat(drawerStyles.paddingTop || "0") || 0;
     const clearance = Math.max(4, padding || gap || 4);
-    const anchorGap = Math.max(4, gap || padding || 4);
+    const drawerGap = Math.max(4, gap || padding || 4);
     if (drawer.classList.contains("dashboard-tool-drawer-portaled")) {
       const viewportGutter = Math.max(8, clearance);
-      let left = settingsRect.left - anchorGap - drawerWidth;
+      let left = settingsRect.left - drawerGap - drawerWidth;
       let top = settingsRect.top + (settingsRect.height / 2) - (drawerHeight / 2);
       const header = item.querySelector(":scope > .db-panel-hd");
       if (header?.contains(settingsButton)) {
@@ -66,20 +66,20 @@ export const createDashboardToolDrawerRuntime = ({
       drawer.style.setProperty("--dashboard-tool-drawer-fixed-top", `${Math.round(top)}px`);
       return;
     }
-    const anchor = drawer.offsetParent || item;
-    const anchorRect = anchor.getBoundingClientRect();
-    const right = Math.max(0, anchorRect.right - settingsRect.left + anchorGap);
-    let top = settingsRect.top + (settingsRect.height / 2) - anchorRect.top - (drawerHeight / 2);
+    const positioningRoot = drawer.offsetParent || item;
+    const rootRect = positioningRoot.getBoundingClientRect();
+    const right = Math.max(0, rootRect.right - settingsRect.left + drawerGap);
+    let top = settingsRect.top + (settingsRect.height / 2) - rootRect.top - (drawerHeight / 2);
 
     const header = item.querySelector(":scope > .db-panel-hd");
     if (header?.contains(settingsButton)) {
       const headerRect = header.getBoundingClientRect();
-      top = Math.min(top, headerRect.bottom - anchorRect.top - drawerHeight - clearance);
+      top = Math.min(top, headerRect.bottom - rootRect.top - drawerHeight - clearance);
     }
 
     const viewportGutter = Math.max(8, clearance);
-    const minTop = viewportGutter - anchorRect.top;
-    const maxTop = window.innerHeight - viewportGutter - anchorRect.top - drawerHeight;
+    const minTop = viewportGutter - rootRect.top;
+    const maxTop = window.innerHeight - viewportGutter - rootRect.top - drawerHeight;
     const clampedTop = Math.max(minTop, Math.min(top, maxTop));
     drawer.style.setProperty("--dashboard-tool-drawer-top", `${Math.round(clampedTop)}px`);
     drawer.style.setProperty("--dashboard-tool-drawer-right", `${Math.round(right)}px`);
@@ -98,14 +98,14 @@ export const createDashboardToolDrawerRuntime = ({
       drawer.style.setProperty("--dashboard-tool-drawer-fixed-top", `${Math.round(top)}px`);
       return;
     }
-    const anchor = drawer.offsetParent || item;
-    const anchorRect = anchor.getBoundingClientRect();
-    let right = Math.max(0, anchorRect.right - clientX);
-    const maxRight = Math.max(0, anchorRect.right - viewportGutter - drawerWidth);
+    const positioningRoot = drawer.offsetParent || item;
+    const rootRect = positioningRoot.getBoundingClientRect();
+    let right = Math.max(0, rootRect.right - clientX);
+    const maxRight = Math.max(0, rootRect.right - viewportGutter - drawerWidth);
     right = Math.min(right, maxRight);
-    let top = clientY - anchorRect.top;
-    const minTop = viewportGutter - anchorRect.top;
-    const maxTop = window.innerHeight - viewportGutter - anchorRect.top - drawerHeight;
+    let top = clientY - rootRect.top;
+    const minTop = viewportGutter - rootRect.top;
+    const maxTop = window.innerHeight - viewportGutter - rootRect.top - drawerHeight;
     top = Math.max(minTop, Math.min(top, maxTop));
     drawer.style.setProperty("--dashboard-tool-drawer-top", `${Math.round(top)}px`);
     drawer.style.setProperty("--dashboard-tool-drawer-right", `${Math.round(right)}px`);

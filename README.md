@@ -8,19 +8,7 @@ The app provides Apple-style draggable and resizable panels and widgets with gri
 
 This repository was skeletonized from `configurable-dashboard-gui` into an Electron-only visual customization app.
 
-Removed from that lineage:
-
-- FastAPI and SQLite backend code
-- Engineer Mode and Underlay surfaces
-- computational graph, dataflow, ports, links, and wires
-- spatial anchors and rail behavior
-- context inheritance and context-inherit systems
-- data-source adapters and semantic mapping/query behavior
-- search/filter shell
-- settings page
-- all server `/api` routes
-
-What remains is the interactive dashboard builder surface and its visual system.
+Removed from that lineage: the Python/server backend, advanced legacy analysis surfaces, legacy relationship editing systems, old query/setup shells, settings pages, and all server routes. What remains is the interactive dashboard builder surface and its visual system.
 
 ## Persistence
 

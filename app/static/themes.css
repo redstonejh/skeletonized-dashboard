@@ -4378,7 +4378,7 @@ so * earlier tweaks to .db-panel-body (already rgba .22) had nothing * transluce
 not .db-panel-body. This layer swaps * the chrome of panels,
 headers,
 widgets,
-anchors,
+objects,
 and dividers for one * shared translucent recipe: low base alpha + backdrop blur/saturate + * diagonal sheen + inset rim highlights. Inner panel widgets skip * backdrop-filter to avoid double-blur inside .db-panel-body's already * isolated glass. */ body.has-photo-background{
   --glass-photo-base-alpha: 0.12;
   --glass-photo-base-alpha-strong: 0.20;
@@ -4403,13 +4403,13 @@ and dividers for one * shared translucent recipe: low base alpha + backdrop blur
    * tabular-nums / no text-shadow, rendered in --widget-surface-fg
    * (rgba(248,250,252, .94)) under photo-bg.
    *
-   * Panel titles, divider titles, and anchor labels inherit this so
+   * Panel titles, divider titles, and object labels inherit this so
    * "Notes" / "Menu" / "Content" / "Divider 1" visually belong to the
    * same family as "458". Secondary labels (.stat-lbl, .panel-empty-state
    * text, REGION pill, metadata, timestamps) are NOT included and
    * remain at their existing sizes. */
   /* Stat number (.stat-val) renders ~28px under density-standard.
-   * Panel/divider/anchor labels are optically smaller — words occupy
+   * panel/divider labels are optically smaller — words occupy
    * more horizontal space than numerals, so matching the stat size
    * makes labels feel oversized. 22px is ~79% of the rendered stat
    * number — same family, same color, same material, smaller voice.
@@ -4424,7 +4424,7 @@ and dividers for one * shared translucent recipe: low base alpha + backdrop blur
 
   /* ── Shared liquid-glass edge tokens ────────────────────────────────
    *
-   * Single rim system shared by widgets, panels, dividers, anchors.
+   * Single rim system shared by widgets, panels, dividers, objects.
    * Four layers stacked in box-shadow:
    *   1. outer separation — soft dark shadow OUTSIDE the edge,
    *      separates the object from busy photo without a halo.
@@ -4617,7 +4617,7 @@ body.has-photo-background .workspace-divider.db-panel:focus-within{
     inset 0 1px 0 rgba(255, 255, 255, 0.30);
 }/* Workspace-object title typography (the "458" font system) applied to * panel titles,
 divider titles,
-and anchor labels. Open panel title,
+and object labels. Open panel title,
 * collapsed panel title,
 and divider title all share `.db-panel-title`,
 body.has-photo-background .workspace-divider .db-panel-title{
@@ -4638,7 +4638,7 @@ no change. The * existing rules for .stat-lbl,
 REGION pill (.workspace-context-badge),
 and * helper text are not touched. */ /* Custom-color panels (Notes, etc.): every painted surface for * .db-panel.db-panel-custom-color > .db-panel-hd,
 custom-color widgets in * the workspace and inside panels,
-and custom-color anchors goes through * `background: var(--panel-chrome-bg),
+and custom-color objects goes through * `background: var(--panel-chrome-bg),
 var(--panel-chrome-surface) !important` * (themes.css lines 1352, 1358, 1836, 1849, 1857, 1885, 4693). The chrome-bg * gradient is already translucent lavender,
 but the second layer * `--panel-chrome-surface` defaults to `var(--surface)` = solid #ffffff,
 so * the !important rule paints lavender-on-white — the slab visible in the * screenshot. Earlier non-!important overrides on .panel-internal-widget-grid * > .widget-card and .db-panel-hd could not beat that !important. Swapping * the inherited value of --panel-chrome-surface to transparent makes the * existing !important rules resolve to translucent lavender over nothing,
@@ -4713,7 +4713,7 @@ so add a matching-specificity override. */ body.has-photo-background .runtime-ch
 panel headers,
 workspace widgets,
 panel-contained * widgets,
-anchors,
+objects,
 and custom-color variants with `!important` on * `background`,
 `border-color`,
 `box-shadow`,
@@ -4799,7 +4799,7 @@ body.has-photo-background .panel-internal-widget-grid > .widget-card:focus-visib
     ),
     rgba(255, 255, 255, var(--glass-photo-base-alpha-strong)) !important;
   border-color: rgba(255, 255, 255, calc(var(--glass-photo-rim-alpha) + 0.12)) !important;
-}/* Custom-color WIDGETS and ANCHORS — keep the accent wash; these are * the colored objects (the contained "409", workspace stat tiles, * anchors). Drop only the opaque white surface backing. */ body.has-photo-background .widget-layout > .widget-card.db-panel-custom-color,
+}/* Custom-color WIDGETS and objects — keep the accent wash; these are * the colored objects (the contained "409", workspace stat tiles, * objects). Drop only the opaque white surface backing. */ body.has-photo-background .widget-layout > .widget-card.db-panel-custom-color,
 body.has-photo-background .panel-internal-widget-grid > .widget-card.db-panel-custom-color{
   background:
     var(--object-shell-wash),
@@ -5048,7 +5048,7 @@ body.has-photo-background .db-panel.db-panel-custom-color.db-panel-tools-open:ho
 body.has-photo-background .db-panel.db-panel-custom-color.db-panel-tools-open:focus-within,
 body.has-photo-background .workspace-divider.db-panel:hover,
 body.has-photo-background .workspace-divider.db-panel:focus-within{
-  /* Widget hover formula applied to panels/dividers/anchors: subtle
+  /* Widget hover formula applied to panels/dividers/objects: subtle
    * rim brighten + slightly stronger inset highlights, no transform,
    * no opaque flash. Same response language as widget hover. */
   transform: none;
@@ -5089,7 +5089,7 @@ body.has-photo-background .db-panel > .db-panel-hd:focus-visible::after,
 body.has-photo-background .db-panel.db-panel-custom-color > .db-panel-hd:hover::after,
 body.has-photo-background .db-panel.db-panel-custom-color > .db-panel-hd:focus-visible::after{
   filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.55)) drop-shadow(0 0 2px rgba(0, 0, 0, 0.35)) !important;
-}/* ── Flat-glass shadows on panel/divider/anchor at rest AND hover ───── * * Earlier rounds painted a heavy `0 18px 42px rgba(0,0,0, 0.26)` outer * drop shadow on panels both at rest and on hover. That's the "legacy * big shadow" the user wants gone. Replace with INSET rim highlights * only,
+}/* ── Flat-glass shadows on panel/divider at rest AND hover ───── * * Earlier rounds painted a heavy `0 18px 42px rgba(0,0,0, 0.26)` outer * drop shadow on panels both at rest and on hover. That's the "legacy * big shadow" the user wants gone. Replace with INSET rim highlights * only,
 no outer drop. Result: flat glass that floats on the photo * without a halo. */ body.has-photo-background .panel-layout > .db-panel,
 body.has-photo-background .db-panel.db-panel-tools-open,
 body.has-photo-background .panel-layout > .db-panel.db-panel-custom-color,
@@ -5195,7 +5195,7 @@ body.has-photo-background.panel-interaction-active .panel-layout > .db-panel.db-
 panels,
 * panel headers,
 dividers,
-and anchors with the shared edge stack * defined at the top of this section. Border itself reduced to a * hairline alpha; the optical edge is carried by the box-shadow * layers (outer separation + top/left bright rim + soft inner glow * + bottom curl). Hover swaps to the brighter -hover variant. * * Higher specificity than the rest paints and the shell-system * hover rules so the edge stack wins regardless of state. */ body.has-photo-background .widget-layout > .widget-card,
+and objects with the shared edge stack * defined at the top of this section. Border itself reduced to a * hairline alpha; the optical edge is carried by the box-shadow * layers (outer separation + top/left bright rim + soft inner glow * + bottom curl). Hover swaps to the brighter -hover variant. * * Higher specificity than the rest paints and the shell-system * hover rules so the edge stack wins regardless of state. */ body.has-photo-background .widget-layout > .widget-card,
 body.has-photo-background .panel-internal-widget-grid > .widget-card,
 body.has-photo-background .panel-layout > .db-panel,
 body.has-photo-background .db-panel.db-panel-tools-open,

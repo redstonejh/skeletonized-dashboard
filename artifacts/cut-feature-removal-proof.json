@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "check": "cut_feature_removal_proof",
+  "passed": true,
+  "removed_files": [
+    "app/static/modules/removed-engineer-mode-runtime.js",
+    "app/static/modules/workspace-minimap-runtime.js",
+    "app/static/modules/workspace-logic-graph-runtime.js",
+    "electron-tests/css-selector-usage.cjs"
+  ],
+  "accepted_deferred": [
+    "app/static/drag-runtime.js overflow-anchor scroll stabilization",
+    "app/static/modules/layout-history-runtime.js overflow-anchor cleanup"
+  ],
+  "grep_output": ".\\app\\static\\drag-runtime.js:27:    const originalRootOverflowAnchor = document.documentElement.style.overflowAnchor || \"\";\r\n.\\app\\static\\drag-runtime.js:28:    const originalBodyOverflowAnchor = document.body.style.overflowAnchor || \"\";\r\n.\\app\\static\\drag-runtime.js:29:    const originalHostOverflowAnchor = host?.style?.overflowAnchor || \"\";\r\n.\\app\\static\\drag-runtime.js:33:    document.documentElement.style.overflowAnchor = \"none\";\r\n.\\app\\static\\drag-runtime.js:34:    document.body.style.overflowAnchor = \"none\";\r\n.\\app\\static\\drag-runtime.js:38:    if (host?.style) host.style.overflowAnchor = \"none\";\r\n.\\app\\static\\drag-runtime.js:116:      if (originalRootOverflowAnchor) {\r\n.\\app\\static\\drag-runtime.js:117:        document.documentElement.style.overflowAnchor = originalRootOverflowAnchor;\r\n.\\app\\static\\drag-runtime.js:119:        document.documentElement.style.removeProperty(\"overflow-anchor\");\r\n.\\app\\static\\drag-runtime.js:121:      if (originalBodyOverflowAnchor) {\r\n.\\app\\static\\drag-runtime.js:122:        document.body.style.overflowAnchor = originalBodyOverflowAnchor;\r\n.\\app\\static\\drag-runtime.js:124:        document.body.style.removeProperty(\"overflow-anchor\");\r\n.\\app\\static\\drag-runtime.js:127:        if (originalHostOverflowAnchor) {\r\n.\\app\\static\\drag-runtime.js:128:          host.style.overflowAnchor = originalHostOverflowAnchor;\r\n.\\app\\static\\drag-runtime.js:130:          host.style.removeProperty(\"overflow-anchor\");\r\n.\\app\\static\\modules\\layout-history-runtime.js:96:    document.documentElement.style.removeProperty(\"overflow-anchor\");\r\n.\\app\\static\\modules\\layout-history-runtime.js:97:    document.body.style.removeProperty(\"overflow-anchor\");\r\n.\\app\\static\\modules\\layout-history-runtime.js:101:    document.querySelectorAll(\".dashboard-layout-grid\").forEach((host) => host.style.removeProperty(\"overflow-anchor\"));\r\n",
+  "keep_parity_diff_count": 0,
+  "e2e": "passed"
+}

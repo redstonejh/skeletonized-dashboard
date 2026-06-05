@@ -16,7 +16,6 @@ export const createWorkspaceObjectModel = ({
       participatesInGridCollision: true,
       hasPanelContentArea: false,
       usesPanelHeader: false,
-      usesAnchorLayer: false,
       usesDividerSurface: false,
     }),
     [WORKSPACE_OBJECT_TYPES.panel]: Object.freeze({
@@ -26,7 +25,6 @@ export const createWorkspaceObjectModel = ({
       participatesInGridCollision: true,
       hasPanelContentArea: true,
       usesPanelHeader: true,
-      usesAnchorLayer: false,
       usesDividerSurface: false,
     }),
     [WORKSPACE_OBJECT_TYPES.divider]: Object.freeze({
@@ -36,7 +34,6 @@ export const createWorkspaceObjectModel = ({
       participatesInGridCollision: true,
       hasPanelContentArea: false,
       usesPanelHeader: true,
-      usesAnchorLayer: false,
       usesDividerSurface: true,
     }),
   });

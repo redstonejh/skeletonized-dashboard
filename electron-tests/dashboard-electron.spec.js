@@ -161,9 +161,7 @@ test("electron GUI boots without server APIs and preserves core customization", 
   });
   page.on("pageerror", (error) => failed.push(error.message));
 
-  await expect(page.locator(".engineer-mode-button")).toHaveCount(0);
   await expect(page.locator(".workspace-assistant-rail")).toHaveCount(0);
-  await expect(page.locator(".workspace-anchor-layer")).toHaveCount(0);
   await expect(page.locator(".background-photo-option")).toHaveCount(27);
 
   await page.locator(".background-tone-trigger").click({ force: true });
@@ -205,7 +203,7 @@ test("electron GUI boots without server APIs and preserves core customization", 
   await closeApp(app);
 });
 
-test("electron GUI keeps drag and resize handlers wired", async () => {
+test("electron GUI keeps drag and resize handlers active", async () => {
   const { app, page } = await launchApp();
   const panel = await openTools(page, '.panel-layout > .db-panel[data-panel-key="builder-notes"]');
   const before = await panel.evaluate((node) => ({

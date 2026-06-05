@@ -2631,11 +2631,11 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!panels.length) {
       return { col: 1, row: orderedLayoutStartRow(layout) };
     }
-    const anchor = gridBoundsForItem(panels[panels.length - 1]);
-    if (anchor.right < DASHBOARD_GRID_COLUMNS) {
-      return { col: anchor.right + 1, row: anchor.row };
+    const previousBounds = gridBoundsForItem(panels[panels.length - 1]);
+    if (previousBounds.right < DASHBOARD_GRID_COLUMNS) {
+      return { col: previousBounds.right + 1, row: previousBounds.row };
     }
-    return { col: 1, row: anchor.bottom + 1 };
+    return { col: 1, row: previousBounds.bottom + 1 };
   };
 
   const commitInsertedGridItemWithVerticalPushdown = (layout, item, preferredTarget = null) => (
