@@ -20,7 +20,7 @@
   };
 
   const panelChildWidgets = (panel) => [
-    ...panel.querySelectorAll(":scope > .db-panel-body .panel-internal-widget-grid > .widget-card:not(.workspace-anchor-object):not([hidden])")
+    ...panel.querySelectorAll(":scope > .db-panel-body .panel-internal-widget-grid > .widget-card:not([hidden])")
   ];
 
   const panelInternalGridBlockInsets = (grid) => {
@@ -41,8 +41,8 @@
       if (!grid || panel.classList.contains("db-panel-collapsed")) return 0;
       const metrics = deps.createGridMetrics(grid);
       const selector = options.includePlaceholders === false
-        ? ":scope > .widget-card:not(.workspace-anchor-object):not([hidden])"
-        : ":scope > .widget-card:not(.workspace-anchor-object):not([hidden]), :scope > .widget-placeholder";
+        ? ":scope > .widget-card:not([hidden])"
+        : ":scope > .widget-card:not([hidden]), :scope > .widget-placeholder";
       const maxBottom = [...grid.querySelectorAll(selector)]
         .filter((item) => !item.classList.contains("widget-dragging"))
         .reduce((bottom, item) => Math.max(bottom, deps.gridBoundsForItem(item, metrics).bottom), 0);

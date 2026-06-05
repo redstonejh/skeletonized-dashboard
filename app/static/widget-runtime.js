@@ -99,7 +99,7 @@
       if (!widget) return "presentation";
       const layer = normalizeWorkspaceWidgetLayer(explicitLayer || widget.dataset.widgetLayer || definition?.layer, "presentation");
       widget.dataset.widgetLayer = layer;
-      widget.dataset.workspaceLayer = layer === "backend" ? "engineer-underlay" : "presentation";
+      widget.dataset.workspaceLayer = layer === "backend" ? "backend" : "presentation";
       widget.classList.toggle("workspace-backend-widget", layer === "backend");
       widget.classList.toggle("workspace-presentation-widget", layer !== "backend");
       return layer;
@@ -361,7 +361,7 @@
       return meaning;
     };
     const renderRuntimeContent = (widget, options = {}) => {
-      if (!widget?.classList?.contains("widget-card") || widget.classList.contains("workspace-anchor-object")) return;
+      if (!widget?.classList?.contains("widget-card")) return;
       const definition = definitionForElement(widget);
       const instance = instanceFromElement(widget, definition);
       applyDensityMetadata(widget, instance.density || "standard");
@@ -372,7 +372,7 @@
         ? { ...instance, config: mediaState.renderConfig }
         : instance;
       if (deps.isSignalConsumerWidget?.(widget, definition)) {
-        const signalState = deps.dataflowSignalStateForWidget?.(widget) || {};
+        const signalState = deps.signalStateForWidget?.(widget) || {};
         renderInstance = {
           ...renderInstance,
           config: {
@@ -422,7 +422,7 @@
       });
     };
     const hydrateRuntime = (widget, saved = null) => {
-      if (!widget?.classList?.contains("widget-card") || widget.classList.contains("workspace-anchor-object")) return null;
+      if (!widget?.classList?.contains("widget-card")) return null;
       if (saved?.runtimeType) widget.dataset.widgetRuntimeType = saved.runtimeType;
       if (saved?.type && !widget.dataset.widgetRuntimeType) widget.dataset.widgetRuntimeType = saved.type;
       const definition = definitionForElement(widget);
@@ -505,7 +505,7 @@
       widget.style.gridColumn = `${safeCol} / span ${Math.round(safeSpan)}`;
       widget.style.gridRow = `${safeRow} / span ${safeRows}`;
       syncRenderedHeightToFootprint(widget, safeRows);
-      if (widget.classList.contains("widget-card") && !widget.classList.contains("workspace-anchor-object")) {
+      if (widget.classList.contains("widget-card")) {
         applyDensityMetadata(widget, resolveDensityForElement(widget));
       }
     };

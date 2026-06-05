@@ -194,8 +194,8 @@ export function initializeObjectAddRuntime(deps) {
       if (!browser) return;
       browser.replaceChildren();
       const availableItems = objectAddItems.filter((item) => (
-        !item.engineerOnly &&
-        !objectAddItemRuntimeDefinition(item)?.engineerOnly &&
+        !item.backendOnly &&
+        !objectAddItemRuntimeDefinition(item)?.backendOnly &&
         objectAddItemLayer(item) !== "backend"
       ));
       objectAddCategories.forEach((category) => {

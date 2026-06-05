@@ -40,11 +40,9 @@
   }
 
   const MAX_OBJECTS = 32;
-  // Workspace objects: top-level widgets, panels (incl. dividers, which
-  // are .db-panel.workspace-divider), and anchors (.widget-card with
-  // .workspace-anchor-object). Widgets nested inside a panel's internal
-  // grid and anything inside the navbar are filtered out in
-  // collectObjects().
+  // Workspace objects: top-level widgets and panels. Widgets nested
+  // inside a panel's internal grid and anything inside the navbar are
+  // filtered out in collectObjects().
   const OBJECT_SELECTOR = ".db-panel, .widget-card";
 
   const VERT_SRC = `
@@ -460,7 +458,7 @@
     const vw = window.innerWidth;
     const vh = window.innerHeight;
     for (const node of nodes) {
-      if (node.classList.contains("dragging") || node.classList.contains("anchor-dragging")) continue;
+      if (node.classList.contains("dragging")) continue;
       // Navbar is intentionally excluded from the refraction layer.
       if (node.closest(".app-nav")) continue;
       // Skip widgets nested inside a panel — the panel already covers
@@ -746,7 +744,7 @@
     isActive: () => active,
   };
 
-  const wireToggleButtons = () => {
+  const bindToggleButtons = () => {
     // Delegated click handler — works even if the button is added/removed.
     document.addEventListener("click", handleToggleClick);
     syncToggleButtons();
@@ -756,11 +754,11 @@
     document.addEventListener("DOMContentLoaded", () => {
       watchBodyClass();
       reconcileWithBodyClass();
-      wireToggleButtons();
+      bindToggleButtons();
     });
   } else {
     watchBodyClass();
     reconcileWithBodyClass();
-    wireToggleButtons();
+    bindToggleButtons();
   }
 })();

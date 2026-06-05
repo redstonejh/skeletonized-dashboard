@@ -1271,7 +1271,7 @@
     })();
     const action = options.action || (() => {
       if (state === "loading") return "Keep the widget in place while data loads.";
-      if (state === "error") return "Open settings or inspect the data source in Engineer Mode.";
+      if (state === "error") return "Open settings and inspect the data source.";
       if (state === "unsupported") return "Install or restore the missing registry definition.";
       if (text.includes("data source") || text.includes("needs data source") || text.includes("configure a data source")) return "Select a dataset, origin, or inherited context source.";
       if (text.includes("image") || text.includes("video") || text.includes("document") || text.includes("asset") || text.includes("url")) return "Open settings and provide a safe asset URL or reference.";
@@ -1479,7 +1479,7 @@
     const type = String(event.type || "").toLowerCase();
     if (/(error|failed|deleted|removed|breach)/.test(type)) return "critical";
     if (/(warn|risk|blocked|collision|stale)/.test(type)) return "warning";
-    if (/(created|saved|loaded|signal|dataflow|scenario|ai)/.test(type)) return "active";
+    if (/(created|saved|loaded|signal|scenario|ai)/.test(type)) return "active";
     return "info";
   };
   const runtimeEventFreshness = (event = {}) => {
@@ -1651,7 +1651,7 @@
       category: definition.category || "data",
       subcategory: definition.subcategory || "",
       layer: normalizeWidgetLayer(definition.layer),
-      engineerOnly: Boolean(definition.engineerOnly),
+      backendOnly: Boolean(definition.backendOnly),
       icon: definition.icon || "",
       aliases: Array.isArray(definition.aliases) ? definition.aliases : [],
       defaultSize,
@@ -1970,7 +1970,7 @@
     minSize: { cols: 2, rows: 1 },
     widgetType: "region-summary",
     dashboardObjectKind: "region-summary",
-    contextRole: "region-inspector",
+    contextRole: "region-summary",
     htmlTag: "div",
     className: "stat-card widget-card widget-card-custom region-summary-widget-card",
     capabilities: {
@@ -2843,7 +2843,7 @@
       category: definition.category,
       subcategory: definition.subcategory,
       layer: definition.layer,
-      engineerOnly: definition.engineerOnly,
+      backendOnly: definition.backendOnly,
       icon: definition.icon,
       aliases: definition.aliases,
       shell: definition.shell === false ? { enabled: false } : {

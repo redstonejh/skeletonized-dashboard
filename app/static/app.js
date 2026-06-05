@@ -38,7 +38,6 @@ import { createWorkspaceObjectModel } from "./modules/workspace-object-model.js"
 import { createDashboardToolDrawerRuntime } from "./modules/dashboard-tool-drawer-runtime.js";
 import { createReflowAnimationRuntime } from "./modules/reflow-animation-runtime.js";
 import { createDashboardDomFactories } from "./modules/dashboard-dom-factories.js";
-import { createWorkspaceLogicGraphRuntime } from "./modules/workspace-logic-graph-runtime.js";
 import { createWidgetRuntimeMeaning } from "./modules/widget-runtime-meaning.js";
 import {
   queryRelevantWidgetConfig,
@@ -133,7 +132,6 @@ document.addEventListener("DOMContentLoaded", () => {
   const dataSourcesKey = layoutPersistence.key.dataSources;
   const workspaceContextsKey = layoutPersistence.key.workspaceContexts;
   const workspaceAssetsKey = layoutPersistence.key.workspaceAssets;
-  const workspaceLogicGraphKey = layoutPersistence.key.workspaceLogicGraph;
   const persistedWorkspaceKey = layoutPersistence.key.persistedWorkspace;
   const layoutUndoKey = layoutPersistence.key.layoutUndo;
   const layoutSourceKey = layoutPersistence.key.layoutSource;
@@ -1108,23 +1106,6 @@ document.addEventListener("DOMContentLoaded", () => {
     };
   };
 
-  const {
-    emptyWorkspaceLogicGraph,
-    normalizeWorkspaceLogicGraph,
-    persistedWorkspaceEndpointIds,
-    pruneWorkspaceLogicGraphForEndpointIds,
-    workspaceLogicGraphFromPersistedSnapshot,
-    loadWorkspaceLogicGraph,
-    saveWorkspaceLogicGraph,
-    deriveWorkspaceRelationships,
-    inspectDataSubstrate,
-    datasetOriginExposedDatasets,
-  } = createWorkspaceLogicGraphRuntime({
-    getActivePanelProfile,
-    removeStore,
-    workspaceLogicGraphKey,
-    pushLiveLayoutUndo,
-  });
   const initWorkspaceMinimapLayer = () => {};
 
   const {
@@ -1604,7 +1585,7 @@ document.addEventListener("DOMContentLoaded", () => {
     isMediaWidgetDefinition: (definition) => isMediaWidgetDefinition(definition),
     mediaWidgetAssetState: (widget, config, definition) => mediaWidgetAssetState(widget, config, definition),
     isSignalConsumerWidget: (widget, definition) => isSignalConsumerWidget(widget, definition),
-    dataflowSignalStateForWidget: (widget) => dataflowSignalStateForWidget(widget),
+    signalStateForWidget: (widget) => signalStateForWidget(widget),
     applySignalConsumerState: (widget, signalState, config) => applySignalConsumerState(widget, signalState, config),
     clearSignalConsumerState: (widget) => clearSignalConsumerState(widget),
     applyStyleRulesForWidget,
@@ -1656,7 +1637,7 @@ document.addEventListener("DOMContentLoaded", () => {
   };
   const isSignalConsumerWidget = (widget, definition = widgetDefinitionForElement(widget)) =>
     Boolean(definition?.capabilities?.consumesSignals) || widgetRuntimeTypeFromElement(widget) === "shift";
-  const dataflowSignalStateForWidget = (widget, layoutKey = activeLayoutKeyForItem(widget), profile = getActivePanelProfile(layoutKey)) => {
+  const signalStateForWidget = (widget, layoutKey = activeLayoutKeyForItem(widget), profile = getActivePanelProfile(layoutKey)) => {
     const targetId = widget?.dataset?.widgetKey || "";
     if (!targetId) return { connected: false, active: false, incomingCount: 0, sourceIds: [] };
     return { connected: false, active: false, incomingCount: 0, sourceIds: [], sourceLabels: [], linkIds: [], activeLinkId: "" };
@@ -1676,8 +1657,8 @@ document.addEventListener("DOMContentLoaded", () => {
     widget.dataset.shiftSignalSourceIds = (signalState.sourceIds || []).join(",");
     widget.dataset.shiftSignalLinkIds = (signalState.linkIds || []).join(",");
     widget.dataset.shiftSignalReason = signalState.connected
-      ? `${active ? "Active" : "Inactive"} from ${signalState.sourceLabels?.[0] || signalState.sourceIds?.[0] || "dataflow"}`
-      : "No dataflow input";
+      ? `${active ? "Active" : "Inactive"} from ${signalState.sourceLabels?.[0] || signalState.sourceIds?.[0] || "signal"}`
+      : "No signal input";
     widget.style.setProperty("--shift-state-opacity", String(opacity));
     if (rgb) {
       widget.style.setProperty("--shift-state-color", `#${color.replace("#", "")}`);
@@ -5163,7 +5144,6 @@ document.addEventListener("DOMContentLoaded", () => {
     groupItemLayoutKey,
     workspaceObjectKey,
     workspaceObjectType,
-    loadWorkspaceLogicGraph,
     getActivePanelProfile,
     visualGridOrder,
     workspaceDeleteKind,
@@ -5172,7 +5152,6 @@ document.addEventListener("DOMContentLoaded", () => {
     showToast,
     undoTransientItemClasses,
     WORKSPACE_OBJECT_TYPES,
-    saveWorkspaceLogicGraph,
     pushLiveLayoutUndo,
     visibleRegionInsertionTarget,
     orderedLayoutStartRow,

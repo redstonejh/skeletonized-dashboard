@@ -5,7 +5,6 @@ export const createClipboardRuntime = ({
   groupItemLayoutKey,
   workspaceObjectKey,
   workspaceObjectType,
-  loadWorkspaceLogicGraph,
   getActivePanelProfile,
   visualGridOrder,
   workspaceDeleteKind,
@@ -14,9 +13,6 @@ export const createClipboardRuntime = ({
   showToast,
   undoTransientItemClasses,
   WORKSPACE_OBJECT_TYPES,
-  normalizeWorkspaceLink = (link) => link,
-  graphLinkId = () => `clipboard-link-${Date.now()}-${Math.random().toString(36).slice(2)}`,
-  saveWorkspaceLogicGraph,
   pushLiveLayoutUndo,
   visibleRegionInsertionTarget,
   orderedLayoutStartRow,
@@ -61,11 +57,9 @@ export const createClipboardRuntime = ({
       });
       return ids;
     }));
-    const graph = loadWorkspaceLogicGraph(layoutKey, getActivePanelProfile(layoutKey));
     layoutPersistence.clipboard.set({
       layoutKey,
       copiedAt: Date.now(),
-      links: graph.links.filter((link) => selectedIds.has(link.source.objectId) && selectedIds.has(link.target.objectId)),
       items: visualGridOrder(roots).map((item) => ({
         kind: workspaceDeleteKind(item),
         layoutKey: groupItemLayoutKey(item),
@@ -159,29 +153,6 @@ export const createClipboardRuntime = ({
     });
   };
 
-  const pasteClipboardDataflowLinks = (layoutKey, profile, clipboard, idMap) => {
-    const links = Array.isArray(clipboard?.links) ? clipboard.links : [];
-    if (!links.length) return;
-    const remapped = links.flatMap((link) => {
-      const sourceObjectId = idMap.get(link.source?.objectId);
-      const targetObjectId = idMap.get(link.target?.objectId);
-      if (!sourceObjectId || !targetObjectId) return [];
-      const normalized = normalizeWorkspaceLink({
-        ...link,
-        id: graphLinkId(),
-        source: { ...(link.source || {}), objectId: sourceObjectId },
-        target: { ...(link.target || {}), objectId: targetObjectId },
-      });
-      return normalized ? [normalized] : [];
-    });
-    if (!remapped.length) return;
-    const graph = loadWorkspaceLogicGraph(layoutKey, profile);
-    saveWorkspaceLogicGraph(layoutKey, {
-      ...graph,
-      links: [...graph.links, ...remapped],
-    }, profile, { history: false, event: false });
-  };
-
   const createGroupPasteFootprint = (boundsList) => {
     const minCol = Math.min(...boundsList.map((bounds) => bounds.col));
     const minRow = Math.min(...boundsList.map((bounds) => bounds.row));
@@ -249,7 +220,6 @@ export const createClipboardRuntime = ({
         setGroupItemSelected(entry.element, true);
       });
       syncWorkspaceRegions(targetLayout);
-      pasteClipboardDataflowLinks(layoutKey, profile, clipboard, idMap);
     };
 
     const animationLayout = panelLayout || widgetLayout;
