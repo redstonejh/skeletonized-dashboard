@@ -501,14 +501,6 @@ body.webgl-glass-on .widget-card.db-panel-custom-color {
   opacity: .68;
 }
 
-body.panel-interaction-active .workspace-assistant-tab,
-body.panel-resize-active .workspace-assistant-tab,
-body.anchor-rail-drag-active .workspace-assistant-tab {
-  pointer-events: none;
-  transform: translateX(12px);
-  opacity: .62;
-}
-
 .workspace-minimap-layer {
   position: fixed;
   right: 16px;
@@ -695,22 +687,11 @@ body.anchor-rail-drag-active .workspace-assistant-tab {
   stroke-width: 1.1;
 }
 
-.workspace-minimap-anchor-dot {
-  fill: color-mix(in srgb, var(--panel-accent, var(--blue)) 72%, white 28%);
-  stroke: color-mix(in srgb, var(--ink-strong) 24%, transparent);
-  stroke-width: .8;
-  vector-effect: non-scaling-stroke;
-}
-
 .workspace-minimap-viewport {
   fill: color-mix(in srgb, var(--blue) 12%, transparent);
   stroke: color-mix(in srgb, var(--blue) 82%, white 18%);
   stroke-width: 1.4;
   vector-effect: non-scaling-stroke;
-}
-
-.workspace-anchor-layer > .workspace-anchor-object.widget-card {
-  position: fixed;
 }
 
 .widget-card.db-panel-custom-color {
@@ -2331,16 +2312,12 @@ body.panel-resize-active .group-transform-member {
 }
 
 body.panel-interaction-active .surface-response-active::before,
-body.panel-resize-active .surface-response-active::before,
-body.workspace-wire-drag-active .surface-response-active::before,
-body.anchor-rail-drag-active .surface-response-active::before {
+body.panel-resize-active .surface-response-active::before {
   opacity: 0 !important;
 }
 
 body.panel-interaction-active .surface-response-active:not(.widget-dragging):not(.db-panel-dragging):not(.dashboard-active-resize),
-body.panel-resize-active .surface-response-active:not(.widget-dragging):not(.db-panel-dragging):not(.dashboard-active-resize),
-body.workspace-wire-drag-active .surface-response-active:not(.widget-dragging):not(.db-panel-dragging):not(.dashboard-active-resize),
-body.anchor-rail-drag-active .surface-response-active:not(.widget-dragging):not(.db-panel-dragging):not(.dashboard-active-resize) {
+body.panel-resize-active .surface-response-active:not(.widget-dragging):not(.db-panel-dragging):not(.dashboard-active-resize) {
   transform: none !important;
 }
 
@@ -2740,7 +2717,6 @@ body.layout-tools-active .db-panel:not(.db-panel-tools-open):not(:has(.panel-too
 .resize-icon,
 .text-icon,
 .color-icon,
-.anchor-link-icon,
 .pin-icon,
 .trash-icon {
   display: block;
