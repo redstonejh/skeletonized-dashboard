@@ -79,6 +79,7 @@ import { createWorkspaceCompatibilityRuntime } from "./modules/workspace-compati
 import { createWidgetLayoutSaveRuntime } from "./modules/widget-layout-save-runtime.js";
 import { createPanelLayoutSaveRuntime } from "./modules/panel-layout-save-runtime.js";
 import { createWidgetCompatibilityRuntime } from "./modules/widget-compatibility-runtime.js";
+import { createInteractionLifecycleRuntime } from "./modules/interaction-lifecycle-runtime.js";
 import {
   applyPanelColor,
   applyPanelTitleColor,
@@ -1028,17 +1029,12 @@ document.addEventListener("DOMContentLoaded", () => {
     isWidgetGridItem,
   });
 
-  const beginInteractionAutoScroll = ({ layout = null, onScrollFrame } = {}) => dashboardDragRuntime.beginInteractionAutoScroll({
-    layout,
-    onScrollFrame,
+  const { beginInteractionAutoScroll, beginResizeLifecycle } = createInteractionLifecycleRuntime({
+    clearSurfaceResponse,
+    dashboardDragRuntime,
+    dashboardResizeRuntime,
     gridHostForLayout,
   });
-  const beginResizeLifecycle = (options = {}) => dashboardResizeRuntime.beginResizeLifecycle({
-    ...options,
-    beginInteractionAutoScroll,
-    clearSurfaceResponse,
-  });
-
   const {
     expandedPanelFootprintHeight,
     expandedPanelFootprintRows,
