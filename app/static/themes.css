@@ -3503,11 +3503,6 @@ body {
   transform: translateY(1px);
 }
 
-.app-nav.workspace-chrome .context-command-island {
-  opacity: .62;
-  transform: translateY(-8px);
-}
-
 .app-nav.workspace-chrome .appearance-command-island {
   gap: 2px;
   opacity: .78;
@@ -3521,9 +3516,7 @@ body {
 .app-nav.workspace-chrome .appearance-command-island:hover,
 .app-nav.workspace-chrome .appearance-command-island:focus-within,
 .app-nav.workspace-chrome .mode-command-island:hover,
-.app-nav.workspace-chrome .mode-command-island:focus-within,
-.app-nav.workspace-chrome .context-command-island:hover,
-.app-nav.workspace-chrome .context-command-island:focus-within {
+.app-nav.workspace-chrome .mode-command-island:focus-within {
   opacity: 1;
 }
 
@@ -3573,8 +3566,7 @@ body {
   }
 
   .app-nav.workspace-chrome .layout-command-island,
-  .app-nav.workspace-chrome .composition-command-island,
-  .app-nav.workspace-chrome .context-command-island {
+  .app-nav.workspace-chrome .composition-command-island {
     transform: none;
   }
 }
