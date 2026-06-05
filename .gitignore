@@ -1,26 +1,48 @@
+# Environment / local secrets
 .env
-data/
-logs/
-*.db
-*.sqlite
-*.sqlite3
 *.key
-__pycache__/
-*.py[cod]
-.venv/
-venv/
-.pytest_cache/
-.uvicorn.pid
-.claude/
-server_dashboard.html
-server_settings.html
-style_check.css
-tests/__pycache__/
-test-results/
+
+# Dependencies
 node_modules/
+
+# Electron / Node build output
+dist/
+out/
+build/
+*.asar
+app/dist/
+
+# Playwright
+test-results/
+playwright-report/
+blob-report/
+.playwright/
+
+# Electron local user data
+# The preload bridge currently writes to %USERPROFILE%/.configurable-dashboard-gui/layout-store.json.
+# Keep equivalent project-local snapshots out of git if a developer redirects userData.
+userData/
+.configurable-dashboard-gui/
+*.local.json
+
+# Coverage / TypeScript
+coverage/
+*.tsbuildinfo
+
+# Logs
+logs/
+*.log
+server.log
+
+# Reference artifacts stay tracked; only oversized generated graphs are ignored.
+artifacts/code-graph*.json
 
 # Agent and local workflow artifacts
 .agent_pipeline/
 *.code-workspace
-server.log
-.uvicorn*.log
+.claude/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
