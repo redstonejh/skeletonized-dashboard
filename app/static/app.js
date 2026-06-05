@@ -63,6 +63,7 @@ import { bindPanelResizeRuntime } from "./modules/panel-resize-runtime.js";
 import { createGridMetricsRuntime } from "./modules/grid-metrics-runtime.js";
 import { createResizeSurfaceRuntime } from "./modules/resize-surface-runtime.js";
 import { widgetHasRowBreakBefore, widgetSpacerSiblingsBefore } from "./modules/widget-layout-persistence-helpers.js";
+import { createRemovedEngineerModeRuntime } from "./modules/removed-engineer-mode-runtime.js";
 import {
   applyPanelColor,
   applyPanelTitleColor,
@@ -102,17 +103,17 @@ document.addEventListener("DOMContentLoaded", () => {
   });
   initializeBackgroundController({ portalFloatingMenu, restoreFloatingMenu, originalMenuParent });
   let refreshWorkspaceMiniMaps = () => {};
-  let refreshEngineerOverlays = () => {};
-  const engineerModeState = Object.freeze({ enabled: false, source: "removed", updatedAt: 0 });
-  const isEngineerMode = () => false;
-  const refreshEngineerContextVisibility = () => {
-    refreshWorkspaceMiniMaps();
-  };
-  const setEngineerMode = () => false;
-  const toggleEngineerMode = () => false;
-  const onEngineerModeChange = () => () => {};
-  document.body.classList.remove("engineer-mode-active");
-  document.documentElement.dataset.engineerMode = "false";
+  const {
+    engineerModeState,
+    isEngineerMode,
+    onEngineerModeChange,
+    refreshEngineerContextVisibility,
+    refreshEngineerOverlays,
+    setEngineerMode,
+    toggleEngineerMode,
+  } = createRemovedEngineerModeRuntime({
+    refreshWorkspaceMiniMaps: () => refreshWorkspaceMiniMaps(),
+  });
 
   initializeNavStatusMenus();
 
