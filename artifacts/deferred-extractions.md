@@ -29,7 +29,6 @@ The remaining `app/static/app.js` core is init-order-sensitive and still owns li
 - Why deferred: this body shares geometry snapshots, live resize surfaces, group selection transforms, auto-zoom, collision resolution, and commit callbacks with both widget and panel resize bindings. A direct factory extraction was attempted after `workspace-compatibility-runtime` landed; e2e failed because panel resize-snap no longer changed span, so the batch was reverted.
 - KEEP interaction entangled: select-mode multi-resize, widget resize-snap, panel resize-snap, collision/reflow, undo/save after resize.
 - Needed to finish safely: extract shared resize geometry/session state used by widget and panel resize runtimes, then move `runGroupResize` behind the existing resize runtime.
-
 ## conditional-style-runtime
 
 - Cluster/symbol + file:line: conditional style helpers and `applyStyleRulesForWidget`, `app/static/app.js:606-766`
