@@ -1,0 +1,388 @@
+{
+  "schema_version": 1,
+  "captured_at": "2026-06-05T23:10:31.282Z",
+  "frame_budget_ms": 16.67,
+  "long_task_budget_ms": 50,
+  "target_counts": [
+    30,
+    100
+  ],
+  "selected_interactions": [
+    "resize-snap"
+  ],
+  "interactions": [
+    {
+      "name": "resize-snap",
+      "object_count": 30,
+      "duration_ms": 2357,
+      "frame_count": 166,
+      "p50_frame_ms": 10,
+      "p95_frame_ms": 30,
+      "p99_frame_ms": 50,
+      "max_frame_ms": 180.3,
+      "dropped_frame_count": 38,
+      "long_task_count": 0,
+      "long_tasks": [],
+      "dom_nodes": 1061,
+      "gate": {
+        "p95_under_16_67ms": false,
+        "no_long_tasks_over_50ms": true
+      }
+    },
+    {
+      "name": "resize-snap",
+      "object_count": 100,
+      "duration_ms": 19395,
+      "frame_count": 169,
+      "p50_frame_ms": 49.8,
+      "p95_frame_ms": 290,
+      "p99_frame_ms": 640.1,
+      "max_frame_ms": 670,
+      "dropped_frame_count": 93,
+      "long_task_count": 67,
+      "long_tasks": [
+        {
+          "start_ms": 779.6,
+          "duration_ms": 84,
+          "name": "unknown"
+        },
+        {
+          "start_ms": 902.4,
+          "duration_ms": 274,
+          "name": "self"
+        },
+        {
+          "start_ms": 1176.9,
+          "duration_ms": 231,
+          "name": "self"
+        },
+        {
+          "start_ms": 1559.7,
+          "duration_ms": 253,
+          "name": "self"
+        },
+        {
+          "start_ms": 1814,
+          "duration_ms": 274,
+          "name": "self"
+        },
+        {
+          "start_ms": 2175.7,
+          "duration_ms": 251,
+          "name": "self"
+        },
+        {
+          "start_ms": 2427.6,
+          "duration_ms": 286,
+          "name": "self"
+        },
+        {
+          "start_ms": 2740.8,
+          "duration_ms": 300,
+          "name": "self"
+        },
+        {
+          "start_ms": 3127.2,
+          "duration_ms": 239,
+          "name": "self"
+        },
+        {
+          "start_ms": 3366.7,
+          "duration_ms": 236,
+          "name": "self"
+        },
+        {
+          "start_ms": 3633.5,
+          "duration_ms": 236,
+          "name": "self"
+        },
+        {
+          "start_ms": 3886,
+          "duration_ms": 251,
+          "name": "self"
+        },
+        {
+          "start_ms": 4164.2,
+          "duration_ms": 243,
+          "name": "self"
+        },
+        {
+          "start_ms": 4425.4,
+          "duration_ms": 245,
+          "name": "self"
+        },
+        {
+          "start_ms": 4700.2,
+          "duration_ms": 238,
+          "name": "self"
+        },
+        {
+          "start_ms": 5012.1,
+          "duration_ms": 640,
+          "name": "self"
+        },
+        {
+          "start_ms": 5653.3,
+          "duration_ms": 515,
+          "name": "self"
+        },
+        {
+          "start_ms": 6261.5,
+          "duration_ms": 256,
+          "name": "self"
+        },
+        {
+          "start_ms": 6518.6,
+          "duration_ms": 252,
+          "name": "self"
+        },
+        {
+          "start_ms": 6844.2,
+          "duration_ms": 200,
+          "name": "self"
+        },
+        {
+          "start_ms": 7045.4,
+          "duration_ms": 271,
+          "name": "self"
+        },
+        {
+          "start_ms": 7388.7,
+          "duration_ms": 223,
+          "name": "self"
+        },
+        {
+          "start_ms": 7612.4,
+          "duration_ms": 280,
+          "name": "self"
+        },
+        {
+          "start_ms": 7911.8,
+          "duration_ms": 256,
+          "name": "self"
+        },
+        {
+          "start_ms": 8192.6,
+          "duration_ms": 257,
+          "name": "self"
+        },
+        {
+          "start_ms": 8519.9,
+          "duration_ms": 204,
+          "name": "self"
+        },
+        {
+          "start_ms": 8724.5,
+          "duration_ms": 275,
+          "name": "self"
+        },
+        {
+          "start_ms": 9073.4,
+          "duration_ms": 218,
+          "name": "self"
+        },
+        {
+          "start_ms": 9292.4,
+          "duration_ms": 265,
+          "name": "self"
+        },
+        {
+          "start_ms": 9577.6,
+          "duration_ms": 237,
+          "name": "self"
+        },
+        {
+          "start_ms": 9821,
+          "duration_ms": 475,
+          "name": "self"
+        },
+        {
+          "start_ms": 10296.6,
+          "duration_ms": 272,
+          "name": "self"
+        },
+        {
+          "start_ms": 10646.1,
+          "duration_ms": 220,
+          "name": "self"
+        },
+        {
+          "start_ms": 10867.2,
+          "duration_ms": 244,
+          "name": "self"
+        },
+        {
+          "start_ms": 11184.4,
+          "duration_ms": 207,
+          "name": "self"
+        },
+        {
+          "start_ms": 11392.6,
+          "duration_ms": 267,
+          "name": "self"
+        },
+        {
+          "start_ms": 11724.1,
+          "duration_ms": 222,
+          "name": "self"
+        },
+        {
+          "start_ms": 11947.4,
+          "duration_ms": 266,
+          "name": "self"
+        },
+        {
+          "start_ms": 12275.2,
+          "duration_ms": 206,
+          "name": "self"
+        },
+        {
+          "start_ms": 12481.5,
+          "duration_ms": 250,
+          "name": "self"
+        },
+        {
+          "start_ms": 12797.4,
+          "duration_ms": 182,
+          "name": "self"
+        },
+        {
+          "start_ms": 12980.5,
+          "duration_ms": 260,
+          "name": "self"
+        },
+        {
+          "start_ms": 13311,
+          "duration_ms": 219,
+          "name": "self"
+        },
+        {
+          "start_ms": 13530.8,
+          "duration_ms": 255,
+          "name": "self"
+        },
+        {
+          "start_ms": 13797.4,
+          "duration_ms": 499,
+          "name": "self"
+        },
+        {
+          "start_ms": 14297.7,
+          "duration_ms": 304,
+          "name": "self"
+        },
+        {
+          "start_ms": 14656.1,
+          "duration_ms": 218,
+          "name": "self"
+        },
+        {
+          "start_ms": 14875.4,
+          "duration_ms": 219,
+          "name": "self"
+        },
+        {
+          "start_ms": 15111.6,
+          "duration_ms": 212,
+          "name": "self"
+        },
+        {
+          "start_ms": 15345.6,
+          "duration_ms": 186,
+          "name": "self"
+        },
+        {
+          "start_ms": 15584.7,
+          "duration_ms": 187,
+          "name": "self"
+        },
+        {
+          "start_ms": 15772.2,
+          "duration_ms": 205,
+          "name": "self"
+        },
+        {
+          "start_ms": 16033.2,
+          "duration_ms": 195,
+          "name": "self"
+        },
+        {
+          "start_ms": 16229.2,
+          "duration_ms": 210,
+          "name": "self"
+        },
+        {
+          "start_ms": 16496.7,
+          "duration_ms": 187,
+          "name": "self"
+        },
+        {
+          "start_ms": 16685,
+          "duration_ms": 209,
+          "name": "self"
+        },
+        {
+          "start_ms": 16949.7,
+          "duration_ms": 187,
+          "name": "self"
+        },
+        {
+          "start_ms": 17137.8,
+          "duration_ms": 242,
+          "name": "self"
+        },
+        {
+          "start_ms": 17399.6,
+          "duration_ms": 249,
+          "name": "self"
+        },
+        {
+          "start_ms": 17673.8,
+          "duration_ms": 237,
+          "name": "self"
+        },
+        {
+          "start_ms": 17923.6,
+          "duration_ms": 258,
+          "name": "self"
+        },
+        {
+          "start_ms": 18253.3,
+          "duration_ms": 207,
+          "name": "self"
+        },
+        {
+          "start_ms": 18461.3,
+          "duration_ms": 232,
+          "name": "self"
+        },
+        {
+          "start_ms": 18756.3,
+          "duration_ms": 218,
+          "name": "self"
+        },
+        {
+          "start_ms": 18975.2,
+          "duration_ms": 257,
+          "name": "self"
+        },
+        {
+          "start_ms": 19232.2,
+          "duration_ms": 656,
+          "name": "self"
+        },
+        {
+          "start_ms": 19977.4,
+          "duration_ms": 105,
+          "name": "self"
+        }
+      ],
+      "dom_nodes": 2566,
+      "gate": {
+        "p95_under_16_67ms": false,
+        "no_long_tasks_over_50ms": false
+      }
+    }
+  ],
+  "passed": false
+}

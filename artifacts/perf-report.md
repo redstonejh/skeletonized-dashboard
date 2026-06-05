@@ -1,70 +1,55 @@
-# Perf Report
+# Full 60fps Performance Redesign Report
 
-Goal: p95 frame time <= 16.67ms and zero long tasks >50ms for each hot interaction at 30 and 100 objects.
+Goal: all hot interactions at 30 and 100 objects meet `p95 <= 16.67ms`, zero long tasks over `50ms`, and no max-frame stall over `100ms`, while preserving behavior and resting look.
 
-Baseline gate passed: False
-Active glass LOD attempt passed: False
-Resize RAF coalescing attempt passed: False
-
-The run did not reach the 60fps gate. The app remains behavior-preserving because both optimization attempts that regressed measured interactions were reverted.
+Verdict: **NEEDS-HUMAN / NO-SHIP for the 60fps redesign.** The accepted code change in this pass is test-harness only: `PERF_INTERACTIONS` filtering for focused benchmark runs. Runtime redesign attempts were reverted because they failed the perf gate or regressed a canary path.
 
 ## Baseline
 
-| Objects | Interaction | p50 ms | p95 ms | p99 ms | Long tasks >50ms | Dropped frames |
+| Objects | Interaction | p95 ms | p99 ms | Max ms | Long tasks >50ms | Dropped frames |
 |---:|---|---:|---:|---:|---:|---:|
-| 30 | drag-with-collision | 20.4 | 100.1 | 190 | 63 | 121 |
-| 30 | resize-snap | 29.9 | 90.3 | 170.1 | 63 | 124 |
-| 30 | collision-heavy-reflow | 10 | 20.4 | 60 | 0 | 29 |
-| 30 | edge-auto-scroll | 10 | 30.4 | 59.5 | 0 | 38 |
-| 30 | theme-background-switch | 10 | 230.1 | 360 | 6 | 10 |
-| 30 | select-mode-multi-move | 10 | 29.6 | 110.1 | 4 | 27 |
-| 100 | drag-with-collision | 10 | 20.3 | 70 | 3 | 22 |
-| 100 | resize-snap | 10.5 | 200.1 | 489.9 | 65 | 119 |
-| 100 | collision-heavy-reflow | 19.9 | 190.2 | 570 | 77 | 146 |
-| 100 | edge-auto-scroll | 10 | 60.5 | 99.9 | 6 | 60 |
-| 100 | theme-background-switch | 10 | 620 | 950.2 | 8 | 13 |
-| 100 | select-mode-multi-move | 10 | 30.1 | 239.8 | 5 | 24 |
+| 30 | drag-with-collision | 89.9 | 170.4 | 220 | 63 | 125 |
+| 30 | resize-snap | 29.9 | 69.9 | 69.9 | 0 | 19 |
+| 30 | collision-heavy-reflow | 40 | 90 | 180 | 7 | 30 |
+| 30 | edge-auto-scroll | 139.9 | 189.5 | 230 | 77 | 150 |
+| 30 | theme-background-switch | 249.8 | 430 | 430 | 6 | 12 |
+| 30 | select-mode-multi-move | 39.9 | 160.2 | 259.7 | 5 | 33 |
+| 100 | drag-with-collision | 39.9 | 280 | 480.1 | 8 | 32 |
+| 100 | resize-snap | 29.9 | 80 | 179.9 | 3 | 41 |
+| 100 | collision-heavy-reflow | 40.3 | 319.9 | 469.9 | 9 | 50 |
+| 100 | edge-auto-scroll | 650 | 799.6 | 1120.1 | 186 | 214 |
+| 100 | theme-background-switch | 459.9 | 899.9 | 899.9 | 10 | 14 |
+| 100 | select-mode-multi-move | 40.2 | 330.1 | 670 | 5 | 36 |
 
-## Rejected Attempt: Active Glass LOD
+Evidence: `artifacts/perf-full-60fps-baseline.json`.
 
-| Objects | Interaction | p50 ms | p95 ms | p99 ms | Long tasks >50ms | Dropped frames |
-|---:|---|---:|---:|---:|---:|---:|
-| 30 | drag-with-collision | 30 | 99.8 | 190 | 63 | 128 |
-| 30 | resize-snap | 10 | 29.9 | 59.9 | 0 | 33 |
-| 30 | collision-heavy-reflow | 10 | 49.8 | 110.3 | 8 | 40 |
-| 30 | edge-auto-scroll | 10.1 | 130.1 | 180.1 | 74 | 144 |
-| 30 | theme-background-switch | 10 | 410.1 | 440 | 6 | 12 |
-| 30 | select-mode-multi-move | 10 | 30.1 | 130 | 5 | 28 |
-| 100 | drag-with-collision | 10 | 40.1 | 309.9 | 8 | 31 |
-| 100 | resize-snap | 10.4 | 260.1 | 710 | 76 | 119 |
-| 100 | collision-heavy-reflow | 29.9 | 230.1 | 589.6 | 77 | 146 |
-| 100 | edge-auto-scroll | 190 | 640.1 | 700 | 186 | 232 |
-| 100 | theme-background-switch | 10.1 | 580.1 | 769.8 | 10 | 13 |
-| 100 | select-mode-multi-move | 10 | 30.3 | 349.9 | 5 | 28 |
+## Rejected Runtime Attempts
 
-## Rejected Attempt: Resize RAF Coalescing
+| Attempt | Result |
+|---|---|
+| M1 persistent photo layer cache / opacity swap | Reverted. 100-object theme switch worsened to `max 2010ms` and `8` long tasks. |
+| CSS `contain: paint` on panels/widgets | Reverted. Some 100-object drag/reflow cases improved, but resize regressed hard: 100-object resize `p95 29.9 -> 200ms`, long tasks `3 -> 64`. |
+| M3 resize lifecycle rAF coalescing | Reverted. 100-object resize regressed to `p95 290ms`, `max 670ms`, `67` long tasks. |
 
-| Objects | Interaction | p50 ms | p95 ms | p99 ms | Long tasks >50ms | Dropped frames |
-|---:|---|---:|---:|---:|---:|---:|
-| 30 | drag-with-collision | 20.1 | 110 | 190 | 64 | 107 |
-| 30 | resize-snap | 50.1 | 160.1 | 319.9 | 68 | 101 |
-| 30 | collision-heavy-reflow | 10 | 40.1 | 120.2 | 6 | 29 |
-| 30 | edge-auto-scroll | 120.2 | 260 | 300 | 169 | 200 |
-| 30 | theme-background-switch | 10.1 | 380.1 | 419.9 | 6 | 10 |
-| 30 | select-mode-multi-move | 10 | 40 | 130.3 | 5 | 35 |
-| 100 | drag-with-collision | 10 | 40 | 260.4 | 8 | 32 |
-| 100 | resize-snap | 40.1 | 260 | 589.7 | 67 | 91 |
-| 100 | collision-heavy-reflow | 10 | 40 | 269.6 | 9 | 52 |
-| 100 | edge-auto-scroll | 10.1 | 300 | 390 | 29 | 98 |
-| 100 | theme-background-switch | 10 | 400 | 1050 | 8 | 11 |
-| 100 | select-mode-multi-move | 10 | 40.2 | 540 | 6 | 36 |
+Detailed defer notes: `artifacts/perf-deferred.md`.
 
-## Bottlenecks
+## Accepted Change
 
-- 100-object background switching remains the largest measured stall: baseline p95 620ms, p99 950.2ms, 8 long tasks.
-- 100-object resize/collision paths miss the gate: resize p95 200.1ms with 65 long tasks; collision-heavy reflow p95 190.2ms with 77 long tasks.
-- 30-object drag and resize also miss the gate, indicating hot-path work is not only high object count dependent.
+`electron-tests/perf-dashboard.spec.js` now supports:
 
-## Verdict
+```bash
+PERF_INTERACTIONS=resize-snap npm run test:perf
+```
 
-NEEDS-HUMAN for performance: the benchmark is now repeatable, but no behavior-preserving optimization in this bounded pass achieved stable 60fps.
+The filter allows milestone-specific profiling without rerunning unrelated interactions. Smoke evidence: `artifacts/perf-full-60fps-filter-smoke.json`.
+
+Validation for the accepted harness change:
+
+- `npm run test:e2e`: passed 2/2.
+- Filtered perf smoke: passed as a bounded benchmark runner and emitted only the requested `resize-snap` interaction.
+
+## Current Blockers
+
+- The worst spike is the documented `ordered-drag-runtime` / edge-auto-scroll core, which is a `DO-NOT-TOUCH-WITHOUT shared interaction-state split` region in `artifacts/app-core-map.md`.
+- Wrapper-level coalescing is insufficient; safe optimization needs an explicit session-state split inside the drag/resize bodies so immediate scroll/runway work can stay per-frame while collision/reflow work is batched.
+- Theme switching remains dominated by photo/compositor/decode spikes. Mounting all photo layers in the live DOM worsened the stall; a safe retry needs an off-main/live-document warmup strategy or a transitional renderer that preserves computed-CSS/look parity.
