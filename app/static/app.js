@@ -60,6 +60,7 @@ import { bindWidgetMoveRuntime } from "./modules/widget-move-runtime.js";
 import { bindPanelMoveRuntime } from "./modules/panel-move-runtime.js";
 import { bindWidgetResizeRuntime } from "./modules/widget-resize-runtime.js";
 import { bindPanelResizeRuntime } from "./modules/panel-resize-runtime.js";
+import { createGridMetricsRuntime } from "./modules/grid-metrics-runtime.js";
 import {
   applyPanelColor,
   applyPanelTitleColor,
@@ -272,8 +273,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const syncPanelMinimumWidth = (panel) => panelRuntime.syncPanelMinimumWidth(panel);
 
-  const DASHBOARD_GRID_COLUMNS = 6;
-  const DASHBOARD_GRID_ROW_HEIGHT = 81;
   const dashboardGeometry = window.dashboardGeometry;
   let panelRuntime = null;
   let panelContainmentRuntime = null;
@@ -285,66 +284,22 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const gridContentRectForHost = (host, rect) => dashboardPanelContainment.gridContentRectForHost(host, rect);
 
-  const gridRectForLayout = (layout) => {
-    const host = gridHostForLayout(layout);
-    const rect = (host || layout).getBoundingClientRect();
-    return gridContentRectForHost(host || layout, rect);
-  };
-
-  const gridGapForLayout = (layout) => {
-    if (!layout) return 16;
-    const host = gridHostForLayout(layout);
-    const computed = window.getComputedStyle(host || layout);
-    const rawGap = computed.rowGap || computed.gap || (layout.classList.contains("widget-layout") ? "12px" : "16px");
-    const gap = parseFloat(rawGap);
-    return Number.isFinite(gap) ? gap : (layout.classList.contains("widget-layout") ? 12 : 16);
-  };
-
-  const gridRowHeightForLayout = (layout) => {
-    if (!layout) return DASHBOARD_GRID_ROW_HEIGHT;
-    const host = gridHostForLayout(layout);
-    const computed = window.getComputedStyle(host || layout);
-    const rowHeight = parseFloat(computed.getPropertyValue("--dashboard-grid-row-height"));
-    return Number.isFinite(rowHeight) && rowHeight > 0 ? rowHeight : DASHBOARD_GRID_ROW_HEIGHT;
-  };
-
-  const createGridMetrics = (layout) => {
-    const rect = gridRectForLayout(layout);
-    const gap = gridGapForLayout(layout);
-    const rowHeight = gridRowHeightForLayout(layout);
-    const width = Math.max(1, rect.width);
-    const columnWidth = (width - (gap * (DASHBOARD_GRID_COLUMNS - 1))) / DASHBOARD_GRID_COLUMNS;
-    return {
-      layout,
-      rect,
-      gap,
-      width,
-      columnWidth,
-      columnStep: Math.max(1, columnWidth + gap),
-      rowHeight,
-      rowStep: rowHeight + gap,
-      panelMinimumRows: new WeakMap(),
-    };
-  };
-
-  const refreshGridMetricsRect = (metrics) => {
-    if (!metrics?.layout) return metrics;
-    metrics.rect = gridRectForLayout(metrics.layout);
-    return metrics;
-  };
-
-  const gridHeightForRows = (rows, gap, rowHeight = DASHBOARD_GRID_ROW_HEIGHT) => {
-    return dashboardGeometry.gridHeightForRows(rows, gap, rowHeight);
-  };
-
-  const gridRowsFromHeight = (height, gap, minRows = 1, rowHeight = DASHBOARD_GRID_ROW_HEIGHT) => {
-    return dashboardGeometry.gridRowsFromHeight(height, gap, minRows, rowHeight);
-  };
-
-  const isWidgetGridItem = (item) => (
-    item?.classList?.contains("widget-card") ||
-    item?.classList?.contains("widget-placeholder")
-  );
+  const {
+    DASHBOARD_GRID_COLUMNS,
+    DASHBOARD_GRID_ROW_HEIGHT,
+    createGridMetrics,
+    gridGapForLayout,
+    gridHeightForRows,
+    gridRectForLayout,
+    gridRowHeightForLayout,
+    gridRowsFromHeight,
+    isWidgetGridItem,
+    refreshGridMetricsRect,
+  } = createGridMetricsRuntime({
+    dashboardGeometry,
+    gridContentRectForHost,
+    gridHostForLayout,
+  });
 
   const {
     WORKSPACE_OBJECT_TYPES,
