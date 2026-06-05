@@ -7033,7 +7033,7 @@ body.has-photo-background .widget-runtime-state .runtime-state-detail > span {
   overflow-x: auto !important;
   overflow-y: hidden !important;
   scrollbar-width: none !important;
-  -ms-overflow-style: none !important;
+  -ms-overflow-style: none;
 }
 
 .timeframe-widget-card .timeframe-body::-webkit-scrollbar {
