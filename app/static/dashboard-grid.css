@@ -3471,42 +3471,6 @@ body.layout-tools-active .db-panel:not(.db-panel-tools-open):not(:has(.panel-too
   padding-block: 4px;
 }
 
-.search-widget-card .search-widget-content {
-  gap: calc(5px * var(--widget-density-gap));
-}
-
-.search-widget-card .search-widget-control {
-  min-width: 0;
-  transform-origin: center;
-}
-
-.search-widget-density-tiny .search-widget-control {
-  justify-content: center;
-}
-
-.search-widget-density-tiny .search-widget-input {
-  width: 40px;
-  flex: 0 1 40px;
-  padding-inline: 20px 0;
-  color: transparent;
-  caret-color: transparent;
-}
-
-.search-widget-density-tiny .range-search-label {
-  display: none;
-}
-
-.search-widget-density-compact .search-widget-input {
-  padding-left: 34px;
-  padding-right: 8px;
-  font-size: 14px;
-}
-
-.search-widget-density-expanded .search-widget-input,
-.search-widget-density-rich .search-widget-input {
-  font-size: 15px;
-}
-
 .filter-widget-card {
   padding-right: var(--widget-control-space, 44px);
 }

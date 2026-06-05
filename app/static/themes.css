@@ -1927,13 +1927,6 @@ body::-webkit-scrollbar-thumb:hover {
   color: var(--widget-content-meta) !important;
 }
 
-.widget-layout > .search-widget-card.db-panel-custom-color .range-search-label.stat-lbl,
-.widget-layout > .search-widget-card.db-panel-custom-color:hover .range-search-label.stat-lbl,
-.widget-layout > .search-widget-card.db-panel-custom-color.active .range-search-label.stat-lbl,
-.widget-layout > .search-widget-card.db-panel-custom-color.widget-tools-open .range-search-label.stat-lbl {
-  color: var(--range-search-fg) !important;
-}
-
 .widget-card.db-panel-custom-color .widget-tool-drawer {
   background:
     linear-gradient(180deg, color-mix(in srgb, var(--glass-surface-strong) 96%, var(--surface-raised)), color-mix(in srgb, var(--glass-surface-strong) 92%, var(--surface-soft))),
