@@ -68,6 +68,7 @@ import { migrateWorkingLayoutProfiles } from "./modules/layout-profile-migration
 import { getWorkspaceDeleteDialogElements, workspaceDeleteKind } from "./modules/workspace-delete-dom.js";
 import { createPanelContainmentFacade } from "./modules/panel-containment-facade.js";
 import { createWidgetRuntimeFacade } from "./modules/widget-runtime-facade.js";
+import { createGridItemGeometry } from "./modules/grid-item-geometry.js";
 import {
   applyPanelColor,
   applyPanelTitleColor,
@@ -1904,36 +1905,29 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const widgetGridCellFromPoint = (layout, widget, clientX, clientY) => gridCellFromPoint(layout, widget, clientX, clientY);
 
-  const gridItemSpan = (item) => {
-    const rawSpan = Number(item.dataset.currentSpan) || Number(item.dataset.defaultSpan) || 1;
-    return Math.max(gridItemMinimumSpan(item), Math.min(6, Math.round(rawSpan > 6 ? rawSpan / 2 : rawSpan)));
-  };
-
-  const applyGridItemPosition = (item, col, row) => {
-    if (isWidgetGridItem(item)) {
-      applyWidgetGridPosition(item, col, row);
-    } else {
-      applyPanelGridPosition(item, col, row);
-    }
-  };
-
-  const gridItemPixelWidthForSpan = (layout, span, metrics = null) => {
-    const gap = metrics?.gap ?? gridGapForLayout(layout);
-    const layoutWidth = metrics?.width ?? Math.max(1, gridRectForLayout(layout).width);
-    const columnWidth = metrics?.columnWidth ?? ((layoutWidth - (gap * (DASHBOARD_GRID_COLUMNS - 1))) / DASHBOARD_GRID_COLUMNS);
-    return dashboardGeometry.gridItemPixelWidthForSpan({
-      span,
-      gap,
-      columnWidth,
-      columns: DASHBOARD_GRID_COLUMNS,
-    });
-  };
-
-  const resizeEdgeFromPointer = (event, item, threshold = 10) => {
-    if (!event || !item) return null;
-    const rect = item.getBoundingClientRect();
-    return dashboardGeometry.resizeEdgeFromRect({ clientX: event.clientX, rect, threshold });
-  };
+  let collisionReflowRuntime = null;
+  const {
+    applyGridItemPosition,
+    gridBoundsForItem,
+    gridBoundsOverlap,
+    gridItemPixelWidthForSpan,
+    gridItemSpan,
+    indexedCollisionEntries,
+    nextGridSlot,
+    resizeEdgeFromPointer,
+  } = createGridItemGeometry({
+    applyPanelGridPosition,
+    applyWidgetGridPosition,
+    dashboardCollisionReflowRuntime,
+    dashboardGeometry,
+    DASHBOARD_GRID_COLUMNS,
+    getCollisionReflowRuntime: () => collisionReflowRuntime,
+    gridGapForLayout,
+    gridItemMinimumSpan,
+    gridItemRowSpan,
+    gridRectForLayout,
+    isWidgetGridItem,
+  });
 
   const beginInteractionAutoScroll = ({ layout = null, onScrollFrame } = {}) => dashboardDragRuntime.beginInteractionAutoScroll({
     layout,
@@ -1986,36 +1980,6 @@ document.addEventListener("DOMContentLoaded", () => {
     gridItemRowSpan,
     gridItemSpan,
   });
-
-  const gridBoundsForItem = (item, metrics = null) => {
-    const col = Math.max(1, Math.round(Number(item.dataset.gridCol) || 1));
-    const row = Math.max(1, Math.round(Number(item.dataset.gridRow) || 1));
-    const span = gridItemSpan(item);
-    const rowSpan = gridItemRowSpan(item, metrics);
-    return {
-      col,
-      row,
-      span,
-      rowSpan,
-      right: col + span - 1,
-      bottom: row + rowSpan - 1,
-    };
-  };
-
-  const gridBoundsOverlap = (a, b) => dashboardGeometry.gridBoundsOverlap(a, b);
-  let collisionReflowRuntime = null;
-
-  const indexedCollisionEntries = (bounds, occupied) => (
-    collisionReflowRuntime?.indexedCollisionEntries?.(bounds, occupied) ||
-    dashboardCollisionReflowRuntime.indexedCollisionEntries(bounds, occupied)
-  );
-
-  const nextGridSlot = (bounds) => {
-    if (bounds.col < 7 - bounds.span) {
-      return { col: bounds.col + 1, row: bounds.row };
-    }
-    return { col: 1, row: bounds.row + 1 };
-  };
 
   const localCollisionItems = (layout) => {
     const host = gridHostForLayout(layout);
