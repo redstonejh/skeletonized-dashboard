@@ -3102,11 +3102,6 @@ body {
   box-shadow: inset 0 -2px 0 color-mix(in srgb, var(--blue) 54%, transparent);
 }
 
-.app-nav.workspace-chrome .engineer-mode-button[aria-pressed="true"] {
-  background: color-mix(in srgb, var(--blue) 16%, transparent);
-  color: color-mix(in srgb, var(--blue) 88%, var(--ink-strong));
-}
-
 .app-nav.workspace-chrome .background-tone-trigger,
 .app-nav.workspace-chrome .nav-status-icon-only,
 .app-nav.workspace-chrome .cmd-btn-icon-only {

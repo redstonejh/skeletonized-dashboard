@@ -103,50 +103,6 @@ body.webgl-glass-on .widget-card.db-panel-custom-color {
   display: none !important;
 }
 
-body.engineer-mode-active .dashboard-layout-grid {
-  position: relative;
-  isolation: isolate;
-}
-
-body:not(.engineer-mode-active) .widget-card[data-widget-layer="backend"] {
-  display: none !important;
-}
-
-body.engineer-mode-active .widget-card[data-widget-layer="backend"] {
-  position: relative;
-  z-index: 3;
-}
-
-body.engineer-mode-active .widget-layout > .widget-card[data-widget-layer="backend"],
-body.engineer-mode-active .panel-internal-widget-grid > .widget-card[data-widget-layer="backend"] {
-  --surface-zone-opacity: .34;
-  background:
-    linear-gradient(180deg, color-mix(in srgb, var(--glass-surface) 42%, transparent), color-mix(in srgb, #0f172a 10%, transparent)),
-    color-mix(in srgb, var(--panel-accent, #60a5fa) 10%, var(--surface) 90%);
-  border-color: color-mix(in srgb, #93c5fd 38%, var(--line));
-  box-shadow:
-    0 10px 30px rgba(15, 23, 42, .09),
-    inset 0 1px 0 color-mix(in srgb, var(--glass-highlight) 48%, transparent),
-    inset 0 -18px 34px color-mix(in srgb, #020617 7%, transparent);
-}
-
-body.engineer-mode-active .widget-card[data-widget-layer="presentation"],
-body.engineer-mode-active .widget-card[data-widget-layer="both"],
-body.engineer-mode-active .panel-layout > .db-panel,
-body.engineer-mode-active .workspace-anchor-layer > .workspace-anchor-object {
-  opacity: .54;
-  filter: saturate(.78) contrast(.94);
-}
-
-body.engineer-mode-active .widget-card[data-widget-layer="presentation"]:hover,
-body.engineer-mode-active .widget-card[data-widget-layer="both"]:hover,
-body.engineer-mode-active .panel-layout > .db-panel:hover,
-body.engineer-mode-active .workspace-anchor-layer > .workspace-anchor-object:hover,
-body.engineer-mode-active .widget-card[data-widget-layer="presentation"].widget-tools-open,
-body.engineer-mode-active .widget-card[data-widget-layer="both"].widget-tools-open {
-  opacity: .72;
-}
-
 .stat-band {
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));
@@ -4271,10 +4227,6 @@ body.layout-tools-active .db-panel:not(.db-panel-tools-open):not(:has(.panel-too
   color: var(--widget-content-meta-quiet);
   font-family: ui-monospace, SFMono-Regular, Consolas, "Liberation Mono", monospace;
   font-size: .5rem;
-}
-
-body.engineer-mode-active .shift-widget-signal-connected .shift-widget-lineage {
-  display: grid;
 }
 
 .shift-widget-state-dot {
