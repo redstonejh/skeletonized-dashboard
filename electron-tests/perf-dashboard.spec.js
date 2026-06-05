@@ -7,6 +7,12 @@ const TARGET_COUNTS = (process.env.PERF_OBJECT_COUNTS || "30,100")
   .split(",")
   .map((value) => Number.parseInt(value.trim(), 10))
   .filter((value) => Number.isFinite(value) && value > 0);
+const SELECTED_INTERACTIONS = new Set(
+  (process.env.PERF_INTERACTIONS || "")
+    .split(",")
+    .map((value) => value.trim())
+    .filter(Boolean)
+);
 
 const PERF_ARTIFACT = process.env.PERF_ARTIFACT || path.join(__dirname, "..", "artifacts", "perf-baseline.json");
 const FRAME_BUDGET_MS = 16.67;
@@ -209,6 +215,10 @@ async function openTools(page, selector) {
   return item;
 }
 
+function shouldRunInteraction(name) {
+  return SELECTED_INTERACTIONS.size === 0 || SELECTED_INTERACTIONS.has(name);
+}
+
 test("dashboard hot interactions perf baseline", async () => {
   test.setTimeout(180000);
   const { app, page } = await launchApp();
@@ -216,48 +226,59 @@ test("dashboard hot interactions perf baseline", async () => {
   try {
     await installFrameProbe(page);
     for (const count of TARGET_COUNTS) {
-      await prepareScene(page, count);
+      if (shouldRunInteraction("drag-with-collision")) {
+        await prepareScene(page, count);
+        const dragPanel = await openTools(page, '.panel-layout > .db-panel[data-panel-key="builder-notes"]');
+        results.push(await collectMetrics(page, "drag-with-collision", count, async () => {
+          await pointerDrag(page, dragPanel.locator(".panel-move-handle"), -300, 240, 60);
+        }));
+      }
 
-      const dragPanel = await openTools(page, '.panel-layout > .db-panel[data-panel-key="builder-notes"]');
-      results.push(await collectMetrics(page, "drag-with-collision", count, async () => {
-        await pointerDrag(page, dragPanel.locator(".panel-move-handle"), -300, 240, 60);
-      }));
+      if (shouldRunInteraction("resize-snap")) {
+        await prepareScene(page, count);
+        const resizePanel = await openTools(page, '.panel-layout > .db-panel[data-panel-key="builder-notes"]');
+        results.push(await collectMetrics(page, "resize-snap", count, async () => {
+          await pointerDrag(page, resizePanel.locator(".panel-resize-handle"), -220, 220, 60);
+        }));
+      }
 
-      await prepareScene(page, count);
-      const resizePanel = await openTools(page, '.panel-layout > .db-panel[data-panel-key="builder-notes"]');
-      results.push(await collectMetrics(page, "resize-snap", count, async () => {
-        await pointerDrag(page, resizePanel.locator(".panel-resize-handle"), -220, 220, 60);
-      }));
+      if (shouldRunInteraction("collision-heavy-reflow")) {
+        await prepareScene(page, count);
+        const reflowPanel = await openTools(page, '.panel-layout > .db-panel[data-panel-key="builder-content"]');
+        results.push(await collectMetrics(page, "collision-heavy-reflow", count, async () => {
+          await pointerDrag(page, reflowPanel.locator(".panel-move-handle"), 360, 260, 72);
+        }));
+      }
 
-      await prepareScene(page, count);
-      const reflowPanel = await openTools(page, '.panel-layout > .db-panel[data-panel-key="builder-content"]');
-      results.push(await collectMetrics(page, "collision-heavy-reflow", count, async () => {
-        await pointerDrag(page, reflowPanel.locator(".panel-move-handle"), 360, 260, 72);
-      }));
+      if (shouldRunInteraction("edge-auto-scroll")) {
+        await prepareScene(page, count);
+        const edgePanel = await openTools(page, '.panel-layout > .db-panel[data-panel-key="builder-notes"]');
+        results.push(await collectMetrics(page, "edge-auto-scroll", count, async () => {
+          await pointerDrag(page, edgePanel.locator(".panel-move-handle"), 120, 760, 90);
+        }));
+      }
 
-      await prepareScene(page, count);
-      const edgePanel = await openTools(page, '.panel-layout > .db-panel[data-panel-key="builder-notes"]');
-      results.push(await collectMetrics(page, "edge-auto-scroll", count, async () => {
-        await pointerDrag(page, edgePanel.locator(".panel-move-handle"), 120, 760, 90);
-      }));
+      if (shouldRunInteraction("theme-background-switch")) {
+        await prepareScene(page, count);
+        results.push(await collectMetrics(page, "theme-background-switch", count, async () => {
+          await page.locator(".background-tone-trigger").click({ force: true, timeout: 5000 });
+          await page.locator('.background-photo-option[data-background-tone="photo-earth"]').click({ force: true, timeout: 5000 });
+          await page.waitForTimeout(120);
+          await page.locator(".background-tone-trigger").click({ force: true, timeout: 5000 });
+          await page.locator('.background-tone-option[data-background-tone="dark-steel"]').click({ force: true, timeout: 5000 });
+        }));
+      }
 
-      await prepareScene(page, count);
-      results.push(await collectMetrics(page, "theme-background-switch", count, async () => {
-        await page.locator(".background-tone-trigger").click({ force: true, timeout: 5000 });
-        await page.locator('.background-photo-option[data-background-tone="photo-earth"]').click({ force: true, timeout: 5000 });
-        await page.waitForTimeout(120);
-        await page.locator(".background-tone-trigger").click({ force: true, timeout: 5000 });
-        await page.locator('.background-tone-option[data-background-tone="dark-steel"]').click({ force: true, timeout: 5000 });
-      }));
-
-      await prepareScene(page, count);
-      const multiPanel = await openTools(page, '.panel-layout > .db-panel[data-panel-key="builder-content"]');
-      await page.keyboard.down("Shift");
-      await page.locator('.panel-layout > .db-panel[data-panel-key="builder-notes"]').click({ force: true });
-      await page.keyboard.up("Shift");
-      results.push(await collectMetrics(page, "select-mode-multi-move", count, async () => {
-        await pointerDrag(page, multiPanel.locator(".panel-move-handle"), -240, 200, 60);
-      }));
+      if (shouldRunInteraction("select-mode-multi-move")) {
+        await prepareScene(page, count);
+        const multiPanel = await openTools(page, '.panel-layout > .db-panel[data-panel-key="builder-content"]');
+        await page.keyboard.down("Shift");
+        await page.locator('.panel-layout > .db-panel[data-panel-key="builder-notes"]').click({ force: true });
+        await page.keyboard.up("Shift");
+        results.push(await collectMetrics(page, "select-mode-multi-move", count, async () => {
+          await pointerDrag(page, multiPanel.locator(".panel-move-handle"), -240, 200, 60);
+        }));
+      }
     }
   } finally {
     await closeApp(app);
@@ -269,6 +290,7 @@ test("dashboard hot interactions perf baseline", async () => {
     frame_budget_ms: FRAME_BUDGET_MS,
     long_task_budget_ms: LONG_TASK_MS,
     target_counts: TARGET_COUNTS,
+    selected_interactions: [...SELECTED_INTERACTIONS],
     interactions: results,
     passed: results.every((item) => item.gate.p95_under_16_67ms && item.gate.no_long_tasks_over_50ms),
   };
