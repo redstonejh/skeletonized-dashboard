@@ -65,6 +65,7 @@ import { createResizeSurfaceRuntime } from "./modules/resize-surface-runtime.js"
 import { widgetHasRowBreakBefore, widgetSpacerSiblingsBefore } from "./modules/widget-layout-persistence-helpers.js";
 import { createRemovedEngineerModeRuntime } from "./modules/removed-engineer-mode-runtime.js";
 import { migrateWorkingLayoutProfiles } from "./modules/layout-profile-migration.js";
+import { getWorkspaceDeleteDialogElements, workspaceDeleteKind } from "./modules/workspace-delete-dom.js";
 import {
   applyPanelColor,
   applyPanelTitleColor,
@@ -245,17 +246,13 @@ document.addEventListener("DOMContentLoaded", () => {
     refreshEngineerOverlays,
     syncLayoutToolsActive,
   });
-  const panelDeleteDialog = document.getElementById("panel-delete-dialog");
-  const panelDeleteMessage = document.getElementById("panel-delete-message");
-  const panelDeleteConfirm = panelDeleteDialog?.querySelector(".confirm-dialog-danger");
-  const panelDeleteCancel = panelDeleteDialog?.querySelector(".confirm-dialog-cancel");
-  const panelDeleteClose = panelDeleteDialog?.querySelector(".confirm-dialog-close");
-  const workspaceDeleteKind = (item) => {
-    if (item?.dataset?.workspaceObjectType === "divider" || item?.classList?.contains("workspace-divider")) return "divider";
-    if (item?.classList?.contains("widget-card")) return "widget";
-    if (item?.classList?.contains("db-panel")) return "panel";
-    return "";
-  };
+  const {
+    panelDeleteCancel,
+    panelDeleteClose,
+    panelDeleteConfirm,
+    panelDeleteDialog,
+    panelDeleteMessage,
+  } = getWorkspaceDeleteDialogElements();
   let requestWorkspaceObjectDelete = () => false;
   let requestPanelDelete = () => false;
   let requestWidgetDelete = () => false;
