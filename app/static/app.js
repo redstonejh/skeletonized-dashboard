@@ -66,6 +66,7 @@ import { widgetHasRowBreakBefore, widgetSpacerSiblingsBefore } from "./modules/w
 import { createRemovedEngineerModeRuntime } from "./modules/removed-engineer-mode-runtime.js";
 import { migrateWorkingLayoutProfiles } from "./modules/layout-profile-migration.js";
 import { getWorkspaceDeleteDialogElements, workspaceDeleteKind } from "./modules/workspace-delete-dom.js";
+import { createPanelContainmentFacade } from "./modules/panel-containment-facade.js";
 import {
   applyPanelColor,
   applyPanelTitleColor,
@@ -1873,37 +1874,24 @@ document.addEventListener("DOMContentLoaded", () => {
   });
   const createCustomWidget = (definition) => widgetRuntimeController.createCustomWidget(definition);
 
-  const panelChildWidgets = (panel) => dashboardPanelContainment.panelChildWidgets(panel);
-
-  const panelInternalGridBlockInsets = (grid) => dashboardPanelContainment.panelInternalGridBlockInsets(grid);
-
-  const requiredPanelHeightForInternalGrid = (panel, options = {}) => (
-    panelContainmentRuntime.requiredPanelHeightForInternalGrid(panel, options)
-  );
-
-  const syncOpenPanelHeightToInternalGrid = (panel, options = {}) => (
-    panelContainmentRuntime.syncOpenPanelHeightToInternalGrid(panel, options)
-  );
-
-  const panelRequiredSpanForInternalItem = (panel, item = null) => (
-    panelContainmentRuntime.panelRequiredSpanForInternalItem(panel, item)
-  );
-
-  const openPanelForInternalDrop = (panel) => panelRuntime.openPanelForInternalDrop(panel);
-
-  const syncPanelFootprintToInternalItem = (panel, item = null, options = {}) => (
-    panelContainmentRuntime.syncPanelFootprintToInternalItem(panel, item, options)
-  );
-
-  const sanitizePanelChildWidgetClone = (widget) => panelContainmentRuntime.sanitizePanelChildWidgetClone(widget);
-
-  const serializePanelChildWidgets = (panel) => panelContainmentRuntime.serializePanelChildWidgets(panel);
-
-  const updatePanelChildEmptyState = (panel) => panelContainmentRuntime.updatePanelChildEmptyState(panel);
-
-  const ensurePanelInternalWidgetGrid = (panel) => panelContainmentRuntime.ensurePanelInternalWidgetGrid(panel);
-
-  const restorePanelChildWidgets = (panel, definitions = []) => panelContainmentRuntime.restorePanelChildWidgets(panel, definitions);
+  const {
+    ensurePanelInternalWidgetGrid,
+    openPanelForInternalDrop,
+    panelChildWidgets,
+    panelInternalGridBlockInsets,
+    panelRequiredSpanForInternalItem,
+    requiredPanelHeightForInternalGrid,
+    restorePanelChildWidgets,
+    sanitizePanelChildWidgetClone,
+    serializePanelChildWidgets,
+    syncOpenPanelHeightToInternalGrid,
+    syncPanelFootprintToInternalItem,
+    updatePanelChildEmptyState,
+  } = createPanelContainmentFacade({
+    dashboardPanelContainment,
+    getPanelContainmentRuntime: () => panelContainmentRuntime,
+    getPanelRuntime: () => panelRuntime,
+  });
 
   const ensureWidgetTools = (widget, theme = "#2563eb") => widgetRuntimeController.ensureTools(widget, theme);
 
