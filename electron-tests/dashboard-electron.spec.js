@@ -9,8 +9,19 @@ async function launchApp() {
   const app = await electron.launch({ args: [path.join(__dirname, "..")] });
   const page = await app.firstWindow();
   await page.waitForLoadState("domcontentloaded");
+  await page.evaluate(() => {
+    localStorage.clear();
+    sessionStorage.clear();
+  });
+  await page.reload();
+  await page.waitForLoadState("domcontentloaded");
   await page.waitForSelector(".dashboard-layout-grid");
   return { app, page };
+}
+
+async function closeApp(app) {
+  await app.close();
+  await new Promise((resolve) => setTimeout(resolve, 500));
 }
 
 async function openTools(page, selector) {
@@ -22,6 +33,32 @@ async function openTools(page, selector) {
   });
   await expect(item.locator(".panel-tool-drawer")).toBeVisible();
   return item;
+}
+
+async function dispatchPointerDrag(page, fromX, fromY, toX, toY, steps = 60) {
+  await page.evaluate(({ fromX, fromY, toX, toY, steps }) => {
+    const eventInit = (x, y, type) => ({
+      bubbles: true,
+      cancelable: true,
+      composed: true,
+      button: type === "pointerup" ? 0 : 0,
+      buttons: type === "pointerup" ? 0 : 1,
+      clientX: x,
+      clientY: y,
+      pointerId: 1,
+      pointerType: "mouse",
+      isPrimary: true,
+    });
+    const target = document.elementFromPoint(fromX, fromY);
+    target?.dispatchEvent(new PointerEvent("pointerdown", eventInit(fromX, fromY, "pointerdown")));
+    for (let index = 1; index <= steps; index += 1) {
+      const progress = index / steps;
+      const x = fromX + ((toX - fromX) * progress);
+      const y = fromY + ((toY - fromY) * progress);
+      document.dispatchEvent(new PointerEvent("pointermove", eventInit(x, y, "pointermove")));
+    }
+    document.dispatchEvent(new PointerEvent("pointerup", eventInit(toX, toY, "pointerup")));
+  }, { fromX, fromY, toX, toY, steps });
 }
 
 async function addTextWidget(page) {
@@ -165,7 +202,7 @@ test("electron GUI boots without server APIs and preserves core customization", 
     "save-reload-identical",
   ]);
   expect(failed).toEqual([]);
-  await app.close();
+  await closeApp(app);
 });
 
 test("electron GUI keeps drag and resize handlers wired", async () => {
@@ -180,11 +217,10 @@ test("electron GUI keeps drag and resize handlers wired", async () => {
   const resize = panel.locator(".panel-resize-handle");
   const resizeBox = await resize.boundingBox();
   expect(resizeBox).toBeTruthy();
-  await page.mouse.move(resizeBox.x + resizeBox.width / 2, resizeBox.y + resizeBox.height / 2);
-  await page.mouse.down();
-  await page.mouse.move(resizeBox.x - 220, resizeBox.y + 140, { steps: 20 });
-  await page.mouse.up();
-  await page.waitForTimeout(250);
+  const resizeStartX = resizeBox.x + resizeBox.width / 2;
+  const resizeStartY = resizeBox.y + resizeBox.height / 2;
+  await dispatchPointerDrag(page, resizeStartX, resizeStartY, resizeBox.x - 220, resizeBox.y + 240);
+  await page.waitForTimeout(500);
 
   const afterResize = await panel.evaluate((node) => node.dataset.currentSpan || node.dataset.defaultSpan);
   expect(afterResize).not.toBe(before.span);
@@ -200,11 +236,10 @@ test("electron GUI keeps drag and resize handlers wired", async () => {
   const move = movePanel.locator(".panel-move-handle");
   const box = await move.boundingBox();
   expect(box).toBeTruthy();
-  await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
-  await page.mouse.down();
-  await page.mouse.move(box.x - 320, box.y + 220, { steps: 20 });
-  await page.mouse.up();
-  await page.waitForTimeout(250);
+  const moveStartX = box.x + box.width / 2;
+  const moveStartY = box.y + box.height / 2;
+  await dispatchPointerDrag(page, moveStartX, moveStartY, box.x - 320, box.y + 220);
+  await page.waitForTimeout(500);
 
   const afterMove = await movePanel.evaluate((node) => ({
     col: node.dataset.gridCol || node.dataset.defaultGridCol,
@@ -219,5 +254,5 @@ test("electron GUI keeps drag and resize handlers wired", async () => {
     "edge-auto-scroll",
   ], { moveBefore, afterMove });
 
-  await app.close();
+  await closeApp(app);
 });

@@ -52,9 +52,9 @@
     const pointerId = event?.pointerId;
 
     const removeListeners = () => {
-      document.removeEventListener("pointermove", handleMove);
-      document.removeEventListener("pointerup", handlePointerEnd);
-      document.removeEventListener("pointercancel", handlePointerEnd);
+      document.removeEventListener("pointermove", handleMove, true);
+      document.removeEventListener("pointerup", handlePointerEnd, true);
+      document.removeEventListener("pointercancel", handlePointerEnd, true);
       document.removeEventListener("keydown", handleKeydown);
       window.removeEventListener("blur", handleWindowBlur);
     };
@@ -120,9 +120,9 @@
     } catch {
       // Document-level listeners still cover browsers that decline capture.
     }
-    document.addEventListener("pointermove", handleMove);
-    document.addEventListener("pointerup", handlePointerEnd);
-    document.addEventListener("pointercancel", handlePointerEnd);
+    document.addEventListener("pointermove", handleMove, true);
+    document.addEventListener("pointerup", handlePointerEnd, true);
+    document.addEventListener("pointercancel", handlePointerEnd, true);
     document.addEventListener("keydown", handleKeydown);
     window.addEventListener("blur", handleWindowBlur);
     const lifecycle = {
