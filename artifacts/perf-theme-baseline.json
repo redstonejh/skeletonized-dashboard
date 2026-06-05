@@ -1,0 +1,163 @@
+{
+  "schema_version": 1,
+  "captured_at": "2026-06-05T22:38:13.828Z",
+  "frame_budget_ms": 16.67,
+  "long_task_budget_ms": 50,
+  "target_counts": [
+    30,
+    100
+  ],
+  "interactions": [
+    {
+      "name": "theme-background-switch",
+      "object_count": 30,
+      "duration_ms": 2733,
+      "frame_count": 62,
+      "p50_frame_ms": 10,
+      "p95_frame_ms": 270.1,
+      "p99_frame_ms": 470,
+      "max_frame_ms": 470,
+      "dropped_frame_count": 12,
+      "long_task_count": 6,
+      "long_tasks": [
+        {
+          "start_ms": 870.5,
+          "duration_ms": 420,
+          "name": "self"
+        },
+        {
+          "start_ms": 1291.4,
+          "duration_ms": 217,
+          "name": "self"
+        },
+        {
+          "start_ms": 1564.3,
+          "duration_ms": 294,
+          "name": "self"
+        },
+        {
+          "start_ms": 1880,
+          "duration_ms": 529,
+          "name": "self"
+        },
+        {
+          "start_ms": 2600.3,
+          "duration_ms": 215,
+          "name": "self"
+        },
+        {
+          "start_ms": 2815.9,
+          "duration_ms": 172,
+          "name": "self"
+        }
+      ],
+      "marks": [
+        {
+          "name": "menu-opened",
+          "time": 856.6000000238419
+        },
+        {
+          "name": "photo-earth-clicked",
+          "time": 2410.5
+        },
+        {
+          "name": "dark-steel-clicked",
+          "time": 3035.199999988079
+        }
+      ],
+      "dom_nodes": 1062,
+      "final_background": "dark-steel",
+      "final_has_photo": false,
+      "gate": {
+        "p95_under_16_67ms": false,
+        "no_long_tasks_over_50ms": false
+      }
+    },
+    {
+      "name": "theme-background-switch",
+      "object_count": 100,
+      "duration_ms": 6218,
+      "frame_count": 352,
+      "p50_frame_ms": 10,
+      "p95_frame_ms": 10.5,
+      "p99_frame_ms": 159.9,
+      "max_frame_ms": 919.6,
+      "dropped_frame_count": 13,
+      "long_task_count": 10,
+      "long_tasks": [
+        {
+          "start_ms": 871.3,
+          "duration_ms": 102,
+          "name": "self"
+        },
+        {
+          "start_ms": 1021.3,
+          "duration_ms": 425,
+          "name": "self"
+        },
+        {
+          "start_ms": 1447.3,
+          "duration_ms": 471,
+          "name": "self"
+        },
+        {
+          "start_ms": 1918.7,
+          "duration_ms": 51,
+          "name": "self"
+        },
+        {
+          "start_ms": 1970.9,
+          "duration_ms": 77,
+          "name": "self"
+        },
+        {
+          "start_ms": 2067.7,
+          "duration_ms": 136,
+          "name": "self"
+        },
+        {
+          "start_ms": 2232.7,
+          "duration_ms": 368,
+          "name": "self"
+        },
+        {
+          "start_ms": 2826.5,
+          "duration_ms": 252,
+          "name": "self"
+        },
+        {
+          "start_ms": 3079.3,
+          "duration_ms": 442,
+          "name": "self"
+        },
+        {
+          "start_ms": 3570.4,
+          "duration_ms": 125,
+          "name": "self"
+        }
+      ],
+      "marks": [
+        {
+          "name": "menu-opened",
+          "time": 1003.4000000357628
+        },
+        {
+          "name": "photo-earth-clicked",
+          "time": 2603.400000035763
+        },
+        {
+          "name": "dark-steel-clicked",
+          "time": 3739.7000000476837
+        }
+      ],
+      "dom_nodes": 2567,
+      "final_background": "dark-steel",
+      "final_has_photo": false,
+      "gate": {
+        "p95_under_16_67ms": true,
+        "no_long_tasks_over_50ms": false
+      }
+    }
+  ],
+  "passed": false
+}

@@ -1,0 +1,138 @@
+{
+  "schema_version": 1,
+  "captured_at": "2026-06-05T22:38:13.831Z",
+  "breakdown": {
+    "scripting_ms": 10209.91,
+    "style_ms": 1672.31,
+    "layout_ms": 52.02,
+    "paint_composite_ms": 636.05,
+    "other_timeline_ms": 1574.44
+  },
+  "top_events": [
+    {
+      "name": "RunTask",
+      "cat": "disabled-by-default-devtools.timeline",
+      "duration_ms": 471.44
+    },
+    {
+      "name": "ThreadControllerImpl::RunTask",
+      "cat": "toplevel",
+      "duration_ms": 471.35
+    },
+    {
+      "name": "EventHandler::handleMousePressEvent",
+      "cat": "blink",
+      "duration_ms": 460.2
+    },
+    {
+      "name": "RunTask",
+      "cat": "disabled-by-default-devtools.timeline",
+      "duration_ms": 442.46
+    },
+    {
+      "name": "ThreadControllerImpl::RunTask",
+      "cat": "toplevel",
+      "duration_ms": 442.32
+    },
+    {
+      "name": "EventHandler::handleMousePressEvent",
+      "cat": "blink",
+      "duration_ms": 429.6
+    },
+    {
+      "name": "RunTask",
+      "cat": "disabled-by-default-devtools.timeline",
+      "duration_ms": 425.9
+    },
+    {
+      "name": "ThreadControllerImpl::RunTask",
+      "cat": "toplevel",
+      "duration_ms": 425.72
+    },
+    {
+      "name": "RunTask",
+      "cat": "disabled-by-default-devtools.timeline",
+      "duration_ms": 368.95
+    },
+    {
+      "name": "ThreadControllerImpl::RunTask",
+      "cat": "toplevel",
+      "duration_ms": 368.86
+    },
+    {
+      "name": "EventDispatch",
+      "cat": "devtools.timeline",
+      "duration_ms": 368.82
+    },
+    {
+      "name": "v8.callFunction",
+      "cat": "v8",
+      "duration_ms": 368.77
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "duration_ms": 368.74
+    },
+    {
+      "name": "GpuImageDecodeCache::DecodeImage",
+      "cat": "cc,benchmark",
+      "duration_ms": 367.46
+    },
+    {
+      "name": "EventHandler::handleMouseMoveEvent",
+      "cat": "blink",
+      "duration_ms": 318.9
+    },
+    {
+      "name": "EventDispatch",
+      "cat": "devtools.timeline",
+      "duration_ms": 316.27
+    },
+    {
+      "name": "v8.callFunction",
+      "cat": "v8",
+      "duration_ms": 316.25
+    },
+    {
+      "name": "FunctionCall",
+      "cat": "devtools.timeline",
+      "duration_ms": 290.48
+    },
+    {
+      "name": "Document::UpdateStyleAndLayout",
+      "cat": "blink",
+      "duration_ms": 288.81
+    },
+    {
+      "name": "Blink.ForcedStyleAndLayout.UpdateTime",
+      "cat": "blink",
+      "duration_ms": 288.8
+    },
+    {
+      "name": "LocalFrameView::UpdateStyleAndLayout",
+      "cat": "blink",
+      "duration_ms": 288.8
+    },
+    {
+      "name": "DecodingImageGenerator::GetYUVAPlanes",
+      "cat": "blink",
+      "duration_ms": 286.8
+    },
+    {
+      "name": "Decode LazyPixelRef",
+      "cat": "disabled-by-default-devtools.timeline",
+      "duration_ms": 286.8
+    },
+    {
+      "name": "ImageFrameGenerator::decodeToYUV",
+      "cat": "blink,benchmark",
+      "duration_ms": 286.76
+    },
+    {
+      "name": "Decode Image",
+      "cat": "disabled-by-default-devtools.timeline",
+      "duration_ms": 286.7
+    }
+  ]
+}
