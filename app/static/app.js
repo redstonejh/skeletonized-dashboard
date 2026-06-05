@@ -64,6 +64,7 @@ import { createGridMetricsRuntime } from "./modules/grid-metrics-runtime.js";
 import { createResizeSurfaceRuntime } from "./modules/resize-surface-runtime.js";
 import { widgetHasRowBreakBefore, widgetSpacerSiblingsBefore } from "./modules/widget-layout-persistence-helpers.js";
 import { createRemovedEngineerModeRuntime } from "./modules/removed-engineer-mode-runtime.js";
+import { migrateWorkingLayoutProfiles } from "./modules/layout-profile-migration.js";
 import {
   applyPanelColor,
   applyPanelTitleColor,
@@ -121,21 +122,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const { applyDashboardKeywordSearch } = initializeDashboardKeywordSearch({ scheduleOverflowTitles });
   initializeDashboardSwitcher({ portalFloatingMenu, restoreFloatingMenu });
   const layoutPersistence = window.dashboardLayoutPersistence;
-  // One-time migration: move working data from numbered save slots to WORKING_PROFILE.
-  // Old code set active profile = save slot on save; this migrates any such state so
-  // the numbered slots become immutable save snapshots.
-  (() => {
-    const WORKING = layoutPersistence.WORKING_PROFILE;
-    document.querySelectorAll("[data-layout-key]").forEach((el) => {
-      const lk = el.dataset.layoutKey;
-      if (!lk) return;
-      const current = layoutPersistence.getActiveProfile(lk);
-      if (current !== WORKING && /^[1-9][0-9]*$/.test(current)) {
-        layoutPersistence.copyProfile(lk, current, WORKING);
-        layoutPersistence.setActiveProfile(lk, WORKING);
-      }
-    });
-  })();
+  migrateWorkingLayoutProfiles({ layoutPersistence });
   const PERSISTED_WORKSPACE_VERSION = layoutPersistence.version;
   const getActivePanelProfile = layoutPersistence.getActiveProfile;
   const panelStorageKey = layoutPersistence.key.panelStorage;
