@@ -70,3 +70,10 @@ The remaining `app/static/app.js` core is init-order-sensitive and still owns li
 - Why deferred: initial extraction passed e2e and parity once, but repeated final e2e runs showed resize-snap no longer changed span. The extraction commit was reverted to restore the stable behavior contract.
 - KEEP interaction entangled: widget runtime data hydration, runtime content rendering, panel/widget resize handler readiness.
 - Needed to finish safely: move this only as part of a broader widget runtime setup extraction with resize handler readiness checks, or add a deterministic init-order smoke around resize binding before e2e.
+
+## mixed-context-query-compatibility
+
+- Cluster/symbol + file:line: data-source/context/query compatibility helpers, `app/static/app.js:356-1179`
+- Why deferred: this is the previously identified load-bearing mixed compatibility island. It is not active product behavior, but KEEP code still calls pieces for panel color menu, resize span, hydration, and persistence compatibility.
+- KEEP interaction entangled: panel/widget hydration, panel color menu, resize span persistence, save/load/reset.
+- Needed to finish safely: isolate the exact KEEP persistence/hydration helpers into a minimal compatibility module, then remove dormant query/context naming in a separate gutting pass with full parity.
