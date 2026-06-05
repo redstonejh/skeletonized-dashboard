@@ -34,7 +34,6 @@ import { initializeWorkspacePostInit } from "./modules/workspace-post-init.js";
 import { createGroupSelectionRuntime, initializeGroupSelectionControls } from "./modules/group-selection-controls.js";
 import { createDashboardFormBindings } from "./modules/dashboard-form-bindings.js";
 import { seedInitialLayoutHistory } from "./modules/layout-history-seeding.js";
-import { createWorkspaceMinimapRuntime } from "./modules/workspace-minimap-runtime.js";
 import { createWorkspaceObjectModel } from "./modules/workspace-object-model.js";
 import { createDashboardToolDrawerRuntime } from "./modules/dashboard-tool-drawer-runtime.js";
 import { createReflowAnimationRuntime } from "./modules/reflow-animation-runtime.js";
@@ -63,7 +62,6 @@ import { bindPanelResizeRuntime } from "./modules/panel-resize-runtime.js";
 import { createGridMetricsRuntime } from "./modules/grid-metrics-runtime.js";
 import { createResizeSurfaceRuntime } from "./modules/resize-surface-runtime.js";
 import { widgetHasRowBreakBefore, widgetSpacerSiblingsBefore } from "./modules/widget-layout-persistence-helpers.js";
-import { createRemovedEngineerModeRuntime } from "./modules/removed-engineer-mode-runtime.js";
 import { migrateWorkingLayoutProfiles } from "./modules/layout-profile-migration.js";
 import { getWorkspaceDeleteDialogElements, workspaceDeleteKind } from "./modules/workspace-delete-dom.js";
 import { createPanelContainmentFacade } from "./modules/panel-containment-facade.js";
@@ -116,17 +114,6 @@ document.addEventListener("DOMContentLoaded", () => {
   });
   initializeBackgroundController({ portalFloatingMenu, restoreFloatingMenu, originalMenuParent });
   let refreshWorkspaceMiniMaps = () => {};
-  const {
-    engineerModeState,
-    isEngineerMode,
-    onEngineerModeChange,
-    refreshEngineerContextVisibility,
-    refreshEngineerOverlays,
-    setEngineerMode,
-    toggleEngineerMode,
-  } = createRemovedEngineerModeRuntime({
-    refreshWorkspaceMiniMaps: () => refreshWorkspaceMiniMaps(),
-  });
 
   initializeNavStatusMenus();
 
@@ -230,8 +217,6 @@ document.addEventListener("DOMContentLoaded", () => {
     endResizeAutoZoomCamera,
     resizeAutoZoomPointerToScenePoint,
   } = createResizeAutoZoomRuntime({
-    isEngineerMode,
-    refreshEngineerOverlays,
   });
   const {
     pushLiveLayoutUndo,
@@ -254,7 +239,6 @@ document.addEventListener("DOMContentLoaded", () => {
     cleanupPanelRowBreaks: (...args) => cleanupPanelRowBreaks(...args),
     restoreGroupSelection,
     refreshResolvedContextDebug: (...args) => refreshResolvedContextDebug(...args),
-    refreshEngineerOverlays,
     syncLayoutToolsActive,
   });
   const {
@@ -991,7 +975,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const isCommittedContextRegionItem = (item) => (
     item &&
     !item.hidden &&
-    !(workspaceObjectType(item) === WORKSPACE_OBJECT_TYPES.widget && widgetLayerForElement(item) === "backend" && !isEngineerMode()) &&
+    !(workspaceObjectType(item) === WORKSPACE_OBJECT_TYPES.widget && widgetLayerForElement(item) === "backend") &&
     !item.classList.contains("db-panel-placeholder") &&
     !item.classList.contains("widget-placeholder") &&
     !item.classList.contains("dashboard-live-resize") &&
@@ -1141,20 +1125,7 @@ document.addEventListener("DOMContentLoaded", () => {
     workspaceLogicGraphKey,
     pushLiveLayoutUndo,
   });
-  const workspaceMinimapRuntime = createWorkspaceMinimapRuntime({
-    isEngineerMode,
-    gridHostForLayout,
-    createGridMetrics,
-    allCommittedWorkspaceGridItems,
-    gridBoundsForItem: (...args) => gridBoundsForItem(...args),
-    gridHeightForRows,
-    deriveWorkspaceContextRegions,
-    workspaceRootRegionId,
-    workspaceObjectType,
-    WORKSPACE_OBJECT_TYPES,
-  });
-  refreshWorkspaceMiniMaps = workspaceMinimapRuntime.refreshWorkspaceMiniMaps;
-  const { initWorkspaceMinimapLayer } = workspaceMinimapRuntime;
+  const initWorkspaceMinimapLayer = () => {};
 
   const {
     gridItemLayoutKey,
@@ -1758,7 +1729,6 @@ document.addEventListener("DOMContentLoaded", () => {
     settingRawValue,
   } = createWidgetWorkbenchRuntime({
     escapeHtml,
-    isEngineerMode,
     widgetConfigFromElement,
     widgetDefinitionForElement,
     widgetSettingsSchemaForSurface,
@@ -5260,7 +5230,6 @@ document.addEventListener("DOMContentLoaded", () => {
     originalMenuParent,
     widgetDefinitionFor,
     normalizeWorkspaceWidgetLayer,
-    isEngineerMode,
     getActivePanelProfile,
     savePanelLayouts,
     saveWidgetLayouts,
@@ -5286,7 +5255,6 @@ document.addEventListener("DOMContentLoaded", () => {
     parseJsonRecord,
     bindDashboardKeywordForms,
     refreshResolvedContextDebug,
-    refreshEngineerOverlays,
     showToast,
     regionIdForWorkspaceItem,
     WORKSPACE_OBJECT_TYPES,

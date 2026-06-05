@@ -1,7 +1,4 @@
-export const createResizeAutoZoomRuntime = ({
-  isEngineerMode,
-  refreshEngineerOverlays,
-}) => {
+export const createResizeAutoZoomRuntime = () => {
   const RESIZE_AUTO_ZOOM_MIN_SCALE = 0.30;
   const RESIZE_AUTO_ZOOM_MARGIN = 22;
   const RESIZE_AUTO_ZOOM_EASE = 0.18;
@@ -116,7 +113,6 @@ export const createResizeAutoZoomRuntime = ({
       surface.style.setProperty("transform-origin", `${originX} ${originY}`, "important");
       surface.style.setProperty("transform", `scale(${scale.toFixed(4)})`, "important");
     });
-    if (cameraVisible && isEngineerMode()) refreshEngineerOverlays();
   };
 
   const clearResizeAutoZoomSurfaceStyles = () => {

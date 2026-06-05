@@ -14,7 +14,6 @@ export const createLayoutHistoryRuntime = ({
   cleanupPanelRowBreaks,
   restoreGroupSelection,
   refreshResolvedContextDebug,
-  refreshEngineerOverlays,
   syncLayoutToolsActive,
 }) => {
   const liveLayoutUndo = new Map();
@@ -144,7 +143,6 @@ export const createLayoutHistoryRuntime = ({
     });
     restoreGroupSelection();
     refreshResolvedContextDebug(layoutKeyForSnapshot, snapshot.profile);
-    refreshEngineerOverlays();
     syncLayoutToolsActive();
     cleanupDashboardUndoArtifacts();
   };

@@ -1,6 +1,5 @@
 export const createWidgetWorkbenchRuntime = ({
   escapeHtml,
-  isEngineerMode,
   widgetConfigFromElement,
   widgetDefinitionForElement,
   widgetSettingsSchemaForSurface,
@@ -94,7 +93,7 @@ export const createWidgetWorkbenchRuntime = ({
     if (surface === "logic") {
       return `<div class="widget-settings-empty-state">
         <span>${escapeHtml(definition.displayName || "Widget")}</span>
-        <small>${isEngineerMode() ? "No data logic fields" : "No working controls"}</small>
+        <small>No working controls</small>
       </div>`;
     }
     return `<div class="widget-settings-empty-state">
@@ -218,16 +217,10 @@ export const createWidgetWorkbenchRuntime = ({
     const resolvedContext = resolveWorkspaceContextForItem(widget);
     const status = widget.dataset.widgetRuntimeStatus || "empty";
     const contextLabel = resolvedContext?.dataSourceName || resolvedContext?.dataSourceId || resolvedContext?.name || "Workspace";
-    const engineerMarkup = isEngineerMode()
-      ? `<div class="widget-workbench-context" aria-label="Resolved context">
-          <span>${escapeHtml(contextLabel)}</span>
-          <small>${escapeHtml(status)}</small>
-        </div>`
-      : "";
     const logicMarkup = definition.type === "timeframe"
       ? renderTimeframeWorkbenchPanel(widget)
       : renderWidgetSettingsSchemaPanel(widget, "logic");
-    return `${logicMarkup}${engineerMarkup}`;
+    return logicMarkup;
   };
 
   const ensureWidgetWorkbenchPanel = (widget) => {

@@ -6,7 +6,6 @@ export function initializeObjectAddRuntime(deps) {
     originalMenuParent,
     widgetDefinitionFor,
     normalizeWorkspaceWidgetLayer,
-    isEngineerMode,
     getActivePanelProfile,
     savePanelLayouts,
     saveWidgetLayouts,
@@ -32,7 +31,6 @@ export function initializeObjectAddRuntime(deps) {
     parseJsonRecord,
     bindDashboardKeywordForms,
     refreshResolvedContextDebug,
-    refreshEngineerOverlays,
     showToast,
     regionIdForWorkspaceItem,
     WORKSPACE_OBJECT_TYPES,
@@ -85,9 +83,6 @@ export function initializeObjectAddRuntime(deps) {
       objectAddItemRuntimeDefinition(item)?.layer,
       "presentation"
     )
-  );
-  const objectAddItemEngineerOnly = (item = {}) => (
-    Boolean(item.engineerOnly || objectAddItemRuntimeDefinition(item)?.engineerOnly || objectAddItemLayer(item) === "backend")
   );
   const objectAddSetDataset = (element, dataset = {}) => {
     Object.entries(dataset).forEach(([key, value]) => {
@@ -198,7 +193,11 @@ export function initializeObjectAddRuntime(deps) {
       const browser = picker.querySelector(".object-add-browser");
       if (!browser) return;
       browser.replaceChildren();
-      const availableItems = objectAddItems.filter((item) => !objectAddItemEngineerOnly(item) || isEngineerMode());
+      const availableItems = objectAddItems.filter((item) => (
+        !item.engineerOnly &&
+        !objectAddItemRuntimeDefinition(item)?.engineerOnly &&
+        objectAddItemLayer(item) !== "backend"
+      ));
       objectAddCategories.forEach((category) => {
         const items = availableItems.filter((item) => item.category === category.id);
         if (!items.length) return;
@@ -387,7 +386,6 @@ export function initializeObjectAddRuntime(deps) {
       });
       layout.__initPanel?.(panel);
       savePanelLayouts(layout, selected);
-      refreshEngineerOverlays();
       showToast(`${title} added.`, "info", {
         type: "object-created",
         source: "object-add",
@@ -440,7 +438,6 @@ export function initializeObjectAddRuntime(deps) {
       });
       layout.__initPanel?.(divider);
       savePanelLayouts(layout, selected);
-      refreshEngineerOverlays();
       showToast(`${definition.title} added.`, "info", {
         type: "object-created",
         source: "object-add",
@@ -512,7 +509,6 @@ export function initializeObjectAddRuntime(deps) {
       layout.__initWidget?.(widget);
       bindDashboardKeywordForms(widget);
       refreshResolvedContextDebug(layoutKey, selected);
-      refreshEngineerOverlays();
       saveWidgetLayouts(layout, selected);
       showToast(`${objectName || title} added.`, "info", {
         type: "object-created",
