@@ -6,7 +6,8 @@
   "main": "main.js",
   "scripts": {
     "start": "electron .",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test electron-tests/dashboard-electron.spec.js",
+    "test:perf": "playwright test electron-tests/perf-dashboard.spec.js"
   },
   "devDependencies": {
     "@playwright/test": "^1.60.0",
