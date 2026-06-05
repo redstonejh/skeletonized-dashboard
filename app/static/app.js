@@ -67,6 +67,7 @@ import { createRemovedEngineerModeRuntime } from "./modules/removed-engineer-mod
 import { migrateWorkingLayoutProfiles } from "./modules/layout-profile-migration.js";
 import { getWorkspaceDeleteDialogElements, workspaceDeleteKind } from "./modules/workspace-delete-dom.js";
 import { createPanelContainmentFacade } from "./modules/panel-containment-facade.js";
+import { createWidgetRuntimeFacade } from "./modules/widget-runtime-facade.js";
 import {
   applyPanelColor,
   applyPanelTitleColor,
@@ -1669,24 +1670,24 @@ document.addEventListener("DOMContentLoaded", () => {
     applyStyleRulesForWidget,
     syncWidgetContextOutputs: (widget) => syncWidgetContextOutputs(widget),
   });
-  const widgetRuntime = widgetRuntimeController.registry;
-  const widgetDefinitionFor = (type) => widgetRuntimeController.definitionFor(type);
-  const widgetRuntimeTypeFromElement = (widget) => widgetRuntimeController.runtimeTypeFromElement(widget);
-  const widgetDefinitionForElement = (widget) => widgetRuntimeController.definitionForElement(widget);
-  const normalizeWorkspaceWidgetLayer = (value, fallback = "presentation") => widgetRuntimeController.normalizeWorkspaceWidgetLayer(value, fallback);
-  const widgetLayerForElement = (widget, definition = widgetDefinitionForElement(widget)) => widgetRuntimeController.layerForElement(widget, definition);
-  const applyWidgetLayerMetadata = (widget, definition = widgetDefinitionForElement(widget), explicitLayer = "") => widgetRuntimeController.applyLayerMetadata(widget, definition, explicitLayer);
-  const parseWidgetConfig = (value) => widgetRuntimeController.parseConfig(value);
+  const {
+    applyWidgetDensityMetadata,
+    applyWidgetLayerMetadata,
+    normalizeWorkspaceWidgetLayer,
+    parseWidgetConfig,
+    resolveWidgetDensityForElement,
+    setWidgetConfig,
+    setWidgetConfigValue,
+    setWidgetLinkNavigationSuspended,
+    widgetAvailableSizeForDensity,
+    widgetConfigFromElement,
+    widgetDefinitionFor,
+    widgetDefinitionForElement,
+    widgetLayerForElement,
+    widgetRuntime,
+    widgetRuntimeTypeFromElement,
+  } = createWidgetRuntimeFacade({ widgetRuntimeController });
   const uniqueValues = (values = []) => [...new Set(values.filter((value) => value != null && String(value).trim()))];
-  const setWidgetConfig = (widget, config) => widgetRuntimeController.setConfig(widget, config);
-  const setWidgetLinkNavigationSuspended = (widget, suspended) => widgetRuntimeController.setLinkNavigationSuspended(widget, suspended);
-  const setWidgetConfigValue = (widget, key, value) => widgetRuntimeController.setConfigValue(widget, key, value);
-  const widgetConfigFromElement = (widget, definition = widgetDefinitionForElement(widget)) => widgetRuntimeController.configFromElement(widget, definition);
-  const widgetAvailableSizeForDensity = (widget) => widgetRuntimeController.availableSizeForDensity(widget);
-  const applyWidgetDensityMetadata = (widget, density) => widgetRuntimeController.applyDensityMetadata(widget, density);
-  const resolveWidgetDensityForElement = (widget, definition = widgetDefinitionForElement(widget), availableSize = widgetAvailableSizeForDensity(widget)) => (
-    widgetRuntimeController.resolveDensityForElement(widget, definition, availableSize)
-  );
   const isMediaWidgetDefinition = (definition) => mediaWidgetAssetTypes.has(definition?.type || "");
   const mediaWidgetAssetState = (widget, config = widgetConfigFromElement(widget), definition = widgetDefinitionForElement(widget)) => {
     if (!isMediaWidgetDefinition(definition)) return { persistedConfig: config, renderConfig: config, asset: null, changed: false };
