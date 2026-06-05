@@ -1,60 +1,52 @@
 # Agent Instructions
 
-This repository is a generic configurable dashboard builder. The dashboard interaction system is visually sensitive and must be treated as protected application behavior.
+This repository is a native Electron dashboard customization GUI. It is pure HTML/CSS/JS and has no backend process.
 
 ## Non-Negotiable Rules
 
 - Do not redesign the UI unless the user explicitly asks for a redesign.
-- Preserve existing class names, templates, visual language, spacing, shadows, radius, colors, glass effects, transitions, and theme behavior.
-- Do not add product-specific concepts, vendor names, monitoring/security language, sample incident data, background integrations, external notification flows, authentication-provider flows, ranking logic, or incident terminology.
-- Do not change drag, resize, collision, snapping, ghost preview, pinning, or save/load behavior without adding or updating Playwright tests first.
-- Do not implement authentication, sharing, or permissions as frontend-only behavior; future access control must be enforced server-side.
-- Treat flicker, jitter, off-grid placement, sticky collision previews, overlap, clipping, text/icon misalignment, and dark-mode visual drift as bugs.
+- Preserve existing class names, visual language, spacing, shadows, radius, colors, glass effects, transitions, themes, and photo background behavior.
+- Do not change drag, resize, collision, snapping, ghost preview, edge auto-scroll, pinning, panel containment, layout save/load/reset, or undo behavior without updating Playwright coverage.
+- Treat flicker, jitter, off-grid placement, sticky collision previews, overlap, clipping, text/icon misalignment, and theme visual drift as bugs.
+- Keep persistence routed through the Electron preload bridge or the existing renderer fallback; do not add a backend.
 - Prefer focused fixes over broad rewrites. Read the current code before changing it.
 
-## Protected Systems
+## Protected Files
 
-- `app/static/app.js`: dashboard state, ordered/sparse grid placement, drag/resize mechanics, theme behavior, save/load slots, group mode, panel/widget controls.
-- `app/static/dashboard-grid.css`: grid layout, widget/panel states, drag ghosts, resize handles, placeholders, interaction transitions.
-- `app/static/themes.css`: light/dark theme polish and final visual overrides.
-- `app/templates/dashboard.html`: dashboard shell and control markup.
-- `tests/test_dashboard_builder_e2e.py`: browser regression suite for user-facing behavior.
+- `main.js`: Electron window setup and renderer security flags.
+- `preload.js`: isolated persistence bridge.
+- `index.html`: renderer entry markup.
+- `app/static/app.js`: renderer composition root for dashboard interactions.
+- `app/static/modules/`: ES-module interaction and runtime pieces.
+- `app/static/dashboard-grid.css`: grid layout, widget/panel states, drag ghosts, resize handles, placeholders, and interaction transitions.
+- `app/static/themes.css`: theme, photo background, and glass-material polish.
+- `electron-tests/dashboard-electron.spec.js`: Electron end-to-end regression coverage.
 
 ## Drag And Resize Rules
 
 - Widgets and panels share one dashboard occupancy map.
-- Pinned items reserve their cells globally and must never be displaced by other interactions.
+- Pinned items reserve their cells globally and must not be displaced by other interactions.
 - Drag preview state must be reversible. Neighboring items may visually shift during preview, but only the actively dragged item commits on drop.
-- Sparse placement is valid. Do not auto-pack intentional empty grid space during ordinary drag/resize.
-- Use transforms/FLIP-style animation for movement previews and committed grid styles for settled layout.
+- Sparse placement is valid. Do not auto-pack intentional empty grid space during ordinary drag or resize.
+- Use transforms or FLIP-style animation for movement previews and committed grid styles for settled layout.
 - Keep committed layout, preview layout, and final drop result separate.
 
 ## Required Validation
 
-Before committing user-facing changes, run:
+Before committing user-facing behavior changes, run:
 
 ```powershell
-.venv\Scripts\python.exe -m pytest -q
+npm run test:e2e
 ```
 
-For visual, styling, layout, animation, hover/focus, theme, glass-material, navbar, widget, panel, menu, or interaction-feel changes, also follow `docs/visual-ui-manual-inspection.md` before calling the work complete.
+If a test cannot be run, document why in the final response.
 
-Final responses for visual/UI work must include a `Manual browser inspection` section. If manual inspection cannot be performed, say why, list what was verified instead, and mark visual judgment as remaining risk.
-
-If a test cannot be run, document why in the final response and in any related bug report entry.
-
-**User override:** When the user's prompt contains any of the following — "no tests", "skip tests", "do not run tests", "don't validate", "no validation", "CSS-only", "visual-only", "I'll test manually", or any equivalent instruction to skip automated validation — do not run any test suite. Note the skip in the final response. Targeted single-test runs explicitly instructed by the user are still permitted.
+**User override:** When the user's prompt contains any of the following - "no tests", "skip tests", "do not run tests", "don't validate", "no validation", "CSS-only", "visual-only", "I'll test manually", or an equivalent instruction to skip automated validation - do not run the test suite. Note the skip in the final response. Targeted single-test runs explicitly instructed by the user are still permitted.
 
 ## Documentation To Check
 
-- `docs/engineering-guidelines.md`
-- `docs/visual-ui-manual-inspection.md`
-- `docs/bug-report.md`
-- `docs/drag-resize-audit.md`
-- `docs/css-audit.md`
-- `docs/authentication-system.md`
-- `docs/permissions-model.md`
-- `docs/workspace-sharing.md`
-- `docs/security-guidelines.md`
+- `README.md`
+- `artifacts/interdependency-dossier.md`
+- `artifacts/maw-dependencies.md`
 
-Update these when changing behavior, interaction mechanics, or architectural rules.
+Update documentation when changing behavior, interaction mechanics, persistence, or architectural rules.

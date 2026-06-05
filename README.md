@@ -1,218 +1,112 @@
-# Configurable Dashboard Builder
+# Skeletonized Dashboard
 
-A local FastAPI app for creating and arranging dashboard panels and widgets from the browser. The app is intentionally context-neutral: it provides the dashboard shell, layout controls, shared glass material system, background selection, placeholders, and generic persistence without tying the UI to a specific product or data source.
+A lean, native **Electron** dashboard customization GUI: pure HTML/CSS/JS, no backend.
 
-## Features
+The app provides Apple-style draggable and resizable panels and widgets with grid snapping, collision/reflow, live ghosts, edge auto-scroll, theming, photo backgrounds, glass material, per-object recolor/rename/pin/collapse/delete, layout save/load/reset, and undo.
 
-- Configurable dashboard shell with the existing top bar, background selector, menus, popovers, and placeholder content
-- Add panel and add widget controls
-- Move, resize, pin, rename, recolor, collapse, and delete controls
-- Select mode for choosing and moving multiple panels or widgets
-- Smooth live ghosts, snapped footprints, grid snapping, collision handling, edge auto-scroll, and reflow animation
-- Layout save/load slots, reset to default, draft edits, and undo
-- Generic search/filter shell across visible dashboard content
-- SQLite tables for neutral dashboard, panel, widget, and layout profile records
-- Generic JSON API endpoints for dashboard state and persistence
+## Provenance
 
-## Product Direction
+This repository was skeletonized from `configurable-dashboard-gui` into an Electron-only visual customization app.
 
-The project is evolving from a configurable dashboard into a continuous spatial workspace. The long-term model is tabless: users should remain inside one large dashboard surface and navigate through spatial context, anchors, grouping, and saved regions rather than switching between conventional tabs or pages.
+Removed from that lineage:
 
-Current architectural principles:
+- FastAPI and SQLite backend code
+- Engineer Mode and Underlay surfaces
+- computational graph, dataflow, ports, links, and wires
+- spatial anchors and rail behavior
+- context inheritance and context-inherit systems
+- data-source adapters and semantic mapping/query behavior
+- search/filter shell
+- settings page
+- all server `/api` routes
 
-- Panels are generic layout containers, not inherent content types.
-- Tables, notes, menus, charts, calendars, filters, and dense controls should be modeled as widgets or future panel content.
-- Movement and resizing should feel spatial, pointer-continuous, and visually reversible.
-- Snapping should assist placement without making live motion feel rigid.
-- Grouped objects should behave as composite spatial objects during drag, resize, preview, collision, and commit.
-- Temporary layout pressure from drag, resize, expansion, and edge-scroll previews must remain separate from committed layout state.
-- Dense widgets should prefer adaptive density before increasing their minimum grid footprint.
-- There is one shared layered glass material system; background tones only change the workspace environment behind it.
+What remains is the interactive dashboard builder surface and its visual system.
 
-## Roadmap
+## Persistence
 
-The project is currently in the **Engineer Underlay and desktop interaction stabilization stage**. The stable dashboard builder foundation is in place; the active work is now hardening the split between the presentation workspace and the backend/dataflow underlay before adding heavier runtime computation. See `docs/pre-overhaul-stabilization-roadmap.md` for the detailed stabilization checklist and `docs/roadmap.md` for the product roadmap.
+Persistence is handled by the Electron preload bridge, not by a server.
 
-### Current Progress
-
-- Spatial anchors now live on a left-side viewport rail with dedicated anchor ordering, persistence, undo/redo, divider linking, and live divider navigation.
-- Widgets can be intentionally absorbed into open panels, where they become panel children with scoped internal grid state, save/load, and undo/redo support.
-- Workspace context now resolves through source-agnostic data-source adapters, semantic mappings, inherited divider regions, and normalized context queries.
-- Widget rendering now uses `app/static/widget-registry.js`, so stat, timeframe, search, filter, table, chart, map, data-filter, media, meta, and calendar widgets declare runtime contracts outside core grid interaction code.
-- Context inheritance now stays internal and ambient by default; Engineer Mode no longer floods the workspace with inherited-context badges, labels, or region debug overlays.
-- Large-workspace performance now separates layout correctness from visual cost with viewport-aware reflow animation, pseudo-LOD material tiers, row-bucketed collision queries, cached logical geometry records, and reduced DOM reads on committed geometry.
-- Smart object insertion now treats the top/default workspace area as a first-class visible divider region, keeps repeated adds deterministic, and places new objects in the region the user is actually viewing.
-- Newly added widget cards remain in-app workspace objects when clicked, so link-backed placeholder content no longer reloads away unsaved additions.
-- Top-edge drag auto-scroll now brakes smoothly near the fixed navbar and workspace top while preserving the existing bottom-edge runway behavior.
-- Region Summary is available as a normal spatial-awareness widget, while mini-map/debug overlays no longer appear automatically when Engineer Mode is toggled.
-- Image, Video, and PDF / Document are now registry-backed rich content widgets with safe URL/reference previews, captions, resize-aware containment, save/load persistence, and normal workspace/panel behavior.
-- Activity Feed, AI Assistant placeholder, and Engineer-gated Context Inspector widgets are now registry-backed workspace meta widgets that consume resolved workspace/context state without dashboard-renderer special cases.
-- Workspace infrastructure now includes centralized query lifecycle/caching, schema-driven widget settings, asset references for rich media, adaptive density tiers, and a structured workspace event bus while keeping automatic Engineer Mode visuals limited to intentional semantic wiring.
-- Viewport-aware pseudo-LOD is now centralized around shared visual tiers and overscan rules, with focused/selected/dragged/resized objects promoted to full fidelity, anchor rail objects classified separately, and far-offscreen hover/material effects reduced without changing layout correctness.
-- Engineer Mode now exposes explicit dataflow editing through compact wire nodules on connectable workspace objects. Dragging between valid output/input ports creates a persisted directional runtime Link, while normal mode hides nodules, editing tools, and graph clutter.
-- Engineer Mode wiring now sits on a first-class computational graph substrate: connectable objects expose input/output ports, persisted Link entities carry directional signal metadata, and wires are only the Engineer Mode rendering of explicit graph state. Ambient divider/region context inheritance remains separate and continues through spatial context resolution and semantic Context Links.
-- Engineer Mode now reveals a recessed Engineer Underlay: backend/dataflow widgets such as Data Filter and Context Inspector are hidden in Normal Mode, presentation widgets ghost as spatial references, and dataflow wires remain underlay-only explicit output-to-input routes.
-- Widget body clicks now open widget working surfaces for data/query/context behavior, while widget settings stay focused on appearance, material, title, density, and display customization.
-- The Add Object menu now uses a categorized right-expanding object browser, grouping data, visualization/chart, control, content, media, system, container, navigation, and divider objects while keeping Engineer-only items behind Engineer Mode.
-- The Add Object browser now sizes to its visible content, avoiding blank menu tails while using internal scrolling only when the viewport is constrained.
-
-### Current Stage
-
-Stage: **presentation workspace + Engineer Underlay foundation**.
-
-The visible dashboard is now treated as the presentation layer. Backend/dataflow/computation widgets are moving into the Engineer Underlay and stay hidden in Normal Mode. The next step is to stabilize this split while preserving deterministic layout, panel containment, save/load, undo/redo, and dataflow link persistence.
-
-### Active Todo
-
-- Harden backend-layer widget save/load, copy/paste, undo/redo, and menu gating across all current and future computational widgets.
-- Keep drag, resize, collision, snapping, ghost previews, pinning, collapse, undo, and save/load deterministic under repeated interaction.
-- Preserve local collision behavior and avoid global repacking during add, drag, resize, expand, collapse, panel containment, and grouped operations.
-- Continue targeted Playwright coverage for Engineer Underlay visibility, backend widget gating, wire persistence, panel-contained widgets, visual cleanup, and stale interaction classes.
-- Keep controls, panels, widgets, menus, and selection surfaces routed through one coherent glass material hierarchy across every background tone.
-- Defer full reactive computation, formula/runtime evaluation, server-backed data connectors, and compact/mobile workspace mode until the desktop interaction and underlay foundations are stable.
-
-### Spatial Navigation And Context
-
-- Floating Spatial Anchors: viewport-fixed controls that act as spatial bookmarks into dashboard regions, panels, groups, widgets, or saved viewports.
-- Context Dividers: elegant horizontal glass boundaries that define ambient dashboard zones without becoming normal panels.
-- Context Inheritance: widgets, panels, groups, anchors, and future controls inherit local spatial context before falling back to global workspace context.
-- Tabless Navigation: the navbar should stay minimal and should not become the primary navigation model; future navigation should scroll or focus the continuous workspace.
-- Saved Viewports And Workspace States: named spatial positions, density arrangements, and context-aware snapshots that help users return to meaningful regions.
-
-### Future Interaction Systems
-
-- Composite group interactions with shared visual language, local collision, proportional resize, and stable member relationships.
-- Region-aware placement that understands context zones without scrambling unrelated dashboard items.
-- Richer undo/redo transaction boundaries for committed dashboard actions while excluding live previews and transient surfaces.
-- Hidden computational easter eggs may eventually emerge from the real logic, context, event, conditional-style, and spatial computation systems. Examples could include tiny simulations, reactive pixel grids, signal-flow experiments, or redstone-like visual logic behaviors, but these should remain optional Engineer/experimental configurations rather than primary product features.
-- Compact Workspace Mode as a separate constrained-viewport interaction contract, with single-column layout behavior, collapsed workspace chrome, simplified interactions, compressed anchor rail/drawer behavior, responsive density scaling, and progressive disclosure. This is intentionally not desktop scaled down.
-- Accessibility-first keyboard support for anchors, groups, dividers, panels, widgets, and major dashboard commands.
-- Reduced-motion equivalents for cinematic scroll, drag, resize, collapse, and anchor navigation.
-
-### Future Widget And Panel Architecture
-
-- Continue hardening panel-contained widgets, with panels remaining generic containers.
-- Add future backend-layer Sort, Join, Transform, Query/API/SQL, JSON/data inspector, normalization, and conditional styling processor widgets as underlay objects rather than presentation widgets.
-- Expand table, notes, menu, chart, calendar, search, filter, timeframe, map, media, and control widgets as composable presentation content types.
-- Continue adaptive-density sizing rules for dense information and control widgets.
-- Semantic panel relationships and contextual grouping without encoding content type into panel identity.
-- Future widget marketplace or registry concepts, if needed, should remain context-neutral and data-source neutral.
-
-### Performance And Scale
-
-- Measure pointermove hot paths, DOM reads/writes, collision cost, reflow cost, paint cost, and save/load serialization before optimizing.
-- Batch live interaction writes through requestAnimationFrame where practical.
-- Keep live visual transforms separate from committed grid layout writes.
-- Limit collision/reflow work to affected local regions where possible.
-- Explore virtualization or partial rendering only after the dashboard can exceed current practical DOM limits.
-- Keep Playwright tests meaningful while using targeted slices during development and full-suite runs before completion.
-
-### Non-Goals For Now
-
-- No conventional tab/page architecture for primary navigation.
-- No frontend-only authentication, sharing, or permissions.
-- No product-specific monitoring, security, vendor, incident, ranking, or notification concepts.
-- No fake widget insertion inside panels until nested widget behavior is implemented for real.
-- No global auto-pack behavior that silently rewrites intentional dashboard space.
-- No compact/mobile workspace mode until desktop interaction laws, panel containment, context inheritance, widget runtime architecture, and performance systems are stable.
-- No separate toy/simulation engine for hidden easter eggs; playful computational behavior should reuse the real workspace logic/event/context infrastructure if it is ever explored.
-
-## Routes
-
-- `GET /`
-- `GET /dashboard`
-- `GET /settings`
-- `POST /settings`
-- `GET /api/dashboard`
-- `GET /api/dashboard/layout`
-- `POST /api/dashboard/layout`
-- `GET /api/dashboard/widgets`
-- `POST /api/dashboard/widgets`
-- `GET /api/dashboard/panels`
-- `POST /api/dashboard/panels`
-- `GET /api/dashboard/profiles`
+`main.js` creates the Electron window with `contextIsolation: true` and `nodeIntegration: false`. `preload.js` exposes `window.dashboardPersistence`, which stores layout data in a JSON file under the user's home directory. Renderer code in `app/static/layout-persistence.js` uses that bridge when available and falls back to browser storage when it is not.
 
 ## Project Layout
 
-- `app/main.py` starts FastAPI, mounts static assets, and registers generic routes.
-- `app/models.py` defines neutral `Dashboard`, `Panel`, `Widget`, `LayoutProfile`, `WidgetType`, and `MenuItem` models.
-- `app/database.py` creates the SQLite schema.
-- `app/storage.py` stores dashboard metadata, panels, widgets, and layout profiles.
-- `app/routes/dashboard.py` renders the dashboard builder.
-- `app/routes/settings.py` renders simple dashboard settings.
-- `app/routes/api.py` exposes generic dashboard APIs.
-- `app/templates/` contains the generic shell, dashboard, and settings pages.
-- `app/static/app.js` contains the protected dashboard interaction system.
-- `app/static/widget-registry.js` contains registry-backed widget runtime definitions and renderers.
-- `app/static/style.css` is an import manifest for the split CSS architecture.
-- `app/static/tokens.css`, `base.css`, `layout.css`, `components.css`, `dashboard-grid.css`, `themes.css`, and `utilities.css` contain the preserved visual system.
-- `AGENTS.md` defines mandatory guardrails for AI agents and contributors.
-- `docs/engineering-guidelines.md` documents architecture and interaction rules.
-- `docs/bug-report.md` tracks discovered interaction and polish bugs.
-- `tests/test_dashboard_builder_e2e.py` covers browser-level dashboard behavior.
+- `main.js` - Electron main process and window creation.
+- `preload.js` - isolated persistence bridge exposed to the renderer.
+- `index.html` - renderer entry document; loads `./app/static/app.js` as an ES module.
+- `package.json` - npm scripts and Electron/Playwright development dependencies.
+- `package-lock.json` - locked npm dependency tree.
+- `playwright.config.js` - Playwright configuration for Electron tests.
+- `.env.example` - notes that no runtime environment variables are required.
+- `AGENTS.md` - contributor and agent guardrails for preserving interaction behavior.
+- `app/static/` - renderer CSS and JavaScript runtime.
+- `app/static/app.js` - renderer composition root for the dashboard interaction system.
+- `app/static/modules/` - ES modules for background controls, layout history, object actions, drag/resize helpers, persistence wiring, panel/widget runtime pieces, and related UI behavior.
+- `app/static/style.css` - CSS import entry for the visual system.
+- `app/static/tokens.css`, `app/static/base.css`, `app/static/layout.css`, `app/static/components.css`, `app/static/dashboard-grid.css`, `app/static/themes.css`, and `app/static/utilities.css` - preserved visual styling.
+- `app/static/backgrounds/` - photo background assets used by the background selector.
+- `electron-tests/` - Playwright end-to-end coverage for the Electron app.
+- `artifacts/` - salvage audit evidence retained with the repo.
+- `test-results/` - Playwright output from local test runs.
 
 ## Setup
 
+Install dependencies:
+
 ```powershell
-python -m venv .venv
-.venv\Scripts\python.exe -m pip install -r requirements.txt
-.venv\Scripts\python.exe -m playwright install chromium
-.venv\Scripts\python.exe -m uvicorn app.main:app --host 127.0.0.1 --port 8000
+npm install
 ```
 
-Then open `http://127.0.0.1:8000`.
+Run the app:
 
-On Windows, `start.bat` starts the same local server after dependencies are installed.
+```powershell
+npm start
+```
 
 ## Tests
 
-Run the browser-based dashboard builder suite with:
+Run the Electron end-to-end suite:
 
 ```powershell
-.venv\Scripts\python.exe -m pytest
+npm run test:e2e
 ```
 
-Playwright traces, screenshots, and videos for failed tests are written under `test-results/`.
+The test suite launches Electron, verifies the dashboard boots without a backend, preserves core customization behavior, and keeps drag/resize handlers connected.
 
-## Contributor And Agent Guardrails
+## Contributor Guardrails
 
-This project is interaction-heavy. Future changes should preserve the existing Apple-style dashboard feel and must not accidentally reintroduce product-specific monitoring/security concepts.
+This app is interaction-heavy. Preserve the existing visual language and interaction feel unless a change explicitly asks for a redesign.
 
-Before changing dashboard behavior, read:
+Before changing behavior, read:
 
 - `AGENTS.md`
-- `docs/engineering-guidelines.md`
-- `docs/drag-resize-audit.md`
-- `docs/bug-report.md`
-- `docs/performance-stabilization-plan.md`
-- `docs/pre-overhaul-stabilization-roadmap.md`
-- `docs/architecture/README.md`
-- `docs/spatial-anchors.md`
-- `docs/context-divider-architecture.md`
+- `electron-tests/dashboard-electron.spec.js`
+- `artifacts/interdependency-dossier.md`
+- `artifacts/maw-dependencies.md`
 
-Protected behaviors include:
+Protected behavior includes:
 
-- shared widget/panel grid occupancy
-- sparse intentional placement
+- panel and widget add/move/resize controls
+- grid snapping and sparse placement
+- collision handling and reflow animation
+- live ghost and resize preview alignment
 - pinned-item protection
-- reversible drag collision previews
-- resize snapping
-- ghost preview alignment
-- layout save/load/reset
-- background tone and shared material hover polish
-- menu, popover, icon, and control alignment
+- grouped selection and multi-object movement
+- edge auto-scroll during interactions
+- panel containment behavior
+- per-object rename, recolor, pin, collapse, and delete controls
+- layout save/load/reset and undo
+- theme, photo background, and glass-material styling
 
-Do not modify drag, resize, snapping, collision, pinning, material/background polish, or layout persistence without updating Playwright coverage and running the test suite.
+For behavior changes, update or add Playwright coverage and run:
 
-## Configuration
-
-Optional environment values are shown in `.env.example`.
-
-```env
-APP_DATABASE_PATH=./data/dashboard_builder.db
-APP_LOG_PATH=./logs/app.log
+```powershell
+npm run test:e2e
 ```
 
-## Notes
+## Runtime Notes
 
-The default dashboard is deliberately sparse. It includes placeholder widgets and generic panel containers so the builder interactions are immediately testable without shipping product-specific data. Panels are layout containers; table, menu, notes, chart, and calendar experiences should be modeled as widgets or panel content rather than inherent panel types.
+- The app loads from local files through Electron.
+- There is no backend process to start.
+- There are no server routes.
+- Persistent layout data is stored through the preload bridge.
+- Visual CSS is intentionally large because it preserves the migrated dashboard material system.
