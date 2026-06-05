@@ -62,6 +62,7 @@ import { bindWidgetResizeRuntime } from "./modules/widget-resize-runtime.js";
 import { bindPanelResizeRuntime } from "./modules/panel-resize-runtime.js";
 import { createGridMetricsRuntime } from "./modules/grid-metrics-runtime.js";
 import { createResizeSurfaceRuntime } from "./modules/resize-surface-runtime.js";
+import { widgetHasRowBreakBefore, widgetSpacerSiblingsBefore } from "./modules/widget-layout-persistence-helpers.js";
 import {
   applyPanelColor,
   applyPanelTitleColor,
@@ -3830,22 +3831,6 @@ document.addEventListener("DOMContentLoaded", () => {
       onBlur: onWindowBlur,
       onLostPointerCapture,
     });
-  };
-
-  const widgetSpacerSiblingsBefore = (widget) => {
-    const spacers = [];
-    let cursor = widget.previousElementSibling;
-    while (cursor?.classList?.contains("widget-spacer")) {
-      spacers.unshift(cursor);
-      cursor = cursor.previousElementSibling;
-    }
-    return spacers;
-  };
-
-  const widgetHasRowBreakBefore = (widget) => {
-    let cursor = widget.previousElementSibling;
-    while (cursor?.classList?.contains("widget-spacer")) cursor = cursor.previousElementSibling;
-    return Boolean(cursor?.classList?.contains("widget-row-break"));
   };
 
   const alignedResizeHeight = ({ layout, item, currentHeight, metrics = null }) => {
