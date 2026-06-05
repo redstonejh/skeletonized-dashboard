@@ -73,6 +73,7 @@ import { createWorkspaceVisualLodRuntime } from "./modules/workspace-visual-lod-
 import { createWorkspaceScrollFloorRuntime } from "./modules/workspace-scroll-floor-runtime.js";
 import { createPanelFootprintFacade } from "./modules/panel-footprint-facade.js";
 import { createMenuOverlayFacade } from "./modules/menu-overlay-facade.js";
+import { createPanelPrimitiveFacade } from "./modules/panel-primitive-facade.js";
 import {
   applyPanelColor,
   applyPanelTitleColor,
@@ -265,20 +266,22 @@ document.addEventListener("DOMContentLoaded", () => {
   let requestWorkspaceObjectDelete = () => false;
   let requestPanelDelete = () => false;
   let requestWidgetDelete = () => false;
-  const getPanelMinimumWidth = (panel) => panelRuntime.getPanelMinimumWidth(panel);
-
-  const syncPanelMinimumWidth = (panel) => panelRuntime.syncPanelMinimumWidth(panel);
-
   const dashboardGeometry = window.dashboardGeometry;
   let panelRuntime = null;
   let panelContainmentRuntime = null;
 
-  const isPanelInternalWidgetLayout = (layout) => dashboardPanelContainment.isPanelInternalWidgetLayout(layout);
-  const panelForInternalWidgetLayout = (layout) => dashboardPanelContainment.panelForInternalWidgetLayout(layout);
-  const gridHostForLayout = (layout) => dashboardPanelContainment.gridHostForLayout(layout);
-  const isPanelInternalGridItem = (item) => dashboardPanelContainment.isPanelInternalGridItem(item);
-
-  const gridContentRectForHost = (host, rect) => dashboardPanelContainment.gridContentRectForHost(host, rect);
+  const {
+    getPanelMinimumWidth,
+    gridContentRectForHost,
+    gridHostForLayout,
+    isPanelInternalGridItem,
+    isPanelInternalWidgetLayout,
+    panelForInternalWidgetLayout,
+    syncPanelMinimumWidth,
+  } = createPanelPrimitiveFacade({
+    dashboardPanelContainment,
+    getPanelRuntime: () => panelRuntime,
+  });
 
   const {
     DASHBOARD_GRID_COLUMNS,
