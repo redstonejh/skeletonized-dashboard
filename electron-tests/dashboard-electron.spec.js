@@ -123,6 +123,42 @@ async function addTextWidget(page) {
   return widget;
 }
 
+async function applyFirstWidgetSetting(page, selector, preferredKey, value) {
+  return page.locator(selector).evaluate((node, { preferredKey, value }) => {
+    const runtime = window.dashboardWidgetSettingsRuntime;
+    if (!runtime?.fieldsForWidget || !runtime?.applySetting) return { applied: false, key: "" };
+    const fields = runtime.fieldsForWidget(node);
+    const field = fields.find((entry) => entry.key === preferredKey) || fields[0];
+    if (!field?.key) return { applied: false, key: "" };
+    return {
+      applied: runtime.applySetting(node, field.key, value, { history: false, invalidateQuery: false }),
+      key: field.key,
+    };
+  }, { preferredKey, value });
+}
+
+async function widgetRuntimeState(page, selector) {
+  return page.locator(selector).evaluate((node) => {
+    const shell = node.querySelector("[data-widget-shell]");
+    const content = node.querySelector("[data-widget-shell-content='true']");
+    return {
+      key: node.dataset.widgetKey || "",
+      status: node.dataset.widgetRuntimeStatus || "",
+      condition: node.dataset.runtimeCondition || "",
+      urgency: node.dataset.runtimeUrgency || "",
+      freshness: node.dataset.runtimeFreshness || "",
+      activity: node.dataset.runtimeActivity || "",
+      confidence: node.dataset.runtimeConfidence || "",
+      density: node.dataset.widgetDensity || node.dataset.density || "",
+      shell: node.dataset.widgetShell || "",
+      shellState: shell?.dataset.shellRuntimeState || "",
+      content: content?.textContent?.trim() || "",
+      tools: node.querySelectorAll(":scope > .widget-tools").length,
+      resizeHandles: node.querySelectorAll(":scope > .widget-tools .panel-resize-handle").length,
+    };
+  });
+}
+
 async function interactionScenario(page, name, extra = {}) {
   const evidence = await page.evaluate((scenarioExtra) => {
     const geometry = [
@@ -508,6 +544,155 @@ test("electron GUI commits widget runtime content and meaning across reload", as
   }));
   expect(after).toEqual(before);
   await writeInteractionScenarios(page, ["widget-runtime-content-meaning"], { before, after });
+  await closeApp(app);
+});
+
+test("electron GUI clears stale conditional style state on widget render", async () => {
+  const { app, page } = await launchApp();
+  const textWidget = await addTextWidget(page);
+  const widgetKey = await textWidget.evaluate((node) => node.dataset.widgetKey || "");
+  const selector = `.widget-layout > .widget-card[data-widget-key="${widgetKey}"]`;
+
+  await page.locator(selector).evaluate((node) => {
+    node.classList.add("widget-conditional-style");
+    node.style.setProperty("--conditional-accent", "#ff00aa");
+    node.style.setProperty("--conditional-accent-rgb", "255, 0, 170");
+    node.style.setProperty("--conditional-text", "#111111");
+    node.style.setProperty("--conditional-background-tint", "rgba(255, 0, 170, .16)");
+    node.dataset.conditionalRimState = "alert";
+    node.dataset.conditionalIconState = "warning";
+    node.dataset.conditionalVisibility = "hidden";
+    node.dataset.activeStyleRuleIds = "stale-rule";
+    node.dataset.conditionalPanelAccentApplied = "true";
+  });
+
+  const setting = await applyFirstWidgetSetting(page, selector, "body", "Conditional cleanup canary");
+  expect(setting.applied).toBe(true);
+  await page.waitForFunction((selector) => {
+    const node = document.querySelector(selector);
+    const styles = node ? getComputedStyle(node) : null;
+    return Boolean(node) &&
+      !node.classList.contains("widget-conditional-style") &&
+      !node.dataset.conditionalRimState &&
+      !node.dataset.conditionalIconState &&
+      !node.dataset.conditionalVisibility &&
+      !node.dataset.activeStyleRuleIds &&
+      !node.dataset.conditionalPanelAccentApplied &&
+      !styles.getPropertyValue("--conditional-accent").trim() &&
+      !styles.getPropertyValue("--conditional-accent-rgb").trim() &&
+      !styles.getPropertyValue("--conditional-text").trim() &&
+      !styles.getPropertyValue("--conditional-background-tint").trim();
+  }, selector);
+
+  const cleaned = await page.locator(selector).evaluate((node) => ({
+    conditionalClass: node.classList.contains("widget-conditional-style"),
+    rim: node.dataset.conditionalRimState || "",
+    icon: node.dataset.conditionalIconState || "",
+    visibility: node.dataset.conditionalVisibility || "",
+    activeStyleRuleIds: node.dataset.activeStyleRuleIds || "",
+    panelAccentApplied: node.dataset.conditionalPanelAccentApplied || "",
+    conditionalAccent: getComputedStyle(node).getPropertyValue("--conditional-accent").trim(),
+    content: node.querySelector("[data-widget-shell-content='true']")?.textContent?.trim() || "",
+  }));
+  expect(cleaned).toMatchObject({
+    conditionalClass: false,
+    rim: "",
+    icon: "",
+    visibility: "",
+    activeStyleRuleIds: "",
+    panelAccentApplied: "",
+    conditionalAccent: "",
+  });
+  expect(cleaned.content).toContain("Conditional cleanup canary");
+
+  await page.locator(".layout-save-button").click();
+  await page.reload();
+  await page.waitForSelector(".dashboard-layout-grid");
+  const reloaded = await page.locator(selector).evaluate((node) => ({
+    conditionalClass: node.classList.contains("widget-conditional-style"),
+    activeStyleRuleIds: node.dataset.activeStyleRuleIds || "",
+    content: node.querySelector("[data-widget-shell-content='true']")?.textContent?.trim() || "",
+  }));
+  expect(reloaded.conditionalClass).toBe(false);
+  expect(reloaded.activeStyleRuleIds).toBe("");
+  expect(reloaded.content).toContain("Conditional cleanup canary");
+  await writeInteractionScenarios(page, ["conditional-style-cleanup"], { setting, cleaned, reloaded });
+  await closeApp(app);
+});
+
+test("electron GUI keeps widget runtime content, tools, and resize ready after render and reload", async () => {
+  const { app, page } = await launchApp();
+  const textWidget = await addTextWidget(page);
+  const widgetKey = await textWidget.evaluate((node) => node.dataset.widgetKey || "");
+  const selector = `.widget-layout > .widget-card[data-widget-key="${widgetKey}"]`;
+
+  const setting = await applyFirstWidgetSetting(page, selector, "body", "Runtime content canary");
+  expect(setting.applied).toBe(true);
+  await page.waitForFunction((selector) => {
+    const widget = document.querySelector(selector);
+    return Boolean(widget?.querySelector("[data-widget-shell-content='true']")?.textContent?.includes("Runtime content canary"));
+  }, selector);
+  const before = await widgetRuntimeState(page, selector);
+  expect(before.status.length).toBeGreaterThan(0);
+  expect(before.condition.length).toBeGreaterThan(0);
+  expect(before.shellState.length).toBeGreaterThan(0);
+  expect(before.content).toContain("Runtime content canary");
+  expect(before.tools).toBe(1);
+  expect(before.resizeHandles).toBe(1);
+
+  await page.locator(".layout-save-button").click();
+  await page.reload();
+  await page.waitForSelector(".dashboard-layout-grid");
+  await page.waitForFunction((selector) => {
+    const widget = document.querySelector(selector);
+    return Boolean(widget?.querySelector("[data-widget-shell-content='true']")?.textContent?.includes("Runtime content canary"));
+  }, selector);
+  const afterReload = await widgetRuntimeState(page, selector);
+  expect(afterReload).toMatchObject({
+    key: before.key,
+    status: before.status,
+    condition: before.condition,
+    urgency: before.urgency,
+    shell: before.shell,
+    shellState: before.shellState,
+    content: before.content,
+    tools: 1,
+    resizeHandles: 1,
+  });
+
+  const widget = await openTools(page, selector);
+  const resize = widget.locator(":scope > .widget-tools .panel-resize-handle");
+  await expect(resize).toBeVisible();
+  const resizeBox = await resize.boundingBox();
+  expect(resizeBox).toBeTruthy();
+  const beforeResize = await widget.evaluate((node) => ({
+    span: node.dataset.currentSpan || node.dataset.defaultSpan || "",
+    height: String(Math.round(node.getBoundingClientRect().height)),
+  }));
+  await dispatchPointerDrag(
+    page,
+    resizeBox.x + resizeBox.width / 2,
+    resizeBox.y + resizeBox.height / 2,
+    resizeBox.x + resizeBox.width / 2 + 230,
+    resizeBox.y + resizeBox.height / 2 + 88,
+    50
+  );
+  await page.waitForFunction(
+    ({ selector, beforeResize }) => {
+      const node = document.querySelector(selector);
+      if (!node) return false;
+      const span = node.dataset.currentSpan || node.dataset.defaultSpan || "";
+      const height = String(Math.round(node.getBoundingClientRect().height));
+      return span !== beforeResize.span || height !== beforeResize.height;
+    },
+    { selector, beforeResize }
+  );
+  const afterResize = await widget.evaluate((node) => ({
+    span: node.dataset.currentSpan || node.dataset.defaultSpan || "",
+    height: String(Math.round(node.getBoundingClientRect().height)),
+  }));
+  expect(afterResize).not.toEqual(beforeResize);
+  await writeInteractionScenarios(page, ["widget-runtime-content-tools-resize"], { before, afterReload, beforeResize, afterResize });
   await closeApp(app);
 });
 
