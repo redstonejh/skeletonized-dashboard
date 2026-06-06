@@ -1,0 +1,6 @@
+{
+    "status":  "pass",
+    "runs":  10,
+    "command":  "npm.cmd run test:e2e -- --workers=1",
+    "log":  "artifacts/pass1-widget-meaning-10x.log"
+}

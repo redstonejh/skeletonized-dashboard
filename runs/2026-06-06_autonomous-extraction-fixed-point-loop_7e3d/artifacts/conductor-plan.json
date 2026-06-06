@@ -1,0 +1,23 @@
+{
+  "task_type": "refactor",
+  "checklist": "C:/Users/redst/OneDrive/Documents/skeletonized-dashboard-main/.codex/checklists/refactor.md",
+  "roles": ["conductor", "planner", "worker", "critic", "acceptance_gate"],
+  "caps": {"max_agents": 5, "max_parallel": 3, "max_iters": 3},
+  "parallel_roles": [],
+  "refactor_type": "move-module",
+  "task_summary": "Autonomously attempt remaining app.js extraction/deletion clusters until a fixed point or five outer passes, preserving dashboard behavior.",
+  "quality_bar": "No shipped source move without deterministic resistance, full e2e green, 10x canary repeat, line-count decrease, no dependency/Electron/perf changes.",
+  "deterministic_checks": [
+    "discovery guard",
+    "npm.cmd run test:e2e -- --workers=1",
+    "10x full canary repeat before SHIP",
+    "validate_handoffs.py",
+    "verdict_check.py"
+  ],
+  "acceptance_criteria": [
+    "Each shipped cluster has resistance artifact and parity evidence",
+    "Unshipped clusters have blocker and suspected deterministic path in artifacts/overnight-report.md",
+    "Commit after each SHIP",
+    "Stop at fixed point or five outer passes"
+  ]
+}

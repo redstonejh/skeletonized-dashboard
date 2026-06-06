@@ -1,0 +1,7 @@
+{
+    "mutation":  "widget-runtime applyRuntimeMeaning returns null",
+    "exitCode":  1,
+    "caught":  true,
+    "canary":  "electron GUI commits widget runtime content and meaning across reload",
+    "log":  "artifacts/widget-runtime-meaning-real-noop-precheck.log"
+}

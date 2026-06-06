@@ -38,7 +38,6 @@ import { createWorkspaceObjectModel } from "./modules/workspace-object-model.js"
 import { createDashboardToolDrawerRuntime } from "./modules/dashboard-tool-drawer-runtime.js";
 import { createReflowAnimationRuntime } from "./modules/reflow-animation-runtime.js";
 import { createDashboardDomFactories } from "./modules/dashboard-dom-factories.js";
-import { createWidgetRuntimeMeaning } from "./modules/widget-runtime-meaning.js";
 import {
   queryRelevantWidgetConfig,
   widgetSettingSurface,
@@ -1687,14 +1686,6 @@ document.addEventListener("DOMContentLoaded", () => {
       });
     });
   };
-  const {
-    deriveWidgetRuntimeMeaning,
-    applyWidgetRuntimeMeaning,
-  } = createWidgetRuntimeMeaning({
-    widgetConfigFromElement,
-    widgetDefinitionForElement,
-    uniqueValues,
-  });
   const widgetInstanceFromElement = (widget, definition = widgetDefinitionForElement(widget)) => widgetRuntimeController.instanceFromElement(widget, definition);
   const setWidgetRuntimeContent = (widget, html) => widgetRuntimeController.setRuntimeContent(widget, html);
   const renderWidgetRuntimeContent = (widget, options = {}) => widgetRuntimeController.renderRuntimeContent(widget, options);

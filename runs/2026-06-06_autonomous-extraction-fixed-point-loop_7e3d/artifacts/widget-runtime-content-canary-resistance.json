@@ -1,0 +1,7 @@
+{
+    "mutation":  "renderWidgetRuntimeContent returns null",
+    "exitCode":  0,
+    "caught":  false,
+    "canary":  "electron GUI commits widget runtime content and meaning across reload",
+    "log":  "artifacts/widget-runtime-content-canary-resistance.log"
+}

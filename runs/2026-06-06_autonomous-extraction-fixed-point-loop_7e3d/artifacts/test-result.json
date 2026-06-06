@@ -1,0 +1,6 @@
+{
+    "passed":  true,
+    "exit_code":  0,
+    "command":  "npm.cmd run test:e2e -- --workers=1",
+    "log":  "artifacts/resume-full-e2e.log"
+}

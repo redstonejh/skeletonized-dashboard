@@ -1,0 +1,15 @@
+{
+    "check":  "refactor_structure",
+    "schema_version":  1,
+    "refactor_type":  "move-module",
+    "passed":  true,
+    "moved":  [
+                  {
+                      "from":  "app/static/modules/widget-runtime-meaning.js",
+                      "to":  "deleted as unreferenced stale module"
+                  }
+              ],
+    "violations":  [
+
+                   ]
+}

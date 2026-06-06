@@ -1,0 +1,10 @@
+{
+    "passed":  true,
+    "status":  "pass",
+    "summary":  "Current e2e passed after resume; prior 10x canary repeat passed for the widget runtime meaning deletion checkpoint.",
+    "command":  "npm.cmd run test:e2e -- --workers=1",
+    "evidence":  [
+                     "artifacts/test-result.json",
+                     "artifacts/pass1-widget-meaning-10x.json"
+                 ]
+}

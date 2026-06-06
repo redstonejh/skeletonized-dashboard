@@ -1,0 +1,31 @@
+{
+    "check":  "refactor_resistance",
+    "schema_version":  1,
+    "passed":  true,
+    "clean":  {
+                  "passed":  true,
+                  "checks":  [
+                                 {
+                                     "check":  "full-e2e",
+                                     "passed":  true
+                                 }
+                             ]
+              },
+    "mutations":  [
+                      {
+                          "name":  "active_applyRuntimeMeaning_noop",
+                          "planted":  true,
+                          "caught":  true,
+                          "mutant_passed":  false,
+                          "failed_checks":  [
+                                                "widget-runtime-content-meaning"
+                                            ],
+                          "artifact":  "artifacts/widget-runtime-meaning-real-noop-precheck.json"
+                      }
+                  ],
+    "summary":  {
+                    "total":  1,
+                    "caught":  1
+                },
+    "notes":  "Adjacent hydrate/render compatibility wrapper probes were recorded as not caught and are not claimed as resistance for this deletion checkpoint."
+}

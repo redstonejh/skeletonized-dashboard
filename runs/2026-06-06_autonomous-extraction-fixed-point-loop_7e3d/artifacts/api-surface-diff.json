@@ -1,0 +1,5 @@
+{
+    "passed":  true,
+    "status":  "pass",
+    "summary":  "No public browser API was removed. window.dashboardWidgetRuntimeMeaning remains and delegates through widgetRuntimeController; the deleted module had no remaining imports."
+}

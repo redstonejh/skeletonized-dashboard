@@ -1,0 +1,17 @@
+{
+    "check":  "refactor_perf_budget",
+    "schema_version":  1,
+    "passed":  true,
+    "status":  "passed",
+    "probes":  [
+                   {
+                       "name":  "full-e2e",
+                       "passed":  true,
+                       "command":  "npm.cmd run test:e2e -- --workers=1"
+                   }
+               ],
+    "violations":  [
+
+                   ],
+    "summary":  "No perf intent shipped; structural deletion/test-only canary change."
+}

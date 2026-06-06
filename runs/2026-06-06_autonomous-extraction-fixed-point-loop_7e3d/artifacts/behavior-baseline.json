@@ -1,0 +1,29 @@
+{
+    "check":  "behavior_baseline",
+    "passed":  true,
+    "metadata":  {
+                     "captured_at_epoch":  1780704999,
+                     "source_paths":  [
+                                          "app/static/app.js",
+                                          "electron-tests/dashboard-electron.spec.js",
+                                          "artifacts/deferred-extractions.md",
+                                          "artifacts/extraction-floor-report.md"
+                                      ],
+                     "captures":  2,
+                     "command":  "npm.cmd run test:e2e -- --workers=1",
+                     "logs":  [
+                                  "artifacts/baseline-1.log",
+                                  "artifacts/baseline-2.log"
+                              ]
+                 },
+    "items":  [
+                  {
+                      "name":  "baseline-1",
+                      "passed":  true
+                  },
+                  {
+                      "name":  "baseline-2",
+                      "passed":  true
+                  }
+              ]
+}

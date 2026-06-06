@@ -440,6 +440,53 @@ test("electron GUI restores widget tools through init", async () => {
   await closeApp(app);
 });
 
+test("electron GUI commits widget runtime content and meaning across reload", async () => {
+  const { app, page } = await launchApp();
+  const selector = '.widget-layout > .widget-card[data-widget-key="widget-1"]';
+  await page.waitForFunction((selector) => {
+    const widget = document.querySelector(selector);
+    const content = widget?.querySelector("[data-widget-shell-content='true']");
+    return Boolean(
+      widget?.dataset.widgetRuntimeStatus === "ready" &&
+      widget?.dataset.runtimeCondition &&
+      content?.textContent?.trim()
+    );
+  }, selector);
+  const before = await page.locator(selector).evaluate((node) => ({
+    key: node.dataset.widgetKey || "",
+    status: node.dataset.widgetRuntimeStatus || "",
+    condition: node.dataset.runtimeCondition || "",
+    urgency: node.dataset.runtimeUrgency || "",
+    shellState: node.querySelector("[data-widget-shell]")?.dataset.shellRuntimeState || "",
+    content: node.querySelector("[data-widget-shell-content='true']")?.textContent?.trim() || "",
+  }));
+  expect(before.content.length).toBeGreaterThan(0);
+  expect(before.condition.length).toBeGreaterThan(0);
+  await page.locator(".layout-save-button").click();
+  await page.reload();
+  await page.waitForSelector(".dashboard-layout-grid");
+  await page.waitForFunction((selector) => {
+    const widget = document.querySelector(selector);
+    const content = widget?.querySelector("[data-widget-shell-content='true']");
+    return Boolean(
+      widget?.dataset.widgetRuntimeStatus === "ready" &&
+      widget?.dataset.runtimeCondition &&
+      content?.textContent?.trim()
+    );
+  }, selector);
+  const after = await page.locator(selector).evaluate((node) => ({
+    key: node.dataset.widgetKey || "",
+    status: node.dataset.widgetRuntimeStatus || "",
+    condition: node.dataset.runtimeCondition || "",
+    urgency: node.dataset.runtimeUrgency || "",
+    shellState: node.querySelector("[data-widget-shell]")?.dataset.shellRuntimeState || "",
+    content: node.querySelector("[data-widget-shell-content='true']")?.textContent?.trim() || "",
+  }));
+  expect(after).toEqual(before);
+  await writeInteractionScenarios(page, ["widget-runtime-content-meaning"], { before, after });
+  await closeApp(app);
+});
+
 test("electron GUI keeps ordered drag commit, ghost, collision, and edge scroll deterministic", async () => {
   const { app, page } = await launchApp();
   const selector = '.panel-layout > .db-panel[data-panel-key="builder-notes"]';

@@ -1,0 +1,12 @@
+{
+    "check":  "refactor_complexity",
+    "schema_version":  1,
+    "passed":  true,
+    "functions":  [
+
+                  ],
+    "violations":  [
+
+                   ],
+    "summary":  "No function body complexity increase; stale factory wiring and an unused module were removed, and test coverage was added."
+}

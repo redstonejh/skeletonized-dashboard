@@ -1,0 +1,6 @@
+{
+    "mutation":  "renderWidgetRuntimeContent returns null",
+    "exitCode":  0,
+    "caught":  false,
+    "log":  "artifacts/widget-runtime-render-noop-precheck.log"
+}

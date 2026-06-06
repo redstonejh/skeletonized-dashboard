@@ -1,0 +1,23 @@
+{
+  "anti_gaming": {
+    "applicable": false,
+    "check": "anti_gaming_hard_gates",
+    "passed": true,
+    "reason": "no anti-gaming evaluation protocol",
+    "violations": []
+  },
+  "artifact": "runs\\2026-06-06_autonomous-extraction-fixed-point-loop_7e3d\\artifacts\\acceptance-result.json",
+  "artifact_verdict": "SHIP",
+  "check": "final_verdict_matches_acceptance_artifact",
+  "passed": true,
+  "run": "runs\\2026-06-06_autonomous-extraction-fixed-point-loop_7e3d",
+  "run_verdict": "SHIP",
+  "salvage_gates": {
+    "applicable": false,
+    "check": "salvage_hard_gates",
+    "passed": true,
+    "reason": "no salvage preserved-surface artifacts",
+    "violations": []
+  },
+  "violations": []
+}

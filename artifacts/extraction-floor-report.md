@@ -71,11 +71,23 @@ The floor moved for group resize. `runGroupResize` now lives in `app/static/modu
 - Full canary suite: 10/10 green
 - MAW run: `runs/2026-06-06_increment-2b-group-resize-runtime_9377`
 
+## 2026-06-06 Autonomous Pass 1 Widget Runtime Meaning Deletion
+
+The floor moved for widget runtime meaning hydration. The stale app-local `createWidgetRuntimeMeaning` factory wiring and its now-unreferenced `app/static/modules/widget-runtime-meaning.js` module were deleted. The active runtime meaning implementation remains in `app/static/widget-runtime.js`, and the public `window.dashboardWidgetRuntimeMeaning` compatibility global still delegates through `widgetRuntimeController`.
+
+- Completed cluster: `widget-runtime-meaning-hydration`
+- `app/static/app.js` line count before this increment: 3894
+- `app/static/app.js` line count after this increment: 3885
+- Added canary: widget runtime content and meaning survive save/reload
+- Resistance: active `applyRuntimeMeaning` no-op was caught by the new canary
+- Full canary suite: 10/10 green
+- MAW run: `runs/2026-06-06_autonomous-extraction-fixed-point-loop_7e3d`
+
 ## Current State
 
-- `app/static/app.js` line count: 3894
-- `app/static/modules/*.js` count: 62
-- `app/static/app.js` SHA256: `D1257EC086957FB1C44BA30DE2456487F50296A8A02001DCAC869AB34CC1BCC1`
+- `app/static/app.js` line count: 3885
+- `app/static/modules/*.js` count: 61
+- `app/static/app.js` SHA256: `BE14DF3ACB2634EB7F10F38C66ED2DB879456E972102A983208CC6273A7ABD36`
 - Core coverage artifact: `artifacts/app-core-map.md`
 - Deferred cluster artifact: `artifacts/deferred-extractions.md`
 
@@ -86,7 +98,6 @@ Do not retry these with the same factory/DI extraction strategy:
 - `widget-layout-lifecycle`
 - `panel-layout-lifecycle`
 - `conditional-style-runtime`
-- `widget-runtime-meaning-hydration`
 - `panel-core-primitives`
 - `ordered-grid-items-runtime`
 - `widget-primitive-runtime`

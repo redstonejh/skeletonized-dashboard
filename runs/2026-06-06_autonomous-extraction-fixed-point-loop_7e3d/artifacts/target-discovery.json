@@ -1,0 +1,10 @@
+{
+    "app":  true,
+    "interactionState":  true,
+    "panelRuntime":  true,
+    "widgetRuntime":  true,
+    "groupResizeRuntime":  true,
+    "e2e":  true,
+    "testE2e":  true,
+    "electron":  "^35.0.0"
+}

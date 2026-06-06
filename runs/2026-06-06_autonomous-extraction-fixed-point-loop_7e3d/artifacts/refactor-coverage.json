@@ -1,0 +1,17 @@
+{
+    "passed":  true,
+    "status":  "pass",
+    "summary":  "Changed source lines are covered by the Electron suite, including the new widget runtime content/meaning save-reload canary and existing widget resize/tools canaries.",
+    "covered_files":  [
+                          "app/static/app.js",
+                          "electron-tests/dashboard-electron.spec.js",
+                          "artifacts/deferred-extractions.md",
+                          "artifacts/extraction-floor-report.md"
+                      ],
+    "tests":  [
+                  "widget runtime content and meaning across reload",
+                  "widget tools init",
+                  "widget resize-snap",
+                  "full e2e suite"
+              ]
+}

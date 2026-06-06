@@ -34,6 +34,13 @@ The remaining `app/static/app.js` core is init-order-sensitive and still owns li
 - API: `createGroupResizeRuntime(deps)` returns `runGroupResize`, `alignedResizeHeight`, `groupGridBox`, `groupBoxBounds`, `applyGroupFootprintBounds`, `createGroupFootprint`, and `beginGroupLiveSurfaces`.
 - Proof: select-mode multi-resize canary caught a `commitGroupResizeFromPreviews` no-op; full canary suite 10/10 green after the body move.
 
+### widget-runtime-meaning-hydration
+
+- Cluster/symbol: stale app-local `createWidgetRuntimeMeaning` factory wiring and `app/static/modules/widget-runtime-meaning.js`
+- Completed in MAW run: `runs/2026-06-06_autonomous-extraction-fixed-point-loop_7e3d`
+- Outcome: deleted the unused app-local meaning factory and module. The active runtime meaning implementation remains in `app/static/widget-runtime.js`, and `window.dashboardWidgetRuntimeMeaning` still delegates through `widgetRuntimeController`.
+- Proof: added `widget-runtime-content-meaning` canary asserting committed runtime shell content and meaning datasets survive save/reload; the canary caught an `applyRuntimeMeaning` no-op on the active runtime path; full canary suite 10/10 green.
+
 ## widget-layout-lifecycle
 
 - Cluster/symbol + file:line: `initWidgetLayout` and nested `initWidget`, `app/static/app.js:3380-3889`
@@ -54,13 +61,6 @@ The remaining `app/static/app.js` core is init-order-sensitive and still owns li
 - Why deferred: a direct module extraction passed Electron e2e but failed structured parity with a `resize-snap` geometry drift on `builder-notes` height, so the batch was reverted.
 - KEEP interaction entangled: widget runtime hydration, panel/widget resize-snap geometry, save/load evidence snapshots.
 - Needed to finish safely: extract only after widget runtime hydration and resize baseline state are separated, then compare resize-snap geometry before committing.
-
-## widget-runtime-meaning-hydration
-
-- Cluster/symbol + file:line: `window.dashboardWidgetRuntimeMeaning` binder and `hydrateWidgetRuntime`, `app/static/app.js:916-923`
-- Why deferred: moving these wrappers into `widget-content-runtime.js` passed renderer smoke but failed Electron e2e because panel resize-snap no longer changed span, so the batch was reverted.
-- KEEP interaction entangled: widget hydration, panel/widget resize handler readiness, runtime meaning globals used during initialization.
-- Needed to finish safely: extract after resize handler setup no longer depends on widget runtime initialization timing, or move the entire widget runtime/controller setup as one cohesive module with parity after the full move.
 
 ## ordered-grid-items-runtime
 
