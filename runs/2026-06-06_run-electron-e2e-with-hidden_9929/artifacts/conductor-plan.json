@@ -1,0 +1,28 @@
+{
+    "task_type":  "refactor-task",
+    "checklist":  ".codex/checklists/refactor.md",
+    "roles":  [
+                  "conductor",
+                  "planner",
+                  "worker",
+                  "critic",
+                  "acceptance_gate"
+              ],
+    "caps":  {
+                 "max_agents":  5,
+                 "max_parallel":  3,
+                 "max_iters":  3
+             },
+    "parallel_roles":  [
+                           "planner",
+                           "worker",
+                           "critic"
+                       ],
+    "role_justifications":  {
+                                "conductor":  "sets gated test-only refactor plan and delegation proof",
+                                "planner":  "identifies minimal env-gated implementation and verification",
+                                "worker":  "implements protected main.js/test launch changes",
+                                "critic":  "checks production launch and no dependency/perf behavior drift",
+                                "acceptance_gate":  "validates hidden e2e, normal launch, 10x repeat, and verdict"
+                            }
+}

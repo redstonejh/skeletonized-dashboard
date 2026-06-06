@@ -1,0 +1,25 @@
+{
+    "check":  "behavior_diff",
+    "passed":  true,
+    "status":  "passed",
+    "schema_version":  1,
+    "comparisons":  [
+                        {
+                            "name":  "hidden_e2e",
+                            "artifact":  "artifacts/hidden-e2e-10x.json",
+                            "passed":  true
+                        },
+                        {
+                            "name":  "normal_launch_visible_flag_unset",
+                            "artifact":  "artifacts/normal-launch-visible-probe.log",
+                            "passed":  true
+                        },
+                        {
+                            "name":  "package_files_unchanged",
+                            "passed":  true
+                        }
+                    ],
+    "violations":  [
+
+                   ]
+}

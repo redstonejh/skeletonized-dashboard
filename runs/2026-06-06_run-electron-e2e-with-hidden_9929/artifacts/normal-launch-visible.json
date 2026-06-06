@@ -1,0 +1,9 @@
+{
+    "check":  "normal_launch_visible",
+    "passed":  true,
+    "result":  {
+                   "hasWindow":  true,
+                   "visible":  true
+               },
+    "command":  "Playwright Electron launch with MAW_HEADLESS removed; equivalent BrowserWindow production entrypoint"
+}

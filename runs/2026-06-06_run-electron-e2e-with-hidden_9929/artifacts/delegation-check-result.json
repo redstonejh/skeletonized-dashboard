@@ -1,0 +1,15 @@
+{
+  "artifact": "runs\\2026-06-06_run-electron-e2e-with-hidden_9929\\artifacts\\delegation-proof.json",
+  "check": "delegation_proof",
+  "passed": true,
+  "role_count": 5,
+  "schema_version": 1,
+  "selected_roles": [
+    "conductor",
+    "planner",
+    "worker",
+    "critic",
+    "acceptance_gate"
+  ],
+  "violations": []
+}

@@ -1,0 +1,22 @@
+{
+    "check":  "behavior_baseline",
+    "passed":  true,
+    "metadata":  {
+                     "captured_at_epoch":  1780768124,
+                     "source_paths":  [
+                                          "main.js",
+                                          "electron-tests/dashboard-electron.spec.js",
+                                          "electron-tests/perf-dashboard.spec.js",
+                                          "electron-tests/perf-theme-switch.spec.js",
+                                          "README.md"
+                                      ],
+                     "baseline":  "pre-edit HEAD inspected: BrowserWindow used Electron default visibility; package scripts unchanged",
+                     "command":  "static inspection of HEAD plus current visible launch probe"
+                 },
+    "items":  [
+                  {
+                      "name":  "production_launch_default_visible_before_change",
+                      "passed":  true
+                  }
+              ]
+}

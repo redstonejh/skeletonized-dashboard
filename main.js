@@ -5,6 +5,7 @@ function createWindow() {
   const win = new BrowserWindow({
     width: 1440,
     height: 1000,
+    show: process.env.MAW_HEADLESS !== "1",
     minWidth: 1024,
     minHeight: 720,
     backgroundColor: "#f7f8fb",

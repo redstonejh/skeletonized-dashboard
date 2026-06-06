@@ -1,0 +1,26 @@
+{
+    "check":  "refactor_coverage",
+    "passed":  true,
+    "status":  "passed",
+    "schema_version":  1,
+    "changed_files":  [
+                          "main.js",
+                          "electron-tests/dashboard-electron.spec.js",
+                          "electron-tests/perf-dashboard.spec.js",
+                          "electron-tests/perf-theme-switch.spec.js",
+                          "README.md"
+                      ],
+    "canaries":  [
+                     "full hidden Electron e2e suite",
+                     "normal launch visible probe",
+                     "BrowserWindow hidden assertion in all Electron launch helpers"
+                 ],
+    "repeat":  {
+                   "iterations":  10,
+                   "passed":  true,
+                   "artifact":  "artifacts/hidden-e2e-10x.json"
+               },
+    "violations":  [
+
+                   ]
+}

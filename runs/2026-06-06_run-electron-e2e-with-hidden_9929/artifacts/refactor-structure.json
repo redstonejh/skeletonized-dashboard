@@ -1,0 +1,10 @@
+{
+    "check":  "refactor_structure",
+    "schema_version":  1,
+    "refactor_type":  "move-module",
+    "passed":  true,
+    "violations":  [
+
+                   ],
+    "note":  "Test-only env gate in Electron main process plus launch-helper env propagation; no behavior body moved."
+}

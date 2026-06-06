@@ -1,0 +1,16 @@
+{
+    "check":  "refactor_perf_budget",
+    "schema_version":  1,
+    "passed":  true,
+    "status":  "passed",
+    "probes":  [
+                   {
+                       "detail":  "No scheduling/rendering algorithm changes; perf specs also receive MAW_HEADLESS and assert hidden window.",
+                       "name":  "no_perf_intent",
+                       "passed":  true
+                   }
+               ],
+    "violations":  [
+
+                   ]
+}

@@ -1,0 +1,9 @@
+{
+    "check":  "no_package_changes",
+    "passed":  true,
+    "files":  [
+                  "package.json",
+                  "package-lock.json"
+              ],
+    "diff_empty":  true
+}

@@ -1,0 +1,36 @@
+{
+    "check":  "refactor_resistance",
+    "schema_version":  1,
+    "passed":  true,
+    "clean":  {
+                  "passed":  true,
+                  "checks":  [
+                                 "hidden e2e 10x",
+                                 "normal launch visible probe"
+                             ]
+              },
+    "mutations":  [
+                      {
+                          "mutant_passed":  false,
+                          "caught":  true,
+                          "planted":  true,
+                          "name":  "remove_MAW_HEADLESS_env_from_e2e_launch",
+                          "failed_checks":  [
+                                                "BrowserWindow.isVisible() expected false in launchApp"
+                                            ]
+                      },
+                      {
+                          "mutant_passed":  false,
+                          "caught":  true,
+                          "planted":  true,
+                          "name":  "force_main_window_hidden_without_env_gate",
+                          "failed_checks":  [
+                                                "normal launch visible probe expected true"
+                                            ]
+                      }
+                  ],
+    "summary":  {
+                    "total":  2,
+                    "caught":  2
+                }
+}

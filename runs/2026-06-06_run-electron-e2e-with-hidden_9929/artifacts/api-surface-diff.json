@@ -1,0 +1,19 @@
+{
+    "check":  "api_surface_diff",
+    "passed":  true,
+    "status":  "passed",
+    "schema_version":  1,
+    "public_exports":  {
+                           "changed":  false
+                       },
+    "additions":  [
+                      "MAW_HEADLESS test-only environment gate"
+                  ],
+    "removals":  [
+
+                 ],
+    "violations":  [
+
+                   ],
+    "note":  "No renderer/preload/API export or package script changed."
+}

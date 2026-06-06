@@ -1,0 +1,12 @@
+{
+    "check":  "refactor_complexity",
+    "schema_version":  1,
+    "passed":  true,
+    "functions":  [
+
+                  ],
+    "violations":  [
+
+                   ],
+    "note":  "Single BrowserWindow option expression; no new branching beyond env check."
+}

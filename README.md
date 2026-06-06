@@ -58,7 +58,7 @@ Run the Electron end-to-end suite:
 npm run test:e2e
 ```
 
-The test suite launches Electron, verifies the dashboard boots without a backend, preserves core customization behavior, and keeps drag/resize handlers connected.
+The test suite launches Electron with `MAW_HEADLESS=1`, verifies the dashboard boots without a backend, preserves core customization behavior, and keeps drag/resize handlers connected. Normal `npm start` launches remain visible because the flag is not set.
 
 ## Contributor Guardrails
 

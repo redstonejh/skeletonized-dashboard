@@ -15,8 +15,13 @@ const LONG_TASK_MS = 50;
 
 async function launchApp() {
   fs.rmSync(path.join(os.homedir(), ".configurable-dashboard-gui", "layout-store.json"), { force: true });
-  const app = await electron.launch({ args: [path.join(__dirname, "..")] });
+  const app = await electron.launch({
+    args: [path.join(__dirname, "..")],
+    env: { ...process.env, MAW_HEADLESS: "1" },
+  });
   const page = await app.firstWindow();
+  const isVisible = await app.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows()[0]?.isVisible());
+  expect(isVisible).toBe(false);
   await page.waitForLoadState("domcontentloaded");
   await page.evaluate(() => {
     localStorage.clear();
