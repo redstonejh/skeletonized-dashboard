@@ -73,6 +73,7 @@ import { createWidgetLayoutRuntime } from "./modules/widget-layout-runtime.js";
 import { createPanelLayoutRuntime } from "./modules/panel-layout-runtime.js";
 import { createOrderedGridItemsRuntime } from "./modules/ordered-grid-items-runtime.js";
 import { createConditionalStyleRuntime } from "./modules/conditional-style-runtime.js";
+import { createWidgetContentRuntime } from "./modules/widget-content-runtime.js";
 import {
   applyPanelColor,
   applyPanelTitleColor,
@@ -1511,9 +1512,7 @@ document.addEventListener("DOMContentLoaded", () => {
       });
     });
   };
-  const widgetInstanceFromElement = (widget, definition = widgetDefinitionForElement(widget)) => widgetRuntimeController.instanceFromElement(widget, definition);
-  const setWidgetRuntimeContent = (widget, html) => widgetRuntimeController.setRuntimeContent(widget, html);
-  const renderWidgetRuntimeContent = (widget, options = {}) => widgetRuntimeController.renderRuntimeContent(widget, options);
+  const { renderWidgetRuntimeContent, setWidgetRuntimeContent, widgetInstanceFromElement } = createWidgetContentRuntime({ widgetRuntimeController });
   const {
     renderWidgetSettingsSchemaPanel,
     renderWidgetWorkbenchPanel,
