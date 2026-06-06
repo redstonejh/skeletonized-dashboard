@@ -1,0 +1,1863 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-06-06T23:15:33.393Z",
+  "cssImportOrder": [
+    "@import \"./tokens.css\";",
+    "@import \"./base.css\";",
+    "@import \"./layout.css\";",
+    "@import \"./components.css\";",
+    "@import \"./dashboard-grid.css\";",
+    "@import \"./themes.css\";",
+    "@import \"./utilities.css\";"
+  ],
+  "files": {
+    "app/static/themes.css": {
+      "lineCount": 5417,
+      "sha256": "a93f5d6a786b47f78b8e9772d5e33bf6c92b5877c2b7b2780a887546dc5841c8",
+      "ruleBlocks": 740,
+      "declarations": 2916,
+      "important": 376,
+      "hardCodedValues": 1009,
+      "regions": [
+        {
+          "startLine": 1,
+          "endLine": 200,
+          "ruleBlocks": 30,
+          "declarations": 154,
+          "dominantBuckets": [
+            "menu-navigation",
+            "base-control",
+            "panel",
+            "interaction"
+          ]
+        },
+        {
+          "startLine": 201,
+          "endLine": 400,
+          "ruleBlocks": 20,
+          "declarations": 148,
+          "dominantBuckets": [
+            "panel",
+            "base-control",
+            "menu-navigation"
+          ]
+        },
+        {
+          "startLine": 401,
+          "endLine": 600,
+          "ruleBlocks": 39,
+          "declarations": 139,
+          "dominantBuckets": [
+            "base-control",
+            "panel",
+            "menu-navigation",
+            "widget"
+          ]
+        },
+        {
+          "startLine": 601,
+          "endLine": 800,
+          "ruleBlocks": 42,
+          "declarations": 118,
+          "dominantBuckets": [
+            "base-control",
+            "menu-navigation",
+            "widget",
+            "panel"
+          ]
+        },
+        {
+          "startLine": 801,
+          "endLine": 1000,
+          "ruleBlocks": 34,
+          "declarations": 125,
+          "dominantBuckets": [
+            "base-control",
+            "panel",
+            "menu-navigation",
+            "widget"
+          ]
+        },
+        {
+          "startLine": 1001,
+          "endLine": 1200,
+          "ruleBlocks": 31,
+          "declarations": 106,
+          "dominantBuckets": [
+            "panel",
+            "menu-navigation"
+          ]
+        },
+        {
+          "startLine": 1201,
+          "endLine": 1400,
+          "ruleBlocks": 26,
+          "declarations": 175,
+          "dominantBuckets": [
+            "menu-navigation",
+            "panel"
+          ]
+        },
+        {
+          "startLine": 1401,
+          "endLine": 1600,
+          "ruleBlocks": 26,
+          "declarations": 95,
+          "dominantBuckets": [
+            "panel",
+            "menu-navigation"
+          ]
+        },
+        {
+          "startLine": 1601,
+          "endLine": 1800,
+          "ruleBlocks": 19,
+          "declarations": 41,
+          "dominantBuckets": [
+            "panel",
+            "menu-navigation",
+            "background-tone",
+            "interaction"
+          ]
+        },
+        {
+          "startLine": 1801,
+          "endLine": 2000,
+          "ruleBlocks": 27,
+          "declarations": 95,
+          "dominantBuckets": [
+            "base-control",
+            "panel",
+            "menu-navigation",
+            "background-tone"
+          ]
+        },
+        {
+          "startLine": 2001,
+          "endLine": 2200,
+          "ruleBlocks": 38,
+          "declarations": 154,
+          "dominantBuckets": [
+            "background-tone",
+            "base-control",
+            "glass-material",
+            "interaction"
+          ]
+        },
+        {
+          "startLine": 2201,
+          "endLine": 2400,
+          "ruleBlocks": 43,
+          "declarations": 144,
+          "dominantBuckets": [
+            "background-tone",
+            "menu-navigation",
+            "panel",
+            "base-control"
+          ]
+        },
+        {
+          "startLine": 2401,
+          "endLine": 2600,
+          "ruleBlocks": 26,
+          "declarations": 100,
+          "dominantBuckets": [
+            "menu-navigation",
+            "background-tone",
+            "panel",
+            "glass-material"
+          ]
+        },
+        {
+          "startLine": 2601,
+          "endLine": 2800,
+          "ruleBlocks": 36,
+          "declarations": 121,
+          "dominantBuckets": [
+            "menu-navigation",
+            "base-control",
+            "panel",
+            "interaction"
+          ]
+        },
+        {
+          "startLine": 2801,
+          "endLine": 3000,
+          "ruleBlocks": 29,
+          "declarations": 110,
+          "dominantBuckets": [
+            "menu-navigation",
+            "background-tone",
+            "panel"
+          ]
+        },
+        {
+          "startLine": 3001,
+          "endLine": 3200,
+          "ruleBlocks": 23,
+          "declarations": 129,
+          "dominantBuckets": [
+            "menu-navigation",
+            "background-tone",
+            "panel"
+          ]
+        },
+        {
+          "startLine": 3201,
+          "endLine": 3400,
+          "ruleBlocks": 27,
+          "declarations": 136,
+          "dominantBuckets": [
+            "menu-navigation",
+            "panel",
+            "base-control",
+            "background-tone"
+          ]
+        },
+        {
+          "startLine": 3401,
+          "endLine": 3600,
+          "ruleBlocks": 25,
+          "declarations": 110,
+          "dominantBuckets": [
+            "widget",
+            "base-control",
+            "interaction",
+            "panel"
+          ]
+        },
+        {
+          "startLine": 3601,
+          "endLine": 3800,
+          "ruleBlocks": 21,
+          "declarations": 54,
+          "dominantBuckets": [
+            "panel",
+            "menu-navigation",
+            "background-tone"
+          ]
+        },
+        {
+          "startLine": 3801,
+          "endLine": 4000,
+          "ruleBlocks": 25,
+          "declarations": 133,
+          "dominantBuckets": [
+            "menu-navigation",
+            "glass-material",
+            "background-tone",
+            "panel"
+          ]
+        },
+        {
+          "startLine": 4001,
+          "endLine": 4200,
+          "ruleBlocks": 24,
+          "declarations": 135,
+          "dominantBuckets": [
+            "panel",
+            "glass-material",
+            "base-control",
+            "background-tone"
+          ]
+        },
+        {
+          "startLine": 4201,
+          "endLine": 4400,
+          "ruleBlocks": 47,
+          "declarations": 139,
+          "dominantBuckets": [
+            "background-tone",
+            "panel"
+          ]
+        },
+        {
+          "startLine": 4401,
+          "endLine": 4600,
+          "ruleBlocks": 10,
+          "declarations": 38,
+          "dominantBuckets": [
+            "background-tone"
+          ]
+        },
+        {
+          "startLine": 4601,
+          "endLine": 4800,
+          "ruleBlocks": 15,
+          "declarations": 37,
+          "dominantBuckets": [
+            "background-tone"
+          ]
+        },
+        {
+          "startLine": 4801,
+          "endLine": 5000,
+          "ruleBlocks": 18,
+          "declarations": 35,
+          "dominantBuckets": [
+            "background-tone"
+          ]
+        },
+        {
+          "startLine": 5001,
+          "endLine": 5200,
+          "ruleBlocks": 16,
+          "declarations": 36,
+          "dominantBuckets": [
+            "background-tone"
+          ]
+        },
+        {
+          "startLine": 5201,
+          "endLine": 5400,
+          "ruleBlocks": 20,
+          "declarations": 100,
+          "dominantBuckets": [
+            "background-tone",
+            "base-control",
+            "panel"
+          ]
+        },
+        {
+          "startLine": 5401,
+          "endLine": 5417,
+          "ruleBlocks": 3,
+          "declarations": 9,
+          "dominantBuckets": [
+            "widget",
+            "base-control"
+          ]
+        }
+      ]
+    },
+    "app/static/dashboard-grid.css": {
+      "lineCount": 3706,
+      "sha256": "016c5f527aa60946d9d492254687c1c4df2caefe6632e6ad87580c19543dce6a",
+      "ruleBlocks": 591,
+      "declarations": 2541,
+      "important": 63,
+      "hardCodedValues": 529,
+      "regions": [
+        {
+          "startLine": 1,
+          "endLine": 200,
+          "ruleBlocks": 24,
+          "declarations": 122,
+          "dominantBuckets": [
+            "panel",
+            "glass-material",
+            "background-tone",
+            "widget"
+          ]
+        },
+        {
+          "startLine": 201,
+          "endLine": 400,
+          "ruleBlocks": 34,
+          "declarations": 137,
+          "dominantBuckets": [
+            "widget",
+            "base-control",
+            "panel"
+          ]
+        },
+        {
+          "startLine": 401,
+          "endLine": 600,
+          "ruleBlocks": 26,
+          "declarations": 163,
+          "dominantBuckets": [
+            "base-control",
+            "widget",
+            "panel"
+          ]
+        },
+        {
+          "startLine": 601,
+          "endLine": 800,
+          "ruleBlocks": 30,
+          "declarations": 140,
+          "dominantBuckets": [
+            "widget",
+            "panel"
+          ]
+        },
+        {
+          "startLine": 801,
+          "endLine": 1000,
+          "ruleBlocks": 33,
+          "declarations": 125,
+          "dominantBuckets": [
+            "widget",
+            "interaction",
+            "panel",
+            "base-control"
+          ]
+        },
+        {
+          "startLine": 1001,
+          "endLine": 1200,
+          "ruleBlocks": 33,
+          "declarations": 143,
+          "dominantBuckets": [
+            "widget",
+            "base-control",
+            "panel"
+          ]
+        },
+        {
+          "startLine": 1201,
+          "endLine": 1400,
+          "ruleBlocks": 31,
+          "declarations": 127,
+          "dominantBuckets": [
+            "panel",
+            "base-control",
+            "widget"
+          ]
+        },
+        {
+          "startLine": 1401,
+          "endLine": 1600,
+          "ruleBlocks": 26,
+          "declarations": 163,
+          "dominantBuckets": [
+            "panel",
+            "base-control"
+          ]
+        },
+        {
+          "startLine": 1601,
+          "endLine": 1800,
+          "ruleBlocks": 28,
+          "declarations": 75,
+          "dominantBuckets": [
+            "panel"
+          ]
+        },
+        {
+          "startLine": 1801,
+          "endLine": 2000,
+          "ruleBlocks": 36,
+          "declarations": 139,
+          "dominantBuckets": [
+            "base-control",
+            "panel"
+          ]
+        },
+        {
+          "startLine": 2001,
+          "endLine": 2200,
+          "ruleBlocks": 30,
+          "declarations": 134,
+          "dominantBuckets": [
+            "panel",
+            "base-control",
+            "interaction"
+          ]
+        },
+        {
+          "startLine": 2201,
+          "endLine": 2400,
+          "ruleBlocks": 24,
+          "declarations": 127,
+          "dominantBuckets": [
+            "panel"
+          ]
+        },
+        {
+          "startLine": 2401,
+          "endLine": 2600,
+          "ruleBlocks": 44,
+          "declarations": 145,
+          "dominantBuckets": [
+            "widget",
+            "base-control",
+            "panel"
+          ]
+        },
+        {
+          "startLine": 2601,
+          "endLine": 2800,
+          "ruleBlocks": 34,
+          "declarations": 148,
+          "dominantBuckets": [
+            "widget",
+            "base-control",
+            "panel"
+          ]
+        },
+        {
+          "startLine": 2801,
+          "endLine": 3000,
+          "ruleBlocks": 35,
+          "declarations": 142,
+          "dominantBuckets": [
+            "base-control",
+            "widget",
+            "panel"
+          ]
+        },
+        {
+          "startLine": 3001,
+          "endLine": 3200,
+          "ruleBlocks": 28,
+          "declarations": 156,
+          "dominantBuckets": [
+            "widget",
+            "base-control",
+            "panel"
+          ]
+        },
+        {
+          "startLine": 3201,
+          "endLine": 3400,
+          "ruleBlocks": 37,
+          "declarations": 142,
+          "dominantBuckets": [
+            "widget",
+            "base-control",
+            "panel"
+          ]
+        },
+        {
+          "startLine": 3401,
+          "endLine": 3600,
+          "ruleBlocks": 36,
+          "declarations": 142,
+          "dominantBuckets": [
+            "base-control",
+            "widget"
+          ]
+        },
+        {
+          "startLine": 3601,
+          "endLine": 3706,
+          "ruleBlocks": 22,
+          "declarations": 71,
+          "dominantBuckets": [
+            "widget",
+            "panel",
+            "base-control"
+          ]
+        }
+      ]
+    }
+  },
+  "totals": {
+    "ruleBlocks": 1331,
+    "declarations": 5457,
+    "important": 439,
+    "hardCodedValues": 1538,
+    "oracleCategories": {
+      "computed-oracle": 4124,
+      "static-only": 724,
+      "animation-oracle": 85,
+      "pseudo-oracle": 452,
+      "media-oracle": 72
+    },
+    "importantByBucket": {
+      "base-control": 50,
+      "widget": 10,
+      "panel": 221,
+      "menu-navigation": 1,
+      "background-tone": 136,
+      "glass-material": 4,
+      "interaction": 17
+    },
+    "hardCodedByBucket": {
+      "menu-navigation": 292,
+      "base-control": 355,
+      "interaction": 21,
+      "panel": 340,
+      "widget": 197,
+      "background-tone": 305,
+      "glass-material": 28
+    },
+    "classifiedImportantSubset": {
+      "total": 392,
+      "redundant": 1,
+      "loadBearing": 391
+    }
+  },
+  "duplicatedPerTone": [
+    {
+      "key": "align-items:center",
+      "count": 73,
+      "sampleSelectors": [
+        ".app-nav",
+        ".app-nav-brand",
+        ".app-logo",
+        ".settings-brand-group",
+        ".settings-brand-switch"
+      ]
+    },
+    {
+      "key": "display:grid",
+      "count": 72,
+      "sampleSelectors": [
+        ".app-nav",
+        ".settings-brand-copy",
+        ".panel-add-menu",
+        ".layout-slot-menu",
+        ".empty-state"
+      ]
+    },
+    {
+      "key": "overflow:hidden",
+      "count": 61,
+      "sampleSelectors": [
+        ".settings-brand-copy strong",
+        ".settings-brand-copy small",
+        ".nav-status-item strong",
+        ".panel-add-menu:not(.open)",
+        ".layout-slot-menu"
+      ]
+    },
+    {
+      "key": "pointer-events:none",
+      "count": 55,
+      "sampleSelectors": [
+        ".panel-add-menu",
+        ".layout-slot-menu",
+        ".toast-stack",
+        ".dash-switch-menu",
+        ".nav-status-popover"
+      ]
+    },
+    {
+      "key": "transform:none",
+      "count": 42,
+      "sampleSelectors": [
+        ".widget-layout > .widget-card.db-panel-custom-color.widget-tools-open, .widget-layout > .widget-card.db-panel-custom-color.widget-tools-open:hover, .widget-layout > .widget-card.db-panel-custom-color.widget-tools-open:focus-visible",
+        ".db-panel.db-panel-tools-open:hover, .db-panel.db-panel-tools-open:focus-within, .db-panel.db-panel-custom-color.db-panel-tools-open:hover, .db-panel.db-panel-custom-color.db-panel-tools-open:focus-within",
+        ".app-nav.workspace-chrome .layout-command-island, .app-nav.workspace-chrome .composition-command-island",
+        ".app-nav.workspace-chrome .workspace-command-island, .app-nav.workspace-chrome .layout-slot-controls",
+        ".app-nav.workspace-chrome .workspace-command-island:hover, .app-nav.workspace-chrome .workspace-command-island:focus-within"
+      ]
+    },
+    {
+      "key": "position:relative",
+      "count": 40,
+      "sampleSelectors": [
+        ".app-nav",
+        ".nav-icon, .btn-icon",
+        ".panel-add-picker",
+        ".layout-slot-controls",
+        ".layout-slot-picker"
+      ]
+    },
+    {
+      "key": "display:inline-flex",
+      "count": 39,
+      "sampleSelectors": [
+        ".app-nav-brand",
+        ".app-logo",
+        ".settings-brand-group",
+        ".settings-brand-switch",
+        ".nav-status-item"
+      ]
+    },
+    {
+      "key": "display:none",
+      "count": 38,
+      "sampleSelectors": [
+        ".timeline-dot",
+        ".secret-control .icon-btn::before",
+        ".save-spinner",
+        ".nav-status-menu > summary::-webkit-details-marker",
+        ".background-tone-menu > summary::-webkit-details-marker"
+      ]
+    },
+    {
+      "key": "border-radius:999px",
+      "count": 37,
+      "sampleSelectors": [
+        ".settings-brand-switch",
+        "button.dash-switch-btn",
+        ".db-panel-body::-webkit-scrollbar-thumb, .esc-feed::-webkit-scrollbar-thumb, .table-scroll::-webkit-scrollbar-thumb",
+        "html::-webkit-scrollbar-thumb, body::-webkit-scrollbar-thumb",
+        ".nav-status-check-icon"
+      ]
+    },
+    {
+      "key": "position:absolute",
+      "count": 36,
+      "sampleSelectors": [
+        ".panel-add-menu",
+        ".layout-slot-trigger::after",
+        ".layout-slot-menu",
+        ".dash-switch-menu",
+        ".nav-status-popover"
+      ]
+    },
+    {
+      "key": "width:100%",
+      "count": 36,
+      "sampleSelectors": [
+        ".secret-control input",
+        ".settings-brand-group",
+        ".nav-status-item, .app-nav-actions .cmd-btn",
+        ".app-nav:not(.settings-nav)",
+        ".app-nav.workspace-chrome > .app-nav-brand-group, .app-nav.workspace-chrome > .app-nav-status, .app-nav.workspace-chrome > .app-nav-actions"
+      ]
+    },
+    {
+      "key": "justify-content:center",
+      "count": 34,
+      "sampleSelectors": [
+        ".app-logo",
+        ".settings-brand-switch",
+        ".app-nav-status",
+        ".nav-icon, .btn-icon",
+        ".panel-reset-button, .panel-undo-button, .panel-add-button, .layout-slot-button, .layout-slot-trigger"
+      ]
+    },
+    {
+      "key": "opacity:0",
+      "count": 34,
+      "sampleSelectors": [
+        ".panel-add-menu",
+        ".layout-slot-menu",
+        ".toast",
+        ".dash-switch-menu",
+        ".nav-status-popover"
+      ]
+    },
+    {
+      "key": "box-shadow:none",
+      "count": 34,
+      "sampleSelectors": [
+        ".icon-btn:hover",
+        ".icon-btn:focus, .icon-btn:active",
+        "button.dash-switch-btn",
+        ".db-panel.db-panel-custom-color > .db-panel-hd",
+        ".db-panel.db-panel-custom-color > .db-panel-hd:hover, .db-panel.db-panel-custom-color > .db-panel-hd:focus-visible"
+      ]
+    },
+    {
+      "key": "letter-spacing:0",
+      "count": 31,
+      "sampleSelectors": [
+        ".app-logo",
+        ".icon-btn",
+        "body, button, input, select, textarea, table",
+        ".stat-val",
+        ".db-panel-title"
+      ]
+    },
+    {
+      "key": "line-height:1",
+      "count": 30,
+      "sampleSelectors": [
+        ".panel-reset-button, .panel-undo-button, .panel-add-button, .layout-slot-button, .layout-slot-trigger",
+        ".panel-add-button",
+        ".panel-add-action, .widget-add-action",
+        ".layout-slot-menu button",
+        ".cmd-btn, .preset-btn, .empty-action, .icon-btn"
+      ]
+    },
+    {
+      "key": "color:var(--ink-strong)",
+      "count": 29,
+      "sampleSelectors": [
+        ".app-nav-brand",
+        ".settings-brand-copy strong",
+        ".nav-status-item strong",
+        ".layout-slot-trigger",
+        ".empty-state strong"
+      ]
+    },
+    {
+      "key": "font-size:12px",
+      "count": 28,
+      "sampleSelectors": [
+        ".nav-status-item strong",
+        ".panel-reset-button, .panel-undo-button, .panel-add-button, .layout-slot-button, .layout-slot-trigger",
+        ".panel-add-action, .widget-add-action",
+        ".layout-slot-menu button",
+        ".empty-action"
+      ]
+    },
+    {
+      "key": "content:\"\"",
+      "count": 27,
+      "sampleSelectors": [
+        ".nav-icon::before, .btn-icon::before, .icon-btn::before, .empty-illustration::before",
+        ".layout-slot-trigger::after",
+        ".nav-status-check-icon::before",
+        ".background-tone-option::before",
+        ".app-nav.workspace-chrome::before"
+      ]
+    },
+    {
+      "key": "opacity:1",
+      "count": 26,
+      "sampleSelectors": [
+        ".panel-add-menu.open",
+        ".layout-slot-menu.open",
+        ".toast.show",
+        ".dash-switch-menu.open",
+        ".nav-status-menu.is-open .nav-status-popover"
+      ]
+    },
+    {
+      "key": "background:transparent",
+      "count": 25,
+      "sampleSelectors": [
+        "html::-webkit-scrollbar, body::-webkit-scrollbar",
+        "html::-webkit-scrollbar-track, body::-webkit-scrollbar-track",
+        "html::-webkit-scrollbar-corner, body::-webkit-scrollbar-corner",
+        ".db-panel.db-panel-custom-color .panel-tools",
+        ".app-nav.workspace-chrome .workspace-command-island"
+      ]
+    },
+    {
+      "key": "font-weight:760",
+      "count": 24,
+      "sampleSelectors": [
+        ".panel-reset-button, .panel-undo-button, .panel-add-button, .layout-slot-button, .layout-slot-trigger",
+        ".panel-add-action, .widget-add-action",
+        ".layout-slot-menu button",
+        ".empty-action",
+        ".parse-warning summary"
+      ]
+    },
+    {
+      "key": "padding:0",
+      "count": 23,
+      "sampleSelectors": [
+        ".panel-add-button",
+        ".layout-slot-controls",
+        ".app-nav:not(.settings-nav) .nav-status-icon-only",
+        ".nav-status-checklist",
+        ".app-nav:not(.settings-nav) .cmd-btn-icon-only"
+      ]
+    },
+    {
+      "key": "cursor:pointer",
+      "count": 22,
+      "sampleSelectors": [
+        ".panel-reset-button, .panel-undo-button, .panel-add-button, .layout-slot-button, .layout-slot-trigger",
+        ".panel-add-action, .widget-add-action",
+        ".icon-btn",
+        ".parse-warning summary",
+        "button.dash-switch-btn"
+      ]
+    },
+    {
+      "key": "pointer-events:auto",
+      "count": 22,
+      "sampleSelectors": [
+        ".panel-add-menu.open",
+        ".layout-slot-menu.open",
+        ".dash-switch-menu.open",
+        ".nav-status-menu.is-open .nav-status-popover",
+        ".background-tone-menu[open] .background-tone-popover"
+      ]
+    }
+  ],
+  "specificityHotspots": [
+    {
+      "selector": ".settings-brand-switch:active, .cmd-btn:active, .icon-btn:active, .cmd-btn-icon-only:active, .dash-switch-hero:active, .background-tone-trigger:active, .panel-reset-button:active, .panel-undo-button:active, .panel-add-button:active, .panel-add-action:active, .widget-add-action:active, .layout-slot-button:active, .layout-slot-trigger:active, .layout-slot-menu button:active, .layout-slot-menu button.is-active, .background-tone-option:active, .confirm-dialog-close:active, .confirm-dialog-btn:active, .app-nav:not(.settings-nav) .nav-status-item:active, .app-nav:not(.settings-nav) .cmd-btn:active, .settings-nav .nav-status-item:active, .app-nav.workspace-chrome button.dash-switch-hero:active, .app-nav.workspace-chrome .background-tone-trigger:active, .app-nav.workspace-chrome .panel-reset-button:active, .app-nav.workspace-chrome .panel-undo-button:active, .app-nav.workspace-chrome .layout-slot-button:active, .app-nav.workspace-chrome .layout-slot-trigger:active, .app-nav.workspace-chrome .workspace-mode-button:active, .app-nav.workspace-chrome .workspace-mode-button[aria-pressed=\"true\"], .app-nav.workspace-chrome .nav-status-icon-only:active, .app-nav.workspace-chrome .cmd-btn-icon-only:active, .app-nav.workspace-chrome .composition-add-button:active, .range-icon-button:active, .preset-btn:active, .preset-btn.active, .range-custom-trigger:active, .range-custom-trigger.active, .panel-lock-toggle:active, .panel-pin-toggle:active, .panel-pin-toggle[aria-pressed=\"true\"], .db-panel-tools-open .panel-settings-toggle, .widget-tools-open .panel-settings-toggle, .panel-settings-toggle:active, .panel-tool-button:active",
+      "line": 1786,
+      "file": "app/static/themes.css",
+      "score": 1173
+    },
+    {
+      "selector": "body.panel-interaction-active .widget-layout > .widget-card:not(.widget-dragging):not(.dashboard-active-resize):not(.dashboard-resize-source):not(.group-transform-member):hover, body.panel-interaction-active .widget-layout > .widget-card:not(.widget-dragging):not(.dashboard-active-resize):not(.dashboard-resize-source):not(.group-transform-member):focus-visible, body.panel-interaction-active .panel-internal-widget-grid > .widget-card:not(.widget-dragging):not(.dashboard-active-resize):not(.dashboard-resize-source):not(.group-transform-member):hover, body.panel-interaction-active .panel-internal-widget-grid > .widget-card:not(.widget-dragging):not(.dashboard-active-resize):not(.dashboard-resize-source):not(.group-transform-member):focus-visible, body.panel-resize-active .widget-layout > .widget-card:not(.widget-dragging):not(.dashboard-active-resize):not(.dashboard-resize-source):not(.group-transform-member):hover, body.panel-resize-active .widget-layout > .widget-card:not(.widget-dragging):not(.dashboard-active-resize):not(.dashboard-resize-source):not(.group-transform-member):focus-visible, body.panel-resize-active .panel-internal-widget-grid > .widget-card:not(.widget-dragging):not(.dashboard-active-resize):not(.dashboard-resize-source):not(.group-transform-member):hover, body.panel-resize-active .panel-internal-widget-grid > .widget-card:not(.widget-dragging):not(.dashboard-active-resize):not(.dashboard-resize-source):not(.group-transform-member):focus-visible",
+      "line": 1741,
+      "file": "app/static/dashboard-grid.css",
+      "score": 968
+    },
+    {
+      "selector": "body.panel-interaction-active .widget-layout > .widget-card:not(.widget-dragging):not(.dashboard-active-resize):not(.dashboard-resize-source):not(.group-transform-member):hover, body.panel-interaction-active .widget-layout > .widget-card:not(.widget-dragging):not(.dashboard-active-resize):not(.dashboard-resize-source):not(.group-transform-member):focus-visible, body.panel-interaction-active .panel-internal-widget-grid > .widget-card:not(.widget-dragging):not(.dashboard-active-resize):not(.dashboard-resize-source):not(.group-transform-member):hover, body.panel-interaction-active .panel-internal-widget-grid > .widget-card:not(.widget-dragging):not(.dashboard-active-resize):not(.dashboard-resize-source):not(.group-transform-member):focus-visible, body.panel-resize-active .widget-layout > .widget-card:not(.widget-dragging):not(.dashboard-active-resize):not(.dashboard-resize-source):not(.group-transform-member):hover, body.panel-resize-active .widget-layout > .widget-card:not(.widget-dragging):not(.dashboard-active-resize):not(.dashboard-resize-source):not(.group-transform-member):focus-visible, body.panel-resize-active .panel-internal-widget-grid > .widget-card:not(.widget-dragging):not(.dashboard-active-resize):not(.dashboard-resize-source):not(.group-transform-member):hover, body.panel-resize-active .panel-internal-widget-grid > .widget-card:not(.widget-dragging):not(.dashboard-active-resize):not(.dashboard-resize-source):not(.group-transform-member):focus-visible",
+      "line": 1741,
+      "file": "app/static/dashboard-grid.css",
+      "score": 968
+    },
+    {
+      "selector": "body.panel-interaction-active .widget-layout > .widget-card:not(.widget-dragging):not(.dashboard-active-resize):not(.dashboard-resize-source):not(.group-transform-member):hover, body.panel-interaction-active .widget-layout > .widget-card:not(.widget-dragging):not(.dashboard-active-resize):not(.dashboard-resize-source):not(.group-transform-member):focus-visible, body.panel-interaction-active .panel-internal-widget-grid > .widget-card:not(.widget-dragging):not(.dashboard-active-resize):not(.dashboard-resize-source):not(.group-transform-member):hover, body.panel-interaction-active .panel-internal-widget-grid > .widget-card:not(.widget-dragging):not(.dashboard-active-resize):not(.dashboard-resize-source):not(.group-transform-member):focus-visible, body.panel-resize-active .widget-layout > .widget-card:not(.widget-dragging):not(.dashboard-active-resize):not(.dashboard-resize-source):not(.group-transform-member):hover, body.panel-resize-active .widget-layout > .widget-card:not(.widget-dragging):not(.dashboard-active-resize):not(.dashboard-resize-source):not(.group-transform-member):focus-visible, body.panel-resize-active .panel-internal-widget-grid > .widget-card:not(.widget-dragging):not(.dashboard-active-resize):not(.dashboard-resize-source):not(.group-transform-member):hover, body.panel-resize-active .panel-internal-widget-grid > .widget-card:not(.widget-dragging):not(.dashboard-active-resize):not(.dashboard-resize-source):not(.group-transform-member):focus-visible",
+      "line": 1741,
+      "file": "app/static/dashboard-grid.css",
+      "score": 968
+    },
+    {
+      "selector": "body.panel-interaction-active .widget-layout > .widget-card:not(.widget-dragging):not(.dashboard-active-resize):not(.dashboard-resize-source):not(.group-transform-member):hover, body.panel-interaction-active .widget-layout > .widget-card:not(.widget-dragging):not(.dashboard-active-resize):not(.dashboard-resize-source):not(.group-transform-member):focus-visible, body.panel-interaction-active .panel-internal-widget-grid > .widget-card:not(.widget-dragging):not(.dashboard-active-resize):not(.dashboard-resize-source):not(.group-transform-member):hover, body.panel-interaction-active .panel-internal-widget-grid > .widget-card:not(.widget-dragging):not(.dashboard-active-resize):not(.dashboard-resize-source):not(.group-transform-member):focus-visible, body.panel-resize-active .widget-layout > .widget-card:not(.widget-dragging):not(.dashboard-active-resize):not(.dashboard-resize-source):not(.group-transform-member):hover, body.panel-resize-active .widget-layout > .widget-card:not(.widget-dragging):not(.dashboard-active-resize):not(.dashboard-resize-source):not(.group-transform-member):focus-visible, body.panel-resize-active .panel-internal-widget-grid > .widget-card:not(.widget-dragging):not(.dashboard-active-resize):not(.dashboard-resize-source):not(.group-transform-member):hover, body.panel-resize-active .panel-internal-widget-grid > .widget-card:not(.widget-dragging):not(.dashboard-active-resize):not(.dashboard-resize-source):not(.group-transform-member):focus-visible",
+      "line": 1741,
+      "file": "app/static/dashboard-grid.css",
+      "score": 968
+    },
+    {
+      "selector": "body.panel-interaction-active .widget-card:not(.widget-dragging):not(.dashboard-active-resize):not(.dashboard-resize-source):not(.group-transform-member) .panel-settings-toggle:hover, body.panel-interaction-active .widget-card:not(.widget-dragging):not(.dashboard-active-resize):not(.dashboard-resize-source):not(.group-transform-member) .panel-settings-toggle:focus-visible, body.panel-interaction-active .db-panel:not(.db-panel-dragging):not(.dashboard-active-resize):not(.dashboard-resize-source):not(.group-transform-member) .panel-settings-toggle:hover, body.panel-interaction-active .db-panel:not(.db-panel-dragging):not(.dashboard-active-resize):not(.dashboard-resize-source):not(.group-transform-member) .panel-settings-toggle:focus-visible, body.panel-resize-active .widget-card:not(.widget-dragging):not(.dashboard-active-resize):not(.dashboard-resize-source):not(.group-transform-member) .panel-settings-toggle:hover, body.panel-resize-active .widget-card:not(.widget-dragging):not(.dashboard-active-resize):not(.dashboard-resize-source):not(.group-transform-member) .panel-settings-toggle:focus-visible, body.panel-resize-active .db-panel:not(.db-panel-dragging):not(.dashboard-active-resize):not(.dashboard-resize-source):not(.group-transform-member) .panel-settings-toggle:hover, body.panel-resize-active .db-panel:not(.db-panel-dragging):not(.dashboard-active-resize):not(.dashboard-resize-source):not(.group-transform-member) .panel-settings-toggle:focus-visible",
+      "line": 1761,
+      "file": "app/static/dashboard-grid.css",
+      "score": 968
+    },
+    {
+      "selector": "body.panel-interaction-active .widget-card:not(.widget-dragging):not(.dashboard-active-resize):not(.dashboard-resize-source):not(.group-transform-member) .panel-settings-toggle:hover, body.panel-interaction-active .widget-card:not(.widget-dragging):not(.dashboard-active-resize):not(.dashboard-resize-source):not(.group-transform-member) .panel-settings-toggle:focus-visible, body.panel-interaction-active .db-panel:not(.db-panel-dragging):not(.dashboard-active-resize):not(.dashboard-resize-source):not(.group-transform-member) .panel-settings-toggle:hover, body.panel-interaction-active .db-panel:not(.db-panel-dragging):not(.dashboard-active-resize):not(.dashboard-resize-source):not(.group-transform-member) .panel-settings-toggle:focus-visible, body.panel-resize-active .widget-card:not(.widget-dragging):not(.dashboard-active-resize):not(.dashboard-resize-source):not(.group-transform-member) .panel-settings-toggle:hover, body.panel-resize-active .widget-card:not(.widget-dragging):not(.dashboard-active-resize):not(.dashboard-resize-source):not(.group-transform-member) .panel-settings-toggle:focus-visible, body.panel-resize-active .db-panel:not(.db-panel-dragging):not(.dashboard-active-resize):not(.dashboard-resize-source):not(.group-transform-member) .panel-settings-toggle:hover, body.panel-resize-active .db-panel:not(.db-panel-dragging):not(.dashboard-active-resize):not(.dashboard-resize-source):not(.group-transform-member) .panel-settings-toggle:focus-visible",
+      "line": 1761,
+      "file": "app/static/dashboard-grid.css",
+      "score": 968
+    },
+    {
+      "selector": "body.panel-interaction-active .widget-card:not(.widget-dragging):not(.dashboard-active-resize):not(.dashboard-resize-source):not(.group-transform-member) .panel-settings-toggle:hover, body.panel-interaction-active .widget-card:not(.widget-dragging):not(.dashboard-active-resize):not(.dashboard-resize-source):not(.group-transform-member) .panel-settings-toggle:focus-visible, body.panel-interaction-active .db-panel:not(.db-panel-dragging):not(.dashboard-active-resize):not(.dashboard-resize-source):not(.group-transform-member) .panel-settings-toggle:hover, body.panel-interaction-active .db-panel:not(.db-panel-dragging):not(.dashboard-active-resize):not(.dashboard-resize-source):not(.group-transform-member) .panel-settings-toggle:focus-visible, body.panel-resize-active .widget-card:not(.widget-dragging):not(.dashboard-active-resize):not(.dashboard-resize-source):not(.group-transform-member) .panel-settings-toggle:hover, body.panel-resize-active .widget-card:not(.widget-dragging):not(.dashboard-active-resize):not(.dashboard-resize-source):not(.group-transform-member) .panel-settings-toggle:focus-visible, body.panel-resize-active .db-panel:not(.db-panel-dragging):not(.dashboard-active-resize):not(.dashboard-resize-source):not(.group-transform-member) .panel-settings-toggle:hover, body.panel-resize-active .db-panel:not(.db-panel-dragging):not(.dashboard-active-resize):not(.dashboard-resize-source):not(.group-transform-member) .panel-settings-toggle:focus-visible",
+      "line": 1761,
+      "file": "app/static/dashboard-grid.css",
+      "score": 968
+    },
+    {
+      "selector": "body.panel-interaction-active .widget-card:not(.widget-dragging):not(.dashboard-active-resize):not(.dashboard-resize-source):not(.group-transform-member) .panel-settings-toggle:hover, body.panel-interaction-active .widget-card:not(.widget-dragging):not(.dashboard-active-resize):not(.dashboard-resize-source):not(.group-transform-member) .panel-settings-toggle:focus-visible, body.panel-interaction-active .db-panel:not(.db-panel-dragging):not(.dashboard-active-resize):not(.dashboard-resize-source):not(.group-transform-member) .panel-settings-toggle:hover, body.panel-interaction-active .db-panel:not(.db-panel-dragging):not(.dashboard-active-resize):not(.dashboard-resize-source):not(.group-transform-member) .panel-settings-toggle:focus-visible, body.panel-resize-active .widget-card:not(.widget-dragging):not(.dashboard-active-resize):not(.dashboard-resize-source):not(.group-transform-member) .panel-settings-toggle:hover, body.panel-resize-active .widget-card:not(.widget-dragging):not(.dashboard-active-resize):not(.dashboard-resize-source):not(.group-transform-member) .panel-settings-toggle:focus-visible, body.panel-resize-active .db-panel:not(.db-panel-dragging):not(.dashboard-active-resize):not(.dashboard-resize-source):not(.group-transform-member) .panel-settings-toggle:hover, body.panel-resize-active .db-panel:not(.db-panel-dragging):not(.dashboard-active-resize):not(.dashboard-resize-source):not(.group-transform-member) .panel-settings-toggle:focus-visible",
+      "line": 1761,
+      "file": "app/static/dashboard-grid.css",
+      "score": 968
+    },
+    {
+      "selector": "body.panel-interaction-active .widget-card:not(.widget-dragging):not(.dashboard-active-resize):not(.dashboard-resize-source):not(.group-transform-member) .panel-settings-toggle:hover, body.panel-interaction-active .widget-card:not(.widget-dragging):not(.dashboard-active-resize):not(.dashboard-resize-source):not(.group-transform-member) .panel-settings-toggle:focus-visible, body.panel-interaction-active .db-panel:not(.db-panel-dragging):not(.dashboard-active-resize):not(.dashboard-resize-source):not(.group-transform-member) .panel-settings-toggle:hover, body.panel-interaction-active .db-panel:not(.db-panel-dragging):not(.dashboard-active-resize):not(.dashboard-resize-source):not(.group-transform-member) .panel-settings-toggle:focus-visible, body.panel-resize-active .widget-card:not(.widget-dragging):not(.dashboard-active-resize):not(.dashboard-resize-source):not(.group-transform-member) .panel-settings-toggle:hover, body.panel-resize-active .widget-card:not(.widget-dragging):not(.dashboard-active-resize):not(.dashboard-resize-source):not(.group-transform-member) .panel-settings-toggle:focus-visible, body.panel-resize-active .db-panel:not(.db-panel-dragging):not(.dashboard-active-resize):not(.dashboard-resize-source):not(.group-transform-member) .panel-settings-toggle:hover, body.panel-resize-active .db-panel:not(.db-panel-dragging):not(.dashboard-active-resize):not(.dashboard-resize-source):not(.group-transform-member) .panel-settings-toggle:focus-visible",
+      "line": 1761,
+      "file": "app/static/dashboard-grid.css",
+      "score": 968
+    },
+    {
+      "selector": ".settings-brand-switch:hover, .cmd-btn:hover, .icon-btn:hover, .cmd-btn-icon-only:hover, .dash-switch-hero:hover, .background-tone-trigger:hover, .panel-reset-button:hover, .panel-undo-button:hover, .panel-add-button:hover, .panel-add-action:hover, .widget-add-action:hover, .layout-slot-button:hover, .layout-slot-trigger:hover, .layout-slot-menu button:hover, .background-tone-option:hover, .confirm-dialog-close:hover, .confirm-dialog-btn:hover, .app-nav:not(.settings-nav) .nav-status-item:hover, .settings-nav .nav-status-item:hover, .app-nav.workspace-chrome button.dash-switch-hero:hover, .app-nav.workspace-chrome .background-tone-trigger:hover, .app-nav.workspace-chrome .panel-reset-button:hover, .app-nav.workspace-chrome .panel-undo-button:hover, .app-nav.workspace-chrome .layout-slot-button:hover, .app-nav.workspace-chrome .layout-slot-trigger:hover, .app-nav.workspace-chrome .workspace-mode-button:hover, .app-nav.workspace-chrome .nav-status-icon-only:hover, .app-nav.workspace-chrome .cmd-btn-icon-only:hover, .app-nav.workspace-chrome .composition-add-button:hover, .range-icon-button:hover, .preset-btn:hover, .range-custom-trigger:hover, .panel-lock-toggle:hover, .panel-pin-toggle:hover, .panel-settings-toggle:hover, .panel-tool-button:hover",
+      "line": 1705,
+      "file": "app/static/themes.css",
+      "score": 962
+    },
+    {
+      "selector": ".settings-brand-switch:focus-visible, .cmd-btn:focus-visible, .icon-btn:focus-visible, .cmd-btn-icon-only:focus-visible, .dash-switch-hero:focus-visible, .background-tone-trigger:focus-visible, .panel-reset-button:focus-visible, .panel-undo-button:focus-visible, .panel-add-button:focus-visible, .panel-add-action:focus-visible, .widget-add-action:focus-visible, .layout-slot-button:focus-visible, .layout-slot-trigger:focus-visible, .layout-slot-menu button:focus-visible, .background-tone-option:focus-visible, .confirm-dialog-close:focus-visible, .confirm-dialog-btn:focus-visible, .app-nav:not(.settings-nav) .nav-status-item:focus-within, .settings-nav .nav-status-item:focus-within, .app-nav.workspace-chrome button.dash-switch-hero:focus-visible, .app-nav.workspace-chrome .background-tone-trigger:focus-visible, .app-nav.workspace-chrome .panel-reset-button:focus-visible, .app-nav.workspace-chrome .panel-undo-button:focus-visible, .app-nav.workspace-chrome .layout-slot-button:focus-visible, .app-nav.workspace-chrome .layout-slot-trigger:focus-visible, .app-nav.workspace-chrome .workspace-mode-button:focus-visible, .app-nav.workspace-chrome .nav-status-icon-only:focus-visible, .app-nav.workspace-chrome .cmd-btn-icon-only:focus-visible, .app-nav.workspace-chrome .composition-add-button:focus-visible, .range-icon-button:focus-visible, .range-custom-trigger:focus-visible, .panel-lock-toggle:focus-visible, .panel-pin-toggle:focus-visible, .panel-settings-toggle:focus-visible, .panel-tool-button:focus-visible",
+      "line": 1741,
+      "file": "app/static/themes.css",
+      "score": 942
+    },
+    {
+      "selector": "body.has-photo-background .panel-layout > .db-panel:has(.panel-internal-widget-grid > .widget-card:is(:hover, .surface-response-active)):not(.db-panel-dragging):not(.dashboard-active-resize):not(.db-panel-tools-open):not(.db-panel-collapsed), body.has-photo-background .panel-layout > .db-panel:has(:is(.panel-tools, .panel-tool-drawer, button, input, select, textarea, [contenteditable=\"true\"]):hover):not(.db-panel-dragging):not(.dashboard-active-resize), body.has-photo-background .panel-layout > .db-panel:has(:is(.panel-tools, .panel-tool-drawer, input, select, textarea, [contenteditable=\"true\"]):focus-within):not(.db-panel-dragging):not(.dashboard-active-resize), body.has-photo-background .panel-layout > .db-panel.db-panel-custom-color:has(.panel-internal-widget-grid > .widget-card:is(:hover, .surface-response-active)):not(.db-panel-dragging):not(.dashboard-active-resize):not(.db-panel-tools-open):not(.db-panel-collapsed), body.has-photo-background .panel-layout > .db-panel.db-panel-custom-color:has(:is(.panel-tools, .panel-tool-drawer, button, input, select, textarea, [contenteditable=\"true\"]):hover):not(.db-panel-dragging):not(.dashboard-active-resize), body.has-photo-background .panel-layout > .db-panel.db-panel-custom-color:has(:is(.panel-tools, .panel-tool-drawer, input, select, textarea, [contenteditable=\"true\"]):focus-within):not(.db-panel-dragging):not(.dashboard-active-resize)",
+      "line": 5137,
+      "file": "app/static/themes.css",
+      "score": 910
+    },
+    {
+      "selector": "body.has-photo-background .panel-layout > .db-panel:has(.panel-internal-widget-grid > .widget-card:is(:hover, .surface-response-active)):not(.db-panel-dragging):not(.dashboard-active-resize):not(.db-panel-tools-open):not(.db-panel-collapsed), body.has-photo-background .panel-layout > .db-panel:has(:is(.panel-tools, .panel-tool-drawer, button, input, select, textarea, [contenteditable=\"true\"]):hover):not(.db-panel-dragging):not(.dashboard-active-resize), body.has-photo-background .panel-layout > .db-panel:has(:is(.panel-tools, .panel-tool-drawer, input, select, textarea, [contenteditable=\"true\"]):focus-within):not(.db-panel-dragging):not(.dashboard-active-resize), body.has-photo-background .panel-layout > .db-panel.db-panel-custom-color:has(.panel-internal-widget-grid > .widget-card:is(:hover, .surface-response-active)):not(.db-panel-dragging):not(.dashboard-active-resize):not(.db-panel-tools-open):not(.db-panel-collapsed), body.has-photo-background .panel-layout > .db-panel.db-panel-custom-color:has(:is(.panel-tools, .panel-tool-drawer, button, input, select, textarea, [contenteditable=\"true\"]):hover):not(.db-panel-dragging):not(.dashboard-active-resize), body.has-photo-background .panel-layout > .db-panel.db-panel-custom-color:has(:is(.panel-tools, .panel-tool-drawer, input, select, textarea, [contenteditable=\"true\"]):focus-within):not(.db-panel-dragging):not(.dashboard-active-resize)",
+      "line": 5258,
+      "file": "app/static/themes.css",
+      "score": 910
+    },
+    {
+      "selector": "body.has-photo-background .panel-layout > .db-panel:has(.panel-internal-widget-grid > .widget-card:is(:hover, .surface-response-active)):not(.db-panel-dragging):not(.dashboard-active-resize):not(.db-panel-tools-open):not(.db-panel-collapsed), body.has-photo-background .panel-layout > .db-panel:has(:is(.panel-tools, .panel-tool-drawer, button, input, select, textarea, [contenteditable=\"true\"]):hover):not(.db-panel-dragging):not(.dashboard-active-resize), body.has-photo-background .panel-layout > .db-panel:has(:is(.panel-tools, .panel-tool-drawer, input, select, textarea, [contenteditable=\"true\"]):focus-within):not(.db-panel-dragging):not(.dashboard-active-resize), body.has-photo-background .panel-layout > .db-panel.db-panel-custom-color:has(.panel-internal-widget-grid > .widget-card:is(:hover, .surface-response-active)):not(.db-panel-dragging):not(.dashboard-active-resize):not(.db-panel-tools-open):not(.db-panel-collapsed), body.has-photo-background .panel-layout > .db-panel.db-panel-custom-color:has(:is(.panel-tools, .panel-tool-drawer, button, input, select, textarea, [contenteditable=\"true\"]):hover):not(.db-panel-dragging):not(.dashboard-active-resize), body.has-photo-background .panel-layout > .db-panel.db-panel-custom-color:has(:is(.panel-tools, .panel-tool-drawer, input, select, textarea, [contenteditable=\"true\"]):focus-within):not(.db-panel-dragging):not(.dashboard-active-resize)",
+      "line": 5258,
+      "file": "app/static/themes.css",
+      "score": 910
+    },
+    {
+      "selector": ".db-panel.db-panel-custom-color .panel-lock-toggle:hover, .db-panel.db-panel-custom-color .panel-pin-toggle:hover, .db-panel.db-panel-custom-color .panel-settings-toggle:hover, .db-panel.db-panel-custom-color .panel-tool-button:hover, .widget-card.db-panel-custom-color .panel-settings-toggle:hover, .widget-card.db-panel-custom-color .panel-tool-button:hover, .db-panel.db-panel-custom-color .panel-lock-toggle:focus-visible, .db-panel.db-panel-custom-color .panel-pin-toggle:focus-visible, .db-panel.db-panel-custom-color .panel-settings-toggle:focus-visible, .db-panel.db-panel-custom-color .panel-tool-button:focus-visible, .widget-card.db-panel-custom-color .panel-settings-toggle:focus-visible, .widget-card.db-panel-custom-color .panel-tool-button:focus-visible, .db-panel.db-panel-custom-color .panel-lock-toggle:active, .db-panel.db-panel-custom-color .panel-pin-toggle:active, .db-panel.db-panel-custom-color .panel-settings-toggle:active, .db-panel.db-panel-custom-color .panel-tool-button:active, .widget-card.db-panel-custom-color .panel-settings-toggle:active, .widget-card.db-panel-custom-color .panel-tool-button:active, .db-panel.db-panel-custom-color.db-panel-tools-open .panel-settings-toggle, .widget-card.db-panel-custom-color.widget-tools-open .panel-settings-toggle",
+      "line": 1112,
+      "file": "app/static/themes.css",
+      "score": 800
+    },
+    {
+      "selector": ".db-panel.db-panel-custom-color .panel-lock-toggle:hover, .db-panel.db-panel-custom-color .panel-pin-toggle:hover, .db-panel.db-panel-custom-color .panel-settings-toggle:hover, .db-panel.db-panel-custom-color .panel-tool-button:hover, .widget-card.db-panel-custom-color .panel-settings-toggle:hover, .widget-card.db-panel-custom-color .panel-tool-button:hover, .db-panel.db-panel-custom-color .panel-lock-toggle:focus-visible, .db-panel.db-panel-custom-color .panel-pin-toggle:focus-visible, .db-panel.db-panel-custom-color .panel-settings-toggle:focus-visible, .db-panel.db-panel-custom-color .panel-tool-button:focus-visible, .widget-card.db-panel-custom-color .panel-settings-toggle:focus-visible, .widget-card.db-panel-custom-color .panel-tool-button:focus-visible, .db-panel.db-panel-custom-color .panel-lock-toggle:active, .db-panel.db-panel-custom-color .panel-pin-toggle:active, .db-panel.db-panel-custom-color .panel-settings-toggle:active, .db-panel.db-panel-custom-color .panel-tool-button:active, .widget-card.db-panel-custom-color .panel-settings-toggle:active, .widget-card.db-panel-custom-color .panel-tool-button:active, .db-panel.db-panel-custom-color.db-panel-tools-open .panel-settings-toggle, .widget-card.db-panel-custom-color.widget-tools-open .panel-settings-toggle",
+      "line": 1112,
+      "file": "app/static/themes.css",
+      "score": 800
+    },
+    {
+      "selector": ".db-panel.db-panel-custom-color .panel-lock-toggle:hover, .db-panel.db-panel-custom-color .panel-pin-toggle:hover, .db-panel.db-panel-custom-color .panel-settings-toggle:hover, .db-panel.db-panel-custom-color .panel-tool-button:hover, .widget-card.db-panel-custom-color .panel-settings-toggle:hover, .widget-card.db-panel-custom-color .panel-tool-button:hover, .db-panel.db-panel-custom-color .panel-lock-toggle:focus-visible, .db-panel.db-panel-custom-color .panel-pin-toggle:focus-visible, .db-panel.db-panel-custom-color .panel-settings-toggle:focus-visible, .db-panel.db-panel-custom-color .panel-tool-button:focus-visible, .widget-card.db-panel-custom-color .panel-settings-toggle:focus-visible, .widget-card.db-panel-custom-color .panel-tool-button:focus-visible, .db-panel.db-panel-custom-color .panel-lock-toggle:active, .db-panel.db-panel-custom-color .panel-pin-toggle:active, .db-panel.db-panel-custom-color .panel-settings-toggle:active, .db-panel.db-panel-custom-color .panel-tool-button:active, .widget-card.db-panel-custom-color .panel-settings-toggle:active, .widget-card.db-panel-custom-color .panel-tool-button:active, .db-panel.db-panel-custom-color.db-panel-tools-open .panel-settings-toggle, .widget-card.db-panel-custom-color.widget-tools-open .panel-settings-toggle",
+      "line": 1112,
+      "file": "app/static/themes.css",
+      "score": 800
+    },
+    {
+      "selector": ".db-panel.db-panel-custom-color .panel-lock-toggle:hover, .db-panel.db-panel-custom-color .panel-pin-toggle:hover, .db-panel.db-panel-custom-color .panel-settings-toggle:hover, .db-panel.db-panel-custom-color .panel-tool-button:hover, .widget-card.db-panel-custom-color .panel-settings-toggle:hover, .widget-card.db-panel-custom-color .panel-tool-button:hover, .db-panel.db-panel-custom-color .panel-lock-toggle:focus-visible, .db-panel.db-panel-custom-color .panel-pin-toggle:focus-visible, .db-panel.db-panel-custom-color .panel-settings-toggle:focus-visible, .db-panel.db-panel-custom-color .panel-tool-button:focus-visible, .widget-card.db-panel-custom-color .panel-settings-toggle:focus-visible, .widget-card.db-panel-custom-color .panel-tool-button:focus-visible, .db-panel.db-panel-custom-color .panel-lock-toggle:active, .db-panel.db-panel-custom-color .panel-pin-toggle:active, .db-panel.db-panel-custom-color .panel-settings-toggle:active, .db-panel.db-panel-custom-color .panel-tool-button:active, .widget-card.db-panel-custom-color .panel-settings-toggle:active, .widget-card.db-panel-custom-color .panel-tool-button:active, .db-panel.db-panel-custom-color.db-panel-tools-open .panel-settings-toggle, .widget-card.db-panel-custom-color.widget-tools-open .panel-settings-toggle",
+      "line": 1112,
+      "file": "app/static/themes.css",
+      "score": 800
+    },
+    {
+      "selector": "body.has-photo-background .widget-layout > .widget-card:hover, body.has-photo-background .widget-layout > .widget-card:focus-visible, body.has-photo-background .panel-internal-widget-grid > .widget-card:hover, body.has-photo-background .panel-internal-widget-grid > .widget-card:focus-visible, body.has-photo-background .db-panel:hover, body.has-photo-background .db-panel:focus-within, body.has-photo-background .db-panel.db-panel-collapsed:hover, body.has-photo-background .db-panel.db-panel-collapsed:focus-within, body.has-photo-background .db-panel.db-panel-tools-open:hover, body.has-photo-background .db-panel.db-panel-tools-open:focus-within, body.has-photo-background .db-panel.db-panel-custom-color:hover, body.has-photo-background .db-panel.db-panel-custom-color:focus-within, body.has-photo-background .db-panel.db-panel-custom-color.db-panel-collapsed:hover, body.has-photo-background .db-panel.db-panel-custom-color.db-panel-collapsed:focus-within, body.has-photo-background .db-panel.db-panel-custom-color.db-panel-tools-open:hover, body.has-photo-background .db-panel.db-panel-custom-color.db-panel-tools-open:focus-within, body.has-photo-background .workspace-divider.db-panel:hover, body.has-photo-background .workspace-divider.db-panel:focus-within",
+      "line": 5233,
+      "file": "app/static/themes.css",
+      "score": 758
+    },
+    {
+      "selector": "body.has-photo-background .widget-layout > .widget-card:hover, body.has-photo-background .widget-layout > .widget-card:focus-visible, body.has-photo-background .panel-internal-widget-grid > .widget-card:hover, body.has-photo-background .panel-internal-widget-grid > .widget-card:focus-visible, body.has-photo-background .db-panel:hover, body.has-photo-background .db-panel:focus-within, body.has-photo-background .db-panel.db-panel-collapsed:hover, body.has-photo-background .db-panel.db-panel-collapsed:focus-within, body.has-photo-background .db-panel.db-panel-tools-open:hover, body.has-photo-background .db-panel.db-panel-tools-open:focus-within, body.has-photo-background .db-panel.db-panel-custom-color:hover, body.has-photo-background .db-panel.db-panel-custom-color:focus-within, body.has-photo-background .db-panel.db-panel-custom-color.db-panel-collapsed:hover, body.has-photo-background .db-panel.db-panel-custom-color.db-panel-collapsed:focus-within, body.has-photo-background .db-panel.db-panel-custom-color.db-panel-tools-open:hover, body.has-photo-background .db-panel.db-panel-custom-color.db-panel-tools-open:focus-within, body.has-photo-background .workspace-divider.db-panel:hover, body.has-photo-background .workspace-divider.db-panel:focus-within",
+      "line": 5233,
+      "file": "app/static/themes.css",
+      "score": 758
+    },
+    {
+      "selector": "body.has-photo-background .widget-layout > .widget-card:hover, body.has-photo-background .widget-layout > .widget-card:focus-visible, body.has-photo-background .panel-internal-widget-grid > .widget-card:hover, body.has-photo-background .panel-internal-widget-grid > .widget-card:focus-visible, body.has-photo-background .db-panel:hover, body.has-photo-background .db-panel:focus-within, body.has-photo-background .db-panel.db-panel-collapsed:hover, body.has-photo-background .db-panel.db-panel-collapsed:focus-within, body.has-photo-background .db-panel.db-panel-tools-open:hover, body.has-photo-background .db-panel.db-panel-tools-open:focus-within, body.has-photo-background .db-panel.db-panel-custom-color:hover, body.has-photo-background .db-panel.db-panel-custom-color:focus-within, body.has-photo-background .db-panel.db-panel-custom-color.db-panel-collapsed:hover, body.has-photo-background .db-panel.db-panel-custom-color.db-panel-collapsed:focus-within, body.has-photo-background .db-panel.db-panel-custom-color.db-panel-tools-open:hover, body.has-photo-background .db-panel.db-panel-custom-color.db-panel-tools-open:focus-within, body.has-photo-background .workspace-divider.db-panel:hover, body.has-photo-background .workspace-divider.db-panel:focus-within",
+      "line": 5233,
+      "file": "app/static/themes.css",
+      "score": 758
+    },
+    {
+      "selector": ".app-nav:not(.settings-nav) .cmd-btn:hover, .app-nav:not(.settings-nav) .cmd-btn:focus-visible, .app-nav:not(.settings-nav) .panel-reset-button:hover, .app-nav:not(.settings-nav) .panel-reset-button:focus-visible, .app-nav:not(.settings-nav) .panel-undo-button:hover, .app-nav:not(.settings-nav) .panel-undo-button:focus-visible, .app-nav:not(.settings-nav) .panel-add-button:hover, .app-nav:not(.settings-nav) .panel-add-button:focus-visible, .app-nav:not(.settings-nav) .panel-add-action:hover, .app-nav:not(.settings-nav) .panel-add-action:focus-visible, .app-nav:not(.settings-nav) .layout-slot-button:hover, .app-nav:not(.settings-nav) .layout-slot-button:focus-visible, .app-nav:not(.settings-nav) .layout-slot-trigger:hover, .app-nav:not(.settings-nav) .layout-slot-trigger:focus-visible",
+      "line": 414,
+      "file": "app/static/themes.css",
+      "score": 700
+    },
+    {
+      "selector": ".widget-layout > .widget-card:has(:is(.widget-tools, .panel-tool-drawer, [data-widget-control-surface=\"true\"], button, input, select, textarea, [contenteditable=\"true\"]):hover)::before, .widget-layout > .widget-card:has(:is(.widget-tools, .panel-tool-drawer, [data-widget-control-surface=\"true\"], input, select, textarea, [contenteditable=\"true\"]):focus-within)::before, .panel-internal-widget-grid > .widget-card:has(:is(.widget-tools, .panel-tool-drawer, [data-widget-control-surface=\"true\"], button, input, select, textarea, [contenteditable=\"true\"]):hover)::before, .panel-internal-widget-grid > .widget-card:has(:is(.widget-tools, .panel-tool-drawer, [data-widget-control-surface=\"true\"], input, select, textarea, [contenteditable=\"true\"]):focus-within)::before, .panel-layout > .db-panel:has(.panel-internal-widget-grid > .widget-card:is(:hover, .surface-response-active))::before, .panel-layout > .db-panel:has(:is(.panel-tools, .panel-tool-drawer, button, input, select, textarea, [contenteditable=\"true\"]):hover)::before, .panel-layout > .db-panel:has(:is(.panel-tools, .panel-tool-drawer, input, select, textarea, [contenteditable=\"true\"]):focus-within)::before",
+      "line": 3779,
+      "file": "app/static/themes.css",
+      "score": 691
+    },
+    {
+      "selector": ".app-nav.workspace-chrome .layout-slot-menu button:active, .app-nav.workspace-chrome .layout-slot-menu button.is-active, .app-nav.workspace-chrome .panel-add-action:active, .app-nav.workspace-chrome .widget-add-action:active, .app-nav.workspace-chrome .divider-add-action:active, .app-nav.workspace-chrome .object-add-category-trigger:active, .app-nav.workspace-chrome .object-add-subcategory-trigger:active, .app-nav.workspace-chrome .dash-switch-opt:active, .app-nav.workspace-chrome .background-tone-option:active, .panel-add-action:active, .widget-add-action:active, .divider-add-action:active, .object-add-category-trigger:active, .object-add-subcategory-trigger:active, .layout-slot-menu button:active, .layout-slot-menu button.is-active, .dash-switch-opt:active, .background-tone-option:active, .preset-btn:active, .preset-btn.active, .range-custom-trigger:active, .range-custom-trigger.active, .range-icon-button:active, .confirm-dialog-btn:active, .confirm-dialog-close:active",
+      "line": 3696,
+      "file": "app/static/themes.css",
+      "score": 684
+    },
+    {
+      "selector": ".app-nav.workspace-chrome .layout-slot-menu button:active, .app-nav.workspace-chrome .layout-slot-menu button.is-active, .app-nav.workspace-chrome .panel-add-action:active, .app-nav.workspace-chrome .widget-add-action:active, .app-nav.workspace-chrome .divider-add-action:active, .app-nav.workspace-chrome .object-add-category-trigger:active, .app-nav.workspace-chrome .object-add-subcategory-trigger:active, .app-nav.workspace-chrome .dash-switch-opt:active, .app-nav.workspace-chrome .background-tone-option:active, .panel-add-action:active, .widget-add-action:active, .divider-add-action:active, .object-add-category-trigger:active, .object-add-subcategory-trigger:active, .layout-slot-menu button:active, .layout-slot-menu button.is-active, .dash-switch-opt:active, .background-tone-option:active, .preset-btn:active, .preset-btn.active, .range-custom-trigger:active, .range-custom-trigger.active, .range-icon-button:active, .confirm-dialog-btn:active, .confirm-dialog-close:active",
+      "line": 3696,
+      "file": "app/static/themes.css",
+      "score": 684
+    },
+    {
+      "selector": ".app-nav.workspace-chrome .background-tone-trigger:hover, .app-nav.workspace-chrome .background-tone-trigger:focus-visible, .app-nav.workspace-chrome .panel-reset-button:hover, .app-nav.workspace-chrome .panel-reset-button:focus-visible, .app-nav.workspace-chrome .panel-undo-button:hover, .app-nav.workspace-chrome .panel-undo-button:focus-visible, .app-nav.workspace-chrome .layout-slot-button:hover, .app-nav.workspace-chrome .layout-slot-button:focus-visible, .app-nav.workspace-chrome .layout-slot-trigger:hover, .app-nav.workspace-chrome .layout-slot-trigger:focus-visible, .app-nav.workspace-chrome .workspace-mode-button:hover, .app-nav.workspace-chrome .workspace-mode-button:focus-visible, .app-nav.workspace-chrome .nav-status-icon-only:hover, .app-nav.workspace-chrome .nav-status-icon-only:focus-visible, .app-nav.workspace-chrome .cmd-btn-icon-only:hover, .app-nav.workspace-chrome .cmd-btn-icon-only:focus-visible",
+      "line": 2519,
+      "file": "app/static/themes.css",
+      "score": 640
+    },
+    {
+      "selector": ".app-nav.workspace-chrome .background-tone-trigger:hover, .app-nav.workspace-chrome .background-tone-trigger:focus-visible, .app-nav.workspace-chrome .panel-reset-button:hover, .app-nav.workspace-chrome .panel-reset-button:focus-visible, .app-nav.workspace-chrome .panel-undo-button:hover, .app-nav.workspace-chrome .panel-undo-button:focus-visible, .app-nav.workspace-chrome .layout-slot-button:hover, .app-nav.workspace-chrome .layout-slot-button:focus-visible, .app-nav.workspace-chrome .layout-slot-trigger:hover, .app-nav.workspace-chrome .layout-slot-trigger:focus-visible, .app-nav.workspace-chrome .workspace-mode-button:hover, .app-nav.workspace-chrome .workspace-mode-button:focus-visible, .app-nav.workspace-chrome .nav-status-icon-only:hover, .app-nav.workspace-chrome .nav-status-icon-only:focus-visible, .app-nav.workspace-chrome .cmd-btn-icon-only:hover, .app-nav.workspace-chrome .cmd-btn-icon-only:focus-visible",
+      "line": 2519,
+      "file": "app/static/themes.css",
+      "score": 640
+    },
+    {
+      "selector": ".app-nav.workspace-chrome .background-tone-trigger:hover, .app-nav.workspace-chrome .background-tone-trigger:focus-visible, .app-nav.workspace-chrome .panel-reset-button:hover, .app-nav.workspace-chrome .panel-reset-button:focus-visible, .app-nav.workspace-chrome .panel-undo-button:hover, .app-nav.workspace-chrome .panel-undo-button:focus-visible, .app-nav.workspace-chrome .layout-slot-button:hover, .app-nav.workspace-chrome .layout-slot-button:focus-visible, .app-nav.workspace-chrome .layout-slot-trigger:hover, .app-nav.workspace-chrome .layout-slot-trigger:focus-visible, .app-nav.workspace-chrome .workspace-mode-button:hover, .app-nav.workspace-chrome .workspace-mode-button:focus-visible, .app-nav.workspace-chrome .nav-status-icon-only:hover, .app-nav.workspace-chrome .nav-status-icon-only:focus-visible, .app-nav.workspace-chrome .cmd-btn-icon-only:hover, .app-nav.workspace-chrome .cmd-btn-icon-only:focus-visible",
+      "line": 2519,
+      "file": "app/static/themes.css",
+      "score": 640
+    },
+    {
+      "selector": ".dashboard-layout-grid .widget-card[data-lod=\"far\"]:not(:focus-within):not(.active):not(.group-selected):not(.widget-dragging):not(.dashboard-active-resize):not(.widget-tools-open):hover, .dashboard-layout-grid .db-panel[data-lod=\"far\"]:not(:focus-within):not(.active):not(.group-selected):not(.db-panel-dragging):not(.dashboard-active-resize):not(.db-panel-tools-open):hover, .dashboard-layout-grid .widget-card[data-visual-lod=\"far\"]:not(:focus-within):not(.active):not(.group-selected):not(.widget-dragging):not(.dashboard-active-resize):not(.widget-tools-open):hover, .dashboard-layout-grid .db-panel[data-visual-lod=\"far\"]:not(:focus-within):not(.active):not(.group-selected):not(.db-panel-dragging):not(.dashboard-active-resize):not(.db-panel-tools-open):hover",
+      "line": 3751,
+      "file": "app/static/themes.css",
+      "score": 640
+    }
+  ],
+  "sharedGlassMaterialLocations": [
+    {
+      "file": "app/static/themes.css",
+      "line": 2012,
+      "selector": ".confirm-dialog::backdrop",
+      "property": "background",
+      "value": "rgba(15, 23, 42, .28)",
+      "important": false
+    },
+    {
+      "file": "app/static/themes.css",
+      "line": 2012,
+      "selector": ".confirm-dialog::backdrop",
+      "property": "backdrop-filter",
+      "value": "blur(8px)",
+      "important": false
+    },
+    {
+      "file": "app/static/themes.css",
+      "line": 2495,
+      "selector": ".app-nav.workspace-chrome .workspace-mode-button[aria-pressed=\"true\"], .app-nav.workspace-chrome .layout-group-button[aria-pressed=\"true\"], .app-nav.workspace-chrome .liquid-glass-toggle[aria-pressed=\"true\"]",
+      "property": "background",
+      "value": "color-mix(in srgb, var(--blue) 13%, transparent)",
+      "important": false
+    },
+    {
+      "file": "app/static/themes.css",
+      "line": 2495,
+      "selector": ".app-nav.workspace-chrome .workspace-mode-button[aria-pressed=\"true\"], .app-nav.workspace-chrome .layout-group-button[aria-pressed=\"true\"], .app-nav.workspace-chrome .liquid-glass-toggle[aria-pressed=\"true\"]",
+      "property": "color",
+      "value": "color-mix(in srgb, var(--blue) 86%, var(--ink-strong))",
+      "important": false
+    },
+    {
+      "file": "app/static/themes.css",
+      "line": 2495,
+      "selector": ".app-nav.workspace-chrome .workspace-mode-button[aria-pressed=\"true\"], .app-nav.workspace-chrome .layout-group-button[aria-pressed=\"true\"], .app-nav.workspace-chrome .liquid-glass-toggle[aria-pressed=\"true\"]",
+      "property": "box-shadow",
+      "value": "inset 0 -2px 0 color-mix(in srgb, var(--blue) 54%, transparent)",
+      "important": false
+    },
+    {
+      "file": "app/static/themes.css",
+      "line": 2641,
+      "selector": ".confirm-dialog::backdrop",
+      "property": "background",
+      "value": "radial-gradient(circle at 50% 22%, rgba(255, 255, 255, .16), transparent 42%), rgba(15, 23, 42, .30)",
+      "important": false
+    },
+    {
+      "file": "app/static/themes.css",
+      "line": 2641,
+      "selector": ".confirm-dialog::backdrop",
+      "property": "backdrop-filter",
+      "value": "blur(10px) saturate(1.08)",
+      "important": false
+    },
+    {
+      "file": "app/static/themes.css",
+      "line": 2641,
+      "selector": ".confirm-dialog::backdrop",
+      "property": "-webkit-backdrop-filter",
+      "value": "blur(10px) saturate(1.08)",
+      "important": false
+    },
+    {
+      "file": "app/static/themes.css",
+      "line": 3805,
+      "selector": ".nav-menu-shell, .floating-glass-menu",
+      "property": "border",
+      "value": "1px solid var(--glass-border)",
+      "important": false
+    },
+    {
+      "file": "app/static/themes.css",
+      "line": 3805,
+      "selector": ".nav-menu-shell, .floating-glass-menu",
+      "property": "border-radius",
+      "value": "14px",
+      "important": false
+    },
+    {
+      "file": "app/static/themes.css",
+      "line": 3805,
+      "selector": ".nav-menu-shell, .floating-glass-menu",
+      "property": "background",
+      "value": "var(--glass-surface-strong)",
+      "important": false
+    },
+    {
+      "file": "app/static/themes.css",
+      "line": 3805,
+      "selector": ".nav-menu-shell, .floating-glass-menu",
+      "property": "box-shadow",
+      "value": "var(--shadow-glass)",
+      "important": false
+    },
+    {
+      "file": "app/static/themes.css",
+      "line": 3805,
+      "selector": ".nav-menu-shell, .floating-glass-menu",
+      "property": "backdrop-filter",
+      "value": "blur(18px) saturate(1.12)",
+      "important": false
+    },
+    {
+      "file": "app/static/themes.css",
+      "line": 3805,
+      "selector": ".nav-menu-shell, .floating-glass-menu",
+      "property": "-webkit-backdrop-filter",
+      "value": "blur(18px) saturate(1.12)",
+      "important": false
+    },
+    {
+      "file": "app/static/themes.css",
+      "line": 3805,
+      "selector": ".nav-menu-shell, .floating-glass-menu",
+      "property": "color",
+      "value": "var(--ink)",
+      "important": false
+    },
+    {
+      "file": "app/static/themes.css",
+      "line": 3805,
+      "selector": ".nav-menu-shell, .floating-glass-menu",
+      "property": "scrollbar-width",
+      "value": "thin",
+      "important": false
+    },
+    {
+      "file": "app/static/themes.css",
+      "line": 3805,
+      "selector": ".nav-menu-shell, .floating-glass-menu",
+      "property": "scrollbar-color",
+      "value": "color-mix(in srgb, var(--ink) 24%, transparent) transparent",
+      "important": false
+    },
+    {
+      "file": "app/static/themes.css",
+      "line": 3817,
+      "selector": ".nav-menu-shell::-webkit-scrollbar, .floating-glass-menu::-webkit-scrollbar, .glass-menu-scroll-region::-webkit-scrollbar",
+      "property": "width",
+      "value": "8px",
+      "important": false
+    },
+    {
+      "file": "app/static/themes.css",
+      "line": 3817,
+      "selector": ".nav-menu-shell::-webkit-scrollbar, .floating-glass-menu::-webkit-scrollbar, .glass-menu-scroll-region::-webkit-scrollbar",
+      "property": "height",
+      "value": "8px",
+      "important": false
+    },
+    {
+      "file": "app/static/themes.css",
+      "line": 3822,
+      "selector": ".nav-menu-shell::-webkit-scrollbar-track, .floating-glass-menu::-webkit-scrollbar-track, .glass-menu-scroll-region::-webkit-scrollbar-track",
+      "property": "background",
+      "value": "transparent",
+      "important": false
+    },
+    {
+      "file": "app/static/themes.css",
+      "line": 3826,
+      "selector": ".nav-menu-shell::-webkit-scrollbar-thumb, .floating-glass-menu::-webkit-scrollbar-thumb, .glass-menu-scroll-region::-webkit-scrollbar-thumb",
+      "property": "border",
+      "value": "2px solid transparent",
+      "important": false
+    },
+    {
+      "file": "app/static/themes.css",
+      "line": 3826,
+      "selector": ".nav-menu-shell::-webkit-scrollbar-thumb, .floating-glass-menu::-webkit-scrollbar-thumb, .glass-menu-scroll-region::-webkit-scrollbar-thumb",
+      "property": "border-radius",
+      "value": "999px",
+      "important": false
+    },
+    {
+      "file": "app/static/themes.css",
+      "line": 3826,
+      "selector": ".nav-menu-shell::-webkit-scrollbar-thumb, .floating-glass-menu::-webkit-scrollbar-thumb, .glass-menu-scroll-region::-webkit-scrollbar-thumb",
+      "property": "background",
+      "value": "color-mix(in srgb, var(--ink) 24%, transparent)",
+      "important": false
+    },
+    {
+      "file": "app/static/themes.css",
+      "line": 3826,
+      "selector": ".nav-menu-shell::-webkit-scrollbar-thumb, .floating-glass-menu::-webkit-scrollbar-thumb, .glass-menu-scroll-region::-webkit-scrollbar-thumb",
+      "property": "background-clip",
+      "value": "content-box",
+      "important": false
+    },
+    {
+      "file": "app/static/themes.css",
+      "line": 3914,
+      "selector": ".object-add-browser.glass-menu-scroll-region",
+      "property": "min-width",
+      "value": "168px",
+      "important": false
+    },
+    {
+      "file": "app/static/themes.css",
+      "line": 3914,
+      "selector": ".object-add-browser.glass-menu-scroll-region",
+      "property": "gap",
+      "value": "5px",
+      "important": false
+    },
+    {
+      "file": "app/static/themes.css",
+      "line": 3914,
+      "selector": ".object-add-browser.glass-menu-scroll-region",
+      "property": "overflow",
+      "value": "visible",
+      "important": false
+    },
+    {
+      "file": "app/static/themes.css",
+      "line": 3918,
+      "selector": ".glass-menu-section",
+      "property": "position",
+      "value": "relative",
+      "important": false
+    },
+    {
+      "file": "app/static/themes.css",
+      "line": 3918,
+      "selector": ".glass-menu-section",
+      "property": "display",
+      "value": "grid",
+      "important": false
+    },
+    {
+      "file": "app/static/themes.css",
+      "line": 3918,
+      "selector": ".glass-menu-section",
+      "property": "gap",
+      "value": "5px",
+      "important": false
+    },
+    {
+      "file": "app/static/themes.css",
+      "line": 3922,
+      "selector": ".glass-menu-section + .glass-menu-section",
+      "property": "margin-top",
+      "value": "8px",
+      "important": false
+    },
+    {
+      "file": "app/static/themes.css",
+      "line": 3922,
+      "selector": ".glass-menu-section + .glass-menu-section",
+      "property": "padding-top",
+      "value": "8px",
+      "important": false
+    },
+    {
+      "file": "app/static/themes.css",
+      "line": 3922,
+      "selector": ".glass-menu-section + .glass-menu-section",
+      "property": "border-top",
+      "value": "1px solid color-mix(in srgb, var(--glass-border) 52%, transparent)",
+      "important": false
+    },
+    {
+      "file": "app/static/themes.css",
+      "line": 4014,
+      "selector": ".object-add-submenu.glass-submenu-panel",
+      "property": "position",
+      "value": "absolute",
+      "important": false
+    },
+    {
+      "file": "app/static/themes.css",
+      "line": 4014,
+      "selector": ".object-add-submenu.glass-submenu-panel",
+      "property": "top",
+      "value": "0",
+      "important": false
+    },
+    {
+      "file": "app/static/themes.css",
+      "line": 4014,
+      "selector": ".object-add-submenu.glass-submenu-panel",
+      "property": "left",
+      "value": "calc(100% + 8px)",
+      "important": false
+    },
+    {
+      "file": "app/static/themes.css",
+      "line": 4014,
+      "selector": ".object-add-submenu.glass-submenu-panel",
+      "property": "z-index",
+      "value": "calc(var(--z-navbar-dropdown, 1650) + 1)",
+      "important": false
+    },
+    {
+      "file": "app/static/themes.css",
+      "line": 4014,
+      "selector": ".object-add-submenu.glass-submenu-panel",
+      "property": "display",
+      "value": "grid",
+      "important": false
+    },
+    {
+      "file": "app/static/themes.css",
+      "line": 4014,
+      "selector": ".object-add-submenu.glass-submenu-panel",
+      "property": "gap",
+      "value": "5px",
+      "important": false
+    },
+    {
+      "file": "app/static/themes.css",
+      "line": 4014,
+      "selector": ".object-add-submenu.glass-submenu-panel",
+      "property": "min-width",
+      "value": "190px",
+      "important": false
+    },
+    {
+      "file": "app/static/themes.css",
+      "line": 4014,
+      "selector": ".object-add-submenu.glass-submenu-panel",
+      "property": "width",
+      "value": "max-content",
+      "important": false
+    },
+    {
+      "file": "app/static/themes.css",
+      "line": 4014,
+      "selector": ".object-add-submenu.glass-submenu-panel",
+      "property": "max-height",
+      "value": "var(--glass-submenu-max-height, min(72vh, 520px))",
+      "important": false
+    },
+    {
+      "file": "app/static/themes.css",
+      "line": 4014,
+      "selector": ".object-add-submenu.glass-submenu-panel",
+      "property": "padding",
+      "value": "7px",
+      "important": false
+    },
+    {
+      "file": "app/static/themes.css",
+      "line": 4014,
+      "selector": ".object-add-submenu.glass-submenu-panel",
+      "property": "overflow-y",
+      "value": "auto",
+      "important": false
+    },
+    {
+      "file": "app/static/themes.css",
+      "line": 4014,
+      "selector": ".object-add-submenu.glass-submenu-panel",
+      "property": "overflow-x",
+      "value": "visible",
+      "important": false
+    },
+    {
+      "file": "app/static/themes.css",
+      "line": 4014,
+      "selector": ".object-add-submenu.glass-submenu-panel",
+      "property": "overscroll-behavior",
+      "value": "contain",
+      "important": false
+    },
+    {
+      "file": "app/static/themes.css",
+      "line": 4014,
+      "selector": ".object-add-submenu.glass-submenu-panel",
+      "property": "opacity",
+      "value": "0",
+      "important": false
+    },
+    {
+      "file": "app/static/themes.css",
+      "line": 4014,
+      "selector": ".object-add-submenu.glass-submenu-panel",
+      "property": "visibility",
+      "value": "hidden",
+      "important": false
+    },
+    {
+      "file": "app/static/themes.css",
+      "line": 4014,
+      "selector": ".object-add-submenu.glass-submenu-panel",
+      "property": "pointer-events",
+      "value": "none",
+      "important": false
+    },
+    {
+      "file": "app/static/themes.css",
+      "line": 4014,
+      "selector": ".object-add-submenu.glass-submenu-panel",
+      "property": "transform",
+      "value": "translateX(-5px) scale(.985)",
+      "important": false
+    },
+    {
+      "file": "app/static/themes.css",
+      "line": 4014,
+      "selector": ".object-add-submenu.glass-submenu-panel",
+      "property": "transform-origin",
+      "value": "top left",
+      "important": false
+    },
+    {
+      "file": "app/static/themes.css",
+      "line": 4014,
+      "selector": ".object-add-submenu.glass-submenu-panel",
+      "property": "transition",
+      "value": "opacity .14s ease, transform .16s cubic-bezier(.2, .8, .2, 1), visibility 0s linear .16s",
+      "important": false
+    },
+    {
+      "file": "app/static/themes.css",
+      "line": 4037,
+      "selector": ".object-add-submenu.glass-submenu-panel::before",
+      "property": "inset",
+      "value": "1px 9px auto",
+      "important": false
+    },
+    {
+      "file": "app/static/themes.css",
+      "line": 4039,
+      "selector": ".object-add-submenu.glass-submenu-panel::after",
+      "property": "content",
+      "value": "\"\"",
+      "important": false
+    },
+    {
+      "file": "app/static/themes.css",
+      "line": 4039,
+      "selector": ".object-add-submenu.glass-submenu-panel::after",
+      "property": "position",
+      "value": "absolute",
+      "important": false
+    },
+    {
+      "file": "app/static/themes.css",
+      "line": 4039,
+      "selector": ".object-add-submenu.glass-submenu-panel::after",
+      "property": "top",
+      "value": "0",
+      "important": false
+    },
+    {
+      "file": "app/static/themes.css",
+      "line": 4039,
+      "selector": ".object-add-submenu.glass-submenu-panel::after",
+      "property": "bottom",
+      "value": "0",
+      "important": false
+    },
+    {
+      "file": "app/static/themes.css",
+      "line": 4039,
+      "selector": ".object-add-submenu.glass-submenu-panel::after",
+      "property": "left",
+      "value": "-10px",
+      "important": false
+    },
+    {
+      "file": "app/static/themes.css",
+      "line": 4039,
+      "selector": ".object-add-submenu.glass-submenu-panel::after",
+      "property": "width",
+      "value": "10px",
+      "important": false
+    },
+    {
+      "file": "app/static/themes.css",
+      "line": 4046,
+      "selector": ".object-add-submenu.glass-submenu-panel.submenu-opens-left",
+      "property": "right",
+      "value": "calc(100% + 8px)",
+      "important": false
+    },
+    {
+      "file": "app/static/themes.css",
+      "line": 4046,
+      "selector": ".object-add-submenu.glass-submenu-panel.submenu-opens-left",
+      "property": "left",
+      "value": "auto",
+      "important": false
+    },
+    {
+      "file": "app/static/themes.css",
+      "line": 4046,
+      "selector": ".object-add-submenu.glass-submenu-panel.submenu-opens-left",
+      "property": "transform-origin",
+      "value": "top right",
+      "important": false
+    },
+    {
+      "file": "app/static/themes.css",
+      "line": 4046,
+      "selector": ".object-add-submenu.glass-submenu-panel.submenu-opens-left",
+      "property": "transform",
+      "value": "translateX(5px) scale(.985)",
+      "important": false
+    },
+    {
+      "file": "app/static/themes.css",
+      "line": 4051,
+      "selector": ".object-add-submenu.glass-submenu-panel.submenu-opens-left::after",
+      "property": "right",
+      "value": "-10px",
+      "important": false
+    },
+    {
+      "file": "app/static/themes.css",
+      "line": 4051,
+      "selector": ".object-add-submenu.glass-submenu-panel.submenu-opens-left::after",
+      "property": "left",
+      "value": "auto",
+      "important": false
+    },
+    {
+      "file": "app/static/themes.css",
+      "line": 4054,
+      "selector": ".object-add-submenu.glass-submenu-panel.submenu-pin-bottom",
+      "property": "top",
+      "value": "auto",
+      "important": false
+    },
+    {
+      "file": "app/static/themes.css",
+      "line": 4054,
+      "selector": ".object-add-submenu.glass-submenu-panel.submenu-pin-bottom",
+      "property": "bottom",
+      "value": "0",
+      "important": false
+    },
+    {
+      "file": "app/static/themes.css",
+      "line": 4062,
+      "selector": ".panel-add-menu.open .object-add-category:hover > .object-add-submenu.glass-submenu-panel, .panel-add-menu.open .object-add-category:focus-within > .object-add-submenu.glass-submenu-panel, .panel-add-menu.open .object-add-category.is-open > .object-add-submenu.glass-submenu-panel, .panel-add-menu.open .object-add-subcategory:hover > .object-add-submenu.glass-submenu-panel, .panel-add-menu.open .object-add-subcategory:focus-within > .object-add-submenu.glass-submenu-panel, .panel-add-menu.open .object-add-subcategory.is-open > .object-add-submenu.glass-submenu-panel",
+      "property": "opacity",
+      "value": "1",
+      "important": false
+    },
+    {
+      "file": "app/static/themes.css",
+      "line": 4062,
+      "selector": ".panel-add-menu.open .object-add-category:hover > .object-add-submenu.glass-submenu-panel, .panel-add-menu.open .object-add-category:focus-within > .object-add-submenu.glass-submenu-panel, .panel-add-menu.open .object-add-category.is-open > .object-add-submenu.glass-submenu-panel, .panel-add-menu.open .object-add-subcategory:hover > .object-add-submenu.glass-submenu-panel, .panel-add-menu.open .object-add-subcategory:focus-within > .object-add-submenu.glass-submenu-panel, .panel-add-menu.open .object-add-subcategory.is-open > .object-add-submenu.glass-submenu-panel",
+      "property": "visibility",
+      "value": "visible",
+      "important": false
+    },
+    {
+      "file": "app/static/themes.css",
+      "line": 4062,
+      "selector": ".panel-add-menu.open .object-add-category:hover > .object-add-submenu.glass-submenu-panel, .panel-add-menu.open .object-add-category:focus-within > .object-add-submenu.glass-submenu-panel, .panel-add-menu.open .object-add-category.is-open > .object-add-submenu.glass-submenu-panel, .panel-add-menu.open .object-add-subcategory:hover > .object-add-submenu.glass-submenu-panel, .panel-add-menu.open .object-add-subcategory:focus-within > .object-add-submenu.glass-submenu-panel, .panel-add-menu.open .object-add-subcategory.is-open > .object-add-submenu.glass-submenu-panel",
+      "property": "pointer-events",
+      "value": "auto",
+      "important": false
+    },
+    {
+      "file": "app/static/themes.css",
+      "line": 4062,
+      "selector": ".panel-add-menu.open .object-add-category:hover > .object-add-submenu.glass-submenu-panel, .panel-add-menu.open .object-add-category:focus-within > .object-add-submenu.glass-submenu-panel, .panel-add-menu.open .object-add-category.is-open > .object-add-submenu.glass-submenu-panel, .panel-add-menu.open .object-add-subcategory:hover > .object-add-submenu.glass-submenu-panel, .panel-add-menu.open .object-add-subcategory:focus-within > .object-add-submenu.glass-submenu-panel, .panel-add-menu.open .object-add-subcategory.is-open > .object-add-submenu.glass-submenu-panel",
+      "property": "transform",
+      "value": "translateX(0) scale(1)",
+      "important": false
+    },
+    {
+      "file": "app/static/themes.css",
+      "line": 4062,
+      "selector": ".panel-add-menu.open .object-add-category:hover > .object-add-submenu.glass-submenu-panel, .panel-add-menu.open .object-add-category:focus-within > .object-add-submenu.glass-submenu-panel, .panel-add-menu.open .object-add-category.is-open > .object-add-submenu.glass-submenu-panel, .panel-add-menu.open .object-add-subcategory:hover > .object-add-submenu.glass-submenu-panel, .panel-add-menu.open .object-add-subcategory:focus-within > .object-add-submenu.glass-submenu-panel, .panel-add-menu.open .object-add-subcategory.is-open > .object-add-submenu.glass-submenu-panel",
+      "property": "transition-delay",
+      "value": "0s",
+      "important": false
+    },
+    {
+      "file": "app/static/themes.css",
+      "line": 4077,
+      "selector": ".workspace-menu-overlay-layer .object-add-submenu.glass-submenu-panel",
+      "property": "z-index",
+      "value": "calc(var(--z-menu-overlay, 2600) + 2)",
+      "important": false
+    },
+    {
+      "file": "app/static/dashboard-grid.css",
+      "line": 22,
+      "selector": ".liquid-glass-webgl-canvas",
+      "property": "position",
+      "value": "fixed",
+      "important": false
+    },
+    {
+      "file": "app/static/dashboard-grid.css",
+      "line": 22,
+      "selector": ".liquid-glass-webgl-canvas",
+      "property": "inset",
+      "value": "0",
+      "important": false
+    },
+    {
+      "file": "app/static/dashboard-grid.css",
+      "line": 22,
+      "selector": ".liquid-glass-webgl-canvas",
+      "property": "z-index",
+      "value": "0",
+      "important": false
+    },
+    {
+      "file": "app/static/dashboard-grid.css",
+      "line": 22,
+      "selector": ".liquid-glass-webgl-canvas",
+      "property": "pointer-events",
+      "value": "none",
+      "important": false
+    },
+    {
+      "file": "app/static/dashboard-grid.css",
+      "line": 22,
+      "selector": ".liquid-glass-webgl-canvas",
+      "property": "display",
+      "value": "none",
+      "important": false
+    },
+    {
+      "file": "app/static/dashboard-grid.css",
+      "line": 28,
+      "selector": "body.webgl-glass-on .liquid-glass-webgl-canvas",
+      "property": "display",
+      "value": "block",
+      "important": false
+    },
+    {
+      "file": "app/static/dashboard-grid.css",
+      "line": 30,
+      "selector": "body.webgl-glass-on main.page",
+      "property": "position",
+      "value": "relative",
+      "important": false
+    },
+    {
+      "file": "app/static/dashboard-grid.css",
+      "line": 30,
+      "selector": "body.webgl-glass-on main.page",
+      "property": "z-index",
+      "value": "1",
+      "important": false
+    },
+    {
+      "file": "app/static/dashboard-grid.css",
+      "line": 37,
+      "selector": "body.webgl-glass-on .widget-layout > .widget-card, body.webgl-glass-on .panel-layout > .db-panel, body.webgl-glass-on .panel-layout > .widget-card, body.webgl-glass-on .db-panel.db-panel-tools-open",
+      "property": "background",
+      "value": "transparent",
+      "important": true
+    },
+    {
+      "file": "app/static/dashboard-grid.css",
+      "line": 37,
+      "selector": "body.webgl-glass-on .widget-layout > .widget-card, body.webgl-glass-on .panel-layout > .db-panel, body.webgl-glass-on .panel-layout > .widget-card, body.webgl-glass-on .db-panel.db-panel-tools-open",
+      "property": "-webkit-backdrop-filter",
+      "value": "none",
+      "important": true
+    },
+    {
+      "file": "app/static/dashboard-grid.css",
+      "line": 37,
+      "selector": "body.webgl-glass-on .widget-layout > .widget-card, body.webgl-glass-on .panel-layout > .db-panel, body.webgl-glass-on .panel-layout > .widget-card, body.webgl-glass-on .db-panel.db-panel-tools-open",
+      "property": "backdrop-filter",
+      "value": "none",
+      "important": true
+    },
+    {
+      "file": "app/static/dashboard-grid.css",
+      "line": 42,
+      "selector": "body.webgl-glass-on .db-panel.db-panel-custom-color, body.webgl-glass-on .widget-card.db-panel-custom-color",
+      "property": "background",
+      "value": "transparent",
+      "important": true
+    }
+  ],
+  "consolidationCandidates": [
+    {
+      "rank": 1,
+      "slice": "Tokenize hard-coded px/color/shadow values",
+      "risk": "low-medium",
+      "gate": "computed-style parity for controls, panels, widgets, menus",
+      "evidence": {
+        "menu-navigation": 292,
+        "base-control": 355,
+        "interaction": 21,
+        "panel": 340,
+        "widget": 197,
+        "background-tone": 305,
+        "glass-material": 28
+      }
+    },
+    {
+      "rank": 2,
+      "slice": "Collapse duplicated per-background-tone declarations into custom properties",
+      "risk": "medium",
+      "gate": "all background tones in computed-style oracle",
+      "evidence": [
+        {
+          "key": "align-items:center",
+          "count": 73,
+          "sampleSelectors": [
+            ".app-nav",
+            ".app-nav-brand",
+            ".app-logo",
+            ".settings-brand-group",
+            ".settings-brand-switch"
+          ]
+        },
+        {
+          "key": "display:grid",
+          "count": 72,
+          "sampleSelectors": [
+            ".app-nav",
+            ".settings-brand-copy",
+            ".panel-add-menu",
+            ".layout-slot-menu",
+            ".empty-state"
+          ]
+        },
+        {
+          "key": "overflow:hidden",
+          "count": 61,
+          "sampleSelectors": [
+            ".settings-brand-copy strong",
+            ".settings-brand-copy small",
+            ".nav-status-item strong",
+            ".panel-add-menu:not(.open)",
+            ".layout-slot-menu"
+          ]
+        },
+        {
+          "key": "pointer-events:none",
+          "count": 55,
+          "sampleSelectors": [
+            ".panel-add-menu",
+            ".layout-slot-menu",
+            ".toast-stack",
+            ".dash-switch-menu",
+            ".nav-status-popover"
+          ]
+        },
+        {
+          "key": "transform:none",
+          "count": 42,
+          "sampleSelectors": [
+            ".widget-layout > .widget-card.db-panel-custom-color.widget-tools-open, .widget-layout > .widget-card.db-panel-custom-color.widget-tools-open:hover, .widget-layout > .widget-card.db-panel-custom-color.widget-tools-open:focus-visible",
+            ".db-panel.db-panel-tools-open:hover, .db-panel.db-panel-tools-open:focus-within, .db-panel.db-panel-custom-color.db-panel-tools-open:hover, .db-panel.db-panel-custom-color.db-panel-tools-open:focus-within",
+            ".app-nav.workspace-chrome .layout-command-island, .app-nav.workspace-chrome .composition-command-island",
+            ".app-nav.workspace-chrome .workspace-command-island, .app-nav.workspace-chrome .layout-slot-controls",
+            ".app-nav.workspace-chrome .workspace-command-island:hover, .app-nav.workspace-chrome .workspace-command-island:focus-within"
+          ]
+        },
+        {
+          "key": "position:relative",
+          "count": 40,
+          "sampleSelectors": [
+            ".app-nav",
+            ".nav-icon, .btn-icon",
+            ".panel-add-picker",
+            ".layout-slot-controls",
+            ".layout-slot-picker"
+          ]
+        },
+        {
+          "key": "display:inline-flex",
+          "count": 39,
+          "sampleSelectors": [
+            ".app-nav-brand",
+            ".app-logo",
+            ".settings-brand-group",
+            ".settings-brand-switch",
+            ".nav-status-item"
+          ]
+        },
+        {
+          "key": "display:none",
+          "count": 38,
+          "sampleSelectors": [
+            ".timeline-dot",
+            ".secret-control .icon-btn::before",
+            ".save-spinner",
+            ".nav-status-menu > summary::-webkit-details-marker",
+            ".background-tone-menu > summary::-webkit-details-marker"
+          ]
+        }
+      ]
+    },
+    {
+      "rank": 3,
+      "slice": "Reduce removable !important declarations from classified subset",
+      "risk": "medium-high",
+      "gate": "important-classification plus computed-style parity",
+      "evidence": {
+        "total": 392,
+        "redundant": 1,
+        "loadBearing": 391
+      }
+    },
+    {
+      "rank": 4,
+      "slice": "Unify shared glass material rules",
+      "risk": "high",
+      "gate": "webgl-glass/photo/custom-color matrix parity",
+      "evidence": "sharedGlassMaterialLocations"
+    },
+    {
+      "rank": 5,
+      "slice": "Split themes.css into cohesive modules after parity is frozen",
+      "risk": "high",
+      "gate": "zero computed-style drift and import-order proof",
+      "evidence": "cssImportOrder"
+    }
+  ],
+  "declarationCount": 5457
+}

@@ -1,0 +1,2906 @@
+{
+  "schemaVersion": 2,
+  "capturedAt": "deterministic-fingerprint",
+  "appRootLabel": "workspace",
+  "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) configurable-dashboard-gui-electron/1.0.0 Chrome/134.0.6998.205 Electron/35.7.5 Safari/537.36",
+  "sourceHashes": {
+    "app/static/tokens.css": "98033a36eec10578a39f5ca5297ba0f858ae35f9b3308d100bf81ef4bcf23606",
+    "app/static/themes.css": "a93f5d6a786b47f78b8e9772d5e33bf6c92b5877c2b7b2780a887546dc5841c8",
+    "app/static/dashboard-grid.css": "016c5f527aa60946d9d492254687c1c4df2caefe6632e6ad87580c19543dce6a"
+  },
+  "fingerprintAlgorithm": "sha256-base64url(canonical-json(per-selector sha256-base64url hashes of computed-style subset + custom vars))",
+  "matrix": {
+    "backgrounds": [
+      "black",
+      "blue-mist",
+      "blue-slate",
+      "charcoal",
+      "charcoal-grey",
+      "cool-dark-steel",
+      "cool-grey",
+      "cool-white",
+      "dark-blue-grey",
+      "dark-frosted",
+      "dark-grey",
+      "dark-steel",
+      "darker-soft-grey",
+      "deep-grey",
+      "deep-navy",
+      "deep-slate",
+      "desaturated-dark-blue",
+      "frosted-light",
+      "graphite",
+      "graphite-grey",
+      "graphite-light",
+      "gunmetal",
+      "industrial-grey",
+      "light-blue-grey",
+      "medium-cool-grey",
+      "medium-grey",
+      "medium-soft-grey",
+      "muted-blue-grey",
+      "muted-midnight-blue",
+      "muted-navy",
+      "near-black",
+      "near-black-grey",
+      "neutral-dim",
+      "neutral-grey",
+      "pale-cool-grey",
+      "pale-warm-grey",
+      "photo-bark",
+      "photo-city",
+      "photo-cloud",
+      "photo-denim",
+      "photo-earth",
+      "photo-jungle",
+      "photo-jupiter",
+      "photo-leather",
+      "photo-marble",
+      "photo-mars",
+      "photo-mercury",
+      "photo-modern",
+      "photo-moss",
+      "photo-neptune",
+      "photo-paint",
+      "photo-paintspill",
+      "photo-pluto",
+      "photo-sand",
+      "photo-saturn",
+      "photo-shore",
+      "photo-texture",
+      "photo-turf",
+      "photo-uranus",
+      "photo-venus",
+      "photo-water",
+      "photo-water2",
+      "slate",
+      "slate-grey",
+      "soft-black",
+      "soft-charcoal",
+      "soft-cinema",
+      "soft-grey",
+      "solar-system",
+      "stone-grey",
+      "stone-slate",
+      "very-pale-grey",
+      "warm-grey",
+      "warm-near-black",
+      "warm-white"
+    ],
+    "themes": [
+      "default"
+    ],
+    "states": [
+      "rest",
+      "menus-open",
+      "tools-open",
+      "selected-dragging",
+      "collapsed-pinned",
+      "focus-visible",
+      "webgl-glass"
+    ],
+    "viewports": [
+      "desktop",
+      "narrow-980",
+      "mobile-720"
+    ],
+    "selectorKeys": [
+      ".app-nav|0|",
+      ".background-tone-option|0|",
+      ".background-tone-option|0|::before",
+      ".background-tone-option|1|",
+      ".background-tone-option|1|::before",
+      ".background-tone-popover|0|",
+      ".dashboard-layout-grid|0|",
+      ".db-panel-body|0|",
+      ".db-panel-body|1|",
+      ".db-panel-count|0|",
+      ".db-panel-count|1|",
+      ".db-panel-hd|0|",
+      ".db-panel-hd|0|::before",
+      ".db-panel-hd|1|",
+      ".db-panel-hd|1|::before",
+      ".db-panel-title|0|",
+      ".db-panel-title|1|",
+      ".db-panel|0|",
+      ".db-panel|1|",
+      ".layout-slot-button|0|",
+      ".layout-slot-button|1|",
+      ".object-add-category-trigger|0|",
+      ".object-add-category-trigger|1|",
+      ".page|0|",
+      ".panel-add-button|0|",
+      ".panel-add-menu|0|",
+      ".panel-color-menu|0|",
+      ".panel-color-menu|1|",
+      ".panel-layout|0|",
+      ".panel-move-handle|0|",
+      ".panel-move-handle|1|",
+      ".panel-pin-toggle|0|",
+      ".panel-pin-toggle|1|",
+      ".panel-resize-handle|0|",
+      ".panel-resize-handle|1|",
+      ".panel-tool-button|0|",
+      ".panel-tool-button|1|",
+      ".panel-tool-drawer|0|",
+      ".panel-tool-drawer|1|",
+      ".stat-val|0|",
+      ".stat-val|1|",
+      ".widget-card[hidden]|0|",
+      ".widget-card|0|",
+      ".widget-card|1|",
+      ".widget-layout|0|",
+      ".widget-layout|1|",
+      ".workspace-command-island|0|",
+      ".workspace-command-island|1|",
+      "[data-widget-shell-content='true']|0|",
+      "[data-widget-shell-content='true']|1|",
+      "[data-widget-shell]|0|",
+      "[data-widget-shell]|1|",
+      "body|0|",
+      "html|0|"
+    ],
+    "computedProperties": [
+      "opacity",
+      "width",
+      "height",
+      "minHeight",
+      "maxHeight",
+      "paddingTop",
+      "paddingRight",
+      "paddingBottom",
+      "paddingLeft",
+      "marginTop",
+      "marginRight",
+      "marginBottom",
+      "marginLeft",
+      "gap",
+      "rowGap",
+      "columnGap",
+      "borderTopWidth",
+      "borderRightWidth",
+      "borderBottomWidth",
+      "borderLeftWidth",
+      "borderTopColor",
+      "borderRightColor",
+      "borderBottomColor",
+      "borderLeftColor",
+      "borderTopStyle",
+      "borderRightStyle",
+      "borderBottomStyle",
+      "borderLeftStyle",
+      "borderRadius",
+      "borderTopLeftRadius",
+      "borderTopRightRadius",
+      "borderBottomRightRadius",
+      "borderBottomLeftRadius",
+      "boxShadow",
+      "background",
+      "backgroundColor",
+      "backgroundImage",
+      "color",
+      "fontFamily",
+      "fontSize",
+      "fontStyle",
+      "fontWeight",
+      "lineHeight",
+      "letterSpacing",
+      "transform",
+      "backdropFilter",
+      "webkitBackdropFilter",
+      "filter"
+    ],
+    "customProperties": [
+      "--app-bg",
+      "--surface",
+      "--surface-soft",
+      "--surface-raised",
+      "--ink-strong",
+      "--muted",
+      "--glass-border",
+      "--glass-surface",
+      "--glass-surface-strong",
+      "--glass-backdrop-filter",
+      "--liquid-glass-backdrop-blur",
+      "--panel-accent",
+      "--panel-accent-rgb",
+      "--panel-accent-text",
+      "--panel-material-rim",
+      "--panel-lock-bg",
+      "--panel-lock-fg",
+      "--object-shell-bg",
+      "--widget-gap",
+      "--panel-gap",
+      "--dashboard-grid-row-height",
+      "--panel-add-menu-max-height"
+    ]
+  },
+  "records": [
+    {
+      "scenario": "desktop|black|default|collapsed-pinned",
+      "hash": "WVBIY7QybIunW8W25-_7cydHlpJZTvFM2r_3PZfumc8",
+      "selectorCount": 54
+    },
+    {
+      "scenario": "desktop|black|default|focus-visible",
+      "hash": "bk3_tOAZXUp4XytuPgHJs2n3Ak_HuaYc6qlF8n6m6OM",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|black|default|menus-open",
+      "hash": "DHXgNS3cJ3nVrCiTz9bAGE4wu_SGxfiU986GmgQTl4M",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|black|default|rest",
+      "hash": "_0YsmvYK17hRQBdT9lqLC38qL8kXueGg1JE0sWRSeZ0",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|black|default|selected-dragging",
+      "hash": "-TBeNVXrDQU2WP-5dQyKTcTiojtEw2Ms0Rv8JuKX_aQ",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|black|default|tools-open",
+      "hash": "TcybJm8Qh3aDiLcUG7WOehJNlBCrHgnSazuL43Iphc8",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|black|default|webgl-glass",
+      "hash": "krEUcrEemp75pQj9gN8p-690M2sn-LRKN23D9eySKBM",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|blue-mist|default|collapsed-pinned",
+      "hash": "WVBIY7QybIunW8W25-_7cydHlpJZTvFM2r_3PZfumc8",
+      "selectorCount": 54
+    },
+    {
+      "scenario": "desktop|blue-mist|default|focus-visible",
+      "hash": "bk3_tOAZXUp4XytuPgHJs2n3Ak_HuaYc6qlF8n6m6OM",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|blue-mist|default|menus-open",
+      "hash": "DHXgNS3cJ3nVrCiTz9bAGE4wu_SGxfiU986GmgQTl4M",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|blue-mist|default|rest",
+      "hash": "6iJaCcxW3ATXNglQLbVGYxD6-JKmF-QRgS-8JRdbwf8",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|blue-mist|default|selected-dragging",
+      "hash": "-TBeNVXrDQU2WP-5dQyKTcTiojtEw2Ms0Rv8JuKX_aQ",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|blue-mist|default|tools-open",
+      "hash": "TcybJm8Qh3aDiLcUG7WOehJNlBCrHgnSazuL43Iphc8",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|blue-mist|default|webgl-glass",
+      "hash": "krEUcrEemp75pQj9gN8p-690M2sn-LRKN23D9eySKBM",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|blue-slate|default|collapsed-pinned",
+      "hash": "WVBIY7QybIunW8W25-_7cydHlpJZTvFM2r_3PZfumc8",
+      "selectorCount": 54
+    },
+    {
+      "scenario": "desktop|blue-slate|default|focus-visible",
+      "hash": "bk3_tOAZXUp4XytuPgHJs2n3Ak_HuaYc6qlF8n6m6OM",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|blue-slate|default|menus-open",
+      "hash": "DHXgNS3cJ3nVrCiTz9bAGE4wu_SGxfiU986GmgQTl4M",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|blue-slate|default|rest",
+      "hash": "6iJaCcxW3ATXNglQLbVGYxD6-JKmF-QRgS-8JRdbwf8",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|blue-slate|default|selected-dragging",
+      "hash": "-TBeNVXrDQU2WP-5dQyKTcTiojtEw2Ms0Rv8JuKX_aQ",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|blue-slate|default|tools-open",
+      "hash": "TcybJm8Qh3aDiLcUG7WOehJNlBCrHgnSazuL43Iphc8",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|blue-slate|default|webgl-glass",
+      "hash": "krEUcrEemp75pQj9gN8p-690M2sn-LRKN23D9eySKBM",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|charcoal-grey|default|collapsed-pinned",
+      "hash": "WVBIY7QybIunW8W25-_7cydHlpJZTvFM2r_3PZfumc8",
+      "selectorCount": 54
+    },
+    {
+      "scenario": "desktop|charcoal-grey|default|focus-visible",
+      "hash": "bk3_tOAZXUp4XytuPgHJs2n3Ak_HuaYc6qlF8n6m6OM",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|charcoal-grey|default|menus-open",
+      "hash": "DHXgNS3cJ3nVrCiTz9bAGE4wu_SGxfiU986GmgQTl4M",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|charcoal-grey|default|rest",
+      "hash": "6iJaCcxW3ATXNglQLbVGYxD6-JKmF-QRgS-8JRdbwf8",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|charcoal-grey|default|selected-dragging",
+      "hash": "-TBeNVXrDQU2WP-5dQyKTcTiojtEw2Ms0Rv8JuKX_aQ",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|charcoal-grey|default|tools-open",
+      "hash": "TcybJm8Qh3aDiLcUG7WOehJNlBCrHgnSazuL43Iphc8",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|charcoal-grey|default|webgl-glass",
+      "hash": "krEUcrEemp75pQj9gN8p-690M2sn-LRKN23D9eySKBM",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|charcoal|default|collapsed-pinned",
+      "hash": "WVBIY7QybIunW8W25-_7cydHlpJZTvFM2r_3PZfumc8",
+      "selectorCount": 54
+    },
+    {
+      "scenario": "desktop|charcoal|default|focus-visible",
+      "hash": "bk3_tOAZXUp4XytuPgHJs2n3Ak_HuaYc6qlF8n6m6OM",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|charcoal|default|menus-open",
+      "hash": "DHXgNS3cJ3nVrCiTz9bAGE4wu_SGxfiU986GmgQTl4M",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|charcoal|default|rest",
+      "hash": "6iJaCcxW3ATXNglQLbVGYxD6-JKmF-QRgS-8JRdbwf8",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|charcoal|default|selected-dragging",
+      "hash": "-TBeNVXrDQU2WP-5dQyKTcTiojtEw2Ms0Rv8JuKX_aQ",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|charcoal|default|tools-open",
+      "hash": "TcybJm8Qh3aDiLcUG7WOehJNlBCrHgnSazuL43Iphc8",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|charcoal|default|webgl-glass",
+      "hash": "krEUcrEemp75pQj9gN8p-690M2sn-LRKN23D9eySKBM",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|cool-dark-steel|default|collapsed-pinned",
+      "hash": "WVBIY7QybIunW8W25-_7cydHlpJZTvFM2r_3PZfumc8",
+      "selectorCount": 54
+    },
+    {
+      "scenario": "desktop|cool-dark-steel|default|focus-visible",
+      "hash": "bk3_tOAZXUp4XytuPgHJs2n3Ak_HuaYc6qlF8n6m6OM",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|cool-dark-steel|default|menus-open",
+      "hash": "DHXgNS3cJ3nVrCiTz9bAGE4wu_SGxfiU986GmgQTl4M",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|cool-dark-steel|default|rest",
+      "hash": "6iJaCcxW3ATXNglQLbVGYxD6-JKmF-QRgS-8JRdbwf8",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|cool-dark-steel|default|selected-dragging",
+      "hash": "-TBeNVXrDQU2WP-5dQyKTcTiojtEw2Ms0Rv8JuKX_aQ",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|cool-dark-steel|default|tools-open",
+      "hash": "TcybJm8Qh3aDiLcUG7WOehJNlBCrHgnSazuL43Iphc8",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|cool-dark-steel|default|webgl-glass",
+      "hash": "krEUcrEemp75pQj9gN8p-690M2sn-LRKN23D9eySKBM",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|cool-grey|default|collapsed-pinned",
+      "hash": "WVBIY7QybIunW8W25-_7cydHlpJZTvFM2r_3PZfumc8",
+      "selectorCount": 54
+    },
+    {
+      "scenario": "desktop|cool-grey|default|focus-visible",
+      "hash": "bk3_tOAZXUp4XytuPgHJs2n3Ak_HuaYc6qlF8n6m6OM",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|cool-grey|default|menus-open",
+      "hash": "DHXgNS3cJ3nVrCiTz9bAGE4wu_SGxfiU986GmgQTl4M",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|cool-grey|default|rest",
+      "hash": "6iJaCcxW3ATXNglQLbVGYxD6-JKmF-QRgS-8JRdbwf8",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|cool-grey|default|selected-dragging",
+      "hash": "-TBeNVXrDQU2WP-5dQyKTcTiojtEw2Ms0Rv8JuKX_aQ",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|cool-grey|default|tools-open",
+      "hash": "TcybJm8Qh3aDiLcUG7WOehJNlBCrHgnSazuL43Iphc8",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|cool-grey|default|webgl-glass",
+      "hash": "krEUcrEemp75pQj9gN8p-690M2sn-LRKN23D9eySKBM",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|cool-white|default|collapsed-pinned",
+      "hash": "WVBIY7QybIunW8W25-_7cydHlpJZTvFM2r_3PZfumc8",
+      "selectorCount": 54
+    },
+    {
+      "scenario": "desktop|cool-white|default|focus-visible",
+      "hash": "bk3_tOAZXUp4XytuPgHJs2n3Ak_HuaYc6qlF8n6m6OM",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|cool-white|default|menus-open",
+      "hash": "DHXgNS3cJ3nVrCiTz9bAGE4wu_SGxfiU986GmgQTl4M",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|cool-white|default|rest",
+      "hash": "6iJaCcxW3ATXNglQLbVGYxD6-JKmF-QRgS-8JRdbwf8",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|cool-white|default|selected-dragging",
+      "hash": "-TBeNVXrDQU2WP-5dQyKTcTiojtEw2Ms0Rv8JuKX_aQ",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|cool-white|default|tools-open",
+      "hash": "TcybJm8Qh3aDiLcUG7WOehJNlBCrHgnSazuL43Iphc8",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|cool-white|default|webgl-glass",
+      "hash": "krEUcrEemp75pQj9gN8p-690M2sn-LRKN23D9eySKBM",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|dark-blue-grey|default|collapsed-pinned",
+      "hash": "WVBIY7QybIunW8W25-_7cydHlpJZTvFM2r_3PZfumc8",
+      "selectorCount": 54
+    },
+    {
+      "scenario": "desktop|dark-blue-grey|default|focus-visible",
+      "hash": "bk3_tOAZXUp4XytuPgHJs2n3Ak_HuaYc6qlF8n6m6OM",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|dark-blue-grey|default|menus-open",
+      "hash": "DHXgNS3cJ3nVrCiTz9bAGE4wu_SGxfiU986GmgQTl4M",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|dark-blue-grey|default|rest",
+      "hash": "6iJaCcxW3ATXNglQLbVGYxD6-JKmF-QRgS-8JRdbwf8",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|dark-blue-grey|default|selected-dragging",
+      "hash": "-TBeNVXrDQU2WP-5dQyKTcTiojtEw2Ms0Rv8JuKX_aQ",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|dark-blue-grey|default|tools-open",
+      "hash": "TcybJm8Qh3aDiLcUG7WOehJNlBCrHgnSazuL43Iphc8",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|dark-blue-grey|default|webgl-glass",
+      "hash": "krEUcrEemp75pQj9gN8p-690M2sn-LRKN23D9eySKBM",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|dark-frosted|default|collapsed-pinned",
+      "hash": "WVBIY7QybIunW8W25-_7cydHlpJZTvFM2r_3PZfumc8",
+      "selectorCount": 54
+    },
+    {
+      "scenario": "desktop|dark-frosted|default|focus-visible",
+      "hash": "bk3_tOAZXUp4XytuPgHJs2n3Ak_HuaYc6qlF8n6m6OM",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|dark-frosted|default|menus-open",
+      "hash": "DHXgNS3cJ3nVrCiTz9bAGE4wu_SGxfiU986GmgQTl4M",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|dark-frosted|default|rest",
+      "hash": "6iJaCcxW3ATXNglQLbVGYxD6-JKmF-QRgS-8JRdbwf8",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|dark-frosted|default|selected-dragging",
+      "hash": "-TBeNVXrDQU2WP-5dQyKTcTiojtEw2Ms0Rv8JuKX_aQ",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|dark-frosted|default|tools-open",
+      "hash": "TcybJm8Qh3aDiLcUG7WOehJNlBCrHgnSazuL43Iphc8",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|dark-frosted|default|webgl-glass",
+      "hash": "krEUcrEemp75pQj9gN8p-690M2sn-LRKN23D9eySKBM",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|dark-grey|default|collapsed-pinned",
+      "hash": "WVBIY7QybIunW8W25-_7cydHlpJZTvFM2r_3PZfumc8",
+      "selectorCount": 54
+    },
+    {
+      "scenario": "desktop|dark-grey|default|focus-visible",
+      "hash": "bk3_tOAZXUp4XytuPgHJs2n3Ak_HuaYc6qlF8n6m6OM",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|dark-grey|default|menus-open",
+      "hash": "DHXgNS3cJ3nVrCiTz9bAGE4wu_SGxfiU986GmgQTl4M",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|dark-grey|default|rest",
+      "hash": "6iJaCcxW3ATXNglQLbVGYxD6-JKmF-QRgS-8JRdbwf8",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|dark-grey|default|selected-dragging",
+      "hash": "-TBeNVXrDQU2WP-5dQyKTcTiojtEw2Ms0Rv8JuKX_aQ",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|dark-grey|default|tools-open",
+      "hash": "TcybJm8Qh3aDiLcUG7WOehJNlBCrHgnSazuL43Iphc8",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|dark-grey|default|webgl-glass",
+      "hash": "krEUcrEemp75pQj9gN8p-690M2sn-LRKN23D9eySKBM",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|dark-steel|default|collapsed-pinned",
+      "hash": "WVBIY7QybIunW8W25-_7cydHlpJZTvFM2r_3PZfumc8",
+      "selectorCount": 54
+    },
+    {
+      "scenario": "desktop|dark-steel|default|focus-visible",
+      "hash": "bk3_tOAZXUp4XytuPgHJs2n3Ak_HuaYc6qlF8n6m6OM",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|dark-steel|default|menus-open",
+      "hash": "DHXgNS3cJ3nVrCiTz9bAGE4wu_SGxfiU986GmgQTl4M",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|dark-steel|default|rest",
+      "hash": "6iJaCcxW3ATXNglQLbVGYxD6-JKmF-QRgS-8JRdbwf8",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|dark-steel|default|selected-dragging",
+      "hash": "-TBeNVXrDQU2WP-5dQyKTcTiojtEw2Ms0Rv8JuKX_aQ",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|dark-steel|default|tools-open",
+      "hash": "TcybJm8Qh3aDiLcUG7WOehJNlBCrHgnSazuL43Iphc8",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|dark-steel|default|webgl-glass",
+      "hash": "krEUcrEemp75pQj9gN8p-690M2sn-LRKN23D9eySKBM",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|darker-soft-grey|default|collapsed-pinned",
+      "hash": "WVBIY7QybIunW8W25-_7cydHlpJZTvFM2r_3PZfumc8",
+      "selectorCount": 54
+    },
+    {
+      "scenario": "desktop|darker-soft-grey|default|focus-visible",
+      "hash": "bk3_tOAZXUp4XytuPgHJs2n3Ak_HuaYc6qlF8n6m6OM",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|darker-soft-grey|default|menus-open",
+      "hash": "DHXgNS3cJ3nVrCiTz9bAGE4wu_SGxfiU986GmgQTl4M",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|darker-soft-grey|default|rest",
+      "hash": "6iJaCcxW3ATXNglQLbVGYxD6-JKmF-QRgS-8JRdbwf8",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|darker-soft-grey|default|selected-dragging",
+      "hash": "-TBeNVXrDQU2WP-5dQyKTcTiojtEw2Ms0Rv8JuKX_aQ",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|darker-soft-grey|default|tools-open",
+      "hash": "TcybJm8Qh3aDiLcUG7WOehJNlBCrHgnSazuL43Iphc8",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|darker-soft-grey|default|webgl-glass",
+      "hash": "krEUcrEemp75pQj9gN8p-690M2sn-LRKN23D9eySKBM",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|deep-grey|default|collapsed-pinned",
+      "hash": "WVBIY7QybIunW8W25-_7cydHlpJZTvFM2r_3PZfumc8",
+      "selectorCount": 54
+    },
+    {
+      "scenario": "desktop|deep-grey|default|focus-visible",
+      "hash": "bk3_tOAZXUp4XytuPgHJs2n3Ak_HuaYc6qlF8n6m6OM",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|deep-grey|default|menus-open",
+      "hash": "DHXgNS3cJ3nVrCiTz9bAGE4wu_SGxfiU986GmgQTl4M",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|deep-grey|default|rest",
+      "hash": "6iJaCcxW3ATXNglQLbVGYxD6-JKmF-QRgS-8JRdbwf8",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|deep-grey|default|selected-dragging",
+      "hash": "-TBeNVXrDQU2WP-5dQyKTcTiojtEw2Ms0Rv8JuKX_aQ",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|deep-grey|default|tools-open",
+      "hash": "TcybJm8Qh3aDiLcUG7WOehJNlBCrHgnSazuL43Iphc8",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|deep-grey|default|webgl-glass",
+      "hash": "krEUcrEemp75pQj9gN8p-690M2sn-LRKN23D9eySKBM",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|deep-navy|default|collapsed-pinned",
+      "hash": "WVBIY7QybIunW8W25-_7cydHlpJZTvFM2r_3PZfumc8",
+      "selectorCount": 54
+    },
+    {
+      "scenario": "desktop|deep-navy|default|focus-visible",
+      "hash": "bk3_tOAZXUp4XytuPgHJs2n3Ak_HuaYc6qlF8n6m6OM",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|deep-navy|default|menus-open",
+      "hash": "DHXgNS3cJ3nVrCiTz9bAGE4wu_SGxfiU986GmgQTl4M",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|deep-navy|default|rest",
+      "hash": "6iJaCcxW3ATXNglQLbVGYxD6-JKmF-QRgS-8JRdbwf8",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|deep-navy|default|selected-dragging",
+      "hash": "-TBeNVXrDQU2WP-5dQyKTcTiojtEw2Ms0Rv8JuKX_aQ",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|deep-navy|default|tools-open",
+      "hash": "TcybJm8Qh3aDiLcUG7WOehJNlBCrHgnSazuL43Iphc8",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|deep-navy|default|webgl-glass",
+      "hash": "krEUcrEemp75pQj9gN8p-690M2sn-LRKN23D9eySKBM",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|deep-slate|default|collapsed-pinned",
+      "hash": "WVBIY7QybIunW8W25-_7cydHlpJZTvFM2r_3PZfumc8",
+      "selectorCount": 54
+    },
+    {
+      "scenario": "desktop|deep-slate|default|focus-visible",
+      "hash": "bk3_tOAZXUp4XytuPgHJs2n3Ak_HuaYc6qlF8n6m6OM",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|deep-slate|default|menus-open",
+      "hash": "DHXgNS3cJ3nVrCiTz9bAGE4wu_SGxfiU986GmgQTl4M",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|deep-slate|default|rest",
+      "hash": "6iJaCcxW3ATXNglQLbVGYxD6-JKmF-QRgS-8JRdbwf8",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|deep-slate|default|selected-dragging",
+      "hash": "-TBeNVXrDQU2WP-5dQyKTcTiojtEw2Ms0Rv8JuKX_aQ",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|deep-slate|default|tools-open",
+      "hash": "TcybJm8Qh3aDiLcUG7WOehJNlBCrHgnSazuL43Iphc8",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|deep-slate|default|webgl-glass",
+      "hash": "krEUcrEemp75pQj9gN8p-690M2sn-LRKN23D9eySKBM",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|desaturated-dark-blue|default|collapsed-pinned",
+      "hash": "WVBIY7QybIunW8W25-_7cydHlpJZTvFM2r_3PZfumc8",
+      "selectorCount": 54
+    },
+    {
+      "scenario": "desktop|desaturated-dark-blue|default|focus-visible",
+      "hash": "bk3_tOAZXUp4XytuPgHJs2n3Ak_HuaYc6qlF8n6m6OM",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|desaturated-dark-blue|default|menus-open",
+      "hash": "DHXgNS3cJ3nVrCiTz9bAGE4wu_SGxfiU986GmgQTl4M",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|desaturated-dark-blue|default|rest",
+      "hash": "6iJaCcxW3ATXNglQLbVGYxD6-JKmF-QRgS-8JRdbwf8",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|desaturated-dark-blue|default|selected-dragging",
+      "hash": "-TBeNVXrDQU2WP-5dQyKTcTiojtEw2Ms0Rv8JuKX_aQ",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|desaturated-dark-blue|default|tools-open",
+      "hash": "TcybJm8Qh3aDiLcUG7WOehJNlBCrHgnSazuL43Iphc8",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|desaturated-dark-blue|default|webgl-glass",
+      "hash": "krEUcrEemp75pQj9gN8p-690M2sn-LRKN23D9eySKBM",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|frosted-light|default|collapsed-pinned",
+      "hash": "WVBIY7QybIunW8W25-_7cydHlpJZTvFM2r_3PZfumc8",
+      "selectorCount": 54
+    },
+    {
+      "scenario": "desktop|frosted-light|default|focus-visible",
+      "hash": "bk3_tOAZXUp4XytuPgHJs2n3Ak_HuaYc6qlF8n6m6OM",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|frosted-light|default|menus-open",
+      "hash": "DHXgNS3cJ3nVrCiTz9bAGE4wu_SGxfiU986GmgQTl4M",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|frosted-light|default|rest",
+      "hash": "6iJaCcxW3ATXNglQLbVGYxD6-JKmF-QRgS-8JRdbwf8",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|frosted-light|default|selected-dragging",
+      "hash": "-TBeNVXrDQU2WP-5dQyKTcTiojtEw2Ms0Rv8JuKX_aQ",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|frosted-light|default|tools-open",
+      "hash": "TcybJm8Qh3aDiLcUG7WOehJNlBCrHgnSazuL43Iphc8",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|frosted-light|default|webgl-glass",
+      "hash": "krEUcrEemp75pQj9gN8p-690M2sn-LRKN23D9eySKBM",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|graphite-grey|default|collapsed-pinned",
+      "hash": "WVBIY7QybIunW8W25-_7cydHlpJZTvFM2r_3PZfumc8",
+      "selectorCount": 54
+    },
+    {
+      "scenario": "desktop|graphite-grey|default|focus-visible",
+      "hash": "bk3_tOAZXUp4XytuPgHJs2n3Ak_HuaYc6qlF8n6m6OM",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|graphite-grey|default|menus-open",
+      "hash": "DHXgNS3cJ3nVrCiTz9bAGE4wu_SGxfiU986GmgQTl4M",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|graphite-grey|default|rest",
+      "hash": "6iJaCcxW3ATXNglQLbVGYxD6-JKmF-QRgS-8JRdbwf8",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|graphite-grey|default|selected-dragging",
+      "hash": "-TBeNVXrDQU2WP-5dQyKTcTiojtEw2Ms0Rv8JuKX_aQ",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|graphite-grey|default|tools-open",
+      "hash": "TcybJm8Qh3aDiLcUG7WOehJNlBCrHgnSazuL43Iphc8",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|graphite-grey|default|webgl-glass",
+      "hash": "krEUcrEemp75pQj9gN8p-690M2sn-LRKN23D9eySKBM",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|graphite-light|default|collapsed-pinned",
+      "hash": "WVBIY7QybIunW8W25-_7cydHlpJZTvFM2r_3PZfumc8",
+      "selectorCount": 54
+    },
+    {
+      "scenario": "desktop|graphite-light|default|focus-visible",
+      "hash": "bk3_tOAZXUp4XytuPgHJs2n3Ak_HuaYc6qlF8n6m6OM",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|graphite-light|default|menus-open",
+      "hash": "DHXgNS3cJ3nVrCiTz9bAGE4wu_SGxfiU986GmgQTl4M",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|graphite-light|default|rest",
+      "hash": "6iJaCcxW3ATXNglQLbVGYxD6-JKmF-QRgS-8JRdbwf8",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|graphite-light|default|selected-dragging",
+      "hash": "-TBeNVXrDQU2WP-5dQyKTcTiojtEw2Ms0Rv8JuKX_aQ",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|graphite-light|default|tools-open",
+      "hash": "TcybJm8Qh3aDiLcUG7WOehJNlBCrHgnSazuL43Iphc8",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|graphite-light|default|webgl-glass",
+      "hash": "krEUcrEemp75pQj9gN8p-690M2sn-LRKN23D9eySKBM",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|graphite|default|collapsed-pinned",
+      "hash": "WVBIY7QybIunW8W25-_7cydHlpJZTvFM2r_3PZfumc8",
+      "selectorCount": 54
+    },
+    {
+      "scenario": "desktop|graphite|default|focus-visible",
+      "hash": "bk3_tOAZXUp4XytuPgHJs2n3Ak_HuaYc6qlF8n6m6OM",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|graphite|default|menus-open",
+      "hash": "DHXgNS3cJ3nVrCiTz9bAGE4wu_SGxfiU986GmgQTl4M",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|graphite|default|rest",
+      "hash": "6iJaCcxW3ATXNglQLbVGYxD6-JKmF-QRgS-8JRdbwf8",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|graphite|default|selected-dragging",
+      "hash": "-TBeNVXrDQU2WP-5dQyKTcTiojtEw2Ms0Rv8JuKX_aQ",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|graphite|default|tools-open",
+      "hash": "TcybJm8Qh3aDiLcUG7WOehJNlBCrHgnSazuL43Iphc8",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|graphite|default|webgl-glass",
+      "hash": "krEUcrEemp75pQj9gN8p-690M2sn-LRKN23D9eySKBM",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|gunmetal|default|collapsed-pinned",
+      "hash": "WVBIY7QybIunW8W25-_7cydHlpJZTvFM2r_3PZfumc8",
+      "selectorCount": 54
+    },
+    {
+      "scenario": "desktop|gunmetal|default|focus-visible",
+      "hash": "bk3_tOAZXUp4XytuPgHJs2n3Ak_HuaYc6qlF8n6m6OM",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|gunmetal|default|menus-open",
+      "hash": "DHXgNS3cJ3nVrCiTz9bAGE4wu_SGxfiU986GmgQTl4M",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|gunmetal|default|rest",
+      "hash": "6iJaCcxW3ATXNglQLbVGYxD6-JKmF-QRgS-8JRdbwf8",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|gunmetal|default|selected-dragging",
+      "hash": "-TBeNVXrDQU2WP-5dQyKTcTiojtEw2Ms0Rv8JuKX_aQ",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|gunmetal|default|tools-open",
+      "hash": "TcybJm8Qh3aDiLcUG7WOehJNlBCrHgnSazuL43Iphc8",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|gunmetal|default|webgl-glass",
+      "hash": "krEUcrEemp75pQj9gN8p-690M2sn-LRKN23D9eySKBM",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|industrial-grey|default|collapsed-pinned",
+      "hash": "WVBIY7QybIunW8W25-_7cydHlpJZTvFM2r_3PZfumc8",
+      "selectorCount": 54
+    },
+    {
+      "scenario": "desktop|industrial-grey|default|focus-visible",
+      "hash": "bk3_tOAZXUp4XytuPgHJs2n3Ak_HuaYc6qlF8n6m6OM",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|industrial-grey|default|menus-open",
+      "hash": "DHXgNS3cJ3nVrCiTz9bAGE4wu_SGxfiU986GmgQTl4M",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|industrial-grey|default|rest",
+      "hash": "6iJaCcxW3ATXNglQLbVGYxD6-JKmF-QRgS-8JRdbwf8",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|industrial-grey|default|selected-dragging",
+      "hash": "-TBeNVXrDQU2WP-5dQyKTcTiojtEw2Ms0Rv8JuKX_aQ",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|industrial-grey|default|tools-open",
+      "hash": "TcybJm8Qh3aDiLcUG7WOehJNlBCrHgnSazuL43Iphc8",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|industrial-grey|default|webgl-glass",
+      "hash": "krEUcrEemp75pQj9gN8p-690M2sn-LRKN23D9eySKBM",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|light-blue-grey|default|collapsed-pinned",
+      "hash": "WVBIY7QybIunW8W25-_7cydHlpJZTvFM2r_3PZfumc8",
+      "selectorCount": 54
+    },
+    {
+      "scenario": "desktop|light-blue-grey|default|focus-visible",
+      "hash": "bk3_tOAZXUp4XytuPgHJs2n3Ak_HuaYc6qlF8n6m6OM",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|light-blue-grey|default|menus-open",
+      "hash": "DHXgNS3cJ3nVrCiTz9bAGE4wu_SGxfiU986GmgQTl4M",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|light-blue-grey|default|rest",
+      "hash": "6iJaCcxW3ATXNglQLbVGYxD6-JKmF-QRgS-8JRdbwf8",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|light-blue-grey|default|selected-dragging",
+      "hash": "-TBeNVXrDQU2WP-5dQyKTcTiojtEw2Ms0Rv8JuKX_aQ",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|light-blue-grey|default|tools-open",
+      "hash": "TcybJm8Qh3aDiLcUG7WOehJNlBCrHgnSazuL43Iphc8",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|light-blue-grey|default|webgl-glass",
+      "hash": "krEUcrEemp75pQj9gN8p-690M2sn-LRKN23D9eySKBM",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|medium-cool-grey|default|collapsed-pinned",
+      "hash": "WVBIY7QybIunW8W25-_7cydHlpJZTvFM2r_3PZfumc8",
+      "selectorCount": 54
+    },
+    {
+      "scenario": "desktop|medium-cool-grey|default|focus-visible",
+      "hash": "bk3_tOAZXUp4XytuPgHJs2n3Ak_HuaYc6qlF8n6m6OM",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|medium-cool-grey|default|menus-open",
+      "hash": "DHXgNS3cJ3nVrCiTz9bAGE4wu_SGxfiU986GmgQTl4M",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|medium-cool-grey|default|rest",
+      "hash": "6iJaCcxW3ATXNglQLbVGYxD6-JKmF-QRgS-8JRdbwf8",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|medium-cool-grey|default|selected-dragging",
+      "hash": "-TBeNVXrDQU2WP-5dQyKTcTiojtEw2Ms0Rv8JuKX_aQ",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|medium-cool-grey|default|tools-open",
+      "hash": "TcybJm8Qh3aDiLcUG7WOehJNlBCrHgnSazuL43Iphc8",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|medium-cool-grey|default|webgl-glass",
+      "hash": "krEUcrEemp75pQj9gN8p-690M2sn-LRKN23D9eySKBM",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|medium-grey|default|collapsed-pinned",
+      "hash": "WVBIY7QybIunW8W25-_7cydHlpJZTvFM2r_3PZfumc8",
+      "selectorCount": 54
+    },
+    {
+      "scenario": "desktop|medium-grey|default|focus-visible",
+      "hash": "bk3_tOAZXUp4XytuPgHJs2n3Ak_HuaYc6qlF8n6m6OM",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|medium-grey|default|menus-open",
+      "hash": "DHXgNS3cJ3nVrCiTz9bAGE4wu_SGxfiU986GmgQTl4M",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|medium-grey|default|rest",
+      "hash": "6iJaCcxW3ATXNglQLbVGYxD6-JKmF-QRgS-8JRdbwf8",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|medium-grey|default|selected-dragging",
+      "hash": "-TBeNVXrDQU2WP-5dQyKTcTiojtEw2Ms0Rv8JuKX_aQ",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|medium-grey|default|tools-open",
+      "hash": "TcybJm8Qh3aDiLcUG7WOehJNlBCrHgnSazuL43Iphc8",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|medium-grey|default|webgl-glass",
+      "hash": "krEUcrEemp75pQj9gN8p-690M2sn-LRKN23D9eySKBM",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|medium-soft-grey|default|collapsed-pinned",
+      "hash": "WVBIY7QybIunW8W25-_7cydHlpJZTvFM2r_3PZfumc8",
+      "selectorCount": 54
+    },
+    {
+      "scenario": "desktop|medium-soft-grey|default|focus-visible",
+      "hash": "bk3_tOAZXUp4XytuPgHJs2n3Ak_HuaYc6qlF8n6m6OM",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|medium-soft-grey|default|menus-open",
+      "hash": "DHXgNS3cJ3nVrCiTz9bAGE4wu_SGxfiU986GmgQTl4M",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|medium-soft-grey|default|rest",
+      "hash": "6iJaCcxW3ATXNglQLbVGYxD6-JKmF-QRgS-8JRdbwf8",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|medium-soft-grey|default|selected-dragging",
+      "hash": "-TBeNVXrDQU2WP-5dQyKTcTiojtEw2Ms0Rv8JuKX_aQ",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|medium-soft-grey|default|tools-open",
+      "hash": "TcybJm8Qh3aDiLcUG7WOehJNlBCrHgnSazuL43Iphc8",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|medium-soft-grey|default|webgl-glass",
+      "hash": "krEUcrEemp75pQj9gN8p-690M2sn-LRKN23D9eySKBM",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|muted-blue-grey|default|collapsed-pinned",
+      "hash": "WVBIY7QybIunW8W25-_7cydHlpJZTvFM2r_3PZfumc8",
+      "selectorCount": 54
+    },
+    {
+      "scenario": "desktop|muted-blue-grey|default|focus-visible",
+      "hash": "bk3_tOAZXUp4XytuPgHJs2n3Ak_HuaYc6qlF8n6m6OM",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|muted-blue-grey|default|menus-open",
+      "hash": "DHXgNS3cJ3nVrCiTz9bAGE4wu_SGxfiU986GmgQTl4M",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|muted-blue-grey|default|rest",
+      "hash": "6iJaCcxW3ATXNglQLbVGYxD6-JKmF-QRgS-8JRdbwf8",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|muted-blue-grey|default|selected-dragging",
+      "hash": "-TBeNVXrDQU2WP-5dQyKTcTiojtEw2Ms0Rv8JuKX_aQ",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|muted-blue-grey|default|tools-open",
+      "hash": "TcybJm8Qh3aDiLcUG7WOehJNlBCrHgnSazuL43Iphc8",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|muted-blue-grey|default|webgl-glass",
+      "hash": "krEUcrEemp75pQj9gN8p-690M2sn-LRKN23D9eySKBM",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|muted-midnight-blue|default|collapsed-pinned",
+      "hash": "WVBIY7QybIunW8W25-_7cydHlpJZTvFM2r_3PZfumc8",
+      "selectorCount": 54
+    },
+    {
+      "scenario": "desktop|muted-midnight-blue|default|focus-visible",
+      "hash": "bk3_tOAZXUp4XytuPgHJs2n3Ak_HuaYc6qlF8n6m6OM",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|muted-midnight-blue|default|menus-open",
+      "hash": "DHXgNS3cJ3nVrCiTz9bAGE4wu_SGxfiU986GmgQTl4M",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|muted-midnight-blue|default|rest",
+      "hash": "6iJaCcxW3ATXNglQLbVGYxD6-JKmF-QRgS-8JRdbwf8",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|muted-midnight-blue|default|selected-dragging",
+      "hash": "-TBeNVXrDQU2WP-5dQyKTcTiojtEw2Ms0Rv8JuKX_aQ",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|muted-midnight-blue|default|tools-open",
+      "hash": "TcybJm8Qh3aDiLcUG7WOehJNlBCrHgnSazuL43Iphc8",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|muted-midnight-blue|default|webgl-glass",
+      "hash": "krEUcrEemp75pQj9gN8p-690M2sn-LRKN23D9eySKBM",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|muted-navy|default|collapsed-pinned",
+      "hash": "WVBIY7QybIunW8W25-_7cydHlpJZTvFM2r_3PZfumc8",
+      "selectorCount": 54
+    },
+    {
+      "scenario": "desktop|muted-navy|default|focus-visible",
+      "hash": "bk3_tOAZXUp4XytuPgHJs2n3Ak_HuaYc6qlF8n6m6OM",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|muted-navy|default|menus-open",
+      "hash": "DHXgNS3cJ3nVrCiTz9bAGE4wu_SGxfiU986GmgQTl4M",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|muted-navy|default|rest",
+      "hash": "6iJaCcxW3ATXNglQLbVGYxD6-JKmF-QRgS-8JRdbwf8",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|muted-navy|default|selected-dragging",
+      "hash": "-TBeNVXrDQU2WP-5dQyKTcTiojtEw2Ms0Rv8JuKX_aQ",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|muted-navy|default|tools-open",
+      "hash": "TcybJm8Qh3aDiLcUG7WOehJNlBCrHgnSazuL43Iphc8",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|muted-navy|default|webgl-glass",
+      "hash": "krEUcrEemp75pQj9gN8p-690M2sn-LRKN23D9eySKBM",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|near-black-grey|default|collapsed-pinned",
+      "hash": "WVBIY7QybIunW8W25-_7cydHlpJZTvFM2r_3PZfumc8",
+      "selectorCount": 54
+    },
+    {
+      "scenario": "desktop|near-black-grey|default|focus-visible",
+      "hash": "bk3_tOAZXUp4XytuPgHJs2n3Ak_HuaYc6qlF8n6m6OM",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|near-black-grey|default|menus-open",
+      "hash": "DHXgNS3cJ3nVrCiTz9bAGE4wu_SGxfiU986GmgQTl4M",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|near-black-grey|default|rest",
+      "hash": "6iJaCcxW3ATXNglQLbVGYxD6-JKmF-QRgS-8JRdbwf8",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|near-black-grey|default|selected-dragging",
+      "hash": "-TBeNVXrDQU2WP-5dQyKTcTiojtEw2Ms0Rv8JuKX_aQ",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|near-black-grey|default|tools-open",
+      "hash": "TcybJm8Qh3aDiLcUG7WOehJNlBCrHgnSazuL43Iphc8",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|near-black-grey|default|webgl-glass",
+      "hash": "krEUcrEemp75pQj9gN8p-690M2sn-LRKN23D9eySKBM",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|near-black|default|collapsed-pinned",
+      "hash": "WVBIY7QybIunW8W25-_7cydHlpJZTvFM2r_3PZfumc8",
+      "selectorCount": 54
+    },
+    {
+      "scenario": "desktop|near-black|default|focus-visible",
+      "hash": "bk3_tOAZXUp4XytuPgHJs2n3Ak_HuaYc6qlF8n6m6OM",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|near-black|default|menus-open",
+      "hash": "DHXgNS3cJ3nVrCiTz9bAGE4wu_SGxfiU986GmgQTl4M",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|near-black|default|rest",
+      "hash": "6iJaCcxW3ATXNglQLbVGYxD6-JKmF-QRgS-8JRdbwf8",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|near-black|default|selected-dragging",
+      "hash": "-TBeNVXrDQU2WP-5dQyKTcTiojtEw2Ms0Rv8JuKX_aQ",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|near-black|default|tools-open",
+      "hash": "TcybJm8Qh3aDiLcUG7WOehJNlBCrHgnSazuL43Iphc8",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|near-black|default|webgl-glass",
+      "hash": "krEUcrEemp75pQj9gN8p-690M2sn-LRKN23D9eySKBM",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|neutral-dim|default|collapsed-pinned",
+      "hash": "WVBIY7QybIunW8W25-_7cydHlpJZTvFM2r_3PZfumc8",
+      "selectorCount": 54
+    },
+    {
+      "scenario": "desktop|neutral-dim|default|focus-visible",
+      "hash": "bk3_tOAZXUp4XytuPgHJs2n3Ak_HuaYc6qlF8n6m6OM",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|neutral-dim|default|menus-open",
+      "hash": "DHXgNS3cJ3nVrCiTz9bAGE4wu_SGxfiU986GmgQTl4M",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|neutral-dim|default|rest",
+      "hash": "6iJaCcxW3ATXNglQLbVGYxD6-JKmF-QRgS-8JRdbwf8",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|neutral-dim|default|selected-dragging",
+      "hash": "-TBeNVXrDQU2WP-5dQyKTcTiojtEw2Ms0Rv8JuKX_aQ",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|neutral-dim|default|tools-open",
+      "hash": "TcybJm8Qh3aDiLcUG7WOehJNlBCrHgnSazuL43Iphc8",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|neutral-dim|default|webgl-glass",
+      "hash": "krEUcrEemp75pQj9gN8p-690M2sn-LRKN23D9eySKBM",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|neutral-grey|default|collapsed-pinned",
+      "hash": "WVBIY7QybIunW8W25-_7cydHlpJZTvFM2r_3PZfumc8",
+      "selectorCount": 54
+    },
+    {
+      "scenario": "desktop|neutral-grey|default|focus-visible",
+      "hash": "bk3_tOAZXUp4XytuPgHJs2n3Ak_HuaYc6qlF8n6m6OM",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|neutral-grey|default|menus-open",
+      "hash": "DHXgNS3cJ3nVrCiTz9bAGE4wu_SGxfiU986GmgQTl4M",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|neutral-grey|default|rest",
+      "hash": "6iJaCcxW3ATXNglQLbVGYxD6-JKmF-QRgS-8JRdbwf8",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|neutral-grey|default|selected-dragging",
+      "hash": "-TBeNVXrDQU2WP-5dQyKTcTiojtEw2Ms0Rv8JuKX_aQ",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|neutral-grey|default|tools-open",
+      "hash": "TcybJm8Qh3aDiLcUG7WOehJNlBCrHgnSazuL43Iphc8",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|neutral-grey|default|webgl-glass",
+      "hash": "krEUcrEemp75pQj9gN8p-690M2sn-LRKN23D9eySKBM",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|pale-cool-grey|default|collapsed-pinned",
+      "hash": "WVBIY7QybIunW8W25-_7cydHlpJZTvFM2r_3PZfumc8",
+      "selectorCount": 54
+    },
+    {
+      "scenario": "desktop|pale-cool-grey|default|focus-visible",
+      "hash": "bk3_tOAZXUp4XytuPgHJs2n3Ak_HuaYc6qlF8n6m6OM",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|pale-cool-grey|default|menus-open",
+      "hash": "DHXgNS3cJ3nVrCiTz9bAGE4wu_SGxfiU986GmgQTl4M",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|pale-cool-grey|default|rest",
+      "hash": "6iJaCcxW3ATXNglQLbVGYxD6-JKmF-QRgS-8JRdbwf8",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|pale-cool-grey|default|selected-dragging",
+      "hash": "-TBeNVXrDQU2WP-5dQyKTcTiojtEw2Ms0Rv8JuKX_aQ",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|pale-cool-grey|default|tools-open",
+      "hash": "TcybJm8Qh3aDiLcUG7WOehJNlBCrHgnSazuL43Iphc8",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|pale-cool-grey|default|webgl-glass",
+      "hash": "krEUcrEemp75pQj9gN8p-690M2sn-LRKN23D9eySKBM",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|pale-warm-grey|default|collapsed-pinned",
+      "hash": "WVBIY7QybIunW8W25-_7cydHlpJZTvFM2r_3PZfumc8",
+      "selectorCount": 54
+    },
+    {
+      "scenario": "desktop|pale-warm-grey|default|focus-visible",
+      "hash": "bk3_tOAZXUp4XytuPgHJs2n3Ak_HuaYc6qlF8n6m6OM",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|pale-warm-grey|default|menus-open",
+      "hash": "DHXgNS3cJ3nVrCiTz9bAGE4wu_SGxfiU986GmgQTl4M",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|pale-warm-grey|default|rest",
+      "hash": "6iJaCcxW3ATXNglQLbVGYxD6-JKmF-QRgS-8JRdbwf8",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|pale-warm-grey|default|selected-dragging",
+      "hash": "-TBeNVXrDQU2WP-5dQyKTcTiojtEw2Ms0Rv8JuKX_aQ",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|pale-warm-grey|default|tools-open",
+      "hash": "TcybJm8Qh3aDiLcUG7WOehJNlBCrHgnSazuL43Iphc8",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|pale-warm-grey|default|webgl-glass",
+      "hash": "krEUcrEemp75pQj9gN8p-690M2sn-LRKN23D9eySKBM",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|photo-bark|default|collapsed-pinned",
+      "hash": "WVBIY7QybIunW8W25-_7cydHlpJZTvFM2r_3PZfumc8",
+      "selectorCount": 54
+    },
+    {
+      "scenario": "desktop|photo-bark|default|focus-visible",
+      "hash": "bk3_tOAZXUp4XytuPgHJs2n3Ak_HuaYc6qlF8n6m6OM",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|photo-bark|default|menus-open",
+      "hash": "DHXgNS3cJ3nVrCiTz9bAGE4wu_SGxfiU986GmgQTl4M",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|photo-bark|default|rest",
+      "hash": "6iJaCcxW3ATXNglQLbVGYxD6-JKmF-QRgS-8JRdbwf8",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|photo-bark|default|selected-dragging",
+      "hash": "-TBeNVXrDQU2WP-5dQyKTcTiojtEw2Ms0Rv8JuKX_aQ",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|photo-bark|default|tools-open",
+      "hash": "TcybJm8Qh3aDiLcUG7WOehJNlBCrHgnSazuL43Iphc8",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|photo-bark|default|webgl-glass",
+      "hash": "krEUcrEemp75pQj9gN8p-690M2sn-LRKN23D9eySKBM",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|photo-city|default|collapsed-pinned",
+      "hash": "WVBIY7QybIunW8W25-_7cydHlpJZTvFM2r_3PZfumc8",
+      "selectorCount": 54
+    },
+    {
+      "scenario": "desktop|photo-city|default|focus-visible",
+      "hash": "bk3_tOAZXUp4XytuPgHJs2n3Ak_HuaYc6qlF8n6m6OM",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|photo-city|default|menus-open",
+      "hash": "DHXgNS3cJ3nVrCiTz9bAGE4wu_SGxfiU986GmgQTl4M",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|photo-city|default|rest",
+      "hash": "6iJaCcxW3ATXNglQLbVGYxD6-JKmF-QRgS-8JRdbwf8",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|photo-city|default|selected-dragging",
+      "hash": "-TBeNVXrDQU2WP-5dQyKTcTiojtEw2Ms0Rv8JuKX_aQ",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|photo-city|default|tools-open",
+      "hash": "TcybJm8Qh3aDiLcUG7WOehJNlBCrHgnSazuL43Iphc8",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|photo-city|default|webgl-glass",
+      "hash": "krEUcrEemp75pQj9gN8p-690M2sn-LRKN23D9eySKBM",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|photo-cloud|default|collapsed-pinned",
+      "hash": "WVBIY7QybIunW8W25-_7cydHlpJZTvFM2r_3PZfumc8",
+      "selectorCount": 54
+    },
+    {
+      "scenario": "desktop|photo-cloud|default|focus-visible",
+      "hash": "bk3_tOAZXUp4XytuPgHJs2n3Ak_HuaYc6qlF8n6m6OM",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|photo-cloud|default|menus-open",
+      "hash": "DHXgNS3cJ3nVrCiTz9bAGE4wu_SGxfiU986GmgQTl4M",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|photo-cloud|default|rest",
+      "hash": "6iJaCcxW3ATXNglQLbVGYxD6-JKmF-QRgS-8JRdbwf8",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|photo-cloud|default|selected-dragging",
+      "hash": "-TBeNVXrDQU2WP-5dQyKTcTiojtEw2Ms0Rv8JuKX_aQ",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|photo-cloud|default|tools-open",
+      "hash": "TcybJm8Qh3aDiLcUG7WOehJNlBCrHgnSazuL43Iphc8",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|photo-cloud|default|webgl-glass",
+      "hash": "krEUcrEemp75pQj9gN8p-690M2sn-LRKN23D9eySKBM",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|photo-denim|default|collapsed-pinned",
+      "hash": "WVBIY7QybIunW8W25-_7cydHlpJZTvFM2r_3PZfumc8",
+      "selectorCount": 54
+    },
+    {
+      "scenario": "desktop|photo-denim|default|focus-visible",
+      "hash": "bk3_tOAZXUp4XytuPgHJs2n3Ak_HuaYc6qlF8n6m6OM",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|photo-denim|default|menus-open",
+      "hash": "DHXgNS3cJ3nVrCiTz9bAGE4wu_SGxfiU986GmgQTl4M",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|photo-denim|default|rest",
+      "hash": "6iJaCcxW3ATXNglQLbVGYxD6-JKmF-QRgS-8JRdbwf8",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|photo-denim|default|selected-dragging",
+      "hash": "-TBeNVXrDQU2WP-5dQyKTcTiojtEw2Ms0Rv8JuKX_aQ",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|photo-denim|default|tools-open",
+      "hash": "TcybJm8Qh3aDiLcUG7WOehJNlBCrHgnSazuL43Iphc8",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|photo-denim|default|webgl-glass",
+      "hash": "krEUcrEemp75pQj9gN8p-690M2sn-LRKN23D9eySKBM",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|photo-earth|default|collapsed-pinned",
+      "hash": "WVBIY7QybIunW8W25-_7cydHlpJZTvFM2r_3PZfumc8",
+      "selectorCount": 54
+    },
+    {
+      "scenario": "desktop|photo-earth|default|focus-visible",
+      "hash": "bk3_tOAZXUp4XytuPgHJs2n3Ak_HuaYc6qlF8n6m6OM",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|photo-earth|default|menus-open",
+      "hash": "DHXgNS3cJ3nVrCiTz9bAGE4wu_SGxfiU986GmgQTl4M",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|photo-earth|default|rest",
+      "hash": "6iJaCcxW3ATXNglQLbVGYxD6-JKmF-QRgS-8JRdbwf8",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|photo-earth|default|selected-dragging",
+      "hash": "-TBeNVXrDQU2WP-5dQyKTcTiojtEw2Ms0Rv8JuKX_aQ",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|photo-earth|default|tools-open",
+      "hash": "TcybJm8Qh3aDiLcUG7WOehJNlBCrHgnSazuL43Iphc8",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|photo-earth|default|webgl-glass",
+      "hash": "krEUcrEemp75pQj9gN8p-690M2sn-LRKN23D9eySKBM",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|photo-jungle|default|collapsed-pinned",
+      "hash": "WVBIY7QybIunW8W25-_7cydHlpJZTvFM2r_3PZfumc8",
+      "selectorCount": 54
+    },
+    {
+      "scenario": "desktop|photo-jungle|default|focus-visible",
+      "hash": "bk3_tOAZXUp4XytuPgHJs2n3Ak_HuaYc6qlF8n6m6OM",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|photo-jungle|default|menus-open",
+      "hash": "DHXgNS3cJ3nVrCiTz9bAGE4wu_SGxfiU986GmgQTl4M",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|photo-jungle|default|rest",
+      "hash": "6iJaCcxW3ATXNglQLbVGYxD6-JKmF-QRgS-8JRdbwf8",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|photo-jungle|default|selected-dragging",
+      "hash": "-TBeNVXrDQU2WP-5dQyKTcTiojtEw2Ms0Rv8JuKX_aQ",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|photo-jungle|default|tools-open",
+      "hash": "TcybJm8Qh3aDiLcUG7WOehJNlBCrHgnSazuL43Iphc8",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|photo-jungle|default|webgl-glass",
+      "hash": "krEUcrEemp75pQj9gN8p-690M2sn-LRKN23D9eySKBM",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|photo-jupiter|default|collapsed-pinned",
+      "hash": "WVBIY7QybIunW8W25-_7cydHlpJZTvFM2r_3PZfumc8",
+      "selectorCount": 54
+    },
+    {
+      "scenario": "desktop|photo-jupiter|default|focus-visible",
+      "hash": "bk3_tOAZXUp4XytuPgHJs2n3Ak_HuaYc6qlF8n6m6OM",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|photo-jupiter|default|menus-open",
+      "hash": "DHXgNS3cJ3nVrCiTz9bAGE4wu_SGxfiU986GmgQTl4M",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|photo-jupiter|default|rest",
+      "hash": "6iJaCcxW3ATXNglQLbVGYxD6-JKmF-QRgS-8JRdbwf8",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|photo-jupiter|default|selected-dragging",
+      "hash": "-TBeNVXrDQU2WP-5dQyKTcTiojtEw2Ms0Rv8JuKX_aQ",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|photo-jupiter|default|tools-open",
+      "hash": "TcybJm8Qh3aDiLcUG7WOehJNlBCrHgnSazuL43Iphc8",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|photo-jupiter|default|webgl-glass",
+      "hash": "krEUcrEemp75pQj9gN8p-690M2sn-LRKN23D9eySKBM",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|photo-leather|default|collapsed-pinned",
+      "hash": "WVBIY7QybIunW8W25-_7cydHlpJZTvFM2r_3PZfumc8",
+      "selectorCount": 54
+    },
+    {
+      "scenario": "desktop|photo-leather|default|focus-visible",
+      "hash": "bk3_tOAZXUp4XytuPgHJs2n3Ak_HuaYc6qlF8n6m6OM",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|photo-leather|default|menus-open",
+      "hash": "DHXgNS3cJ3nVrCiTz9bAGE4wu_SGxfiU986GmgQTl4M",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|photo-leather|default|rest",
+      "hash": "6iJaCcxW3ATXNglQLbVGYxD6-JKmF-QRgS-8JRdbwf8",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|photo-leather|default|selected-dragging",
+      "hash": "-TBeNVXrDQU2WP-5dQyKTcTiojtEw2Ms0Rv8JuKX_aQ",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|photo-leather|default|tools-open",
+      "hash": "TcybJm8Qh3aDiLcUG7WOehJNlBCrHgnSazuL43Iphc8",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|photo-leather|default|webgl-glass",
+      "hash": "krEUcrEemp75pQj9gN8p-690M2sn-LRKN23D9eySKBM",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|photo-marble|default|collapsed-pinned",
+      "hash": "WVBIY7QybIunW8W25-_7cydHlpJZTvFM2r_3PZfumc8",
+      "selectorCount": 54
+    },
+    {
+      "scenario": "desktop|photo-marble|default|focus-visible",
+      "hash": "bk3_tOAZXUp4XytuPgHJs2n3Ak_HuaYc6qlF8n6m6OM",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|photo-marble|default|menus-open",
+      "hash": "DHXgNS3cJ3nVrCiTz9bAGE4wu_SGxfiU986GmgQTl4M",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|photo-marble|default|rest",
+      "hash": "6iJaCcxW3ATXNglQLbVGYxD6-JKmF-QRgS-8JRdbwf8",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|photo-marble|default|selected-dragging",
+      "hash": "-TBeNVXrDQU2WP-5dQyKTcTiojtEw2Ms0Rv8JuKX_aQ",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|photo-marble|default|tools-open",
+      "hash": "TcybJm8Qh3aDiLcUG7WOehJNlBCrHgnSazuL43Iphc8",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|photo-marble|default|webgl-glass",
+      "hash": "krEUcrEemp75pQj9gN8p-690M2sn-LRKN23D9eySKBM",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|photo-mars|default|collapsed-pinned",
+      "hash": "WVBIY7QybIunW8W25-_7cydHlpJZTvFM2r_3PZfumc8",
+      "selectorCount": 54
+    },
+    {
+      "scenario": "desktop|photo-mars|default|focus-visible",
+      "hash": "bk3_tOAZXUp4XytuPgHJs2n3Ak_HuaYc6qlF8n6m6OM",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|photo-mars|default|menus-open",
+      "hash": "DHXgNS3cJ3nVrCiTz9bAGE4wu_SGxfiU986GmgQTl4M",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|photo-mars|default|rest",
+      "hash": "6iJaCcxW3ATXNglQLbVGYxD6-JKmF-QRgS-8JRdbwf8",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|photo-mars|default|selected-dragging",
+      "hash": "-TBeNVXrDQU2WP-5dQyKTcTiojtEw2Ms0Rv8JuKX_aQ",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|photo-mars|default|tools-open",
+      "hash": "TcybJm8Qh3aDiLcUG7WOehJNlBCrHgnSazuL43Iphc8",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|photo-mars|default|webgl-glass",
+      "hash": "krEUcrEemp75pQj9gN8p-690M2sn-LRKN23D9eySKBM",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|photo-mercury|default|collapsed-pinned",
+      "hash": "WVBIY7QybIunW8W25-_7cydHlpJZTvFM2r_3PZfumc8",
+      "selectorCount": 54
+    },
+    {
+      "scenario": "desktop|photo-mercury|default|focus-visible",
+      "hash": "bk3_tOAZXUp4XytuPgHJs2n3Ak_HuaYc6qlF8n6m6OM",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|photo-mercury|default|menus-open",
+      "hash": "DHXgNS3cJ3nVrCiTz9bAGE4wu_SGxfiU986GmgQTl4M",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|photo-mercury|default|rest",
+      "hash": "6iJaCcxW3ATXNglQLbVGYxD6-JKmF-QRgS-8JRdbwf8",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|photo-mercury|default|selected-dragging",
+      "hash": "-TBeNVXrDQU2WP-5dQyKTcTiojtEw2Ms0Rv8JuKX_aQ",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|photo-mercury|default|tools-open",
+      "hash": "TcybJm8Qh3aDiLcUG7WOehJNlBCrHgnSazuL43Iphc8",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|photo-mercury|default|webgl-glass",
+      "hash": "krEUcrEemp75pQj9gN8p-690M2sn-LRKN23D9eySKBM",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|photo-modern|default|collapsed-pinned",
+      "hash": "WVBIY7QybIunW8W25-_7cydHlpJZTvFM2r_3PZfumc8",
+      "selectorCount": 54
+    },
+    {
+      "scenario": "desktop|photo-modern|default|focus-visible",
+      "hash": "bk3_tOAZXUp4XytuPgHJs2n3Ak_HuaYc6qlF8n6m6OM",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|photo-modern|default|menus-open",
+      "hash": "DHXgNS3cJ3nVrCiTz9bAGE4wu_SGxfiU986GmgQTl4M",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|photo-modern|default|rest",
+      "hash": "6iJaCcxW3ATXNglQLbVGYxD6-JKmF-QRgS-8JRdbwf8",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|photo-modern|default|selected-dragging",
+      "hash": "-TBeNVXrDQU2WP-5dQyKTcTiojtEw2Ms0Rv8JuKX_aQ",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|photo-modern|default|tools-open",
+      "hash": "TcybJm8Qh3aDiLcUG7WOehJNlBCrHgnSazuL43Iphc8",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|photo-modern|default|webgl-glass",
+      "hash": "krEUcrEemp75pQj9gN8p-690M2sn-LRKN23D9eySKBM",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|photo-moss|default|collapsed-pinned",
+      "hash": "WVBIY7QybIunW8W25-_7cydHlpJZTvFM2r_3PZfumc8",
+      "selectorCount": 54
+    },
+    {
+      "scenario": "desktop|photo-moss|default|focus-visible",
+      "hash": "bk3_tOAZXUp4XytuPgHJs2n3Ak_HuaYc6qlF8n6m6OM",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|photo-moss|default|menus-open",
+      "hash": "DHXgNS3cJ3nVrCiTz9bAGE4wu_SGxfiU986GmgQTl4M",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|photo-moss|default|rest",
+      "hash": "6iJaCcxW3ATXNglQLbVGYxD6-JKmF-QRgS-8JRdbwf8",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|photo-moss|default|selected-dragging",
+      "hash": "-TBeNVXrDQU2WP-5dQyKTcTiojtEw2Ms0Rv8JuKX_aQ",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|photo-moss|default|tools-open",
+      "hash": "TcybJm8Qh3aDiLcUG7WOehJNlBCrHgnSazuL43Iphc8",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|photo-moss|default|webgl-glass",
+      "hash": "krEUcrEemp75pQj9gN8p-690M2sn-LRKN23D9eySKBM",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|photo-neptune|default|collapsed-pinned",
+      "hash": "WVBIY7QybIunW8W25-_7cydHlpJZTvFM2r_3PZfumc8",
+      "selectorCount": 54
+    },
+    {
+      "scenario": "desktop|photo-neptune|default|focus-visible",
+      "hash": "bk3_tOAZXUp4XytuPgHJs2n3Ak_HuaYc6qlF8n6m6OM",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|photo-neptune|default|menus-open",
+      "hash": "DHXgNS3cJ3nVrCiTz9bAGE4wu_SGxfiU986GmgQTl4M",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|photo-neptune|default|rest",
+      "hash": "6iJaCcxW3ATXNglQLbVGYxD6-JKmF-QRgS-8JRdbwf8",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|photo-neptune|default|selected-dragging",
+      "hash": "-TBeNVXrDQU2WP-5dQyKTcTiojtEw2Ms0Rv8JuKX_aQ",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|photo-neptune|default|tools-open",
+      "hash": "TcybJm8Qh3aDiLcUG7WOehJNlBCrHgnSazuL43Iphc8",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|photo-neptune|default|webgl-glass",
+      "hash": "krEUcrEemp75pQj9gN8p-690M2sn-LRKN23D9eySKBM",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|photo-paint|default|collapsed-pinned",
+      "hash": "WVBIY7QybIunW8W25-_7cydHlpJZTvFM2r_3PZfumc8",
+      "selectorCount": 54
+    },
+    {
+      "scenario": "desktop|photo-paint|default|focus-visible",
+      "hash": "bk3_tOAZXUp4XytuPgHJs2n3Ak_HuaYc6qlF8n6m6OM",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|photo-paint|default|menus-open",
+      "hash": "DHXgNS3cJ3nVrCiTz9bAGE4wu_SGxfiU986GmgQTl4M",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|photo-paint|default|rest",
+      "hash": "6iJaCcxW3ATXNglQLbVGYxD6-JKmF-QRgS-8JRdbwf8",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|photo-paint|default|selected-dragging",
+      "hash": "-TBeNVXrDQU2WP-5dQyKTcTiojtEw2Ms0Rv8JuKX_aQ",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|photo-paint|default|tools-open",
+      "hash": "TcybJm8Qh3aDiLcUG7WOehJNlBCrHgnSazuL43Iphc8",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|photo-paint|default|webgl-glass",
+      "hash": "krEUcrEemp75pQj9gN8p-690M2sn-LRKN23D9eySKBM",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|photo-paintspill|default|collapsed-pinned",
+      "hash": "WVBIY7QybIunW8W25-_7cydHlpJZTvFM2r_3PZfumc8",
+      "selectorCount": 54
+    },
+    {
+      "scenario": "desktop|photo-paintspill|default|focus-visible",
+      "hash": "bk3_tOAZXUp4XytuPgHJs2n3Ak_HuaYc6qlF8n6m6OM",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|photo-paintspill|default|menus-open",
+      "hash": "DHXgNS3cJ3nVrCiTz9bAGE4wu_SGxfiU986GmgQTl4M",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|photo-paintspill|default|rest",
+      "hash": "6iJaCcxW3ATXNglQLbVGYxD6-JKmF-QRgS-8JRdbwf8",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|photo-paintspill|default|selected-dragging",
+      "hash": "-TBeNVXrDQU2WP-5dQyKTcTiojtEw2Ms0Rv8JuKX_aQ",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|photo-paintspill|default|tools-open",
+      "hash": "TcybJm8Qh3aDiLcUG7WOehJNlBCrHgnSazuL43Iphc8",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|photo-paintspill|default|webgl-glass",
+      "hash": "krEUcrEemp75pQj9gN8p-690M2sn-LRKN23D9eySKBM",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|photo-pluto|default|collapsed-pinned",
+      "hash": "WVBIY7QybIunW8W25-_7cydHlpJZTvFM2r_3PZfumc8",
+      "selectorCount": 54
+    },
+    {
+      "scenario": "desktop|photo-pluto|default|focus-visible",
+      "hash": "bk3_tOAZXUp4XytuPgHJs2n3Ak_HuaYc6qlF8n6m6OM",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|photo-pluto|default|menus-open",
+      "hash": "DHXgNS3cJ3nVrCiTz9bAGE4wu_SGxfiU986GmgQTl4M",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|photo-pluto|default|rest",
+      "hash": "6iJaCcxW3ATXNglQLbVGYxD6-JKmF-QRgS-8JRdbwf8",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|photo-pluto|default|selected-dragging",
+      "hash": "-TBeNVXrDQU2WP-5dQyKTcTiojtEw2Ms0Rv8JuKX_aQ",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|photo-pluto|default|tools-open",
+      "hash": "TcybJm8Qh3aDiLcUG7WOehJNlBCrHgnSazuL43Iphc8",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|photo-pluto|default|webgl-glass",
+      "hash": "krEUcrEemp75pQj9gN8p-690M2sn-LRKN23D9eySKBM",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|photo-sand|default|collapsed-pinned",
+      "hash": "WVBIY7QybIunW8W25-_7cydHlpJZTvFM2r_3PZfumc8",
+      "selectorCount": 54
+    },
+    {
+      "scenario": "desktop|photo-sand|default|focus-visible",
+      "hash": "bk3_tOAZXUp4XytuPgHJs2n3Ak_HuaYc6qlF8n6m6OM",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|photo-sand|default|menus-open",
+      "hash": "DHXgNS3cJ3nVrCiTz9bAGE4wu_SGxfiU986GmgQTl4M",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|photo-sand|default|rest",
+      "hash": "6iJaCcxW3ATXNglQLbVGYxD6-JKmF-QRgS-8JRdbwf8",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|photo-sand|default|selected-dragging",
+      "hash": "-TBeNVXrDQU2WP-5dQyKTcTiojtEw2Ms0Rv8JuKX_aQ",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|photo-sand|default|tools-open",
+      "hash": "TcybJm8Qh3aDiLcUG7WOehJNlBCrHgnSazuL43Iphc8",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|photo-sand|default|webgl-glass",
+      "hash": "krEUcrEemp75pQj9gN8p-690M2sn-LRKN23D9eySKBM",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|photo-saturn|default|collapsed-pinned",
+      "hash": "WVBIY7QybIunW8W25-_7cydHlpJZTvFM2r_3PZfumc8",
+      "selectorCount": 54
+    },
+    {
+      "scenario": "desktop|photo-saturn|default|focus-visible",
+      "hash": "bk3_tOAZXUp4XytuPgHJs2n3Ak_HuaYc6qlF8n6m6OM",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|photo-saturn|default|menus-open",
+      "hash": "DHXgNS3cJ3nVrCiTz9bAGE4wu_SGxfiU986GmgQTl4M",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|photo-saturn|default|rest",
+      "hash": "6iJaCcxW3ATXNglQLbVGYxD6-JKmF-QRgS-8JRdbwf8",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|photo-saturn|default|selected-dragging",
+      "hash": "-TBeNVXrDQU2WP-5dQyKTcTiojtEw2Ms0Rv8JuKX_aQ",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|photo-saturn|default|tools-open",
+      "hash": "TcybJm8Qh3aDiLcUG7WOehJNlBCrHgnSazuL43Iphc8",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|photo-saturn|default|webgl-glass",
+      "hash": "krEUcrEemp75pQj9gN8p-690M2sn-LRKN23D9eySKBM",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|photo-shore|default|collapsed-pinned",
+      "hash": "WVBIY7QybIunW8W25-_7cydHlpJZTvFM2r_3PZfumc8",
+      "selectorCount": 54
+    },
+    {
+      "scenario": "desktop|photo-shore|default|focus-visible",
+      "hash": "bk3_tOAZXUp4XytuPgHJs2n3Ak_HuaYc6qlF8n6m6OM",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|photo-shore|default|menus-open",
+      "hash": "DHXgNS3cJ3nVrCiTz9bAGE4wu_SGxfiU986GmgQTl4M",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|photo-shore|default|rest",
+      "hash": "6iJaCcxW3ATXNglQLbVGYxD6-JKmF-QRgS-8JRdbwf8",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|photo-shore|default|selected-dragging",
+      "hash": "-TBeNVXrDQU2WP-5dQyKTcTiojtEw2Ms0Rv8JuKX_aQ",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|photo-shore|default|tools-open",
+      "hash": "TcybJm8Qh3aDiLcUG7WOehJNlBCrHgnSazuL43Iphc8",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|photo-shore|default|webgl-glass",
+      "hash": "krEUcrEemp75pQj9gN8p-690M2sn-LRKN23D9eySKBM",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|photo-texture|default|collapsed-pinned",
+      "hash": "WVBIY7QybIunW8W25-_7cydHlpJZTvFM2r_3PZfumc8",
+      "selectorCount": 54
+    },
+    {
+      "scenario": "desktop|photo-texture|default|focus-visible",
+      "hash": "bk3_tOAZXUp4XytuPgHJs2n3Ak_HuaYc6qlF8n6m6OM",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|photo-texture|default|menus-open",
+      "hash": "DHXgNS3cJ3nVrCiTz9bAGE4wu_SGxfiU986GmgQTl4M",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|photo-texture|default|rest",
+      "hash": "6iJaCcxW3ATXNglQLbVGYxD6-JKmF-QRgS-8JRdbwf8",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|photo-texture|default|selected-dragging",
+      "hash": "-TBeNVXrDQU2WP-5dQyKTcTiojtEw2Ms0Rv8JuKX_aQ",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|photo-texture|default|tools-open",
+      "hash": "TcybJm8Qh3aDiLcUG7WOehJNlBCrHgnSazuL43Iphc8",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|photo-texture|default|webgl-glass",
+      "hash": "krEUcrEemp75pQj9gN8p-690M2sn-LRKN23D9eySKBM",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|photo-turf|default|collapsed-pinned",
+      "hash": "WVBIY7QybIunW8W25-_7cydHlpJZTvFM2r_3PZfumc8",
+      "selectorCount": 54
+    },
+    {
+      "scenario": "desktop|photo-turf|default|focus-visible",
+      "hash": "bk3_tOAZXUp4XytuPgHJs2n3Ak_HuaYc6qlF8n6m6OM",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|photo-turf|default|menus-open",
+      "hash": "DHXgNS3cJ3nVrCiTz9bAGE4wu_SGxfiU986GmgQTl4M",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|photo-turf|default|rest",
+      "hash": "6iJaCcxW3ATXNglQLbVGYxD6-JKmF-QRgS-8JRdbwf8",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|photo-turf|default|selected-dragging",
+      "hash": "-TBeNVXrDQU2WP-5dQyKTcTiojtEw2Ms0Rv8JuKX_aQ",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|photo-turf|default|tools-open",
+      "hash": "TcybJm8Qh3aDiLcUG7WOehJNlBCrHgnSazuL43Iphc8",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|photo-turf|default|webgl-glass",
+      "hash": "krEUcrEemp75pQj9gN8p-690M2sn-LRKN23D9eySKBM",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|photo-uranus|default|collapsed-pinned",
+      "hash": "WVBIY7QybIunW8W25-_7cydHlpJZTvFM2r_3PZfumc8",
+      "selectorCount": 54
+    },
+    {
+      "scenario": "desktop|photo-uranus|default|focus-visible",
+      "hash": "bk3_tOAZXUp4XytuPgHJs2n3Ak_HuaYc6qlF8n6m6OM",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|photo-uranus|default|menus-open",
+      "hash": "DHXgNS3cJ3nVrCiTz9bAGE4wu_SGxfiU986GmgQTl4M",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|photo-uranus|default|rest",
+      "hash": "6iJaCcxW3ATXNglQLbVGYxD6-JKmF-QRgS-8JRdbwf8",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|photo-uranus|default|selected-dragging",
+      "hash": "-TBeNVXrDQU2WP-5dQyKTcTiojtEw2Ms0Rv8JuKX_aQ",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|photo-uranus|default|tools-open",
+      "hash": "TcybJm8Qh3aDiLcUG7WOehJNlBCrHgnSazuL43Iphc8",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|photo-uranus|default|webgl-glass",
+      "hash": "krEUcrEemp75pQj9gN8p-690M2sn-LRKN23D9eySKBM",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|photo-venus|default|collapsed-pinned",
+      "hash": "WVBIY7QybIunW8W25-_7cydHlpJZTvFM2r_3PZfumc8",
+      "selectorCount": 54
+    },
+    {
+      "scenario": "desktop|photo-venus|default|focus-visible",
+      "hash": "bk3_tOAZXUp4XytuPgHJs2n3Ak_HuaYc6qlF8n6m6OM",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|photo-venus|default|menus-open",
+      "hash": "DHXgNS3cJ3nVrCiTz9bAGE4wu_SGxfiU986GmgQTl4M",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|photo-venus|default|rest",
+      "hash": "6iJaCcxW3ATXNglQLbVGYxD6-JKmF-QRgS-8JRdbwf8",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|photo-venus|default|selected-dragging",
+      "hash": "-TBeNVXrDQU2WP-5dQyKTcTiojtEw2Ms0Rv8JuKX_aQ",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|photo-venus|default|tools-open",
+      "hash": "TcybJm8Qh3aDiLcUG7WOehJNlBCrHgnSazuL43Iphc8",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|photo-venus|default|webgl-glass",
+      "hash": "krEUcrEemp75pQj9gN8p-690M2sn-LRKN23D9eySKBM",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|photo-water|default|collapsed-pinned",
+      "hash": "WVBIY7QybIunW8W25-_7cydHlpJZTvFM2r_3PZfumc8",
+      "selectorCount": 54
+    },
+    {
+      "scenario": "desktop|photo-water|default|focus-visible",
+      "hash": "bk3_tOAZXUp4XytuPgHJs2n3Ak_HuaYc6qlF8n6m6OM",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|photo-water|default|menus-open",
+      "hash": "DHXgNS3cJ3nVrCiTz9bAGE4wu_SGxfiU986GmgQTl4M",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|photo-water|default|rest",
+      "hash": "6iJaCcxW3ATXNglQLbVGYxD6-JKmF-QRgS-8JRdbwf8",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|photo-water|default|selected-dragging",
+      "hash": "-TBeNVXrDQU2WP-5dQyKTcTiojtEw2Ms0Rv8JuKX_aQ",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|photo-water|default|tools-open",
+      "hash": "TcybJm8Qh3aDiLcUG7WOehJNlBCrHgnSazuL43Iphc8",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|photo-water|default|webgl-glass",
+      "hash": "krEUcrEemp75pQj9gN8p-690M2sn-LRKN23D9eySKBM",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|photo-water2|default|collapsed-pinned",
+      "hash": "WVBIY7QybIunW8W25-_7cydHlpJZTvFM2r_3PZfumc8",
+      "selectorCount": 54
+    },
+    {
+      "scenario": "desktop|photo-water2|default|focus-visible",
+      "hash": "bk3_tOAZXUp4XytuPgHJs2n3Ak_HuaYc6qlF8n6m6OM",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|photo-water2|default|menus-open",
+      "hash": "DHXgNS3cJ3nVrCiTz9bAGE4wu_SGxfiU986GmgQTl4M",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|photo-water2|default|rest",
+      "hash": "6iJaCcxW3ATXNglQLbVGYxD6-JKmF-QRgS-8JRdbwf8",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|photo-water2|default|selected-dragging",
+      "hash": "-TBeNVXrDQU2WP-5dQyKTcTiojtEw2Ms0Rv8JuKX_aQ",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|photo-water2|default|tools-open",
+      "hash": "TcybJm8Qh3aDiLcUG7WOehJNlBCrHgnSazuL43Iphc8",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|photo-water2|default|webgl-glass",
+      "hash": "krEUcrEemp75pQj9gN8p-690M2sn-LRKN23D9eySKBM",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|slate-grey|default|collapsed-pinned",
+      "hash": "WVBIY7QybIunW8W25-_7cydHlpJZTvFM2r_3PZfumc8",
+      "selectorCount": 54
+    },
+    {
+      "scenario": "desktop|slate-grey|default|focus-visible",
+      "hash": "bk3_tOAZXUp4XytuPgHJs2n3Ak_HuaYc6qlF8n6m6OM",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|slate-grey|default|menus-open",
+      "hash": "DHXgNS3cJ3nVrCiTz9bAGE4wu_SGxfiU986GmgQTl4M",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|slate-grey|default|rest",
+      "hash": "6iJaCcxW3ATXNglQLbVGYxD6-JKmF-QRgS-8JRdbwf8",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|slate-grey|default|selected-dragging",
+      "hash": "-TBeNVXrDQU2WP-5dQyKTcTiojtEw2Ms0Rv8JuKX_aQ",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|slate-grey|default|tools-open",
+      "hash": "TcybJm8Qh3aDiLcUG7WOehJNlBCrHgnSazuL43Iphc8",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|slate-grey|default|webgl-glass",
+      "hash": "krEUcrEemp75pQj9gN8p-690M2sn-LRKN23D9eySKBM",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|slate|default|collapsed-pinned",
+      "hash": "WVBIY7QybIunW8W25-_7cydHlpJZTvFM2r_3PZfumc8",
+      "selectorCount": 54
+    },
+    {
+      "scenario": "desktop|slate|default|focus-visible",
+      "hash": "bk3_tOAZXUp4XytuPgHJs2n3Ak_HuaYc6qlF8n6m6OM",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|slate|default|menus-open",
+      "hash": "DHXgNS3cJ3nVrCiTz9bAGE4wu_SGxfiU986GmgQTl4M",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|slate|default|rest",
+      "hash": "6iJaCcxW3ATXNglQLbVGYxD6-JKmF-QRgS-8JRdbwf8",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|slate|default|selected-dragging",
+      "hash": "-TBeNVXrDQU2WP-5dQyKTcTiojtEw2Ms0Rv8JuKX_aQ",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|slate|default|tools-open",
+      "hash": "TcybJm8Qh3aDiLcUG7WOehJNlBCrHgnSazuL43Iphc8",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|slate|default|webgl-glass",
+      "hash": "krEUcrEemp75pQj9gN8p-690M2sn-LRKN23D9eySKBM",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|soft-black|default|collapsed-pinned",
+      "hash": "WVBIY7QybIunW8W25-_7cydHlpJZTvFM2r_3PZfumc8",
+      "selectorCount": 54
+    },
+    {
+      "scenario": "desktop|soft-black|default|focus-visible",
+      "hash": "bk3_tOAZXUp4XytuPgHJs2n3Ak_HuaYc6qlF8n6m6OM",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|soft-black|default|menus-open",
+      "hash": "DHXgNS3cJ3nVrCiTz9bAGE4wu_SGxfiU986GmgQTl4M",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|soft-black|default|rest",
+      "hash": "6iJaCcxW3ATXNglQLbVGYxD6-JKmF-QRgS-8JRdbwf8",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|soft-black|default|selected-dragging",
+      "hash": "-TBeNVXrDQU2WP-5dQyKTcTiojtEw2Ms0Rv8JuKX_aQ",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|soft-black|default|tools-open",
+      "hash": "TcybJm8Qh3aDiLcUG7WOehJNlBCrHgnSazuL43Iphc8",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|soft-black|default|webgl-glass",
+      "hash": "krEUcrEemp75pQj9gN8p-690M2sn-LRKN23D9eySKBM",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|soft-charcoal|default|collapsed-pinned",
+      "hash": "WVBIY7QybIunW8W25-_7cydHlpJZTvFM2r_3PZfumc8",
+      "selectorCount": 54
+    },
+    {
+      "scenario": "desktop|soft-charcoal|default|focus-visible",
+      "hash": "bk3_tOAZXUp4XytuPgHJs2n3Ak_HuaYc6qlF8n6m6OM",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|soft-charcoal|default|menus-open",
+      "hash": "DHXgNS3cJ3nVrCiTz9bAGE4wu_SGxfiU986GmgQTl4M",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|soft-charcoal|default|rest",
+      "hash": "6iJaCcxW3ATXNglQLbVGYxD6-JKmF-QRgS-8JRdbwf8",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|soft-charcoal|default|selected-dragging",
+      "hash": "-TBeNVXrDQU2WP-5dQyKTcTiojtEw2Ms0Rv8JuKX_aQ",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|soft-charcoal|default|tools-open",
+      "hash": "TcybJm8Qh3aDiLcUG7WOehJNlBCrHgnSazuL43Iphc8",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|soft-charcoal|default|webgl-glass",
+      "hash": "krEUcrEemp75pQj9gN8p-690M2sn-LRKN23D9eySKBM",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|soft-cinema|default|collapsed-pinned",
+      "hash": "WVBIY7QybIunW8W25-_7cydHlpJZTvFM2r_3PZfumc8",
+      "selectorCount": 54
+    },
+    {
+      "scenario": "desktop|soft-cinema|default|focus-visible",
+      "hash": "bk3_tOAZXUp4XytuPgHJs2n3Ak_HuaYc6qlF8n6m6OM",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|soft-cinema|default|menus-open",
+      "hash": "DHXgNS3cJ3nVrCiTz9bAGE4wu_SGxfiU986GmgQTl4M",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|soft-cinema|default|rest",
+      "hash": "6iJaCcxW3ATXNglQLbVGYxD6-JKmF-QRgS-8JRdbwf8",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|soft-cinema|default|selected-dragging",
+      "hash": "-TBeNVXrDQU2WP-5dQyKTcTiojtEw2Ms0Rv8JuKX_aQ",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|soft-cinema|default|tools-open",
+      "hash": "TcybJm8Qh3aDiLcUG7WOehJNlBCrHgnSazuL43Iphc8",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|soft-cinema|default|webgl-glass",
+      "hash": "krEUcrEemp75pQj9gN8p-690M2sn-LRKN23D9eySKBM",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|soft-grey|default|collapsed-pinned",
+      "hash": "WVBIY7QybIunW8W25-_7cydHlpJZTvFM2r_3PZfumc8",
+      "selectorCount": 54
+    },
+    {
+      "scenario": "desktop|soft-grey|default|focus-visible",
+      "hash": "bk3_tOAZXUp4XytuPgHJs2n3Ak_HuaYc6qlF8n6m6OM",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|soft-grey|default|menus-open",
+      "hash": "DHXgNS3cJ3nVrCiTz9bAGE4wu_SGxfiU986GmgQTl4M",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|soft-grey|default|rest",
+      "hash": "6iJaCcxW3ATXNglQLbVGYxD6-JKmF-QRgS-8JRdbwf8",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|soft-grey|default|selected-dragging",
+      "hash": "-TBeNVXrDQU2WP-5dQyKTcTiojtEw2Ms0Rv8JuKX_aQ",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|soft-grey|default|tools-open",
+      "hash": "TcybJm8Qh3aDiLcUG7WOehJNlBCrHgnSazuL43Iphc8",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|soft-grey|default|webgl-glass",
+      "hash": "krEUcrEemp75pQj9gN8p-690M2sn-LRKN23D9eySKBM",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|solar-system|default|collapsed-pinned",
+      "hash": "WVBIY7QybIunW8W25-_7cydHlpJZTvFM2r_3PZfumc8",
+      "selectorCount": 54
+    },
+    {
+      "scenario": "desktop|solar-system|default|focus-visible",
+      "hash": "bk3_tOAZXUp4XytuPgHJs2n3Ak_HuaYc6qlF8n6m6OM",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|solar-system|default|menus-open",
+      "hash": "DHXgNS3cJ3nVrCiTz9bAGE4wu_SGxfiU986GmgQTl4M",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|solar-system|default|rest",
+      "hash": "6iJaCcxW3ATXNglQLbVGYxD6-JKmF-QRgS-8JRdbwf8",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|solar-system|default|selected-dragging",
+      "hash": "-TBeNVXrDQU2WP-5dQyKTcTiojtEw2Ms0Rv8JuKX_aQ",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|solar-system|default|tools-open",
+      "hash": "TcybJm8Qh3aDiLcUG7WOehJNlBCrHgnSazuL43Iphc8",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|solar-system|default|webgl-glass",
+      "hash": "krEUcrEemp75pQj9gN8p-690M2sn-LRKN23D9eySKBM",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|stone-grey|default|collapsed-pinned",
+      "hash": "WVBIY7QybIunW8W25-_7cydHlpJZTvFM2r_3PZfumc8",
+      "selectorCount": 54
+    },
+    {
+      "scenario": "desktop|stone-grey|default|focus-visible",
+      "hash": "bk3_tOAZXUp4XytuPgHJs2n3Ak_HuaYc6qlF8n6m6OM",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|stone-grey|default|menus-open",
+      "hash": "DHXgNS3cJ3nVrCiTz9bAGE4wu_SGxfiU986GmgQTl4M",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|stone-grey|default|rest",
+      "hash": "6iJaCcxW3ATXNglQLbVGYxD6-JKmF-QRgS-8JRdbwf8",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|stone-grey|default|selected-dragging",
+      "hash": "-TBeNVXrDQU2WP-5dQyKTcTiojtEw2Ms0Rv8JuKX_aQ",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|stone-grey|default|tools-open",
+      "hash": "TcybJm8Qh3aDiLcUG7WOehJNlBCrHgnSazuL43Iphc8",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|stone-grey|default|webgl-glass",
+      "hash": "krEUcrEemp75pQj9gN8p-690M2sn-LRKN23D9eySKBM",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|stone-slate|default|collapsed-pinned",
+      "hash": "WVBIY7QybIunW8W25-_7cydHlpJZTvFM2r_3PZfumc8",
+      "selectorCount": 54
+    },
+    {
+      "scenario": "desktop|stone-slate|default|focus-visible",
+      "hash": "bk3_tOAZXUp4XytuPgHJs2n3Ak_HuaYc6qlF8n6m6OM",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|stone-slate|default|menus-open",
+      "hash": "DHXgNS3cJ3nVrCiTz9bAGE4wu_SGxfiU986GmgQTl4M",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|stone-slate|default|rest",
+      "hash": "6iJaCcxW3ATXNglQLbVGYxD6-JKmF-QRgS-8JRdbwf8",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|stone-slate|default|selected-dragging",
+      "hash": "-TBeNVXrDQU2WP-5dQyKTcTiojtEw2Ms0Rv8JuKX_aQ",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|stone-slate|default|tools-open",
+      "hash": "TcybJm8Qh3aDiLcUG7WOehJNlBCrHgnSazuL43Iphc8",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|stone-slate|default|webgl-glass",
+      "hash": "krEUcrEemp75pQj9gN8p-690M2sn-LRKN23D9eySKBM",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|very-pale-grey|default|collapsed-pinned",
+      "hash": "WVBIY7QybIunW8W25-_7cydHlpJZTvFM2r_3PZfumc8",
+      "selectorCount": 54
+    },
+    {
+      "scenario": "desktop|very-pale-grey|default|focus-visible",
+      "hash": "bk3_tOAZXUp4XytuPgHJs2n3Ak_HuaYc6qlF8n6m6OM",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|very-pale-grey|default|menus-open",
+      "hash": "DHXgNS3cJ3nVrCiTz9bAGE4wu_SGxfiU986GmgQTl4M",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|very-pale-grey|default|rest",
+      "hash": "6iJaCcxW3ATXNglQLbVGYxD6-JKmF-QRgS-8JRdbwf8",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|very-pale-grey|default|selected-dragging",
+      "hash": "-TBeNVXrDQU2WP-5dQyKTcTiojtEw2Ms0Rv8JuKX_aQ",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|very-pale-grey|default|tools-open",
+      "hash": "TcybJm8Qh3aDiLcUG7WOehJNlBCrHgnSazuL43Iphc8",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|very-pale-grey|default|webgl-glass",
+      "hash": "krEUcrEemp75pQj9gN8p-690M2sn-LRKN23D9eySKBM",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|warm-grey|default|collapsed-pinned",
+      "hash": "WVBIY7QybIunW8W25-_7cydHlpJZTvFM2r_3PZfumc8",
+      "selectorCount": 54
+    },
+    {
+      "scenario": "desktop|warm-grey|default|focus-visible",
+      "hash": "bk3_tOAZXUp4XytuPgHJs2n3Ak_HuaYc6qlF8n6m6OM",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|warm-grey|default|menus-open",
+      "hash": "DHXgNS3cJ3nVrCiTz9bAGE4wu_SGxfiU986GmgQTl4M",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|warm-grey|default|rest",
+      "hash": "6iJaCcxW3ATXNglQLbVGYxD6-JKmF-QRgS-8JRdbwf8",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|warm-grey|default|selected-dragging",
+      "hash": "-TBeNVXrDQU2WP-5dQyKTcTiojtEw2Ms0Rv8JuKX_aQ",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|warm-grey|default|tools-open",
+      "hash": "TcybJm8Qh3aDiLcUG7WOehJNlBCrHgnSazuL43Iphc8",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|warm-grey|default|webgl-glass",
+      "hash": "krEUcrEemp75pQj9gN8p-690M2sn-LRKN23D9eySKBM",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|warm-near-black|default|collapsed-pinned",
+      "hash": "WVBIY7QybIunW8W25-_7cydHlpJZTvFM2r_3PZfumc8",
+      "selectorCount": 54
+    },
+    {
+      "scenario": "desktop|warm-near-black|default|focus-visible",
+      "hash": "bk3_tOAZXUp4XytuPgHJs2n3Ak_HuaYc6qlF8n6m6OM",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|warm-near-black|default|menus-open",
+      "hash": "DHXgNS3cJ3nVrCiTz9bAGE4wu_SGxfiU986GmgQTl4M",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|warm-near-black|default|rest",
+      "hash": "6iJaCcxW3ATXNglQLbVGYxD6-JKmF-QRgS-8JRdbwf8",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|warm-near-black|default|selected-dragging",
+      "hash": "-TBeNVXrDQU2WP-5dQyKTcTiojtEw2Ms0Rv8JuKX_aQ",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|warm-near-black|default|tools-open",
+      "hash": "TcybJm8Qh3aDiLcUG7WOehJNlBCrHgnSazuL43Iphc8",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|warm-near-black|default|webgl-glass",
+      "hash": "krEUcrEemp75pQj9gN8p-690M2sn-LRKN23D9eySKBM",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|warm-white|default|collapsed-pinned",
+      "hash": "WVBIY7QybIunW8W25-_7cydHlpJZTvFM2r_3PZfumc8",
+      "selectorCount": 54
+    },
+    {
+      "scenario": "desktop|warm-white|default|focus-visible",
+      "hash": "bk3_tOAZXUp4XytuPgHJs2n3Ak_HuaYc6qlF8n6m6OM",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|warm-white|default|menus-open",
+      "hash": "DHXgNS3cJ3nVrCiTz9bAGE4wu_SGxfiU986GmgQTl4M",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|warm-white|default|rest",
+      "hash": "6iJaCcxW3ATXNglQLbVGYxD6-JKmF-QRgS-8JRdbwf8",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|warm-white|default|selected-dragging",
+      "hash": "-TBeNVXrDQU2WP-5dQyKTcTiojtEw2Ms0Rv8JuKX_aQ",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|warm-white|default|tools-open",
+      "hash": "TcybJm8Qh3aDiLcUG7WOehJNlBCrHgnSazuL43Iphc8",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "desktop|warm-white|default|webgl-glass",
+      "hash": "krEUcrEemp75pQj9gN8p-690M2sn-LRKN23D9eySKBM",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "mobile-720|frosted-light|default|rest",
+      "hash": "2-IcyvkNsNxEY7kaQD77uZN9hq2YJqO4GgOa6sMPxPs",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "mobile-720|near-black|default|rest",
+      "hash": "2-IcyvkNsNxEY7kaQD77uZN9hq2YJqO4GgOa6sMPxPs",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "mobile-720|photo-earth|default|rest",
+      "hash": "2-IcyvkNsNxEY7kaQD77uZN9hq2YJqO4GgOa6sMPxPs",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "mobile-720|slate|default|rest",
+      "hash": "2-IcyvkNsNxEY7kaQD77uZN9hq2YJqO4GgOa6sMPxPs",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "narrow-980|frosted-light|default|rest",
+      "hash": "HQSPkyDDBUb7M5d4mEFZW06MN-mZnt27GZmk8uQVBUg",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "narrow-980|near-black|default|rest",
+      "hash": "HQSPkyDDBUb7M5d4mEFZW06MN-mZnt27GZmk8uQVBUg",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "narrow-980|photo-earth|default|rest",
+      "hash": "HQSPkyDDBUb7M5d4mEFZW06MN-mZnt27GZmk8uQVBUg",
+      "selectorCount": 53
+    },
+    {
+      "scenario": "narrow-980|slate|default|rest",
+      "hash": "HQSPkyDDBUb7M5d4mEFZW06MN-mZnt27GZmk8uQVBUg",
+      "selectorCount": 53
+    }
+  ],
+  "hash": "BaBr3bEuYbD3SL1FM6CV_KFFpwe2hKvImtNeAxRN_9I"
+}

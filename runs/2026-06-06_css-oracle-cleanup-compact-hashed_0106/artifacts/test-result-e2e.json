@@ -1,0 +1,6 @@
+{
+    "command":  "npm.cmd run test:e2e -- --workers=1",
+    "passed":  true,
+    "tests":  11,
+    "note":  "Full Electron Playwright suite passed under MAW_HEADLESS-enabled test launch."
+}

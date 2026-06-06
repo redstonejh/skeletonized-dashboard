@@ -6,24 +6,26 @@ const path = require("node:path");
 
 const root = path.join(__dirname, "..");
 const artifactsDir = path.join(root, "artifacts");
-const runArtifactsDir = path.join(root, "runs", "2026-06-06_css-phase-1-map-oracle_17eb", "artifacts");
+const runId = process.env.CSS_ORACLE_RUN_ID || "2026-06-06_css-phase-1-map-oracle_17eb";
+const runArtifactsDir = path.join(root, "runs", runId, "artifacts");
 const cssFiles = ["app/static/themes.css", "app/static/dashboard-grid.css"];
 const targetCssFiles = ["app/static/tokens.css", ...cssFiles];
 
 const mode = process.argv[2] || "all";
 
 const computedProperties = [
-  "display", "visibility", "opacity", "pointerEvents", "position", "zIndex",
-  "gridColumnStart", "gridColumnEnd", "gridRowStart", "gridRowEnd",
-  "width", "height", "minHeight", "maxHeight", "overflow", "overflowX", "overflowY",
+  "opacity",
+  "width", "height", "minHeight", "maxHeight",
   "paddingTop", "paddingRight", "paddingBottom", "paddingLeft",
   "marginTop", "marginRight", "marginBottom", "marginLeft",
+  "gap", "rowGap", "columnGap",
   "borderTopWidth", "borderRightWidth", "borderBottomWidth", "borderLeftWidth",
   "borderTopColor", "borderRightColor", "borderBottomColor", "borderLeftColor",
-  "borderRadius", "boxSizing", "boxShadow", "backgroundColor", "backgroundImage",
-  "color", "fontSize", "fontWeight", "lineHeight", "letterSpacing", "textOverflow",
-  "whiteSpace", "cursor", "transform", "backdropFilter", "webkitBackdropFilter", "outlineColor",
-  "outlineStyle", "outlineWidth",
+  "borderTopStyle", "borderRightStyle", "borderBottomStyle", "borderLeftStyle",
+  "borderRadius", "borderTopLeftRadius", "borderTopRightRadius", "borderBottomRightRadius", "borderBottomLeftRadius",
+  "boxShadow", "background", "backgroundColor", "backgroundImage",
+  "color", "fontFamily", "fontSize", "fontStyle", "fontWeight", "lineHeight", "letterSpacing",
+  "transform", "backdropFilter", "webkitBackdropFilter", "filter",
 ];
 
 const customProperties = [
@@ -92,6 +94,10 @@ const responsiveViewports = [
 
 function sha256(value) {
   return crypto.createHash("sha256").update(value).digest("hex");
+}
+
+function sha256Base64Url(value) {
+  return crypto.createHash("sha256").update(value).digest("base64url");
 }
 
 function readText(relativePath, base = root) {
@@ -417,9 +423,25 @@ function backgrounds() {
   return JSON.parse(fs.readFileSync(classificationPath, "utf8")).backgrounds;
 }
 
-function targetScenarios() {
+function backgroundsForRoot(appRoot = root) {
+  const values = new Set();
+  ["index.html", ...cssFiles].forEach((file) => {
+    const fullPath = path.join(appRoot, file);
+    if (!fs.existsSync(fullPath)) return;
+    const text = fs.readFileSync(fullPath, "utf8");
+    const pattern = /data-background(?:-tone)?=(?:"([^"]+)"|'([^']+)'|([^\]\s>]+))/g;
+    let match;
+    while ((match = pattern.exec(text))) {
+      values.add(match[1] || match[2] || match[3]);
+    }
+  });
+  const sorted = [...values].sort();
+  return sorted.length ? sorted : ["frosted-light", "warm-white", "slate", "near-black", "photo-earth"];
+}
+
+function targetScenarios(appRoot = root) {
   const result = [];
-  const tones = backgrounds();
+  const tones = backgroundsForRoot(appRoot);
   tones.forEach((background) => {
     states.forEach((state) => {
       result.push({ viewport: responsiveViewports[0], background, state: state.id, setup: state.setup });
@@ -547,10 +569,83 @@ async function captureScenario(page, scenario) {
   }, { scenario, selectors, computedProperties, customProperties });
 }
 
+function compactScenarioId(scenario) {
+  return `${scenario.viewport.id}|${scenario.background}|default|${scenario.state}`;
+}
+
+function selectorKey(capture) {
+  return `${capture.selector}|${capture.index}|${capture.pseudo || ""}`;
+}
+
+function canonicalJson(value) {
+  if (Array.isArray(value)) return `[${value.map(canonicalJson).join(",")}]`;
+  if (value && typeof value === "object") {
+    return `{${Object.keys(value).sort().map((key) => `${JSON.stringify(key)}:${canonicalJson(value[key])}`).join(",")}}`;
+  }
+  return JSON.stringify(value);
+}
+
+function fingerprintCaptureGroup(captures) {
+  const payload = captures
+    .slice()
+    .sort((a, b) => selectorKey(a).localeCompare(selectorKey(b)))
+    .map((capture) => ({
+      key: selectorKey(capture),
+      tag: capture.tag,
+      nodeKey: capture.key,
+      props: capture.props,
+      vars: capture.vars,
+    }));
+  return sha256Base64Url(canonicalJson(payload));
+}
+
+function fingerprintOraclePayload(rawPayload) {
+  const selectorKeys = [...new Set(rawPayload.records.flatMap((record) => record.captures.map(selectorKey)))].sort();
+  const selectorIndex = Object.fromEntries(selectorKeys.map((key, index) => [key, index]));
+  const records = rawPayload.records.map((record) => {
+    const bySelector = new Map();
+    record.captures.forEach((capture) => {
+      const key = selectorKey(capture);
+      const group = bySelector.get(key) || [];
+      group.push(capture);
+      bySelector.set(key, group);
+    });
+    const selectorHashes = Array(selectorKeys.length).fill(null);
+    bySelector.forEach((captures, key) => {
+      selectorHashes[selectorIndex[key]] = fingerprintCaptureGroup(captures);
+    });
+    return {
+      scenario: compactScenarioId(record.scenario),
+      hash: sha256Base64Url(canonicalJson(selectorHashes)),
+      selectorCount: selectorHashes.filter(Boolean).length,
+    };
+  }).sort((a, b) => a.scenario.localeCompare(b.scenario));
+  const payload = {
+    schemaVersion: 2,
+    capturedAt: "deterministic-fingerprint",
+    appRootLabel: rawPayload.appRootLabel,
+    userAgent: rawPayload.userAgent,
+    sourceHashes: rawPayload.sourceHashes,
+    fingerprintAlgorithm: "sha256-base64url(canonical-json(per-selector sha256-base64url hashes of computed-style subset + custom vars))",
+    matrix: {
+      backgrounds: rawPayload.matrix.backgrounds,
+      themes: rawPayload.matrix.themes,
+      states: rawPayload.matrix.states,
+      viewports: responsiveViewports.map((viewport) => viewport.id),
+      selectorKeys,
+      computedProperties,
+      customProperties,
+    },
+    records,
+  };
+  payload.hash = sha256Base64Url(canonicalJson({ ...payload, hash: undefined, capturedAt: undefined }));
+  return payload;
+}
+
 async function captureOracle(appRoot = root) {
   const { app, page } = await launchApp(appRoot);
   try {
-    const scenarios = targetScenarios();
+    const scenarios = targetScenarios(appRoot);
     const records = [];
     for (const scenario of scenarios) {
       records.push(await captureScenario(page, scenario));
@@ -562,7 +657,7 @@ async function captureOracle(appRoot = root) {
       userAgent: await page.evaluate(() => navigator.userAgent),
       sourceHashes: Object.fromEntries(targetCssFiles.map((file) => [file, fileHash(file, appRoot)])),
       matrix: {
-        backgrounds: backgrounds(),
+        backgrounds: backgroundsForRoot(appRoot),
         themes: ["default"],
         states: states.map((state) => state.id),
         selectors,
@@ -572,27 +667,25 @@ async function captureOracle(appRoot = root) {
       records,
     };
     payload.hash = sha256(JSON.stringify({ ...payload, hash: undefined, capturedAt: undefined }));
-    return payload;
+    return fingerprintOraclePayload(payload);
   } finally {
     await app.close();
   }
 }
 
-async function deterministicBaseline() {
+async function deterministicFingerprint() {
   const captures = [];
   const repeatCount = Number(process.env.CSS_ORACLE_REPEAT || 10);
-  const rawCaptures = [];
   let firstCapture = null;
   let firstDivergentCapture = null;
   for (let index = 0; index < repeatCount; index += 1) {
     const capture = await captureOracle(root);
     if (!firstCapture) firstCapture = capture;
     if (firstCapture && capture.hash !== firstCapture.hash && !firstDivergentCapture) firstDivergentCapture = capture;
-    if (index < 2) rawCaptures.push(capture);
     captures.push({ index: index + 1, hash: capture.hash, recordCount: capture.records.length });
     if (index === 0) {
-      writeJson(path.join(artifactsDir, "computed-style-baseline.json"), capture);
-      writeJson(path.join(runArtifactsDir, "computed-style-baseline.json"), capture);
+      writeJson(path.join(artifactsDir, "computed-style-fingerprint.json"), capture);
+      writeJson(path.join(runArtifactsDir, "computed-style-fingerprint.json"), capture);
     }
   }
   const unique = [...new Set(captures.map((entry) => entry.hash))];
@@ -605,8 +698,6 @@ async function deterministicBaseline() {
   writeJson(path.join(artifactsDir, "computed-style-determinism.json"), result);
   writeJson(path.join(runArtifactsDir, "computed-style-determinism.json"), result);
   if (!result.passed) {
-    writeJson(path.join(runArtifactsDir, "computed-style-debug-a.json"), rawCaptures[0]);
-    writeJson(path.join(runArtifactsDir, "computed-style-debug-b.json"), rawCaptures[1]);
     if (firstDivergentCapture) writeJson(path.join(runArtifactsDir, "computed-style-debug-divergent.json"), firstDivergentCapture);
     throw new Error(`computed-style oracle not deterministic: ${unique.join(", ")}`);
   }
@@ -629,7 +720,7 @@ function mutateFile(tempRoot, mutation) {
 }
 
 async function resistance() {
-  const baseline = JSON.parse(fs.readFileSync(path.join(artifactsDir, "computed-style-baseline.json"), "utf8"));
+  const baseline = JSON.parse(fs.readFileSync(path.join(artifactsDir, "computed-style-fingerprint.json"), "utf8"));
   const mutations = [
     {
       id: "color-panel-title",
@@ -687,8 +778,10 @@ function cssByteIdentity(beforeHashes = null) {
 
 function writeMapArtifacts() {
   const map = buildTangleMap();
-  writeJson(path.join(artifactsDir, "css-tangle-map.json"), map);
-  writeJson(path.join(runArtifactsDir, "css-tangle-map.json"), map);
+  const { declarations, ...summaryMap } = map;
+  summaryMap.declarationCount = declarations.length;
+  writeJson(path.join(artifactsDir, "css-tangle-summary.json"), summaryMap);
+  writeJson(path.join(runArtifactsDir, "css-tangle-summary.json"), summaryMap);
   writeText(path.join(artifactsDir, "css-core-map.md"), markdownMap(map));
   writeText(path.join(runArtifactsDir, "css-core-map.md"), markdownMap(map));
   const plan = [
@@ -697,7 +790,7 @@ function writeMapArtifacts() {
     "This plan orders future CSS work by safety. No CSS changes are made in phase 1.",
     "",
     "1. Tokenize hard-coded values into `tokens.css`. Risk: low-medium. Gate: computed-style parity for panels, widgets, controls, and menus.",
-    "2. Collapse duplicated per-background-tone blocks into custom-property-driven rules. Risk: medium. Gate: all background tones in `computed-style-baseline.json` remain identical.",
+    "2. Collapse duplicated per-background-tone blocks into custom-property-driven rules. Risk: medium. Gate: all background tones in `computed-style-fingerprint.json` remain identical.",
     "3. Reduce removable `!important` declarations using `themes-important-classification.json`. Risk: medium-high. Gate: classified removable entries plus computed-style parity.",
     "4. Unify glass material rules shared by panels, widgets, menus, and WebGL fallback. Risk: high. Gate: photo/background/custom-color/webgl matrix parity.",
     "5. Split `themes.css` into cohesive modules only after parity and import-order proof. Risk: high. Gate: zero computed-style drift and unchanged CSS rule inventory.",
@@ -713,7 +806,7 @@ async function main() {
   fs.mkdirSync(runArtifactsDir, { recursive: true });
   const before = Object.fromEntries(targetCssFiles.map((file) => [file, fileHash(file)]));
   if (mode === "map" || mode === "all") writeMapArtifacts();
-  if (mode === "capture" || mode === "all") await deterministicBaseline();
+  if (mode === "capture" || mode === "all") await deterministicFingerprint();
   if (mode === "resistance" || mode === "all") await resistance();
   cssByteIdentity(before);
 }

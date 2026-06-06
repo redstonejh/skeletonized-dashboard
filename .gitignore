@@ -36,6 +36,13 @@ server.log
 
 # Reference artifacts stay tracked; only oversized generated graphs are ignored.
 artifacts/code-graph*.json
+artifacts/computed-style-baseline.json
+artifacts/css-tangle-map.json
+artifacts/themes-important-classification.json
+**/salvage-resistance-full-*.json
+**/hidden-deps-full-*.json
+**/code-graph*.json
+**/*-full-*.json
 
 # Agent and local workflow artifacts
 .agent_pipeline/

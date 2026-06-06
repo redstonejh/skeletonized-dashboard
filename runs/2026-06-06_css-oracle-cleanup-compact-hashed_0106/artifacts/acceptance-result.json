@@ -1,0 +1,13 @@
+{
+    "verdict":  "SHIP",
+    "passed":  true,
+    "checks":  {
+                   "compactFingerprint":  "artifacts/computed-style-fingerprint.json",
+                   "determinism":  "artifacts/computed-style-determinism.json passed 10/10",
+                   "resistance":  "artifacts/css-oracle-resistance.json caught color and spacing mutations",
+                   "cssNoChange":  "artifacts/css-no-change.json",
+                   "largeDerivedJson":  "artifacts/large-derived-json-check.json",
+                   "e2e":  "artifacts/test-result-e2e.json",
+                   "delegation":  "artifacts/delegation-proof.json"
+               }
+}

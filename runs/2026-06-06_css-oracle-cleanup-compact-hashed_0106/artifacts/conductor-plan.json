@@ -1,0 +1,14 @@
+{
+  "task_type": "refactor",
+  "checklist": "refactor",
+  "roles": ["conductor", "planner", "worker", "critic", "acceptance_gate"],
+  "parallel_roles": [],
+  "caps": { "max_agents": 5, "max_parallel": 3, "max_iters": 3 },
+  "role_justifications": {
+    "conductor": "selects smallest valid delegated MAW roster and gates",
+    "planner": "plans compact oracle cleanup and acceptance evidence",
+    "worker": "implements fingerprint oracle and blob removal",
+    "critic": "reviews CSS identity, fingerprint determinism, resistance, and blob policy",
+    "acceptance_gate": "independently verifies tests and final SHIP evidence"
+  }
+}

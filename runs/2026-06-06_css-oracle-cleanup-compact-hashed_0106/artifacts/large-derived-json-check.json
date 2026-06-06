@@ -1,0 +1,8 @@
+{
+    "passed":  true,
+    "thresholdBytes":  1048576,
+    "trackedDerivedJsonOverThreshold":  [
+
+                                        ],
+    "note":  "Source image assets may exceed 1 MB; this gate covers tracked derived JSON blobs."
+}
