@@ -1,0 +1,1 @@
+{"runs":10,"passed":true,"command":"npm.cmd run test:e2e -- --workers=1","log":"runs\\2026-06-06_increment-2b-group-resize-runtime\\artifacts\\full-canaries-10x.log"}

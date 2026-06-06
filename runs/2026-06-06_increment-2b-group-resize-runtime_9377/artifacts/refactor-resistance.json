@@ -1,0 +1,5 @@
+{
+  "status": "pass",
+  "summary": "Planted commitGroupResizeFromPreviews no-op was caught by the select-mode multi-resize canary before source edits.",
+  "precheck": "artifacts/group-resize-resistance-precheck.json"
+}

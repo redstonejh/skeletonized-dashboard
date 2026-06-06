@@ -1,0 +1,4 @@
+{
+  "status": "pass",
+  "summary": "Coverage remained on the full e2e canary suite: boot/customization, drag and resize handlers, select-mode multi-resize, widget resize-snap, widget tools, ordered drag/collision/edge-scroll, and body-zone absorption."
+}

@@ -1,0 +1,6 @@
+{
+  "status": "pass",
+  "summary": "Full Playwright behavior suite passed once and then 10 consecutive repeats after the group resize body move.",
+  "command": "npm.cmd run test:e2e -- --workers=1",
+  "repeatArtifact": "artifacts/full-canaries-10x.json"
+}

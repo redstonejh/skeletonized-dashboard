@@ -1,0 +1,7 @@
+{
+    "mutation":  "commitGroupResizeFromPreviews returns early",
+    "expectedFailure":  true,
+    "exitCode":  1,
+    "caught":  true,
+    "log":  "runs\\2026-06-06_increment-2b-group-resize-runtime\\artifacts\\group-resize-noop-precheck.log"
+}

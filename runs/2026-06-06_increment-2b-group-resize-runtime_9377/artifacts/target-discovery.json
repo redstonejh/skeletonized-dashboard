@@ -1,0 +1,14 @@
+{
+  "status": "pass",
+  "targetRepo": "C:\\Users\\redst\\OneDrive\\Documents\\skeletonized-dashboard",
+  "checks": {
+    "appStaticAppJs": true,
+    "interactionState": true,
+    "resizeSurfaceRuntime": true,
+    "collisionReflow": true,
+    "gridMetricsRuntime": true,
+    "e2eSpec": true,
+    "testE2eScript": true,
+    "electronPinned": "^35.0.0"
+  }
+}

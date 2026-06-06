@@ -1,0 +1,5 @@
+{
+  "verdict": "SHIP",
+  "status": "pass",
+  "summary": "group-resize-runtime moved onto the matured resize session spine and existing runtime modules; app.js line count decreased materially; full e2e and 10x canary repeat passed; group-resize resistance precheck caught the no-op mutation."
+}

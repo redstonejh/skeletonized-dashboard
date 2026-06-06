@@ -1,0 +1,4 @@
+{
+  "status": "pass",
+  "summary": "runGroupResize and group-resize helper bodies moved to app/static/modules/group-resize-runtime.js. app.js retains initialization order and injects existing spine, surface, collision/reflow, metrics, panel-containment, and scroll-floor dependencies."
+}

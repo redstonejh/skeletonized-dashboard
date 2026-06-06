@@ -26,6 +26,14 @@ The remaining `app/static/app.js` core is init-order-sensitive and still owns li
 - Proof: added deterministic body-zone widget absorption canary; `absorbWidgetIntoPanel` no-op mutation caught; full canary suite 10/10 green.
 - Note: header/header-tolerance panel entry remains intentionally velocity-gated by `acceptsHeaderPanelEntry`; the body-zone canary is the committed absorption oracle.
 
+### group-resize-runtime
+
+- Cluster/symbol: `runGroupResize` and group resize helper functions
+- Completed in MAW run: `runs/2026-06-06_increment-2b-group-resize-runtime_9377`
+- Outcome: `runGroupResize` now lives in `app/static/modules/group-resize-runtime.js` and remains bound to `createResizeSessionGeometry`, `resize-surface-runtime`, `collision-reflow`, `grid-metrics-runtime`, panel containment, and workspace scroll-floor dependencies initialized by `app.js`.
+- API: `createGroupResizeRuntime(deps)` returns `runGroupResize`, `alignedResizeHeight`, `groupGridBox`, `groupBoxBounds`, `applyGroupFootprintBounds`, `createGroupFootprint`, and `beginGroupLiveSurfaces`.
+- Proof: select-mode multi-resize canary caught a `commitGroupResizeFromPreviews` no-op; full canary suite 10/10 green after the body move.
+
 ## widget-layout-lifecycle
 
 - Cluster/symbol + file:line: `initWidgetLayout` and nested `initWidget`, `app/static/app.js:3380-3889`
@@ -40,12 +48,6 @@ The remaining `app/static/app.js` core is init-order-sensitive and still owns li
 - KEEP interaction entangled: panel recolor/rename/pin/collapse/delete, panel drag, panel resize, panel child containment, collision/reflow, save/load persistence.
 - Needed to finish safely: extract a `panel-tool-session` state module and a panel lifecycle facade that receives `initWidgetLayout` only after widget lifecycle has been separated.
 
-## group-resize-runtime
-
-- Cluster/symbol + file:line: `runGroupResize` and helper functions, `app/static/app.js:2771-3249`
-- Why deferred: this body shares geometry snapshots, live resize surfaces, group selection transforms, auto-zoom, collision resolution, and commit callbacks with both widget and panel resize bindings. A direct factory extraction was attempted after `workspace-compatibility-runtime` landed; e2e failed because panel resize-snap no longer changed span, so the batch was reverted.
-- KEEP interaction entangled: select-mode multi-resize, widget resize-snap, panel resize-snap, collision/reflow, undo/save after resize.
-- Needed to finish safely: extract shared resize geometry/session state used by widget and panel resize runtimes, then move `runGroupResize` behind the existing resize runtime.
 ## conditional-style-runtime
 
 - Cluster/symbol + file:line: conditional style helpers and `applyStyleRulesForWidget`, `app/static/app.js:606-766`

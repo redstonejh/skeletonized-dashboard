@@ -1,0 +1,80 @@
+{
+    "passed":  true,
+    "routes":  [
+                   {
+                       "module":  "grid-metrics-runtime.js",
+                       "group":  "metrics cache",
+                       "symbols":  [
+                                       "createGridMetrics",
+                                       "refreshGridMetricsRect"
+                                   ],
+                       "note":  "runGroupResize keeps a per-run Map but sources metrics from grid-metrics runtime",
+                       "route":  "bind-existing"
+                   },
+                   {
+                       "module":  "resize-surface-runtime.js",
+                       "group":  "resize surfaces",
+                       "symbols":  [
+                                       "createResizePreview",
+                                       "beginLiveResizeSurface",
+                                       "clearLiveResizeSurface",
+                                       "createGroupBoundarySurface",
+                                       "updateGroupBoundarySurface",
+                                       "updateLiveResizeSurface",
+                                       "createExpandedFootprintGhost",
+                                       "updateExpandedFootprintGhost"
+                                   ],
+                       "route":  "bind-existing"
+                   },
+                   {
+                       "module":  "collision-reflow.js and reflow-animation-runtime.js via app facades",
+                       "group":  "collision/reflow",
+                       "symbols":  [
+                                       "resolveSparseGridLayoutForActiveItems",
+                                       "animateOrderedGridReflow",
+                                       "reflowItemsForLayout"
+                                   ],
+                       "route":  "bind-existing"
+                   },
+                   {
+                       "module":  "panel-containment.js",
+                       "group":  "panel containment",
+                       "symbols":  [
+                                       "syncOpenPanelHeightToInternalGrid"
+                                   ],
+                       "route":  "bind-existing"
+                   },
+                   {
+                       "module":  "workspace-scroll-floor-runtime.js",
+                       "group":  "scroll floor",
+                       "symbols":  [
+                                       "syncCommittedWorkspaceScrollFloor"
+                                   ],
+                       "route":  "bind-existing"
+                   },
+                   {
+                       "module":  "new group-resize-runtime.js",
+                       "group":  "group footprint/layout helpers",
+                       "symbols":  [
+                                       "groupGridBox",
+                                       "groupFootprintLayout",
+                                       "groupBoxBounds",
+                                       "applyGroupFootprintBounds",
+                                       "createGroupFootprint",
+                                       "beginGroupLiveSurfaces",
+                                       "applyGroupResizeLayout",
+                                       "commitGroupResizeFromPreviews"
+                                   ],
+                       "route":  "move-with-body"
+                   },
+                   {
+                       "symbols":  [
+                                       "onCommit",
+                                       "onEnd"
+                                   ],
+                       "group":  "callbacks",
+                       "route":  "keep-as-param"
+                   }
+               ],
+    "no_needs_human":  true
+}

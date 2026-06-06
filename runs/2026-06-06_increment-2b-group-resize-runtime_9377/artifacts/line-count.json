@@ -1,0 +1,9 @@
+{
+  "status": "pass",
+  "beforeAppJsLines": 4348,
+  "afterAppJsLines": 3894,
+  "decrease": 454,
+  "newModule": "app/static/modules/group-resize-runtime.js",
+  "newModuleLines": 597,
+  "appJsSha256": "D1257EC086957FB1C44BA30DE2456487F50296A8A02001DCAC869AB34CC1BCC1"
+}

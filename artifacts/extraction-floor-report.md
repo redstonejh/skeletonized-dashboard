@@ -59,11 +59,23 @@ The floor moved for ordered drag. `runOrderedDrag` now lives in `app/static/modu
 - Scope note: header/header-tolerance panel entry remains velocity-gated by `acceptsHeaderPanelEntry`; the body-zone canary guards the absorption commit path
 - MAW run: `runs/2026-06-06_increment-4-phase0-body-zone-absorption`
 
+## 2026-06-06 Increment 2b Group Resize Runtime Shipped
+
+The floor moved for group resize. `runGroupResize` now lives in `app/static/modules/group-resize-runtime.js`; `app.js` constructs it after the resize session spine, resize surface runtime, collision/reflow helpers, grid metrics, panel containment, and workspace scroll-floor helpers are available. This was a state-spine-bound extraction, not a retry of the previous body-first factory/DI attempt.
+
+- Completed cluster: `group-resize-runtime`
+- `app/static/app.js` line count before this increment: 4348
+- `app/static/app.js` line count after this increment: 3894
+- New runtime API: `createGroupResizeRuntime(deps)` returns `runGroupResize`, `alignedResizeHeight`, `groupGridBox`, `groupBoxBounds`, `applyGroupFootprintBounds`, `createGroupFootprint`, and `beginGroupLiveSurfaces`
+- Resistance: select-mode multi-resize caught a `commitGroupResizeFromPreviews` no-op
+- Full canary suite: 10/10 green
+- MAW run: `runs/2026-06-06_increment-2b-group-resize-runtime_9377`
+
 ## Current State
 
-- `app/static/app.js` line count: 4348
-- `app/static/modules/*.js` count: 61
-- `app/static/app.js` SHA256: `57E9F006DF4CEB283E872D059469F9D4B3D5DE9F3CDAA70AA557D0E069F17B3A`
+- `app/static/app.js` line count: 3894
+- `app/static/modules/*.js` count: 62
+- `app/static/app.js` SHA256: `D1257EC086957FB1C44BA30DE2456487F50296A8A02001DCAC869AB34CC1BCC1`
 - Core coverage artifact: `artifacts/app-core-map.md`
 - Deferred cluster artifact: `artifacts/deferred-extractions.md`
 
@@ -73,7 +85,6 @@ Do not retry these with the same factory/DI extraction strategy:
 
 - `widget-layout-lifecycle`
 - `panel-layout-lifecycle`
-- `group-resize-runtime`
 - `conditional-style-runtime`
 - `widget-runtime-meaning-hydration`
 - `panel-core-primitives`

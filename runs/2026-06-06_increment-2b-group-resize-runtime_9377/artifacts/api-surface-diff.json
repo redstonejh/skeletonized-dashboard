@@ -1,0 +1,4 @@
+{
+  "status": "pass",
+  "summary": "Public browser/runtime API unchanged except adding an internal ES module import and factory. app.js still exposes the same interaction entrypoints to existing callers. createGroupResizeRuntime returns the former app.js group helper surface used by ordered drag and resize handlers."
+}

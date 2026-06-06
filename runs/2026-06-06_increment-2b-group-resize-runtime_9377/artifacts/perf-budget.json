@@ -1,0 +1,4 @@
+{
+  "status": "pass",
+  "summary": "No perf intent shipped. The extraction moved structure only; no rAF, coalescing, scheduling, or timing changes were introduced."
+}
