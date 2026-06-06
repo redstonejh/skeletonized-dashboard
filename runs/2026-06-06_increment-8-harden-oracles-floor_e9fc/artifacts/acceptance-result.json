@@ -1,0 +1,51 @@
+{
+  "schema_version": 1,
+  "verdict": "SHIP",
+  "task": "increment 8 harden blind oracles and declare extraction floor",
+  "checks": {
+    "delegation_proof": {
+      "passed": true,
+      "artifact": "artifacts/delegation-proof.json"
+    },
+    "plan_check": {
+      "passed": true,
+      "artifact": "artifacts/conductor-plan.json"
+    },
+    "handoffs": {
+      "passed": true
+    },
+    "resistance": {
+      "passed": true,
+      "artifact": "artifacts/refactor-resistance.json"
+    },
+    "tests": {
+      "passed": true,
+      "command": "npm.cmd run test:e2e -- --workers=1",
+      "artifact": "artifacts/test-result.json"
+    },
+    "canary_repeat": {
+      "passed": true,
+      "result": "10/10",
+      "artifact": "artifacts/canary-repeat-10x.log"
+    },
+    "line_count": {
+      "passed": true,
+      "before": 3263,
+      "after": 3121
+    },
+    "floor_declared": {
+      "passed": true,
+      "artifacts": [
+        "../../artifacts/extraction-floor-report.md",
+        "../../artifacts/final-extraction-summary.md",
+        "../../artifacts/deferred-extractions.md"
+      ]
+    }
+  },
+  "shipped_clusters": [
+    "conditional-style-runtime",
+    "widget-content-runtime"
+  ],
+  "resident_deferred": [],
+  "reason": "Both previously blind oracles were hardened, planted no-ops were caught, both clusters moved to modules, final hidden e2e passed, canaries repeated 10/10, and the extraction floor was declared."
+}

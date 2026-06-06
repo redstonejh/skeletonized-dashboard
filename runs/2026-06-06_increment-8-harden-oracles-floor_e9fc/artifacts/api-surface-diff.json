@@ -1,0 +1,8 @@
+{
+  "passed": true,
+  "public_surface_changed": false,
+  "new_internal_modules": [
+    "app/static/modules/conditional-style-runtime.js",
+    "app/static/modules/widget-content-runtime.js"
+  ]
+}

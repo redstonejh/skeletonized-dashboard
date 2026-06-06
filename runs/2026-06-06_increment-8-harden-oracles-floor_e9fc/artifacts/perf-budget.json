@@ -1,0 +1,5 @@
+{
+  "passed": true,
+  "perf_intent": false,
+  "note": "No scheduling, rAF, coalescing, or runtime performance changes shipped."
+}

@@ -1,0 +1,11 @@
+{
+  "passed": true,
+  "covered_clusters": [
+    "conditional-style-runtime",
+    "widget-content-runtime"
+  ],
+  "new_canaries": [
+    "electron GUI clears stale conditional style state on widget render",
+    "electron GUI keeps widget runtime content, tools, and resize ready after render and reload"
+  ]
+}

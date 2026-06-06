@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "clusters": {
+    "conditional-style-runtime": {
+      "decision": "SHIP",
+      "diagnosis": "The active applyStyleRulesForWidget path is clear-only; no positive conditional-rule source exists in the current widget registry. The hardened oracle therefore guards the live cleanup behavior by injecting stale conditional class, CSS variables, and datasets, then triggering the real widget settings render path.",
+      "canary": "electron GUI clears stale conditional style state on widget render",
+      "no_op_probe": "conditional-style-noop-probe.log",
+      "no_op_result": "caught; skipping clearConditionalStyleForWidget timed out waiting for stale state removal"
+    },
+    "widget-content-runtime": {
+      "decision": "SHIP",
+      "diagnosis": "Existing content/meaning coverage did not assert a real settings-driven content update, tool chrome presence, resize-handle readiness, and post-reload resize behavior on the same widget. The hardened oracle creates a text widget, updates its body through dashboardWidgetSettingsRuntime, verifies rendered content persists, and resizes after reload.",
+      "canary": "electron GUI keeps widget runtime content, tools, and resize ready after render and reload",
+      "no_op_probe": "widget-content-noop-probe.log",
+      "no_op_result": "caught; setRuntimeContent no-op timed out waiting for the rendered body text"
+    }
+  },
+  "resident_deferred": []
+}

@@ -64,12 +64,13 @@ The remaining `app/static/app.js` core is init-order-sensitive and still owns li
 - API: `createPanelLayoutRuntime(deps)` returns `{ initPanelLayouts }`; existing `layout.__initPanel = initPanel` compatibility is preserved.
 - Proof: `initPanel` early-return mutation was caught before extraction and again after the body moved; full hidden Electron suite passed 10/10 after extraction.
 
-## conditional-style-runtime
+### conditional-style-runtime
 
-- Cluster/symbol + file:line: conditional style helpers and `applyStyleRulesForWidget`, `app/static/app.js:606-766`
-- Why deferred: the visible oracle remains blind to the active clear-only behavior. In MAW run `runs/2026-06-06_increment-6-extract-conditional-style_981f`, an `applyStyleRulesForWidget` early-return mutation passed the full Electron suite, including the hardened resize-snap geometry assertion.
-- KEEP interaction entangled: widget runtime hydration, panel/widget resize-snap geometry, save/load evidence snapshots.
-- Needed to finish safely: add a deterministic runtime-hydration canary that reaches `applyStyleRulesForWidget` and fails when stale conditional class/CSS/dataset cleanup is skipped, then extract.
+- Cluster/symbol: conditional style helpers and `applyStyleRulesForWidget`
+- Completed in MAW run: `runs/2026-06-06_increment-8-harden-oracles-floor_e9fc`
+- Outcome: conditional style helpers and the active clear-on-render wrapper now live in `app/static/modules/conditional-style-runtime.js`.
+- API: `createConditionalStyleRuntime(deps)` returns `applyStyleRulesForWidget` plus the moved helper functions for the conditional-style island.
+- Proof: added deterministic stale-conditional-cleanup canary; skipping `clearConditionalStyleForWidget` was caught; full hidden Electron suite passed 10/10 after extraction.
 
 ### ordered-grid-items-runtime
 
@@ -79,12 +80,13 @@ The remaining `app/static/app.js` core is init-order-sensitive and still owns li
 - API: `createOrderedGridItemsRuntime({ gridHostForLayout, isPanelInternalGridItem })` returns `{ globalGridItems, orderedGridItems, orderedGridSelectorForLayout }`.
 - Proof: module-level Electron canary catches transient-filter mutation; full hidden Electron suite passed 10/10 after extraction.
 
-## widget-content-runtime
+### widget-content-runtime
 
-- Cluster/symbol + file:line: widget runtime delegate closures `widgetInstanceFromElement`, `setWidgetRuntimeContent`, `renderWidgetRuntimeContent`, `app/static/app.js:883-885`
-- Why deferred: initial extraction passed e2e and parity once, but repeated final e2e runs showed resize-snap no longer changed span. The extraction commit was reverted to restore the stable behavior contract.
-- KEEP interaction entangled: widget runtime data hydration, runtime content rendering, panel/widget resize handler readiness.
-- Needed to finish safely: move this only as part of a broader widget runtime setup extraction with resize handler readiness checks, or add a deterministic init-order smoke around resize binding before e2e.
+- Cluster/symbol: widget runtime delegate closures `widgetInstanceFromElement`, `setWidgetRuntimeContent`, `renderWidgetRuntimeContent`
+- Completed in MAW run: `runs/2026-06-06_increment-8-harden-oracles-floor_e9fc`
+- Outcome: the delegate closures now live in `app/static/modules/widget-content-runtime.js` and are created immediately after `widgetRuntimeController`.
+- API: `createWidgetContentRuntime({ widgetRuntimeController })` returns `{ renderWidgetRuntimeContent, setWidgetRuntimeContent, widgetInstanceFromElement }`.
+- Proof: added deterministic text-widget runtime content/tools/resize canary; `setRuntimeContent` no-op was caught; full hidden Electron suite passed 10/10 after extraction.
 
 ## mixed-context-query-compatibility dormant residue
 

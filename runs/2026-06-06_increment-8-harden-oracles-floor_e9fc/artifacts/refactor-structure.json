@@ -1,0 +1,11 @@
+{
+  "passed": true,
+  "refactor_type": "module-extraction",
+  "app_js_lines_before": 3263,
+  "app_js_lines_after": 3121,
+  "line_count_decreased": true,
+  "moved_clusters": [
+    "conditional-style-runtime",
+    "widget-content-runtime"
+  ]
+}

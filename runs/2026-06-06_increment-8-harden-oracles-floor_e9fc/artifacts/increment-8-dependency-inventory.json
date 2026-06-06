@@ -1,0 +1,34 @@
+{
+  "schema_version": 1,
+  "clusters": {
+    "conditional-style-runtime": {
+      "before": "app/static/app.js inline helpers and applyStyleRulesForWidget",
+      "after": "app/static/modules/conditional-style-runtime.js",
+      "factory": "createConditionalStyleRuntime(deps)",
+      "live_entrypoint": "widget-runtime.js renderRuntimeContent -> deps.applyStyleRulesForWidget",
+      "dependencies": [
+        "widgetRuntimeController.definitionForElement (late-bound)",
+        "widgetRuntimeController.instanceFromElement (late-bound)",
+        "resolveWorkspaceContextForItem",
+        "managedQueryStateForWidget",
+        "applyPanelColor",
+        "hexToRgb",
+        "readableTextFor"
+      ],
+      "init_order_note": "widgetRuntimeController is late-bound because applyStyleRulesForWidget is supplied while the controller is being constructed; the callback is only invoked later during render."
+    },
+    "widget-content-runtime": {
+      "before": "app/static/app.js delegate closures for widget runtime content",
+      "after": "app/static/modules/widget-content-runtime.js",
+      "factory": "createWidgetContentRuntime({ widgetRuntimeController })",
+      "live_entrypoint": "app.js callers use renderWidgetRuntimeContent, setWidgetRuntimeContent, widgetInstanceFromElement returned by the module",
+      "dependencies": [
+        "widgetRuntimeController.definitionForElement",
+        "widgetRuntimeController.instanceFromElement",
+        "widgetRuntimeController.setRuntimeContent",
+        "widgetRuntimeController.renderRuntimeContent"
+      ],
+      "init_order_note": "created immediately after widgetRuntimeController is constructed, preserving the prior closure timing."
+    }
+  }
+}

@@ -162,11 +162,25 @@ The floor moved for the mixed context/query compatibility island's dormant resid
 - Full hidden canary suite: 10/10 green
 - MAW run: `runs/2026-06-06_increment-7-mixed-context-salvage_2566`
 
+## 2026-06-06 Increment 8 Blind Oracles Hardened And Final Clusters Shipped
+
+The floor moved for the final two previously blind clusters. The conditional-style oracle now reaches the active `applyStyleRulesForWidget` clear-on-render path by injecting stale conditional class, CSS variables, and datasets into a real text widget, then triggering render through `dashboardWidgetSettingsRuntime`. The widget-content oracle now updates a real text widget through the settings runtime, verifies rendered content persists across save/reload, and confirms widget tools plus resize handle readiness by resizing after reload.
+
+- Completed clusters: `conditional-style-runtime`, `widget-content-runtime`
+- `app/static/app.js` line count before this phase: 3263
+- `app/static/app.js` line count after conditional-style-runtime: 3122
+- `app/static/app.js` line count after widget-content-runtime: 3121
+- New runtime API: `createConditionalStyleRuntime(deps)` returns `applyStyleRulesForWidget` plus moved helper functions
+- New runtime API: `createWidgetContentRuntime({ widgetRuntimeController })` returns `{ renderWidgetRuntimeContent, setWidgetRuntimeContent, widgetInstanceFromElement }`
+- Resistance: skipping `clearConditionalStyleForWidget` was caught by the stale conditional cleanup canary; `setRuntimeContent` no-op was caught by the text-widget runtime content canary
+- Full hidden canary suite: 10/10 green
+- MAW run: `runs/2026-06-06_increment-8-harden-oracles-floor_e9fc`
+
 ## Current State
 
-- `app/static/app.js` line count: 3263
-- `app/static/modules/*.js` count: 64
-- `app/static/app.js` SHA256: `1C1D5CFB27A055318B10F0F8E0BF52114E3C618B9E0C51519E6428AC98B93B4E`
+- `app/static/app.js` line count: 3121
+- `app/static/modules/*.js` count: 66
+- `app/static/app.js` SHA256: `D9C923F0D9AC9C0030AF5B40F3D2B98D8E37076BB9AE48489557BC3F3AD29ED7`
 - Core coverage artifact: `artifacts/app-core-map.md`
 - Deferred cluster artifact: `artifacts/deferred-extractions.md`
 
@@ -176,14 +190,12 @@ Do not retry these with the same factory/DI extraction strategy:
 
 - `widget-layout-lifecycle`
 - `panel-layout-lifecycle`
-- `conditional-style-runtime`
 - `panel-core-primitives`
 - `widget-primitive-runtime`
-- `widget-content-runtime`
 
 ## Stop Condition
 
-No unattempted, non-deferred, cohesive extraction remains that is both large enough to materially reduce `app.js` and safe to attempt without first introducing shared state/session modules. This pass therefore terminates without extraction.
+No known deferred extraction cluster remains in `artifacts/deferred-extractions.md`. Future work should treat `app/static/app.js` as the documented composition-root floor unless a new, resistance-proven cluster is identified.
 
 ## Required Canary Before Any Future Extraction
 

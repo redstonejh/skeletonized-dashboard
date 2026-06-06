@@ -1,0 +1,6 @@
+{
+  "passed": true,
+  "baseline_commit": "086a143ef767315d135e848f568b426f83fac206",
+  "app_js_lines": 3263,
+  "oracle": "hidden Electron e2e suite before increment-8 product extraction"
+}

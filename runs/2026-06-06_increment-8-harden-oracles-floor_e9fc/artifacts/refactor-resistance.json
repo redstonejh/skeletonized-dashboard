@@ -1,0 +1,17 @@
+{
+  "passed": true,
+  "probes": [
+    {
+      "cluster": "conditional-style-runtime",
+      "mutation": "skip clearConditionalStyleForWidget in applyStyleRulesForWidget",
+      "caught": true,
+      "artifact": "conditional-style-noop-probe.log"
+    },
+    {
+      "cluster": "widget-content-runtime",
+      "mutation": "return early from setRuntimeContent",
+      "caught": true,
+      "artifact": "widget-content-noop-probe.log"
+    }
+  ]
+}

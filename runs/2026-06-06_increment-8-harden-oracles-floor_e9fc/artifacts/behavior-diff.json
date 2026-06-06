@@ -1,0 +1,6 @@
+{
+  "passed": true,
+  "baseline_commit": "086a143ef767315d135e848f568b426f83fac206",
+  "final_commit": "2ec10bd",
+  "result": "hidden Electron e2e suite passed after extraction"
+}

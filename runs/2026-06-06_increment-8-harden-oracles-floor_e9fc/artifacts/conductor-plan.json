@@ -1,0 +1,43 @@
+{
+  "task_type": "refactor",
+  "checklist_path": ".codex/checklists/refactor.md",
+  "roles": [
+    "conductor",
+    "planner",
+    "worker",
+    "critic",
+    "acceptance_gate"
+  ],
+  "caps": {
+    "max_agents": 5,
+    "max_parallel": 3
+  },
+  "role_justifications": {
+    "conductor": "Coordinates the increment-8 finale and enforces MAW gates.",
+    "planner": "Plans the oracle-hardening and resident-defer fallback path.",
+    "worker": "Implements bounded canary hardening, any safe extraction, and floor documentation.",
+    "critic": "Reviews no-op resistance and validates that blind surfaces are not moved.",
+    "acceptance_gate": "Checks delegation proof, artifacts, tests, and final verdict consistency."
+  },
+  "orchestration": "Core MAW roles are delegated to distinct sub-agents. The main session performs local edits after deterministic plan/delegation gates and records handoffs, dependency/coupling evidence, resident-defer decisions, and acceptance artifacts.",
+  "quality_bar": "Never move a cluster unless a deterministic canary catches its planted no-op; if the no-op remains invisible, formally close the cluster as resident-deferred and declare the extraction floor.",
+  "deterministic_checks": [
+    "python C:/Users/redst/OneDrive/Documents/skeletonized-dashboard-main/maw-tools/delegation_check.py <run_dir>",
+    "python C:/Users/redst/OneDrive/Documents/skeletonized-dashboard-main/maw-tools/plan_check.py --file artifacts/conductor-plan.json",
+    "dependency/coupling inventory for conditional-style-runtime and widget-content-runtime",
+    "npm.cmd run test:e2e -- --workers=1",
+    "cluster-specific planted no-op resistance probes when a deterministic canary can be constructed",
+    "python C:/Users/redst/OneDrive/Documents/skeletonized-dashboard-main/maw-tools/validate_handoffs.py <run_dir>",
+    "python C:/Users/redst/OneDrive/Documents/skeletonized-dashboard-main/maw-tools/verdict_check.py <run_dir>"
+  ],
+  "acceptance_criteria": [
+    "Discovery guard passes in the dashboard checkout.",
+    "Delegation proof contains distinct sub-agent ids for every selected MAW role.",
+    "Conditional-style-runtime and widget-content-runtime are either shipped only after no-op resistance is caught, or resident-deferred with artifact-backed rationale.",
+    "Resident-deferred decisions are recorded in artifacts/blind-oracle-closure.json, artifacts/extraction-floor-report.md, and artifacts/final-extraction-summary.md.",
+    "Dependency/coupling findings are recorded in artifacts/increment-8-dependency-inventory.json before any decision to move or defer.",
+    "No dependency/Electron/performance changes are made.",
+    "Final extraction floor report and final-extraction-summary are updated and committed.",
+    "Final chat verdict matches artifacts/acceptance-result.json verbatim."
+  ]
+}

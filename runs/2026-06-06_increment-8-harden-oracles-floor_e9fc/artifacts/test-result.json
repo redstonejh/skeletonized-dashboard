@@ -1,0 +1,7 @@
+{
+  "passed": true,
+  "command": "npm.cmd run test:e2e -- --workers=1",
+  "final_log": "test-result-final.log",
+  "repeat_log": "canary-repeat-10x.log",
+  "repeat": "10/10"
+}
