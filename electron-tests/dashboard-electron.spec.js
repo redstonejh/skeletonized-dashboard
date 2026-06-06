@@ -436,6 +436,12 @@ test("electron GUI restores widget tools through init", async () => {
   await pin.click({ force: true });
   await expect(pin).not.toHaveAttribute("aria-pressed", before || "");
   const after = await pin.getAttribute("aria-pressed");
+  await page.locator(selector).evaluate((widget) => {
+    const tools = widget.querySelector(":scope > .widget-tools");
+    if (!tools) throw new Error("Widget tools not found");
+    tools.dispatchEvent(new MouseEvent("mouseenter", { bubbles: true, cancelable: true }));
+  });
+  await expect(page.locator(selector)).not.toHaveClass(/widget-tools-open/);
   await writeInteractionScenarios(page, ["widget-tools-init"], { before, after });
   await closeApp(app);
 });

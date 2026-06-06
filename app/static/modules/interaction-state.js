@@ -15,9 +15,35 @@ const createTimerSlot = () => {
 
 export const createWidgetToolSession = () => {
   const closeTimer = createTimerSlot();
+  let suppressToolOpenUntil = 0;
+  let suppressWidgetClickUntil = 0;
+  let suppressSettingsClickUntil = 0;
+  let ignoreToolLeaveCloseUntilPointerActivity = false;
+  let toolsOpenedByApproach = false;
+
   return Object.freeze({
     clearCloseTimer: closeTimer.clear,
+    getSuppressSettingsClickUntil: () => suppressSettingsClickUntil,
+    getSuppressToolOpenUntil: () => suppressToolOpenUntil,
+    getSuppressWidgetClickUntil: () => suppressWidgetClickUntil,
+    getToolsOpenedByApproach: () => toolsOpenedByApproach,
+    isIgnoringToolLeaveCloseUntilPointerActivity: () => ignoreToolLeaveCloseUntilPointerActivity,
     setCloseTimer: closeTimer.set,
+    setIgnoreToolLeaveCloseUntilPointerActivity(value) {
+      ignoreToolLeaveCloseUntilPointerActivity = Boolean(value);
+    },
+    setSuppressSettingsClickUntil(value) {
+      suppressSettingsClickUntil = Number(value) || 0;
+    },
+    setSuppressToolOpenUntil(value) {
+      suppressToolOpenUntil = Number(value) || 0;
+    },
+    setSuppressWidgetClickUntil(value) {
+      suppressWidgetClickUntil = Number(value) || 0;
+    },
+    setToolsOpenedByApproach(value) {
+      toolsOpenedByApproach = Boolean(value);
+    },
   });
 };
 

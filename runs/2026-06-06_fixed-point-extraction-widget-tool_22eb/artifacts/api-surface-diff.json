@@ -1,0 +1,33 @@
+{
+    "additions":  [
+                      "createWidgetToolSession.getSuppressSettingsClickUntil",
+                      "createWidgetToolSession.getSuppressToolOpenUntil",
+                      "createWidgetToolSession.getSuppressWidgetClickUntil",
+                      "createWidgetToolSession.getToolsOpenedByApproach",
+                      "createWidgetToolSession.isIgnoringToolLeaveCloseUntilPointerActivity",
+                      "createWidgetToolSession.setIgnoreToolLeaveCloseUntilPointerActivity",
+                      "createWidgetToolSession.setSuppressSettingsClickUntil",
+                      "createWidgetToolSession.setSuppressToolOpenUntil",
+                      "createWidgetToolSession.setSuppressWidgetClickUntil",
+                      "createWidgetToolSession.setToolsOpenedByApproach"
+                  ],
+    "schema_version":  1,
+    "note":  "Interaction-state API was extended; no exported symbol was removed.",
+    "public_exports":  {
+                           "changed":  false,
+                           "files":  [
+                                         "app/static/modules/interaction-state.js"
+                                     ]
+                       },
+    "passed":  true,
+    "violations":  [
+
+                   ],
+    "changed":  true,
+    "status":  "passed",
+    "check":  "api_surface_diff",
+    "removals":  [
+
+                 ]
+}
+

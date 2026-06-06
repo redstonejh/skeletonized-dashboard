@@ -1,0 +1,22 @@
+{
+    "baseline":  "artifacts/behavior-baseline.json",
+    "comparisons":  [
+                        {
+                            "name":  "pre_edit_baseline_reproduced",
+                            "passed":  true
+                        },
+                        {
+                            "name":  "post_edit_full_e2e_10x",
+                            "passed":  true
+                        }
+                    ],
+    "passed":  true,
+    "schema_version":  1,
+    "check":  "behavior_diff",
+    "status":  "passed",
+    "post_edit":  "artifacts/post-edit-full-e2e-10x.json",
+    "violations":  [
+
+                   ]
+}
+

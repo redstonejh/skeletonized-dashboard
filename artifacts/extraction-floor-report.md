@@ -83,11 +83,24 @@ The floor moved for widget runtime meaning hydration. The stale app-local `creat
 - Full canary suite: 10/10 green
 - MAW run: `runs/2026-06-06_autonomous-extraction-fixed-point-loop_7e3d`
 
+## 2026-06-06 Widget Tool Session State Checkpoint
+
+The floor moved at the widget state-spine layer, not the widget lifecycle body. `createWidgetToolSession` now owns the remaining widget suppression and hover-close flags: `suppressToolOpenUntil`, `suppressWidgetClickUntil`, `suppressSettingsClickUntil`, `ignoreToolLeaveCloseUntilPointerActivity`, and `toolsOpenedByApproach`. `app.js` still owns the widget lifecycle body and accesses these values through the explicit session API.
+
+- Completed state prerequisite: `widget-tool-session-state`
+- `app/static/app.js` line count before this increment: 3885
+- `app/static/app.js` line count after this increment: 3874
+- Extended state API: `getSuppressSettingsClickUntil`, `getSuppressToolOpenUntil`, `getSuppressWidgetClickUntil`, `getToolsOpenedByApproach`, `isIgnoringToolLeaveCloseUntilPointerActivity`, `setIgnoreToolLeaveCloseUntilPointerActivity`, `setSuppressSettingsClickUntil`, `setSuppressToolOpenUntil`, `setSuppressWidgetClickUntil`, `setToolsOpenedByApproach`
+- Added canary assertion: widget tool action-close suppression blocks immediate hover reopen
+- Resistance: widget `setSuppressToolOpenUntil` no-op was caught by the hardened widget tools-init canary
+- Full canary suite: 10/10 green
+- MAW run: `runs/2026-06-06_fixed-point-extraction-widget-tool_22eb`
+
 ## Current State
 
-- `app/static/app.js` line count: 3885
+- `app/static/app.js` line count: 3874
 - `app/static/modules/*.js` count: 61
-- `app/static/app.js` SHA256: `BE14DF3ACB2634EB7F10F38C66ED2DB879456E972102A983208CC6273A7ABD36`
+- `app/static/app.js` SHA256: `4F31793B3DD95A3F3A0499AC17AF1D24EDB1810AA20EC3B5D72FADEE79FE2156`
 - Core coverage artifact: `artifacts/app-core-map.md`
 - Deferred cluster artifact: `artifacts/deferred-extractions.md`
 

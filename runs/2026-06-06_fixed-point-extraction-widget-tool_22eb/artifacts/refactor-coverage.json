@@ -1,0 +1,25 @@
+{
+    "passed":  true,
+    "check":  "refactor_coverage",
+    "schema_version":  1,
+    "canaries":  [
+                     "resize-snap",
+                     "select-mode multi-resize",
+                     "widget resize-snap",
+                     "widget tools-init/action-close suppression",
+                     "widget runtime content and meaning",
+                     "ordered drag commit/ghost/collision/edge-scroll",
+                     "body-zone absorption"
+                 ],
+    "repeat":  {
+                   "passed":  true,
+                   "command":  "npm.cmd run test:e2e -- --workers=1",
+                   "artifact":  "artifacts/post-edit-full-e2e-10x.json",
+                   "iterations":  10
+               },
+    "status":  "passed",
+    "violations":  [
+
+                   ]
+}
+

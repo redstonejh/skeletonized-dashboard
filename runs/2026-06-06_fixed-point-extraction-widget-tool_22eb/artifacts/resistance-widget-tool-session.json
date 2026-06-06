@@ -1,0 +1,9 @@
+{
+    "check":  "widget_tool_session_resistance_probe",
+    "mutation":  "setSuppressToolOpenUntil_noop",
+    "expected_failure":  true,
+    "exit_code":  1,
+    "caught":  true,
+    "log":  "runs\\2026-06-06_fixed-point-extraction-widget-tool_22eb\\artifacts\\resistance-widget-tool-session.log"
+}
+

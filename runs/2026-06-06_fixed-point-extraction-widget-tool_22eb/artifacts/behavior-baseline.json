@@ -1,0 +1,30 @@
+{
+    "check":  "behavior_baseline",
+    "passed":  true,
+    "metadata":  {
+                     "captured_at_epoch":  1780741684,
+                     "source_paths":  [
+                                          "app/static/app.js",
+                                          "app/static/modules/interaction-state.js",
+                                          "artifacts/deferred-extractions.md",
+                                          "artifacts/extraction-floor-report.md"
+                                      ],
+                     "captures":  2,
+                     "command":  "npm.cmd run test:e2e -- --workers=1",
+                     "logs":  [
+                                  "artifacts/pre-edit-baseline-1.log",
+                                  "artifacts/pre-edit-baseline-2.log"
+                              ]
+                 },
+    "items":  [
+                  {
+                      "name":  "pre-edit-baseline-1",
+                      "passed":  true
+                  },
+                  {
+                      "name":  "pre-edit-baseline-2",
+                      "passed":  true
+                  }
+              ]
+}
+

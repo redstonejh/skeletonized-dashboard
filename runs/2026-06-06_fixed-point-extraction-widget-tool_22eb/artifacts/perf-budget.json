@@ -1,0 +1,17 @@
+{
+    "passed":  true,
+    "check":  "refactor_perf_budget",
+    "probes":  [
+                   {
+                       "detail":  "No scheduling, rAF, coalescing, timer duration, or layout algorithm changes shipped.",
+                       "name":  "no_perf_intent",
+                       "passed":  true
+                   }
+               ],
+    "schema_version":  1,
+    "status":  "passed",
+    "violations":  [
+
+                   ]
+}
+

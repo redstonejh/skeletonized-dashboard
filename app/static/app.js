@@ -3104,19 +3104,14 @@ document.addEventListener("DOMContentLoaded", () => {
         });
       }
       const widgetToolSession = createWidgetToolSession();
-      let suppressToolOpenUntil = 0;
-      let suppressWidgetClickUntil = 0;
       let dragging = false;
-      let suppressSettingsClickUntil = 0;
-      let ignoreToolLeaveCloseUntilPointerActivity = false;
       let releaseToolLeaveCloseResume = null;
-      let toolsOpenedByApproach = false;
       const releaseToolLeaveClose = (event = null) => {
         const closeRestoredTools = (event?.type === "pointerdown" || event?.type === "pointermove") &&
           !tools?.contains(event.target) &&
           !drawer?.contains(event.target) &&
           !colorMenu?.contains(event.target);
-        ignoreToolLeaveCloseUntilPointerActivity = false;
+        widgetToolSession.setIgnoreToolLeaveCloseUntilPointerActivity(false);
         if (!releaseToolLeaveCloseResume) return;
         document.removeEventListener("pointermove", releaseToolLeaveCloseResume, true);
         document.removeEventListener("pointerdown", releaseToolLeaveCloseResume, true);
@@ -3125,13 +3120,13 @@ document.addEventListener("DOMContentLoaded", () => {
       };
       const armToolLeaveCloseResume = () => {
         releaseToolLeaveClose();
-        ignoreToolLeaveCloseUntilPointerActivity = true;
+        widgetToolSession.setIgnoreToolLeaveCloseUntilPointerActivity(true);
         releaseToolLeaveCloseResume = releaseToolLeaveClose;
         document.addEventListener("pointermove", releaseToolLeaveCloseResume, { capture: true, once: true });
         document.addEventListener("pointerdown", releaseToolLeaveCloseResume, { capture: true, once: true });
       };
       const openTools = (pointerCoords = null) => {
-        if (performance.now() < suppressToolOpenUntil) return;
+        if (performance.now() < widgetToolSession.getSuppressToolOpenUntil()) return;
         if (!canOpenDashboardTools(widget)) return;
         widgetToolSession.clearCloseTimer();
         portalDashboardToolDrawer(drawer, settings || widget);
@@ -3151,7 +3146,7 @@ document.addEventListener("DOMContentLoaded", () => {
       };
       const closeTools = () => {
         releaseToolLeaveClose();
-        toolsOpenedByApproach = false;
+        widgetToolSession.setToolsOpenedByApproach(false);
         if (tools?.contains(document.activeElement)) document.activeElement?.blur?.();
         widget.classList.remove("widget-tools-open");
         widget.classList.remove("widget-workbench-open");
@@ -3206,13 +3201,13 @@ document.addEventListener("DOMContentLoaded", () => {
         closeWorkbench();
         if (!canOpenDashboardTools(widget)) return;
         const shouldClose = widget.classList.contains("widget-tools-open") &&
-          !toolsOpenedByApproach;
-        toolsOpenedByApproach = false;
+          !widgetToolSession.getToolsOpenedByApproach();
+        widgetToolSession.setToolsOpenedByApproach(false);
         if (shouldClose) {
           closeTools();
           return;
         }
-        suppressToolOpenUntil = 0;
+        widgetToolSession.setSuppressToolOpenUntil(0);
         closeInactiveDashboardTools(widget);
         openTools(pointerCoords);
         colorMenu?.classList.remove("panel-color-menu-open");
@@ -3225,10 +3220,10 @@ document.addEventListener("DOMContentLoaded", () => {
       };
       const scheduleClose = () => {
         widgetToolSession.clearCloseTimer();
-        if (isDashboardInteractionActive() || ignoreToolLeaveCloseUntilPointerActivity) return;
+        if (isDashboardInteractionActive() || widgetToolSession.isIgnoringToolLeaveCloseUntilPointerActivity()) return;
         widgetToolSession.setCloseTimer(window.setTimeout(() => {
           if (isDashboardInteractionActive()) return;
-          if (ignoreToolLeaveCloseUntilPointerActivity) return;
+          if (widgetToolSession.isIgnoringToolLeaveCloseUntilPointerActivity()) return;
           const activeElement = document.activeElement;
           if (
             !tools?.matches(":hover") &&
@@ -3246,7 +3241,7 @@ document.addEventListener("DOMContentLoaded", () => {
           return;
         }
         openTools();
-        if (!wasOpen && widget.classList.contains("widget-tools-open")) toolsOpenedByApproach = true;
+        if (!wasOpen && widget.classList.contains("widget-tools-open")) widgetToolSession.setToolsOpenedByApproach(true);
       };
       tools?.addEventListener("click", (event) => {
         event.preventDefault();
@@ -3264,7 +3259,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (!event.target?.closest?.(".widget-tools") && pointerIntersectsSettingsToggle(event)) {
           event.preventDefault();
           event.stopPropagation();
-          suppressSettingsClickUntil = performance.now() + 320;
+          widgetToolSession.setSuppressSettingsClickUntil(performance.now() + 320);
           toggleAppearanceSettings();
           return;
         }
@@ -3272,8 +3267,8 @@ document.addEventListener("DOMContentLoaded", () => {
         if (isInteractiveWidgetSurfaceTarget(event)) return;
         event.preventDefault();
         event.stopPropagation();
-        if (performance.now() < suppressWidgetClickUntil) return;
-        suppressToolOpenUntil = 0;
+        if (performance.now() < widgetToolSession.getSuppressWidgetClickUntil()) return;
+        widgetToolSession.setSuppressToolOpenUntil(0);
         openWorkbench({ clientX: event.clientX, clientY: event.clientY });
         try {
           widget.focus?.({ preventScroll: true });
@@ -3323,14 +3318,14 @@ document.addEventListener("DOMContentLoaded", () => {
       settings?.addEventListener("click", (event) => {
         event.preventDefault();
         event.stopPropagation();
-        if (performance.now() < suppressSettingsClickUntil) return;
+        if (performance.now() < widgetToolSession.getSuppressSettingsClickUntil()) return;
         toggleAppearanceSettings();
       });
       settings?.addEventListener("pointerdown", (event) => {
         if (event.button !== 0) return;
         event.preventDefault();
         event.stopPropagation();
-        suppressSettingsClickUntil = performance.now() + 320;
+        widgetToolSession.setSuppressSettingsClickUntil(performance.now() + 320);
         toggleAppearanceSettings();
       });
       colorToggle?.addEventListener("click", (event) => {
@@ -3373,9 +3368,7 @@ document.addEventListener("DOMContentLoaded", () => {
         saveWidgetLayouts,
         requestWidgetDelete,
         closeTools,
-        setSuppressToolOpenUntil: (value) => {
-          suppressToolOpenUntil = value;
-        },
+        setSuppressToolOpenUntil: widgetToolSession.setSuppressToolOpenUntil,
       });
       bindWidgetMoveRuntime({
         widget,
@@ -3402,9 +3395,7 @@ document.addEventListener("DOMContentLoaded", () => {
           dragging = value;
           if (value) widgetToolSession.clearCloseTimer();
         },
-        setSuppressWidgetClickUntil: (value) => {
-          suppressWidgetClickUntil = value;
-        },
+        setSuppressWidgetClickUntil: widgetToolSession.setSuppressWidgetClickUntil,
       });
       bindWidgetResizeRuntime({
         widget,
@@ -3457,9 +3448,7 @@ document.addEventListener("DOMContentLoaded", () => {
         beginResizeLifecycle,
         resizeEdgeFromPointer,
         clearCloseTimer: widgetToolSession.clearCloseTimer,
-        setSuppressWidgetClickUntil: (value) => {
-          suppressWidgetClickUntil = value;
-        },
+        setSuppressWidgetClickUntil: widgetToolSession.setSuppressWidgetClickUntil,
       });
     };
     widgets.forEach(initWidget);

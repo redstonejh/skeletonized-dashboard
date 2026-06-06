@@ -1,0 +1,26 @@
+{
+    "passed":  true,
+    "schema_version":  1,
+    "line_count":  {
+                       "before":  3885,
+                       "decreased":  true,
+                       "after":  3874
+                   },
+    "check":  "refactor_structure",
+    "resident_behavior":  [
+                              "initWidgetLayout",
+                              "initWidget widget lifecycle body"
+                          ],
+    "refactor_type":  "move-module",
+    "moved_state":  [
+                        "suppressToolOpenUntil",
+                        "suppressWidgetClickUntil",
+                        "suppressSettingsClickUntil",
+                        "ignoreToolLeaveCloseUntilPointerActivity",
+                        "toolsOpenedByApproach"
+                    ],
+    "violations":  [
+
+                   ]
+}
+

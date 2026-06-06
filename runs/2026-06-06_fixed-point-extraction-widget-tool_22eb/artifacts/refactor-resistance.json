@@ -1,0 +1,29 @@
+{
+    "passed":  true,
+    "check":  "refactor_resistance",
+    "mutations":  [
+                      {
+                          "name":  "widget_tool_session_setSuppressToolOpenUntil_noop",
+                          "log":  "artifacts/resistance-widget-tool-session.log",
+                          "failed_checks":  [
+                                                "electron GUI restores widget tools through init"
+                                            ],
+                          "caught":  true,
+                          "mutant_passed":  false,
+                          "planted":  true
+                      }
+                  ],
+    "schema_version":  1,
+    "clean":  {
+                  "checks":  [
+                                 "npm.cmd run test:e2e -- --workers=1",
+                                 "post-edit full e2e 10x"
+                             ],
+                  "passed":  true
+              },
+    "summary":  {
+                    "total":  1,
+                    "caught":  1
+                }
+}
+

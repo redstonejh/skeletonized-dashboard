@@ -1,0 +1,20 @@
+{
+    "passed":  true,
+    "check":  "test_result",
+    "command":  "npm.cmd run test:e2e -- --workers=1",
+    "suites":  [
+                   {
+                       "name":  "electron-tests/dashboard-electron.spec.js",
+                       "tests":  8,
+                       "failed":  0,
+                       "passed":  8
+                   }
+               ],
+    "repeat":  {
+                   "passed":  true,
+                   "artifact":  "artifacts/post-edit-full-e2e-10x.json",
+                   "iterations":  10
+               },
+    "status":  "passed"
+}
+

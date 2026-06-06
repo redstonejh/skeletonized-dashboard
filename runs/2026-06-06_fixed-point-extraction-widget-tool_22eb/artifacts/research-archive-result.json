@@ -1,0 +1,13 @@
+{
+  "archive_dir": "C:\\Users\\redst\\OneDrive\\Documents\\research-archive\\2026-06-06_fixed-point-extraction-widget-tool_22eb",
+  "archive_root_manifest": "C:\\Users\\redst\\OneDrive\\Documents\\research-archive\\manifest.json",
+  "capture_timestamp": "2026-06-06T17:47:11Z",
+  "check": "research_archive_export",
+  "files_archived": 9,
+  "hash_only_stubs": 1,
+  "manifest": "C:\\Users\\redst\\OneDrive\\Documents\\research-archive\\2026-06-06_fixed-point-extraction-widget-tool_22eb\\manifest.json",
+  "passed": true,
+  "run": "C:\\Users\\redst\\OneDrive\\Documents\\skeletonized-dashboard\\runs\\2026-06-06_fixed-point-extraction-widget-tool_22eb",
+  "schema_version": 1
+}
+

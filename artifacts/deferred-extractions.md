@@ -41,12 +41,19 @@ The remaining `app/static/app.js` core is init-order-sensitive and still owns li
 - Outcome: deleted the unused app-local meaning factory and module. The active runtime meaning implementation remains in `app/static/widget-runtime.js`, and `window.dashboardWidgetRuntimeMeaning` still delegates through `widgetRuntimeController`.
 - Proof: added `widget-runtime-content-meaning` canary asserting committed runtime shell content and meaning datasets survive save/reload; the canary caught an `applyRuntimeMeaning` no-op on the active runtime path; full canary suite 10/10 green.
 
+### widget-tool-session-state
+
+- Cluster/symbol: widget tool/session mutable state (`suppressToolOpenUntil`, `suppressWidgetClickUntil`, `suppressSettingsClickUntil`, `ignoreToolLeaveCloseUntilPointerActivity`, `toolsOpenedByApproach`)
+- Completed in MAW run: `runs/2026-06-06_fixed-point-extraction-widget-tool_22eb`
+- Outcome: `createWidgetToolSession` now owns the remaining widget tool suppression and hover-close flags. `app.js` still owns the widget lifecycle body and only reads/writes those flags through the interaction-state API.
+- Proof: hardened the widget tools-init canary to assert action-close suppression blocks immediate hover reopen; a `setSuppressToolOpenUntil` no-op mutation was caught; full Electron suite 10/10 green.
+
 ## widget-layout-lifecycle
 
 - Cluster/symbol + file:line: `initWidgetLayout` and nested `initWidget`, `app/static/app.js:3380-3889`
-- Why deferred: shared mutable closure state (`closeTimer`, suppression timers, hover-close resume handlers, workbench/color menu portals, runtime-control rebinding) spans widget tool chrome, workbench, move, resize, delete, and persistence bindings. Moving it as one factory risks preserving the body but hiding an init-order knot; splitting it requires a dedicated widget tool state object first.
+- Why deferred: the remaining lifecycle body still spans widget tool chrome, workbench/color menu portals, runtime-control rebinding, move, resize, delete, and persistence bindings. The suppression and hover-close flags now live in `createWidgetToolSession`, but the body move still needs a lifecycle boundary that preserves init order around `ensureWidgetTools`, workbench creation, and move/resize binding.
 - KEEP interaction entangled: widget recolor/rename/pin/delete, widget settings workbench, widget drag, widget resize, panel-internal widget move/resize, save/load persistence.
-- Needed to finish safely: extract a `widget-tool-session` state module that owns open/close/workbench/color-menu lifecycle, then bind move/resize/action runtimes against that stable API.
+- Needed to finish safely: move the widget lifecycle body only after classifying the remaining workbench/color-menu portal handles and runtime-control rebinding as bind-existing, move-with-body, or keep-as-param.
 
 ## panel-layout-lifecycle
 

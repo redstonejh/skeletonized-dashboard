@@ -1,0 +1,13 @@
+{
+    "passed":  true,
+    "functions":  [
+
+                  ],
+    "check":  "refactor_complexity",
+    "schema_version":  1,
+    "note":  "State ownership moved without adding behavior functions or complexity hot spots.",
+    "violations":  [
+
+                   ]
+}
+

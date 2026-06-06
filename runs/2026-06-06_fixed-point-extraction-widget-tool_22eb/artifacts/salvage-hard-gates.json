@@ -1,0 +1,8 @@
+{
+  "applicable": false,
+  "check": "salvage_hard_gates",
+  "passed": true,
+  "reason": "no salvage preserved-surface artifacts",
+  "violations": []
+}
+
