@@ -1,0 +1,139 @@
+{
+  "run": "runs\\2026-06-06_increment-5b-2-panel-layout_6453",
+  "task_type": "refactor-task",
+  "handoffs": {
+    "run": "runs\\2026-06-06_increment-5b-2-panel-layout_6453",
+    "handoffs": 4,
+    "passed": true,
+    "errors": []
+  },
+  "test": {
+    "check": "test",
+    "command": "npm.cmd run test:e2e -- --workers=1",
+    "cwd": ".",
+    "exit_code": 0,
+    "timed_out": false,
+    "passed": true,
+    "duration_sec": 27.89,
+    "stdout_tail": "\n> configurable-dashboard-gui-electron@1.0.0 test:e2e\n> playwright test electron-tests/dashboard-electron.spec.js --workers=1\n\n\nRunning 8 tests using 1 worker\n\n  \u00e2\u0153\u201c  1 electron-tests\\dashboard-electron.spec.js:202:1 \u00e2\u20ac\u00ba electron GUI boots without server APIs and preserves core customization (5.3s)\n  \u00e2\u0153\u201c  2 electron-tests\\dashboard-electron.spec.js:263:1 \u00e2\u20ac\u00ba electron GUI keeps drag and resize handlers active (2.8s)\n  \u00e2\u0153\u201c  3 electron-tests\\dashboard-electron.spec.js:331:1 \u00e2\u20ac\u00ba electron GUI keeps select-mode multi-resize deterministic (2.0s)\n  \u00e2\u0153\u201c  4 electron-tests\\dashboard-electron.spec.js:401:1 \u00e2\u20ac\u00ba electron GUI keeps widget resize-snap deterministic (1.9s)\n  \u00e2\u0153\u201c  5 electron-tests\\dashboard-electron.spec.js:436:1 \u00e2\u20ac\u00ba electron GUI restores widget tools through init (1.9s)\n  \u00e2\u0153\u201c  6 electron-tests\\dashboard-electron.spec.js:464:1 \u00e2\u20ac\u00ba electron GUI commits widget runtime content and meaning across reload (3.9s)\n  \u00e2\u0153\u201c  7 electron-tests\\dashboard-electron.spec.js:511:1 \u00e2\u20ac\u00ba electron GUI keeps ordered drag commit, ghost, collision, and edge scroll deterministic (4.8s)\n  \u00e2\u0153\u201c  8 electron-tests\\dashboard-electron.spec.js:601:1 \u00e2\u20ac\u00ba electron GUI absorbs a workspace widget through the panel body zone (4.1s)\n\n  8 passed (27.1s)\n",
+    "stderr_tail": "",
+    "configured": true,
+    "tool_exit_code": 0
+  },
+  "evidence": {
+    "task_type": "refactor-task",
+    "required": [
+      "artifacts/behavior-baseline.json",
+      "artifacts/behavior-diff.json",
+      "artifacts/refactor-coverage.json",
+      "artifacts/api-surface-diff.json",
+      "artifacts/refactor-structure.json",
+      "artifacts/complexity-report.json",
+      "artifacts/perf-budget.json",
+      "artifacts/refactor-resistance.json",
+      "artifacts/test-result.json"
+    ],
+    "items": [
+      {
+        "artifact": "artifacts/behavior-baseline.json",
+        "path": "runs\\2026-06-06_increment-5b-2-panel-layout_6453\\artifacts\\behavior-baseline.json",
+        "passed": true,
+        "reason": "passed is true"
+      },
+      {
+        "artifact": "artifacts/behavior-diff.json",
+        "path": "runs\\2026-06-06_increment-5b-2-panel-layout_6453\\artifacts\\behavior-diff.json",
+        "passed": true,
+        "reason": "passed is true"
+      },
+      {
+        "artifact": "artifacts/refactor-coverage.json",
+        "path": "runs\\2026-06-06_increment-5b-2-panel-layout_6453\\artifacts\\refactor-coverage.json",
+        "passed": true,
+        "reason": "passed is true"
+      },
+      {
+        "artifact": "artifacts/api-surface-diff.json",
+        "path": "runs\\2026-06-06_increment-5b-2-panel-layout_6453\\artifacts\\api-surface-diff.json",
+        "passed": true,
+        "reason": "passed is true"
+      },
+      {
+        "artifact": "artifacts/refactor-structure.json",
+        "path": "runs\\2026-06-06_increment-5b-2-panel-layout_6453\\artifacts\\refactor-structure.json",
+        "passed": true,
+        "reason": "refactor structure schema passed"
+      },
+      {
+        "artifact": "artifacts/complexity-report.json",
+        "path": "runs\\2026-06-06_increment-5b-2-panel-layout_6453\\artifacts\\complexity-report.json",
+        "passed": true,
+        "reason": "refactor complexity schema passed"
+      },
+      {
+        "artifact": "artifacts/perf-budget.json",
+        "path": "runs\\2026-06-06_increment-5b-2-panel-layout_6453\\artifacts\\perf-budget.json",
+        "passed": true,
+        "reason": "refactor perf budget schema passed"
+      },
+      {
+        "artifact": "artifacts/refactor-resistance.json",
+        "path": "runs\\2026-06-06_increment-5b-2-panel-layout_6453\\artifacts\\refactor-resistance.json",
+        "passed": true,
+        "reason": "refactor resistance schema passed"
+      },
+      {
+        "artifact": "artifacts/test-result.json",
+        "path": "runs\\2026-06-06_increment-5b-2-panel-layout_6453\\artifacts\\test-result.json",
+        "passed": true,
+        "reason": "passed is true"
+      }
+    ],
+    "passed": true,
+    "violations": []
+  },
+  "anti_gaming": {
+    "check": "anti_gaming_hard_gates",
+    "applicable": false,
+    "passed": true,
+    "violations": [],
+    "reason": "no anti-gaming evaluation protocol"
+  },
+  "salvage_gates": {
+    "check": "salvage_hard_gates",
+    "applicable": false,
+    "passed": true,
+    "violations": [],
+    "reason": "no salvage preserved-surface artifacts"
+  },
+  "delegation": {
+    "check": "delegation_proof",
+    "schema_version": 1,
+    "selected_roles": [
+      "conductor",
+      "planner",
+      "worker",
+      "critic",
+      "acceptance_gate"
+    ],
+    "role_count": 5,
+    "passed": true,
+    "violations": [],
+    "artifact": "runs\\2026-06-06_increment-5b-2-panel-layout_6453\\artifacts\\delegation-proof.json"
+  },
+  "violations": [],
+  "verdict": "SHIP",
+  "run_summary": "runs\\2026-06-06_increment-5b-2-panel-layout_6453\\artifacts\\run-summary.md",
+  "research_archive": {
+    "check": "research_archive_export",
+    "schema_version": 1,
+    "passed": true,
+    "run": "C:\\Users\\redst\\OneDrive\\Documents\\skeletonized-dashboard\\runs\\2026-06-06_increment-5b-2-panel-layout_6453",
+    "archive_dir": "C:\\Users\\redst\\OneDrive\\Documents\\research-archive\\2026-06-06_increment-5b-2-panel-layout_6453",
+    "manifest": "C:\\Users\\redst\\OneDrive\\Documents\\research-archive\\2026-06-06_increment-5b-2-panel-layout_6453\\manifest.json",
+    "archive_root_manifest": "C:\\Users\\redst\\OneDrive\\Documents\\research-archive\\manifest.json",
+    "files_archived": 9,
+    "hash_only_stubs": 1,
+    "capture_timestamp": "2026-06-06T20:07:26Z"
+  }
+}

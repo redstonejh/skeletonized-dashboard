@@ -27,7 +27,6 @@ import { initializeDeleteRuntime } from "./modules/delete-runtime.js";
 import { createResizeAutoZoomRuntime } from "./modules/resize-auto-zoom.js";
 import { createLayoutHistoryRuntime } from "./modules/layout-history-runtime.js";
 import { initializePanelRuntimes } from "./modules/panel-runtime-setup.js";
-import { hydratePanelLayout } from "./modules/panel-layout-hydration.js";
 import { hydrateWidgetLayout } from "./modules/widget-layout-hydration.js";
 import { initializePersistedWorkspaceRuntime } from "./modules/persisted-workspace-runtime.js";
 import { initializeWorkspacePostInit } from "./modules/workspace-post-init.js";
@@ -51,12 +50,8 @@ import { createWidgetRuntimeData } from "./modules/widget-runtime-data.js";
 import { createWidgetSettingsService } from "./modules/widget-settings-service.js";
 import { createLayoutSnapshotRuntime } from "./modules/layout-snapshot-runtime.js";
 import { bindWidgetActionControls } from "./modules/widget-action-controls.js";
-import { bindPanelActionControls } from "./modules/panel-action-controls.js";
-import { bindPanelChildHoverRuntime } from "./modules/panel-child-hover-runtime.js";
 import { bindWidgetMoveRuntime } from "./modules/widget-move-runtime.js";
-import { bindPanelMoveRuntime } from "./modules/panel-move-runtime.js";
 import { bindWidgetResizeRuntime } from "./modules/widget-resize-runtime.js";
-import { bindPanelResizeRuntime } from "./modules/panel-resize-runtime.js";
 import { createGridMetricsRuntime } from "./modules/grid-metrics-runtime.js";
 import { createResizeSurfaceRuntime } from "./modules/resize-surface-runtime.js";
 import { widgetHasRowBreakBefore, widgetSpacerSiblingsBefore } from "./modules/widget-layout-persistence-helpers.js";
@@ -71,10 +66,11 @@ import { createPanelFootprintFacade } from "./modules/panel-footprint-facade.js"
 import { createMenuOverlayFacade } from "./modules/menu-overlay-facade.js";
 import { createPanelPrimitiveFacade } from "./modules/panel-primitive-facade.js";
 import { createGridItemSizingRuntime } from "./modules/grid-item-sizing-runtime.js";
-import { createPanelToolSession, createResizeSessionGeometry, createWidgetToolSession } from "./modules/interaction-state.js";
+import { createResizeSessionGeometry, createWidgetToolSession } from "./modules/interaction-state.js";
 import { createOrderedDragRuntime } from "./modules/ordered-drag-runtime.js";
 import { createGroupResizeRuntime } from "./modules/group-resize-runtime.js";
 import { createWidgetLayoutRuntime } from "./modules/widget-layout-runtime.js";
+import { createPanelLayoutRuntime } from "./modules/panel-layout-runtime.js";
 import {
   applyPanelColor,
   applyPanelTitleColor,
@@ -2209,7 +2205,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
     // Defensive: when resolving against a workspace-level layout (not a
     // panel-internal grid), panel-contained widgets must never enter the
-    // global occupancy set — the panel container is the single global
+    // global occupancy set â€” the panel container is the single global
     // object/footprint. Upstream callers (reflowItemsForLayout,
     // globalGridItems) filter this, but this final-mile filter catches
     // any path that supplies a provided `items` array that leaks panel-
@@ -3163,8 +3159,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
   document.querySelectorAll(".widget-layout").forEach(initWidgetLayout);
 
-  document.querySelectorAll(".panel-layout").forEach((layout) => {
-    const { layoutKey, panels } = hydratePanelLayout(layout, {
+  const { initPanelLayouts } = createPanelLayoutRuntime(
+    {
       getActivePanelProfile,
       readJsonStore,
       customPanelsKey,
@@ -3179,9 +3175,7 @@ document.addEventListener("DOMContentLoaded", () => {
       workspaceObjectType,
       applyWorkspaceContextToElement,
       WORKSPACE_OBJECT_TYPES,
-      applyPanelSpan: panelRuntime.applyPanelSpan,
-      applyPanelGridPosition: panelRuntime.applyPanelGridPosition,
-      applyPanelHeight: panelRuntime.applyPanelHeight,
+      panelRuntime,
       applyPanelColor,
       applyPanelTitleColor,
       restorePanelChildWidgets,
@@ -3190,309 +3184,80 @@ document.addEventListener("DOMContentLoaded", () => {
       syncDefaultDashboardGrid,
       normalizeGridLayout,
       syncWorkspaceRegions,
-    });
+      syncPanelMinimumWidth,
+      workspaceObjectCapabilities,
+      ensurePanelInternalWidgetGrid,
+      initWidgetLayout,
+      syncOpenPanelHeightToInternalGrid,
+      isDashboardInteractionActive,
+      surfaceResponseState,
+      updateSurfaceResponse,
+      buildPanelColorMenu,
+      canOpenDashboardTools,
+      portalDashboardToolDrawer,
+      positionDashboardToolDrawerAtPointer,
+      positionDashboardToolDrawer,
+      syncLayoutToolsActive,
+      restoreDashboardToolDrawer,
+      surfaceResponseControlSelector,
+      closeInactiveDashboardTools,
+      syncPanelThemeVars,
+      positionPanelColorMenu,
+      groupPeers,
+      groupItemLayout,
+      savePanelLayouts,
+      requestPanelDelete,
+      ensureRenderedGridPosition,
+      beginPanelExpansionSession,
+      panelMinimumRows,
+      animatePanelReflow,
+      relaxCollapsedExpansionDisplacement,
+      endPanelExpansionSession,
+      applyVerticalPanelExpansion,
+      emitWorkspaceEvent,
+      regionIdForWorkspaceItem,
+      isWorkspaceSurfaceDragStart,
+      isDashboardToolInteractionTarget,
+      runOrderedDrag,
+      saveSharedGridLayouts,
+      DASHBOARD_GRID_COLUMNS,
+      DASHBOARD_GRID_ROW_HEIGHT,
+      groupTransformItems,
+      runGroupResize,
+      createGridMetrics,
+      gridItemRowSpan,
+      gridHeightForRows,
+      gridItemPixelWidthForSpan,
+      gridItemMinimumSpan,
+      createResizePreview,
+      reflowItemsForLayout,
+      beginLiveResizeSurface,
+      beginResizeAutoZoomCamera,
+      updateResizeAutoZoomCamera,
+      createExpandedFootprintGhost,
+      snapshotGridLayout,
+      restoreGridLayoutSnapshot,
+      resolveSparseGridLayout,
+      resizeAutoZoomPointerToScenePoint,
+      updateLiveResizeSurface,
+      expandedPanelFootprintHeight,
+      updateExpandedFootprintGhost,
+      animateOrderedGridReflow,
+      endResizeAutoZoomCamera,
+      groupedPanelReleaseSpan,
+      alignedResizeSpan,
+      refreshGridMetricsRect,
+      alignedResizeHeight,
+      clearLiveResizeSurface,
+      applyOrderedGridLayout,
+      syncCommittedWorkspaceScrollFloor,
+      beginResizeLifecycle,
+      resizeEdgeFromPointer,
+    },
+  );
 
-    const initPanel = (panel) => {
-      if (panel.dataset.panelInitialized === "true") return;
-      panel.dataset.panelInitialized = "true";
-      syncPanelMinimumWidth(panel);
-      const header = panel.querySelector(":scope > .db-panel-hd");
-      const body = panel.querySelector(":scope > .db-panel-body");
-      const settingsButton = header?.querySelector(".panel-settings-toggle");
-      const panelTools = header?.querySelector(".panel-tools");
-      const panelToolDrawer = panelTools?.querySelector(":scope > .panel-tool-drawer");
-      panel.__dashboardToolDrawer = panelToolDrawer;
-      const capabilities = workspaceObjectCapabilities(panel);
-      if (panelToolDrawer && !panelToolDrawer.querySelector(".panel-delete-handle")) {
-        panelToolDrawer.insertAdjacentHTML("beforeend", '<button class="panel-tool-button panel-delete-handle" type="button" aria-label="Delete panel" title="Delete panel"><span class="trash-icon" aria-hidden="true"></span></button>');
-      }
-      const moveHandle = panelToolDrawer?.querySelector(".panel-move-handle");
-      const resizeHandle = panelToolDrawer?.querySelector(".panel-resize-handle");
-      const pinButton = panelToolDrawer?.querySelector(".panel-pin-toggle");
-      const titleButton = panelToolDrawer?.querySelector(".panel-title-handle");
-      const colorToggle = panelToolDrawer?.querySelector(".panel-color-toggle");
-      const deleteButton = panelToolDrawer?.querySelector(".panel-delete-handle");
-      if (!header || !body) return;
-      const internalWidgetGrid = capabilities.hasPanelContentArea ? ensurePanelInternalWidgetGrid(panel) : null;
-      if (internalWidgetGrid) initWidgetLayout(internalWidgetGrid);
-      if (internalWidgetGrid) syncOpenPanelHeightToInternalGrid(panel, { reflow: false });
-      bindPanelChildHoverRuntime({
-        panel,
-        internalWidgetGrid,
-        isDashboardInteractionActive,
-        surfaceResponseState,
-        updateSurfaceResponse,
-      });
-      const colorMenu = buildPanelColorMenu(panel, layout, colorToggle);
-      pinButton?.setAttribute("aria-pressed", panel.classList.contains("db-panel-pinned").toString());
-      const panelToolSession = createPanelToolSession();
-      let releasePanelToolLeaveCloseResume = null;
-      const releasePanelToolLeaveClose = (event = null) => {
-        const closeRestoredTools = (event?.type === "pointerdown" || event?.type === "pointermove") &&
-          !panelTools?.contains(event.target) &&
-          !panelToolDrawer?.contains(event.target) &&
-          !colorMenu?.contains(event.target);
-        panelToolSession.setIgnoreToolLeaveCloseUntilPointerActivity(false);
-        if (!releasePanelToolLeaveCloseResume) return;
-        document.removeEventListener("pointermove", releasePanelToolLeaveCloseResume, true);
-        document.removeEventListener("pointerdown", releasePanelToolLeaveCloseResume, true);
-        releasePanelToolLeaveCloseResume = null;
-        if (closeRestoredTools) closePanelTools();
-      };
-      const armPanelToolLeaveCloseResume = () => {
-        releasePanelToolLeaveClose();
-        panelToolSession.setIgnoreToolLeaveCloseUntilPointerActivity(true);
-        releasePanelToolLeaveCloseResume = releasePanelToolLeaveClose;
-        document.addEventListener("pointermove", releasePanelToolLeaveCloseResume, { capture: true, once: true });
-        document.addEventListener("pointerdown", releasePanelToolLeaveCloseResume, { capture: true, once: true });
-      };
-      const openPanelTools = (pointerCoords = null) => {
-        if (performance.now() < panelToolSession.getSuppressToolOpenUntil()) return;
-        if (!canOpenDashboardTools(panel)) return;
-        panelToolSession.clearToolsCloseTimer();
-        portalDashboardToolDrawer(panelToolDrawer, settingsButton || panel);
-        if (pointerCoords) {
-          positionDashboardToolDrawerAtPointer(panel, panelToolDrawer, pointerCoords.clientX, pointerCoords.clientY);
-        } else {
-          positionDashboardToolDrawer(panel, settingsButton, panelToolDrawer);
-        }
-        panel.classList.add("db-panel-tools-open");
-        settingsButton?.setAttribute("aria-expanded", "true");
-        syncLayoutToolsActive();
-      };
-
-      const closePanelTools = () => {
-        releasePanelToolLeaveClose();
-        panelToolSession.setToolsOpenedByApproach(false);
-        if (panelTools?.contains(document.activeElement)) document.activeElement?.blur?.();
-        panel.classList.remove("db-panel-tools-open");
-        settingsButton?.setAttribute("aria-expanded", "false");
-        colorToggle?.setAttribute("aria-expanded", "false");
-        colorMenu?.classList.remove("panel-color-menu-open");
-        restoreDashboardToolDrawer(panelToolDrawer);
-        syncLayoutToolsActive();
-      };
-
-      const scheduleClosePanelTools = () => {
-        panelToolSession.clearToolsCloseTimer();
-        if (isDashboardInteractionActive() || panelToolSession.isToolPointerCaptured() || panelToolSession.isIgnoringToolLeaveCloseUntilPointerActivity()) return;
-        panelToolSession.setToolsCloseTimer(window.setTimeout(() => {
-          if (isDashboardInteractionActive()) return;
-          if (panelToolSession.isToolPointerCaptured()) return;
-          if (panelToolSession.isIgnoringToolLeaveCloseUntilPointerActivity()) return;
-          const activeElement = document.activeElement;
-          const stillUsingTools =
-            settingsButton?.matches(":hover") ||
-            panelToolDrawer?.matches(":hover") ||
-            colorMenu?.matches(":hover") ||
-            panelToolDrawer?.contains(activeElement) ||
-            (panelTools?.contains(activeElement) && activeElement !== colorToggle);
-          if (!stillUsingTools) closePanelTools();
-        }, 300));
-      };
-      const resumePanelToolHoverClose = () => {
-        const wasOpen = panel.classList.contains("db-panel-tools-open");
-        releasePanelToolLeaveClose();
-        if (wasOpen) {
-          panelToolSession.clearToolsCloseTimer();
-          return;
-        }
-        openPanelTools();
-        if (!wasOpen && panel.classList.contains("db-panel-tools-open")) panelToolSession.setToolsOpenedByApproach(true);
-      };
-
-      panelTools?.addEventListener("click", (event) => event.stopPropagation());
-      panelTools?.addEventListener("keydown", (event) => event.stopPropagation());
-      panelTools?.addEventListener("mouseleave", scheduleClosePanelTools);
-      panelTools?.addEventListener("focusin", resumePanelToolHoverClose);
-      panelTools?.addEventListener("focusout", scheduleClosePanelTools);
-      settingsButton?.addEventListener("mouseenter", () => {
-        if (performance.now() < panelToolSession.getSuppressToolOpenUntil()) return;
-        panelToolSession.setSuppressHeaderToggleUntil(performance.now() + 250);
-        resumePanelToolHoverClose();
-      });
-      settingsButton?.addEventListener("mouseleave", scheduleClosePanelTools);
-      panelToolDrawer?.addEventListener("mouseenter", resumePanelToolHoverClose);
-      panelToolDrawer?.addEventListener("mouseleave", scheduleClosePanelTools);
-      colorMenu?.addEventListener("mouseenter", resumePanelToolHoverClose);
-      colorMenu?.addEventListener("mouseleave", () => {
-        if (isDashboardInteractionActive()) return;
-        if (!panelToolSession.isToolPointerCaptured()) closePanelTools();
-      });
-      const isInteractivePanelSurfaceTarget = (event) => {
-        if (event?.target?.closest?.(".panel-internal-widget-grid > .widget-card")) return true;
-        const interactiveTarget = event?.target?.closest?.(`${surfaceResponseControlSelector}, [contenteditable='true']`);
-        return interactiveTarget && panel.contains(interactiveTarget);
-      };
-
-      settingsButton?.addEventListener("click", (event) => {
-        event.preventDefault();
-        event.stopPropagation();
-        panelToolSession.setSuppressHeaderToggleUntil(0);
-        releasePanelToolLeaveClose();
-        if (!canOpenDashboardTools(panel)) return;
-        const shouldClose = panel.classList.contains("db-panel-tools-open") && !panelToolSession.getToolsOpenedByApproach();
-        panelToolSession.setToolsOpenedByApproach(false);
-        if (shouldClose) {
-          closePanelTools();
-        } else {
-          panelToolSession.setSuppressToolOpenUntil(0);
-          closeInactiveDashboardTools(panel);
-          openPanelTools();
-        }
-      });
-
-      colorToggle?.addEventListener("click", (event) => {
-        event.preventDefault();
-        event.stopPropagation();
-        panelToolSession.setSuppressHeaderToggleUntil(0);
-        const nextOpen = !colorMenu?.classList.contains("panel-color-menu-open");
-        if (nextOpen) {
-          syncPanelThemeVars(panel, colorMenu);
-          colorToggle.__refreshPanelColorMenu?.();
-          positionPanelColorMenu(colorToggle, colorMenu);
-        }
-        colorMenu?.classList.toggle("panel-color-menu-open", nextOpen);
-        colorToggle.setAttribute("aria-expanded", nextOpen.toString());
-      });
-
-      window.addEventListener("resize", () => {
-        if (colorMenu?.classList.contains("panel-color-menu-open")) positionPanelColorMenu(colorToggle, colorMenu);
-      });
-      window.addEventListener("scroll", () => {
-        if (colorMenu?.classList.contains("panel-color-menu-open")) positionPanelColorMenu(colorToggle, colorMenu);
-      }, true);
-
-      bindPanelActionControls({
-        panel,
-        layout,
-        layoutKey,
-        header,
-        panelTools,
-        pinButton,
-        titleButton,
-        deleteButton,
-        capabilities,
-        groupPeers,
-        groupItemLayout,
-        savePanelLayouts,
-        requestPanelDelete,
-        closePanelTools,
-        setSuppressToolOpenUntil: panelToolSession.setSuppressToolOpenUntil,
-        setSuppressHeaderToggleUntil: panelToolSession.setSuppressHeaderToggleUntil,
-        getSuppressHeaderToggleUntil: panelToolSession.getSuppressHeaderToggleUntil,
-        getMovedDuringPointer: panelToolSession.getMovedDuringPointer,
-        setMovedDuringPointer: panelToolSession.setMovedDuringPointer,
-        ensureRenderedGridPosition,
-        beginPanelExpansionSession,
-        applyPanelHeight: panelRuntime.applyPanelHeight,
-        panelMinimumRows,
-        applyPanelGridPosition: panelRuntime.applyPanelGridPosition,
-        animatePanelReflow,
-        relaxCollapsedExpansionDisplacement,
-        endPanelExpansionSession,
-        applyVerticalPanelExpansion,
-        emitWorkspaceEvent,
-        workspaceObjectType,
-        WORKSPACE_OBJECT_TYPES,
-        regionIdForWorkspaceItem,
-        isInteractivePanelSurfaceTarget,
-        releasePanelToolLeaveClose,
-        canOpenDashboardTools,
-        closeInactiveDashboardTools,
-        openPanelTools,
-      });
-
-      bindPanelMoveRuntime({
-        panel,
-        layout,
-        layoutKey,
-        moveHandle,
-        settingsButton,
-        panelToolDrawer,
-        isWorkspaceSurfaceDragStart,
-        isDashboardToolInteractionTarget,
-        runOrderedDrag,
-        cleanupPanelRowBreaks,
-        saveSharedGridLayouts,
-        emitWorkspaceEvent,
-        workspaceObjectType,
-        WORKSPACE_OBJECT_TYPES,
-        regionIdForWorkspaceItem,
-        isInteractivePanelSurfaceTarget,
-        openPanelTools,
-        closePanelTools,
-        armPanelToolLeaveCloseResume,
-        clearToolsCloseTimer: panelToolSession.clearToolsCloseTimer,
-        setToolPointerCapture: panelToolSession.setToolPointerCapture,
-        setMovedDuringPointer: panelToolSession.setMovedDuringPointer,
-      });
-
-      bindPanelResizeRuntime({
-        panel,
-        layout,
-        layoutKey,
-        resizeHandle,
-        settingsButton,
-        panelToolDrawer,
-        DASHBOARD_GRID_COLUMNS,
-        DASHBOARD_GRID_ROW_HEIGHT,
-        isDashboardToolInteractionTarget,
-        groupTransformItems,
-        runGroupResize,
-        saveSharedGridLayouts,
-        openPanelTools,
-        closePanelTools,
-        armPanelToolLeaveCloseResume,
-        closeInactiveDashboardTools,
-        createGridMetrics,
-        gridItemRowSpan,
-        gridHeightForRows,
-        gridItemPixelWidthForSpan,
-        gridItemMinimumSpan,
-        getPanelMinimumHeight: panelRuntime.getPanelMinimumHeight,
-        createResizePreview,
-        reflowItemsForLayout,
-        beginLiveResizeSurface,
-        beginResizeAutoZoomCamera,
-        updateResizeAutoZoomCamera,
-        createExpandedFootprintGhost,
-        groupPeers,
-        groupItemLayout,
-        snapshotGridLayout,
-        restoreGridLayoutSnapshot,
-        applyPanelSpan: panelRuntime.applyPanelSpan,
-        applyPanelGridPosition: panelRuntime.applyPanelGridPosition,
-        applyPanelHeight: panelRuntime.applyPanelHeight,
-        resolveSparseGridLayout,
-        resizeAutoZoomPointerToScenePoint,
-        updateLiveResizeSurface,
-        panelMinimumRows,
-        expandedPanelFootprintHeight,
-        updateExpandedFootprintGhost,
-        animateOrderedGridReflow,
-        endResizeAutoZoomCamera,
-        groupedPanelReleaseSpan,
-        alignedResizeSpan,
-        refreshGridMetricsRect,
-        alignedResizeHeight,
-        clearLiveResizeSurface,
-        applyOrderedGridLayout,
-        emitWorkspaceEvent,
-        workspaceObjectType,
-        WORKSPACE_OBJECT_TYPES,
-        regionIdForWorkspaceItem,
-        syncCommittedWorkspaceScrollFloor,
-        beginResizeLifecycle,
-        resizeEdgeFromPointer,
-        clearToolsCloseTimer: panelToolSession.clearToolsCloseTimer,
-        setToolPointerCapture: panelToolSession.setToolPointerCapture,
-      });
-    };
-
-    panels.forEach(initPanel);
-    layout.__initPanel = initPanel;
-  });
+  document.querySelectorAll(".widget-layout").forEach(initWidgetLayout);
+  initPanelLayouts();
 
   initializeWorkspacePostInit({
     restoreLoadedExpansionBaseline,

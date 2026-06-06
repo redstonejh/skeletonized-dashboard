@@ -1,0 +1,17 @@
+{
+    "schema_version":  1,
+    "passed":  true,
+    "phase":  "5B-2",
+    "public_api_changes":  [
+                               "new internal createPanelLayoutRuntime module API"
+                           ],
+    "dependency_changes":  [
+
+                           ],
+    "electron_changes":  [
+
+                         ],
+    "package_changes":  [
+
+                        ]
+}

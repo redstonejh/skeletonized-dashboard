@@ -123,11 +123,24 @@ The floor moved for panel tool-session state. `createPanelToolSession` now owns 
 - Scope note: panel lifecycle body remains resident until the separate 5B-2 body move
 - MAW run: `runs/2026-06-06_increment-5b-panel-tool-session_580f`
 
+## 2026-06-06 Increment 5B-2 Panel Layout Lifecycle Runtime Shipped
+
+The floor moved for panel lifecycle ownership. The panel layout hydration loop and nested `initPanel` body now live in `app/static/modules/panel-layout-runtime.js`, bound to the completed panel tool-session spine and the existing panel hydration/action/move/resize runtimes. `app.js` still constructs the runtime after `initializePanelRuntimes` and after the widget layout runtime exists, preserving the load-bearing order where panel internal widget grids initialize before panel move/resize binding.
+
+- Completed cluster: `panel-layout-lifecycle`
+- `app/static/app.js` line count before this phase: 3528
+- `app/static/app.js` line count after this phase: 3303
+- New runtime API: `createPanelLayoutRuntime(deps)` returns `{ initPanelLayouts }`
+- Compatibility preserved: `layout.__initPanel = initPanel`; internal widget grids still call `initWidgetLayout` before panel binders
+- Resistance: `initPanel` early-return mutation was caught before extraction and after the body moved
+- Full hidden canary suite: 10/10 green
+- MAW run: `runs/2026-06-06_increment-5b-2-panel-layout_6453`
+
 ## Current State
 
-- `app/static/app.js` line count: 3528
-- `app/static/modules/*.js` count: 62
-- `app/static/app.js` SHA256: `AC18E0361EF736F75C1EAE769BF57D429C37E447169276F64169265516E3B81B`
+- `app/static/app.js` line count: 3303
+- `app/static/modules/*.js` count: 63
+- `app/static/app.js` SHA256: `5E5438346F2D61B332BE4E93494C895BE880DFB6C6BE41F80977A86ADBE7C26F`
 - Core coverage artifact: `artifacts/app-core-map.md`
 - Deferred cluster artifact: `artifacts/deferred-extractions.md`
 

@@ -1,0 +1,7 @@
+{
+  "applicable": false,
+  "check": "anti_gaming_hard_gates",
+  "passed": true,
+  "reason": "no anti-gaming evaluation protocol",
+  "violations": []
+}

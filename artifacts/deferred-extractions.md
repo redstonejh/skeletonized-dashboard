@@ -56,13 +56,13 @@ The remaining `app/static/app.js` core is init-order-sensitive and still owns li
 - API: `createWidgetLayoutRuntime(deps)` returns `{ initWidgetLayout }`; existing `layout.__initWidget = initWidget` and `widget.__saveWidgetLayout = () => saveWidgetLayouts(layout)` compatibility hooks are preserved.
 - Proof: `initWidget` early-return mutation was caught before extraction and again after the body moved; full hidden Electron suite passed 10/10 after extraction.
 
-## panel-layout-lifecycle
+### panel-layout-lifecycle
 
 - Cluster/symbol + file:line: panel hydration loop and nested `initPanel`, `app/static/app.js:3890-4191`
-- Why deferred: the panel core still owns panel tool chrome, color menu, action/move/resize binding, collapse/expand setup, panel child hover, and color menu positioning. The panel tool-session state prerequisite is complete, but the body has not yet moved.
-- KEEP interaction entangled: panel recolor/rename/pin/collapse/delete, panel drag, panel resize, panel child containment, collision/reflow, save/load persistence.
-- Needed to finish safely: move the panel lifecycle body behind a panel lifecycle facade that receives `initWidgetLayout` only after widget lifecycle has been separated, preserving the internal-widget-grid initialization before panel resize/move binding.
-- 2026-06-06 state checkpoint: `createPanelToolSession` now owns close timer, pointer capture, moved-pointer, header-toggle suppression, tool-open suppression, hover-leave suppression during pointer activity, and approach-open state. The body remains resident for the separate 5B-2 move.
+- Completed in MAW run: `runs/2026-06-06_increment-5b-2-panel-layout_6453`
+- Outcome: the panel hydration loop and nested `initPanel` now live in `app/static/modules/panel-layout-runtime.js`. `app.js` constructs the runtime after `initializePanelRuntimes`, preserving the load-bearing order where `initWidgetLayout` exists before panel internal widget grids initialize and before panel action/move/resize binders run.
+- API: `createPanelLayoutRuntime(deps)` returns `{ initPanelLayouts }`; existing `layout.__initPanel = initPanel` compatibility is preserved.
+- Proof: `initPanel` early-return mutation was caught before extraction and again after the body moved; full hidden Electron suite passed 10/10 after extraction.
 
 ## conditional-style-runtime
 

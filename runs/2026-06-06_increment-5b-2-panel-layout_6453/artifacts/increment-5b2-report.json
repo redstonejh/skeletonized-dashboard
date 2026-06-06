@@ -1,0 +1,10 @@
+{
+    "schema_version":  1,
+    "passed":  true,
+    "phase":  "5B-2",
+    "verdict":  "SHIP",
+    "cluster":  "panel-layout-lifecycle",
+    "app_js_before":  3528,
+    "app_js_after":  3303,
+    "module":  "app/static/modules/panel-layout-runtime.js"
+}

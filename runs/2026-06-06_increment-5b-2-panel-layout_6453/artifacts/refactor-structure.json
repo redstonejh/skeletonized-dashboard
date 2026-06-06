@@ -1,0 +1,16 @@
+{
+    "check":  "refactor_structure",
+    "schema_version":  1,
+    "refactor_type":  "move-module",
+    "passed":  true,
+    "violations":  [
+
+                   ],
+    "moved_cluster":  "panel-layout-lifecycle",
+    "line_count":  {
+                       "before":  3528,
+                       "after":  3303,
+                       "decreased":  true
+                   },
+    "module":  "app/static/modules/panel-layout-runtime.js"
+}

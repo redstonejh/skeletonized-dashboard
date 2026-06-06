@@ -1,0 +1,8 @@
+{
+    "schema_version":  1,
+    "passed":  true,
+    "phase":  "5B-2",
+    "baseline":  "behavior-baseline.json",
+    "post":  "phase-5b2-hidden-e2e-10x.json",
+    "behavior":  "hidden Electron e2e 10/10 after panel lifecycle body move; no behavior drift observed"
+}

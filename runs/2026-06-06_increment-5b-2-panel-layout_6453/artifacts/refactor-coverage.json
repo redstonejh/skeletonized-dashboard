@@ -1,0 +1,16 @@
+{
+    "schema_version":  1,
+    "passed":  true,
+    "phase":  "5B-2",
+    "changed_files":  [
+                          "app/static/app.js",
+                          "app/static/modules/panel-layout-runtime.js",
+                          "artifacts/deferred-extractions.md",
+                          "artifacts/extraction-floor-report.md"
+                      ],
+    "coverage_evidence":  [
+                              "npm.cmd run test:e2e -- --workers=1 passed 10/10 post-move",
+                              "initPanel no-op resistance caught before and after extraction",
+                              "panel pin/resize/move/group resize/absorption canaries cover moved lifecycle"
+                          ]
+}

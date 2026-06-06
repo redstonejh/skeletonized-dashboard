@@ -1,0 +1,16 @@
+{
+    "check":  "refactor_perf_budget",
+    "schema_version":  1,
+    "passed":  true,
+    "status":  "passed",
+    "probes":  [
+                   {
+                       "detail":  "No scheduling, rAF, coalescing, or algorithm changes shipped.",
+                       "name":  "no_perf_intent",
+                       "passed":  true
+                   }
+               ],
+    "violations":  [
+
+                   ]
+}

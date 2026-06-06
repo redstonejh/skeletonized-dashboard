@@ -1,0 +1,15 @@
+{
+    "schema_version":  1,
+    "refactor_type":  "move-module",
+    "phase":  "5B-2",
+    "source":  "app/static/app.js panel layout hydration loop and initPanel",
+    "target":  "app/static/modules/panel-layout-runtime.js",
+    "changed_files":  [
+                          "app/static/app.js",
+                          "app/static/modules/panel-layout-runtime.js",
+                          "artifacts/deferred-extractions.md",
+                          "artifacts/extraction-floor-report.md"
+                      ],
+    "init_order":  "createWidgetLayoutRuntime then initializePanelRuntimes then createPanelLayoutRuntime/initPanelLayouts",
+    "passed":  true
+}
