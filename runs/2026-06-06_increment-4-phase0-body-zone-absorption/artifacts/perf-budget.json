@@ -1,0 +1,5 @@
+{
+  "passed": true,
+  "perf_intent": false,
+  "note": "No rAF, coalescing, throttling, scheduling, or perf optimization behavior was changed."
+}

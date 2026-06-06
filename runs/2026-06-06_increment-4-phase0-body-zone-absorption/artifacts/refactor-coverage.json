@@ -1,0 +1,13 @@
+{
+  "passed": true,
+  "covered_behaviors": [
+    "drag commit",
+    "live ghost",
+    "collision/reflow reversible preview",
+    "edge-auto-scroll",
+    "panel body-zone entry absorption",
+    "absorption survives save/reload"
+  ],
+  "body_zone_absorption_canary": "electron GUI absorbs a workspace widget through the panel body zone",
+  "header_tolerance_scope": "Header/header-tolerance entry remains velocity-gated and is intentionally out of scope for the deterministic resistance oracle."
+}

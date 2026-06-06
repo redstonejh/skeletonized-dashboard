@@ -45,11 +45,25 @@ The floor moved for the primitive delegate layer. `app/static/app.js` no longer 
 - Resistance: panel `applyPanelSpan`, widget `applyWidgetSpan`, app init `ensureTools`, and runtime `ensureTools` no-op mutations were all caught
 - MAW run: `runs/2026-06-05_increment-3b-close-widget-resistance_d428`
 
+## 2026-06-06 Increment 4 Ordered Drag Runtime Shipped
+
+The floor moved for ordered drag. `runOrderedDrag` now lives in `app/static/modules/ordered-drag-runtime.js`; `app.js` constructs it after the existing drag, containment, collision/reflow, group-selection, auto-scroll, and commit dependencies are initialized. No perf scheduling/coalescing optimization was shipped.
+
+- Completed cluster: `ordered-drag-runtime`
+- `app/static/app.js` line count before this increment: 5044
+- `app/static/app.js` line count after this increment: 4348
+- Added canary: deterministic body-zone workspace-widget absorption into a panel with save/reload persistence
+- Body-zone absorption canary: 10/10 green
+- Full canary suite: 10/10 green
+- Resistance: `absorbWidgetIntoPanel` no-op mutation was caught by committed panel-child containment assertion
+- Scope note: header/header-tolerance panel entry remains velocity-gated by `acceptsHeaderPanelEntry`; the body-zone canary guards the absorption commit path
+- MAW run: `runs/2026-06-06_increment-4-phase0-body-zone-absorption`
+
 ## Current State
 
-- `app/static/app.js` line count: 5323
-- `app/static/modules/*.js` count: 62
-- `app/static/app.js` SHA256: `C3458D3B2F97E1D076983CEE875A69420D67CC07F00F0ADB3D1DCE41A0030E4C`
+- `app/static/app.js` line count: 4348
+- `app/static/modules/*.js` count: 61
+- `app/static/app.js` SHA256: `57E9F006DF4CEB283E872D059469F9D4B3D5DE9F3CDAA70AA557D0E069F17B3A`
 - Core coverage artifact: `artifacts/app-core-map.md`
 - Deferred cluster artifact: `artifacts/deferred-extractions.md`
 
@@ -57,7 +71,6 @@ The floor moved for the primitive delegate layer. `app/static/app.js` no longer 
 
 Do not retry these with the same factory/DI extraction strategy:
 
-- `ordered-drag-runtime`
 - `widget-layout-lifecycle`
 - `panel-layout-lifecycle`
 - `group-resize-runtime`

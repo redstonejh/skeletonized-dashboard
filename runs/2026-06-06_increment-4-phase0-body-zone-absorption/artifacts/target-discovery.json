@@ -1,0 +1,11 @@
+{
+  "passed": true,
+  "checks": {
+    "app/static/app.js": true,
+    "app/static/**/interaction-state.js": true,
+    "app/static/**/panel-containment.js": true,
+    "electron-tests/dashboard-electron.spec.js": true,
+    "package.json test:e2e": true,
+    "electron": "^35.0.0"
+  }
+}

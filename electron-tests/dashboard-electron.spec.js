@@ -529,3 +529,86 @@ test("electron GUI keeps ordered drag commit, ghost, collision, and edge scroll 
   });
   await closeApp(app);
 });
+
+test("electron GUI absorbs a workspace widget through the panel body zone", async () => {
+  const { app, page } = await launchApp();
+  const widgetSelector = '.widget-layout:not(.panel-internal-widget-grid) > .widget-card[data-widget-key="widget-1"]';
+  const panelSelector = '.panel-layout > .db-panel[data-panel-key="builder-content"]';
+  const panelChildSelector = `${panelSelector} .panel-internal-widget-grid > .widget-card[data-widget-key="widget-1"]`;
+
+  await page.locator(panelSelector).evaluate((panel) => {
+    panel.dataset.savedHeight = "320";
+    panel.dataset.gridRowSpan = "4";
+    panel.style.height = "320px";
+    panel.style.gridRowEnd = "span 4";
+  });
+  await page.waitForFunction((panelSelector) => {
+    const panel = document.querySelector(panelSelector);
+    const headerRect = panel?.querySelector(":scope > .db-panel-hd")?.getBoundingClientRect();
+    const bodyRect = panel?.querySelector(":scope > .db-panel-body")?.getBoundingClientRect();
+    return Boolean(headerRect && bodyRect && bodyRect.bottom - Math.max(bodyRect.top, headerRect.bottom) > 120);
+  }, panelSelector);
+
+  const widget = await openTools(page, widgetSelector);
+  const move = widget.locator(".panel-move-handle");
+  const moveBox = await move.boundingBox();
+  expect(moveBox).toBeTruthy();
+
+  const target = await page.locator(panelSelector).evaluate((panel) => {
+    const headerRect = panel.querySelector(":scope > .db-panel-hd")?.getBoundingClientRect();
+    const bodyRect = panel.querySelector(":scope > .db-panel-body")?.getBoundingClientRect();
+    if (!headerRect || !bodyRect) return null;
+    const x = bodyRect.left + Math.min(Math.max(bodyRect.width * 0.5, 48), Math.max(48, bodyRect.width - 48));
+    const y = Math.max(bodyRect.top + 32, headerRect.bottom + 24);
+    return {
+      x: Math.round(Math.min(bodyRect.right - 24, Math.max(bodyRect.left + 24, x))),
+      y: Math.round(Math.min(bodyRect.bottom - 24, Math.max(bodyRect.top + 24, y))),
+      headerBottom: Math.round(headerRect.bottom),
+      bodyTop: Math.round(bodyRect.top),
+      bodyBottom: Math.round(bodyRect.bottom),
+    };
+  });
+  expect(target).toBeTruthy();
+  expect(target.y).toBeGreaterThan(target.headerBottom);
+  expect(target.y).toBeGreaterThanOrEqual(target.bodyTop);
+  expect(target.y).toBeLessThanOrEqual(target.bodyBottom);
+
+  const startX = moveBox.x + moveBox.width / 2;
+  const startY = moveBox.y + moveBox.height / 2;
+  await dispatchPointerDragUntilMove(page, startX, startY, target.x, target.y, 80);
+  await page.waitForFunction((panelSelector) => {
+    const panel = document.querySelector(panelSelector);
+    return Boolean(panel?.classList.contains("panel-container-drag-active"));
+  }, panelSelector);
+  await finishPointerDrag(page, target.x, target.y);
+  await page.waitForFunction(({ panelChildSelector, widgetSelector }) => {
+    const child = document.querySelector(panelChildSelector);
+    const topLevel = document.querySelector(widgetSelector);
+    return Boolean(child && !topLevel);
+  }, { panelChildSelector, widgetSelector });
+
+  const committed = await page.locator(panelChildSelector).evaluate((node) => ({
+    key: node.dataset.widgetKey || "",
+    parentPanelKey: node.dataset.parentPanelKey || "",
+    panelChildWidget: node.dataset.panelChildWidget || "",
+  }));
+  expect(committed).toEqual({
+    key: "widget-1",
+    parentPanelKey: "builder-content",
+    panelChildWidget: "true",
+  });
+
+  await page.locator(".layout-save-button").click();
+  await page.reload();
+  await page.waitForSelector(".dashboard-layout-grid");
+  await expect(page.locator(panelChildSelector)).toHaveCount(1);
+  await expect(page.locator(widgetSelector)).toHaveCount(0);
+  const reloaded = await page.locator(panelChildSelector).evaluate((node) => ({
+    key: node.dataset.widgetKey || "",
+    parentPanelKey: node.dataset.parentPanelKey || "",
+    panelChildWidget: node.dataset.panelChildWidget || "",
+  }));
+  expect(reloaded).toEqual(committed);
+  await writeInteractionScenarios(page, ["body-zone-widget-absorption"], { target, committed, reloaded });
+  await closeApp(app);
+});

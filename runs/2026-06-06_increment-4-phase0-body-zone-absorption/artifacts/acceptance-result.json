@@ -1,0 +1,21 @@
+{
+  "verdict": "SHIP",
+  "task_type": "refactor-task",
+  "passed": true,
+  "reason": "Body-zone absorption is deterministic and resistance-proven, runOrderedDrag moved to ordered-drag-runtime with app.js line count materially reduced, and full e2e plus 10/10 full canary repeat passed.",
+  "discovery_guard": "passed",
+  "line_count": {
+    "app_js_before": 5044,
+    "app_js_after": 4348,
+    "delta": -696
+  },
+  "tests": {
+    "npm.cmd run test:e2e -- --workers=1": "passed",
+    "full_canaries_10x": "passed",
+    "body_zone_absorption_10x": "passed"
+  },
+  "resistance": {
+    "absorbWidgetIntoPanel_noop": "caught"
+  },
+  "perf_intent": false
+}

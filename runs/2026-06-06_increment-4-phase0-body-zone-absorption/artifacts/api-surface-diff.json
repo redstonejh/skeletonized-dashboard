@@ -1,0 +1,6 @@
+{
+  "passed": true,
+  "public_api_change": false,
+  "new_internal_module": "app/static/modules/ordered-drag-runtime.js",
+  "note": "The app.js call sites still receive `runOrderedDrag`; the implementation is constructed from the internal ordered-drag runtime module."
+}

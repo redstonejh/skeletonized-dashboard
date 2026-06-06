@@ -1,0 +1,11 @@
+{
+  "passed": true,
+  "mutations_caught": [
+    {
+      "mutation": "absorbWidgetIntoPanel returns null",
+      "caught": true,
+      "log": "absorption-noop-mutation.log"
+    }
+  ],
+  "moved_phase_oracles": "Existing ordered-drag canary covers commit, live ghost, collision/reflow, and edge-auto-scroll; new body-zone canary covers committed absorption."
+}

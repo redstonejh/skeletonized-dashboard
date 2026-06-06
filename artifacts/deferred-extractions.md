@@ -18,12 +18,13 @@ The remaining `app/static/app.js` core is init-order-sensitive and still owns li
 - Outcome: app.js no longer owns named widget primitive delegate closures. Consumers bind to `widgetRuntimeController` methods directly; `widgetGridCellFromPoint` collapsed to the existing `gridCellFromPoint` signature.
 - Proof: added widget resize-snap and widget tools-init canaries; final canaries 10/10; widget `applyWidgetSpan` and `ensureTools` no-op mutations caught.
 
-## ordered-drag-runtime
+### ordered-drag-runtime
 
-- Cluster/symbol + file:line: `runOrderedDrag`, `app/static/app.js:1998-2770`
-- Why deferred: attempted extraction to `app/static/modules/ordered-drag-runtime.js` behind a dependency-injection factory caused e2e drift in panel color menu and resize flows. The failure indicates an init/dependency coupling in the root event core, so the batch was reverted.
-- KEEP interaction entangled: drag, collision/reflow, panel entry/exit absorption, edge auto-scroll, resize handler availability through shared init sequencing.
-- Needed to finish safely: extract a shared interaction-state/geometry dependency module first, then split `runOrderedDrag` into smaller phases with explicit state handoff and run parity after each phase.
+- Cluster/symbol: `runOrderedDrag`
+- Completed in MAW run: `runs/2026-06-06_increment-4-phase0-body-zone-absorption`
+- Outcome: `runOrderedDrag` now lives in `app/static/modules/ordered-drag-runtime.js` and is wired from `app.js` after its existing geometry, containment, group-drag, collision/reflow, auto-scroll, and commit dependencies are initialized.
+- Proof: added deterministic body-zone widget absorption canary; `absorbWidgetIntoPanel` no-op mutation caught; full canary suite 10/10 green.
+- Note: header/header-tolerance panel entry remains intentionally velocity-gated by `acceptsHeaderPanelEntry`; the body-zone canary is the committed absorption oracle.
 
 ## widget-layout-lifecycle
 

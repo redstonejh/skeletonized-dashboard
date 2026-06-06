@@ -1,0 +1,7 @@
+{
+    "mutation":  "absorbWidgetIntoPanel returns null",
+    "expectedFailure":  true,
+    "exitCode":  1,
+    "caught":  true,
+    "log":  "runs\\2026-06-06_increment-4-phase0-body-zone-absorption\\artifacts\\absorption-noop-mutation.log"
+}

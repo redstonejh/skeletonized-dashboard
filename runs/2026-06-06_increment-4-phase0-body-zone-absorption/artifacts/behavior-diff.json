@@ -1,0 +1,6 @@
+{
+  "passed": true,
+  "basis": "full electron e2e plus 10/10 repeated full canary suite",
+  "full_canary_repeat": "full-canary-determinism.json",
+  "note": "No behavior drift observed in resize, pin/tools, multi-resize, ordered drag, body-zone absorption, collision/reflow, edge scroll, or save/reload canaries."
+}

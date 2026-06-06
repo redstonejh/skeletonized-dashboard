@@ -1,0 +1,7 @@
+{
+  "passed": true,
+  "app_js_line_count_decreased": true,
+  "moved_cluster": "ordered-drag-runtime",
+  "module": "app/static/modules/ordered-drag-runtime.js",
+  "init_order": "app.js assigns runOrderedDrag after existing helper and runtime dependencies are initialized, before widget/panel move bindings consume it."
+}

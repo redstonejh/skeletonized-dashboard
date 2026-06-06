@@ -1,0 +1,7 @@
+{
+  "passed": true,
+  "app_js_before_lines": 5044,
+  "app_js_after_lines": 4348,
+  "delta": -696,
+  "new_module": "app/static/modules/ordered-drag-runtime.js"
+}
