@@ -1,0 +1,16 @@
+{
+    "passed":  true,
+    "schema_version":  1,
+    "source":  "app/static/app.js local panel tool primitive state",
+    "changed_files":  [
+                          "app/static/app.js",
+                          "app/static/modules/interaction-state.js",
+                          "electron-tests/dashboard-electron.spec.js",
+                          "artifacts/deferred-extractions.md",
+                          "artifacts/extraction-floor-report.md"
+                      ],
+    "init_order":  "unchanged; initPanel body remains in app.js",
+    "refactor_type":  "move-module",
+    "target":  "app/static/modules/interaction-state.js createPanelToolSession",
+    "phase":  "5B-1"
+}

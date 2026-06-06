@@ -110,11 +110,24 @@ The floor moved for widget lifecycle ownership. `initWidgetLayout` and its neste
 - Scope note: `panel-layout-lifecycle` remains deferred; no panel lifecycle body move shipped in this cluster
 - MAW run: `runs/2026-06-06_increment-5-widget-and-panel_1137`
 
+## 2026-06-06 Increment 5B-1 Panel Tool Session Completed
+
+The floor moved for panel tool-session state. `createPanelToolSession` now owns the remaining primitive panel tool flags that were still local to `initPanel`: tool-open suppression, hover-leave suppression during pointer activity, and approach-open state. DOM lifecycle behavior stayed resident in `app.js`; this phase only moved state ownership onto the session spine.
+
+- Completed phase: `panel-tool-session`
+- `app/static/app.js` line count before this phase: 3533
+- `app/static/app.js` line count after this phase: 3528
+- Extended API: `getSuppressToolOpenUntil`, `setSuppressToolOpenUntil`, `isIgnoringToolLeaveCloseUntilPointerActivity`, `setIgnoreToolLeaveCloseUntilPointerActivity`, `getToolsOpenedByApproach`, `setToolsOpenedByApproach`
+- Resistance: `setSuppressToolOpenUntil` no-op was caught by the panel pin suppression canary
+- Full hidden canary suite: 10/10 green
+- Scope note: panel lifecycle body remains resident until the separate 5B-2 body move
+- MAW run: `runs/2026-06-06_increment-5b-panel-tool-session_580f`
+
 ## Current State
 
-- `app/static/app.js` line count: 3533
+- `app/static/app.js` line count: 3528
 - `app/static/modules/*.js` count: 62
-- `app/static/app.js` SHA256: `6910B851143D6DDD4F388C2172B0F207DCFB96F48E70F40A195150A16DDDB26B`
+- `app/static/app.js` SHA256: `AC18E0361EF736F75C1EAE769BF57D429C37E447169276F64169265516E3B81B`
 - Core coverage artifact: `artifacts/app-core-map.md`
 - Deferred cluster artifact: `artifacts/deferred-extractions.md`
 

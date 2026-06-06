@@ -228,6 +228,16 @@ test("electron GUI boots without server APIs and preserves core customization", 
 
   await panel.locator(".panel-pin-toggle").click({ force: true });
   await expect(panel.locator(".panel-pin-toggle")).toHaveAttribute("aria-pressed", "true");
+  const suppressedPanelOpen = await panel.evaluate((node) => {
+    node.__openCustomization?.(new MouseEvent("click", {
+      bubbles: true,
+      cancelable: true,
+      clientX: node.getBoundingClientRect().right,
+      clientY: node.getBoundingClientRect().top,
+    }));
+    return node.classList.contains("db-panel-tools-open");
+  });
+  expect(suppressedPanelOpen).toBe(false);
 
   const widget = await addTextWidget(page);
   await openTools(page, '.widget-layout > .widget-card[data-custom-widget="true"]');

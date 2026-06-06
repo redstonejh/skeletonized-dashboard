@@ -49,18 +49,33 @@ export const createWidgetToolSession = () => {
 
 export const createPanelToolSession = () => {
   const toolsCloseTimer = createTimerSlot();
+  let ignoreToolLeaveCloseUntilPointerActivity = false;
   let movedDuringPointer = false;
+  let suppressToolOpenUntil = 0;
   let suppressHeaderToggleUntil = 0;
+  let toolsOpenedByApproach = false;
   let toolPointerCapture = false;
 
   const setMovedDuringPointer = (value) => {
     movedDuringPointer = Boolean(value);
   };
   const getMovedDuringPointer = () => movedDuringPointer;
+  const setSuppressToolOpenUntil = (value) => {
+    suppressToolOpenUntil = Number(value) || 0;
+  };
+  const getSuppressToolOpenUntil = () => suppressToolOpenUntil;
   const setSuppressHeaderToggleUntil = (value) => {
     suppressHeaderToggleUntil = Number(value) || 0;
   };
   const getSuppressHeaderToggleUntil = () => suppressHeaderToggleUntil;
+  const setToolsOpenedByApproach = (value) => {
+    toolsOpenedByApproach = Boolean(value);
+  };
+  const getToolsOpenedByApproach = () => toolsOpenedByApproach;
+  const setIgnoreToolLeaveCloseUntilPointerActivity = (value) => {
+    ignoreToolLeaveCloseUntilPointerActivity = Boolean(value);
+  };
+  const isIgnoringToolLeaveCloseUntilPointerActivity = () => ignoreToolLeaveCloseUntilPointerActivity;
   const setToolPointerCapture = (value) => {
     toolPointerCapture = Boolean(value);
   };
@@ -70,10 +85,16 @@ export const createPanelToolSession = () => {
     clearToolsCloseTimer: toolsCloseTimer.clear,
     getMovedDuringPointer,
     getSuppressHeaderToggleUntil,
+    getSuppressToolOpenUntil,
+    getToolsOpenedByApproach,
+    isIgnoringToolLeaveCloseUntilPointerActivity,
     isToolPointerCaptured,
+    setIgnoreToolLeaveCloseUntilPointerActivity,
     setMovedDuringPointer,
     setSuppressHeaderToggleUntil,
+    setSuppressToolOpenUntil,
     setToolPointerCapture,
+    setToolsOpenedByApproach,
     setToolsCloseTimer: toolsCloseTimer.set,
   });
 };

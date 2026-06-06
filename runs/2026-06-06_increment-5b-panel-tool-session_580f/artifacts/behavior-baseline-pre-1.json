@@ -1,0 +1,10 @@
+{
+    "schema_version":  1,
+    "phase":  "5B-1-pre-edit",
+    "source":  {
+                   "app/static/app.js":  "6910B851143D6DDD4F388C2172B0F207DCFB96F48E70F40A195150A16DDDB26B",
+                   "app/static/modules/interaction-state.js":  "E1E1D162C226A0D5F56F7B78DCD992DC39BD59BF1C3D2AB6A6742211CF774766"
+               },
+    "e2e_10x_passed":  true,
+    "passed":  true
+}

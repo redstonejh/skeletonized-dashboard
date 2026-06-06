@@ -1,0 +1,8 @@
+{
+    "passed":  true,
+    "schema_version":  1,
+    "post":  "phase-5b1-hidden-e2e-10x.json",
+    "phase":  "5B-1",
+    "behavior":  "hidden Electron e2e 10/10 before and after; no behavior drift observed",
+    "baseline":  "behavior-baseline.json"
+}

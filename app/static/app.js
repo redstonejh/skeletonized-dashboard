@@ -3226,16 +3226,13 @@ document.addEventListener("DOMContentLoaded", () => {
       const colorMenu = buildPanelColorMenu(panel, layout, colorToggle);
       pinButton?.setAttribute("aria-pressed", panel.classList.contains("db-panel-pinned").toString());
       const panelToolSession = createPanelToolSession();
-      let suppressToolOpenUntil = 0;
-      let ignorePanelToolLeaveCloseUntilPointerActivity = false;
       let releasePanelToolLeaveCloseResume = null;
-      let panelToolsOpenedByApproach = false;
       const releasePanelToolLeaveClose = (event = null) => {
         const closeRestoredTools = (event?.type === "pointerdown" || event?.type === "pointermove") &&
           !panelTools?.contains(event.target) &&
           !panelToolDrawer?.contains(event.target) &&
           !colorMenu?.contains(event.target);
-        ignorePanelToolLeaveCloseUntilPointerActivity = false;
+        panelToolSession.setIgnoreToolLeaveCloseUntilPointerActivity(false);
         if (!releasePanelToolLeaveCloseResume) return;
         document.removeEventListener("pointermove", releasePanelToolLeaveCloseResume, true);
         document.removeEventListener("pointerdown", releasePanelToolLeaveCloseResume, true);
@@ -3244,13 +3241,13 @@ document.addEventListener("DOMContentLoaded", () => {
       };
       const armPanelToolLeaveCloseResume = () => {
         releasePanelToolLeaveClose();
-        ignorePanelToolLeaveCloseUntilPointerActivity = true;
+        panelToolSession.setIgnoreToolLeaveCloseUntilPointerActivity(true);
         releasePanelToolLeaveCloseResume = releasePanelToolLeaveClose;
         document.addEventListener("pointermove", releasePanelToolLeaveCloseResume, { capture: true, once: true });
         document.addEventListener("pointerdown", releasePanelToolLeaveCloseResume, { capture: true, once: true });
       };
       const openPanelTools = (pointerCoords = null) => {
-        if (performance.now() < suppressToolOpenUntil) return;
+        if (performance.now() < panelToolSession.getSuppressToolOpenUntil()) return;
         if (!canOpenDashboardTools(panel)) return;
         panelToolSession.clearToolsCloseTimer();
         portalDashboardToolDrawer(panelToolDrawer, settingsButton || panel);
@@ -3266,7 +3263,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
       const closePanelTools = () => {
         releasePanelToolLeaveClose();
-        panelToolsOpenedByApproach = false;
+        panelToolSession.setToolsOpenedByApproach(false);
         if (panelTools?.contains(document.activeElement)) document.activeElement?.blur?.();
         panel.classList.remove("db-panel-tools-open");
         settingsButton?.setAttribute("aria-expanded", "false");
@@ -3278,11 +3275,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
       const scheduleClosePanelTools = () => {
         panelToolSession.clearToolsCloseTimer();
-        if (isDashboardInteractionActive() || panelToolSession.isToolPointerCaptured() || ignorePanelToolLeaveCloseUntilPointerActivity) return;
+        if (isDashboardInteractionActive() || panelToolSession.isToolPointerCaptured() || panelToolSession.isIgnoringToolLeaveCloseUntilPointerActivity()) return;
         panelToolSession.setToolsCloseTimer(window.setTimeout(() => {
           if (isDashboardInteractionActive()) return;
           if (panelToolSession.isToolPointerCaptured()) return;
-          if (ignorePanelToolLeaveCloseUntilPointerActivity) return;
+          if (panelToolSession.isIgnoringToolLeaveCloseUntilPointerActivity()) return;
           const activeElement = document.activeElement;
           const stillUsingTools =
             settingsButton?.matches(":hover") ||
@@ -3301,7 +3298,7 @@ document.addEventListener("DOMContentLoaded", () => {
           return;
         }
         openPanelTools();
-        if (!wasOpen && panel.classList.contains("db-panel-tools-open")) panelToolsOpenedByApproach = true;
+        if (!wasOpen && panel.classList.contains("db-panel-tools-open")) panelToolSession.setToolsOpenedByApproach(true);
       };
 
       panelTools?.addEventListener("click", (event) => event.stopPropagation());
@@ -3310,7 +3307,7 @@ document.addEventListener("DOMContentLoaded", () => {
       panelTools?.addEventListener("focusin", resumePanelToolHoverClose);
       panelTools?.addEventListener("focusout", scheduleClosePanelTools);
       settingsButton?.addEventListener("mouseenter", () => {
-        if (performance.now() < suppressToolOpenUntil) return;
+        if (performance.now() < panelToolSession.getSuppressToolOpenUntil()) return;
         panelToolSession.setSuppressHeaderToggleUntil(performance.now() + 250);
         resumePanelToolHoverClose();
       });
@@ -3334,12 +3331,12 @@ document.addEventListener("DOMContentLoaded", () => {
         panelToolSession.setSuppressHeaderToggleUntil(0);
         releasePanelToolLeaveClose();
         if (!canOpenDashboardTools(panel)) return;
-        const shouldClose = panel.classList.contains("db-panel-tools-open") && !panelToolsOpenedByApproach;
-        panelToolsOpenedByApproach = false;
+        const shouldClose = panel.classList.contains("db-panel-tools-open") && !panelToolSession.getToolsOpenedByApproach();
+        panelToolSession.setToolsOpenedByApproach(false);
         if (shouldClose) {
           closePanelTools();
         } else {
-          suppressToolOpenUntil = 0;
+          panelToolSession.setSuppressToolOpenUntil(0);
           closeInactiveDashboardTools(panel);
           openPanelTools();
         }
@@ -3381,9 +3378,7 @@ document.addEventListener("DOMContentLoaded", () => {
         savePanelLayouts,
         requestPanelDelete,
         closePanelTools,
-        setSuppressToolOpenUntil: (value) => {
-          suppressToolOpenUntil = value;
-        },
+        setSuppressToolOpenUntil: panelToolSession.setSuppressToolOpenUntil,
         setSuppressHeaderToggleUntil: panelToolSession.setSuppressHeaderToggleUntil,
         getSuppressHeaderToggleUntil: panelToolSession.getSuppressHeaderToggleUntil,
         getMovedDuringPointer: panelToolSession.getMovedDuringPointer,

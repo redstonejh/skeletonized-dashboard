@@ -1,0 +1,16 @@
+{
+    "check":  "refactor_structure",
+    "schema_version":  1,
+    "refactor_type":  "move-module",
+    "passed":  true,
+    "violations":  [
+
+                   ],
+    "moved_cluster":  "panel-tool-session",
+    "line_count":  {
+                       "before":  3533,
+                       "after":  3528,
+                       "decreased":  true
+                   },
+    "module":  "app/static/modules/interaction-state.js"
+}

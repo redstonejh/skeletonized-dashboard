@@ -1,0 +1,17 @@
+{
+    "passed":  true,
+    "electron_changes":  [
+
+                         ],
+    "package_changes":  [
+
+                        ],
+    "schema_version":  1,
+    "dependency_changes":  [
+
+                           ],
+    "phase":  "5B-1",
+    "public_api_changes":  [
+                               "createPanelToolSession adds accessors for state formerly local to initPanel"
+                           ]
+}

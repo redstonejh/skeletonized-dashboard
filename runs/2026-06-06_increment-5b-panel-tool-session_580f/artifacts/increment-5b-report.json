@@ -1,0 +1,10 @@
+{
+    "passed":  true,
+    "cluster":  "panel-tool-session",
+    "schema_version":  1,
+    "app_js_before":  3533,
+    "verdict":  "SHIP",
+    "phase":  "5B-1",
+    "app_js_after":  3528,
+    "next":  "5B-2 panel lifecycle body move remains resident until separate phase"
+}

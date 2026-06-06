@@ -1,0 +1,17 @@
+{
+    "schema_version":  1,
+    "phase":  "5B-1",
+    "coverage_evidence":  [
+                              "npm.cmd run test:e2e -- --workers=1 passed 10/10 post-edit",
+                              "panel pin suppression canary exercises setSuppressToolOpenUntil",
+                              "drag/resize/action canaries exercise panel session methods"
+                          ],
+    "changed_files":  [
+                          "app/static/app.js",
+                          "app/static/modules/interaction-state.js",
+                          "electron-tests/dashboard-electron.spec.js",
+                          "artifacts/deferred-extractions.md",
+                          "artifacts/extraction-floor-report.md"
+                      ],
+    "passed":  true
+}

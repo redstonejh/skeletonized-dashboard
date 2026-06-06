@@ -1,0 +1,27 @@
+{
+    "check":  "behavior_baseline",
+    "passed":  true,
+    "metadata":  {
+                     "captured_at_epoch":  1780750173,
+                     "source_paths":  [
+                                          "app/static/app.js",
+                                          "app/static/modules/interaction-state.js",
+                                          "electron-tests/dashboard-electron.spec.js",
+                                          "artifacts/deferred-extractions.md",
+                                          "artifacts/extraction-floor-report.md"
+                                      ],
+                     "captures":  2,
+                     "command":  "npm.cmd run test:e2e -- --workers=1",
+                     "log":  "artifacts/pre-edit-hidden-e2e-10x.json"
+                 },
+    "items":  [
+                  {
+                      "name":  "pre_edit_hidden_e2e_10x",
+                      "passed":  true
+                  },
+                  {
+                      "name":  "matching_pre_edit_baselines",
+                      "passed":  true
+                  }
+              ]
+}

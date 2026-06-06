@@ -1,0 +1,7 @@
+{
+    "schema_version":  1,
+    "phase":  "5B-1",
+    "command":  "npm.cmd run test:e2e -- --workers=1",
+    "evidence":  "phase-5b1-hidden-e2e-10x.json",
+    "passed":  true
+}

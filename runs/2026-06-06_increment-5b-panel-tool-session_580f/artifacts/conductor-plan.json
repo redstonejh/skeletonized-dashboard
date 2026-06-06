@@ -1,0 +1,33 @@
+{
+    "task_type":  "refactor-task",
+    "checklist":  ".codex/checklists/refactor.md",
+    "roles":  [
+                  "conductor",
+                  "planner",
+                  "worker",
+                  "critic",
+                  "acceptance_gate"
+              ],
+    "caps":  {
+                 "max_agents":  5,
+                 "max_parallel":  3,
+                 "max_iters":  3
+             },
+    "parallel_roles":  [
+                           "planner",
+                           "worker",
+                           "critic"
+                       ],
+    "role_justifications":  {
+                                "conductor":  "gates two-phase increment 5B and records delegation",
+                                "planner":  "classifies panel tool/lifecycle coupling",
+                                "worker":  "implements phase-scoped structural refactor",
+                                "critic":  "checks canaries, resistance, and init order",
+                                "acceptance_gate":  "validates SHIP/NO-SHIP artifacts"
+                            },
+    "refactor_type":  "move-module",
+    "sequence":  [
+                     "5B-1 complete panel-tool-session state and commit if green",
+                     "5B-2 move panel lifecycle body only after 5B-1 ships"
+                 ]
+}

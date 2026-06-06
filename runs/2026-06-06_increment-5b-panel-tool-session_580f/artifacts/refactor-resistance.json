@@ -1,0 +1,27 @@
+{
+    "check":  "refactor_resistance",
+    "schema_version":  1,
+    "passed":  true,
+    "clean":  {
+                  "passed":  true,
+                  "checks":  [
+                                 "phase 5B-1 hidden e2e 10x"
+                             ]
+              },
+    "mutations":  [
+                      {
+                          "name":  "panel_tool_session_setSuppressToolOpenUntil_noop",
+                          "planted":  true,
+                          "failed_checks":  [
+                                                "panel pin suppression canary"
+                                            ],
+                          "mutant_passed":  false,
+                          "artifact":  "artifacts/phase-5b1-resistance-suppressToolOpenUntil.json",
+                          "caught":  true
+                      }
+                  ],
+    "summary":  {
+                    "total":  1,
+                    "caught":  1
+                }
+}

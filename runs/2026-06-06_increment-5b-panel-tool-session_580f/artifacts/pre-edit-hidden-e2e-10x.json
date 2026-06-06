@@ -1,0 +1,8 @@
+{
+    "schema_version":  1,
+    "phase":  "pre-edit",
+    "command":  "npm.cmd run test:e2e -- --workers=1",
+    "iterations":  10,
+    "passed":  true,
+    "note":  "10/10 pre-edit hidden Electron e2e passed; initial write retried after path handling correction"
+}
