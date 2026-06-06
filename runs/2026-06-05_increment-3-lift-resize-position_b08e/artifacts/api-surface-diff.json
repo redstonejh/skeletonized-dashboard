@@ -1,0 +1,20 @@
+{
+    "passed":  true,
+    "changed_files":  [
+                          "app/static/app.js",
+                          "app/static/modules/panel-runtime-setup.js"
+                      ],
+    "removed_app_delegate_declarations":  [
+                                              "applyPanelSpan",
+                                              "applyPanelGridPosition",
+                                              "getPanelMinimumHeight",
+                                              "applyPanelHeight",
+                                              "ensureWidgetTools",
+                                              "syncWidgetRenderedHeightToFootprint",
+                                              "applyWidgetSpan",
+                                              "applyWidgetGridPosition",
+                                              "widgetGridCellFromPoint"
+                                          ],
+    "public_api_drift":  "none",
+    "note":  "Internal binding rewire only."
+}

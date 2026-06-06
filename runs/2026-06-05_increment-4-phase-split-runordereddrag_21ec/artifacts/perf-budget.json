@@ -1,0 +1,6 @@
+{
+  "gate": "perf-budget",
+  "passed": true,
+  "status": "no_perf_change",
+  "reason": "No product runtime or scheduling changes were made. The run stopped before structural extraction."
+}

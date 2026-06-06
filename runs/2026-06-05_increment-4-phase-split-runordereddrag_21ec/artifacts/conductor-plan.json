@@ -1,0 +1,17 @@
+{
+    "task_type":  "refactor",
+    "checklist":  ".codex/checklists/refactor-task.md",
+    "roles":  [
+                  "conductor",
+                  "planner",
+                  "worker",
+                  "critic",
+                  "acceptance_gate"
+              ],
+    "caps":  {
+                 "max_agents":  5,
+                 "max_parallel":  3,
+                 "max_iters":  3
+             },
+    "decision":  "Stop in Phase 0 if any drag-core behavior cannot be resistance-proven deterministically."
+}

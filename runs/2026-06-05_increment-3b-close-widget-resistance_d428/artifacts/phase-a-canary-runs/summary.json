@@ -1,0 +1,65 @@
+{
+    "runs":  [
+                 {
+                     "run":  1,
+                     "exitCode":  0,
+                     "artifact":  "runs\\2026-06-05_increment-3b-close-widget-resistance_d428\\artifacts\\phase-a-canary-runs\\interaction-01.json",
+                     "log":  "runs\\2026-06-05_increment-3b-close-widget-resistance_d428\\artifacts\\phase-a-canary-runs\\run-01.log"
+                 },
+                 {
+                     "run":  2,
+                     "exitCode":  0,
+                     "artifact":  "runs\\2026-06-05_increment-3b-close-widget-resistance_d428\\artifacts\\phase-a-canary-runs\\interaction-02.json",
+                     "log":  "runs\\2026-06-05_increment-3b-close-widget-resistance_d428\\artifacts\\phase-a-canary-runs\\run-02.log"
+                 },
+                 {
+                     "run":  3,
+                     "exitCode":  0,
+                     "artifact":  "runs\\2026-06-05_increment-3b-close-widget-resistance_d428\\artifacts\\phase-a-canary-runs\\interaction-03.json",
+                     "log":  "runs\\2026-06-05_increment-3b-close-widget-resistance_d428\\artifacts\\phase-a-canary-runs\\run-03.log"
+                 },
+                 {
+                     "run":  4,
+                     "exitCode":  0,
+                     "artifact":  "runs\\2026-06-05_increment-3b-close-widget-resistance_d428\\artifacts\\phase-a-canary-runs\\interaction-04.json",
+                     "log":  "runs\\2026-06-05_increment-3b-close-widget-resistance_d428\\artifacts\\phase-a-canary-runs\\run-04.log"
+                 },
+                 {
+                     "run":  5,
+                     "exitCode":  0,
+                     "artifact":  "runs\\2026-06-05_increment-3b-close-widget-resistance_d428\\artifacts\\phase-a-canary-runs\\interaction-05.json",
+                     "log":  "runs\\2026-06-05_increment-3b-close-widget-resistance_d428\\artifacts\\phase-a-canary-runs\\run-05.log"
+                 },
+                 {
+                     "run":  6,
+                     "exitCode":  0,
+                     "artifact":  "runs\\2026-06-05_increment-3b-close-widget-resistance_d428\\artifacts\\phase-a-canary-runs\\interaction-06.json",
+                     "log":  "runs\\2026-06-05_increment-3b-close-widget-resistance_d428\\artifacts\\phase-a-canary-runs\\run-06.log"
+                 },
+                 {
+                     "run":  7,
+                     "exitCode":  0,
+                     "artifact":  "runs\\2026-06-05_increment-3b-close-widget-resistance_d428\\artifacts\\phase-a-canary-runs\\interaction-07.json",
+                     "log":  "runs\\2026-06-05_increment-3b-close-widget-resistance_d428\\artifacts\\phase-a-canary-runs\\run-07.log"
+                 },
+                 {
+                     "run":  8,
+                     "exitCode":  0,
+                     "artifact":  "runs\\2026-06-05_increment-3b-close-widget-resistance_d428\\artifacts\\phase-a-canary-runs\\interaction-08.json",
+                     "log":  "runs\\2026-06-05_increment-3b-close-widget-resistance_d428\\artifacts\\phase-a-canary-runs\\run-08.log"
+                 },
+                 {
+                     "run":  9,
+                     "exitCode":  0,
+                     "artifact":  "runs\\2026-06-05_increment-3b-close-widget-resistance_d428\\artifacts\\phase-a-canary-runs\\interaction-09.json",
+                     "log":  "runs\\2026-06-05_increment-3b-close-widget-resistance_d428\\artifacts\\phase-a-canary-runs\\run-09.log"
+                 },
+                 {
+                     "run":  10,
+                     "exitCode":  0,
+                     "artifact":  "runs\\2026-06-05_increment-3b-close-widget-resistance_d428\\artifacts\\phase-a-canary-runs\\interaction-10.json",
+                     "log":  "runs\\2026-06-05_increment-3b-close-widget-resistance_d428\\artifacts\\phase-a-canary-runs\\run-10.log"
+                 }
+             ],
+    "passed":  true
+}

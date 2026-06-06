@@ -1,0 +1,83 @@
+{
+  "passed": true,
+  "captures_match": true,
+  "hash": "6d9030fa4f898454083680a8aab3e8d7cdc4d7ae2eefe459e511f94980ca5f74",
+  "capture_hashes": {
+    "a": "6d9030fa4f898454083680a8aab3e8d7cdc4d7ae2eefe459e511f94980ca5f74",
+    "b": "6d9030fa4f898454083680a8aab3e8d7cdc4d7ae2eefe459e511f94980ca5f74"
+  },
+  "baseline": {
+    "resizeSnap": {
+      "background": "frosted-light",
+      "scrollY": 0,
+      "customWidgets": 0,
+      "spanBefore": "2",
+      "spanAfter": "1"
+    },
+    "dragLiveGhost": {
+      "background": "frosted-light",
+      "scrollY": 0,
+      "customWidgets": 0,
+      "moveBefore": {
+        "col": "5",
+        "row": "4"
+      },
+      "afterMove": {
+        "col": "3",
+        "row": "5"
+      }
+    },
+    "gridSnap": {
+      "background": "frosted-light",
+      "scrollY": 0,
+      "customWidgets": 0,
+      "moveBefore": {
+        "col": "5",
+        "row": "4"
+      },
+      "afterMove": {
+        "col": "3",
+        "row": "5"
+      }
+    },
+    "collisionReflow": {
+      "background": "frosted-light",
+      "scrollY": 0,
+      "customWidgets": 0,
+      "moveBefore": {
+        "col": "5",
+        "row": "4"
+      },
+      "afterMove": {
+        "col": "3",
+        "row": "5"
+      }
+    },
+    "panelPinToggle": {
+      "background": "photo-earth",
+      "scrollY": 0,
+      "customWidgets": 1
+    },
+    "saveReloadIdentical": {
+      "background": "photo-earth",
+      "scrollY": 0,
+      "customWidgets": 1
+    },
+    "scenarioNames": [
+      "background-photo-switching",
+      "collapse",
+      "collision-reflow",
+      "drag-with-live-ghost",
+      "edge-auto-scroll",
+      "existing-playwright-suite",
+      "grid-snap",
+      "pin-protection",
+      "recolor",
+      "rename",
+      "resize-snap",
+      "save-reload-identical",
+      "select-mode-multi-move"
+    ]
+  },
+  "note": "Baseline captured after canary determinism hardening and before any app/static/app.js edit."
+}

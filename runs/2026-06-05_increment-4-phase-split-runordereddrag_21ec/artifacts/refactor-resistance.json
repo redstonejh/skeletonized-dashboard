@@ -1,0 +1,8 @@
+{
+  "gate": "refactor-resistance",
+  "passed": false,
+  "status": "blocked",
+  "reason": "Resistance could not be proven for panel entry/exit absorption because the attempted canary did not deterministically reach the product preview state before release.",
+  "blocked_probe": "panel entry/exit absorption",
+  "trace": "absorption-smoke-failing-trace.log"
+}

@@ -1,0 +1,17 @@
+{
+  "passed": true,
+  "task_type": "refactor",
+  "roles": [
+    "conductor",
+    "planner",
+    "worker",
+    "critic",
+    "acceptance_gate"
+  ],
+  "caps": {
+    "max_agents": 5,
+    "max_parallel": 3
+  },
+  "violation_count": 0,
+  "warning_count": 0
+}

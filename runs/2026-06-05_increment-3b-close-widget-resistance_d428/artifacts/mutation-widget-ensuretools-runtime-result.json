@@ -1,0 +1,5 @@
+{
+    "mutation":  "widget-runtime-ensureTools-noop",
+    "exitCode":  1,
+    "caught":  true
+}

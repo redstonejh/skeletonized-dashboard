@@ -1,0 +1,26 @@
+{
+    "task_type":  "refactor",
+    "checklist":  ".codex/checklists/refactor-task.md",
+    "roles":  [
+                  "conductor",
+                  "planner",
+                  "worker",
+                  "critic",
+                  "acceptance_gate"
+              ],
+    "caps":  {
+                 "max_agents":  5,
+                 "max_parallel":  3,
+                 "max_iters":  3
+             },
+    "phases":  [
+                   "A add widget canaries test-only",
+                   "B resistance mutations caught",
+                   "C ship increment 3 if gates pass"
+               ],
+    "constraints":  [
+                        "npm.cmd only",
+                        "Electron ^35.0.0 unchanged",
+                        "no dependency edits"
+                    ]
+}

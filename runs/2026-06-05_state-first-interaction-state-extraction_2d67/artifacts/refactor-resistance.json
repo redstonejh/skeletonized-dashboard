@@ -1,0 +1,29 @@
+{
+  "check": "refactor_resistance",
+  "passed": true,
+  "clean_behavior_diff_passed": true,
+  "planted_mutations": [
+    {
+      "name": "resize_span_after_reverted",
+      "planted_surface": "normalized behavior diff",
+      "caught": true,
+      "failed_check": "resizeSnap spanAfter mismatch"
+    },
+    {
+      "name": "drag_drop_cell_reverted",
+      "planted_surface": "normalized behavior diff",
+      "caught": true,
+      "failed_check": "dragLiveGhost afterMove mismatch"
+    },
+    {
+      "name": "save_reload_widget_count_changed",
+      "planted_surface": "normalized behavior diff",
+      "caught": true,
+      "failed_check": "saveReloadIdentical customWidgets mismatch"
+    }
+  ],
+  "summary": {
+    "total": 3,
+    "caught": 3
+  }
+}

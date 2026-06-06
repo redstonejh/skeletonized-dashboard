@@ -1,0 +1,32 @@
+{
+  "verdict": "NEEDS-HUMAN",
+  "task_type": "refactor-task",
+  "passed": false,
+  "reason": "Phase 0 resistance precheck failed: panel entry/exit absorption could not be made deterministic, so the ordered-drag spine extension and body split were not attempted.",
+  "discovery_guard": "passed",
+  "phase0": {
+    "passed": false,
+    "proven_behaviors": [
+      "drag commit",
+      "live ghost",
+      "collision/reflow reversible preview",
+      "edge-auto-scroll"
+    ],
+    "blocked_behavior": "panel entry/exit absorption",
+    "retained_test_status": "npm.cmd run test:e2e -- --workers=1 passed with six tests after removing the nondeterministic absorption attempt"
+  },
+  "product_changes": "none",
+  "extraction_attempted": false,
+  "artifacts": [
+    "target-discovery.json",
+    "phase0-resistance-precheck.json",
+    "phase0-partial-clean.log",
+    "absorption-smoke-failing-trace.log",
+    "behavior-diff.json",
+    "api-surface-diff.json",
+    "refactor-structure.json",
+    "refactor-coverage.json",
+    "refactor-resistance.json",
+    "perf-budget.json"
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "check": "final_verdict_matches_acceptance_artifact",
+  "artifact_verdict": "SHIP",
+  "run_verdict": "SHIP",
+  "anti_gaming": {
+    "applicable": false,
+    "passed": true
+  },
+  "salvage_gates": {
+    "applicable": false,
+    "passed": true,
+    "reason": "task_type is refactor, not salvage"
+  },
+  "passed": true,
+  "violations": []
+}

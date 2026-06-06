@@ -1,0 +1,26 @@
+{
+    "passed":  false,
+    "panel_mutation":  {
+                           "mutation":  "panel-applyPanelSpan-noop",
+                           "exitCode":  1,
+                           "caught":  true
+                       },
+    "widget_mutations":  [
+                             {
+                                 "mutation":  "widget-ensureTools-noop",
+                                 "exitCode":  0,
+                                 "caught":  false
+                             },
+                             {
+                                 "mutation":  "widget-init-ensureTools-noop",
+                                 "exitCode":  0,
+                                 "caught":  false
+                             },
+                             {
+                                 "mutation":  "widget-hydration-and-init-ensureTools-noop",
+                                 "exitCode":  0,
+                                 "caught":  false
+                             }
+                         ],
+    "reason":  "Panel primitive no-op was caught by resize-snap, but widget ensureTools no-op mutations were not caught by the current oracle. Add a widget-specific tools/position primitive canary before SHIP."
+}

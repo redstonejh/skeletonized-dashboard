@@ -1,0 +1,16 @@
+{
+    "passed":  true,
+    "canaries":  [
+                     "resize-snap",
+                     "select-mode-multi-resize",
+                     "panel-pin-toggle/pin-protection",
+                     "drag-with-live-ghost",
+                     "grid-snap",
+                     "collision-reflow",
+                     "save-reload-identical",
+                     "widget-resize-snap",
+                     "widget-tools-init"
+                 ],
+    "phase_a_10x":  "artifacts/phase-a-canary-determinism-final.json",
+    "final_10x":  "artifacts/final-canary-determinism.json"
+}

@@ -1,0 +1,13 @@
+{
+  "check": "test",
+  "command": "npm.cmd run test:e2e",
+  "configured": true,
+  "cwd": "C:\\Users\\redst\\OneDrive\\Documents\\skeletonized-dashboard",
+  "duration_sec": 8.594,
+  "exit_code": 0,
+  "passed": true,
+  "stderr_tail": "",
+  "stdout_tail": "\n> configurable-dashboard-gui-electron@1.0.0 test:e2e\n> playwright test electron-tests/dashboard-electron.spec.js\n\n\nRunning 2 tests using 1 worker\n\n  \u00e2\u0153\u201c  1 electron-tests\\dashboard-electron.spec.js:155:1 \u00e2\u20ac\u00ba electron GUI boots without server APIs and preserves core customization (3.4s)\n  \u00e2\u0153\u201c  2 electron-tests\\dashboard-electron.spec.js:206:1 \u00e2\u20ac\u00ba electron GUI keeps drag and resize handlers active (4.0s)\n\n  2 passed (7.8s)\n",
+  "timed_out": false,
+  "tool_exit_code": 0
+}

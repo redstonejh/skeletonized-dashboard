@@ -1,0 +1,26 @@
+{
+    "verdict":  "NEEDS-HUMAN",
+    "task_type":  "refactor",
+    "passed":  false,
+    "reason":  "Implementation and behavior canaries are green, but the acceptance SHIP gate requires planted mutations caught. Widget primitive ensureTools mutations were not caught, so the resistance gate fails.",
+    "accepted_stage":  "implementation held behavior, not accepted for SHIP",
+    "blocked_stage":  "widget primitive resistance coverage",
+    "evidence":  [
+                     "artifacts/behavior-diff.json",
+                     "artifacts/api-surface-diff.json",
+                     "artifacts/refactor-structure.json",
+                     "artifacts/refactor-coverage.json",
+                     "artifacts/refactor-resistance.json",
+                     "artifacts/perf-budget.json",
+                     "artifacts/mutation-panel.log",
+                     "artifacts/mutation-widget-combined.log"
+                 ],
+    "tests":  {
+                  "command":  "npm.cmd run test:e2e -- --workers=1",
+                  "final_clean_passed":  true,
+                  "pre_edit_10x_passed":  true,
+                  "post_panel_10x_passed":  true,
+                  "post_widget_10x_passed":  true
+              },
+    "deferred_security_note":  "Known Electron advisory remains deferred; Electron stayed at ^35.0.0 and dependency versions were not changed."
+}

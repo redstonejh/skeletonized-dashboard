@@ -1,0 +1,7 @@
+{
+  "schema_version": 1,
+  "status": "PASS",
+  "passed": true,
+  "reason": "No UI source change was made; baseline e2e validation was prioritized for setup.",
+  "follow_up": "Run MAW web a11y checks or Playwright accessibility checks for the next UI change."
+}

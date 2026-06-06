@@ -1,0 +1,41 @@
+{
+  "task_summary": "Increment 2: move runGroupResize and helpers out of app/static/app.js after extending the resize-session geometry spine.",
+  "task_type": "refactor",
+  "checklist_path": ".codex/checklists/refactor.md",
+  "roles": [
+    "conductor",
+    "planner",
+    "worker",
+    "critic",
+    "acceptance_gate"
+  ],
+  "caps": {
+    "max_agents": 5,
+    "max_parallel": 3,
+    "max_iters": 3
+  },
+  "parallel_roles": [],
+  "role_justifications": {},
+  "orchestration_pattern": "Sequential MAW refactor run with target guard, deterministic canary precondition, 2a state-spine extension, then 2b body move only if 2a is green and the API boundary is clear.",
+  "quality_bar": "State-bound retry of group-resize-runtime is authorized; historical body-first/factory retry remains forbidden. Electron dependency versions must stay unchanged.",
+  "deterministic_checks": [
+    "Target discovery guard",
+    "python maw.py code-graph app/static/app.js --lang js --output <run>/artifacts/code-graph.json",
+    "select-mode multi-resize canary exists or is added with dataset commit waits",
+    "pre-edit canary suite 10x identical normalized results",
+    "two matching pre-edit behavior-baseline captures",
+    "2a post-state-extension e2e/canary/diff",
+    "2b post-body-move e2e/canary/diff if attempted",
+    "api-surface-diff.json, refactor-structure.json, refactor-resistance.json, refactor-coverage.json, complexity-report.json, perf-budget.json",
+    "validate_handoffs.py",
+    "verdict_check.py"
+  ],
+  "acceptance_criteria": [
+    "app/static/app.js line count strictly and meaningfully decreases if 2b ships.",
+    "runGroupResize behavior body moves only after the resize-session geometry API is extended and proven by canaries.",
+    "Single resize, select-mode multi-resize, panel pin, drag ghost, grid snap, collision/reflow, and save/reload canaries pass 10/10.",
+    "Behavior diff and MAW refactor artifacts pass.",
+    "artifacts/deferred-extractions.md and artifacts/extraction-floor-report.md move group-resize-runtime from deferred to done when 2b ships.",
+    "Electron remains ^35.0.0 and no audit fix is run."
+  ]
+}

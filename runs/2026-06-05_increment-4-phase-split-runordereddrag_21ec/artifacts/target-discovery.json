@@ -1,0 +1,17 @@
+{
+    "passed":  true,
+    "cwd":  "C:\\Users\\redst\\OneDrive\\Documents\\skeletonized-dashboard",
+    "app_js":  true,
+    "files":  [
+                  "C:\\Users\\redst\\OneDrive\\Documents\\skeletonized-dashboard\\app\\static\\interaction-state.js",
+                  "C:\\Users\\redst\\OneDrive\\Documents\\skeletonized-dashboard\\app\\static\\modules\\interaction-state.js",
+                  "C:\\Users\\redst\\OneDrive\\Documents\\skeletonized-dashboard\\app\\static\\collision-reflow.js",
+                  "C:\\Users\\redst\\OneDrive\\Documents\\skeletonized-dashboard\\app\\static\\drag-runtime.js"
+              ],
+    "has_interaction":  true,
+    "has_collision":  true,
+    "has_drag_runtime":  true,
+    "test_e2e":  "playwright test electron-tests/dashboard-electron.spec.js",
+    "electron":  "^35.0.0",
+    "spec":  true
+}

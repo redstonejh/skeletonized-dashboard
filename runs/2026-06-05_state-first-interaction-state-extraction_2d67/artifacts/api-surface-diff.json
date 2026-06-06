@@ -1,0 +1,14 @@
+{
+  "check": "api_surface_diff",
+  "passed": true,
+  "public_browser_globals_changed": false,
+  "existing_root_interaction_state_script_preserved": true,
+  "new_module_exports": [
+    "createWidgetToolSession",
+    "createPanelToolSession",
+    "createResizeSessionGeometry"
+  ],
+  "notes": [
+    "No existing public API signatures, globals, class names, selectors, or persistence keys were intentionally changed. New ES module API is additive."
+  ]
+}

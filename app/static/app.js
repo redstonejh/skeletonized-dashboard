@@ -72,6 +72,7 @@ import { createPanelFootprintFacade } from "./modules/panel-footprint-facade.js"
 import { createMenuOverlayFacade } from "./modules/menu-overlay-facade.js";
 import { createPanelPrimitiveFacade } from "./modules/panel-primitive-facade.js";
 import { createGridItemSizingRuntime } from "./modules/grid-item-sizing-runtime.js";
+import { createPanelToolSession, createResizeSessionGeometry, createWidgetToolSession } from "./modules/interaction-state.js";
 import {
   applyPanelColor,
   applyPanelTitleColor,
@@ -1130,10 +1131,6 @@ document.addEventListener("DOMContentLoaded", () => {
     workspaceObjectCapabilities,
   });
 
-  const applyPanelSpan = (panel, span) => panelRuntime.applyPanelSpan(panel, span);
-
-  const applyPanelGridPosition = (panel, col, row) => panelRuntime.applyPanelGridPosition(panel, col, row);
-
   const gridCellFromPoint = (layout, item, clientX, clientY, metrics = null) => {
     const layoutRect = metrics?.rect || gridRectForLayout(layout);
     const gap = metrics?.gap ?? gridGapForLayout(layout);
@@ -1314,10 +1311,6 @@ document.addEventListener("DOMContentLoaded", () => {
     const rawColumn = Math.round(((Number.isFinite(visualCenterX) ? visualCenterX : clientX) - layoutRect.left - (itemWidth / 2)) / Math.max(1, step));
     return Math.max(0, Math.min(maxColumn, rawColumn));
   };
-
-  const getPanelMinimumHeight = (panel) => panelRuntime.getPanelMinimumHeight(panel);
-
-  const applyPanelHeight = (panel, height) => panelRuntime.applyPanelHeight(panel, height);
 
   const styleRulePathValue = (source, path) => {
     if (!path) return undefined;
@@ -1814,16 +1807,6 @@ document.addEventListener("DOMContentLoaded", () => {
     getPanelRuntime: () => panelRuntime,
   });
 
-  const ensureWidgetTools = (widget, theme = "#2563eb") => widgetRuntimeController.ensureTools(widget, theme);
-
-  const syncWidgetRenderedHeightToFootprint = (widget, rowSpan = null, metrics = null) => widgetRuntimeController.syncRenderedHeightToFootprint(widget, rowSpan, metrics);
-
-  const applyWidgetSpan = (widget, span) => widgetRuntimeController.applySpan(widget, span);
-
-  const applyWidgetGridPosition = (widget, col, row, rowSpan = null) => widgetRuntimeController.applyGridPosition(widget, col, row, rowSpan);
-
-  const widgetGridCellFromPoint = (layout, widget, clientX, clientY) => gridCellFromPoint(layout, widget, clientX, clientY);
-
   let collisionReflowRuntime = null;
   const {
     applyGridItemPosition,
@@ -1835,8 +1818,8 @@ document.addEventListener("DOMContentLoaded", () => {
     nextGridSlot,
     resizeEdgeFromPointer,
   } = createGridItemGeometry({
-    applyPanelGridPosition,
-    applyWidgetGridPosition,
+    applyPanelGridPosition: (...args) => panelRuntime.applyPanelGridPosition(...args),
+    applyWidgetGridPosition: widgetRuntimeController.applyGridPosition,
     dashboardCollisionReflowRuntime,
     dashboardGeometry,
     DASHBOARD_GRID_COLUMNS,
@@ -1894,7 +1877,7 @@ document.addEventListener("DOMContentLoaded", () => {
   } = createLayoutSnapshotRuntime({
     gridHostForLayout,
     isPanelInternalGridItem,
-    applyPanelGridPosition,
+    applyPanelGridPosition: (...args) => panelRuntime.applyPanelGridPosition(...args),
     gridItemRowSpan,
     gridItemSpan,
   });
@@ -2129,12 +2112,12 @@ document.addEventListener("DOMContentLoaded", () => {
       });
     };
 
-    placeForcedItems(widgets, applyWidgetGridPosition, 1);
+    placeForcedItems(widgets, widgetRuntimeController.applyGridPosition, 1);
     const widgetBottom = widgets.reduce((bottom, item) => {
       const bounds = gridBoundsForItem(item);
       return Math.max(bottom, bounds.bottom);
     }, 0);
-    placeForcedItems(panels, applyPanelGridPosition, Math.max(3, widgetBottom + 1));
+    placeForcedItems(panels, panelRuntime.applyPanelGridPosition, Math.max(3, widgetBottom + 1));
   };
 
   const normalizeGridLayout = (layout, priorityItem = null) => {
@@ -3129,7 +3112,7 @@ document.addEventListener("DOMContentLoaded", () => {
           state.panel.dataset.gridRowSpan = "1";
           state.panel.style.height = "";
           if (state.panel.dataset.gridCol && state.panel.dataset.gridRow) {
-            applyPanelGridPosition(state.panel, state.panel.dataset.gridCol, state.panel.dataset.gridRow);
+            panelRuntime.applyPanelGridPosition(state.panel, state.panel.dataset.gridCol, state.panel.dataset.gridRow);
           }
         }
       }
@@ -3161,7 +3144,7 @@ document.addEventListener("DOMContentLoaded", () => {
       if (!internalGrid) return null;
       restoreGridLayoutSnapshot(startSnapshot, { exclude: [item] });
       if (placeholder) {
-        applyWidgetGridPosition(placeholder, originalCell.col, originalCell.row);
+        widgetRuntimeController.applyGridPosition(placeholder, originalCell.col, originalCell.row);
         placeholder.style.visibility = "hidden";
       }
       const snapshot = snapshotGridLayout(internalGrid);
@@ -3255,7 +3238,7 @@ document.addEventListener("DOMContentLoaded", () => {
       if (!sourcePanelForPanelLocalDrag || !workspaceExitLayout || groupDrag) return null;
       restoreGridLayoutSnapshot(startSnapshot, { exclude: [item] });
       if (placeholder) {
-        applyWidgetGridPosition(placeholder, originalCell.col, originalCell.row);
+        widgetRuntimeController.applyGridPosition(placeholder, originalCell.col, originalCell.row);
         placeholder.style.visibility = "hidden";
       }
       const snapshot = snapshotGridLayout(workspaceExitLayout);
@@ -3611,7 +3594,7 @@ document.addEventListener("DOMContentLoaded", () => {
       .filter((candidate) => candidate.distance <= tolerance && candidate.edge > rect.top + 40)
       .sort((a, b) => a.distance - b.distance || a.priority - b.priority)[0];
     const gap = metrics?.gap ?? gridGapForLayout(layout);
-    const nextHeight = match ? Math.max(getPanelMinimumHeight(item), Math.round(match.edge - rect.top)) : currentHeight;
+    const nextHeight = match ? Math.max(panelRuntime.getPanelMinimumHeight(item), Math.round(match.edge - rect.top)) : currentHeight;
     return gridHeightForRows(gridRowsFromHeight(nextHeight, gap, panelMinimumRows(item, metrics)), gap);
   };
 
@@ -3679,11 +3662,11 @@ document.addEventListener("DOMContentLoaded", () => {
       const span = Number(preview.dataset.currentSpan) || Number(preview.dataset.defaultSpan) || Number(member.dataset.currentSpan) || 1;
       const rowSpan = Math.max(gridItemMinimumRows(member), Number(preview.dataset.gridRowSpan) || 1);
       if (isWidgetGridItem(member)) {
-        applyWidgetSpan(member, span);
-        applyWidgetGridPosition(member, col, row, rowSpan);
+        widgetRuntimeController.applySpan(member, span);
+        widgetRuntimeController.applyGridPosition(member, col, row, rowSpan);
         return;
       }
-      applyPanelSpan(member, span);
+      panelRuntime.applyPanelSpan(member, span);
       if (member.classList.contains("db-panel-collapsed")) {
         const memberLayout = groupItemLayout(member) || layout;
         const expandedRows = Math.max(
@@ -3696,9 +3679,9 @@ document.addEventListener("DOMContentLoaded", () => {
         member.style.height = "";
       } else {
         const memberLayout = groupItemLayout(member) || layout;
-        applyPanelHeight(member, gridHeightForRows(rowSpan, gridGapForLayout(memberLayout)));
+        panelRuntime.applyPanelHeight(member, gridHeightForRows(rowSpan, gridGapForLayout(memberLayout)));
       }
-      applyPanelGridPosition(member, col, row);
+      panelRuntime.applyPanelGridPosition(member, col, row);
     });
   };
 
@@ -3834,13 +3817,13 @@ document.addEventListener("DOMContentLoaded", () => {
       }
 
       if (isWidgetGridItem(sourceItem)) {
-        applyWidgetSpan(member, nextSpan);
-        applyWidgetGridPosition(member, nextCol, nextRow, nextRowSpan);
+        widgetRuntimeController.applySpan(member, nextSpan);
+        widgetRuntimeController.applyGridPosition(member, nextCol, nextRow, nextRowSpan);
         if (member.classList.contains("widget-placeholder")) {
           member.style.height = `${gridHeightForRows(nextRowSpan, gridGapForLayout(groupItemLayout(member) || layout) || gap)}px`;
         }
       } else {
-        applyPanelSpan(member, nextSpan);
+        panelRuntime.applyPanelSpan(member, nextSpan);
         if (sourceItem.classList.contains("db-panel-collapsed")) {
           const memberLayout = groupItemLayout(member) || layout;
           const memberMetrics = options.metricsForMember?.get?.(member) || null;
@@ -3865,10 +3848,10 @@ document.addEventListener("DOMContentLoaded", () => {
             member.dataset.savedHeight = String(nextHeight);
             member.style.height = `${nextHeight}px`;
           } else {
-            applyPanelHeight(member, nextHeight);
+            panelRuntime.applyPanelHeight(member, nextHeight);
           }
         }
-        applyPanelGridPosition(member, nextCol, nextRow);
+        panelRuntime.applyPanelGridPosition(member, nextCol, nextRow);
       }
       occupied.push({ item: member, bounds: gridBoundsForItem(member) });
     });
@@ -3915,6 +3898,15 @@ document.addEventListener("DOMContentLoaded", () => {
     const groupBox = groupGridBox([...startBounds.values()]);
     const startWidth = Math.max(1, groupBox.right - groupBox.col + 1);
     const startHeight = Math.max(1, groupBox.bottom - groupBox.row + 1);
+    const resizeSession = createResizeSessionGeometry({
+      groupBox,
+      resizeParentPanelLayoutSnapshot,
+      resizeStartSnapshot,
+      startBounds,
+      startHeight,
+      startRects,
+      startWidth,
+    });
     const groupStartRect = [...startRects.values()].reduce((box, rect) => ({
       left: Math.min(box.left, rect.left),
       top: Math.min(box.top, rect.top),
@@ -3953,16 +3945,11 @@ document.addEventListener("DOMContentLoaded", () => {
       const expandedGhost = createExpandedFootprintGhost(member, memberLayout, rect, null, memberMetrics);
       return { member, memberLayout, memberMetrics, preview, live, expandedGhost, rect };
     });
-    const previewMembers = previewEntries.map((entry) => entry.preview);
-    const previewStartBounds = new Map(previewEntries.map((entry) => [entry.preview, startBounds.get(entry.member)]));
-    const sourceForPreview = new Map(previewEntries.map((entry) => [entry.preview, entry.member]));
-    const metricsForPreview = new Map(previewEntries.map((entry) => [entry.preview, entry.memberMetrics]));
+    resizeSession.setPreviewEntries(previewEntries);
     const groupFootprint = createGroupFootprint(layout, groupBox, "dashboard-resize-preview dashboard-group-resize-footprint");
     const memberSet = new Set(members);
-    const reflowItems = reflowItemsForLayout(layout, source).filter((item) => !memberSet.has(item));
-    let previewCols = startWidth;
-    let previewRows = startHeight;
-
+    resizeSession.setReflowItems(reflowItemsForLayout(layout, source).filter((item) => !memberSet.has(item)));
+    resizeSession.setRuntime({ groupFootprint, resizeBoundary });
     const updateLiveGroupResize = (clientX, clientY) => {
       const scrollDeltaY = (window.scrollY || document.documentElement.scrollTop || 0) - startScrollY;
       const effectiveClientY = clientY + scrollDeltaY;
@@ -3995,7 +3982,7 @@ document.addEventListener("DOMContentLoaded", () => {
           ? gridHeightForRows(liveRows, entry.memberMetrics.gap)
           : entry.member.classList.contains("db-panel-collapsed")
             ? startRect.height
-            : Math.max(getPanelMinimumHeight(entry.member), gridHeightForRows(liveRows, entry.memberMetrics.gap));
+            : Math.max(panelRuntime.getPanelMinimumHeight(entry.member), gridHeightForRows(liveRows, entry.memberMetrics.gap));
         updateLiveResizeSurface(entry.live, width, height, left, top);
         liveBounds.left = Math.min(liveBounds.left, left);
         liveBounds.top = Math.min(liveBounds.top, top);
@@ -4037,9 +4024,8 @@ document.addEventListener("DOMContentLoaded", () => {
       const effectiveClientY = clientY + scrollDeltaY;
       const nextCols = Math.max(1, startWidth + Math.round((clientX - startX) / columnStep));
       const nextRows = Math.max(1, startHeight + Math.round((effectiveClientY - startY) / rowStep));
-      if (nextCols === previewCols && nextRows === previewRows) return;
-      previewCols = nextCols;
-      previewRows = nextRows;
+      if (nextCols === resizeSession.getPreviewCols() && nextRows === resizeSession.getPreviewRows()) return;
+      resizeSession.setPreviewSize(nextCols, nextRows);
       animateOrderedGridReflow(layout, () => {
         applyGroupFootprintBounds(groupFootprint.footprint, groupFootprint.footprintLayout, {
           col: groupBox.col,
@@ -4047,52 +4033,52 @@ document.addEventListener("DOMContentLoaded", () => {
           span: nextCols,
           rowSpan: nextRows,
         }, metricsForLayout(groupFootprint.footprintLayout));
-        applyGroupResizeLayout(layout, previewMembers, previewStartBounds, groupBox, nextCols / startWidth, nextRows / startHeight, {
-          sourceForMember: sourceForPreview,
-          metricsForMember: metricsForPreview,
+        applyGroupResizeLayout(layout, resizeSession.getPreviewMembers(), resizeSession.getPreviewStartBounds(), groupBox, nextCols / startWidth, nextRows / startHeight, {
+          sourceForMember: resizeSession.getSourceForPreview(),
+          metricsForMember: resizeSession.getMetricsForPreview(),
           collision: false,
         });
-        resolveSparseGridLayoutForActiveItems(layout, previewMembers, {
+        resolveSparseGridLayoutForActiveItems(layout, resizeSession.getPreviewMembers(), {
           afterOnly: true,
           metrics: layoutMetrics,
           exclude: [groupFootprint.footprint],
-          items: reflowItems,
+          items: resizeSession.getReflowItems(),
         });
         if (resizeParentPanel) syncOpenPanelHeightToInternalGrid(resizeParentPanel, { includePlaceholders: true });
-      }, source, { items: reflowItems, metrics: layoutMetrics });
+      }, source, { items: resizeSession.getReflowItems(), metrics: layoutMetrics });
     };
 
     const finishResize = (upEvent, canceled) => {
       if (canceled) {
-        restoreGridLayoutSnapshot(resizeStartSnapshot);
-        if (resizeParentPanelLayoutSnapshot) restoreGridLayoutSnapshot(resizeParentPanelLayoutSnapshot);
+        restoreGridLayoutSnapshot(resizeSession.resizeStartSnapshot);
+        if (resizeSession.resizeParentPanelLayoutSnapshot) restoreGridLayoutSnapshot(resizeSession.resizeParentPanelLayoutSnapshot);
       } else {
         animateOrderedGridReflow(layout, () => {
           previewEntries.forEach((entry) => entry.expandedGhost?.remove());
-          restoreGridLayoutSnapshot(resizeStartSnapshot);
+          restoreGridLayoutSnapshot(resizeSession.resizeStartSnapshot);
           applyGroupFootprintBounds(groupFootprint.footprint, groupFootprint.footprintLayout, {
             col: groupBox.col,
             row: groupBox.row,
-            span: previewCols,
-            rowSpan: previewRows,
+            span: resizeSession.getPreviewCols(),
+            rowSpan: resizeSession.getPreviewRows(),
           }, metricsForLayout(groupFootprint.footprintLayout));
-          applyGroupResizeLayout(layout, previewMembers, previewStartBounds, groupBox, previewCols / startWidth, previewRows / startHeight, {
-            sourceForMember: sourceForPreview,
-            metricsForMember: metricsForPreview,
+          applyGroupResizeLayout(layout, resizeSession.getPreviewMembers(), resizeSession.getPreviewStartBounds(), groupBox, resizeSession.getPreviewCols() / startWidth, resizeSession.getPreviewRows() / startHeight, {
+            sourceForMember: resizeSession.getSourceForPreview(),
+            metricsForMember: resizeSession.getMetricsForPreview(),
             collision: false,
           });
-          resolveSparseGridLayoutForActiveItems(layout, previewMembers, {
+          resolveSparseGridLayoutForActiveItems(layout, resizeSession.getPreviewMembers(), {
             afterOnly: true,
             metrics: layoutMetrics,
             exclude: [groupFootprint.footprint],
-            items: reflowItems,
+            items: resizeSession.getReflowItems(),
           });
           commitGroupResizeFromPreviews(previewEntries, layout);
           previewEntries.forEach((entry) => entry.preview.remove());
           groupFootprint.footprint.remove();
           previewEntries.forEach((entry) => clearLiveResizeSurface(entry.member, entry.live));
           if (resizeParentPanel) syncOpenPanelHeightToInternalGrid(resizeParentPanel);
-        }, source, { items: reflowItems, metrics: layoutMetrics });
+        }, source, { items: resizeSession.getReflowItems(), metrics: layoutMetrics });
         syncCommittedWorkspaceScrollFloor(layout, {
           preserveViewport: document.body.classList.contains("dashboard-interaction-scroll-extended"),
         });
@@ -4268,13 +4254,13 @@ document.addEventListener("DOMContentLoaded", () => {
       writeDraftList,
       widgetStorageKey,
       hydrateWidgetRuntime,
-      ensureWidgetTools,
+      ensureWidgetTools: widgetRuntimeController.ensureTools,
       markLoadedExpansionBaseline,
       ensureWorkspaceObjectMetadata,
       workspaceObjectType,
       applyWorkspaceContextToElement,
-      applyWidgetSpan,
-      applyWidgetGridPosition,
+      applyWidgetSpan: widgetRuntimeController.applySpan,
+      applyWidgetGridPosition: widgetRuntimeController.applyGridPosition,
       applyPanelColor,
       applyPanelTitleColor,
       setWidgetConfig,
@@ -4290,7 +4276,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const initWidget = (widget) => {
       if (widget.dataset.widgetInitialized === "true") return;
       widget.dataset.widgetInitialized = "true";
-      ensureWidgetTools(widget);
+      widgetRuntimeController.ensureTools(widget);
       widget.__saveWidgetLayout = () => saveWidgetLayouts(layout);
       delete widget.dataset.widgetRuntimeControlsBound;
       bindWidgetRuntimeControls(widget);
@@ -4322,7 +4308,7 @@ document.addEventListener("DOMContentLoaded", () => {
           attributeFilter: ["style", "data-grid-col", "data-grid-row", "data-current-span", "data-grid-row-span"],
         });
       }
-      let closeTimer;
+      const widgetToolSession = createWidgetToolSession();
       let suppressToolOpenUntil = 0;
       let suppressWidgetClickUntil = 0;
       let dragging = false;
@@ -4352,7 +4338,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const openTools = (pointerCoords = null) => {
         if (performance.now() < suppressToolOpenUntil) return;
         if (!canOpenDashboardTools(widget)) return;
-        window.clearTimeout(closeTimer);
+        widgetToolSession.clearCloseTimer();
         portalDashboardToolDrawer(drawer, settings || widget);
         if (pointerCoords) {
           positionDashboardToolDrawerAtPointer(widget, drawer, pointerCoords.clientX, pointerCoords.clientY);
@@ -4393,7 +4379,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const openWorkbench = (pointerCoords = null) => {
         if (isDashboardInteractionActive()) return;
         closeInactiveDashboardTools(widget);
-        window.clearTimeout(closeTimer);
+        widgetToolSession.clearCloseTimer();
         widget.classList.remove("widget-tools-open");
         settings?.setAttribute("aria-expanded", "false");
         colorMenu?.classList.remove("panel-color-menu-open");
@@ -4443,9 +4429,9 @@ document.addEventListener("DOMContentLoaded", () => {
         return pointInRect(event.clientX, event.clientY, rect);
       };
       const scheduleClose = () => {
-        window.clearTimeout(closeTimer);
+        widgetToolSession.clearCloseTimer();
         if (isDashboardInteractionActive() || ignoreToolLeaveCloseUntilPointerActivity) return;
-        closeTimer = window.setTimeout(() => {
+        widgetToolSession.setCloseTimer(window.setTimeout(() => {
           if (isDashboardInteractionActive()) return;
           if (ignoreToolLeaveCloseUntilPointerActivity) return;
           const activeElement = document.activeElement;
@@ -4455,13 +4441,13 @@ document.addEventListener("DOMContentLoaded", () => {
             !drawer?.contains(activeElement) &&
             !colorMenu?.matches(":hover")
           ) closeTools();
-        }, 260);
+        }, 260));
       };
       const resumeToolHoverClose = () => {
         const wasOpen = widget.classList.contains("widget-tools-open");
         releaseToolLeaveClose();
         if (wasOpen) {
-          window.clearTimeout(closeTimer);
+          widgetToolSession.clearCloseTimer();
           return;
         }
         openTools();
@@ -4616,10 +4602,10 @@ document.addEventListener("DOMContentLoaded", () => {
         closeTools,
         armToolLeaveCloseResume,
         isInteractiveWidgetSurfaceTarget,
-        clearToolCloseTimer: () => window.clearTimeout(closeTimer),
+        clearToolCloseTimer: widgetToolSession.clearCloseTimer,
         setDragging: (value) => {
           dragging = value;
-          if (value) window.clearTimeout(closeTimer);
+          if (value) widgetToolSession.clearCloseTimer();
         },
         setSuppressWidgetClickUntil: (value) => {
           suppressWidgetClickUntil = value;
@@ -4658,8 +4644,8 @@ document.addEventListener("DOMContentLoaded", () => {
         groupItemLayout,
         snapshotGridLayout,
         restoreGridLayoutSnapshot,
-        applyWidgetSpan,
-        applyWidgetGridPosition,
+        applyWidgetSpan: widgetRuntimeController.applySpan,
+        applyWidgetGridPosition: widgetRuntimeController.applyGridPosition,
         resolveSparseGridLayout,
         syncOpenPanelHeightToInternalGrid,
         resizeAutoZoomPointerToScenePoint,
@@ -4675,7 +4661,7 @@ document.addEventListener("DOMContentLoaded", () => {
         syncCommittedWorkspaceScrollFloor,
         beginResizeLifecycle,
         resizeEdgeFromPointer,
-        clearCloseTimer: () => window.clearTimeout(closeTimer),
+        clearCloseTimer: widgetToolSession.clearCloseTimer,
         setSuppressWidgetClickUntil: (value) => {
           suppressWidgetClickUntil = value;
         },
@@ -4714,18 +4700,15 @@ document.addEventListener("DOMContentLoaded", () => {
     gridItemMinimumSpan,
     createGridMetrics,
     gridBoundsForItem,
-    getPanelMinimumHeight,
     panelMinimumRows,
-    applyPanelHeight,
-    applyPanelSpan,
     openPanelForInternalDrop,
     applyVerticalPanelExpansion,
     resolveSparseGridLayout,
     reflowItemsForLayout,
     undoTransientItemClasses,
     groupItemLayoutKey,
-    applyWidgetSpan,
-    applyWidgetGridPosition,
+    applyWidgetSpan: widgetRuntimeController.applySpan,
+    applyWidgetGridPosition: widgetRuntimeController.applyGridPosition,
     gridCellFromPoint,
     initWidgetLayout,
     readDraftList,
@@ -4755,9 +4738,9 @@ document.addEventListener("DOMContentLoaded", () => {
       workspaceObjectType,
       applyWorkspaceContextToElement,
       WORKSPACE_OBJECT_TYPES,
-      applyPanelSpan,
-      applyPanelGridPosition,
-      applyPanelHeight,
+      applyPanelSpan: panelRuntime.applyPanelSpan,
+      applyPanelGridPosition: panelRuntime.applyPanelGridPosition,
+      applyPanelHeight: panelRuntime.applyPanelHeight,
       applyPanelColor,
       applyPanelTitleColor,
       restorePanelChildWidgets,
@@ -4801,10 +4784,7 @@ document.addEventListener("DOMContentLoaded", () => {
       });
       const colorMenu = buildPanelColorMenu(panel, layout, colorToggle);
       pinButton?.setAttribute("aria-pressed", panel.classList.contains("db-panel-pinned").toString());
-      let movedDuringPointer = false;
-      let toolsCloseTimer;
-      let toolPointerCapture = false;
-      let suppressHeaderToggleUntil = 0;
+      const panelToolSession = createPanelToolSession();
       let suppressToolOpenUntil = 0;
       let ignorePanelToolLeaveCloseUntilPointerActivity = false;
       let releasePanelToolLeaveCloseResume = null;
@@ -4831,7 +4811,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const openPanelTools = (pointerCoords = null) => {
         if (performance.now() < suppressToolOpenUntil) return;
         if (!canOpenDashboardTools(panel)) return;
-        window.clearTimeout(toolsCloseTimer);
+        panelToolSession.clearToolsCloseTimer();
         portalDashboardToolDrawer(panelToolDrawer, settingsButton || panel);
         if (pointerCoords) {
           positionDashboardToolDrawerAtPointer(panel, panelToolDrawer, pointerCoords.clientX, pointerCoords.clientY);
@@ -4856,11 +4836,11 @@ document.addEventListener("DOMContentLoaded", () => {
       };
 
       const scheduleClosePanelTools = () => {
-        window.clearTimeout(toolsCloseTimer);
-        if (isDashboardInteractionActive() || toolPointerCapture || ignorePanelToolLeaveCloseUntilPointerActivity) return;
-        toolsCloseTimer = window.setTimeout(() => {
+        panelToolSession.clearToolsCloseTimer();
+        if (isDashboardInteractionActive() || panelToolSession.isToolPointerCaptured() || ignorePanelToolLeaveCloseUntilPointerActivity) return;
+        panelToolSession.setToolsCloseTimer(window.setTimeout(() => {
           if (isDashboardInteractionActive()) return;
-          if (toolPointerCapture) return;
+          if (panelToolSession.isToolPointerCaptured()) return;
           if (ignorePanelToolLeaveCloseUntilPointerActivity) return;
           const activeElement = document.activeElement;
           const stillUsingTools =
@@ -4870,13 +4850,13 @@ document.addEventListener("DOMContentLoaded", () => {
             panelToolDrawer?.contains(activeElement) ||
             (panelTools?.contains(activeElement) && activeElement !== colorToggle);
           if (!stillUsingTools) closePanelTools();
-        }, 300);
+        }, 300));
       };
       const resumePanelToolHoverClose = () => {
         const wasOpen = panel.classList.contains("db-panel-tools-open");
         releasePanelToolLeaveClose();
         if (wasOpen) {
-          window.clearTimeout(toolsCloseTimer);
+          panelToolSession.clearToolsCloseTimer();
           return;
         }
         openPanelTools();
@@ -4890,7 +4870,7 @@ document.addEventListener("DOMContentLoaded", () => {
       panelTools?.addEventListener("focusout", scheduleClosePanelTools);
       settingsButton?.addEventListener("mouseenter", () => {
         if (performance.now() < suppressToolOpenUntil) return;
-        suppressHeaderToggleUntil = performance.now() + 250;
+        panelToolSession.setSuppressHeaderToggleUntil(performance.now() + 250);
         resumePanelToolHoverClose();
       });
       settingsButton?.addEventListener("mouseleave", scheduleClosePanelTools);
@@ -4899,7 +4879,7 @@ document.addEventListener("DOMContentLoaded", () => {
       colorMenu?.addEventListener("mouseenter", resumePanelToolHoverClose);
       colorMenu?.addEventListener("mouseleave", () => {
         if (isDashboardInteractionActive()) return;
-        if (!toolPointerCapture) closePanelTools();
+        if (!panelToolSession.isToolPointerCaptured()) closePanelTools();
       });
       const isInteractivePanelSurfaceTarget = (event) => {
         if (event?.target?.closest?.(".panel-internal-widget-grid > .widget-card")) return true;
@@ -4910,7 +4890,7 @@ document.addEventListener("DOMContentLoaded", () => {
       settingsButton?.addEventListener("click", (event) => {
         event.preventDefault();
         event.stopPropagation();
-        suppressHeaderToggleUntil = 0;
+        panelToolSession.setSuppressHeaderToggleUntil(0);
         releasePanelToolLeaveClose();
         if (!canOpenDashboardTools(panel)) return;
         const shouldClose = panel.classList.contains("db-panel-tools-open") && !panelToolsOpenedByApproach;
@@ -4927,7 +4907,7 @@ document.addEventListener("DOMContentLoaded", () => {
       colorToggle?.addEventListener("click", (event) => {
         event.preventDefault();
         event.stopPropagation();
-        suppressHeaderToggleUntil = 0;
+        panelToolSession.setSuppressHeaderToggleUntil(0);
         const nextOpen = !colorMenu?.classList.contains("panel-color-menu-open");
         if (nextOpen) {
           syncPanelThemeVars(panel, colorMenu);
@@ -4963,19 +4943,15 @@ document.addEventListener("DOMContentLoaded", () => {
         setSuppressToolOpenUntil: (value) => {
           suppressToolOpenUntil = value;
         },
-        setSuppressHeaderToggleUntil: (value) => {
-          suppressHeaderToggleUntil = value;
-        },
-        getSuppressHeaderToggleUntil: () => suppressHeaderToggleUntil,
-        getMovedDuringPointer: () => movedDuringPointer,
-        setMovedDuringPointer: (value) => {
-          movedDuringPointer = value;
-        },
+        setSuppressHeaderToggleUntil: panelToolSession.setSuppressHeaderToggleUntil,
+        getSuppressHeaderToggleUntil: panelToolSession.getSuppressHeaderToggleUntil,
+        getMovedDuringPointer: panelToolSession.getMovedDuringPointer,
+        setMovedDuringPointer: panelToolSession.setMovedDuringPointer,
         ensureRenderedGridPosition,
         beginPanelExpansionSession,
-        applyPanelHeight,
+        applyPanelHeight: panelRuntime.applyPanelHeight,
         panelMinimumRows,
-        applyPanelGridPosition,
+        applyPanelGridPosition: panelRuntime.applyPanelGridPosition,
         animatePanelReflow,
         relaxCollapsedExpansionDisplacement,
         endPanelExpansionSession,
@@ -5011,13 +4987,9 @@ document.addEventListener("DOMContentLoaded", () => {
         openPanelTools,
         closePanelTools,
         armPanelToolLeaveCloseResume,
-        clearToolsCloseTimer: () => window.clearTimeout(toolsCloseTimer),
-        setToolPointerCapture: (value) => {
-          toolPointerCapture = value;
-        },
-        setMovedDuringPointer: (value) => {
-          movedDuringPointer = value;
-        },
+        clearToolsCloseTimer: panelToolSession.clearToolsCloseTimer,
+        setToolPointerCapture: panelToolSession.setToolPointerCapture,
+        setMovedDuringPointer: panelToolSession.setMovedDuringPointer,
       });
 
       bindPanelResizeRuntime({
@@ -5042,7 +5014,7 @@ document.addEventListener("DOMContentLoaded", () => {
         gridHeightForRows,
         gridItemPixelWidthForSpan,
         gridItemMinimumSpan,
-        getPanelMinimumHeight,
+        getPanelMinimumHeight: panelRuntime.getPanelMinimumHeight,
         createResizePreview,
         reflowItemsForLayout,
         beginLiveResizeSurface,
@@ -5053,9 +5025,9 @@ document.addEventListener("DOMContentLoaded", () => {
         groupItemLayout,
         snapshotGridLayout,
         restoreGridLayoutSnapshot,
-        applyPanelSpan,
-        applyPanelGridPosition,
-        applyPanelHeight,
+        applyPanelSpan: panelRuntime.applyPanelSpan,
+        applyPanelGridPosition: panelRuntime.applyPanelGridPosition,
+        applyPanelHeight: panelRuntime.applyPanelHeight,
         resolveSparseGridLayout,
         resizeAutoZoomPointerToScenePoint,
         updateLiveResizeSurface,
@@ -5077,10 +5049,8 @@ document.addEventListener("DOMContentLoaded", () => {
         syncCommittedWorkspaceScrollFloor,
         beginResizeLifecycle,
         resizeEdgeFromPointer,
-        clearToolsCloseTimer: () => window.clearTimeout(toolsCloseTimer),
-        setToolPointerCapture: (value) => {
-          toolPointerCapture = value;
-        },
+        clearToolsCloseTimer: panelToolSession.clearToolsCloseTimer,
+        setToolPointerCapture: panelToolSession.setToolPointerCapture,
       });
     };
 
@@ -5157,9 +5127,9 @@ document.addEventListener("DOMContentLoaded", () => {
     orderedLayoutStartRow,
     commitInsertedGridItemWithVerticalPushdown,
     clearGroupSelection,
-    applyWidgetGridPosition,
+    applyWidgetGridPosition: widgetRuntimeController.applyGridPosition,
     bindDashboardKeywordForms,
-    applyPanelGridPosition,
+    applyPanelGridPosition: panelRuntime.applyPanelGridPosition,
     ensureWorkspaceObjectMetadata,
     setGroupItemSelected,
     syncWorkspaceRegions,
@@ -5219,18 +5189,18 @@ document.addEventListener("DOMContentLoaded", () => {
     createCustomWidget,
     panelAddTarget,
     visibleRegionInsertionTarget,
-    applyPanelSpan,
-    applyWidgetSpan,
+    applyPanelSpan: panelRuntime.applyPanelSpan,
+    applyWidgetSpan: widgetRuntimeController.applySpan,
     applyPanelColor,
     applyPanelTitleColor,
-    applyPanelGridPosition,
-    applyWidgetGridPosition,
+    applyPanelGridPosition: panelRuntime.applyPanelGridPosition,
+    applyWidgetGridPosition: widgetRuntimeController.applyGridPosition,
     animatePanelReflow,
     animateWidgetReflow,
     commitInsertedGridItemWithVerticalPushdown,
     syncWorkspaceRegions,
     ensureWorkspaceObjectMetadata,
-    ensureWidgetTools,
+    ensureWidgetTools: widgetRuntimeController.ensureTools,
     parseJsonRecord,
     bindDashboardKeywordForms,
     refreshResolvedContextDebug,
@@ -5255,10 +5225,10 @@ document.addEventListener("DOMContentLoaded", () => {
     workspaceContextsKey,
     persistedWorkspaceKey,
     writeDraftList,
-    applyWidgetSpan,
+    applyWidgetSpan: widgetRuntimeController.applySpan,
     applyPanelColor,
     applyPanelTitleColor,
-    applyPanelSpan,
+    applyPanelSpan: panelRuntime.applyPanelSpan,
     updatePanelChildEmptyState,
     syncDefaultDashboardGrid,
     normalizeGridLayout,

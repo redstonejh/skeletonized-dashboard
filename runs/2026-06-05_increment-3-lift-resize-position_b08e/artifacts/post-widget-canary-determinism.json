@@ -1,0 +1,1050 @@
+{
+    "passed":  true,
+    "run_count":  10,
+    "hash":  "249162526f655116c84d0244e1547286175d230eec6e0b595c0729a6eed3e37d",
+    "signatures":  [
+                       "249162526f655116c84d0244e1547286175d230eec6e0b595c0729a6eed3e37d",
+                       "249162526f655116c84d0244e1547286175d230eec6e0b595c0729a6eed3e37d",
+                       "249162526f655116c84d0244e1547286175d230eec6e0b595c0729a6eed3e37d",
+                       "249162526f655116c84d0244e1547286175d230eec6e0b595c0729a6eed3e37d",
+                       "249162526f655116c84d0244e1547286175d230eec6e0b595c0729a6eed3e37d",
+                       "249162526f655116c84d0244e1547286175d230eec6e0b595c0729a6eed3e37d",
+                       "249162526f655116c84d0244e1547286175d230eec6e0b595c0729a6eed3e37d",
+                       "249162526f655116c84d0244e1547286175d230eec6e0b595c0729a6eed3e37d",
+                       "249162526f655116c84d0244e1547286175d230eec6e0b595c0729a6eed3e37d",
+                       "249162526f655116c84d0244e1547286175d230eec6e0b595c0729a6eed3e37d"
+                   ],
+    "runs":  [
+                 {
+                     "run":  1,
+                     "hash":  "249162526f655116c84d0244e1547286175d230eec6e0b595c0729a6eed3e37d",
+                     "surface":  {
+                                     "resizeSnap":  {
+                                                        "background":  "frosted-light",
+                                                        "scrollY":  0,
+                                                        "customWidgets":  0,
+                                                        "spanBefore":  "2",
+                                                        "spanAfter":  "1"
+                                                    },
+                                     "dragLiveGhost":  {
+                                                           "background":  "frosted-light",
+                                                           "scrollY":  0,
+                                                           "customWidgets":  0,
+                                                           "moveBefore":  {
+                                                                              "col":  "5",
+                                                                              "row":  "4"
+                                                                          },
+                                                           "afterMove":  {
+                                                                             "col":  "3",
+                                                                             "row":  "5"
+                                                                         }
+                                                       },
+                                     "gridSnap":  {
+                                                      "background":  "frosted-light",
+                                                      "scrollY":  0,
+                                                      "customWidgets":  0,
+                                                      "moveBefore":  {
+                                                                         "col":  "5",
+                                                                         "row":  "4"
+                                                                     },
+                                                      "afterMove":  {
+                                                                        "col":  "3",
+                                                                        "row":  "5"
+                                                                    }
+                                                  },
+                                     "collisionReflow":  {
+                                                             "background":  "frosted-light",
+                                                             "scrollY":  0,
+                                                             "customWidgets":  0,
+                                                             "moveBefore":  {
+                                                                                "col":  "5",
+                                                                                "row":  "4"
+                                                                            },
+                                                             "afterMove":  {
+                                                                               "col":  "3",
+                                                                               "row":  "5"
+                                                                           }
+                                                         },
+                                     "panelPinToggle":  {
+                                                            "background":  "photo-earth",
+                                                            "scrollY":  0,
+                                                            "customWidgets":  1
+                                                        },
+                                     "saveReloadIdentical":  {
+                                                                 "background":  "photo-earth",
+                                                                 "scrollY":  0,
+                                                                 "customWidgets":  1
+                                                             },
+                                     "selectModeMultiResize":  {
+                                                                   "background":  "frosted-light",
+                                                                   "scrollY":  0,
+                                                                   "customWidgets":  0,
+                                                                   "before":  {
+                                                                                  "first":  {
+                                                                                                "span":  "2",
+                                                                                                "rows":  ""
+                                                                                            },
+                                                                                  "second":  {
+                                                                                                 "span":  "4",
+                                                                                                 "rows":  ""
+                                                                                             }
+                                                                              },
+                                                                   "after":  {
+                                                                                 "first":  {
+                                                                                               "span":  "2",
+                                                                                               "rows":  "5"
+                                                                                           },
+                                                                                 "second":  {
+                                                                                                "span":  "3",
+                                                                                                "rows":  "5"
+                                                                                            }
+                                                                             }
+                                                               },
+                                     "scenarioNames":  [
+                                                           "background-photo-switching",
+                                                           "collapse",
+                                                           "collision-reflow",
+                                                           "drag-with-live-ghost",
+                                                           "edge-auto-scroll",
+                                                           "existing-playwright-suite",
+                                                           "grid-snap",
+                                                           "pin-protection",
+                                                           "recolor",
+                                                           "rename",
+                                                           "resize-snap",
+                                                           "save-reload-identical",
+                                                           "select-mode-multi-move",
+                                                           "select-mode-multi-resize"
+                                                       ]
+                                 }
+                 },
+                 {
+                     "run":  2,
+                     "hash":  "249162526f655116c84d0244e1547286175d230eec6e0b595c0729a6eed3e37d",
+                     "surface":  {
+                                     "resizeSnap":  {
+                                                        "background":  "frosted-light",
+                                                        "scrollY":  0,
+                                                        "customWidgets":  0,
+                                                        "spanBefore":  "2",
+                                                        "spanAfter":  "1"
+                                                    },
+                                     "dragLiveGhost":  {
+                                                           "background":  "frosted-light",
+                                                           "scrollY":  0,
+                                                           "customWidgets":  0,
+                                                           "moveBefore":  {
+                                                                              "col":  "5",
+                                                                              "row":  "4"
+                                                                          },
+                                                           "afterMove":  {
+                                                                             "col":  "3",
+                                                                             "row":  "5"
+                                                                         }
+                                                       },
+                                     "gridSnap":  {
+                                                      "background":  "frosted-light",
+                                                      "scrollY":  0,
+                                                      "customWidgets":  0,
+                                                      "moveBefore":  {
+                                                                         "col":  "5",
+                                                                         "row":  "4"
+                                                                     },
+                                                      "afterMove":  {
+                                                                        "col":  "3",
+                                                                        "row":  "5"
+                                                                    }
+                                                  },
+                                     "collisionReflow":  {
+                                                             "background":  "frosted-light",
+                                                             "scrollY":  0,
+                                                             "customWidgets":  0,
+                                                             "moveBefore":  {
+                                                                                "col":  "5",
+                                                                                "row":  "4"
+                                                                            },
+                                                             "afterMove":  {
+                                                                               "col":  "3",
+                                                                               "row":  "5"
+                                                                           }
+                                                         },
+                                     "panelPinToggle":  {
+                                                            "background":  "photo-earth",
+                                                            "scrollY":  0,
+                                                            "customWidgets":  1
+                                                        },
+                                     "saveReloadIdentical":  {
+                                                                 "background":  "photo-earth",
+                                                                 "scrollY":  0,
+                                                                 "customWidgets":  1
+                                                             },
+                                     "selectModeMultiResize":  {
+                                                                   "background":  "frosted-light",
+                                                                   "scrollY":  0,
+                                                                   "customWidgets":  0,
+                                                                   "before":  {
+                                                                                  "first":  {
+                                                                                                "span":  "2",
+                                                                                                "rows":  ""
+                                                                                            },
+                                                                                  "second":  {
+                                                                                                 "span":  "4",
+                                                                                                 "rows":  ""
+                                                                                             }
+                                                                              },
+                                                                   "after":  {
+                                                                                 "first":  {
+                                                                                               "span":  "2",
+                                                                                               "rows":  "5"
+                                                                                           },
+                                                                                 "second":  {
+                                                                                                "span":  "3",
+                                                                                                "rows":  "5"
+                                                                                            }
+                                                                             }
+                                                               },
+                                     "scenarioNames":  [
+                                                           "background-photo-switching",
+                                                           "collapse",
+                                                           "collision-reflow",
+                                                           "drag-with-live-ghost",
+                                                           "edge-auto-scroll",
+                                                           "existing-playwright-suite",
+                                                           "grid-snap",
+                                                           "pin-protection",
+                                                           "recolor",
+                                                           "rename",
+                                                           "resize-snap",
+                                                           "save-reload-identical",
+                                                           "select-mode-multi-move",
+                                                           "select-mode-multi-resize"
+                                                       ]
+                                 }
+                 },
+                 {
+                     "run":  3,
+                     "hash":  "249162526f655116c84d0244e1547286175d230eec6e0b595c0729a6eed3e37d",
+                     "surface":  {
+                                     "resizeSnap":  {
+                                                        "background":  "frosted-light",
+                                                        "scrollY":  0,
+                                                        "customWidgets":  0,
+                                                        "spanBefore":  "2",
+                                                        "spanAfter":  "1"
+                                                    },
+                                     "dragLiveGhost":  {
+                                                           "background":  "frosted-light",
+                                                           "scrollY":  0,
+                                                           "customWidgets":  0,
+                                                           "moveBefore":  {
+                                                                              "col":  "5",
+                                                                              "row":  "4"
+                                                                          },
+                                                           "afterMove":  {
+                                                                             "col":  "3",
+                                                                             "row":  "5"
+                                                                         }
+                                                       },
+                                     "gridSnap":  {
+                                                      "background":  "frosted-light",
+                                                      "scrollY":  0,
+                                                      "customWidgets":  0,
+                                                      "moveBefore":  {
+                                                                         "col":  "5",
+                                                                         "row":  "4"
+                                                                     },
+                                                      "afterMove":  {
+                                                                        "col":  "3",
+                                                                        "row":  "5"
+                                                                    }
+                                                  },
+                                     "collisionReflow":  {
+                                                             "background":  "frosted-light",
+                                                             "scrollY":  0,
+                                                             "customWidgets":  0,
+                                                             "moveBefore":  {
+                                                                                "col":  "5",
+                                                                                "row":  "4"
+                                                                            },
+                                                             "afterMove":  {
+                                                                               "col":  "3",
+                                                                               "row":  "5"
+                                                                           }
+                                                         },
+                                     "panelPinToggle":  {
+                                                            "background":  "photo-earth",
+                                                            "scrollY":  0,
+                                                            "customWidgets":  1
+                                                        },
+                                     "saveReloadIdentical":  {
+                                                                 "background":  "photo-earth",
+                                                                 "scrollY":  0,
+                                                                 "customWidgets":  1
+                                                             },
+                                     "selectModeMultiResize":  {
+                                                                   "background":  "frosted-light",
+                                                                   "scrollY":  0,
+                                                                   "customWidgets":  0,
+                                                                   "before":  {
+                                                                                  "first":  {
+                                                                                                "span":  "2",
+                                                                                                "rows":  ""
+                                                                                            },
+                                                                                  "second":  {
+                                                                                                 "span":  "4",
+                                                                                                 "rows":  ""
+                                                                                             }
+                                                                              },
+                                                                   "after":  {
+                                                                                 "first":  {
+                                                                                               "span":  "2",
+                                                                                               "rows":  "5"
+                                                                                           },
+                                                                                 "second":  {
+                                                                                                "span":  "3",
+                                                                                                "rows":  "5"
+                                                                                            }
+                                                                             }
+                                                               },
+                                     "scenarioNames":  [
+                                                           "background-photo-switching",
+                                                           "collapse",
+                                                           "collision-reflow",
+                                                           "drag-with-live-ghost",
+                                                           "edge-auto-scroll",
+                                                           "existing-playwright-suite",
+                                                           "grid-snap",
+                                                           "pin-protection",
+                                                           "recolor",
+                                                           "rename",
+                                                           "resize-snap",
+                                                           "save-reload-identical",
+                                                           "select-mode-multi-move",
+                                                           "select-mode-multi-resize"
+                                                       ]
+                                 }
+                 },
+                 {
+                     "run":  4,
+                     "hash":  "249162526f655116c84d0244e1547286175d230eec6e0b595c0729a6eed3e37d",
+                     "surface":  {
+                                     "resizeSnap":  {
+                                                        "background":  "frosted-light",
+                                                        "scrollY":  0,
+                                                        "customWidgets":  0,
+                                                        "spanBefore":  "2",
+                                                        "spanAfter":  "1"
+                                                    },
+                                     "dragLiveGhost":  {
+                                                           "background":  "frosted-light",
+                                                           "scrollY":  0,
+                                                           "customWidgets":  0,
+                                                           "moveBefore":  {
+                                                                              "col":  "5",
+                                                                              "row":  "4"
+                                                                          },
+                                                           "afterMove":  {
+                                                                             "col":  "3",
+                                                                             "row":  "5"
+                                                                         }
+                                                       },
+                                     "gridSnap":  {
+                                                      "background":  "frosted-light",
+                                                      "scrollY":  0,
+                                                      "customWidgets":  0,
+                                                      "moveBefore":  {
+                                                                         "col":  "5",
+                                                                         "row":  "4"
+                                                                     },
+                                                      "afterMove":  {
+                                                                        "col":  "3",
+                                                                        "row":  "5"
+                                                                    }
+                                                  },
+                                     "collisionReflow":  {
+                                                             "background":  "frosted-light",
+                                                             "scrollY":  0,
+                                                             "customWidgets":  0,
+                                                             "moveBefore":  {
+                                                                                "col":  "5",
+                                                                                "row":  "4"
+                                                                            },
+                                                             "afterMove":  {
+                                                                               "col":  "3",
+                                                                               "row":  "5"
+                                                                           }
+                                                         },
+                                     "panelPinToggle":  {
+                                                            "background":  "photo-earth",
+                                                            "scrollY":  0,
+                                                            "customWidgets":  1
+                                                        },
+                                     "saveReloadIdentical":  {
+                                                                 "background":  "photo-earth",
+                                                                 "scrollY":  0,
+                                                                 "customWidgets":  1
+                                                             },
+                                     "selectModeMultiResize":  {
+                                                                   "background":  "frosted-light",
+                                                                   "scrollY":  0,
+                                                                   "customWidgets":  0,
+                                                                   "before":  {
+                                                                                  "first":  {
+                                                                                                "span":  "2",
+                                                                                                "rows":  ""
+                                                                                            },
+                                                                                  "second":  {
+                                                                                                 "span":  "4",
+                                                                                                 "rows":  ""
+                                                                                             }
+                                                                              },
+                                                                   "after":  {
+                                                                                 "first":  {
+                                                                                               "span":  "2",
+                                                                                               "rows":  "5"
+                                                                                           },
+                                                                                 "second":  {
+                                                                                                "span":  "3",
+                                                                                                "rows":  "5"
+                                                                                            }
+                                                                             }
+                                                               },
+                                     "scenarioNames":  [
+                                                           "background-photo-switching",
+                                                           "collapse",
+                                                           "collision-reflow",
+                                                           "drag-with-live-ghost",
+                                                           "edge-auto-scroll",
+                                                           "existing-playwright-suite",
+                                                           "grid-snap",
+                                                           "pin-protection",
+                                                           "recolor",
+                                                           "rename",
+                                                           "resize-snap",
+                                                           "save-reload-identical",
+                                                           "select-mode-multi-move",
+                                                           "select-mode-multi-resize"
+                                                       ]
+                                 }
+                 },
+                 {
+                     "run":  5,
+                     "hash":  "249162526f655116c84d0244e1547286175d230eec6e0b595c0729a6eed3e37d",
+                     "surface":  {
+                                     "resizeSnap":  {
+                                                        "background":  "frosted-light",
+                                                        "scrollY":  0,
+                                                        "customWidgets":  0,
+                                                        "spanBefore":  "2",
+                                                        "spanAfter":  "1"
+                                                    },
+                                     "dragLiveGhost":  {
+                                                           "background":  "frosted-light",
+                                                           "scrollY":  0,
+                                                           "customWidgets":  0,
+                                                           "moveBefore":  {
+                                                                              "col":  "5",
+                                                                              "row":  "4"
+                                                                          },
+                                                           "afterMove":  {
+                                                                             "col":  "3",
+                                                                             "row":  "5"
+                                                                         }
+                                                       },
+                                     "gridSnap":  {
+                                                      "background":  "frosted-light",
+                                                      "scrollY":  0,
+                                                      "customWidgets":  0,
+                                                      "moveBefore":  {
+                                                                         "col":  "5",
+                                                                         "row":  "4"
+                                                                     },
+                                                      "afterMove":  {
+                                                                        "col":  "3",
+                                                                        "row":  "5"
+                                                                    }
+                                                  },
+                                     "collisionReflow":  {
+                                                             "background":  "frosted-light",
+                                                             "scrollY":  0,
+                                                             "customWidgets":  0,
+                                                             "moveBefore":  {
+                                                                                "col":  "5",
+                                                                                "row":  "4"
+                                                                            },
+                                                             "afterMove":  {
+                                                                               "col":  "3",
+                                                                               "row":  "5"
+                                                                           }
+                                                         },
+                                     "panelPinToggle":  {
+                                                            "background":  "photo-earth",
+                                                            "scrollY":  0,
+                                                            "customWidgets":  1
+                                                        },
+                                     "saveReloadIdentical":  {
+                                                                 "background":  "photo-earth",
+                                                                 "scrollY":  0,
+                                                                 "customWidgets":  1
+                                                             },
+                                     "selectModeMultiResize":  {
+                                                                   "background":  "frosted-light",
+                                                                   "scrollY":  0,
+                                                                   "customWidgets":  0,
+                                                                   "before":  {
+                                                                                  "first":  {
+                                                                                                "span":  "2",
+                                                                                                "rows":  ""
+                                                                                            },
+                                                                                  "second":  {
+                                                                                                 "span":  "4",
+                                                                                                 "rows":  ""
+                                                                                             }
+                                                                              },
+                                                                   "after":  {
+                                                                                 "first":  {
+                                                                                               "span":  "2",
+                                                                                               "rows":  "5"
+                                                                                           },
+                                                                                 "second":  {
+                                                                                                "span":  "3",
+                                                                                                "rows":  "5"
+                                                                                            }
+                                                                             }
+                                                               },
+                                     "scenarioNames":  [
+                                                           "background-photo-switching",
+                                                           "collapse",
+                                                           "collision-reflow",
+                                                           "drag-with-live-ghost",
+                                                           "edge-auto-scroll",
+                                                           "existing-playwright-suite",
+                                                           "grid-snap",
+                                                           "pin-protection",
+                                                           "recolor",
+                                                           "rename",
+                                                           "resize-snap",
+                                                           "save-reload-identical",
+                                                           "select-mode-multi-move",
+                                                           "select-mode-multi-resize"
+                                                       ]
+                                 }
+                 },
+                 {
+                     "run":  6,
+                     "hash":  "249162526f655116c84d0244e1547286175d230eec6e0b595c0729a6eed3e37d",
+                     "surface":  {
+                                     "resizeSnap":  {
+                                                        "background":  "frosted-light",
+                                                        "scrollY":  0,
+                                                        "customWidgets":  0,
+                                                        "spanBefore":  "2",
+                                                        "spanAfter":  "1"
+                                                    },
+                                     "dragLiveGhost":  {
+                                                           "background":  "frosted-light",
+                                                           "scrollY":  0,
+                                                           "customWidgets":  0,
+                                                           "moveBefore":  {
+                                                                              "col":  "5",
+                                                                              "row":  "4"
+                                                                          },
+                                                           "afterMove":  {
+                                                                             "col":  "3",
+                                                                             "row":  "5"
+                                                                         }
+                                                       },
+                                     "gridSnap":  {
+                                                      "background":  "frosted-light",
+                                                      "scrollY":  0,
+                                                      "customWidgets":  0,
+                                                      "moveBefore":  {
+                                                                         "col":  "5",
+                                                                         "row":  "4"
+                                                                     },
+                                                      "afterMove":  {
+                                                                        "col":  "3",
+                                                                        "row":  "5"
+                                                                    }
+                                                  },
+                                     "collisionReflow":  {
+                                                             "background":  "frosted-light",
+                                                             "scrollY":  0,
+                                                             "customWidgets":  0,
+                                                             "moveBefore":  {
+                                                                                "col":  "5",
+                                                                                "row":  "4"
+                                                                            },
+                                                             "afterMove":  {
+                                                                               "col":  "3",
+                                                                               "row":  "5"
+                                                                           }
+                                                         },
+                                     "panelPinToggle":  {
+                                                            "background":  "photo-earth",
+                                                            "scrollY":  0,
+                                                            "customWidgets":  1
+                                                        },
+                                     "saveReloadIdentical":  {
+                                                                 "background":  "photo-earth",
+                                                                 "scrollY":  0,
+                                                                 "customWidgets":  1
+                                                             },
+                                     "selectModeMultiResize":  {
+                                                                   "background":  "frosted-light",
+                                                                   "scrollY":  0,
+                                                                   "customWidgets":  0,
+                                                                   "before":  {
+                                                                                  "first":  {
+                                                                                                "span":  "2",
+                                                                                                "rows":  ""
+                                                                                            },
+                                                                                  "second":  {
+                                                                                                 "span":  "4",
+                                                                                                 "rows":  ""
+                                                                                             }
+                                                                              },
+                                                                   "after":  {
+                                                                                 "first":  {
+                                                                                               "span":  "2",
+                                                                                               "rows":  "5"
+                                                                                           },
+                                                                                 "second":  {
+                                                                                                "span":  "3",
+                                                                                                "rows":  "5"
+                                                                                            }
+                                                                             }
+                                                               },
+                                     "scenarioNames":  [
+                                                           "background-photo-switching",
+                                                           "collapse",
+                                                           "collision-reflow",
+                                                           "drag-with-live-ghost",
+                                                           "edge-auto-scroll",
+                                                           "existing-playwright-suite",
+                                                           "grid-snap",
+                                                           "pin-protection",
+                                                           "recolor",
+                                                           "rename",
+                                                           "resize-snap",
+                                                           "save-reload-identical",
+                                                           "select-mode-multi-move",
+                                                           "select-mode-multi-resize"
+                                                       ]
+                                 }
+                 },
+                 {
+                     "run":  7,
+                     "hash":  "249162526f655116c84d0244e1547286175d230eec6e0b595c0729a6eed3e37d",
+                     "surface":  {
+                                     "resizeSnap":  {
+                                                        "background":  "frosted-light",
+                                                        "scrollY":  0,
+                                                        "customWidgets":  0,
+                                                        "spanBefore":  "2",
+                                                        "spanAfter":  "1"
+                                                    },
+                                     "dragLiveGhost":  {
+                                                           "background":  "frosted-light",
+                                                           "scrollY":  0,
+                                                           "customWidgets":  0,
+                                                           "moveBefore":  {
+                                                                              "col":  "5",
+                                                                              "row":  "4"
+                                                                          },
+                                                           "afterMove":  {
+                                                                             "col":  "3",
+                                                                             "row":  "5"
+                                                                         }
+                                                       },
+                                     "gridSnap":  {
+                                                      "background":  "frosted-light",
+                                                      "scrollY":  0,
+                                                      "customWidgets":  0,
+                                                      "moveBefore":  {
+                                                                         "col":  "5",
+                                                                         "row":  "4"
+                                                                     },
+                                                      "afterMove":  {
+                                                                        "col":  "3",
+                                                                        "row":  "5"
+                                                                    }
+                                                  },
+                                     "collisionReflow":  {
+                                                             "background":  "frosted-light",
+                                                             "scrollY":  0,
+                                                             "customWidgets":  0,
+                                                             "moveBefore":  {
+                                                                                "col":  "5",
+                                                                                "row":  "4"
+                                                                            },
+                                                             "afterMove":  {
+                                                                               "col":  "3",
+                                                                               "row":  "5"
+                                                                           }
+                                                         },
+                                     "panelPinToggle":  {
+                                                            "background":  "photo-earth",
+                                                            "scrollY":  0,
+                                                            "customWidgets":  1
+                                                        },
+                                     "saveReloadIdentical":  {
+                                                                 "background":  "photo-earth",
+                                                                 "scrollY":  0,
+                                                                 "customWidgets":  1
+                                                             },
+                                     "selectModeMultiResize":  {
+                                                                   "background":  "frosted-light",
+                                                                   "scrollY":  0,
+                                                                   "customWidgets":  0,
+                                                                   "before":  {
+                                                                                  "first":  {
+                                                                                                "span":  "2",
+                                                                                                "rows":  ""
+                                                                                            },
+                                                                                  "second":  {
+                                                                                                 "span":  "4",
+                                                                                                 "rows":  ""
+                                                                                             }
+                                                                              },
+                                                                   "after":  {
+                                                                                 "first":  {
+                                                                                               "span":  "2",
+                                                                                               "rows":  "5"
+                                                                                           },
+                                                                                 "second":  {
+                                                                                                "span":  "3",
+                                                                                                "rows":  "5"
+                                                                                            }
+                                                                             }
+                                                               },
+                                     "scenarioNames":  [
+                                                           "background-photo-switching",
+                                                           "collapse",
+                                                           "collision-reflow",
+                                                           "drag-with-live-ghost",
+                                                           "edge-auto-scroll",
+                                                           "existing-playwright-suite",
+                                                           "grid-snap",
+                                                           "pin-protection",
+                                                           "recolor",
+                                                           "rename",
+                                                           "resize-snap",
+                                                           "save-reload-identical",
+                                                           "select-mode-multi-move",
+                                                           "select-mode-multi-resize"
+                                                       ]
+                                 }
+                 },
+                 {
+                     "run":  8,
+                     "hash":  "249162526f655116c84d0244e1547286175d230eec6e0b595c0729a6eed3e37d",
+                     "surface":  {
+                                     "resizeSnap":  {
+                                                        "background":  "frosted-light",
+                                                        "scrollY":  0,
+                                                        "customWidgets":  0,
+                                                        "spanBefore":  "2",
+                                                        "spanAfter":  "1"
+                                                    },
+                                     "dragLiveGhost":  {
+                                                           "background":  "frosted-light",
+                                                           "scrollY":  0,
+                                                           "customWidgets":  0,
+                                                           "moveBefore":  {
+                                                                              "col":  "5",
+                                                                              "row":  "4"
+                                                                          },
+                                                           "afterMove":  {
+                                                                             "col":  "3",
+                                                                             "row":  "5"
+                                                                         }
+                                                       },
+                                     "gridSnap":  {
+                                                      "background":  "frosted-light",
+                                                      "scrollY":  0,
+                                                      "customWidgets":  0,
+                                                      "moveBefore":  {
+                                                                         "col":  "5",
+                                                                         "row":  "4"
+                                                                     },
+                                                      "afterMove":  {
+                                                                        "col":  "3",
+                                                                        "row":  "5"
+                                                                    }
+                                                  },
+                                     "collisionReflow":  {
+                                                             "background":  "frosted-light",
+                                                             "scrollY":  0,
+                                                             "customWidgets":  0,
+                                                             "moveBefore":  {
+                                                                                "col":  "5",
+                                                                                "row":  "4"
+                                                                            },
+                                                             "afterMove":  {
+                                                                               "col":  "3",
+                                                                               "row":  "5"
+                                                                           }
+                                                         },
+                                     "panelPinToggle":  {
+                                                            "background":  "photo-earth",
+                                                            "scrollY":  0,
+                                                            "customWidgets":  1
+                                                        },
+                                     "saveReloadIdentical":  {
+                                                                 "background":  "photo-earth",
+                                                                 "scrollY":  0,
+                                                                 "customWidgets":  1
+                                                             },
+                                     "selectModeMultiResize":  {
+                                                                   "background":  "frosted-light",
+                                                                   "scrollY":  0,
+                                                                   "customWidgets":  0,
+                                                                   "before":  {
+                                                                                  "first":  {
+                                                                                                "span":  "2",
+                                                                                                "rows":  ""
+                                                                                            },
+                                                                                  "second":  {
+                                                                                                 "span":  "4",
+                                                                                                 "rows":  ""
+                                                                                             }
+                                                                              },
+                                                                   "after":  {
+                                                                                 "first":  {
+                                                                                               "span":  "2",
+                                                                                               "rows":  "5"
+                                                                                           },
+                                                                                 "second":  {
+                                                                                                "span":  "3",
+                                                                                                "rows":  "5"
+                                                                                            }
+                                                                             }
+                                                               },
+                                     "scenarioNames":  [
+                                                           "background-photo-switching",
+                                                           "collapse",
+                                                           "collision-reflow",
+                                                           "drag-with-live-ghost",
+                                                           "edge-auto-scroll",
+                                                           "existing-playwright-suite",
+                                                           "grid-snap",
+                                                           "pin-protection",
+                                                           "recolor",
+                                                           "rename",
+                                                           "resize-snap",
+                                                           "save-reload-identical",
+                                                           "select-mode-multi-move",
+                                                           "select-mode-multi-resize"
+                                                       ]
+                                 }
+                 },
+                 {
+                     "run":  9,
+                     "hash":  "249162526f655116c84d0244e1547286175d230eec6e0b595c0729a6eed3e37d",
+                     "surface":  {
+                                     "resizeSnap":  {
+                                                        "background":  "frosted-light",
+                                                        "scrollY":  0,
+                                                        "customWidgets":  0,
+                                                        "spanBefore":  "2",
+                                                        "spanAfter":  "1"
+                                                    },
+                                     "dragLiveGhost":  {
+                                                           "background":  "frosted-light",
+                                                           "scrollY":  0,
+                                                           "customWidgets":  0,
+                                                           "moveBefore":  {
+                                                                              "col":  "5",
+                                                                              "row":  "4"
+                                                                          },
+                                                           "afterMove":  {
+                                                                             "col":  "3",
+                                                                             "row":  "5"
+                                                                         }
+                                                       },
+                                     "gridSnap":  {
+                                                      "background":  "frosted-light",
+                                                      "scrollY":  0,
+                                                      "customWidgets":  0,
+                                                      "moveBefore":  {
+                                                                         "col":  "5",
+                                                                         "row":  "4"
+                                                                     },
+                                                      "afterMove":  {
+                                                                        "col":  "3",
+                                                                        "row":  "5"
+                                                                    }
+                                                  },
+                                     "collisionReflow":  {
+                                                             "background":  "frosted-light",
+                                                             "scrollY":  0,
+                                                             "customWidgets":  0,
+                                                             "moveBefore":  {
+                                                                                "col":  "5",
+                                                                                "row":  "4"
+                                                                            },
+                                                             "afterMove":  {
+                                                                               "col":  "3",
+                                                                               "row":  "5"
+                                                                           }
+                                                         },
+                                     "panelPinToggle":  {
+                                                            "background":  "photo-earth",
+                                                            "scrollY":  0,
+                                                            "customWidgets":  1
+                                                        },
+                                     "saveReloadIdentical":  {
+                                                                 "background":  "photo-earth",
+                                                                 "scrollY":  0,
+                                                                 "customWidgets":  1
+                                                             },
+                                     "selectModeMultiResize":  {
+                                                                   "background":  "frosted-light",
+                                                                   "scrollY":  0,
+                                                                   "customWidgets":  0,
+                                                                   "before":  {
+                                                                                  "first":  {
+                                                                                                "span":  "2",
+                                                                                                "rows":  ""
+                                                                                            },
+                                                                                  "second":  {
+                                                                                                 "span":  "4",
+                                                                                                 "rows":  ""
+                                                                                             }
+                                                                              },
+                                                                   "after":  {
+                                                                                 "first":  {
+                                                                                               "span":  "2",
+                                                                                               "rows":  "5"
+                                                                                           },
+                                                                                 "second":  {
+                                                                                                "span":  "3",
+                                                                                                "rows":  "5"
+                                                                                            }
+                                                                             }
+                                                               },
+                                     "scenarioNames":  [
+                                                           "background-photo-switching",
+                                                           "collapse",
+                                                           "collision-reflow",
+                                                           "drag-with-live-ghost",
+                                                           "edge-auto-scroll",
+                                                           "existing-playwright-suite",
+                                                           "grid-snap",
+                                                           "pin-protection",
+                                                           "recolor",
+                                                           "rename",
+                                                           "resize-snap",
+                                                           "save-reload-identical",
+                                                           "select-mode-multi-move",
+                                                           "select-mode-multi-resize"
+                                                       ]
+                                 }
+                 },
+                 {
+                     "run":  10,
+                     "hash":  "249162526f655116c84d0244e1547286175d230eec6e0b595c0729a6eed3e37d",
+                     "surface":  {
+                                     "resizeSnap":  {
+                                                        "background":  "frosted-light",
+                                                        "scrollY":  0,
+                                                        "customWidgets":  0,
+                                                        "spanBefore":  "2",
+                                                        "spanAfter":  "1"
+                                                    },
+                                     "dragLiveGhost":  {
+                                                           "background":  "frosted-light",
+                                                           "scrollY":  0,
+                                                           "customWidgets":  0,
+                                                           "moveBefore":  {
+                                                                              "col":  "5",
+                                                                              "row":  "4"
+                                                                          },
+                                                           "afterMove":  {
+                                                                             "col":  "3",
+                                                                             "row":  "5"
+                                                                         }
+                                                       },
+                                     "gridSnap":  {
+                                                      "background":  "frosted-light",
+                                                      "scrollY":  0,
+                                                      "customWidgets":  0,
+                                                      "moveBefore":  {
+                                                                         "col":  "5",
+                                                                         "row":  "4"
+                                                                     },
+                                                      "afterMove":  {
+                                                                        "col":  "3",
+                                                                        "row":  "5"
+                                                                    }
+                                                  },
+                                     "collisionReflow":  {
+                                                             "background":  "frosted-light",
+                                                             "scrollY":  0,
+                                                             "customWidgets":  0,
+                                                             "moveBefore":  {
+                                                                                "col":  "5",
+                                                                                "row":  "4"
+                                                                            },
+                                                             "afterMove":  {
+                                                                               "col":  "3",
+                                                                               "row":  "5"
+                                                                           }
+                                                         },
+                                     "panelPinToggle":  {
+                                                            "background":  "photo-earth",
+                                                            "scrollY":  0,
+                                                            "customWidgets":  1
+                                                        },
+                                     "saveReloadIdentical":  {
+                                                                 "background":  "photo-earth",
+                                                                 "scrollY":  0,
+                                                                 "customWidgets":  1
+                                                             },
+                                     "selectModeMultiResize":  {
+                                                                   "background":  "frosted-light",
+                                                                   "scrollY":  0,
+                                                                   "customWidgets":  0,
+                                                                   "before":  {
+                                                                                  "first":  {
+                                                                                                "span":  "2",
+                                                                                                "rows":  ""
+                                                                                            },
+                                                                                  "second":  {
+                                                                                                 "span":  "4",
+                                                                                                 "rows":  ""
+                                                                                             }
+                                                                              },
+                                                                   "after":  {
+                                                                                 "first":  {
+                                                                                               "span":  "2",
+                                                                                               "rows":  "5"
+                                                                                           },
+                                                                                 "second":  {
+                                                                                                "span":  "3",
+                                                                                                "rows":  "5"
+                                                                                            }
+                                                                             }
+                                                               },
+                                     "scenarioNames":  [
+                                                           "background-photo-switching",
+                                                           "collapse",
+                                                           "collision-reflow",
+                                                           "drag-with-live-ghost",
+                                                           "edge-auto-scroll",
+                                                           "existing-playwright-suite",
+                                                           "grid-snap",
+                                                           "pin-protection",
+                                                           "recolor",
+                                                           "rename",
+                                                           "resize-snap",
+                                                           "save-reload-identical",
+                                                           "select-mode-multi-move",
+                                                           "select-mode-multi-resize"
+                                                       ]
+                                 }
+                 }
+             ],
+    "note":  "Post-widget primitive rewire canary determinism."
+}

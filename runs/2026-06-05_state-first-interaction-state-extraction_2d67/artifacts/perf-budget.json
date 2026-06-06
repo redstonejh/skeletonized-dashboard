@@ -1,0 +1,31 @@
+{
+  "check": "refactor_perf_budget",
+  "passed": true,
+  "status": "passed",
+  "budget_surface": "npm.cmd run test:e2e -- --workers=1 wall time",
+  "pre_edit_hardened_10x_seconds": [
+    7.65,
+    7.6,
+    7.71,
+    7.53,
+    7.57,
+    7.54,
+    7.55,
+    7.64,
+    7.69,
+    7.53
+  ],
+  "post_edit_10x_seconds": [
+    7.54,
+    7.57,
+    7.5,
+    7.44,
+    7.41,
+    7.45,
+    7.61,
+    7.67,
+    7.53,
+    7.64
+  ],
+  "note": "No clear regression; post-edit run times are in the same range as the hardened pre-edit canary loop."
+}

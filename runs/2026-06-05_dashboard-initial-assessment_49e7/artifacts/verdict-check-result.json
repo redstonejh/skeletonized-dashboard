@@ -1,0 +1,23 @@
+{
+  "anti_gaming": {
+    "applicable": false,
+    "check": "anti_gaming_hard_gates",
+    "passed": true,
+    "reason": "no anti-gaming evaluation protocol",
+    "violations": []
+  },
+  "artifact": "C:\\Users\\redst\\OneDrive\\Documents\\skeletonized-dashboard\\runs\\2026-06-05_dashboard-initial-assessment_49e7\\artifacts\\acceptance-result.json",
+  "artifact_verdict": "SHIP",
+  "check": "final_verdict_matches_acceptance_artifact",
+  "passed": true,
+  "run": "C:\\Users\\redst\\OneDrive\\Documents\\skeletonized-dashboard\\runs\\2026-06-05_dashboard-initial-assessment_49e7",
+  "run_verdict": "SHIP",
+  "salvage_gates": {
+    "applicable": false,
+    "check": "salvage_hard_gates",
+    "passed": true,
+    "reason": "no salvage preserved-surface artifacts",
+    "violations": []
+  },
+  "violations": []
+}

@@ -1,0 +1,14 @@
+﻿[
+    {
+        "capture":  "a",
+        "exit_code":  0,
+        "elapsed_seconds":  7.72,
+        "artifact":  "runs\\2026-06-05_state-first-interaction-state-extraction_2d67\\artifacts\\behavior-baseline-captures\\baseline-a.json"
+    },
+    {
+        "capture":  "b",
+        "exit_code":  0,
+        "elapsed_seconds":  7.67,
+        "artifact":  "runs\\2026-06-05_state-first-interaction-state-extraction_2d67\\artifacts\\behavior-baseline-captures\\baseline-b.json"
+    }
+]

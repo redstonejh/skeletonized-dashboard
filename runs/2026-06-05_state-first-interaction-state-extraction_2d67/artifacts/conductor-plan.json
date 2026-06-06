@@ -1,0 +1,41 @@
+{
+  "task_summary": "State-first increment: extract shared mutable interaction/session geometry state from app/static/app.js into app/static/modules/interaction-state.js without moving behavior bodies.",
+  "task_type": "refactor",
+  "checklist_path": ".codex/checklists/refactor.md",
+  "roles": [
+    "conductor",
+    "planner",
+    "worker",
+    "critic",
+    "acceptance_gate"
+  ],
+  "caps": {
+    "max_agents": 5,
+    "max_parallel": 3,
+    "max_iters": 3
+  },
+  "parallel_roles": [],
+  "role_justifications": {},
+  "orchestration_pattern": "Sequential core MAW run with hard pre-edit target-discovery and parity-oracle gates.",
+  "quality_bar": "Only state ownership moves. No ordered-drag-runtime, widget-layout-lifecycle, panel-layout-lifecycle, group-resize-runtime, conditional-style-runtime, widget-runtime-meaning-hydration, panel-core-primitives, ordered-grid-items-runtime, widget-primitive-runtime, widget-content-runtime, or mixed-context-query-compatibility behavior-body extraction.",
+  "deterministic_checks": [
+    "Target discovery: app/static/app.js exists and package.json has scripts.test:e2e",
+    "python maw.py code-graph app/static/app.js --lang js --output runs/2026-06-05_state-first-interaction-state-extraction_2d67/artifacts/code-graph.json",
+    "Resize-snap and panel-pin-toggle canaries 10x before source edits",
+    "Two matching pre-edit behavior-baseline captures",
+    "npm.cmd run test:e2e",
+    "Resize-snap and panel-pin-toggle canaries 10x after source edits",
+    "api-surface-diff.json, refactor-structure.json, refactor-coverage.json, complexity-report.json, perf-budget.json, refactor-resistance.json",
+    "python maw-tools/validate_handoffs.py runs/2026-06-05_state-first-interaction-state-extraction_2d67",
+    "python maw-tools/verdict_check.py runs/2026-06-05_state-first-interaction-state-extraction_2d67"
+  ],
+  "acceptance_criteria": [
+    "app/static/app.js line count strictly decreases from 5270 lines.",
+    "app/static/modules/interaction-state.js exposes explicit stable API for movedDuringPointer, suppressHeaderToggleUntil, toolsCloseTimer, closeTimer, toolPointerCapture, and resize/session geometry snapshots.",
+    "Drag/resize/pin/collision code remains in app/static/app.js and reads/writes moved state through the new API.",
+    "Behavior-baseline.json, api-surface-diff.json, and refactor-resistance.json pass.",
+    "Canaries and npm.cmd run test:e2e are green.",
+    "Init order is preserved or explicitly proven independent.",
+    "Electron versions are not changed; npm audit advisory remains deferred."
+  ]
+}

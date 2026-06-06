@@ -1,0 +1,21 @@
+{
+  "check": "refactor_coverage",
+  "passed": true,
+  "coverage_source": "Playwright e2e canary suite plus pre/post interaction artifacts",
+  "changed_files": [
+    "app/static/app.js",
+    "app/static/modules/interaction-state.js",
+    "electron-tests/dashboard-electron.spec.js",
+    "AGENTS.md",
+    "package.json",
+    "package-lock.json"
+  ],
+  "exercised_surfaces": [
+    "panel tool open/close/pin controls",
+    "widget tool open/add/save flow",
+    "panel resize snap",
+    "panel drag/grid snap/collision reflow",
+    "save reload persistence"
+  ],
+  "caveat": "Line-level JS coverage is not emitted by the Electron Playwright harness; this artifact maps changed state API lines to the exercised behavior canaries instead."
+}

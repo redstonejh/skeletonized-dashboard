@@ -1,0 +1,26 @@
+{
+    "passed":  true,
+    "mutations":  [
+                      {
+                          "mutation":  "panel-resize-binding-applyPanelSpan-noop",
+                          "exitCode":  1,
+                          "caught":  true
+                      },
+                      {
+                          "mutation":  "widget-resize-binding-applyWidgetSpan-noop",
+                          "exitCode":  1,
+                          "caught":  true
+                      },
+                      {
+                          "mutation":  "widget-init-ensureTools-noop",
+                          "exitCode":  1,
+                          "caught":  true
+                      },
+                      {
+                          "mutation":  "widget-runtime-ensureTools-noop",
+                          "exitCode":  1,
+                          "caught":  true
+                      }
+                  ],
+    "note":  "Panel and widget primitive planted mutations were all caught."
+}

@@ -1,0 +1,12 @@
+{
+    "passed":  false,
+    "proven_behaviors":  [
+                             "drag commit",
+                             "live ghost",
+                             "collision/reflow reversible preview",
+                             "edge-auto-scroll"
+                         ],
+    "untestable_behavior":  "panel entry/exit absorption",
+    "reason":  "The attempted widget-to-panel entry gesture did not deterministically reach the product preview state .panel-container-drag-active before release. Per Phase 0 gate, no 4a/4b product split was attempted.",
+    "suite_after_reverting_absorption":  "phase0-partial-clean.log"
+}

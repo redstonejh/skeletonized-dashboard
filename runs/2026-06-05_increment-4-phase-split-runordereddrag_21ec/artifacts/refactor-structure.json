@@ -1,0 +1,6 @@
+{
+  "gate": "refactor-structure",
+  "passed": false,
+  "status": "not_attempted",
+  "reason": "The Phase 0 hard gate failed before 4a/4b. runOrderedDrag remains in app.js and app.js line count did not materially decrease."
+}

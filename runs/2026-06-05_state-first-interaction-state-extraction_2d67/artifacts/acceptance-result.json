@@ -1,0 +1,26 @@
+{
+  "verdict": "SHIP",
+  "task_type": "refactor",
+  "checklist_path": ".codex/checklists/refactor.md",
+  "summary": "State ownership for shared interaction/tool/session geometry moved into app/static/modules/interaction-state.js without moving behavior bodies. Required canaries and behavior diff pass.",
+  "checks": {
+    "target_discovery": "PASS",
+    "plan_check": "PASS",
+    "plan_review": "APPROVE",
+    "code_graph": "PASS",
+    "pre_edit_canary_10x": "PASS",
+    "behavior_baseline_two_capture_match": "PASS",
+    "app_js_line_count_decreased": "PASS",
+    "npm_cmd_run_test_e2e": "PASS",
+    "post_edit_canary_10x": "PASS",
+    "behavior_diff": "PASS",
+    "api_surface_diff": "PASS",
+    "refactor_structure": "PASS",
+    "refactor_coverage": "PASS",
+    "complexity_report": "PASS",
+    "perf_budget": "PASS",
+    "refactor_resistance": "PASS",
+    "init_order": "PASS_PRESERVED_IMPORT_ORDER_AND_E2E",
+    "electron_upgrade": "NOT_TOUCHED_DEFERRED_ADVISORY"
+  }
+}

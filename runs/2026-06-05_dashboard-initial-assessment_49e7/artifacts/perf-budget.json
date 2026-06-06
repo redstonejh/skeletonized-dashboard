@@ -1,0 +1,10 @@
+{
+  "schema_version": 1,
+  "check": "refactor_perf_budget",
+  "status": "passed",
+  "passed": true,
+  "probes": [],
+  "violations": [],
+  "reason": "No performance-affecting source change was made.",
+  "existing_perf_artifacts": "Repository has prior perf artifacts under artifacts/."
+}

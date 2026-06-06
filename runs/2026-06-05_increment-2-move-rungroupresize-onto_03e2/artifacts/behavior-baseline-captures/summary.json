@@ -1,0 +1,14 @@
+﻿[
+    {
+        "capture":  "a",
+        "exit_code":  0,
+        "elapsed_seconds":  9.48,
+        "artifact":  "runs\\2026-06-05_increment-2-move-rungroupresize-onto_03e2\\artifacts\\behavior-baseline-captures\\baseline-a.json"
+    },
+    {
+        "capture":  "b",
+        "exit_code":  0,
+        "elapsed_seconds":  9.38,
+        "artifact":  "runs\\2026-06-05_increment-2-move-rungroupresize-onto_03e2\\artifacts\\behavior-baseline-captures\\baseline-b.json"
+    }
+]

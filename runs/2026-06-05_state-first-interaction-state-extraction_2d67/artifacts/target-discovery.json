@@ -1,0 +1,7 @@
+{
+  "passed": true,
+  "target_exists": true,
+  "test_e2e_script": "playwright test electron-tests/dashboard-electron.spec.js",
+  "run_root": "runs",
+  "maw_target_repo": "C:\\Users\\redst\\OneDrive\\Documents\\skeletonized-dashboard"
+}

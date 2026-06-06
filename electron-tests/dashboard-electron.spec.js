@@ -61,6 +61,48 @@ async function dispatchPointerDrag(page, fromX, fromY, toX, toY, steps = 60) {
   }, { fromX, fromY, toX, toY, steps });
 }
 
+async function dispatchPointerDragUntilMove(page, fromX, fromY, toX, toY, steps = 60) {
+  await page.evaluate(({ fromX, fromY, toX, toY, steps }) => {
+    const eventInit = (x, y, type) => ({
+      bubbles: true,
+      cancelable: true,
+      composed: true,
+      button: type === "pointerup" || type === "pointercancel" ? 0 : 0,
+      buttons: type === "pointerup" || type === "pointercancel" ? 0 : 1,
+      clientX: x,
+      clientY: y,
+      pointerId: 1,
+      pointerType: "mouse",
+      isPrimary: true,
+    });
+    const target = document.elementFromPoint(fromX, fromY);
+    target?.dispatchEvent(new PointerEvent("pointerdown", eventInit(fromX, fromY, "pointerdown")));
+    for (let index = 1; index <= steps; index += 1) {
+      const progress = index / steps;
+      const x = fromX + ((toX - fromX) * progress);
+      const y = fromY + ((toY - fromY) * progress);
+      document.dispatchEvent(new PointerEvent("pointermove", eventInit(x, y, "pointermove")));
+    }
+  }, { fromX, fromY, toX, toY, steps });
+}
+
+async function finishPointerDrag(page, x, y, type = "pointerup") {
+  await page.evaluate(({ x, y, type }) => {
+    document.dispatchEvent(new PointerEvent(type, {
+      bubbles: true,
+      cancelable: true,
+      composed: true,
+      button: 0,
+      buttons: 0,
+      clientX: x,
+      clientY: y,
+      pointerId: 1,
+      pointerType: "mouse",
+      isPrimary: true,
+    }));
+  }, { x, y, type });
+}
+
 async function addTextWidget(page) {
   await page.locator(".panel-add-button").click({ force: true });
   const menu = page.locator(".panel-add-menu");
@@ -218,7 +260,14 @@ test("electron GUI keeps drag and resize handlers active", async () => {
   const resizeStartX = resizeBox.x + resizeBox.width / 2;
   const resizeStartY = resizeBox.y + resizeBox.height / 2;
   await dispatchPointerDrag(page, resizeStartX, resizeStartY, resizeBox.x - 220, resizeBox.y + 240);
-  await page.waitForTimeout(500);
+  await page.waitForFunction(
+    ({ selector, previousSpan }) => {
+      const node = document.querySelector(selector);
+      const span = node?.dataset.currentSpan || node?.dataset.defaultSpan;
+      return Boolean(span && span !== previousSpan);
+    },
+    { selector: '.panel-layout > .db-panel[data-panel-key="builder-notes"]', previousSpan: before.span }
+  );
 
   const afterResize = await panel.evaluate((node) => node.dataset.currentSpan || node.dataset.defaultSpan);
   expect(afterResize).not.toBe(before.span);
@@ -237,7 +286,16 @@ test("electron GUI keeps drag and resize handlers active", async () => {
   const moveStartX = box.x + box.width / 2;
   const moveStartY = box.y + box.height / 2;
   await dispatchPointerDrag(page, moveStartX, moveStartY, box.x - 320, box.y + 220);
-  await page.waitForTimeout(500);
+  await page.waitForFunction(
+    ({ selector, previous }) => {
+      const node = document.querySelector(selector);
+      if (!node) return false;
+      const col = node.dataset.gridCol || node.dataset.defaultGridCol;
+      const row = node.dataset.gridRow || node.dataset.defaultGridRow;
+      return col !== previous.col || row !== previous.row;
+    },
+    { selector: '.panel-layout > .db-panel[data-panel-key="builder-notes"]', previous: moveBefore }
+  );
 
   const afterMove = await movePanel.evaluate((node) => ({
     col: node.dataset.gridCol || node.dataset.defaultGridCol,
@@ -252,5 +310,222 @@ test("electron GUI keeps drag and resize handlers active", async () => {
     "edge-auto-scroll",
   ], { moveBefore, afterMove });
 
+  await closeApp(app);
+});
+
+test("electron GUI keeps select-mode multi-resize deterministic", async () => {
+  const { app, page } = await launchApp();
+  const firstSelector = '.panel-layout > .db-panel[data-panel-key="builder-notes"]';
+  const secondSelector = '.panel-layout > .db-panel[data-panel-key="builder-content"]';
+
+  await page.locator(".layout-group-button").click({ force: true });
+  await expect(page.locator(".layout-group-button")).toHaveAttribute("aria-pressed", "true");
+  await page.locator(firstSelector).click({ force: true });
+  await page.locator(secondSelector).click({ force: true });
+  await expect(page.locator(firstSelector)).toHaveAttribute("aria-selected", "true");
+  await expect(page.locator(secondSelector)).toHaveAttribute("aria-selected", "true");
+
+  const source = await openTools(page, firstSelector);
+  const before = await page.evaluate(({ firstSelector, secondSelector }) => {
+    const snapshot = (selector) => {
+      const node = document.querySelector(selector);
+      return {
+        span: node?.dataset.currentSpan || node?.dataset.defaultSpan || "",
+        rows: node?.dataset.gridRowSpan || node?.dataset.defaultRows || "",
+      };
+    };
+    return {
+      first: snapshot(firstSelector),
+      second: snapshot(secondSelector),
+    };
+  }, { firstSelector, secondSelector });
+
+  const resize = source.locator(".panel-resize-handle");
+  const box = await resize.boundingBox();
+  expect(box).toBeTruthy();
+  const startX = box.x + box.width / 2;
+  const startY = box.y + box.height / 2;
+  await dispatchPointerDrag(page, startX, startY, box.x - 220, box.y + 240);
+  await page.waitForFunction(
+    ({ firstSelector, secondSelector, before }) => {
+      const snapshot = (selector) => {
+        const node = document.querySelector(selector);
+        return {
+          span: node?.dataset.currentSpan || node?.dataset.defaultSpan || "",
+          rows: node?.dataset.gridRowSpan || node?.dataset.defaultRows || "",
+        };
+      };
+      const first = snapshot(firstSelector);
+      const second = snapshot(secondSelector);
+      const firstChanged = first.span !== before.first.span || first.rows !== before.first.rows;
+      const secondChanged = second.span !== before.second.span || second.rows !== before.second.rows;
+      return firstChanged && secondChanged;
+    },
+    { firstSelector, secondSelector, before }
+  );
+
+  const after = await page.evaluate(({ firstSelector, secondSelector }) => {
+    const snapshot = (selector) => {
+      const node = document.querySelector(selector);
+      return {
+        span: node?.dataset.currentSpan || node?.dataset.defaultSpan || "",
+        rows: node?.dataset.gridRowSpan || node?.dataset.defaultRows || "",
+      };
+    };
+    return {
+      first: snapshot(firstSelector),
+      second: snapshot(secondSelector),
+    };
+  }, { firstSelector, secondSelector });
+  expect(after.first).not.toEqual(before.first);
+  expect(after.second).not.toEqual(before.second);
+  await writeInteractionScenarios(page, ["select-mode-multi-resize"], { before, after });
+  await closeApp(app);
+});
+
+test("electron GUI keeps widget resize-snap deterministic", async () => {
+  const { app, page } = await launchApp();
+  const selector = '.widget-layout > .widget-card[data-widget-key="widget-1"]';
+  const widget = await openTools(page, selector);
+  const before = await widget.evaluate((node) => ({
+    span: node.dataset.currentSpan || node.dataset.defaultSpan || "",
+    rows: node.dataset.gridRowSpan || node.dataset.defaultRows || "",
+  }));
+
+  const resize = widget.locator(":scope > .widget-tools .panel-resize-handle");
+  await expect(resize).toBeVisible();
+  const box = await resize.boundingBox();
+  expect(box).toBeTruthy();
+  const startX = box.x + box.width / 2;
+  const startY = box.y + box.height / 2;
+  await dispatchPointerDrag(page, startX, startY, box.x + 260, box.y + 220);
+  await page.waitForFunction(
+    ({ selector, before }) => {
+      const node = document.querySelector(selector);
+      if (!node) return false;
+      const span = node.dataset.currentSpan || node.dataset.defaultSpan || "";
+      return span !== before.span;
+    },
+    { selector, before }
+  );
+
+  const after = await widget.evaluate((node) => ({
+    span: node.dataset.currentSpan || node.dataset.defaultSpan || "",
+    rows: node.dataset.gridRowSpan || node.dataset.defaultRows || "",
+  }));
+  expect(after.span).not.toBe(before.span);
+  await writeInteractionScenarios(page, ["widget-resize-snap"], { before, after });
+  await closeApp(app);
+});
+
+test("electron GUI restores widget tools through init", async () => {
+  const { app, page } = await launchApp();
+  const selector = '.widget-layout > .widget-card[data-widget-key="widget-1"]';
+  await page.evaluate((selector) => {
+    const widget = document.querySelector(selector);
+    widget?.querySelector(":scope > .widget-tools")?.remove();
+    if (widget) widget.dataset.widgetInitialized = "false";
+    widget?.closest(".widget-layout")?.__initWidget?.(widget);
+  }, selector);
+
+  await expect(page.locator(`${selector} > .widget-tools .panel-tool-drawer`)).toHaveCount(1);
+  const widget = await openTools(page, selector);
+  await expect(widget.locator(":scope > .widget-tools .panel-pin-toggle")).toBeVisible();
+  const pin = widget.locator(":scope > .widget-tools .panel-pin-toggle");
+  const before = await pin.getAttribute("aria-pressed");
+  await pin.click({ force: true });
+  await expect(pin).not.toHaveAttribute("aria-pressed", before || "");
+  const after = await pin.getAttribute("aria-pressed");
+  await writeInteractionScenarios(page, ["widget-tools-init"], { before, after });
+  await closeApp(app);
+});
+
+test("electron GUI keeps ordered drag commit, ghost, collision, and edge scroll deterministic", async () => {
+  const { app, page } = await launchApp();
+  const selector = '.panel-layout > .db-panel[data-panel-key="builder-notes"]';
+  const panel = await openTools(page, selector);
+  const before = await panel.evaluate((node) => ({
+    col: node.dataset.gridCol || node.dataset.defaultGridCol || "",
+    row: node.dataset.gridRow || node.dataset.defaultGridRow || "",
+  }));
+  const move = panel.locator(".panel-move-handle");
+  const box = await move.boundingBox();
+  expect(box).toBeTruthy();
+  const startX = box.x + box.width / 2;
+  const startY = box.y + box.height / 2;
+  const endX = box.x - 320;
+  const endY = box.y + 220;
+
+  await dispatchPointerDragUntilMove(page, startX, startY, endX, endY);
+  await page.waitForFunction(() => Boolean(document.querySelector(".db-panel-dragging, .widget-dragging")));
+  const live = await page.evaluate((selector) => {
+    const source = document.querySelector(selector);
+    const movingItems = document.querySelectorAll(".db-panel-dragging, .widget-dragging").length;
+    const placeholders = document.querySelectorAll(".db-panel-placeholder, .widget-placeholder").length;
+    const neighbors = [...document.querySelectorAll(".panel-layout > .db-panel:not([hidden])")]
+      .filter((node) => node !== source)
+      .map((node) => ({
+        key: node.dataset.panelKey || "",
+        col: node.dataset.gridCol || node.dataset.defaultGridCol || "",
+        row: node.dataset.gridRow || node.dataset.defaultGridRow || "",
+      }));
+    return { movingItems, placeholders, neighbors };
+  }, selector);
+  expect(live.movingItems).toBeGreaterThan(0);
+  expect(live.placeholders).toBeGreaterThan(0);
+  expect(live.neighbors.some((entry) => entry.key && (entry.col !== "5" || entry.row !== "3"))).toBeTruthy();
+  await finishPointerDrag(page, endX, endY, "pointercancel");
+  await page.waitForFunction(() => !document.querySelector(".db-panel-dragging, .widget-dragging, .db-panel-placeholder, .widget-placeholder"));
+  const afterCancel = await panel.evaluate((node) => ({
+    col: node.dataset.gridCol || node.dataset.defaultGridCol || "",
+    row: node.dataset.gridRow || node.dataset.defaultGridRow || "",
+  }));
+  expect(afterCancel).toEqual(before);
+
+  await page.reload();
+  await page.waitForSelector(".dashboard-layout-grid");
+  const commitPanel = await openTools(page, selector);
+  const commitMove = commitPanel.locator(".panel-move-handle");
+  const commitBox = await commitMove.boundingBox();
+  expect(commitBox).toBeTruthy();
+  await dispatchPointerDrag(page, commitBox.x + commitBox.width / 2, commitBox.y + commitBox.height / 2, commitBox.x - 320, commitBox.y + 220);
+  await page.waitForFunction(
+    ({ selector, before }) => {
+      const node = document.querySelector(selector);
+      if (!node) return false;
+      const col = node.dataset.gridCol || node.dataset.defaultGridCol || "";
+      const row = node.dataset.gridRow || node.dataset.defaultGridRow || "";
+      return col !== before.col || row !== before.row;
+    },
+    { selector, before }
+  );
+  await page.waitForFunction(() => !document.querySelector(".db-panel-dragging, .widget-dragging, .db-panel-placeholder, .widget-placeholder"));
+  const afterCommit = await commitPanel.evaluate((node) => ({
+    col: node.dataset.gridCol || node.dataset.defaultGridCol || "",
+    row: node.dataset.gridRow || node.dataset.defaultGridRow || "",
+  }));
+  expect(afterCommit).not.toEqual(before);
+
+  await page.evaluate(() => window.scrollTo(0, 0));
+  const scroller = await openTools(page, '.panel-layout > .db-panel[data-panel-key="builder-content"]');
+  const scrollMove = scroller.locator(".panel-move-handle");
+  const scrollBox = await scrollMove.boundingBox();
+  expect(scrollBox).toBeTruthy();
+  const scrollStartX = scrollBox.x + scrollBox.width / 2;
+  const scrollStartY = scrollBox.y + scrollBox.height / 2;
+  const beforeScroll = await page.evaluate(() => Math.round(window.scrollY || 0));
+  await dispatchPointerDragUntilMove(page, scrollStartX, scrollStartY, scrollStartX, 12 + await page.evaluate(() => window.innerHeight));
+  await page.waitForFunction((beforeScroll) => Math.round(window.scrollY || 0) > beforeScroll, beforeScroll);
+  const afterScroll = await page.evaluate(() => Math.round(window.scrollY || 0));
+  expect(afterScroll).toBeGreaterThan(beforeScroll);
+  await finishPointerDrag(page, scrollStartX, await page.evaluate(() => window.innerHeight - 12), "pointercancel");
+  await writeInteractionScenarios(page, ["drag-core-commit-ghost-collision-scroll"], {
+    before,
+    live,
+    afterCancel,
+    afterCommit,
+    beforeScroll,
+    afterScroll,
+  });
   await closeApp(app);
 });

@@ -2,6 +2,22 @@
 
 The remaining `app/static/app.js` core is init-order-sensitive and still owns live closure state for dashboard interactions. This pass did not force a split that changed behavior.
 
+## Completed After State-Spine Rewire
+
+### panel-core-primitives
+
+- Cluster/symbol: `applyPanelSpan`, `applyPanelGridPosition`, `getPanelMinimumHeight`, `applyPanelHeight`
+- Completed in MAW run: `runs/2026-06-05_increment-3b-close-widget-resistance_d428`
+- Outcome: app.js no longer owns named primitive delegate closures. Consumers bind to `panelRuntime` methods directly, and `initializePanelRuntimes` binds containment after creating `panelRuntime` to preserve init order.
+- Proof: final canaries 10/10, behavior hash unchanged, and panel `applyPanelSpan` no-op mutation caught.
+
+### widget-primitive-runtime
+
+- Cluster/symbol: `ensureWidgetTools`, `syncWidgetRenderedHeightToFootprint`, `applyWidgetSpan`, `applyWidgetGridPosition`, `widgetGridCellFromPoint`
+- Completed in MAW run: `runs/2026-06-05_increment-3b-close-widget-resistance_d428`
+- Outcome: app.js no longer owns named widget primitive delegate closures. Consumers bind to `widgetRuntimeController` methods directly; `widgetGridCellFromPoint` collapsed to the existing `gridCellFromPoint` signature.
+- Proof: added widget resize-snap and widget tools-init canaries; final canaries 10/10; widget `applyWidgetSpan` and `ensureTools` no-op mutations caught.
+
 ## ordered-drag-runtime
 
 - Cluster/symbol + file:line: `runOrderedDrag`, `app/static/app.js:1998-2770`
@@ -43,26 +59,12 @@ The remaining `app/static/app.js` core is init-order-sensitive and still owns li
 - KEEP interaction entangled: widget hydration, panel/widget resize handler readiness, runtime meaning globals used during initialization.
 - Needed to finish safely: extract after resize handler setup no longer depends on widget runtime initialization timing, or move the entire widget runtime/controller setup as one cohesive module with parity after the full move.
 
-## panel-core-primitives
-
-- Cluster/symbol + file:line: `applyPanelSpan`, `applyPanelGridPosition`, `getPanelMinimumHeight`, `applyPanelHeight`, `app/static/app.js:419-606`
-- Why deferred: moving these delegate closures to `panel-core-primitives.js` passed renderer smoke but failed Electron e2e; panel pin did not toggle and panel resize-snap no longer changed span, so the batch was reverted.
-- KEEP interaction entangled: panel pin, panel resize-snap, panel lifecycle action controls, resize runtime initialization.
-- Needed to finish safely: extract only with the panel action/resize lifecycle that consumes these delegates, or move the panel runtime setup and primitive delegates together while preserving initialization order.
-
 ## ordered-grid-items-runtime
 
 - Cluster/symbol + file:line: ordered grid item query helpers around `orderedGridItems` / `globalGridItems`, `app/static/app.js:1375-1446`
 - Why deferred: the initial extraction boundary cut through adjacent `normalizeGridLayout` and workspace visual LOD setup, producing a renderer parse error; the batch was reverted before behavioral gates.
 - KEEP interaction entangled: collision/reflow, visual LOD, workspace scroll floor, ordered drag preview, resize occupancy.
 - Needed to finish safely: isolate the exact helper block with AST-aware extraction or first move visual LOD setup into a facade so the boundary is unambiguous.
-
-## widget-primitive-runtime
-
-- Cluster/symbol + file:line: widget runtime delegate closures `ensureWidgetTools`, `syncWidgetRenderedHeightToFootprint`, `applyWidgetSpan`, `applyWidgetGridPosition`, `widgetGridCellFromPoint`, `app/static/app.js:1004-1012`
-- Why deferred: after correcting the extraction boundary, renderer smoke passed but Electron e2e failed because resize-snap no longer changed span, so the batch was reverted.
-- KEEP interaction entangled: widget tools initialization, panel/widget resize-snap, grid positioning, widget lifecycle binding.
-- Needed to finish safely: move these delegates together with the resize runtimes or widget lifecycle binding that consumes them, preserving setup order around `createGridItemGeometry`.
 
 ## widget-content-runtime
 

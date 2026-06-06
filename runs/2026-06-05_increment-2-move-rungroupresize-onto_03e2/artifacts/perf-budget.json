@@ -1,0 +1,6 @@
+{
+    "passed":  true,
+    "basis":  "No new runtime loop or dependency; post-2a e2e durations stayed within observed pre-edit envelope.",
+    "pre_edit_runs":  "artifacts/pre-edit-canary-runs/summary.json",
+    "post_2a_runs":  "artifacts/post-2a-canary-runs/summary.json"
+}

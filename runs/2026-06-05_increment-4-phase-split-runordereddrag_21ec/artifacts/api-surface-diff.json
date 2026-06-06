@@ -1,0 +1,6 @@
+{
+  "gate": "api-surface-diff",
+  "passed": true,
+  "status": "no_product_api_change",
+  "reason": "The run stopped in Phase 0 after test-only work. No app runtime API was changed."
+}

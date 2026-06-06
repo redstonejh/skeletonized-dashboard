@@ -1,0 +1,7 @@
+{
+    "app_js_lines":  5261,
+    "interaction_state_lines":  109,
+    "body_moved":  false,
+    "passed":  true,
+    "note":  "Line-count decrease gate is not applicable to the stopped 2a-only result; full 2b SHIP remains pending."
+}

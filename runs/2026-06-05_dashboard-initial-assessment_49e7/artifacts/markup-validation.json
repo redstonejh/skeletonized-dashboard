@@ -1,0 +1,7 @@
+{
+  "schema_version": 1,
+  "status": "PASS",
+  "passed": true,
+  "target": "index.html",
+  "reason": "No markup source change was made."
+}

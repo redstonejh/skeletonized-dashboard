@@ -1,0 +1,7 @@
+{
+    "passed":  true,
+    "basis":  "No new loops or dependencies; final clean e2e and 10x loops stayed within observed range.",
+    "pre_edit":  "artifacts/pre-edit-canary-runs/summary.json",
+    "post_panel":  "artifacts/post-panel-canary-runs/summary.json",
+    "post_widget":  "artifacts/post-widget-canary-runs/summary.json"
+}

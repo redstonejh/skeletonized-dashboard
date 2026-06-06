@@ -1,0 +1,31 @@
+{
+  "check": "refactor_structure",
+  "passed": true,
+  "refactor_type": "move-module",
+  "structural_invariant": "state ownership moved to app/static/modules/interaction-state.js; drag/resize/pin/collision behavior bodies remain in app/static/app.js",
+  "new_module": "app/static/modules/interaction-state.js",
+  "app_js_line_count_before": 5270,
+  "app_js_line_count_after": 5263,
+  "line_count_strictly_decreased": true,
+  "moved_state": [
+    "widget closeTimer",
+    "panel movedDuringPointer",
+    "panel suppressHeaderToggleUntil",
+    "panel toolsCloseTimer",
+    "panel toolPointerCapture",
+    "group resize preview/session geometry"
+  ],
+  "out_of_scope_clusters_not_moved": [
+    "ordered-drag-runtime",
+    "widget-layout-lifecycle",
+    "panel-layout-lifecycle",
+    "group-resize-runtime",
+    "conditional-style-runtime",
+    "widget-runtime-meaning-hydration",
+    "panel-core-primitives",
+    "ordered-grid-items-runtime",
+    "widget-primitive-runtime",
+    "widget-content-runtime",
+    "mixed-context-query-compatibility"
+  ]
+}

@@ -1,0 +1,11 @@
+{
+    "passed":  true,
+    "cwd":  "C:\\Users\\redst\\OneDrive\\Documents\\skeletonized-dashboard",
+    "app_js":  true,
+    "interaction_state":  true,
+    "has_create_resize":  true,
+    "package_test_e2e":  "playwright test electron-tests/dashboard-electron.spec.js",
+    "e2e_spec":  true,
+    "electron":  "^35.0.0",
+    "note":  "Target-discovery guard passed in dashboard checkout."
+}

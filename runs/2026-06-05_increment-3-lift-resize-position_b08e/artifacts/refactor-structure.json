@@ -1,0 +1,8 @@
+{
+    "passed":  true,
+    "app_js_lines_after":  5240,
+    "named_delegate_declarations_remaining":  0,
+    "panel_binding":  "direct panelRuntime methods; panel containment bound inside initializePanelRuntimes after panelRuntime creation",
+    "widget_binding":  "direct widgetRuntimeController methods; widgetGridCellFromPoint collapsed to gridCellFromPoint",
+    "init_order":  "preserved; early geometry/snapshot setup keeps late-bound panelRuntime callbacks because panelRuntime assignment remains later"
+}

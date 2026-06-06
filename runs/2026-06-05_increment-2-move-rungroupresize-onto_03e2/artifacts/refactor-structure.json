@@ -1,0 +1,8 @@
+{
+    "passed":  false,
+    "stage_2a_passed":  true,
+    "stage_2b_body_moved":  false,
+    "app_js_line_count_decreased_meaningfully":  false,
+    "reason":  "Stopped after 2a because static inventory showed broad app.js-local behavior dependencies. Full body move acceptance was not claimed.",
+    "inventory":  "artifacts/group-resize-runtime-inventory.json"
+}

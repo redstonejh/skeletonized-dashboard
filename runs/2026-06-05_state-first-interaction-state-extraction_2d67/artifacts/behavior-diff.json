@@ -1,0 +1,679 @@
+{
+  "passed": true,
+  "post_canary_10x_green": true,
+  "post_canary_identical_normalized_results": true,
+  "post_signature": "b42a60af2c0c7fb2c2436cbf8432f6290dbec0025fc2efe2066f3db498c1b822",
+  "signatures": [
+    "b42a60af2c0c7fb2c2436cbf8432f6290dbec0025fc2efe2066f3db498c1b822",
+    "b42a60af2c0c7fb2c2436cbf8432f6290dbec0025fc2efe2066f3db498c1b822",
+    "b42a60af2c0c7fb2c2436cbf8432f6290dbec0025fc2efe2066f3db498c1b822",
+    "b42a60af2c0c7fb2c2436cbf8432f6290dbec0025fc2efe2066f3db498c1b822",
+    "b42a60af2c0c7fb2c2436cbf8432f6290dbec0025fc2efe2066f3db498c1b822",
+    "b42a60af2c0c7fb2c2436cbf8432f6290dbec0025fc2efe2066f3db498c1b822",
+    "b42a60af2c0c7fb2c2436cbf8432f6290dbec0025fc2efe2066f3db498c1b822",
+    "b42a60af2c0c7fb2c2436cbf8432f6290dbec0025fc2efe2066f3db498c1b822",
+    "b42a60af2c0c7fb2c2436cbf8432f6290dbec0025fc2efe2066f3db498c1b822",
+    "b42a60af2c0c7fb2c2436cbf8432f6290dbec0025fc2efe2066f3db498c1b822"
+  ],
+  "baseline_hash": "6d9030fa4f898454083680a8aab3e8d7cdc4d7ae2eefe459e511f94980ca5f74",
+  "compared_surface": {
+    "resizeSnap": {
+      "background": "frosted-light",
+      "scrollY": 0,
+      "customWidgets": 0,
+      "spanBefore": "2",
+      "spanAfter": "1"
+    },
+    "dragLiveGhost": {
+      "background": "frosted-light",
+      "scrollY": 0,
+      "customWidgets": 0,
+      "moveBefore": {
+        "col": "5",
+        "row": "4"
+      },
+      "afterMove": {
+        "col": "3",
+        "row": "5"
+      }
+    },
+    "gridSnap": {
+      "background": "frosted-light",
+      "scrollY": 0,
+      "customWidgets": 0,
+      "moveBefore": {
+        "col": "5",
+        "row": "4"
+      },
+      "afterMove": {
+        "col": "3",
+        "row": "5"
+      }
+    },
+    "collisionReflow": {
+      "background": "frosted-light",
+      "scrollY": 0,
+      "customWidgets": 0,
+      "moveBefore": {
+        "col": "5",
+        "row": "4"
+      },
+      "afterMove": {
+        "col": "3",
+        "row": "5"
+      }
+    },
+    "panelPinToggle": {
+      "background": "photo-earth",
+      "scrollY": 0,
+      "customWidgets": 1
+    },
+    "saveReloadIdentical": {
+      "background": "photo-earth",
+      "scrollY": 0,
+      "customWidgets": 1
+    }
+  },
+  "normalized": [
+    {
+      "iteration": 1,
+      "exit_code": 0,
+      "resizeSnap": {
+        "background": "frosted-light",
+        "scrollY": 0,
+        "customWidgets": 0,
+        "spanBefore": "2",
+        "spanAfter": "1"
+      },
+      "dragLiveGhost": {
+        "background": "frosted-light",
+        "scrollY": 0,
+        "customWidgets": 0,
+        "moveBefore": {
+          "col": "5",
+          "row": "4"
+        },
+        "afterMove": {
+          "col": "3",
+          "row": "5"
+        }
+      },
+      "gridSnap": {
+        "background": "frosted-light",
+        "scrollY": 0,
+        "customWidgets": 0,
+        "moveBefore": {
+          "col": "5",
+          "row": "4"
+        },
+        "afterMove": {
+          "col": "3",
+          "row": "5"
+        }
+      },
+      "collisionReflow": {
+        "background": "frosted-light",
+        "scrollY": 0,
+        "customWidgets": 0,
+        "moveBefore": {
+          "col": "5",
+          "row": "4"
+        },
+        "afterMove": {
+          "col": "3",
+          "row": "5"
+        }
+      },
+      "panelPinToggle": {
+        "background": "photo-earth",
+        "scrollY": 0,
+        "customWidgets": 1
+      },
+      "saveReloadIdentical": {
+        "background": "photo-earth",
+        "scrollY": 0,
+        "customWidgets": 1
+      }
+    },
+    {
+      "iteration": 2,
+      "exit_code": 0,
+      "resizeSnap": {
+        "background": "frosted-light",
+        "scrollY": 0,
+        "customWidgets": 0,
+        "spanBefore": "2",
+        "spanAfter": "1"
+      },
+      "dragLiveGhost": {
+        "background": "frosted-light",
+        "scrollY": 0,
+        "customWidgets": 0,
+        "moveBefore": {
+          "col": "5",
+          "row": "4"
+        },
+        "afterMove": {
+          "col": "3",
+          "row": "5"
+        }
+      },
+      "gridSnap": {
+        "background": "frosted-light",
+        "scrollY": 0,
+        "customWidgets": 0,
+        "moveBefore": {
+          "col": "5",
+          "row": "4"
+        },
+        "afterMove": {
+          "col": "3",
+          "row": "5"
+        }
+      },
+      "collisionReflow": {
+        "background": "frosted-light",
+        "scrollY": 0,
+        "customWidgets": 0,
+        "moveBefore": {
+          "col": "5",
+          "row": "4"
+        },
+        "afterMove": {
+          "col": "3",
+          "row": "5"
+        }
+      },
+      "panelPinToggle": {
+        "background": "photo-earth",
+        "scrollY": 0,
+        "customWidgets": 1
+      },
+      "saveReloadIdentical": {
+        "background": "photo-earth",
+        "scrollY": 0,
+        "customWidgets": 1
+      }
+    },
+    {
+      "iteration": 3,
+      "exit_code": 0,
+      "resizeSnap": {
+        "background": "frosted-light",
+        "scrollY": 0,
+        "customWidgets": 0,
+        "spanBefore": "2",
+        "spanAfter": "1"
+      },
+      "dragLiveGhost": {
+        "background": "frosted-light",
+        "scrollY": 0,
+        "customWidgets": 0,
+        "moveBefore": {
+          "col": "5",
+          "row": "4"
+        },
+        "afterMove": {
+          "col": "3",
+          "row": "5"
+        }
+      },
+      "gridSnap": {
+        "background": "frosted-light",
+        "scrollY": 0,
+        "customWidgets": 0,
+        "moveBefore": {
+          "col": "5",
+          "row": "4"
+        },
+        "afterMove": {
+          "col": "3",
+          "row": "5"
+        }
+      },
+      "collisionReflow": {
+        "background": "frosted-light",
+        "scrollY": 0,
+        "customWidgets": 0,
+        "moveBefore": {
+          "col": "5",
+          "row": "4"
+        },
+        "afterMove": {
+          "col": "3",
+          "row": "5"
+        }
+      },
+      "panelPinToggle": {
+        "background": "photo-earth",
+        "scrollY": 0,
+        "customWidgets": 1
+      },
+      "saveReloadIdentical": {
+        "background": "photo-earth",
+        "scrollY": 0,
+        "customWidgets": 1
+      }
+    },
+    {
+      "iteration": 4,
+      "exit_code": 0,
+      "resizeSnap": {
+        "background": "frosted-light",
+        "scrollY": 0,
+        "customWidgets": 0,
+        "spanBefore": "2",
+        "spanAfter": "1"
+      },
+      "dragLiveGhost": {
+        "background": "frosted-light",
+        "scrollY": 0,
+        "customWidgets": 0,
+        "moveBefore": {
+          "col": "5",
+          "row": "4"
+        },
+        "afterMove": {
+          "col": "3",
+          "row": "5"
+        }
+      },
+      "gridSnap": {
+        "background": "frosted-light",
+        "scrollY": 0,
+        "customWidgets": 0,
+        "moveBefore": {
+          "col": "5",
+          "row": "4"
+        },
+        "afterMove": {
+          "col": "3",
+          "row": "5"
+        }
+      },
+      "collisionReflow": {
+        "background": "frosted-light",
+        "scrollY": 0,
+        "customWidgets": 0,
+        "moveBefore": {
+          "col": "5",
+          "row": "4"
+        },
+        "afterMove": {
+          "col": "3",
+          "row": "5"
+        }
+      },
+      "panelPinToggle": {
+        "background": "photo-earth",
+        "scrollY": 0,
+        "customWidgets": 1
+      },
+      "saveReloadIdentical": {
+        "background": "photo-earth",
+        "scrollY": 0,
+        "customWidgets": 1
+      }
+    },
+    {
+      "iteration": 5,
+      "exit_code": 0,
+      "resizeSnap": {
+        "background": "frosted-light",
+        "scrollY": 0,
+        "customWidgets": 0,
+        "spanBefore": "2",
+        "spanAfter": "1"
+      },
+      "dragLiveGhost": {
+        "background": "frosted-light",
+        "scrollY": 0,
+        "customWidgets": 0,
+        "moveBefore": {
+          "col": "5",
+          "row": "4"
+        },
+        "afterMove": {
+          "col": "3",
+          "row": "5"
+        }
+      },
+      "gridSnap": {
+        "background": "frosted-light",
+        "scrollY": 0,
+        "customWidgets": 0,
+        "moveBefore": {
+          "col": "5",
+          "row": "4"
+        },
+        "afterMove": {
+          "col": "3",
+          "row": "5"
+        }
+      },
+      "collisionReflow": {
+        "background": "frosted-light",
+        "scrollY": 0,
+        "customWidgets": 0,
+        "moveBefore": {
+          "col": "5",
+          "row": "4"
+        },
+        "afterMove": {
+          "col": "3",
+          "row": "5"
+        }
+      },
+      "panelPinToggle": {
+        "background": "photo-earth",
+        "scrollY": 0,
+        "customWidgets": 1
+      },
+      "saveReloadIdentical": {
+        "background": "photo-earth",
+        "scrollY": 0,
+        "customWidgets": 1
+      }
+    },
+    {
+      "iteration": 6,
+      "exit_code": 0,
+      "resizeSnap": {
+        "background": "frosted-light",
+        "scrollY": 0,
+        "customWidgets": 0,
+        "spanBefore": "2",
+        "spanAfter": "1"
+      },
+      "dragLiveGhost": {
+        "background": "frosted-light",
+        "scrollY": 0,
+        "customWidgets": 0,
+        "moveBefore": {
+          "col": "5",
+          "row": "4"
+        },
+        "afterMove": {
+          "col": "3",
+          "row": "5"
+        }
+      },
+      "gridSnap": {
+        "background": "frosted-light",
+        "scrollY": 0,
+        "customWidgets": 0,
+        "moveBefore": {
+          "col": "5",
+          "row": "4"
+        },
+        "afterMove": {
+          "col": "3",
+          "row": "5"
+        }
+      },
+      "collisionReflow": {
+        "background": "frosted-light",
+        "scrollY": 0,
+        "customWidgets": 0,
+        "moveBefore": {
+          "col": "5",
+          "row": "4"
+        },
+        "afterMove": {
+          "col": "3",
+          "row": "5"
+        }
+      },
+      "panelPinToggle": {
+        "background": "photo-earth",
+        "scrollY": 0,
+        "customWidgets": 1
+      },
+      "saveReloadIdentical": {
+        "background": "photo-earth",
+        "scrollY": 0,
+        "customWidgets": 1
+      }
+    },
+    {
+      "iteration": 7,
+      "exit_code": 0,
+      "resizeSnap": {
+        "background": "frosted-light",
+        "scrollY": 0,
+        "customWidgets": 0,
+        "spanBefore": "2",
+        "spanAfter": "1"
+      },
+      "dragLiveGhost": {
+        "background": "frosted-light",
+        "scrollY": 0,
+        "customWidgets": 0,
+        "moveBefore": {
+          "col": "5",
+          "row": "4"
+        },
+        "afterMove": {
+          "col": "3",
+          "row": "5"
+        }
+      },
+      "gridSnap": {
+        "background": "frosted-light",
+        "scrollY": 0,
+        "customWidgets": 0,
+        "moveBefore": {
+          "col": "5",
+          "row": "4"
+        },
+        "afterMove": {
+          "col": "3",
+          "row": "5"
+        }
+      },
+      "collisionReflow": {
+        "background": "frosted-light",
+        "scrollY": 0,
+        "customWidgets": 0,
+        "moveBefore": {
+          "col": "5",
+          "row": "4"
+        },
+        "afterMove": {
+          "col": "3",
+          "row": "5"
+        }
+      },
+      "panelPinToggle": {
+        "background": "photo-earth",
+        "scrollY": 0,
+        "customWidgets": 1
+      },
+      "saveReloadIdentical": {
+        "background": "photo-earth",
+        "scrollY": 0,
+        "customWidgets": 1
+      }
+    },
+    {
+      "iteration": 8,
+      "exit_code": 0,
+      "resizeSnap": {
+        "background": "frosted-light",
+        "scrollY": 0,
+        "customWidgets": 0,
+        "spanBefore": "2",
+        "spanAfter": "1"
+      },
+      "dragLiveGhost": {
+        "background": "frosted-light",
+        "scrollY": 0,
+        "customWidgets": 0,
+        "moveBefore": {
+          "col": "5",
+          "row": "4"
+        },
+        "afterMove": {
+          "col": "3",
+          "row": "5"
+        }
+      },
+      "gridSnap": {
+        "background": "frosted-light",
+        "scrollY": 0,
+        "customWidgets": 0,
+        "moveBefore": {
+          "col": "5",
+          "row": "4"
+        },
+        "afterMove": {
+          "col": "3",
+          "row": "5"
+        }
+      },
+      "collisionReflow": {
+        "background": "frosted-light",
+        "scrollY": 0,
+        "customWidgets": 0,
+        "moveBefore": {
+          "col": "5",
+          "row": "4"
+        },
+        "afterMove": {
+          "col": "3",
+          "row": "5"
+        }
+      },
+      "panelPinToggle": {
+        "background": "photo-earth",
+        "scrollY": 0,
+        "customWidgets": 1
+      },
+      "saveReloadIdentical": {
+        "background": "photo-earth",
+        "scrollY": 0,
+        "customWidgets": 1
+      }
+    },
+    {
+      "iteration": 9,
+      "exit_code": 0,
+      "resizeSnap": {
+        "background": "frosted-light",
+        "scrollY": 0,
+        "customWidgets": 0,
+        "spanBefore": "2",
+        "spanAfter": "1"
+      },
+      "dragLiveGhost": {
+        "background": "frosted-light",
+        "scrollY": 0,
+        "customWidgets": 0,
+        "moveBefore": {
+          "col": "5",
+          "row": "4"
+        },
+        "afterMove": {
+          "col": "3",
+          "row": "5"
+        }
+      },
+      "gridSnap": {
+        "background": "frosted-light",
+        "scrollY": 0,
+        "customWidgets": 0,
+        "moveBefore": {
+          "col": "5",
+          "row": "4"
+        },
+        "afterMove": {
+          "col": "3",
+          "row": "5"
+        }
+      },
+      "collisionReflow": {
+        "background": "frosted-light",
+        "scrollY": 0,
+        "customWidgets": 0,
+        "moveBefore": {
+          "col": "5",
+          "row": "4"
+        },
+        "afterMove": {
+          "col": "3",
+          "row": "5"
+        }
+      },
+      "panelPinToggle": {
+        "background": "photo-earth",
+        "scrollY": 0,
+        "customWidgets": 1
+      },
+      "saveReloadIdentical": {
+        "background": "photo-earth",
+        "scrollY": 0,
+        "customWidgets": 1
+      }
+    },
+    {
+      "iteration": 10,
+      "exit_code": 0,
+      "resizeSnap": {
+        "background": "frosted-light",
+        "scrollY": 0,
+        "customWidgets": 0,
+        "spanBefore": "2",
+        "spanAfter": "1"
+      },
+      "dragLiveGhost": {
+        "background": "frosted-light",
+        "scrollY": 0,
+        "customWidgets": 0,
+        "moveBefore": {
+          "col": "5",
+          "row": "4"
+        },
+        "afterMove": {
+          "col": "3",
+          "row": "5"
+        }
+      },
+      "gridSnap": {
+        "background": "frosted-light",
+        "scrollY": 0,
+        "customWidgets": 0,
+        "moveBefore": {
+          "col": "5",
+          "row": "4"
+        },
+        "afterMove": {
+          "col": "3",
+          "row": "5"
+        }
+      },
+      "collisionReflow": {
+        "background": "frosted-light",
+        "scrollY": 0,
+        "customWidgets": 0,
+        "moveBefore": {
+          "col": "5",
+          "row": "4"
+        },
+        "afterMove": {
+          "col": "3",
+          "row": "5"
+        }
+      },
+      "panelPinToggle": {
+        "background": "photo-earth",
+        "scrollY": 0,
+        "customWidgets": 1
+      },
+      "saveReloadIdentical": {
+        "background": "photo-earth",
+        "scrollY": 0,
+        "customWidgets": 1
+      }
+    }
+  ]
+}

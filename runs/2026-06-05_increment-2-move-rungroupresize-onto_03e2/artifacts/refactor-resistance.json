@@ -1,0 +1,6 @@
+{
+    "passed":  false,
+    "stage_2a_canary_resistance":  true,
+    "planted_mutations_caught":  "not executed for full 2b because body move was stopped before ship gate",
+    "reason":  "Full refactor-resistance gate is intentionally not passing for a NEEDS-HUMAN 2b outcome."
+}

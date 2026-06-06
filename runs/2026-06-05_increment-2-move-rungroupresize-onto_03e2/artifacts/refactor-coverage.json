@@ -1,0 +1,15 @@
+{
+    "passed":  true,
+    "canaries":  [
+                     "resize-snap",
+                     "panel-pin-toggle/pin-protection",
+                     "drag-with-live-ghost",
+                     "grid-snap",
+                     "collision-reflow",
+                     "save-reload-identical",
+                     "select-mode-multi-resize"
+                 ],
+    "pre_edit":  "artifacts/pre-edit-canary-determinism.json",
+    "post_2a":  "artifacts/post-2a-canary-determinism.json",
+    "note":  "Coverage is adequate for 2a state-spine neutrality; 2b move coverage remains pending."
+}

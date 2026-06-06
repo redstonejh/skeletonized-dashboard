@@ -1,0 +1,37 @@
+{
+    "passed":  true,
+    "module":  "app/static/modules/interaction-state.js",
+    "api":  "createResizeSessionGeometry",
+    "added_methods":  [
+                          "getPreviewEntries",
+                          "getPreviewMembers",
+                          "getPreviewStartBounds",
+                          "getReflowItems",
+                          "getRuntime",
+                          "getSourceForPreview",
+                          "getMetricsForPreview",
+                          "setPreviewEntries",
+                          "setReflowItems",
+                          "setRuntime"
+                      ],
+    "existing_methods":  [
+                             "getPreviewCols",
+                             "getPreviewRows",
+                             "setPreviewSize"
+                         ],
+    "state_owned":  [
+                        "previewEntries",
+                        "reflowItems",
+                        "runtime",
+                        "previewCols",
+                        "previewRows",
+                        "resizeStartSnapshot",
+                        "resizeParentPanelLayoutSnapshot",
+                        "startBounds",
+                        "startRects",
+                        "groupBox",
+                        "startWidth",
+                        "startHeight"
+                    ],
+    "note":  "2a extended the resize-session geometry spine while leaving runGroupResize in app.js."
+}

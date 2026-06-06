@@ -1,0 +1,62 @@
+﻿[
+    {
+        "iteration":  1,
+        "exit_code":  0,
+        "elapsed_seconds":  7.54,
+        "artifact":  "runs\\2026-06-05_state-first-interaction-state-extraction_2d67\\artifacts\\post-edit-canary-runs\\interaction-1.json"
+    },
+    {
+        "iteration":  2,
+        "exit_code":  0,
+        "elapsed_seconds":  7.57,
+        "artifact":  "runs\\2026-06-05_state-first-interaction-state-extraction_2d67\\artifacts\\post-edit-canary-runs\\interaction-2.json"
+    },
+    {
+        "iteration":  3,
+        "exit_code":  0,
+        "elapsed_seconds":  7.5,
+        "artifact":  "runs\\2026-06-05_state-first-interaction-state-extraction_2d67\\artifacts\\post-edit-canary-runs\\interaction-3.json"
+    },
+    {
+        "iteration":  4,
+        "exit_code":  0,
+        "elapsed_seconds":  7.44,
+        "artifact":  "runs\\2026-06-05_state-first-interaction-state-extraction_2d67\\artifacts\\post-edit-canary-runs\\interaction-4.json"
+    },
+    {
+        "iteration":  5,
+        "exit_code":  0,
+        "elapsed_seconds":  7.41,
+        "artifact":  "runs\\2026-06-05_state-first-interaction-state-extraction_2d67\\artifacts\\post-edit-canary-runs\\interaction-5.json"
+    },
+    {
+        "iteration":  6,
+        "exit_code":  0,
+        "elapsed_seconds":  7.45,
+        "artifact":  "runs\\2026-06-05_state-first-interaction-state-extraction_2d67\\artifacts\\post-edit-canary-runs\\interaction-6.json"
+    },
+    {
+        "iteration":  7,
+        "exit_code":  0,
+        "elapsed_seconds":  7.61,
+        "artifact":  "runs\\2026-06-05_state-first-interaction-state-extraction_2d67\\artifacts\\post-edit-canary-runs\\interaction-7.json"
+    },
+    {
+        "iteration":  8,
+        "exit_code":  0,
+        "elapsed_seconds":  7.67,
+        "artifact":  "runs\\2026-06-05_state-first-interaction-state-extraction_2d67\\artifacts\\post-edit-canary-runs\\interaction-8.json"
+    },
+    {
+        "iteration":  9,
+        "exit_code":  0,
+        "elapsed_seconds":  7.53,
+        "artifact":  "runs\\2026-06-05_state-first-interaction-state-extraction_2d67\\artifacts\\post-edit-canary-runs\\interaction-9.json"
+    },
+    {
+        "iteration":  10,
+        "exit_code":  0,
+        "elapsed_seconds":  7.64,
+        "artifact":  "runs\\2026-06-05_state-first-interaction-state-extraction_2d67\\artifacts\\post-edit-canary-runs\\interaction-10.json"
+    }
+]

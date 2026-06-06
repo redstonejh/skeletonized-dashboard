@@ -1,0 +1,27 @@
+{
+    "verdict":  "NEEDS-HUMAN",
+    "task_type":  "refactor",
+    "passed":  false,
+    "accepted_stage":  "2a only",
+    "blocked_stage":  "2b body relocation",
+    "reason":  "2a state-spine extension is green and behavior-neutral, but runGroupResize was not moved because the remaining app.js-local behavior dependency gap is still large. Full SHIP gates requiring body move, app.js line-count decrease, and planted mutation resistance therefore do not hold.",
+    "evidence":  [
+                     "artifacts/behavior-baseline.json",
+                     "artifacts/pre-edit-canary-determinism.json",
+                     "artifacts/post-2a-canary-determinism.json",
+                     "artifacts/behavior-diff.json",
+                     "artifacts/api-surface-diff.json",
+                     "artifacts/refactor-structure.json",
+                     "artifacts/refactor-resistance.json",
+                     "artifacts/refactor-coverage.json",
+                     "artifacts/perf-budget.json",
+                     "artifacts/group-resize-runtime-inventory.json",
+                     "artifacts/resize-session-geometry-api.json"
+                 ],
+    "tests":  {
+                  "command":  "npm.cmd run test:e2e -- --workers=1",
+                  "smoke_passed":  true,
+                  "post_2a_10x_passed":  true
+              },
+    "deferred_security_note":  "Known high-severity Electron advisory remains deferred; Electron stays at ^35.0.0 and dependency versions were not upgraded in this increment."
+}

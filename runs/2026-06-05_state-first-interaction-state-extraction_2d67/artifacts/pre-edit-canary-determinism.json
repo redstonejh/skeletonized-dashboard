@@ -1,0 +1,359 @@
+{
+  "passed": true,
+  "identical_normalized_results": true,
+  "signatures": [
+    "c73005d1a1f1940c5173fcc618e2a381f8de3dd167803d5b7f1eb35fb3652f30",
+    "c73005d1a1f1940c5173fcc618e2a381f8de3dd167803d5b7f1eb35fb3652f30",
+    "c73005d1a1f1940c5173fcc618e2a381f8de3dd167803d5b7f1eb35fb3652f30",
+    "c73005d1a1f1940c5173fcc618e2a381f8de3dd167803d5b7f1eb35fb3652f30",
+    "c73005d1a1f1940c5173fcc618e2a381f8de3dd167803d5b7f1eb35fb3652f30",
+    "c73005d1a1f1940c5173fcc618e2a381f8de3dd167803d5b7f1eb35fb3652f30",
+    "c73005d1a1f1940c5173fcc618e2a381f8de3dd167803d5b7f1eb35fb3652f30",
+    "c73005d1a1f1940c5173fcc618e2a381f8de3dd167803d5b7f1eb35fb3652f30",
+    "c73005d1a1f1940c5173fcc618e2a381f8de3dd167803d5b7f1eb35fb3652f30",
+    "c73005d1a1f1940c5173fcc618e2a381f8de3dd167803d5b7f1eb35fb3652f30"
+  ],
+  "normalized": [
+    {
+      "iteration": 1,
+      "exit_code": 0,
+      "resize": {
+        "background": "frosted-light",
+        "scrollY": 0,
+        "customWidgets": 0,
+        "spanBefore": "2",
+        "spanAfter": "1"
+      },
+      "drag": {
+        "background": "frosted-light",
+        "scrollY": 0,
+        "customWidgets": 0,
+        "moveBefore": {
+          "col": "5",
+          "row": "4"
+        },
+        "afterMove": {
+          "col": "3",
+          "row": "5"
+        }
+      },
+      "pin": {
+        "background": "photo-earth",
+        "scrollY": 0,
+        "customWidgets": 1
+      },
+      "saveReload": {
+        "background": "photo-earth",
+        "scrollY": 0,
+        "customWidgets": 1
+      }
+    },
+    {
+      "iteration": 2,
+      "exit_code": 0,
+      "resize": {
+        "background": "frosted-light",
+        "scrollY": 0,
+        "customWidgets": 0,
+        "spanBefore": "2",
+        "spanAfter": "1"
+      },
+      "drag": {
+        "background": "frosted-light",
+        "scrollY": 0,
+        "customWidgets": 0,
+        "moveBefore": {
+          "col": "5",
+          "row": "4"
+        },
+        "afterMove": {
+          "col": "3",
+          "row": "5"
+        }
+      },
+      "pin": {
+        "background": "photo-earth",
+        "scrollY": 0,
+        "customWidgets": 1
+      },
+      "saveReload": {
+        "background": "photo-earth",
+        "scrollY": 0,
+        "customWidgets": 1
+      }
+    },
+    {
+      "iteration": 3,
+      "exit_code": 0,
+      "resize": {
+        "background": "frosted-light",
+        "scrollY": 0,
+        "customWidgets": 0,
+        "spanBefore": "2",
+        "spanAfter": "1"
+      },
+      "drag": {
+        "background": "frosted-light",
+        "scrollY": 0,
+        "customWidgets": 0,
+        "moveBefore": {
+          "col": "5",
+          "row": "4"
+        },
+        "afterMove": {
+          "col": "3",
+          "row": "5"
+        }
+      },
+      "pin": {
+        "background": "photo-earth",
+        "scrollY": 0,
+        "customWidgets": 1
+      },
+      "saveReload": {
+        "background": "photo-earth",
+        "scrollY": 0,
+        "customWidgets": 1
+      }
+    },
+    {
+      "iteration": 4,
+      "exit_code": 0,
+      "resize": {
+        "background": "frosted-light",
+        "scrollY": 0,
+        "customWidgets": 0,
+        "spanBefore": "2",
+        "spanAfter": "1"
+      },
+      "drag": {
+        "background": "frosted-light",
+        "scrollY": 0,
+        "customWidgets": 0,
+        "moveBefore": {
+          "col": "5",
+          "row": "4"
+        },
+        "afterMove": {
+          "col": "3",
+          "row": "5"
+        }
+      },
+      "pin": {
+        "background": "photo-earth",
+        "scrollY": 0,
+        "customWidgets": 1
+      },
+      "saveReload": {
+        "background": "photo-earth",
+        "scrollY": 0,
+        "customWidgets": 1
+      }
+    },
+    {
+      "iteration": 5,
+      "exit_code": 0,
+      "resize": {
+        "background": "frosted-light",
+        "scrollY": 0,
+        "customWidgets": 0,
+        "spanBefore": "2",
+        "spanAfter": "1"
+      },
+      "drag": {
+        "background": "frosted-light",
+        "scrollY": 0,
+        "customWidgets": 0,
+        "moveBefore": {
+          "col": "5",
+          "row": "4"
+        },
+        "afterMove": {
+          "col": "3",
+          "row": "5"
+        }
+      },
+      "pin": {
+        "background": "photo-earth",
+        "scrollY": 0,
+        "customWidgets": 1
+      },
+      "saveReload": {
+        "background": "photo-earth",
+        "scrollY": 0,
+        "customWidgets": 1
+      }
+    },
+    {
+      "iteration": 6,
+      "exit_code": 0,
+      "resize": {
+        "background": "frosted-light",
+        "scrollY": 0,
+        "customWidgets": 0,
+        "spanBefore": "2",
+        "spanAfter": "1"
+      },
+      "drag": {
+        "background": "frosted-light",
+        "scrollY": 0,
+        "customWidgets": 0,
+        "moveBefore": {
+          "col": "5",
+          "row": "4"
+        },
+        "afterMove": {
+          "col": "3",
+          "row": "5"
+        }
+      },
+      "pin": {
+        "background": "photo-earth",
+        "scrollY": 0,
+        "customWidgets": 1
+      },
+      "saveReload": {
+        "background": "photo-earth",
+        "scrollY": 0,
+        "customWidgets": 1
+      }
+    },
+    {
+      "iteration": 7,
+      "exit_code": 0,
+      "resize": {
+        "background": "frosted-light",
+        "scrollY": 0,
+        "customWidgets": 0,
+        "spanBefore": "2",
+        "spanAfter": "1"
+      },
+      "drag": {
+        "background": "frosted-light",
+        "scrollY": 0,
+        "customWidgets": 0,
+        "moveBefore": {
+          "col": "5",
+          "row": "4"
+        },
+        "afterMove": {
+          "col": "3",
+          "row": "5"
+        }
+      },
+      "pin": {
+        "background": "photo-earth",
+        "scrollY": 0,
+        "customWidgets": 1
+      },
+      "saveReload": {
+        "background": "photo-earth",
+        "scrollY": 0,
+        "customWidgets": 1
+      }
+    },
+    {
+      "iteration": 8,
+      "exit_code": 0,
+      "resize": {
+        "background": "frosted-light",
+        "scrollY": 0,
+        "customWidgets": 0,
+        "spanBefore": "2",
+        "spanAfter": "1"
+      },
+      "drag": {
+        "background": "frosted-light",
+        "scrollY": 0,
+        "customWidgets": 0,
+        "moveBefore": {
+          "col": "5",
+          "row": "4"
+        },
+        "afterMove": {
+          "col": "3",
+          "row": "5"
+        }
+      },
+      "pin": {
+        "background": "photo-earth",
+        "scrollY": 0,
+        "customWidgets": 1
+      },
+      "saveReload": {
+        "background": "photo-earth",
+        "scrollY": 0,
+        "customWidgets": 1
+      }
+    },
+    {
+      "iteration": 9,
+      "exit_code": 0,
+      "resize": {
+        "background": "frosted-light",
+        "scrollY": 0,
+        "customWidgets": 0,
+        "spanBefore": "2",
+        "spanAfter": "1"
+      },
+      "drag": {
+        "background": "frosted-light",
+        "scrollY": 0,
+        "customWidgets": 0,
+        "moveBefore": {
+          "col": "5",
+          "row": "4"
+        },
+        "afterMove": {
+          "col": "3",
+          "row": "5"
+        }
+      },
+      "pin": {
+        "background": "photo-earth",
+        "scrollY": 0,
+        "customWidgets": 1
+      },
+      "saveReload": {
+        "background": "photo-earth",
+        "scrollY": 0,
+        "customWidgets": 1
+      }
+    },
+    {
+      "iteration": 10,
+      "exit_code": 0,
+      "resize": {
+        "background": "frosted-light",
+        "scrollY": 0,
+        "customWidgets": 0,
+        "spanBefore": "2",
+        "spanAfter": "1"
+      },
+      "drag": {
+        "background": "frosted-light",
+        "scrollY": 0,
+        "customWidgets": 0,
+        "moveBefore": {
+          "col": "5",
+          "row": "4"
+        },
+        "afterMove": {
+          "col": "3",
+          "row": "5"
+        }
+      },
+      "pin": {
+        "background": "photo-earth",
+        "scrollY": 0,
+        "customWidgets": 1
+      },
+      "saveReload": {
+        "background": "photo-earth",
+        "scrollY": 0,
+        "customWidgets": 1
+      }
+    }
+  ],
+  "note": "Raw DOM/geometry hashes are intentionally not used for determinism because generated widget ids and subpixel layout evidence vary; canary commit fields are stable."
+}

@@ -1,0 +1,7 @@
+{
+    "passed":  true,
+    "captures":  [
+                     "baseline-a.json",
+                     "baseline-b.json"
+                 ]
+}

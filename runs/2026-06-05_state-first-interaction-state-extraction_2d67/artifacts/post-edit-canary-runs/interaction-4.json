@@ -1,0 +1,2634 @@
+{
+  "scenarios": [
+    {
+      "type": "interaction",
+      "name": "existing-playwright-suite",
+      "passed": true,
+      "dom_sha256": "5f1b5bd29b500a4c763fda76e0bd9683e174d87ee275be787aac5cb0476fcc79",
+      "evidence": {
+        "dom": {
+          "sha256": "5f1b5bd29b500a4c763fda76e0bd9683e174d87ee275be787aac5cb0476fcc79"
+        },
+        "geometry": [
+          {
+            "key": "widget-1",
+            "rect": {
+              "top": 132,
+              "left": 922.5,
+              "width": 189,
+              "height": 81
+            },
+            "grid": {
+              "col": "5",
+              "row": "1",
+              "span": "1",
+              "rows": "1"
+            }
+          },
+          {
+            "key": "widget-2",
+            "rect": {
+              "top": 132,
+              "left": 1129.5,
+              "width": 189,
+              "height": 81
+            },
+            "grid": {
+              "col": "6",
+              "row": "1",
+              "span": "1",
+              "rows": "1"
+            }
+          },
+          {
+            "key": "widget-3",
+            "rect": {
+              "top": 231,
+              "left": 922.5,
+              "width": 189,
+              "height": 81
+            },
+            "grid": {
+              "col": "5",
+              "row": "2",
+              "span": "1",
+              "rows": "1"
+            }
+          },
+          {
+            "key": "widget-4",
+            "rect": {
+              "top": 231,
+              "left": 1129.5,
+              "width": 189,
+              "height": 81
+            },
+            "grid": {
+              "col": "6",
+              "row": "2",
+              "span": "1",
+              "rows": "1"
+            }
+          },
+          {
+            "key": "widget-mq1vt34v-qdknm",
+            "rect": {
+              "top": 132,
+              "left": 94.5,
+              "width": 396,
+              "height": 180
+            },
+            "grid": {
+              "col": "1",
+              "row": "1",
+              "span": "2",
+              "rows": "2"
+            }
+          },
+          {
+            "key": "builder-content",
+            "rect": {
+              "top": 330,
+              "left": 94.5,
+              "width": 810,
+              "height": 279
+            },
+            "grid": {
+              "col": "1",
+              "row": "3",
+              "span": "4",
+              "rows": "3"
+            }
+          },
+          {
+            "key": "builder-menu",
+            "rect": {
+              "top": 330,
+              "left": 922.5,
+              "width": 396,
+              "height": 83
+            },
+            "grid": {
+              "col": "5",
+              "row": "3",
+              "span": "2",
+              "rows": "1"
+            }
+          },
+          {
+            "key": "builder-notes",
+            "rect": {
+              "top": 429,
+              "left": 922.5,
+              "width": 396,
+              "height": 279
+            },
+            "grid": {
+              "col": "5",
+              "row": "4",
+              "span": "2",
+              "rows": "3"
+            }
+          }
+        ],
+        "computed_css": [
+          {
+            "key": "html.has-photo-background",
+            "values": {
+              "backgroundColor": "rgb(8, 8, 8)",
+              "color": "rgb(0, 0, 0)",
+              "borderColor": "rgb(0, 0, 0)",
+              "boxShadow": "none",
+              "backdropFilter": "none",
+              "borderRadius": "0px"
+            }
+          },
+          {
+            "key": "body.has-photo-background.webgl-glass-on",
+            "values": {
+              "backgroundColor": "rgb(8, 8, 8)",
+              "color": "rgb(31, 41, 55)",
+              "borderColor": "rgb(31, 41, 55)",
+              "boxShadow": "none",
+              "backdropFilter": "none",
+              "borderRadius": "0px"
+            }
+          },
+          {
+            "key": "header.app-nav.workspace-chrome",
+            "values": {
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "color": "rgb(31, 41, 55)",
+              "borderColor": "color(srgb 0.83921 0.866462 0.907341 / 0.920941)",
+              "boxShadow": "rgba(15, 23, 42, 0.043) 0px 2px 7px 0px, color(srgb 1 1 1 / 0.444) 0px 1px 0px 0px inset",
+              "backdropFilter": "blur(22px) saturate(1.12)",
+              "borderRadius": "16px"
+            }
+          },
+          {
+            "key": "div.dashboard-layout-grid",
+            "values": {
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "color": "rgb(31, 41, 55)",
+              "borderColor": "rgb(31, 41, 55)",
+              "boxShadow": "none",
+              "backdropFilter": "none",
+              "borderRadius": "0px"
+            }
+          },
+          {
+            "key": "section.db-panel.db-panel-pinned",
+            "values": {
+              "backgroundColor": "rgba(255, 255, 255, 0.03)",
+              "color": "rgb(31, 41, 55)",
+              "borderColor": "rgba(255, 255, 255, 0.18)",
+              "boxShadow": "rgba(0, 0, 0, 0.1) 0px 4px 14px 0px, rgba(255, 255, 255, 0.6) 0px 1px 0px 0px inset, rgba(255, 255, 255, 0.32) 0px 6px 10px -6px inset, rgba(255, 255, 255, 0.32) 1px 0px 0px 0px inset, rgba(255, 255, 255, 0.16) 10px 0px 18px -14px inset, rgba(255, 255, 255, 0.18) -1px 0px 0px 0px inset, rgba(255, 255, 255, 0.08) 0px -1px 0px 0px inset, rgba(0, 0, 0, 0.16) 0px -10px 14px -12px inset",
+              "backdropFilter": "none",
+              "borderRadius": "16px"
+            }
+          },
+          {
+            "key": "a.stat-card.widget-card",
+            "values": {
+              "backgroundColor": "rgba(255, 255, 255, 0.04)",
+              "color": "rgba(248, 250, 252, 0.94)",
+              "borderColor": "rgba(255, 255, 255, 0.18)",
+              "boxShadow": "rgba(0, 0, 0, 0.1) 0px 4px 14px 0px, rgba(255, 255, 255, 0.6) 0px 1px 0px 0px inset, rgba(255, 255, 255, 0.32) 0px 6px 10px -6px inset, rgba(255, 255, 255, 0.32) 1px 0px 0px 0px inset, rgba(255, 255, 255, 0.16) 10px 0px 18px -14px inset, rgba(255, 255, 255, 0.18) -1px 0px 0px 0px inset, rgba(255, 255, 255, 0.08) 0px -1px 0px 0px inset, rgba(0, 0, 0, 0.16) 0px -10px 14px -12px inset",
+              "backdropFilter": "blur(3px) saturate(1.75)",
+              "borderRadius": "16px"
+            }
+          }
+        ],
+        "extra": {
+          "background": "photo-earth",
+          "scrollY": 0,
+          "customWidgets": 1
+        }
+      }
+    },
+    {
+      "type": "interaction",
+      "name": "pin-protection",
+      "passed": true,
+      "dom_sha256": "5f1b5bd29b500a4c763fda76e0bd9683e174d87ee275be787aac5cb0476fcc79",
+      "evidence": {
+        "dom": {
+          "sha256": "5f1b5bd29b500a4c763fda76e0bd9683e174d87ee275be787aac5cb0476fcc79"
+        },
+        "geometry": [
+          {
+            "key": "widget-1",
+            "rect": {
+              "top": 132,
+              "left": 922.5,
+              "width": 189,
+              "height": 81
+            },
+            "grid": {
+              "col": "5",
+              "row": "1",
+              "span": "1",
+              "rows": "1"
+            }
+          },
+          {
+            "key": "widget-2",
+            "rect": {
+              "top": 132,
+              "left": 1129.5,
+              "width": 189,
+              "height": 81
+            },
+            "grid": {
+              "col": "6",
+              "row": "1",
+              "span": "1",
+              "rows": "1"
+            }
+          },
+          {
+            "key": "widget-3",
+            "rect": {
+              "top": 231,
+              "left": 922.5,
+              "width": 189,
+              "height": 81
+            },
+            "grid": {
+              "col": "5",
+              "row": "2",
+              "span": "1",
+              "rows": "1"
+            }
+          },
+          {
+            "key": "widget-4",
+            "rect": {
+              "top": 231,
+              "left": 1129.5,
+              "width": 189,
+              "height": 81
+            },
+            "grid": {
+              "col": "6",
+              "row": "2",
+              "span": "1",
+              "rows": "1"
+            }
+          },
+          {
+            "key": "widget-mq1vt34v-qdknm",
+            "rect": {
+              "top": 132,
+              "left": 94.5,
+              "width": 396,
+              "height": 180
+            },
+            "grid": {
+              "col": "1",
+              "row": "1",
+              "span": "2",
+              "rows": "2"
+            }
+          },
+          {
+            "key": "builder-content",
+            "rect": {
+              "top": 330,
+              "left": 94.5,
+              "width": 810,
+              "height": 279
+            },
+            "grid": {
+              "col": "1",
+              "row": "3",
+              "span": "4",
+              "rows": "3"
+            }
+          },
+          {
+            "key": "builder-menu",
+            "rect": {
+              "top": 330,
+              "left": 922.5,
+              "width": 396,
+              "height": 83
+            },
+            "grid": {
+              "col": "5",
+              "row": "3",
+              "span": "2",
+              "rows": "1"
+            }
+          },
+          {
+            "key": "builder-notes",
+            "rect": {
+              "top": 429,
+              "left": 922.5,
+              "width": 396,
+              "height": 279
+            },
+            "grid": {
+              "col": "5",
+              "row": "4",
+              "span": "2",
+              "rows": "3"
+            }
+          }
+        ],
+        "computed_css": [
+          {
+            "key": "html.has-photo-background",
+            "values": {
+              "backgroundColor": "rgb(8, 8, 8)",
+              "color": "rgb(0, 0, 0)",
+              "borderColor": "rgb(0, 0, 0)",
+              "boxShadow": "none",
+              "backdropFilter": "none",
+              "borderRadius": "0px"
+            }
+          },
+          {
+            "key": "body.has-photo-background.webgl-glass-on",
+            "values": {
+              "backgroundColor": "rgb(8, 8, 8)",
+              "color": "rgb(31, 41, 55)",
+              "borderColor": "rgb(31, 41, 55)",
+              "boxShadow": "none",
+              "backdropFilter": "none",
+              "borderRadius": "0px"
+            }
+          },
+          {
+            "key": "header.app-nav.workspace-chrome",
+            "values": {
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "color": "rgb(31, 41, 55)",
+              "borderColor": "color(srgb 0.83921 0.866462 0.907341 / 0.920941)",
+              "boxShadow": "rgba(15, 23, 42, 0.043) 0px 2px 7px 0px, color(srgb 1 1 1 / 0.444) 0px 1px 0px 0px inset",
+              "backdropFilter": "blur(22px) saturate(1.12)",
+              "borderRadius": "16px"
+            }
+          },
+          {
+            "key": "div.dashboard-layout-grid",
+            "values": {
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "color": "rgb(31, 41, 55)",
+              "borderColor": "rgb(31, 41, 55)",
+              "boxShadow": "none",
+              "backdropFilter": "none",
+              "borderRadius": "0px"
+            }
+          },
+          {
+            "key": "section.db-panel.db-panel-pinned",
+            "values": {
+              "backgroundColor": "rgba(255, 255, 255, 0.03)",
+              "color": "rgb(31, 41, 55)",
+              "borderColor": "rgba(255, 255, 255, 0.18)",
+              "boxShadow": "rgba(0, 0, 0, 0.1) 0px 4px 14px 0px, rgba(255, 255, 255, 0.6) 0px 1px 0px 0px inset, rgba(255, 255, 255, 0.32) 0px 6px 10px -6px inset, rgba(255, 255, 255, 0.32) 1px 0px 0px 0px inset, rgba(255, 255, 255, 0.16) 10px 0px 18px -14px inset, rgba(255, 255, 255, 0.18) -1px 0px 0px 0px inset, rgba(255, 255, 255, 0.08) 0px -1px 0px 0px inset, rgba(0, 0, 0, 0.16) 0px -10px 14px -12px inset",
+              "backdropFilter": "none",
+              "borderRadius": "16px"
+            }
+          },
+          {
+            "key": "a.stat-card.widget-card",
+            "values": {
+              "backgroundColor": "rgba(255, 255, 255, 0.04)",
+              "color": "rgba(248, 250, 252, 0.94)",
+              "borderColor": "rgba(255, 255, 255, 0.18)",
+              "boxShadow": "rgba(0, 0, 0, 0.1) 0px 4px 14px 0px, rgba(255, 255, 255, 0.6) 0px 1px 0px 0px inset, rgba(255, 255, 255, 0.32) 0px 6px 10px -6px inset, rgba(255, 255, 255, 0.32) 1px 0px 0px 0px inset, rgba(255, 255, 255, 0.16) 10px 0px 18px -14px inset, rgba(255, 255, 255, 0.18) -1px 0px 0px 0px inset, rgba(255, 255, 255, 0.08) 0px -1px 0px 0px inset, rgba(0, 0, 0, 0.16) 0px -10px 14px -12px inset",
+              "backdropFilter": "blur(3px) saturate(1.75)",
+              "borderRadius": "16px"
+            }
+          }
+        ],
+        "extra": {
+          "background": "photo-earth",
+          "scrollY": 0,
+          "customWidgets": 1
+        }
+      }
+    },
+    {
+      "type": "interaction",
+      "name": "collapse",
+      "passed": true,
+      "dom_sha256": "5f1b5bd29b500a4c763fda76e0bd9683e174d87ee275be787aac5cb0476fcc79",
+      "evidence": {
+        "dom": {
+          "sha256": "5f1b5bd29b500a4c763fda76e0bd9683e174d87ee275be787aac5cb0476fcc79"
+        },
+        "geometry": [
+          {
+            "key": "widget-1",
+            "rect": {
+              "top": 132,
+              "left": 922.5,
+              "width": 189,
+              "height": 81
+            },
+            "grid": {
+              "col": "5",
+              "row": "1",
+              "span": "1",
+              "rows": "1"
+            }
+          },
+          {
+            "key": "widget-2",
+            "rect": {
+              "top": 132,
+              "left": 1129.5,
+              "width": 189,
+              "height": 81
+            },
+            "grid": {
+              "col": "6",
+              "row": "1",
+              "span": "1",
+              "rows": "1"
+            }
+          },
+          {
+            "key": "widget-3",
+            "rect": {
+              "top": 231,
+              "left": 922.5,
+              "width": 189,
+              "height": 81
+            },
+            "grid": {
+              "col": "5",
+              "row": "2",
+              "span": "1",
+              "rows": "1"
+            }
+          },
+          {
+            "key": "widget-4",
+            "rect": {
+              "top": 231,
+              "left": 1129.5,
+              "width": 189,
+              "height": 81
+            },
+            "grid": {
+              "col": "6",
+              "row": "2",
+              "span": "1",
+              "rows": "1"
+            }
+          },
+          {
+            "key": "widget-mq1vt34v-qdknm",
+            "rect": {
+              "top": 132,
+              "left": 94.5,
+              "width": 396,
+              "height": 180
+            },
+            "grid": {
+              "col": "1",
+              "row": "1",
+              "span": "2",
+              "rows": "2"
+            }
+          },
+          {
+            "key": "builder-content",
+            "rect": {
+              "top": 330,
+              "left": 94.5,
+              "width": 810,
+              "height": 279
+            },
+            "grid": {
+              "col": "1",
+              "row": "3",
+              "span": "4",
+              "rows": "3"
+            }
+          },
+          {
+            "key": "builder-menu",
+            "rect": {
+              "top": 330,
+              "left": 922.5,
+              "width": 396,
+              "height": 83
+            },
+            "grid": {
+              "col": "5",
+              "row": "3",
+              "span": "2",
+              "rows": "1"
+            }
+          },
+          {
+            "key": "builder-notes",
+            "rect": {
+              "top": 429,
+              "left": 922.5,
+              "width": 396,
+              "height": 279
+            },
+            "grid": {
+              "col": "5",
+              "row": "4",
+              "span": "2",
+              "rows": "3"
+            }
+          }
+        ],
+        "computed_css": [
+          {
+            "key": "html.has-photo-background",
+            "values": {
+              "backgroundColor": "rgb(8, 8, 8)",
+              "color": "rgb(0, 0, 0)",
+              "borderColor": "rgb(0, 0, 0)",
+              "boxShadow": "none",
+              "backdropFilter": "none",
+              "borderRadius": "0px"
+            }
+          },
+          {
+            "key": "body.has-photo-background.webgl-glass-on",
+            "values": {
+              "backgroundColor": "rgb(8, 8, 8)",
+              "color": "rgb(31, 41, 55)",
+              "borderColor": "rgb(31, 41, 55)",
+              "boxShadow": "none",
+              "backdropFilter": "none",
+              "borderRadius": "0px"
+            }
+          },
+          {
+            "key": "header.app-nav.workspace-chrome",
+            "values": {
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "color": "rgb(31, 41, 55)",
+              "borderColor": "color(srgb 0.83921 0.866462 0.907341 / 0.920941)",
+              "boxShadow": "rgba(15, 23, 42, 0.043) 0px 2px 7px 0px, color(srgb 1 1 1 / 0.444) 0px 1px 0px 0px inset",
+              "backdropFilter": "blur(22px) saturate(1.12)",
+              "borderRadius": "16px"
+            }
+          },
+          {
+            "key": "div.dashboard-layout-grid",
+            "values": {
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "color": "rgb(31, 41, 55)",
+              "borderColor": "rgb(31, 41, 55)",
+              "boxShadow": "none",
+              "backdropFilter": "none",
+              "borderRadius": "0px"
+            }
+          },
+          {
+            "key": "section.db-panel.db-panel-pinned",
+            "values": {
+              "backgroundColor": "rgba(255, 255, 255, 0.03)",
+              "color": "rgb(31, 41, 55)",
+              "borderColor": "rgba(255, 255, 255, 0.18)",
+              "boxShadow": "rgba(0, 0, 0, 0.1) 0px 4px 14px 0px, rgba(255, 255, 255, 0.6) 0px 1px 0px 0px inset, rgba(255, 255, 255, 0.32) 0px 6px 10px -6px inset, rgba(255, 255, 255, 0.32) 1px 0px 0px 0px inset, rgba(255, 255, 255, 0.16) 10px 0px 18px -14px inset, rgba(255, 255, 255, 0.18) -1px 0px 0px 0px inset, rgba(255, 255, 255, 0.08) 0px -1px 0px 0px inset, rgba(0, 0, 0, 0.16) 0px -10px 14px -12px inset",
+              "backdropFilter": "none",
+              "borderRadius": "16px"
+            }
+          },
+          {
+            "key": "a.stat-card.widget-card",
+            "values": {
+              "backgroundColor": "rgba(255, 255, 255, 0.04)",
+              "color": "rgba(248, 250, 252, 0.94)",
+              "borderColor": "rgba(255, 255, 255, 0.18)",
+              "boxShadow": "rgba(0, 0, 0, 0.1) 0px 4px 14px 0px, rgba(255, 255, 255, 0.6) 0px 1px 0px 0px inset, rgba(255, 255, 255, 0.32) 0px 6px 10px -6px inset, rgba(255, 255, 255, 0.32) 1px 0px 0px 0px inset, rgba(255, 255, 255, 0.16) 10px 0px 18px -14px inset, rgba(255, 255, 255, 0.18) -1px 0px 0px 0px inset, rgba(255, 255, 255, 0.08) 0px -1px 0px 0px inset, rgba(0, 0, 0, 0.16) 0px -10px 14px -12px inset",
+              "backdropFilter": "blur(3px) saturate(1.75)",
+              "borderRadius": "16px"
+            }
+          }
+        ],
+        "extra": {
+          "background": "photo-earth",
+          "scrollY": 0,
+          "customWidgets": 1
+        }
+      }
+    },
+    {
+      "type": "interaction",
+      "name": "recolor",
+      "passed": true,
+      "dom_sha256": "5f1b5bd29b500a4c763fda76e0bd9683e174d87ee275be787aac5cb0476fcc79",
+      "evidence": {
+        "dom": {
+          "sha256": "5f1b5bd29b500a4c763fda76e0bd9683e174d87ee275be787aac5cb0476fcc79"
+        },
+        "geometry": [
+          {
+            "key": "widget-1",
+            "rect": {
+              "top": 132,
+              "left": 922.5,
+              "width": 189,
+              "height": 81
+            },
+            "grid": {
+              "col": "5",
+              "row": "1",
+              "span": "1",
+              "rows": "1"
+            }
+          },
+          {
+            "key": "widget-2",
+            "rect": {
+              "top": 132,
+              "left": 1129.5,
+              "width": 189,
+              "height": 81
+            },
+            "grid": {
+              "col": "6",
+              "row": "1",
+              "span": "1",
+              "rows": "1"
+            }
+          },
+          {
+            "key": "widget-3",
+            "rect": {
+              "top": 231,
+              "left": 922.5,
+              "width": 189,
+              "height": 81
+            },
+            "grid": {
+              "col": "5",
+              "row": "2",
+              "span": "1",
+              "rows": "1"
+            }
+          },
+          {
+            "key": "widget-4",
+            "rect": {
+              "top": 231,
+              "left": 1129.5,
+              "width": 189,
+              "height": 81
+            },
+            "grid": {
+              "col": "6",
+              "row": "2",
+              "span": "1",
+              "rows": "1"
+            }
+          },
+          {
+            "key": "widget-mq1vt34v-qdknm",
+            "rect": {
+              "top": 132,
+              "left": 94.5,
+              "width": 396,
+              "height": 180
+            },
+            "grid": {
+              "col": "1",
+              "row": "1",
+              "span": "2",
+              "rows": "2"
+            }
+          },
+          {
+            "key": "builder-content",
+            "rect": {
+              "top": 330,
+              "left": 94.5,
+              "width": 810,
+              "height": 279
+            },
+            "grid": {
+              "col": "1",
+              "row": "3",
+              "span": "4",
+              "rows": "3"
+            }
+          },
+          {
+            "key": "builder-menu",
+            "rect": {
+              "top": 330,
+              "left": 922.5,
+              "width": 396,
+              "height": 83
+            },
+            "grid": {
+              "col": "5",
+              "row": "3",
+              "span": "2",
+              "rows": "1"
+            }
+          },
+          {
+            "key": "builder-notes",
+            "rect": {
+              "top": 429,
+              "left": 922.5,
+              "width": 396,
+              "height": 279
+            },
+            "grid": {
+              "col": "5",
+              "row": "4",
+              "span": "2",
+              "rows": "3"
+            }
+          }
+        ],
+        "computed_css": [
+          {
+            "key": "html.has-photo-background",
+            "values": {
+              "backgroundColor": "rgb(8, 8, 8)",
+              "color": "rgb(0, 0, 0)",
+              "borderColor": "rgb(0, 0, 0)",
+              "boxShadow": "none",
+              "backdropFilter": "none",
+              "borderRadius": "0px"
+            }
+          },
+          {
+            "key": "body.has-photo-background.webgl-glass-on",
+            "values": {
+              "backgroundColor": "rgb(8, 8, 8)",
+              "color": "rgb(31, 41, 55)",
+              "borderColor": "rgb(31, 41, 55)",
+              "boxShadow": "none",
+              "backdropFilter": "none",
+              "borderRadius": "0px"
+            }
+          },
+          {
+            "key": "header.app-nav.workspace-chrome",
+            "values": {
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "color": "rgb(31, 41, 55)",
+              "borderColor": "color(srgb 0.83921 0.866462 0.907341 / 0.920941)",
+              "boxShadow": "rgba(15, 23, 42, 0.043) 0px 2px 7px 0px, color(srgb 1 1 1 / 0.444) 0px 1px 0px 0px inset",
+              "backdropFilter": "blur(22px) saturate(1.12)",
+              "borderRadius": "16px"
+            }
+          },
+          {
+            "key": "div.dashboard-layout-grid",
+            "values": {
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "color": "rgb(31, 41, 55)",
+              "borderColor": "rgb(31, 41, 55)",
+              "boxShadow": "none",
+              "backdropFilter": "none",
+              "borderRadius": "0px"
+            }
+          },
+          {
+            "key": "section.db-panel.db-panel-pinned",
+            "values": {
+              "backgroundColor": "rgba(255, 255, 255, 0.03)",
+              "color": "rgb(31, 41, 55)",
+              "borderColor": "rgba(255, 255, 255, 0.18)",
+              "boxShadow": "rgba(0, 0, 0, 0.1) 0px 4px 14px 0px, rgba(255, 255, 255, 0.6) 0px 1px 0px 0px inset, rgba(255, 255, 255, 0.32) 0px 6px 10px -6px inset, rgba(255, 255, 255, 0.32) 1px 0px 0px 0px inset, rgba(255, 255, 255, 0.16) 10px 0px 18px -14px inset, rgba(255, 255, 255, 0.18) -1px 0px 0px 0px inset, rgba(255, 255, 255, 0.08) 0px -1px 0px 0px inset, rgba(0, 0, 0, 0.16) 0px -10px 14px -12px inset",
+              "backdropFilter": "none",
+              "borderRadius": "16px"
+            }
+          },
+          {
+            "key": "a.stat-card.widget-card",
+            "values": {
+              "backgroundColor": "rgba(255, 255, 255, 0.04)",
+              "color": "rgba(248, 250, 252, 0.94)",
+              "borderColor": "rgba(255, 255, 255, 0.18)",
+              "boxShadow": "rgba(0, 0, 0, 0.1) 0px 4px 14px 0px, rgba(255, 255, 255, 0.6) 0px 1px 0px 0px inset, rgba(255, 255, 255, 0.32) 0px 6px 10px -6px inset, rgba(255, 255, 255, 0.32) 1px 0px 0px 0px inset, rgba(255, 255, 255, 0.16) 10px 0px 18px -14px inset, rgba(255, 255, 255, 0.18) -1px 0px 0px 0px inset, rgba(255, 255, 255, 0.08) 0px -1px 0px 0px inset, rgba(0, 0, 0, 0.16) 0px -10px 14px -12px inset",
+              "backdropFilter": "blur(3px) saturate(1.75)",
+              "borderRadius": "16px"
+            }
+          }
+        ],
+        "extra": {
+          "background": "photo-earth",
+          "scrollY": 0,
+          "customWidgets": 1
+        }
+      }
+    },
+    {
+      "type": "interaction",
+      "name": "rename",
+      "passed": true,
+      "dom_sha256": "5f1b5bd29b500a4c763fda76e0bd9683e174d87ee275be787aac5cb0476fcc79",
+      "evidence": {
+        "dom": {
+          "sha256": "5f1b5bd29b500a4c763fda76e0bd9683e174d87ee275be787aac5cb0476fcc79"
+        },
+        "geometry": [
+          {
+            "key": "widget-1",
+            "rect": {
+              "top": 132,
+              "left": 922.5,
+              "width": 189,
+              "height": 81
+            },
+            "grid": {
+              "col": "5",
+              "row": "1",
+              "span": "1",
+              "rows": "1"
+            }
+          },
+          {
+            "key": "widget-2",
+            "rect": {
+              "top": 132,
+              "left": 1129.5,
+              "width": 189,
+              "height": 81
+            },
+            "grid": {
+              "col": "6",
+              "row": "1",
+              "span": "1",
+              "rows": "1"
+            }
+          },
+          {
+            "key": "widget-3",
+            "rect": {
+              "top": 231,
+              "left": 922.5,
+              "width": 189,
+              "height": 81
+            },
+            "grid": {
+              "col": "5",
+              "row": "2",
+              "span": "1",
+              "rows": "1"
+            }
+          },
+          {
+            "key": "widget-4",
+            "rect": {
+              "top": 231,
+              "left": 1129.5,
+              "width": 189,
+              "height": 81
+            },
+            "grid": {
+              "col": "6",
+              "row": "2",
+              "span": "1",
+              "rows": "1"
+            }
+          },
+          {
+            "key": "widget-mq1vt34v-qdknm",
+            "rect": {
+              "top": 132,
+              "left": 94.5,
+              "width": 396,
+              "height": 180
+            },
+            "grid": {
+              "col": "1",
+              "row": "1",
+              "span": "2",
+              "rows": "2"
+            }
+          },
+          {
+            "key": "builder-content",
+            "rect": {
+              "top": 330,
+              "left": 94.5,
+              "width": 810,
+              "height": 279
+            },
+            "grid": {
+              "col": "1",
+              "row": "3",
+              "span": "4",
+              "rows": "3"
+            }
+          },
+          {
+            "key": "builder-menu",
+            "rect": {
+              "top": 330,
+              "left": 922.5,
+              "width": 396,
+              "height": 83
+            },
+            "grid": {
+              "col": "5",
+              "row": "3",
+              "span": "2",
+              "rows": "1"
+            }
+          },
+          {
+            "key": "builder-notes",
+            "rect": {
+              "top": 429,
+              "left": 922.5,
+              "width": 396,
+              "height": 279
+            },
+            "grid": {
+              "col": "5",
+              "row": "4",
+              "span": "2",
+              "rows": "3"
+            }
+          }
+        ],
+        "computed_css": [
+          {
+            "key": "html.has-photo-background",
+            "values": {
+              "backgroundColor": "rgb(8, 8, 8)",
+              "color": "rgb(0, 0, 0)",
+              "borderColor": "rgb(0, 0, 0)",
+              "boxShadow": "none",
+              "backdropFilter": "none",
+              "borderRadius": "0px"
+            }
+          },
+          {
+            "key": "body.has-photo-background.webgl-glass-on",
+            "values": {
+              "backgroundColor": "rgb(8, 8, 8)",
+              "color": "rgb(31, 41, 55)",
+              "borderColor": "rgb(31, 41, 55)",
+              "boxShadow": "none",
+              "backdropFilter": "none",
+              "borderRadius": "0px"
+            }
+          },
+          {
+            "key": "header.app-nav.workspace-chrome",
+            "values": {
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "color": "rgb(31, 41, 55)",
+              "borderColor": "color(srgb 0.83921 0.866462 0.907341 / 0.920941)",
+              "boxShadow": "rgba(15, 23, 42, 0.043) 0px 2px 7px 0px, color(srgb 1 1 1 / 0.444) 0px 1px 0px 0px inset",
+              "backdropFilter": "blur(22px) saturate(1.12)",
+              "borderRadius": "16px"
+            }
+          },
+          {
+            "key": "div.dashboard-layout-grid",
+            "values": {
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "color": "rgb(31, 41, 55)",
+              "borderColor": "rgb(31, 41, 55)",
+              "boxShadow": "none",
+              "backdropFilter": "none",
+              "borderRadius": "0px"
+            }
+          },
+          {
+            "key": "section.db-panel.db-panel-pinned",
+            "values": {
+              "backgroundColor": "rgba(255, 255, 255, 0.03)",
+              "color": "rgb(31, 41, 55)",
+              "borderColor": "rgba(255, 255, 255, 0.18)",
+              "boxShadow": "rgba(0, 0, 0, 0.1) 0px 4px 14px 0px, rgba(255, 255, 255, 0.6) 0px 1px 0px 0px inset, rgba(255, 255, 255, 0.32) 0px 6px 10px -6px inset, rgba(255, 255, 255, 0.32) 1px 0px 0px 0px inset, rgba(255, 255, 255, 0.16) 10px 0px 18px -14px inset, rgba(255, 255, 255, 0.18) -1px 0px 0px 0px inset, rgba(255, 255, 255, 0.08) 0px -1px 0px 0px inset, rgba(0, 0, 0, 0.16) 0px -10px 14px -12px inset",
+              "backdropFilter": "none",
+              "borderRadius": "16px"
+            }
+          },
+          {
+            "key": "a.stat-card.widget-card",
+            "values": {
+              "backgroundColor": "rgba(255, 255, 255, 0.04)",
+              "color": "rgba(248, 250, 252, 0.94)",
+              "borderColor": "rgba(255, 255, 255, 0.18)",
+              "boxShadow": "rgba(0, 0, 0, 0.1) 0px 4px 14px 0px, rgba(255, 255, 255, 0.6) 0px 1px 0px 0px inset, rgba(255, 255, 255, 0.32) 0px 6px 10px -6px inset, rgba(255, 255, 255, 0.32) 1px 0px 0px 0px inset, rgba(255, 255, 255, 0.16) 10px 0px 18px -14px inset, rgba(255, 255, 255, 0.18) -1px 0px 0px 0px inset, rgba(255, 255, 255, 0.08) 0px -1px 0px 0px inset, rgba(0, 0, 0, 0.16) 0px -10px 14px -12px inset",
+              "backdropFilter": "blur(3px) saturate(1.75)",
+              "borderRadius": "16px"
+            }
+          }
+        ],
+        "extra": {
+          "background": "photo-earth",
+          "scrollY": 0,
+          "customWidgets": 1
+        }
+      }
+    },
+    {
+      "type": "interaction",
+      "name": "background-photo-switching",
+      "passed": true,
+      "dom_sha256": "5f1b5bd29b500a4c763fda76e0bd9683e174d87ee275be787aac5cb0476fcc79",
+      "evidence": {
+        "dom": {
+          "sha256": "5f1b5bd29b500a4c763fda76e0bd9683e174d87ee275be787aac5cb0476fcc79"
+        },
+        "geometry": [
+          {
+            "key": "widget-1",
+            "rect": {
+              "top": 132,
+              "left": 922.5,
+              "width": 189,
+              "height": 81
+            },
+            "grid": {
+              "col": "5",
+              "row": "1",
+              "span": "1",
+              "rows": "1"
+            }
+          },
+          {
+            "key": "widget-2",
+            "rect": {
+              "top": 132,
+              "left": 1129.5,
+              "width": 189,
+              "height": 81
+            },
+            "grid": {
+              "col": "6",
+              "row": "1",
+              "span": "1",
+              "rows": "1"
+            }
+          },
+          {
+            "key": "widget-3",
+            "rect": {
+              "top": 231,
+              "left": 922.5,
+              "width": 189,
+              "height": 81
+            },
+            "grid": {
+              "col": "5",
+              "row": "2",
+              "span": "1",
+              "rows": "1"
+            }
+          },
+          {
+            "key": "widget-4",
+            "rect": {
+              "top": 231,
+              "left": 1129.5,
+              "width": 189,
+              "height": 81
+            },
+            "grid": {
+              "col": "6",
+              "row": "2",
+              "span": "1",
+              "rows": "1"
+            }
+          },
+          {
+            "key": "widget-mq1vt34v-qdknm",
+            "rect": {
+              "top": 132,
+              "left": 94.5,
+              "width": 396,
+              "height": 180
+            },
+            "grid": {
+              "col": "1",
+              "row": "1",
+              "span": "2",
+              "rows": "2"
+            }
+          },
+          {
+            "key": "builder-content",
+            "rect": {
+              "top": 330,
+              "left": 94.5,
+              "width": 810,
+              "height": 279
+            },
+            "grid": {
+              "col": "1",
+              "row": "3",
+              "span": "4",
+              "rows": "3"
+            }
+          },
+          {
+            "key": "builder-menu",
+            "rect": {
+              "top": 330,
+              "left": 922.5,
+              "width": 396,
+              "height": 83
+            },
+            "grid": {
+              "col": "5",
+              "row": "3",
+              "span": "2",
+              "rows": "1"
+            }
+          },
+          {
+            "key": "builder-notes",
+            "rect": {
+              "top": 429,
+              "left": 922.5,
+              "width": 396,
+              "height": 279
+            },
+            "grid": {
+              "col": "5",
+              "row": "4",
+              "span": "2",
+              "rows": "3"
+            }
+          }
+        ],
+        "computed_css": [
+          {
+            "key": "html.has-photo-background",
+            "values": {
+              "backgroundColor": "rgb(8, 8, 8)",
+              "color": "rgb(0, 0, 0)",
+              "borderColor": "rgb(0, 0, 0)",
+              "boxShadow": "none",
+              "backdropFilter": "none",
+              "borderRadius": "0px"
+            }
+          },
+          {
+            "key": "body.has-photo-background.webgl-glass-on",
+            "values": {
+              "backgroundColor": "rgb(8, 8, 8)",
+              "color": "rgb(31, 41, 55)",
+              "borderColor": "rgb(31, 41, 55)",
+              "boxShadow": "none",
+              "backdropFilter": "none",
+              "borderRadius": "0px"
+            }
+          },
+          {
+            "key": "header.app-nav.workspace-chrome",
+            "values": {
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "color": "rgb(31, 41, 55)",
+              "borderColor": "color(srgb 0.83921 0.866462 0.907341 / 0.920941)",
+              "boxShadow": "rgba(15, 23, 42, 0.043) 0px 2px 7px 0px, color(srgb 1 1 1 / 0.444) 0px 1px 0px 0px inset",
+              "backdropFilter": "blur(22px) saturate(1.12)",
+              "borderRadius": "16px"
+            }
+          },
+          {
+            "key": "div.dashboard-layout-grid",
+            "values": {
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "color": "rgb(31, 41, 55)",
+              "borderColor": "rgb(31, 41, 55)",
+              "boxShadow": "none",
+              "backdropFilter": "none",
+              "borderRadius": "0px"
+            }
+          },
+          {
+            "key": "section.db-panel.db-panel-pinned",
+            "values": {
+              "backgroundColor": "rgba(255, 255, 255, 0.03)",
+              "color": "rgb(31, 41, 55)",
+              "borderColor": "rgba(255, 255, 255, 0.18)",
+              "boxShadow": "rgba(0, 0, 0, 0.1) 0px 4px 14px 0px, rgba(255, 255, 255, 0.6) 0px 1px 0px 0px inset, rgba(255, 255, 255, 0.32) 0px 6px 10px -6px inset, rgba(255, 255, 255, 0.32) 1px 0px 0px 0px inset, rgba(255, 255, 255, 0.16) 10px 0px 18px -14px inset, rgba(255, 255, 255, 0.18) -1px 0px 0px 0px inset, rgba(255, 255, 255, 0.08) 0px -1px 0px 0px inset, rgba(0, 0, 0, 0.16) 0px -10px 14px -12px inset",
+              "backdropFilter": "none",
+              "borderRadius": "16px"
+            }
+          },
+          {
+            "key": "a.stat-card.widget-card",
+            "values": {
+              "backgroundColor": "rgba(255, 255, 255, 0.04)",
+              "color": "rgba(248, 250, 252, 0.94)",
+              "borderColor": "rgba(255, 255, 255, 0.18)",
+              "boxShadow": "rgba(0, 0, 0, 0.1) 0px 4px 14px 0px, rgba(255, 255, 255, 0.6) 0px 1px 0px 0px inset, rgba(255, 255, 255, 0.32) 0px 6px 10px -6px inset, rgba(255, 255, 255, 0.32) 1px 0px 0px 0px inset, rgba(255, 255, 255, 0.16) 10px 0px 18px -14px inset, rgba(255, 255, 255, 0.18) -1px 0px 0px 0px inset, rgba(255, 255, 255, 0.08) 0px -1px 0px 0px inset, rgba(0, 0, 0, 0.16) 0px -10px 14px -12px inset",
+              "backdropFilter": "blur(3px) saturate(1.75)",
+              "borderRadius": "16px"
+            }
+          }
+        ],
+        "extra": {
+          "background": "photo-earth",
+          "scrollY": 0,
+          "customWidgets": 1
+        }
+      }
+    },
+    {
+      "type": "interaction",
+      "name": "save-reload-identical",
+      "passed": true,
+      "dom_sha256": "5f1b5bd29b500a4c763fda76e0bd9683e174d87ee275be787aac5cb0476fcc79",
+      "evidence": {
+        "dom": {
+          "sha256": "5f1b5bd29b500a4c763fda76e0bd9683e174d87ee275be787aac5cb0476fcc79"
+        },
+        "geometry": [
+          {
+            "key": "widget-1",
+            "rect": {
+              "top": 132,
+              "left": 922.5,
+              "width": 189,
+              "height": 81
+            },
+            "grid": {
+              "col": "5",
+              "row": "1",
+              "span": "1",
+              "rows": "1"
+            }
+          },
+          {
+            "key": "widget-2",
+            "rect": {
+              "top": 132,
+              "left": 1129.5,
+              "width": 189,
+              "height": 81
+            },
+            "grid": {
+              "col": "6",
+              "row": "1",
+              "span": "1",
+              "rows": "1"
+            }
+          },
+          {
+            "key": "widget-3",
+            "rect": {
+              "top": 231,
+              "left": 922.5,
+              "width": 189,
+              "height": 81
+            },
+            "grid": {
+              "col": "5",
+              "row": "2",
+              "span": "1",
+              "rows": "1"
+            }
+          },
+          {
+            "key": "widget-4",
+            "rect": {
+              "top": 231,
+              "left": 1129.5,
+              "width": 189,
+              "height": 81
+            },
+            "grid": {
+              "col": "6",
+              "row": "2",
+              "span": "1",
+              "rows": "1"
+            }
+          },
+          {
+            "key": "widget-mq1vt34v-qdknm",
+            "rect": {
+              "top": 132,
+              "left": 94.5,
+              "width": 396,
+              "height": 180
+            },
+            "grid": {
+              "col": "1",
+              "row": "1",
+              "span": "2",
+              "rows": "2"
+            }
+          },
+          {
+            "key": "builder-content",
+            "rect": {
+              "top": 330,
+              "left": 94.5,
+              "width": 810,
+              "height": 279
+            },
+            "grid": {
+              "col": "1",
+              "row": "3",
+              "span": "4",
+              "rows": "3"
+            }
+          },
+          {
+            "key": "builder-menu",
+            "rect": {
+              "top": 330,
+              "left": 922.5,
+              "width": 396,
+              "height": 83
+            },
+            "grid": {
+              "col": "5",
+              "row": "3",
+              "span": "2",
+              "rows": "1"
+            }
+          },
+          {
+            "key": "builder-notes",
+            "rect": {
+              "top": 429,
+              "left": 922.5,
+              "width": 396,
+              "height": 279
+            },
+            "grid": {
+              "col": "5",
+              "row": "4",
+              "span": "2",
+              "rows": "3"
+            }
+          }
+        ],
+        "computed_css": [
+          {
+            "key": "html.has-photo-background",
+            "values": {
+              "backgroundColor": "rgb(8, 8, 8)",
+              "color": "rgb(0, 0, 0)",
+              "borderColor": "rgb(0, 0, 0)",
+              "boxShadow": "none",
+              "backdropFilter": "none",
+              "borderRadius": "0px"
+            }
+          },
+          {
+            "key": "body.has-photo-background.webgl-glass-on",
+            "values": {
+              "backgroundColor": "rgb(8, 8, 8)",
+              "color": "rgb(31, 41, 55)",
+              "borderColor": "rgb(31, 41, 55)",
+              "boxShadow": "none",
+              "backdropFilter": "none",
+              "borderRadius": "0px"
+            }
+          },
+          {
+            "key": "header.app-nav.workspace-chrome",
+            "values": {
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "color": "rgb(31, 41, 55)",
+              "borderColor": "color(srgb 0.83921 0.866462 0.907341 / 0.920941)",
+              "boxShadow": "rgba(15, 23, 42, 0.043) 0px 2px 7px 0px, color(srgb 1 1 1 / 0.444) 0px 1px 0px 0px inset",
+              "backdropFilter": "blur(22px) saturate(1.12)",
+              "borderRadius": "16px"
+            }
+          },
+          {
+            "key": "div.dashboard-layout-grid",
+            "values": {
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "color": "rgb(31, 41, 55)",
+              "borderColor": "rgb(31, 41, 55)",
+              "boxShadow": "none",
+              "backdropFilter": "none",
+              "borderRadius": "0px"
+            }
+          },
+          {
+            "key": "section.db-panel.db-panel-pinned",
+            "values": {
+              "backgroundColor": "rgba(255, 255, 255, 0.03)",
+              "color": "rgb(31, 41, 55)",
+              "borderColor": "rgba(255, 255, 255, 0.18)",
+              "boxShadow": "rgba(0, 0, 0, 0.1) 0px 4px 14px 0px, rgba(255, 255, 255, 0.6) 0px 1px 0px 0px inset, rgba(255, 255, 255, 0.32) 0px 6px 10px -6px inset, rgba(255, 255, 255, 0.32) 1px 0px 0px 0px inset, rgba(255, 255, 255, 0.16) 10px 0px 18px -14px inset, rgba(255, 255, 255, 0.18) -1px 0px 0px 0px inset, rgba(255, 255, 255, 0.08) 0px -1px 0px 0px inset, rgba(0, 0, 0, 0.16) 0px -10px 14px -12px inset",
+              "backdropFilter": "none",
+              "borderRadius": "16px"
+            }
+          },
+          {
+            "key": "a.stat-card.widget-card",
+            "values": {
+              "backgroundColor": "rgba(255, 255, 255, 0.04)",
+              "color": "rgba(248, 250, 252, 0.94)",
+              "borderColor": "rgba(255, 255, 255, 0.18)",
+              "boxShadow": "rgba(0, 0, 0, 0.1) 0px 4px 14px 0px, rgba(255, 255, 255, 0.6) 0px 1px 0px 0px inset, rgba(255, 255, 255, 0.32) 0px 6px 10px -6px inset, rgba(255, 255, 255, 0.32) 1px 0px 0px 0px inset, rgba(255, 255, 255, 0.16) 10px 0px 18px -14px inset, rgba(255, 255, 255, 0.18) -1px 0px 0px 0px inset, rgba(255, 255, 255, 0.08) 0px -1px 0px 0px inset, rgba(0, 0, 0, 0.16) 0px -10px 14px -12px inset",
+              "backdropFilter": "blur(3px) saturate(1.75)",
+              "borderRadius": "16px"
+            }
+          }
+        ],
+        "extra": {
+          "background": "photo-earth",
+          "scrollY": 0,
+          "customWidgets": 1
+        }
+      }
+    },
+    {
+      "type": "interaction",
+      "name": "resize-snap",
+      "passed": true,
+      "dom_sha256": "259104724f69276fbb0f2e7ba572f81e59d62be57af8449610758d05ccbbba60",
+      "evidence": {
+        "dom": {
+          "sha256": "259104724f69276fbb0f2e7ba572f81e59d62be57af8449610758d05ccbbba60"
+        },
+        "geometry": [
+          {
+            "key": "widget-1",
+            "rect": {
+              "top": 132,
+              "left": 922.5,
+              "width": 189,
+              "height": 81
+            },
+            "grid": {
+              "col": "5",
+              "row": "1",
+              "span": "1",
+              "rows": "1"
+            }
+          },
+          {
+            "key": "widget-2",
+            "rect": {
+              "top": 132,
+              "left": 1129.5,
+              "width": 189,
+              "height": 81
+            },
+            "grid": {
+              "col": "6",
+              "row": "1",
+              "span": "1",
+              "rows": "1"
+            }
+          },
+          {
+            "key": "widget-3",
+            "rect": {
+              "top": 231,
+              "left": 922.5,
+              "width": 189,
+              "height": 81
+            },
+            "grid": {
+              "col": "5",
+              "row": "2",
+              "span": "1",
+              "rows": "1"
+            }
+          },
+          {
+            "key": "widget-4",
+            "rect": {
+              "top": 231,
+              "left": 1129.5,
+              "width": 189,
+              "height": 81
+            },
+            "grid": {
+              "col": "6",
+              "row": "2",
+              "span": "1",
+              "rows": "1"
+            }
+          },
+          {
+            "key": "builder-content",
+            "rect": {
+              "top": 330,
+              "left": 94.5,
+              "width": 810,
+              "height": 279
+            },
+            "grid": {
+              "col": "1",
+              "row": "3",
+              "span": "4",
+              "rows": "3"
+            }
+          },
+          {
+            "key": "builder-menu",
+            "rect": {
+              "top": 330,
+              "left": 922.5,
+              "width": 396,
+              "height": 83
+            },
+            "grid": {
+              "col": "5",
+              "row": "3",
+              "span": "2",
+              "rows": "1"
+            }
+          },
+          {
+            "key": "builder-notes",
+            "rect": {
+              "top": 429,
+              "left": 922.5,
+              "width": 189,
+              "height": 477
+            },
+            "grid": {
+              "col": "5",
+              "row": "4",
+              "span": "1",
+              "rows": "5"
+            }
+          }
+        ],
+        "computed_css": [
+          {
+            "key": "html",
+            "values": {
+              "backgroundColor": "rgb(237, 242, 248)",
+              "color": "rgb(0, 0, 0)",
+              "borderColor": "rgb(0, 0, 0)",
+              "boxShadow": "none",
+              "backdropFilter": "none",
+              "borderRadius": "0px"
+            }
+          },
+          {
+            "key": "body.layout-tools-active",
+            "values": {
+              "backgroundColor": "rgb(237, 242, 248)",
+              "color": "rgb(31, 41, 55)",
+              "borderColor": "rgb(31, 41, 55)",
+              "boxShadow": "none",
+              "backdropFilter": "none",
+              "borderRadius": "0px"
+            }
+          },
+          {
+            "key": "header.app-nav.workspace-chrome",
+            "values": {
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "color": "rgb(31, 41, 55)",
+              "borderColor": "color(srgb 0.83921 0.866462 0.907341 / 0.920941)",
+              "boxShadow": "rgba(15, 23, 42, 0.043) 0px 2px 7px 0px, color(srgb 1 1 1 / 0.444) 0px 1px 0px 0px inset",
+              "backdropFilter": "blur(22px) saturate(1.12)",
+              "borderRadius": "16px"
+            }
+          },
+          {
+            "key": "div.dashboard-layout-grid",
+            "values": {
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "color": "rgb(31, 41, 55)",
+              "borderColor": "rgb(31, 41, 55)",
+              "boxShadow": "none",
+              "backdropFilter": "none",
+              "borderRadius": "0px"
+            }
+          },
+          {
+            "key": "section.db-panel.db-panel-custom-color",
+            "values": {
+              "backgroundColor": "rgba(255, 255, 255, 0.64)",
+              "color": "rgb(31, 41, 55)",
+              "borderColor": "color(srgb 0.703912 0.76443 0.866783 / 0.756813)",
+              "boxShadow": "rgba(15, 23, 42, 0.043) 0px 2px 10px 0px, rgba(255, 255, 255, 0.075) 0px 1px 0px 0px inset",
+              "backdropFilter": "blur(6px) saturate(1.8)",
+              "borderRadius": "16px"
+            }
+          },
+          {
+            "key": "a.stat-card.widget-card",
+            "values": {
+              "backgroundColor": "rgba(255, 255, 255, 0.64)",
+              "color": "rgba(248, 250, 252, 0.94)",
+              "borderColor": "color(srgb 0.703912 0.76443 0.866783 / 0.756813)",
+              "boxShadow": "rgba(15, 23, 42, 0.043) 0px 2px 10px 0px, rgba(255, 255, 255, 0.075) 0px 1px 0px 0px inset",
+              "backdropFilter": "blur(6px) saturate(1.8)",
+              "borderRadius": "16px"
+            }
+          }
+        ],
+        "extra": {
+          "background": "frosted-light",
+          "scrollY": 0,
+          "customWidgets": 0,
+          "spanBefore": "2",
+          "spanAfter": "1"
+        }
+      }
+    },
+    {
+      "type": "interaction",
+      "name": "drag-with-live-ghost",
+      "passed": true,
+      "dom_sha256": "73248620512a7fc32803e9b2b7d2921e4378df64d4d369f82e1bd6592cea4d3f",
+      "evidence": {
+        "dom": {
+          "sha256": "73248620512a7fc32803e9b2b7d2921e4378df64d4d369f82e1bd6592cea4d3f"
+        },
+        "geometry": [
+          {
+            "key": "widget-1",
+            "rect": {
+              "top": 132,
+              "left": 922.5,
+              "width": 189,
+              "height": 81
+            },
+            "grid": {
+              "col": "5",
+              "row": "1",
+              "span": "1",
+              "rows": "1"
+            }
+          },
+          {
+            "key": "widget-2",
+            "rect": {
+              "top": 132,
+              "left": 1129.5,
+              "width": 189,
+              "height": 81
+            },
+            "grid": {
+              "col": "6",
+              "row": "1",
+              "span": "1",
+              "rows": "1"
+            }
+          },
+          {
+            "key": "widget-3",
+            "rect": {
+              "top": 231,
+              "left": 922.5,
+              "width": 189,
+              "height": 81
+            },
+            "grid": {
+              "col": "5",
+              "row": "2",
+              "span": "1",
+              "rows": "1"
+            }
+          },
+          {
+            "key": "widget-4",
+            "rect": {
+              "top": 231,
+              "left": 1129.5,
+              "width": 189,
+              "height": 81
+            },
+            "grid": {
+              "col": "6",
+              "row": "2",
+              "span": "1",
+              "rows": "1"
+            }
+          },
+          {
+            "key": "builder-content",
+            "rect": {
+              "top": 813.67,
+              "left": 94.5,
+              "width": 810,
+              "height": 279
+            },
+            "grid": {
+              "col": "1",
+              "row": "8",
+              "span": "4",
+              "rows": "3"
+            }
+          },
+          {
+            "key": "builder-menu",
+            "rect": {
+              "top": 363.99,
+              "left": 922.5,
+              "width": 396,
+              "height": 83
+            },
+            "grid": {
+              "col": "5",
+              "row": "3",
+              "span": "2",
+              "rows": "1"
+            }
+          },
+          {
+            "key": "builder-notes",
+            "rect": {
+              "top": 528,
+              "left": 508.5,
+              "width": 396,
+              "height": 279
+            },
+            "grid": {
+              "col": "3",
+              "row": "5",
+              "span": "2",
+              "rows": "3"
+            }
+          }
+        ],
+        "computed_css": [
+          {
+            "key": "html",
+            "values": {
+              "backgroundColor": "rgb(237, 242, 248)",
+              "color": "rgb(0, 0, 0)",
+              "borderColor": "rgb(0, 0, 0)",
+              "boxShadow": "none",
+              "backdropFilter": "none",
+              "borderRadius": "0px"
+            }
+          },
+          {
+            "key": "body.layout-tools-active",
+            "values": {
+              "backgroundColor": "rgb(237, 242, 248)",
+              "color": "rgb(31, 41, 55)",
+              "borderColor": "rgb(31, 41, 55)",
+              "boxShadow": "none",
+              "backdropFilter": "none",
+              "borderRadius": "0px"
+            }
+          },
+          {
+            "key": "header.app-nav.workspace-chrome",
+            "values": {
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "color": "rgb(31, 41, 55)",
+              "borderColor": "color(srgb 0.83921 0.866462 0.907341 / 0.920941)",
+              "boxShadow": "rgba(15, 23, 42, 0.043) 0px 2px 7px 0px, color(srgb 1 1 1 / 0.444) 0px 1px 0px 0px inset",
+              "backdropFilter": "blur(22px) saturate(1.12)",
+              "borderRadius": "16px"
+            }
+          },
+          {
+            "key": "div.dashboard-layout-grid",
+            "values": {
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "color": "rgb(31, 41, 55)",
+              "borderColor": "rgb(31, 41, 55)",
+              "boxShadow": "none",
+              "backdropFilter": "none",
+              "borderRadius": "0px"
+            }
+          },
+          {
+            "key": "section.db-panel.db-panel-custom-color",
+            "values": {
+              "backgroundColor": "rgba(255, 255, 255, 0.64)",
+              "color": "rgb(31, 41, 55)",
+              "borderColor": "color(srgb 0.703912 0.76443 0.866783 / 0.756813)",
+              "boxShadow": "rgba(15, 23, 42, 0.043) 0px 2px 10px 0px, rgba(255, 255, 255, 0.075) 0px 1px 0px 0px inset",
+              "backdropFilter": "blur(6px) saturate(1.8)",
+              "borderRadius": "16px"
+            }
+          },
+          {
+            "key": "a.stat-card.widget-card",
+            "values": {
+              "backgroundColor": "rgba(255, 255, 255, 0.64)",
+              "color": "rgba(248, 250, 252, 0.94)",
+              "borderColor": "color(srgb 0.703912 0.76443 0.866783 / 0.756813)",
+              "boxShadow": "rgba(15, 23, 42, 0.043) 0px 2px 10px 0px, rgba(255, 255, 255, 0.075) 0px 1px 0px 0px inset",
+              "backdropFilter": "blur(6px) saturate(1.8)",
+              "borderRadius": "16px"
+            }
+          }
+        ],
+        "extra": {
+          "background": "frosted-light",
+          "scrollY": 0,
+          "customWidgets": 0,
+          "moveBefore": {
+            "col": "5",
+            "row": "4"
+          },
+          "afterMove": {
+            "col": "3",
+            "row": "5"
+          }
+        }
+      }
+    },
+    {
+      "type": "interaction",
+      "name": "grid-snap",
+      "passed": true,
+      "dom_sha256": "73248620512a7fc32803e9b2b7d2921e4378df64d4d369f82e1bd6592cea4d3f",
+      "evidence": {
+        "dom": {
+          "sha256": "73248620512a7fc32803e9b2b7d2921e4378df64d4d369f82e1bd6592cea4d3f"
+        },
+        "geometry": [
+          {
+            "key": "widget-1",
+            "rect": {
+              "top": 132,
+              "left": 922.5,
+              "width": 189,
+              "height": 81
+            },
+            "grid": {
+              "col": "5",
+              "row": "1",
+              "span": "1",
+              "rows": "1"
+            }
+          },
+          {
+            "key": "widget-2",
+            "rect": {
+              "top": 132,
+              "left": 1129.5,
+              "width": 189,
+              "height": 81
+            },
+            "grid": {
+              "col": "6",
+              "row": "1",
+              "span": "1",
+              "rows": "1"
+            }
+          },
+          {
+            "key": "widget-3",
+            "rect": {
+              "top": 231,
+              "left": 922.5,
+              "width": 189,
+              "height": 81
+            },
+            "grid": {
+              "col": "5",
+              "row": "2",
+              "span": "1",
+              "rows": "1"
+            }
+          },
+          {
+            "key": "widget-4",
+            "rect": {
+              "top": 231,
+              "left": 1129.5,
+              "width": 189,
+              "height": 81
+            },
+            "grid": {
+              "col": "6",
+              "row": "2",
+              "span": "1",
+              "rows": "1"
+            }
+          },
+          {
+            "key": "builder-content",
+            "rect": {
+              "top": 813.67,
+              "left": 94.5,
+              "width": 810,
+              "height": 279
+            },
+            "grid": {
+              "col": "1",
+              "row": "8",
+              "span": "4",
+              "rows": "3"
+            }
+          },
+          {
+            "key": "builder-menu",
+            "rect": {
+              "top": 363.99,
+              "left": 922.5,
+              "width": 396,
+              "height": 83
+            },
+            "grid": {
+              "col": "5",
+              "row": "3",
+              "span": "2",
+              "rows": "1"
+            }
+          },
+          {
+            "key": "builder-notes",
+            "rect": {
+              "top": 528,
+              "left": 508.5,
+              "width": 396,
+              "height": 279
+            },
+            "grid": {
+              "col": "3",
+              "row": "5",
+              "span": "2",
+              "rows": "3"
+            }
+          }
+        ],
+        "computed_css": [
+          {
+            "key": "html",
+            "values": {
+              "backgroundColor": "rgb(237, 242, 248)",
+              "color": "rgb(0, 0, 0)",
+              "borderColor": "rgb(0, 0, 0)",
+              "boxShadow": "none",
+              "backdropFilter": "none",
+              "borderRadius": "0px"
+            }
+          },
+          {
+            "key": "body.layout-tools-active",
+            "values": {
+              "backgroundColor": "rgb(237, 242, 248)",
+              "color": "rgb(31, 41, 55)",
+              "borderColor": "rgb(31, 41, 55)",
+              "boxShadow": "none",
+              "backdropFilter": "none",
+              "borderRadius": "0px"
+            }
+          },
+          {
+            "key": "header.app-nav.workspace-chrome",
+            "values": {
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "color": "rgb(31, 41, 55)",
+              "borderColor": "color(srgb 0.83921 0.866462 0.907341 / 0.920941)",
+              "boxShadow": "rgba(15, 23, 42, 0.043) 0px 2px 7px 0px, color(srgb 1 1 1 / 0.444) 0px 1px 0px 0px inset",
+              "backdropFilter": "blur(22px) saturate(1.12)",
+              "borderRadius": "16px"
+            }
+          },
+          {
+            "key": "div.dashboard-layout-grid",
+            "values": {
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "color": "rgb(31, 41, 55)",
+              "borderColor": "rgb(31, 41, 55)",
+              "boxShadow": "none",
+              "backdropFilter": "none",
+              "borderRadius": "0px"
+            }
+          },
+          {
+            "key": "section.db-panel.db-panel-custom-color",
+            "values": {
+              "backgroundColor": "rgba(255, 255, 255, 0.64)",
+              "color": "rgb(31, 41, 55)",
+              "borderColor": "color(srgb 0.703912 0.76443 0.866783 / 0.756813)",
+              "boxShadow": "rgba(15, 23, 42, 0.043) 0px 2px 10px 0px, rgba(255, 255, 255, 0.075) 0px 1px 0px 0px inset",
+              "backdropFilter": "blur(6px) saturate(1.8)",
+              "borderRadius": "16px"
+            }
+          },
+          {
+            "key": "a.stat-card.widget-card",
+            "values": {
+              "backgroundColor": "rgba(255, 255, 255, 0.64)",
+              "color": "rgba(248, 250, 252, 0.94)",
+              "borderColor": "color(srgb 0.703912 0.76443 0.866783 / 0.756813)",
+              "boxShadow": "rgba(15, 23, 42, 0.043) 0px 2px 10px 0px, rgba(255, 255, 255, 0.075) 0px 1px 0px 0px inset",
+              "backdropFilter": "blur(6px) saturate(1.8)",
+              "borderRadius": "16px"
+            }
+          }
+        ],
+        "extra": {
+          "background": "frosted-light",
+          "scrollY": 0,
+          "customWidgets": 0,
+          "moveBefore": {
+            "col": "5",
+            "row": "4"
+          },
+          "afterMove": {
+            "col": "3",
+            "row": "5"
+          }
+        }
+      }
+    },
+    {
+      "type": "interaction",
+      "name": "collision-reflow",
+      "passed": true,
+      "dom_sha256": "73248620512a7fc32803e9b2b7d2921e4378df64d4d369f82e1bd6592cea4d3f",
+      "evidence": {
+        "dom": {
+          "sha256": "73248620512a7fc32803e9b2b7d2921e4378df64d4d369f82e1bd6592cea4d3f"
+        },
+        "geometry": [
+          {
+            "key": "widget-1",
+            "rect": {
+              "top": 132,
+              "left": 922.5,
+              "width": 189,
+              "height": 81
+            },
+            "grid": {
+              "col": "5",
+              "row": "1",
+              "span": "1",
+              "rows": "1"
+            }
+          },
+          {
+            "key": "widget-2",
+            "rect": {
+              "top": 132,
+              "left": 1129.5,
+              "width": 189,
+              "height": 81
+            },
+            "grid": {
+              "col": "6",
+              "row": "1",
+              "span": "1",
+              "rows": "1"
+            }
+          },
+          {
+            "key": "widget-3",
+            "rect": {
+              "top": 231,
+              "left": 922.5,
+              "width": 189,
+              "height": 81
+            },
+            "grid": {
+              "col": "5",
+              "row": "2",
+              "span": "1",
+              "rows": "1"
+            }
+          },
+          {
+            "key": "widget-4",
+            "rect": {
+              "top": 231,
+              "left": 1129.5,
+              "width": 189,
+              "height": 81
+            },
+            "grid": {
+              "col": "6",
+              "row": "2",
+              "span": "1",
+              "rows": "1"
+            }
+          },
+          {
+            "key": "builder-content",
+            "rect": {
+              "top": 813.67,
+              "left": 94.5,
+              "width": 810,
+              "height": 279
+            },
+            "grid": {
+              "col": "1",
+              "row": "8",
+              "span": "4",
+              "rows": "3"
+            }
+          },
+          {
+            "key": "builder-menu",
+            "rect": {
+              "top": 363.99,
+              "left": 922.5,
+              "width": 396,
+              "height": 83
+            },
+            "grid": {
+              "col": "5",
+              "row": "3",
+              "span": "2",
+              "rows": "1"
+            }
+          },
+          {
+            "key": "builder-notes",
+            "rect": {
+              "top": 528,
+              "left": 508.5,
+              "width": 396,
+              "height": 279
+            },
+            "grid": {
+              "col": "3",
+              "row": "5",
+              "span": "2",
+              "rows": "3"
+            }
+          }
+        ],
+        "computed_css": [
+          {
+            "key": "html",
+            "values": {
+              "backgroundColor": "rgb(237, 242, 248)",
+              "color": "rgb(0, 0, 0)",
+              "borderColor": "rgb(0, 0, 0)",
+              "boxShadow": "none",
+              "backdropFilter": "none",
+              "borderRadius": "0px"
+            }
+          },
+          {
+            "key": "body.layout-tools-active",
+            "values": {
+              "backgroundColor": "rgb(237, 242, 248)",
+              "color": "rgb(31, 41, 55)",
+              "borderColor": "rgb(31, 41, 55)",
+              "boxShadow": "none",
+              "backdropFilter": "none",
+              "borderRadius": "0px"
+            }
+          },
+          {
+            "key": "header.app-nav.workspace-chrome",
+            "values": {
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "color": "rgb(31, 41, 55)",
+              "borderColor": "color(srgb 0.83921 0.866462 0.907341 / 0.920941)",
+              "boxShadow": "rgba(15, 23, 42, 0.043) 0px 2px 7px 0px, color(srgb 1 1 1 / 0.444) 0px 1px 0px 0px inset",
+              "backdropFilter": "blur(22px) saturate(1.12)",
+              "borderRadius": "16px"
+            }
+          },
+          {
+            "key": "div.dashboard-layout-grid",
+            "values": {
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "color": "rgb(31, 41, 55)",
+              "borderColor": "rgb(31, 41, 55)",
+              "boxShadow": "none",
+              "backdropFilter": "none",
+              "borderRadius": "0px"
+            }
+          },
+          {
+            "key": "section.db-panel.db-panel-custom-color",
+            "values": {
+              "backgroundColor": "rgba(255, 255, 255, 0.64)",
+              "color": "rgb(31, 41, 55)",
+              "borderColor": "color(srgb 0.703912 0.76443 0.866783 / 0.756813)",
+              "boxShadow": "rgba(15, 23, 42, 0.043) 0px 2px 10px 0px, rgba(255, 255, 255, 0.075) 0px 1px 0px 0px inset",
+              "backdropFilter": "blur(6px) saturate(1.8)",
+              "borderRadius": "16px"
+            }
+          },
+          {
+            "key": "a.stat-card.widget-card",
+            "values": {
+              "backgroundColor": "rgba(255, 255, 255, 0.64)",
+              "color": "rgba(248, 250, 252, 0.94)",
+              "borderColor": "color(srgb 0.703912 0.76443 0.866783 / 0.756813)",
+              "boxShadow": "rgba(15, 23, 42, 0.043) 0px 2px 10px 0px, rgba(255, 255, 255, 0.075) 0px 1px 0px 0px inset",
+              "backdropFilter": "blur(6px) saturate(1.8)",
+              "borderRadius": "16px"
+            }
+          }
+        ],
+        "extra": {
+          "background": "frosted-light",
+          "scrollY": 0,
+          "customWidgets": 0,
+          "moveBefore": {
+            "col": "5",
+            "row": "4"
+          },
+          "afterMove": {
+            "col": "3",
+            "row": "5"
+          }
+        }
+      }
+    },
+    {
+      "type": "interaction",
+      "name": "select-mode-multi-move",
+      "passed": true,
+      "dom_sha256": "73248620512a7fc32803e9b2b7d2921e4378df64d4d369f82e1bd6592cea4d3f",
+      "evidence": {
+        "dom": {
+          "sha256": "73248620512a7fc32803e9b2b7d2921e4378df64d4d369f82e1bd6592cea4d3f"
+        },
+        "geometry": [
+          {
+            "key": "widget-1",
+            "rect": {
+              "top": 132,
+              "left": 922.5,
+              "width": 189,
+              "height": 81
+            },
+            "grid": {
+              "col": "5",
+              "row": "1",
+              "span": "1",
+              "rows": "1"
+            }
+          },
+          {
+            "key": "widget-2",
+            "rect": {
+              "top": 132,
+              "left": 1129.5,
+              "width": 189,
+              "height": 81
+            },
+            "grid": {
+              "col": "6",
+              "row": "1",
+              "span": "1",
+              "rows": "1"
+            }
+          },
+          {
+            "key": "widget-3",
+            "rect": {
+              "top": 231,
+              "left": 922.5,
+              "width": 189,
+              "height": 81
+            },
+            "grid": {
+              "col": "5",
+              "row": "2",
+              "span": "1",
+              "rows": "1"
+            }
+          },
+          {
+            "key": "widget-4",
+            "rect": {
+              "top": 231,
+              "left": 1129.5,
+              "width": 189,
+              "height": 81
+            },
+            "grid": {
+              "col": "6",
+              "row": "2",
+              "span": "1",
+              "rows": "1"
+            }
+          },
+          {
+            "key": "builder-content",
+            "rect": {
+              "top": 818.35,
+              "left": 94.5,
+              "width": 810,
+              "height": 279
+            },
+            "grid": {
+              "col": "1",
+              "row": "8",
+              "span": "4",
+              "rows": "3"
+            }
+          },
+          {
+            "key": "builder-menu",
+            "rect": {
+              "top": 349.96,
+              "left": 922.5,
+              "width": 396,
+              "height": 83
+            },
+            "grid": {
+              "col": "5",
+              "row": "3",
+              "span": "2",
+              "rows": "1"
+            }
+          },
+          {
+            "key": "builder-notes",
+            "rect": {
+              "top": 528,
+              "left": 508.5,
+              "width": 396,
+              "height": 279
+            },
+            "grid": {
+              "col": "3",
+              "row": "5",
+              "span": "2",
+              "rows": "3"
+            }
+          }
+        ],
+        "computed_css": [
+          {
+            "key": "html",
+            "values": {
+              "backgroundColor": "rgb(237, 242, 248)",
+              "color": "rgb(0, 0, 0)",
+              "borderColor": "rgb(0, 0, 0)",
+              "boxShadow": "none",
+              "backdropFilter": "none",
+              "borderRadius": "0px"
+            }
+          },
+          {
+            "key": "body.layout-tools-active",
+            "values": {
+              "backgroundColor": "rgb(237, 242, 248)",
+              "color": "rgb(31, 41, 55)",
+              "borderColor": "rgb(31, 41, 55)",
+              "boxShadow": "none",
+              "backdropFilter": "none",
+              "borderRadius": "0px"
+            }
+          },
+          {
+            "key": "header.app-nav.workspace-chrome",
+            "values": {
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "color": "rgb(31, 41, 55)",
+              "borderColor": "color(srgb 0.83921 0.866462 0.907341 / 0.920941)",
+              "boxShadow": "rgba(15, 23, 42, 0.043) 0px 2px 7px 0px, color(srgb 1 1 1 / 0.444) 0px 1px 0px 0px inset",
+              "backdropFilter": "blur(22px) saturate(1.12)",
+              "borderRadius": "16px"
+            }
+          },
+          {
+            "key": "div.dashboard-layout-grid",
+            "values": {
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "color": "rgb(31, 41, 55)",
+              "borderColor": "rgb(31, 41, 55)",
+              "boxShadow": "none",
+              "backdropFilter": "none",
+              "borderRadius": "0px"
+            }
+          },
+          {
+            "key": "section.db-panel.db-panel-custom-color",
+            "values": {
+              "backgroundColor": "rgba(255, 255, 255, 0.64)",
+              "color": "rgb(31, 41, 55)",
+              "borderColor": "color(srgb 0.703912 0.76443 0.866783 / 0.756813)",
+              "boxShadow": "rgba(15, 23, 42, 0.043) 0px 2px 10px 0px, rgba(255, 255, 255, 0.075) 0px 1px 0px 0px inset",
+              "backdropFilter": "blur(6px) saturate(1.8)",
+              "borderRadius": "16px"
+            }
+          },
+          {
+            "key": "a.stat-card.widget-card",
+            "values": {
+              "backgroundColor": "rgba(255, 255, 255, 0.64)",
+              "color": "rgba(248, 250, 252, 0.94)",
+              "borderColor": "color(srgb 0.703912 0.76443 0.866783 / 0.756813)",
+              "boxShadow": "rgba(15, 23, 42, 0.043) 0px 2px 10px 0px, rgba(255, 255, 255, 0.075) 0px 1px 0px 0px inset",
+              "backdropFilter": "blur(6px) saturate(1.8)",
+              "borderRadius": "16px"
+            }
+          }
+        ],
+        "extra": {
+          "background": "frosted-light",
+          "scrollY": 0,
+          "customWidgets": 0,
+          "moveBefore": {
+            "col": "5",
+            "row": "4"
+          },
+          "afterMove": {
+            "col": "3",
+            "row": "5"
+          }
+        }
+      }
+    },
+    {
+      "type": "interaction",
+      "name": "edge-auto-scroll",
+      "passed": true,
+      "dom_sha256": "73248620512a7fc32803e9b2b7d2921e4378df64d4d369f82e1bd6592cea4d3f",
+      "evidence": {
+        "dom": {
+          "sha256": "73248620512a7fc32803e9b2b7d2921e4378df64d4d369f82e1bd6592cea4d3f"
+        },
+        "geometry": [
+          {
+            "key": "widget-1",
+            "rect": {
+              "top": 132,
+              "left": 922.5,
+              "width": 189,
+              "height": 81
+            },
+            "grid": {
+              "col": "5",
+              "row": "1",
+              "span": "1",
+              "rows": "1"
+            }
+          },
+          {
+            "key": "widget-2",
+            "rect": {
+              "top": 132,
+              "left": 1129.5,
+              "width": 189,
+              "height": 81
+            },
+            "grid": {
+              "col": "6",
+              "row": "1",
+              "span": "1",
+              "rows": "1"
+            }
+          },
+          {
+            "key": "widget-3",
+            "rect": {
+              "top": 231,
+              "left": 922.5,
+              "width": 189,
+              "height": 81
+            },
+            "grid": {
+              "col": "5",
+              "row": "2",
+              "span": "1",
+              "rows": "1"
+            }
+          },
+          {
+            "key": "widget-4",
+            "rect": {
+              "top": 231,
+              "left": 1129.5,
+              "width": 189,
+              "height": 81
+            },
+            "grid": {
+              "col": "6",
+              "row": "2",
+              "span": "1",
+              "rows": "1"
+            }
+          },
+          {
+            "key": "builder-content",
+            "rect": {
+              "top": 819.2,
+              "left": 94.5,
+              "width": 810,
+              "height": 279
+            },
+            "grid": {
+              "col": "1",
+              "row": "8",
+              "span": "4",
+              "rows": "3"
+            }
+          },
+          {
+            "key": "builder-menu",
+            "rect": {
+              "top": 347.4,
+              "left": 922.5,
+              "width": 396,
+              "height": 83
+            },
+            "grid": {
+              "col": "5",
+              "row": "3",
+              "span": "2",
+              "rows": "1"
+            }
+          },
+          {
+            "key": "builder-notes",
+            "rect": {
+              "top": 528,
+              "left": 508.5,
+              "width": 396,
+              "height": 279
+            },
+            "grid": {
+              "col": "3",
+              "row": "5",
+              "span": "2",
+              "rows": "3"
+            }
+          }
+        ],
+        "computed_css": [
+          {
+            "key": "html",
+            "values": {
+              "backgroundColor": "rgb(237, 242, 248)",
+              "color": "rgb(0, 0, 0)",
+              "borderColor": "rgb(0, 0, 0)",
+              "boxShadow": "none",
+              "backdropFilter": "none",
+              "borderRadius": "0px"
+            }
+          },
+          {
+            "key": "body.layout-tools-active",
+            "values": {
+              "backgroundColor": "rgb(237, 242, 248)",
+              "color": "rgb(31, 41, 55)",
+              "borderColor": "rgb(31, 41, 55)",
+              "boxShadow": "none",
+              "backdropFilter": "none",
+              "borderRadius": "0px"
+            }
+          },
+          {
+            "key": "header.app-nav.workspace-chrome",
+            "values": {
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "color": "rgb(31, 41, 55)",
+              "borderColor": "color(srgb 0.83921 0.866462 0.907341 / 0.920941)",
+              "boxShadow": "rgba(15, 23, 42, 0.043) 0px 2px 7px 0px, color(srgb 1 1 1 / 0.444) 0px 1px 0px 0px inset",
+              "backdropFilter": "blur(22px) saturate(1.12)",
+              "borderRadius": "16px"
+            }
+          },
+          {
+            "key": "div.dashboard-layout-grid",
+            "values": {
+              "backgroundColor": "rgba(0, 0, 0, 0)",
+              "color": "rgb(31, 41, 55)",
+              "borderColor": "rgb(31, 41, 55)",
+              "boxShadow": "none",
+              "backdropFilter": "none",
+              "borderRadius": "0px"
+            }
+          },
+          {
+            "key": "section.db-panel.db-panel-custom-color",
+            "values": {
+              "backgroundColor": "rgba(255, 255, 255, 0.64)",
+              "color": "rgb(31, 41, 55)",
+              "borderColor": "color(srgb 0.703912 0.76443 0.866783 / 0.756813)",
+              "boxShadow": "rgba(15, 23, 42, 0.043) 0px 2px 10px 0px, rgba(255, 255, 255, 0.075) 0px 1px 0px 0px inset",
+              "backdropFilter": "blur(6px) saturate(1.8)",
+              "borderRadius": "16px"
+            }
+          },
+          {
+            "key": "a.stat-card.widget-card",
+            "values": {
+              "backgroundColor": "rgba(255, 255, 255, 0.64)",
+              "color": "rgba(248, 250, 252, 0.94)",
+              "borderColor": "color(srgb 0.703912 0.76443 0.866783 / 0.756813)",
+              "boxShadow": "rgba(15, 23, 42, 0.043) 0px 2px 10px 0px, rgba(255, 255, 255, 0.075) 0px 1px 0px 0px inset",
+              "backdropFilter": "blur(6px) saturate(1.8)",
+              "borderRadius": "16px"
+            }
+          }
+        ],
+        "extra": {
+          "background": "frosted-light",
+          "scrollY": 0,
+          "customWidgets": 0,
+          "moveBefore": {
+            "col": "5",
+            "row": "4"
+          },
+          "afterMove": {
+            "col": "3",
+            "row": "5"
+          }
+        }
+      }
+    }
+  ]
+}

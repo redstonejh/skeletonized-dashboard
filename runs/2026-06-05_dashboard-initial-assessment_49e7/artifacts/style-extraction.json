@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "status": "PASS",
+  "css_entry": "app/static/style.css",
+  "css_modules": [
+    "app/static/tokens.css",
+    "app/static/base.css",
+    "app/static/layout.css",
+    "app/static/components.css",
+    "app/static/dashboard-grid.css",
+    "app/static/themes.css",
+    "app/static/utilities.css"
+  ],
+  "notes": "No style extraction changes were made in this setup run."
+}

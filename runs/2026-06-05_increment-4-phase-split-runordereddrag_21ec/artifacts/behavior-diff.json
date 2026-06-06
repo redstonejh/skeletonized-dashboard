@@ -1,0 +1,11 @@
+{
+  "gate": "behavior-diff",
+  "passed": false,
+  "status": "not_run",
+  "reason": "Phase 0 resistance precheck did not prove all required drag-core canaries. No behavior baseline or product-code extraction was attempted.",
+  "blocking_behavior": "panel entry/exit absorption",
+  "evidence": [
+    "phase0-resistance-precheck.json",
+    "absorption-smoke-failing-trace.log"
+  ]
+}

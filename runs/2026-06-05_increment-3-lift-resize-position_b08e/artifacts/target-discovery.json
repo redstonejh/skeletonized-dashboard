@@ -1,0 +1,12 @@
+{
+    "passed":  true,
+    "cwd":  "C:\\Users\\redst\\OneDrive\\Documents\\skeletonized-dashboard",
+    "app_js":  true,
+    "interaction_state":  true,
+    "has_extended_resize":  true,
+    "panel_runtime":  true,
+    "widget_runtime":  true,
+    "test_e2e":  "playwright test electron-tests/dashboard-electron.spec.js",
+    "electron":  "^35.0.0",
+    "multi_resize_canary":  true
+}

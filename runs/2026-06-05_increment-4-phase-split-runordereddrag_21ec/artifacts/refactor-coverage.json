@@ -1,0 +1,13 @@
+{
+  "gate": "refactor-coverage",
+  "passed": false,
+  "status": "partial",
+  "covered_behaviors": [
+    "drag commit",
+    "live ghost",
+    "collision/reflow reversible preview",
+    "edge-auto-scroll"
+  ],
+  "missing_behavior": "panel entry/exit absorption",
+  "reason": "The required panel entry/exit absorption canary could not be made deterministic."
+}

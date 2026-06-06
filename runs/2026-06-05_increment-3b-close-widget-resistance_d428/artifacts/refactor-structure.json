@@ -1,0 +1,9 @@
+{
+    "passed":  true,
+    "app_js_lines":  5240,
+    "line_count_decreased":  true,
+    "delegate_declarations_removed":  true,
+    "panel_binding":  "direct panelRuntime methods, containment bound after panelRuntime creation",
+    "widget_binding":  "direct widgetRuntimeController methods, widgetGridCellFromPoint collapsed to gridCellFromPoint",
+    "init_order":  "preserved"
+}

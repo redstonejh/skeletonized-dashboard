@@ -1,0 +1,24 @@
+{
+    "passed":  true,
+    "cluster":  "group-resize-runtime",
+    "runGroupResize_location":  "app/static/app.js around line 3878 after 2a edits",
+    "state_now_bound":  [
+                            "preview member entries",
+                            "preview start bounds map",
+                            "preview source map",
+                            "preview metrics map",
+                            "reflow item list",
+                            "preview cols/rows",
+                            "snapshot handles",
+                            "runtime surfaces handle bag"
+                        ],
+    "body_move_blockers":  [
+                               "metricsForLayout/createGridMetrics cache remains local to app.js",
+                               "createResizePreview/beginLiveResizeSurface/clearLiveResizeSurface/createExpandedFootprintGhost/updateExpandedFootprintGhost remain app.js-local behavior",
+                               "createGroupFootprint/applyGroupFootprintBounds/updateGroupBoundarySurface remain app.js-local behavior",
+                               "applyGroupResizeLayout/commitGroupResizeFromPreviews remain app.js-local helpers",
+                               "resolveSparseGridLayoutForActiveItems/animateOrderedGridReflow/reflowItemsForLayout remain app.js-local reflow core",
+                               "syncOpenPanelHeightToInternalGrid/syncCommittedWorkspaceScrollFloor/onCommit/onEnd preserve init-order coupling"
+                           ],
+    "decision":  "Stop after 2a per user split: API gap for 2b is still large, and forcing a body move would repeat the historical body-first failure mode."
+}

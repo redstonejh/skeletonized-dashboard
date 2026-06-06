@@ -1,0 +1,8 @@
+{
+  "check": "refactor_complexity",
+  "passed": true,
+  "changed_behavior_bodies_moved": false,
+  "app_js_line_count_before": 5270,
+  "app_js_line_count_after": 5263,
+  "complexity_assessment": "No drag, resize, pin, collision, or persistence algorithm body was moved or expanded; local mutable slots were replaced with module calls."
+}

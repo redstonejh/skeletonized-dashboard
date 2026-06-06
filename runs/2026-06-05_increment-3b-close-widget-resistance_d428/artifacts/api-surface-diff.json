@@ -1,0 +1,16 @@
+{
+    "passed":  true,
+    "public_api_drift":  "none",
+    "changed_files":  [
+                          "electron-tests/dashboard-electron.spec.js",
+                          "app/static/app.js",
+                          "app/static/modules/panel-runtime-setup.js",
+                          "artifacts/deferred-extractions.md",
+                          "artifacts/extraction-floor-report.md"
+                      ],
+    "added_canaries":  [
+                           "widget-resize-snap",
+                           "widget-tools-init"
+                       ],
+    "note":  "Test-only oracle hardening plus existing primitive rewire; no package/dependency API changes."
+}

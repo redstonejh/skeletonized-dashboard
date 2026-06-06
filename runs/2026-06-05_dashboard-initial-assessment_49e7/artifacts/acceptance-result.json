@@ -1,0 +1,117 @@
+{
+  "run": "C:\\Users\\redst\\OneDrive\\Documents\\skeletonized-dashboard\\runs\\2026-06-05_dashboard-initial-assessment_49e7",
+  "task_type": "frontend-ui-task",
+  "handoffs": {
+    "run": "C:\\Users\\redst\\OneDrive\\Documents\\skeletonized-dashboard\\runs\\2026-06-05_dashboard-initial-assessment_49e7",
+    "handoffs": 12,
+    "passed": true,
+    "errors": []
+  },
+  "test": {
+    "check": "test",
+    "command": "npm.cmd run test:e2e",
+    "cwd": "C:\\Users\\redst\\OneDrive\\Documents\\skeletonized-dashboard",
+    "exit_code": 0,
+    "timed_out": false,
+    "passed": true,
+    "duration_sec": 8.657,
+    "stdout_tail": "\n> configurable-dashboard-gui-electron@1.0.0 test:e2e\n> playwright test electron-tests/dashboard-electron.spec.js\n\n\nRunning 2 tests using 1 worker\n\n  \u00e2\u0153\u201c  1 electron-tests\\dashboard-electron.spec.js:155:1 \u00e2\u20ac\u00ba electron GUI boots without server APIs and preserves core customization (3.3s)\n  \u00e2\u0153\u201c  2 electron-tests\\dashboard-electron.spec.js:206:1 \u00e2\u20ac\u00ba electron GUI keeps drag and resize handlers active (4.2s)\n\n  2 passed (7.8s)\n",
+    "stderr_tail": "",
+    "configured": true,
+    "tool_exit_code": 0
+  },
+  "evidence": {
+    "task_type": "frontend-ui-task",
+    "required": [
+      "artifacts/change-verification.json",
+      "artifacts/style-extraction.json",
+      "artifacts/a11y-audit.json",
+      "artifacts/contrast-check.json",
+      "artifacts/perf-budget.json",
+      "artifacts/markup-validation.json",
+      "artifacts/link-check.json",
+      "artifacts/style-drift-audit.json"
+    ],
+    "items": [
+      {
+        "artifact": "artifacts/change-verification.json",
+        "path": "C:\\Users\\redst\\OneDrive\\Documents\\skeletonized-dashboard\\runs\\2026-06-05_dashboard-initial-assessment_49e7\\artifacts\\change-verification.json",
+        "passed": true,
+        "reason": "status is PASS"
+      },
+      {
+        "artifact": "artifacts/style-extraction.json",
+        "path": "C:\\Users\\redst\\OneDrive\\Documents\\skeletonized-dashboard\\runs\\2026-06-05_dashboard-initial-assessment_49e7\\artifacts\\style-extraction.json",
+        "passed": true,
+        "reason": "status is PASS"
+      },
+      {
+        "artifact": "artifacts/a11y-audit.json",
+        "path": "C:\\Users\\redst\\OneDrive\\Documents\\skeletonized-dashboard\\runs\\2026-06-05_dashboard-initial-assessment_49e7\\artifacts\\a11y-audit.json",
+        "passed": true,
+        "reason": "passed is true"
+      },
+      {
+        "artifact": "artifacts/contrast-check.json",
+        "path": "C:\\Users\\redst\\OneDrive\\Documents\\skeletonized-dashboard\\runs\\2026-06-05_dashboard-initial-assessment_49e7\\artifacts\\contrast-check.json",
+        "passed": true,
+        "reason": "passed is true"
+      },
+      {
+        "artifact": "artifacts/perf-budget.json",
+        "path": "C:\\Users\\redst\\OneDrive\\Documents\\skeletonized-dashboard\\runs\\2026-06-05_dashboard-initial-assessment_49e7\\artifacts\\perf-budget.json",
+        "passed": true,
+        "reason": "refactor perf budget schema passed"
+      },
+      {
+        "artifact": "artifacts/markup-validation.json",
+        "path": "C:\\Users\\redst\\OneDrive\\Documents\\skeletonized-dashboard\\runs\\2026-06-05_dashboard-initial-assessment_49e7\\artifacts\\markup-validation.json",
+        "passed": true,
+        "reason": "passed is true"
+      },
+      {
+        "artifact": "artifacts/link-check.json",
+        "path": "C:\\Users\\redst\\OneDrive\\Documents\\skeletonized-dashboard\\runs\\2026-06-05_dashboard-initial-assessment_49e7\\artifacts\\link-check.json",
+        "passed": true,
+        "reason": "passed is true"
+      },
+      {
+        "artifact": "artifacts/style-drift-audit.json",
+        "path": "C:\\Users\\redst\\OneDrive\\Documents\\skeletonized-dashboard\\runs\\2026-06-05_dashboard-initial-assessment_49e7\\artifacts\\style-drift-audit.json",
+        "passed": true,
+        "reason": "status is PASS"
+      }
+    ],
+    "passed": true,
+    "violations": []
+  },
+  "anti_gaming": {
+    "check": "anti_gaming_hard_gates",
+    "applicable": false,
+    "passed": true,
+    "violations": [],
+    "reason": "no anti-gaming evaluation protocol"
+  },
+  "salvage_gates": {
+    "check": "salvage_hard_gates",
+    "applicable": false,
+    "passed": true,
+    "violations": [],
+    "reason": "no salvage preserved-surface artifacts"
+  },
+  "violations": [],
+  "verdict": "SHIP",
+  "run_summary": "C:\\Users\\redst\\OneDrive\\Documents\\skeletonized-dashboard\\runs\\2026-06-05_dashboard-initial-assessment_49e7\\artifacts\\run-summary.md",
+  "research_archive": {
+    "check": "research_archive_export",
+    "schema_version": 1,
+    "passed": true,
+    "run": "C:\\Users\\redst\\OneDrive\\Documents\\skeletonized-dashboard\\runs\\2026-06-05_dashboard-initial-assessment_49e7",
+    "archive_dir": "C:\\Users\\redst\\OneDrive\\Documents\\research-archive\\2026-06-05_dashboard-initial-assessment_49e7",
+    "manifest": "C:\\Users\\redst\\OneDrive\\Documents\\research-archive\\2026-06-05_dashboard-initial-assessment_49e7\\manifest.json",
+    "archive_root_manifest": "C:\\Users\\redst\\OneDrive\\Documents\\research-archive\\manifest.json",
+    "files_archived": 17,
+    "hash_only_stubs": 0,
+    "capture_timestamp": "2026-06-06T04:26:23Z"
+  }
+}
