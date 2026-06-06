@@ -1,0 +1,49 @@
+{
+    "task_type":  "salvage-task",
+    "checklist":  "refactor",
+    "roles":  [
+                  "conductor",
+                  "planner",
+                  "dependency_mapper",
+                  "dependency_untangler",
+                  "dead_code_auditor",
+                  "worker",
+                  "critic",
+                  "salvage_verifier",
+                  "acceptance_gate"
+              ],
+    "role_justifications":  {
+                                "conductor":  "orchestrates salvage deletion run and delegation proof",
+                                "planner":  "defines conservative keep/delete plan",
+                                "dependency_mapper":  "maps compatibility island dependencies",
+                                "dependency_untangler":  "identifies dynamic and closure couplings",
+                                "dead_code_auditor":  "proves deleted symbols unreachable",
+                                "worker":  "applies scoped deletion",
+                                "critic":  "reviews behavior and API risks",
+                                "salvage_verifier":  "advisory end-to-end salvage review required by salvage template",
+                                "acceptance_gate":  "performs final independent gate"
+                            },
+    "caps":  {
+                 "max_agents":  9,
+                 "max_parallel":  3,
+                 "max_iters":  3
+             },
+    "orchestration":  "salvage deletion pass with conservative KEEP-on-ambiguity",
+    "quality_bar":  "byte-identical behavior; delete only graph/text-proven unreachable code",
+    "deterministic_checks":  [
+                                 "delegation_check",
+                                 "code-graph",
+                                 "keep-vs-dormant",
+                                 "dead-code",
+                                 "e2e-10x",
+                                 "salvage verdict"
+                             ],
+    "acceptance_criteria":  [
+                                "delegation proof passes",
+                                "code graph generated",
+                                "no ambiguous symbol deleted",
+                                "full e2e passes hidden",
+                                "app.js line count decreases",
+                                "verdict_check matches"
+                            ]
+}

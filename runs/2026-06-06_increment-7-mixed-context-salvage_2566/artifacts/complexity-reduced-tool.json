@@ -1,0 +1,25 @@
+{
+  "after_aggregate": {
+    "cyclomatic": 4443,
+    "length": 9374,
+    "nesting": 378
+  },
+  "after_function_count": 1429,
+  "before_aggregate": {
+    "cyclomatic": 4443,
+    "length": 9374,
+    "nesting": 378
+  },
+  "before_candidate_count": 174,
+  "before_function_count": 1429,
+  "check": "salvage_complexity_reduced",
+  "checked": [],
+  "passed": true,
+  "schema_version": 1,
+  "thresholds": {
+    "cyclomatic": 10,
+    "length": 60,
+    "nesting": 4
+  },
+  "violations": []
+}

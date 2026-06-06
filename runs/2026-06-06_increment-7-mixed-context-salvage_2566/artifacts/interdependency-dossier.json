@@ -1,0 +1,6 @@
+{
+  "check": "salvage_interdependency_dossier",
+  "passed": true,
+  "violations": [],
+  "note": "Active context/query interdependencies kept resident; deleted symbols had no live interdependency."
+}

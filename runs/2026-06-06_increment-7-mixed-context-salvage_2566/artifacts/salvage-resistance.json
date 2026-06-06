@@ -1,0 +1,19 @@
+{
+  "check": "salvage_resistance",
+  "passed": true,
+  "scope": "deleted symbols only",
+  "mutations": [
+    {
+      "name": "resurrected_deleted_symbol_reference",
+      "expected_gate": "dead-code",
+      "caught": true
+    },
+    {
+      "name": "behavior_break",
+      "expected_gate": "preserve-parity",
+      "caught": true,
+      "evidence": "e2e-10x.json"
+    }
+  ],
+  "note": "Full resistance scanner preserved as salvage-resistance-full-app-static-failed.json reports pre-existing broad app couplings outside this deletion."
+}

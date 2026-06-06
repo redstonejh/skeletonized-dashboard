@@ -1,0 +1,71 @@
+{
+  "deleted_surface": [
+    "dormant origin registry metadata",
+    "unused app-level destructured adapter helper bindings",
+    "orphan context badge helper"
+  ],
+  "entrypoints": [
+    "modules.asset-runtime:createAssetRuntime",
+    "modules.background-controller:initializeBackgroundController",
+    "modules.dashboard-keyword-search:initializeDashboardKeywordSearch",
+    "modules.dashboard-switcher:initializeDashboardSwitcher",
+    "modules.data-adapter-runtime:createDataAdapterRuntime",
+    "modules.layout-source-runtime:initializeLayoutSourceRuntime",
+    "modules.nav-status-menu:initializeNavStatusMenus",
+    "modules.object-add-runtime:initializeObjectAddRuntime",
+    "modules.overflow-titles:initializeOverflowTitles",
+    "modules.range-controls:bindInitialRangeControls",
+    "modules.surface-tools-runtime:initializeSurfaceToolsRuntime",
+    "modules.toast:showGlobalToast",
+    "resize-runtime:handleKeydown",
+    "resize-runtime:handleMove",
+    "resize-runtime:handlePointerEnd",
+    "resize-runtime:handleWindowBlur"
+  ],
+  "protected_behaviors": [
+    "drag/resize/pin/collision/save-reload",
+    "widget runtime content and meaning",
+    "ordered grid query semantics",
+    "context/query persistence compatibility"
+  ],
+  "protected_files": [
+    "app/static/app.js",
+    "app/static/modules/data-adapter-runtime.js",
+    "electron-tests/dashboard-electron.spec.js"
+  ],
+  "schema_version": 1,
+  "source_paths": [
+    "app.js",
+    "collision-reflow.js",
+    "drag-runtime.js",
+    "interaction-state.js",
+    "layout-persistence.js",
+    "liquid-glass-webgl.js",
+    "menu-overlay.js",
+    "modules/asset-runtime.js",
+    "modules/background-controller.js",
+    "modules/dashboard-dom-factories.js",
+    "modules/dashboard-form-bindings.js",
+    "modules/dashboard-keyword-search.js",
+    "modules/dashboard-switcher.js",
+    "modules/dashboard-tool-drawer-runtime.js",
+    "modules/data-adapter-runtime.js",
+    "modules/delete-runtime.js",
+    "modules/grid-item-geometry.js",
+    "modules/group-resize-runtime.js",
+    "modules/group-selection-controls.js",
+    "modules/history-reset-runtime.js",
+    "modules/interaction-state.js",
+    "modules/layout-source-runtime.js",
+    "modules/menu-overlay-facade.js",
+    "modules/nav-status-menu.js",
+    "modules/object-add-runtime.js",
+    "modules/overflow-titles.js",
+    "modules/range-controls.js",
+    "modules/resize-auto-zoom.js",
+    "modules/surface-tools-runtime.js",
+    "modules/toast.js",
+    "modules/widget-resize-runtime.js",
+    "resize-runtime.js"
+  ]
+}

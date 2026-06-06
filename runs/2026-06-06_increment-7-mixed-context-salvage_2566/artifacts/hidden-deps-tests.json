@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "coverage": [
+    {
+      "dependency_id": "mixed-context-query-compatibility",
+      "tests": [
+        "electron-tests/dashboard-electron.spec.js"
+      ],
+      "evidence": "Final hidden e2e/canaries 10/10 in e2e-10x.json; active hidden context/query dependencies retained resident."
+    }
+  ]
+}

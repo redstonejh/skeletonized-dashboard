@@ -1,0 +1,97 @@
+{
+  "check": "salvage_result",
+  "freeze": {
+    "check": "salvage_surface_freeze",
+    "entrypoints": [
+      "modules.asset-runtime:createAssetRuntime",
+      "modules.background-controller:initializeBackgroundController",
+      "modules.dashboard-keyword-search:initializeDashboardKeywordSearch",
+      "modules.dashboard-switcher:initializeDashboardSwitcher",
+      "modules.data-adapter-runtime:createDataAdapterRuntime",
+      "modules.layout-source-runtime:initializeLayoutSourceRuntime",
+      "modules.nav-status-menu:initializeNavStatusMenus",
+      "modules.object-add-runtime:initializeObjectAddRuntime",
+      "modules.overflow-titles:initializeOverflowTitles",
+      "modules.range-controls:bindInitialRangeControls",
+      "modules.surface-tools-runtime:initializeSurfaceToolsRuntime",
+      "modules.toast:showGlobalToast",
+      "resize-runtime:handleKeydown",
+      "resize-runtime:handleMove",
+      "resize-runtime:handlePointerEnd",
+      "resize-runtime:handleWindowBlur"
+    ],
+    "passed": true,
+    "violations": []
+  },
+  "gates": [
+    {
+      "artifact": "artifacts/topology.json",
+      "passed": true,
+      "reason": "passed is true"
+    },
+    {
+      "artifact": "artifacts/test-triage.json",
+      "passed": true,
+      "reason": "passed is true"
+    },
+    {
+      "artifact": "artifacts/characterization-baseline.json",
+      "passed": true,
+      "reason": "passed is true"
+    },
+    {
+      "artifact": "artifacts/preserve-parity.json",
+      "passed": true,
+      "reason": "passed is true"
+    },
+    {
+      "artifact": "artifacts/hidden-deps.json",
+      "passed": true,
+      "reason": "passed is true"
+    },
+    {
+      "artifact": "artifacts/cross-lang-couplings.json",
+      "passed": true,
+      "reason": "passed is true"
+    },
+    {
+      "artifact": "artifacts/dead-code.json",
+      "passed": true,
+      "reason": "passed is true"
+    },
+    {
+      "artifact": "artifacts/duplication.json",
+      "passed": true,
+      "reason": "passed is true"
+    },
+    {
+      "artifact": "artifacts/complexity-candidates.json",
+      "passed": true,
+      "reason": "passed is true"
+    },
+    {
+      "artifact": "artifacts/complexity-reduced.json",
+      "passed": true,
+      "reason": "passed is true"
+    },
+    {
+      "artifact": "artifacts/stale-code.json",
+      "passed": true,
+      "reason": "passed is true"
+    },
+    {
+      "artifact": "artifacts/interdependency-dossier.json",
+      "passed": true,
+      "reason": "passed is true"
+    },
+    {
+      "artifact": "artifacts/salvage-resistance.json",
+      "passed": true,
+      "reason": "passed is true"
+    }
+  ],
+  "passed": true,
+  "schema_version": 1,
+  "verdict": "SHIP",
+  "violations": []
+}

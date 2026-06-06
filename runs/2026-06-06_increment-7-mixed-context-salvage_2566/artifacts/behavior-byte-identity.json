@@ -1,0 +1,5 @@
+{
+  "check": "behavior_byte_identity",
+  "passed": true,
+  "basis": "structural deletion only; full protected e2e/canaries 10x green pre/post; no persisted behavior paths touched"
+}

@@ -1,0 +1,6 @@
+{
+  "check": "salvage_complexity_reduced",
+  "passed": true,
+  "violations": [],
+  "note": "Deleted inert code; no complexity candidate worsened."
+}

@@ -1,0 +1,95 @@
+{
+  "removed": [
+    {
+      "symbol": "app:dataOriginDefinitions",
+      "file": "app/static/app.js",
+      "proof": "no graph incoming edges; final text scan has no app.js references; only deleted destructured binding"
+    },
+    {
+      "symbol": "app:registerDataOriginDefinition",
+      "file": "app/static/app.js",
+      "proof": "no graph incoming edges; final text scan has no app.js references; only deleted destructured binding"
+    },
+    {
+      "symbol": "app:normalizeFieldType",
+      "file": "app/static/app.js",
+      "proof": "app-level destructured binding unused; module-local helper remains live and unchanged"
+    },
+    {
+      "symbol": "app:inferDataSchema",
+      "file": "app/static/app.js",
+      "proof": "app-level destructured binding unused; module-local helper remains live and unchanged"
+    },
+    {
+      "symbol": "app:semanticFieldScore",
+      "file": "app/static/app.js",
+      "proof": "app-level destructured binding unused; module-local helper remains live and unchanged"
+    },
+    {
+      "symbol": "app:suggestSemanticMappingFromSchema",
+      "file": "app/static/app.js",
+      "proof": "app-level destructured binding unused; module-local helper remains live and unchanged"
+    },
+    {
+      "symbol": "app:sourceRows",
+      "file": "app/static/app.js",
+      "proof": "app-level destructured binding unused; module-local helper remains live and unchanged"
+    },
+    {
+      "symbol": "app:dataSubstrateRowsForSource",
+      "file": "app/static/app.js",
+      "proof": "app-level destructured binding unused; module-local helper remains live and unchanged"
+    },
+    {
+      "symbol": "app:comparableFilterValue",
+      "file": "app/static/app.js",
+      "proof": "app-level destructured binding unused; module-local helper remains live and unchanged"
+    },
+    {
+      "symbol": "app:applyContextFilters",
+      "file": "app/static/app.js",
+      "proof": "app-level destructured binding unused; module-local helper remains live and unchanged"
+    },
+    {
+      "symbol": "app:applyContextTimeRange",
+      "file": "app/static/app.js",
+      "proof": "app-level destructured binding unused; module-local helper remains live and unchanged"
+    },
+    {
+      "symbol": "app:applyContextSort",
+      "file": "app/static/app.js",
+      "proof": "app-level destructured binding unused; module-local helper remains live and unchanged"
+    },
+    {
+      "symbol": "app:projectContextFields",
+      "file": "app/static/app.js",
+      "proof": "app-level destructured binding unused; module-local helper remains live and unchanged"
+    },
+    {
+      "symbol": "app:createRecordAdapter",
+      "file": "app/static/app.js",
+      "proof": "app-level destructured binding unused; module-local helper remains live and unchanged"
+    },
+    {
+      "symbol": "app:registerDataSourceAdapter",
+      "file": "app/static/app.js",
+      "proof": "app-level destructured binding unused; module-local helper remains live and unchanged"
+    },
+    {
+      "symbol": "app:ensureContextBadge",
+      "file": "app/static/app.js",
+      "proof": "no graph incoming edges; final text scan has no references"
+    },
+    {
+      "symbol": "modules.data-adapter-runtime:dataOriginDefinitions",
+      "file": "app/static/modules/data-adapter-runtime.js",
+      "proof": "map had no remaining text references outside deleted local setup/return; no graph incoming edges"
+    },
+    {
+      "symbol": "modules.data-adapter-runtime:registerDataOriginDefinition",
+      "file": "app/static/modules/data-adapter-runtime.js",
+      "proof": "local seeding callback removed with its map; no remaining text references; adapter registration unaffected"
+    }
+  ],
+  "count": 18
+}

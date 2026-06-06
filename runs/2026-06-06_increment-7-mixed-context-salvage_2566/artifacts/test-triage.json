@@ -1,0 +1,20 @@
+{
+  "active_tests": [],
+  "ambiguous_tests": [],
+  "check": "salvage_test_triage",
+  "do_not_resurrect": [],
+  "execution": {
+    "configured": true,
+    "executed": [],
+    "passed": true,
+    "returncode": 0,
+    "stdout_tail": ""
+  },
+  "mixed_tests": [],
+  "passed": true,
+  "provenance": {},
+  "schema_version": 1,
+  "scrap_tests": [],
+  "status": "PASS",
+  "violations": []
+}

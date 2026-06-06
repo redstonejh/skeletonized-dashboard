@@ -1,0 +1,5 @@
+{
+  "check": "preserve_parity",
+  "passed": true,
+  "interaction_artifact": "artifacts/e2e-10x.json"
+}

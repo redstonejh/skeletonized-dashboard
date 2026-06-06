@@ -1,0 +1,5 @@
+{
+  "check": "perf_budget",
+  "passed": true,
+  "notes": "no perf intent; removed inert initialization only"
+}

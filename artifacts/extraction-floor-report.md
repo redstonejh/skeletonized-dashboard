@@ -149,11 +149,24 @@ The floor moved for ordered grid query helpers. `orderedGridSelectorForLayout`, 
 - Full hidden canary suite: 10/10 green
 - MAW run: `runs/2026-06-06_increment-6-extract-conditional-style_981f`
 
+## 2026-06-06 Increment 7 Mixed Context Dormant Residue Gutted
+
+The floor moved for the mixed context/query compatibility island's dormant residue. The active context/query compatibility helpers remain resident because they are still coupled to widget runtime data, hydration, settings, panel containment refresh, and persistence. The deleted surface was limited to graph/text-proven no-caller residue.
+
+- Completed dormant residue: `mixed-context-query-compatibility`
+- `app/static/app.js` line count before this phase: 3287
+- `app/static/app.js` line count after this phase: 3263
+- Deleted from `app.js`: unused app-level destructures returned by `createDataAdapterRuntime` and no-caller `ensureContextBadge`
+- Deleted from `app/static/modules/data-adapter-runtime.js`: unused `dataOriginDefinitions` map, `registerDataOriginDefinition`, and seeded origin metadata block
+- Compatibility preserved: `dataSourceAdapters`, record adapters, context resolution, query cache/inflight handling, widget runtime data, and save/load context fields remain unchanged
+- Full hidden canary suite: 10/10 green
+- MAW run: `runs/2026-06-06_increment-7-mixed-context-salvage_2566`
+
 ## Current State
 
-- `app/static/app.js` line count: 3287
+- `app/static/app.js` line count: 3263
 - `app/static/modules/*.js` count: 64
-- `app/static/app.js` SHA256: `E60ECAD9624D82DE0D36B04165C55ACEA1738DCB8FAC8158C636F80A90C2B608`
+- `app/static/app.js` SHA256: `1C1D5CFB27A055318B10F0F8E0BF52114E3C618B9E0C51519E6428AC98B93B4E`
 - Core coverage artifact: `artifacts/app-core-map.md`
 - Deferred cluster artifact: `artifacts/deferred-extractions.md`
 
@@ -167,7 +180,6 @@ Do not retry these with the same factory/DI extraction strategy:
 - `panel-core-primitives`
 - `widget-primitive-runtime`
 - `widget-content-runtime`
-- `mixed-context-query-compatibility`
 
 ## Stop Condition
 

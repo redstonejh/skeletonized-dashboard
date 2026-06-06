@@ -1,0 +1,2938 @@
+{
+  "symbols": [
+    {
+      "symbol": "normalizeDataSource",
+      "graph_incoming": [],
+      "text_refs": [
+        {
+          "path": "app/static/app.js",
+          "line": 338,
+          "text": "const normalizeDataSource = (source) => ({"
+        },
+        {
+          "path": "app/static/app.js",
+          "line": 345,
+          "text": "readJsonStore(dataSourcesKey(layoutKey, profile), []).map(normalizeDataSource).filter((source) => source.id);"
+        },
+        {
+          "path": "app/static/app.js",
+          "line": 346,
+          "text": "const saveDataSources = (layoutKey, profile, sources) => writeJsonStore(dataSourcesKey(layoutKey, profile), sources.map(normalizeDataSource).filter((source) => source.id));"
+        }
+      ]
+    },
+    {
+      "symbol": "loadDataSources",
+      "graph_incoming": [
+        {
+          "from": "app",
+          "type": "call",
+          "line": 476,
+          "path": "app.js"
+        },
+        {
+          "from": "modules.layout-source-runtime:initializeLayoutSourceRuntime",
+          "type": "call",
+          "line": 274,
+          "path": "modules/layout-source-runtime.js"
+        },
+        {
+          "from": "modules.persisted-workspace-runtime",
+          "type": "call",
+          "line": 158,
+          "path": "modules/persisted-workspace-runtime.js"
+        }
+      ],
+      "text_refs": [
+        {
+          "path": "app/static/app.js",
+          "line": 344,
+          "text": "const loadDataSources = (layoutKey = \"default\", profile = getActivePanelProfile(layoutKey)) =>"
+        },
+        {
+          "path": "app/static/app.js",
+          "line": 476,
+          "text": "const dataSourceById = (layoutKey, profile, id) => loadDataSources(layoutKey, profile).find((source) => source.id === id) || null;"
+        },
+        {
+          "path": "app/static/app.js",
+          "line": 3275,
+          "text": "loadDataSources,"
+        },
+        {
+          "path": "app/static/app.js",
+          "line": 3341,
+          "text": "loadDataSources,"
+        },
+        {
+          "path": "app/static/modules/layout-source-runtime.js",
+          "line": 11,
+          "text": "loadDataSources,"
+        },
+        {
+          "path": "app/static/modules/layout-source-runtime.js",
+          "line": 274,
+          "text": "const currentDataSources = loadDataSources(layoutKey, currentProfile);"
+        },
+        {
+          "path": "app/static/modules/persisted-workspace-runtime.js",
+          "line": 23,
+          "text": "loadDataSources,"
+        },
+        {
+          "path": "app/static/modules/persisted-workspace-runtime.js",
+          "line": 158,
+          "text": "const dataSources = loadDataSources(layoutKey, profile);"
+        }
+      ]
+    },
+    {
+      "symbol": "saveDataSources",
+      "graph_incoming": [],
+      "text_refs": [
+        {
+          "path": "app/static/app.js",
+          "line": 346,
+          "text": "const saveDataSources = (layoutKey, profile, sources) => writeJsonStore(dataSourcesKey(layoutKey, profile), sources.map(normalizeDataSource).filter((source) => source.id));"
+        }
+      ]
+    },
+    {
+      "symbol": "loadWorkspaceContexts",
+      "graph_incoming": [
+        {
+          "from": "app",
+          "type": "call",
+          "line": 477,
+          "path": "app.js"
+        },
+        {
+          "from": "app",
+          "type": "call",
+          "line": 929,
+          "path": "app.js"
+        },
+        {
+          "from": "app",
+          "type": "call",
+          "line": 946,
+          "path": "app.js"
+        },
+        {
+          "from": "modules.layout-source-runtime:initializeLayoutSourceRuntime",
+          "type": "call",
+          "line": 275,
+          "path": "modules/layout-source-runtime.js"
+        },
+        {
+          "from": "modules.persisted-workspace-runtime",
+          "type": "call",
+          "line": 157,
+          "path": "modules/persisted-workspace-runtime.js"
+        }
+      ],
+      "text_refs": [
+        {
+          "path": "app/static/app.js",
+          "line": 347,
+          "text": "const loadWorkspaceContexts = (layoutKey = \"default\", profile = getActivePanelProfile(layoutKey)) =>"
+        },
+        {
+          "path": "app/static/app.js",
+          "line": 477,
+          "text": "const contextById = (layoutKey, profile, id) => loadWorkspaceContexts(layoutKey, profile).find((context) => context.id === id) || null;"
+        },
+        {
+          "path": "app/static/app.js",
+          "line": 929,
+          "text": "const contexts = loadWorkspaceContexts(layoutKey, profile);"
+        },
+        {
+          "path": "app/static/app.js",
+          "line": 946,
+          "text": "const contextDefinitions = loadWorkspaceContexts(layoutKey, profile);"
+        },
+        {
+          "path": "app/static/app.js",
+          "line": 3274,
+          "text": "loadWorkspaceContexts,"
+        },
+        {
+          "path": "app/static/app.js",
+          "line": 3342,
+          "text": "loadWorkspaceContexts,"
+        },
+        {
+          "path": "app/static/modules/layout-source-runtime.js",
+          "line": 12,
+          "text": "loadWorkspaceContexts,"
+        },
+        {
+          "path": "app/static/modules/layout-source-runtime.js",
+          "line": 275,
+          "text": "const currentWorkspaceContexts = loadWorkspaceContexts(layoutKey, currentProfile);"
+        },
+        {
+          "path": "app/static/modules/persisted-workspace-runtime.js",
+          "line": 22,
+          "text": "loadWorkspaceContexts,"
+        },
+        {
+          "path": "app/static/modules/persisted-workspace-runtime.js",
+          "line": 157,
+          "text": "const contexts = loadWorkspaceContexts(layoutKey, profile);"
+        }
+      ]
+    },
+    {
+      "symbol": "saveWorkspaceContexts",
+      "graph_incoming": [
+        {
+          "from": "app",
+          "type": "call",
+          "line": 936,
+          "path": "app.js"
+        },
+        {
+          "from": "app",
+          "type": "call",
+          "line": 965,
+          "path": "app.js"
+        }
+      ],
+      "text_refs": [
+        {
+          "path": "app/static/app.js",
+          "line": 349,
+          "text": "const saveWorkspaceContexts = (layoutKey, profile, contexts) => writeJsonStore(workspaceContextsKey(layoutKey, profile), contexts.filter((context) => context?.id));"
+        },
+        {
+          "path": "app/static/app.js",
+          "line": 936,
+          "text": "saveWorkspaceContexts(layoutKey, profile, [...byId.values()]);"
+        },
+        {
+          "path": "app/static/app.js",
+          "line": 965,
+          "text": "saveWorkspaceContexts(layoutKey, profile, [...contextByRegion.values()]);"
+        }
+      ]
+    },
+    {
+      "symbol": "workspaceContextFromElement",
+      "graph_incoming": [
+        {
+          "from": "app",
+          "type": "call",
+          "line": 581,
+          "path": "app.js"
+        },
+        {
+          "from": "app",
+          "type": "call",
+          "line": 588,
+          "path": "app.js"
+        },
+        {
+          "from": "app",
+          "type": "call",
+          "line": 932,
+          "path": "app.js"
+        },
+        {
+          "from": "app",
+          "type": "call",
+          "line": 957,
+          "path": "app.js"
+        },
+        {
+          "from": "app",
+          "type": "call",
+          "line": 304,
+          "path": "app.js"
+        },
+        {
+          "from": "modules.persisted-workspace-runtime",
+          "type": "call",
+          "line": 59,
+          "path": "modules/persisted-workspace-runtime.js"
+        },
+        {
+          "from": "modules.persisted-workspace-runtime",
+          "type": "call",
+          "line": 83,
+          "path": "modules/persisted-workspace-runtime.js"
+        },
+        {
+          "from": "modules.workspace-object-model",
+          "type": "call",
+          "line": 156,
+          "path": "modules/workspace-object-model.js"
+        }
+      ],
+      "text_refs": [
+        {
+          "path": "app/static/app.js",
+          "line": 304,
+          "text": "workspaceContextFromElement: (...args) => workspaceContextFromElement(...args),"
+        },
+        {
+          "path": "app/static/app.js",
+          "line": 350,
+          "text": "const workspaceContextFromElement = (item) => {"
+        },
+        {
+          "path": "app/static/app.js",
+          "line": 581,
+          "text": "return internalPanel ? workspaceContextFromElement(internalPanel) : null;"
+        },
+        {
+          "path": "app/static/app.js",
+          "line": 588,
+          "text": "const localContext = workspaceContextFromElement(item);"
+        },
+        {
+          "path": "app/static/app.js",
+          "line": 932,
+          "text": "const context = workspaceContextFromElement(item);"
+        },
+        {
+          "path": "app/static/app.js",
+          "line": 957,
+          "text": "const explicitContext = workspaceContextFromElement(item);"
+        },
+        {
+          "path": "app/static/app.js",
+          "line": 3265,
+          "text": "workspaceContextFromElement,"
+        },
+        {
+          "path": "app/static/modules/persisted-workspace-runtime.js",
+          "line": 13,
+          "text": "workspaceContextFromElement,"
+        },
+        {
+          "path": "app/static/modules/persisted-workspace-runtime.js",
+          "line": 59,
+          "text": "context: workspaceContextFromElement(widget),"
+        },
+        {
+          "path": "app/static/modules/persisted-workspace-runtime.js",
+          "line": 83,
+          "text": "context: workspaceContextFromElement(panel),"
+        },
+        {
+          "path": "app/static/modules/workspace-object-model.js",
+          "line": 3,
+          "text": "workspaceContextFromElement,"
+        },
+        {
+          "path": "app/static/modules/workspace-object-model.js",
+          "line": 156,
+          "text": "workspaceContext: workspaceContextFromElement(item),"
+        }
+      ]
+    },
+    {
+      "symbol": "applyWorkspaceContextToElement",
+      "graph_incoming": [
+        {
+          "from": "modules.panel-layout-hydration",
+          "type": "call",
+          "line": 74,
+          "path": "modules/panel-layout-hydration.js"
+        },
+        {
+          "from": "modules.widget-layout-hydration",
+          "type": "call",
+          "line": 87,
+          "path": "modules/widget-layout-hydration.js"
+        }
+      ],
+      "text_refs": [
+        {
+          "path": "app/static/app.js",
+          "line": 369,
+          "text": "const applyWorkspaceContextToElement = (item, context) => {"
+        },
+        {
+          "path": "app/static/app.js",
+          "line": 3034,
+          "text": "applyWorkspaceContextToElement,"
+        },
+        {
+          "path": "app/static/app.js",
+          "line": 3158,
+          "text": "applyWorkspaceContextToElement,"
+        },
+        {
+          "path": "app/static/modules/panel-layout-hydration.js",
+          "line": 14,
+          "text": "applyWorkspaceContextToElement,"
+        },
+        {
+          "path": "app/static/modules/panel-layout-hydration.js",
+          "line": 74,
+          "text": "if (saved?.workspaceContext) applyWorkspaceContextToElement(panel, saved.workspaceContext);"
+        },
+        {
+          "path": "app/static/modules/panel-layout-runtime.js",
+          "line": 21,
+          "text": "applyWorkspaceContextToElement,"
+        },
+        {
+          "path": "app/static/modules/panel-layout-runtime.js",
+          "line": 117,
+          "text": "applyWorkspaceContextToElement,"
+        },
+        {
+          "path": "app/static/modules/widget-layout-hydration.js",
+          "line": 18,
+          "text": "applyWorkspaceContextToElement,"
+        },
+        {
+          "path": "app/static/modules/widget-layout-hydration.js",
+          "line": 87,
+          "text": "if (saved?.workspaceContext) applyWorkspaceContextToElement(widget, saved.workspaceContext);"
+        },
+        {
+          "path": "app/static/modules/widget-layout-runtime.js",
+          "line": 25,
+          "text": "applyWorkspaceContextToElement,"
+        },
+        {
+          "path": "app/static/modules/widget-layout-runtime.js",
+          "line": 116,
+          "text": "applyWorkspaceContextToElement,"
+        }
+      ]
+    },
+    {
+      "symbol": "mergeWorkspaceContexts",
+      "graph_incoming": [
+        {
+          "from": "app",
+          "type": "call",
+          "line": 537,
+          "path": "app.js"
+        },
+        {
+          "from": "app",
+          "type": "call",
+          "line": 538,
+          "path": "app.js"
+        },
+        {
+          "from": "app",
+          "type": "call",
+          "line": 570,
+          "path": "app.js"
+        },
+        {
+          "from": "app",
+          "type": "call",
+          "line": 572,
+          "path": "app.js"
+        },
+        {
+          "from": "app",
+          "type": "call",
+          "line": 594,
+          "path": "app.js"
+        },
+        {
+          "from": "app",
+          "type": "call",
+          "line": 596,
+          "path": "app.js"
+        },
+        {
+          "from": "app",
+          "type": "call",
+          "line": 597,
+          "path": "app.js"
+        }
+      ],
+      "text_refs": [
+        {
+          "path": "app/static/app.js",
+          "line": 379,
+          "text": "const mergeWorkspaceContexts = (...contexts) => contexts.filter(Boolean).reduce((merged, context) => {"
+        },
+        {
+          "path": "app/static/app.js",
+          "line": 537,
+          "text": "if (mode === CONTEXT_LINK_MODES.override) return mergeWorkspaceContexts(baseContext, linkedContext);"
+        },
+        {
+          "path": "app/static/app.js",
+          "line": 538,
+          "text": "return mergeWorkspaceContexts(linkedContext, baseContext);"
+        },
+        {
+          "path": "app/static/app.js",
+          "line": 570,
+          "text": "if (!targetId) return mergeWorkspaceContexts(rootContext, regionContext);"
+        },
+        {
+          "path": "app/static/app.js",
+          "line": 572,
+          "text": "return mergeWorkspaceContexts(rootContext, linkedRegionContext);"
+        },
+        {
+          "path": "app/static/app.js",
+          "line": 594,
+          "text": "const scopedContext = mergeWorkspaceContexts(inheritedContext, panelContext);"
+        },
+        {
+          "path": "app/static/app.js",
+          "line": 596,
+          "text": "const filterContext = filterContextForRegion(layoutKey, regionId, mergeWorkspaceContexts(scopedContext, objectLinkedContext, timeRangeContext));"
+        },
+        {
+          "path": "app/static/app.js",
+          "line": 597,
+          "text": "const resolved = mergeWorkspaceContexts(scopedContext, objectLinkedContext, timeRangeContext, filterContext, localContext);"
+        }
+      ]
+    },
+    {
+      "symbol": "filterControlFieldForType",
+      "graph_incoming": [
+        {
+          "from": "app",
+          "type": "call",
+          "line": 423,
+          "path": "app.js"
+        }
+      ],
+      "text_refs": [
+        {
+          "path": "app/static/app.js",
+          "line": 405,
+          "text": "const filterControlFieldForType = (filter, semanticMapping = {}) => {"
+        },
+        {
+          "path": "app/static/app.js",
+          "line": 423,
+          "text": "const field = filterControlFieldForType(filter, semanticMapping);"
+        }
+      ]
+    },
+    {
+      "symbol": "normalizedFilterWidgetFilters",
+      "graph_incoming": [
+        {
+          "from": "app",
+          "type": "call",
+          "line": 473,
+          "path": "app.js"
+        },
+        {
+          "from": "modules.widget-runtime-controls",
+          "type": "call",
+          "line": 42,
+          "path": "modules/widget-runtime-controls.js"
+        },
+        {
+          "from": "modules.widget-settings-service",
+          "type": "call",
+          "line": 63,
+          "path": "modules/widget-settings-service.js"
+        }
+      ],
+      "text_refs": [
+        {
+          "path": "app/static/app.js",
+          "line": 416,
+          "text": "const normalizedFilterWidgetFilters = (widget, inheritedContext = {}) => {"
+        },
+        {
+          "path": "app/static/app.js",
+          "line": 473,
+          "text": ".flatMap((widget) => normalizedFilterWidgetFilters(widget, inheritedContext));"
+        },
+        {
+          "path": "app/static/app.js",
+          "line": 1733,
+          "text": "normalizedFilterWidgetFilters,"
+        },
+        {
+          "path": "app/static/app.js",
+          "line": 1772,
+          "text": "normalizedFilterWidgetFilters,"
+        },
+        {
+          "path": "app/static/modules/widget-runtime-controls.js",
+          "line": 5,
+          "text": "normalizedFilterWidgetFilters,"
+        },
+        {
+          "path": "app/static/modules/widget-runtime-controls.js",
+          "line": 42,
+          "text": "widget.dataset.contextFilters = JSON.stringify(normalizedFilterWidgetFilters(widget, resolveWorkspaceContextForItem(widget)));"
+        },
+        {
+          "path": "app/static/modules/widget-settings-service.js",
+          "line": 8,
+          "text": "normalizedFilterWidgetFilters,"
+        },
+        {
+          "path": "app/static/modules/widget-settings-service.js",
+          "line": 63,
+          "text": "widget.dataset.contextFilters = JSON.stringify(normalizedFilterWidgetFilters(widget, resolvedContext));"
+        }
+      ]
+    },
+    {
+      "symbol": "normalizedTimeframeWidgetRange",
+      "graph_incoming": [
+        {
+          "from": "app",
+          "type": "call",
+          "line": 466,
+          "path": "app.js"
+        },
+        {
+          "from": "modules.widget-settings-service",
+          "type": "call",
+          "line": 50,
+          "path": "modules/widget-settings-service.js"
+        }
+      ],
+      "text_refs": [
+        {
+          "path": "app/static/app.js",
+          "line": 449,
+          "text": "const normalizedTimeframeWidgetRange = (widget, inheritedContext = {}) => {"
+        },
+        {
+          "path": "app/static/app.js",
+          "line": 466,
+          "text": ".map((widget) => normalizedTimeframeWidgetRange(widget, inheritedContext))"
+        },
+        {
+          "path": "app/static/app.js",
+          "line": 1732,
+          "text": "normalizedTimeframeWidgetRange,"
+        },
+        {
+          "path": "app/static/modules/widget-settings-service.js",
+          "line": 7,
+          "text": "normalizedTimeframeWidgetRange,"
+        },
+        {
+          "path": "app/static/modules/widget-settings-service.js",
+          "line": 50,
+          "text": "const timeRange = normalizedTimeframeWidgetRange(widget, resolvedContext);"
+        }
+      ]
+    },
+    {
+      "symbol": "filterWidgetsForRegion",
+      "graph_incoming": [
+        {
+          "from": "app",
+          "type": "call",
+          "line": 472,
+          "path": "app.js"
+        }
+      ],
+      "text_refs": [
+        {
+          "path": "app/static/app.js",
+          "line": 456,
+          "text": "const filterWidgetsForRegion = (layoutKey, regionId) => ["
+        },
+        {
+          "path": "app/static/app.js",
+          "line": 472,
+          "text": "const filters = filterWidgetsForRegion(layoutKey, regionId)"
+        }
+      ]
+    },
+    {
+      "symbol": "timeframeWidgetsForRegion",
+      "graph_incoming": [
+        {
+          "from": "app",
+          "type": "call",
+          "line": 465,
+          "path": "app.js"
+        }
+      ],
+      "text_refs": [
+        {
+          "path": "app/static/app.js",
+          "line": 460,
+          "text": "const timeframeWidgetsForRegion = (layoutKey, regionId) => ["
+        },
+        {
+          "path": "app/static/app.js",
+          "line": 465,
+          "text": "const ranges = timeframeWidgetsForRegion(layoutKey, regionId)"
+        }
+      ]
+    },
+    {
+      "symbol": "timeRangeContextForRegion",
+      "graph_incoming": [
+        {
+          "from": "app",
+          "type": "call",
+          "line": 595,
+          "path": "app.js"
+        }
+      ],
+      "text_refs": [
+        {
+          "path": "app/static/app.js",
+          "line": 464,
+          "text": "const timeRangeContextForRegion = (layoutKey, regionId, inheritedContext = {}) => {"
+        },
+        {
+          "path": "app/static/app.js",
+          "line": 595,
+          "text": "const timeRangeContext = timeRangeContextForRegion(layoutKey, regionId, scopedContext);"
+        }
+      ]
+    },
+    {
+      "symbol": "filterContextForRegion",
+      "graph_incoming": [
+        {
+          "from": "app",
+          "type": "call",
+          "line": 596,
+          "path": "app.js"
+        }
+      ],
+      "text_refs": [
+        {
+          "path": "app/static/app.js",
+          "line": 471,
+          "text": "const filterContextForRegion = (layoutKey, regionId, inheritedContext = {}) => {"
+        },
+        {
+          "path": "app/static/app.js",
+          "line": 596,
+          "text": "const filterContext = filterContextForRegion(layoutKey, regionId, mergeWorkspaceContexts(scopedContext, objectLinkedContext, timeRangeContext));"
+        }
+      ]
+    },
+    {
+      "symbol": "dataSourceById",
+      "graph_incoming": [
+        {
+          "from": "app",
+          "type": "call",
+          "line": 598,
+          "path": "app.js"
+        },
+        {
+          "from": "app",
+          "type": "call",
+          "line": 622,
+          "path": "app.js"
+        },
+        {
+          "from": "app",
+          "type": "call",
+          "line": 336,
+          "path": "app.js"
+        },
+        {
+          "from": "modules.data-adapter-runtime:createDataAdapterRuntime",
+          "type": "call",
+          "line": 119,
+          "path": "modules/data-adapter-runtime.js"
+        }
+      ],
+      "text_refs": [
+        {
+          "path": "app/static/app.js",
+          "line": 336,
+          "text": "dataSourceById: (...args) => dataSourceById(...args),"
+        },
+        {
+          "path": "app/static/app.js",
+          "line": 476,
+          "text": "const dataSourceById = (layoutKey, profile, id) => loadDataSources(layoutKey, profile).find((source) => source.id === id) || null;"
+        },
+        {
+          "path": "app/static/app.js",
+          "line": 598,
+          "text": "const dataSource = resolved.dataSourceId ? dataSourceById(layoutKey, profile, resolved.dataSourceId) : null;"
+        },
+        {
+          "path": "app/static/app.js",
+          "line": 622,
+          "text": "const source = dataSourceById(resolvedContext.layoutKey, resolvedContext.profile, resolvedContext.dataSourceId);"
+        },
+        {
+          "path": "app/static/modules/data-adapter-runtime.js",
+          "line": 1,
+          "text": "export function createDataAdapterRuntime({ getActivePanelProfile, dataSourceById }) {"
+        },
+        {
+          "path": "app/static/modules/data-adapter-runtime.js",
+          "line": 119,
+          "text": "const base = dataSourceById(layoutKey, profile, sourceId);"
+        }
+      ]
+    },
+    {
+      "symbol": "contextById",
+      "graph_incoming": [
+        {
+          "from": "app",
+          "type": "call",
+          "line": 543,
+          "path": "app.js"
+        },
+        {
+          "from": "app",
+          "type": "call",
+          "line": 566,
+          "path": "app.js"
+        },
+        {
+          "from": "app",
+          "type": "call",
+          "line": 567,
+          "path": "app.js"
+        },
+        {
+          "from": "app",
+          "type": "call",
+          "line": 1072,
+          "path": "app.js"
+        }
+      ],
+      "text_refs": [
+        {
+          "path": "app/static/app.js",
+          "line": 477,
+          "text": "const contextById = (layoutKey, profile, id) => loadWorkspaceContexts(layoutKey, profile).find((context) => context.id === id) || null;"
+        },
+        {
+          "path": "app/static/app.js",
+          "line": 543,
+          "text": "const directContext = contextById(layoutKey, profile, id);"
+        },
+        {
+          "path": "app/static/app.js",
+          "line": 566,
+          "text": "const rootContext = contextById(layoutKey, profile, workspaceRootRegionId(layoutKey));"
+        },
+        {
+          "path": "app/static/app.js",
+          "line": 567,
+          "text": "const regionContext = contextById(layoutKey, profile, regionId);"
+        },
+        {
+          "path": "app/static/app.js",
+          "line": 1072,
+          "text": "const contextLabel = contextById(layoutKey, profile, regionId)?.name;"
+        }
+      ]
+    },
+    {
+      "symbol": "contextLinksForTarget",
+      "graph_incoming": [
+        {
+          "from": "app",
+          "type": "call",
+          "line": 556,
+          "path": "app.js"
+        }
+      ],
+      "text_refs": [
+        {
+          "path": "app/static/app.js",
+          "line": 533,
+          "text": "const contextLinksForTarget = (layoutKey, profile, targetId) =>"
+        },
+        {
+          "path": "app/static/app.js",
+          "line": 556,
+          "text": "const links = contextLinksForTarget(layoutKey, profile, targetId);"
+        }
+      ]
+    },
+    {
+      "symbol": "mergeLinkedContext",
+      "graph_incoming": [
+        {
+          "from": "app",
+          "type": "call",
+          "line": 562,
+          "path": "app.js"
+        }
+      ],
+      "text_refs": [
+        {
+          "path": "app/static/app.js",
+          "line": 535,
+          "text": "const mergeLinkedContext = (baseContext = {}, linkedContext = {}, mode = CONTEXT_LINK_MODES.inherit) => {"
+        },
+        {
+          "path": "app/static/app.js",
+          "line": 562,
+          "text": "return mergeLinkedContext(context, sourceContext, link.mode);"
+        }
+      ]
+    },
+    {
+      "symbol": "baseContextForSourceObject",
+      "graph_incoming": [
+        {
+          "from": "app",
+          "type": "call",
+          "line": 561,
+          "path": "app.js"
+        }
+      ],
+      "text_refs": [
+        {
+          "path": "app/static/app.js",
+          "line": 540,
+          "text": "const baseContextForSourceObject = (sourceId, layoutKey, profile, stack = new Set()) => {"
+        },
+        {
+          "path": "app/static/app.js",
+          "line": 561,
+          "text": "const sourceContext = baseContextForSourceObject(link.sourceObjectId, layoutKey, profile, nextStack);"
+        }
+      ]
+    },
+    {
+      "symbol": "linkedContextForTarget",
+      "graph_incoming": [
+        {
+          "from": "app",
+          "type": "call",
+          "line": 571,
+          "path": "app.js"
+        },
+        {
+          "from": "app",
+          "type": "call",
+          "line": 592,
+          "path": "app.js"
+        }
+      ],
+      "text_refs": [
+        {
+          "path": "app/static/app.js",
+          "line": 555,
+          "text": "const linkedContextForTarget = (targetId, layoutKey, profile, baseContext = {}, stack = new Set()) => {"
+        },
+        {
+          "path": "app/static/app.js",
+          "line": 571,
+          "text": "const linkedRegionContext = linkedContextForTarget(targetId, layoutKey, profile, regionContext || {}, stack);"
+        },
+        {
+          "path": "app/static/app.js",
+          "line": 592,
+          "text": "? linkedContextForTarget(objectId, layoutKey, profile, {}, options.contextLinkStack || new Set())"
+        }
+      ]
+    },
+    {
+      "symbol": "resolveWorkspaceRegionContext",
+      "graph_incoming": [
+        {
+          "from": "app",
+          "type": "call",
+          "line": 590,
+          "path": "app.js"
+        },
+        {
+          "from": "app",
+          "type": "call",
+          "line": 551,
+          "path": "app.js"
+        }
+      ],
+      "text_refs": [
+        {
+          "path": "app/static/app.js",
+          "line": 551,
+          "text": "return resolveWorkspaceRegionContext(layoutKey, profile, regionId, nextStack);"
+        },
+        {
+          "path": "app/static/app.js",
+          "line": 565,
+          "text": "const resolveWorkspaceRegionContext = (layoutKey, profile, regionId, stack = new Set()) => {"
+        },
+        {
+          "path": "app/static/app.js",
+          "line": 590,
+          "text": "const inheritedContext = resolveWorkspaceRegionContext(layoutKey, profile, regionId, options.contextLinkStack || new Set());"
+        }
+      ]
+    },
+    {
+      "symbol": "regionIdForWorkspaceItem",
+      "graph_incoming": [
+        {
+          "from": "app",
+          "type": "call",
+          "line": 586,
+          "path": "app.js"
+        },
+        {
+          "from": "app",
+          "type": "call",
+          "line": 1082,
+          "path": "app.js"
+        },
+        {
+          "from": "app",
+          "type": "call",
+          "line": 1086,
+          "path": "app.js"
+        },
+        {
+          "from": "app",
+          "type": "call",
+          "line": 459,
+          "path": "app.js"
+        },
+        {
+          "from": "app",
+          "type": "call",
+          "line": 463,
+          "path": "app.js"
+        },
+        {
+          "from": "modules.delete-runtime",
+          "type": "call",
+          "line": 279,
+          "path": "modules/delete-runtime.js"
+        },
+        {
+          "from": "modules.object-add-runtime:initializeObjectAddRuntime",
+          "type": "call",
+          "line": 395,
+          "path": "modules/object-add-runtime.js"
+        },
+        {
+          "from": "modules.object-add-runtime:initializeObjectAddRuntime",
+          "type": "call",
+          "line": 447,
+          "path": "modules/object-add-runtime.js"
+        },
+        {
+          "from": "modules.object-add-runtime:initializeObjectAddRuntime",
+          "type": "call",
+          "line": 519,
+          "path": "modules/object-add-runtime.js"
+        },
+        {
+          "from": "modules.panel-action-controls",
+          "type": "call",
+          "line": 167,
+          "path": "modules/panel-action-controls.js"
+        },
+        {
+          "from": "modules.panel-move-runtime",
+          "type": "call",
+          "line": 54,
+          "path": "modules/panel-move-runtime.js"
+        },
+        {
+          "from": "modules.panel-resize-runtime",
+          "type": "call",
+          "line": 258,
+          "path": "modules/panel-resize-runtime.js"
+        },
+        {
+          "from": "modules.widget-move-runtime",
+          "type": "call",
+          "line": 56,
+          "path": "modules/widget-move-runtime.js"
+        },
+        {
+          "from": "modules.widget-resize-runtime",
+          "type": "call",
+          "line": 232,
+          "path": "modules/widget-resize-runtime.js"
+        },
+        {
+          "from": "panel-containment",
+          "type": "call",
+          "line": 346,
+          "path": "panel-containment.js"
+        },
+        {
+          "from": "panel-containment",
+          "type": "call",
+          "line": 384,
+          "path": "panel-containment.js"
+        }
+      ],
+      "text_refs": [
+        {
+          "path": "app/static/app.js",
+          "line": 459,
+          "text": "].filter((widget) => regionIdForWorkspaceItem(widget) === regionId);"
+        },
+        {
+          "path": "app/static/app.js",
+          "line": 463,
+          "text": "].filter((widget) => regionIdForWorkspaceItem(widget) === regionId);"
+        },
+        {
+          "path": "app/static/app.js",
+          "line": 574,
+          "text": "const regionIdForWorkspaceItem = (item) => {"
+        },
+        {
+          "path": "app/static/app.js",
+          "line": 586,
+          "text": "const regionId = regionIdForWorkspaceItem(item);"
+        },
+        {
+          "path": "app/static/app.js",
+          "line": 1082,
+          "text": "const regionId = item ? regionIdForWorkspaceItem(item) : workspaceRootRegionId(layoutKey);"
+        },
+        {
+          "path": "app/static/app.js",
+          "line": 1086,
+          "text": ".filter((candidate) => candidate !== item && regionIdForWorkspaceItem(candidate) === regionId);"
+        },
+        {
+          "path": "app/static/app.js",
+          "line": 3013,
+          "text": "regionIdForWorkspaceItem,"
+        },
+        {
+          "path": "app/static/app.js",
+          "line": 3073,
+          "text": "regionIdForWorkspaceItem,"
+        },
+        {
+          "path": "app/static/app.js",
+          "line": 3136,
+          "text": "regionIdForWorkspaceItem,"
+        },
+        {
+          "path": "app/static/app.js",
+          "line": 3200,
+          "text": "regionIdForWorkspaceItem,"
+        },
+        {
+          "path": "app/static/app.js",
+          "line": 3391,
+          "text": "regionIdForWorkspaceItem,"
+        },
+        {
+          "path": "app/static/panel-containment.js",
+          "line": 346,
+          "text": "regionId: deps.regionIdForWorkspaceItem(panel),"
+        },
+        {
+          "path": "app/static/panel-containment.js",
+          "line": 384,
+          "text": "regionId: deps.regionIdForWorkspaceItem(clone),"
+        },
+        {
+          "path": "app/static/modules/delete-runtime.js",
+          "line": 38,
+          "text": "regionIdForWorkspaceItem,"
+        },
+        {
+          "path": "app/static/modules/delete-runtime.js",
+          "line": 279,
+          "text": "regionId: regionIdForWorkspaceItem(entry.item),"
+        },
+        {
+          "path": "app/static/modules/object-add-runtime.js",
+          "line": 35,
+          "text": "regionIdForWorkspaceItem,"
+        },
+        {
+          "path": "app/static/modules/object-add-runtime.js",
+          "line": 395,
+          "text": "regionId: regionIdForWorkspaceItem(panel),"
+        },
+        {
+          "path": "app/static/modules/object-add-runtime.js",
+          "line": 447,
+          "text": "regionId: regionIdForWorkspaceItem(divider),"
+        },
+        {
+          "path": "app/static/modules/object-add-runtime.js",
+          "line": 519,
+          "text": "regionId: regionIdForWorkspaceItem(widget),"
+        },
+        {
+          "path": "app/static/modules/panel-action-controls.js",
+          "line": 33,
+          "text": "regionIdForWorkspaceItem,"
+        },
+        {
+          "path": "app/static/modules/panel-action-controls.js",
+          "line": 167,
+          "text": "regionId: regionIdForWorkspaceItem(panel),"
+        },
+        {
+          "path": "app/static/modules/panel-layout-runtime.js",
+          "line": 63,
+          "text": "regionIdForWorkspaceItem,"
+        },
+        {
+          "path": "app/static/modules/panel-layout-runtime.js",
+          "line": 335,
+          "text": "regionIdForWorkspaceItem,"
+        },
+        {
+          "path": "app/static/modules/panel-layout-runtime.js",
+          "line": 358,
+          "text": "regionIdForWorkspaceItem,"
+        },
+        {
+          "path": "app/static/modules/panel-layout-runtime.js",
+          "line": 421,
+          "text": "regionIdForWorkspaceItem,"
+        },
+        {
+          "path": "app/static/modules/panel-move-runtime.js",
+          "line": 16,
+          "text": "regionIdForWorkspaceItem,"
+        },
+        {
+          "path": "app/static/modules/panel-move-runtime.js",
+          "line": 54,
+          "text": "regionId: regionIdForWorkspaceItem(panel),"
+        },
+        {
+          "path": "app/static/modules/panel-resize-runtime.js",
+          "line": 54,
+          "text": "regionIdForWorkspaceItem,"
+        },
+        {
+          "path": "app/static/modules/panel-resize-runtime.js",
+          "line": 258,
+          "text": "regionId: regionIdForWorkspaceItem(panel),"
+        },
+        {
+          "path": "app/static/modules/panel-runtime-setup.js",
+          "line": 28,
+          "text": "regionIdForWorkspaceItem,"
+        },
+        {
+          "path": "app/static/modules/panel-runtime-setup.js",
+          "line": 71,
+          "text": "regionIdForWorkspaceItem,"
+        },
+        {
+          "path": "app/static/modules/widget-layout-runtime.js",
+          "line": 64,
+          "text": "regionIdForWorkspaceItem,"
+        },
+        {
+          "path": "app/static/modules/widget-layout-runtime.js",
+          "line": 448,
+          "text": "regionIdForWorkspaceItem,"
+        },
+        {
+          "path": "app/static/modules/widget-layout-runtime.js",
+          "line": 506,
+          "text": "regionIdForWorkspaceItem,"
+        },
+        {
+          "path": "app/static/modules/widget-move-runtime.js",
+          "line": 16,
+          "text": "regionIdForWorkspaceItem,"
+        },
+        {
+          "path": "app/static/modules/widget-move-runtime.js",
+          "line": 56,
+          "text": "regionId: regionIdForWorkspaceItem(widget),"
+        },
+        {
+          "path": "app/static/modules/widget-resize-runtime.js",
+          "line": 47,
+          "text": "regionIdForWorkspaceItem,"
+        },
+        {
+          "path": "app/static/modules/widget-resize-runtime.js",
+          "line": 232,
+          "text": "regionId: regionIdForWorkspaceItem(widget),"
+        }
+      ]
+    },
+    {
+      "symbol": "panelContextForInternalWidget",
+      "graph_incoming": [
+        {
+          "from": "app",
+          "type": "call",
+          "line": 589,
+          "path": "app.js"
+        }
+      ],
+      "text_refs": [
+        {
+          "path": "app/static/app.js",
+          "line": 579,
+          "text": "const panelContextForInternalWidget = (item) => {"
+        },
+        {
+          "path": "app/static/app.js",
+          "line": 589,
+          "text": "const panelContext = panelContextForInternalWidget(item);"
+        }
+      ]
+    },
+    {
+      "symbol": "resolveWorkspaceContextForItem",
+      "graph_incoming": [
+        {
+          "from": "app",
+          "type": "call",
+          "line": 915,
+          "path": "app.js"
+        },
+        {
+          "from": "app",
+          "type": "call",
+          "line": 1094,
+          "path": "app.js"
+        },
+        {
+          "from": "app",
+          "type": "call",
+          "line": 1352,
+          "path": "app.js"
+        },
+        {
+          "from": "app",
+          "type": "call",
+          "line": 1682,
+          "path": "app.js"
+        },
+        {
+          "from": "app",
+          "type": "call",
+          "line": 2730,
+          "path": "app.js"
+        },
+        {
+          "from": "app",
+          "type": "call",
+          "line": 553,
+          "path": "app.js"
+        },
+        {
+          "from": "modules.dashboard-asset-api",
+          "type": "call",
+          "line": 49,
+          "path": "modules/dashboard-asset-api.js"
+        },
+        {
+          "from": "modules.widget-runtime-controls",
+          "type": "call",
+          "line": 42,
+          "path": "modules/widget-runtime-controls.js"
+        },
+        {
+          "from": "modules.widget-runtime-controls",
+          "type": "call",
+          "line": 73,
+          "path": "modules/widget-runtime-controls.js"
+        },
+        {
+          "from": "modules.widget-runtime-controls",
+          "type": "call",
+          "line": 200,
+          "path": "modules/widget-runtime-controls.js"
+        },
+        {
+          "from": "modules.widget-settings-service",
+          "type": "call",
+          "line": 49,
+          "path": "modules/widget-settings-service.js"
+        },
+        {
+          "from": "modules.widget-settings-service",
+          "type": "call",
+          "line": 62,
+          "path": "modules/widget-settings-service.js"
+        },
+        {
+          "from": "modules.widget-settings-service",
+          "type": "call",
+          "line": 103,
+          "path": "modules/widget-settings-service.js"
+        },
+        {
+          "from": "modules.widget-settings-service",
+          "type": "call",
+          "line": 107,
+          "path": "modules/widget-settings-service.js"
+        },
+        {
+          "from": "modules.widget-workbench-runtime",
+          "type": "call",
+          "line": 19,
+          "path": "modules/widget-workbench-runtime.js"
+        },
+        {
+          "from": "modules.widget-workbench-runtime",
+          "type": "call",
+          "line": 217,
+          "path": "modules/widget-workbench-runtime.js"
+        }
+      ],
+      "text_refs": [
+        {
+          "path": "app/static/app.js",
+          "line": 553,
+          "text": "return resolveWorkspaceContextForItem(source, { layoutKey, profile, contextLinkStack: nextStack });"
+        },
+        {
+          "path": "app/static/app.js",
+          "line": 583,
+          "text": "const resolveWorkspaceContextForItem = (item, options = {}) => {"
+        },
+        {
+          "path": "app/static/app.js",
+          "line": 915,
+          "text": "const resolved = resolveWorkspaceContextForItem(item, { layoutKey, profile });"
+        },
+        {
+          "path": "app/static/app.js",
+          "line": 1094,
+          "text": "const context = resolveWorkspaceContextForItem(item || committedContextRegionLayout(layoutKey), { layoutKey, profile });"
+        },
+        {
+          "path": "app/static/app.js",
+          "line": 1352,
+          "text": "const resolvedContext = options.resolvedContext || resolveWorkspaceContextForItem(widget);"
+        },
+        {
+          "path": "app/static/app.js",
+          "line": 1682,
+          "text": "resolvedContext: resolveWorkspaceContextForItem(widget),"
+        },
+        {
+          "path": "app/static/app.js",
+          "line": 1701,
+          "text": "resolveWorkspaceContextForItem,"
+        },
+        {
+          "path": "app/static/app.js",
+          "line": 1734,
+          "text": "resolveWorkspaceContextForItem,"
+        },
+        {
+          "path": "app/static/app.js",
+          "line": 1764,
+          "text": "resolveWorkspaceContextForItem,"
+        },
+        {
+          "path": "app/static/app.js",
+          "line": 1773,
+          "text": "resolveWorkspaceContextForItem,"
+        },
+        {
+          "path": "app/static/app.js",
+          "line": 2730,
+          "text": "const resolved = resolveWorkspaceContextForItem(widget, { layoutKey, profile: options.profile || getActivePanelProfile(layoutKey) });"
+        },
+        {
+          "path": "app/static/modules/dashboard-asset-api.js",
+          "line": 17,
+          "text": "resolveWorkspaceContextForItem,"
+        },
+        {
+          "path": "app/static/modules/dashboard-asset-api.js",
+          "line": 49,
+          "text": "renderWidgetRuntimeContent(node, { resolvedContext: resolveWorkspaceContextForItem(node), status: node.dataset.widgetRuntimeStatus || \"empty\" });"
+        },
+        {
+          "path": "app/static/modules/widget-runtime-controls.js",
+          "line": 6,
+          "text": "resolveWorkspaceContextForItem,"
+        },
+        {
+          "path": "app/static/modules/widget-runtime-controls.js",
+          "line": 42,
+          "text": "widget.dataset.contextFilters = JSON.stringify(normalizedFilterWidgetFilters(widget, resolveWorkspaceContextForItem(widget)));"
+        },
+        {
+          "path": "app/static/modules/widget-runtime-controls.js",
+          "line": 73,
+          "text": "resolvedContext: resolveWorkspaceContextForItem(widget),"
+        },
+        {
+          "path": "app/static/modules/widget-runtime-controls.js",
+          "line": 200,
+          "text": "resolvedContext: resolveWorkspaceContextForItem(widget),"
+        },
+        {
+          "path": "app/static/modules/widget-settings-service.js",
+          "line": 9,
+          "text": "resolveWorkspaceContextForItem,"
+        },
+        {
+          "path": "app/static/modules/widget-settings-service.js",
+          "line": 49,
+          "text": "const resolvedContext = resolveWorkspaceContextForItem(widget);"
+        },
+        {
+          "path": "app/static/modules/widget-settings-service.js",
+          "line": 62,
+          "text": "const resolvedContext = resolveWorkspaceContextForItem(widget);"
+        },
+        {
+          "path": "app/static/modules/widget-settings-service.js",
+          "line": 103,
+          "text": "refreshWidgetRuntimeData(widget, resolveWorkspaceContextForItem(widget), { force: true, allowFocused: true });"
+        },
+        {
+          "path": "app/static/modules/widget-settings-service.js",
+          "line": 107,
+          "text": "resolvedContext: resolveWorkspaceContextForItem(widget),"
+        },
+        {
+          "path": "app/static/modules/widget-workbench-runtime.js",
+          "line": 7,
+          "text": "resolveWorkspaceContextForItem,"
+        },
+        {
+          "path": "app/static/modules/widget-workbench-runtime.js",
+          "line": 19,
+          "text": "const resolved = resolveWorkspaceContextForItem(widget);"
+        },
+        {
+          "path": "app/static/modules/widget-workbench-runtime.js",
+          "line": 217,
+          "text": "const resolvedContext = resolveWorkspaceContextForItem(widget);"
+        }
+      ]
+    },
+    {
+      "symbol": "queryResolvedWorkspaceContext",
+      "graph_incoming": [
+        {
+          "from": "app",
+          "type": "call",
+          "line": 789,
+          "path": "app.js"
+        }
+      ],
+      "text_refs": [
+        {
+          "path": "app/static/app.js",
+          "line": 618,
+          "text": "const queryResolvedWorkspaceContext = async (resolvedContext, request = {}) => {"
+        },
+        {
+          "path": "app/static/app.js",
+          "line": 789,
+          "text": "const promise = queryResolvedWorkspaceContext(resolvedContext, {"
+        }
+      ]
+    },
+    {
+      "symbol": "stableQueryValue",
+      "graph_incoming": [
+        {
+          "from": "app",
+          "type": "call",
+          "line": 645,
+          "path": "app.js"
+        },
+        {
+          "from": "app",
+          "type": "call",
+          "line": 651,
+          "path": "app.js"
+        }
+      ],
+      "text_refs": [
+        {
+          "path": "app/static/app.js",
+          "line": 640,
+          "text": "const stableQueryValue = (value) => {"
+        },
+        {
+          "path": "app/static/app.js",
+          "line": 641,
+          "text": "if (Array.isArray(value)) return value.map(stableQueryValue);"
+        },
+        {
+          "path": "app/static/app.js",
+          "line": 645,
+          "text": "if (next !== undefined) record[key] = stableQueryValue(next);"
+        },
+        {
+          "path": "app/static/app.js",
+          "line": 651,
+          "text": "const stableQueryStringify = (value) => JSON.stringify(stableQueryValue(value));"
+        }
+      ]
+    },
+    {
+      "symbol": "stableQueryStringify",
+      "graph_incoming": [
+        {
+          "from": "app",
+          "type": "call",
+          "line": 670,
+          "path": "app.js"
+        }
+      ],
+      "text_refs": [
+        {
+          "path": "app/static/app.js",
+          "line": 651,
+          "text": "const stableQueryStringify = (value) => JSON.stringify(stableQueryValue(value));"
+        },
+        {
+          "path": "app/static/app.js",
+          "line": 670,
+          "text": "const widgetQueryKeyFor = ({ definition, instance, resolvedContext, query }) => stableQueryStringify({"
+        }
+      ]
+    },
+    {
+      "symbol": "resolvedContextQueryFingerprint",
+      "graph_incoming": [
+        {
+          "from": "app",
+          "type": "call",
+          "line": 673,
+          "path": "app.js"
+        }
+      ],
+      "text_refs": [
+        {
+          "path": "app/static/app.js",
+          "line": 652,
+          "text": "const resolvedContextQueryFingerprint = (context = {}) => ({"
+        },
+        {
+          "path": "app/static/app.js",
+          "line": 673,
+          "text": "context: resolvedContextQueryFingerprint(resolvedContext),"
+        }
+      ]
+    },
+    {
+      "symbol": "widgetQueryKeyFor",
+      "graph_incoming": [
+        {
+          "from": "app",
+          "type": "call",
+          "line": 758,
+          "path": "app.js"
+        }
+      ],
+      "text_refs": [
+        {
+          "path": "app/static/app.js",
+          "line": 670,
+          "text": "const widgetQueryKeyFor = ({ definition, instance, resolvedContext, query }) => stableQueryStringify({"
+        },
+        {
+          "path": "app/static/app.js",
+          "line": 758,
+          "text": "const key = widgetQueryKeyFor({ definition, instance, resolvedContext, query });"
+        }
+      ]
+    },
+    {
+      "symbol": "stateFromQueryResult",
+      "graph_incoming": [
+        {
+          "from": "app",
+          "type": "call",
+          "line": 729,
+          "path": "app.js"
+        },
+        {
+          "from": "app",
+          "type": "call",
+          "line": 795,
+          "path": "app.js"
+        }
+      ],
+      "text_refs": [
+        {
+          "path": "app/static/app.js",
+          "line": 676,
+          "text": "const stateFromQueryResult = (result, resolvedContext) => ({"
+        },
+        {
+          "path": "app/static/app.js",
+          "line": 729,
+          "text": "state: stateFromQueryResult({"
+        },
+        {
+          "path": "app/static/app.js",
+          "line": 795,
+          "text": "const state = stateFromQueryResult(result, resolvedContext);"
+        }
+      ]
+    },
+    {
+      "symbol": "demoQueryStateForWidget",
+      "graph_incoming": [
+        {
+          "from": "modules.widget-runtime-data",
+          "type": "call",
+          "line": 22,
+          "path": "modules/widget-runtime-data.js"
+        }
+      ],
+      "text_refs": [
+        {
+          "path": "app/static/app.js",
+          "line": 686,
+          "text": "const demoQueryStateForWidget = async (definition, instance, resolvedContext, options = {}) => {"
+        },
+        {
+          "path": "app/static/app.js",
+          "line": 1707,
+          "text": "demoQueryStateForWidget,"
+        },
+        {
+          "path": "app/static/modules/widget-runtime-data.js",
+          "line": 4,
+          "text": "demoQueryStateForWidget,"
+        },
+        {
+          "path": "app/static/modules/widget-runtime-data.js",
+          "line": 22,
+          "text": "const demo = await demoQueryStateForWidget(definition, instance, resolvedContext, options);"
+        }
+      ]
+    },
+    {
+      "symbol": "errorQueryState",
+      "graph_incoming": [
+        {
+          "from": "app",
+          "type": "call",
+          "line": 822,
+          "path": "app.js"
+        }
+      ],
+      "text_refs": [
+        {
+          "path": "app/static/app.js",
+          "line": 737,
+          "text": "const errorQueryState = (error) => ({"
+        },
+        {
+          "path": "app/static/app.js",
+          "line": 822,
+          "text": "const state = errorQueryState(error);"
+        }
+      ]
+    },
+    {
+      "symbol": "beginManagedWidgetQuery",
+      "graph_incoming": [
+        {
+          "from": "modules.widget-runtime-data",
+          "type": "call",
+          "line": 55,
+          "path": "modules/widget-runtime-data.js"
+        }
+      ],
+      "text_refs": [
+        {
+          "path": "app/static/app.js",
+          "line": 744,
+          "text": "const beginManagedWidgetQuery = ({ definition, instance, resolvedContext, query, force = false }) => {"
+        },
+        {
+          "path": "app/static/app.js",
+          "line": 1709,
+          "text": "beginManagedWidgetQuery,"
+        },
+        {
+          "path": "app/static/modules/widget-runtime-data.js",
+          "line": 6,
+          "text": "beginManagedWidgetQuery,"
+        },
+        {
+          "path": "app/static/modules/widget-runtime-data.js",
+          "line": 55,
+          "text": "const managed = beginManagedWidgetQuery({"
+        }
+      ]
+    },
+    {
+      "symbol": "invalidateManagedWidgetQueries",
+      "graph_incoming": [
+        {
+          "from": "app",
+          "type": "call",
+          "line": 868,
+          "path": "app.js"
+        }
+      ],
+      "text_refs": [
+        {
+          "path": "app/static/app.js",
+          "line": 854,
+          "text": "const invalidateManagedWidgetQueries = (predicate = null) => {"
+        },
+        {
+          "path": "app/static/app.js",
+          "line": 868,
+          "text": "invalidateManagedWidgetQueries((entry) => !entry || entry.context?.layoutKey === layoutKey);"
+        }
+      ]
+    },
+    {
+      "symbol": "invalidateManagedWidgetQueriesForLayout",
+      "graph_incoming": [
+        {
+          "from": "app",
+          "type": "call",
+          "line": 937,
+          "path": "app.js"
+        }
+      ],
+      "text_refs": [
+        {
+          "path": "app/static/app.js",
+          "line": 867,
+          "text": "const invalidateManagedWidgetQueriesForLayout = (layoutKey = \"builder\") => {"
+        },
+        {
+          "path": "app/static/app.js",
+          "line": 937,
+          "text": "invalidateManagedWidgetQueriesForLayout(layoutKey);"
+        }
+      ]
+    },
+    {
+      "symbol": "invalidateManagedWidgetQueryForWidget",
+      "graph_incoming": [
+        {
+          "from": "app",
+          "type": "call",
+          "line": 2732,
+          "path": "app.js"
+        },
+        {
+          "from": "modules.widget-settings-service",
+          "type": "call",
+          "line": 71,
+          "path": "modules/widget-settings-service.js"
+        }
+      ],
+      "text_refs": [
+        {
+          "path": "app/static/app.js",
+          "line": 870,
+          "text": "const invalidateManagedWidgetQueryForWidget = (widget) => {"
+        },
+        {
+          "path": "app/static/app.js",
+          "line": 1737,
+          "text": "invalidateManagedWidgetQueryForWidget,"
+        },
+        {
+          "path": "app/static/app.js",
+          "line": 2732,
+          "text": "invalidateManagedWidgetQueryForWidget(widget);"
+        },
+        {
+          "path": "app/static/modules/widget-settings-service.js",
+          "line": 12,
+          "text": "invalidateManagedWidgetQueryForWidget,"
+        },
+        {
+          "path": "app/static/modules/widget-settings-service.js",
+          "line": 71,
+          "text": "if (options.invalidateQuery !== false) invalidateManagedWidgetQueryForWidget(widget);"
+        }
+      ]
+    },
+    {
+      "symbol": "cancelManagedWidgetQueryKey",
+      "graph_incoming": [
+        {
+          "from": "app",
+          "type": "call",
+          "line": 884,
+          "path": "app.js"
+        }
+      ],
+      "text_refs": [
+        {
+          "path": "app/static/app.js",
+          "line": 874,
+          "text": "const cancelManagedWidgetQueryKey = (key) => {"
+        },
+        {
+          "path": "app/static/app.js",
+          "line": 884,
+          "text": "return cancelManagedWidgetQueryKey(widgetQueryKeys.get(widget) || widget.dataset.widgetQueryKey || \"\");"
+        }
+      ]
+    },
+    {
+      "symbol": "cancelManagedWidgetQueryForWidget",
+      "graph_incoming": [
+        {
+          "from": "app",
+          "type": "call",
+          "line": 2731,
+          "path": "app.js"
+        }
+      ],
+      "text_refs": [
+        {
+          "path": "app/static/app.js",
+          "line": 881,
+          "text": "const cancelManagedWidgetQueryForWidget = (widget) => {"
+        },
+        {
+          "path": "app/static/app.js",
+          "line": 2731,
+          "text": "cancelManagedWidgetQueryForWidget(widget);"
+        }
+      ]
+    },
+    {
+      "symbol": "managedQueryStateForWidget",
+      "graph_incoming": [
+        {
+          "from": "app",
+          "type": "call",
+          "line": 1353,
+          "path": "app.js"
+        },
+        {
+          "from": "app",
+          "type": "call",
+          "line": 1354,
+          "path": "app.js"
+        },
+        {
+          "from": "modules.widget-settings-service",
+          "type": "call",
+          "line": 105,
+          "path": "modules/widget-settings-service.js"
+        },
+        {
+          "from": "modules.widget-workbench-runtime",
+          "type": "call",
+          "line": 21,
+          "path": "modules/widget-workbench-runtime.js"
+        }
+      ],
+      "text_refs": [
+        {
+          "path": "app/static/app.js",
+          "line": 886,
+          "text": "const managedQueryStateForWidget = (widget) => {"
+        },
+        {
+          "path": "app/static/app.js",
+          "line": 1353,
+          "text": "const data = options.data || managedQueryStateForWidget(widget)?.data || null;"
+        },
+        {
+          "path": "app/static/app.js",
+          "line": 1354,
+          "text": "const status = options.status || widget.dataset.widgetRuntimeStatus || managedQueryStateForWidget(widget)?.status || \"empty\";"
+        },
+        {
+          "path": "app/static/app.js",
+          "line": 1702,
+          "text": "managedQueryStateForWidget,"
+        },
+        {
+          "path": "app/static/app.js",
+          "line": 1742,
+          "text": "managedQueryStateForWidget,"
+        },
+        {
+          "path": "app/static/modules/widget-settings-service.js",
+          "line": 17,
+          "text": "managedQueryStateForWidget,"
+        },
+        {
+          "path": "app/static/modules/widget-settings-service.js",
+          "line": 105,
+          "text": "const queryState = managedQueryStateForWidget(widget);"
+        },
+        {
+          "path": "app/static/modules/widget-workbench-runtime.js",
+          "line": 8,
+          "text": "managedQueryStateForWidget,"
+        },
+        {
+          "path": "app/static/modules/widget-workbench-runtime.js",
+          "line": 21,
+          "text": "const cachedFields = managedQueryStateForWidget(widget)?.data?.schema?.fields?.map((field) => field.name) || [];"
+        }
+      ]
+    },
+    {
+      "symbol": "describeResolvedContext",
+      "graph_incoming": [],
+      "text_refs": [
+        {
+          "path": "app/static/app.js",
+          "line": 890,
+          "text": "const describeResolvedContext = (context) => {"
+        }
+      ]
+    },
+    {
+      "symbol": "ensureContextBadge",
+      "graph_incoming": [],
+      "text_refs": [
+        {
+          "path": "app/static/app.js",
+          "line": 895,
+          "text": "const ensureContextBadge = (item) => {"
+        }
+      ]
+    },
+    {
+      "symbol": "refreshResolvedContextDebug",
+      "graph_incoming": [
+        {
+          "from": "app",
+          "type": "call",
+          "line": 938,
+          "path": "app.js"
+        },
+        {
+          "from": "app",
+          "type": "call",
+          "line": 239,
+          "path": "app.js"
+        },
+        {
+          "from": "modules.layout-history-runtime",
+          "type": "call",
+          "line": 145,
+          "path": "modules/layout-history-runtime.js"
+        },
+        {
+          "from": "modules.layout-source-runtime:initializeLayoutSourceRuntime",
+          "type": "call",
+          "line": 37,
+          "path": "modules/layout-source-runtime.js"
+        },
+        {
+          "from": "modules.object-add-runtime:initializeObjectAddRuntime",
+          "type": "call",
+          "line": 511,
+          "path": "modules/object-add-runtime.js"
+        },
+        {
+          "from": "modules.widget-settings-service",
+          "type": "call",
+          "line": 73,
+          "path": "modules/widget-settings-service.js"
+        }
+      ],
+      "text_refs": [
+        {
+          "path": "app/static/app.js",
+          "line": 239,
+          "text": "refreshResolvedContextDebug: (...args) => refreshResolvedContextDebug(...args),"
+        },
+        {
+          "path": "app/static/app.js",
+          "line": 904,
+          "text": "const refreshResolvedContextDebug = (layoutKey = \"default\", profile = getActivePanelProfile(layoutKey)) => {"
+        },
+        {
+          "path": "app/static/app.js",
+          "line": 938,
+          "text": "refreshResolvedContextDebug(layoutKey, profile);"
+        },
+        {
+          "path": "app/static/app.js",
+          "line": 1739,
+          "text": "refreshResolvedContextDebug,"
+        },
+        {
+          "path": "app/static/app.js",
+          "line": 3344,
+          "text": "refreshResolvedContextDebug,"
+        },
+        {
+          "path": "app/static/app.js",
+          "line": 3389,
+          "text": "refreshResolvedContextDebug,"
+        },
+        {
+          "path": "app/static/modules/layout-history-runtime.js",
+          "line": 16,
+          "text": "refreshResolvedContextDebug,"
+        },
+        {
+          "path": "app/static/modules/layout-history-runtime.js",
+          "line": 145,
+          "text": "refreshResolvedContextDebug(layoutKeyForSnapshot, snapshot.profile);"
+        },
+        {
+          "path": "app/static/modules/layout-source-runtime.js",
+          "line": 14,
+          "text": "refreshResolvedContextDebug,"
+        },
+        {
+          "path": "app/static/modules/layout-source-runtime.js",
+          "line": 37,
+          "text": "refreshResolvedContextDebug(layoutKey, getActivePanelProfile(layoutKey));"
+        },
+        {
+          "path": "app/static/modules/object-add-runtime.js",
+          "line": 33,
+          "text": "refreshResolvedContextDebug,"
+        },
+        {
+          "path": "app/static/modules/object-add-runtime.js",
+          "line": 511,
+          "text": "refreshResolvedContextDebug(layoutKey, selected);"
+        },
+        {
+          "path": "app/static/modules/widget-settings-service.js",
+          "line": 14,
+          "text": "refreshResolvedContextDebug,"
+        },
+        {
+          "path": "app/static/modules/widget-settings-service.js",
+          "line": 73,
+          "text": "refreshResolvedContextDebug(layoutKey, profile);"
+        }
+      ]
+    },
+    {
+      "symbol": "saveWorkspaceContextState",
+      "graph_incoming": [
+        {
+          "from": "modules.layout-source-runtime:initializeLayoutSourceRuntime",
+          "type": "call",
+          "line": 281,
+          "path": "modules/layout-source-runtime.js"
+        }
+      ],
+      "text_refs": [
+        {
+          "path": "app/static/app.js",
+          "line": 927,
+          "text": "const saveWorkspaceContextState = (layoutKey, profile = getActivePanelProfile(layoutKey), options = {}) => {"
+        },
+        {
+          "path": "app/static/app.js",
+          "line": 3348,
+          "text": "saveWorkspaceContextState,"
+        },
+        {
+          "path": "app/static/modules/layout-source-runtime.js",
+          "line": 18,
+          "text": "saveWorkspaceContextState,"
+        },
+        {
+          "path": "app/static/modules/layout-source-runtime.js",
+          "line": 281,
+          "text": "saveWorkspaceContextState(layoutKey, selected, { persist: true, history: false });"
+        }
+      ]
+    },
+    {
+      "symbol": "syncWorkspaceRegions",
+      "graph_incoming": [
+        {
+          "from": "app",
+          "type": "call",
+          "line": 987,
+          "path": "app.js"
+        },
+        {
+          "from": "app",
+          "type": "call",
+          "line": 1495,
+          "path": "app.js"
+        },
+        {
+          "from": "app",
+          "type": "call",
+          "line": 2727,
+          "path": "app.js"
+        },
+        {
+          "from": "app",
+          "type": "call",
+          "line": 2728,
+          "path": "app.js"
+        },
+        {
+          "from": "app",
+          "type": "call",
+          "line": 2741,
+          "path": "app.js"
+        },
+        {
+          "from": "app",
+          "type": "call",
+          "line": 2753,
+          "path": "app.js"
+        },
+        {
+          "from": "app",
+          "type": "call",
+          "line": 2899,
+          "path": "app.js"
+        },
+        {
+          "from": "app",
+          "type": "call",
+          "line": 907,
+          "path": "app.js"
+        },
+        {
+          "from": "app",
+          "type": "call",
+          "line": 908,
+          "path": "app.js"
+        },
+        {
+          "from": "modules.clipboard-runtime",
+          "type": "call",
+          "line": 222,
+          "path": "modules/clipboard-runtime.js"
+        },
+        {
+          "from": "modules.object-add-runtime:initializeObjectAddRuntime",
+          "type": "call",
+          "line": 385,
+          "path": "modules/object-add-runtime.js"
+        },
+        {
+          "from": "modules.object-add-runtime:initializeObjectAddRuntime",
+          "type": "call",
+          "line": 437,
+          "path": "modules/object-add-runtime.js"
+        },
+        {
+          "from": "modules.object-add-runtime:initializeObjectAddRuntime",
+          "type": "call",
+          "line": 507,
+          "path": "modules/object-add-runtime.js"
+        },
+        {
+          "from": "modules.panel-layout-hydration",
+          "type": "call",
+          "line": 127,
+          "path": "modules/panel-layout-hydration.js"
+        },
+        {
+          "from": "modules.persisted-workspace-runtime",
+          "type": "call",
+          "line": 135,
+          "path": "modules/persisted-workspace-runtime.js"
+        },
+        {
+          "from": "modules.persisted-workspace-runtime",
+          "type": "call",
+          "line": 136,
+          "path": "modules/persisted-workspace-runtime.js"
+        },
+        {
+          "from": "modules.widget-layout-hydration",
+          "type": "call",
+          "line": 135,
+          "path": "modules/widget-layout-hydration.js"
+        }
+      ],
+      "text_refs": [
+        {
+          "path": "app/static/app.js",
+          "line": 907,
+          "text": "if (panelLayout) syncWorkspaceRegions(panelLayout);"
+        },
+        {
+          "path": "app/static/app.js",
+          "line": 908,
+          "text": "if (widgetLayout) syncWorkspaceRegions(widgetLayout);"
+        },
+        {
+          "path": "app/static/app.js",
+          "line": 941,
+          "text": "const syncWorkspaceRegions = (layout) => {"
+        },
+        {
+          "path": "app/static/app.js",
+          "line": 987,
+          "text": "syncWorkspaceRegions(layout);"
+        },
+        {
+          "path": "app/static/app.js",
+          "line": 1495,
+          "text": "syncWorkspaceRegions(layout);"
+        },
+        {
+          "path": "app/static/app.js",
+          "line": 2727,
+          "text": "if (panelLayout) syncWorkspaceRegions(panelLayout);"
+        },
+        {
+          "path": "app/static/app.js",
+          "line": 2728,
+          "text": "if (layout) syncWorkspaceRegions(layout);"
+        },
+        {
+          "path": "app/static/app.js",
+          "line": 2741,
+          "text": "if (panelLayout) syncWorkspaceRegions(panelLayout);"
+        },
+        {
+          "path": "app/static/app.js",
+          "line": 2753,
+          "text": "if (targetLayout) syncWorkspaceRegions(targetLayout);"
+        },
+        {
+          "path": "app/static/app.js",
+          "line": 2899,
+          "text": "syncWorkspaceRegions(layout);"
+        },
+        {
+          "path": "app/static/app.js",
+          "line": 3044,
+          "text": "syncWorkspaceRegions,"
+        },
+        {
+          "path": "app/static/app.js",
+          "line": 3168,
+          "text": "syncWorkspaceRegions,"
+        },
+        {
+          "path": "app/static/app.js",
+          "line": 3256,
+          "text": "syncWorkspaceRegions,"
+        },
+        {
+          "path": "app/static/app.js",
+          "line": 3318,
+          "text": "syncWorkspaceRegions,"
+        },
+        {
+          "path": "app/static/app.js",
+          "line": 3384,
+          "text": "syncWorkspaceRegions,"
+        },
+        {
+          "path": "app/static/modules/clipboard-runtime.js",
+          "line": 26,
+          "text": "syncWorkspaceRegions,"
+        },
+        {
+          "path": "app/static/modules/clipboard-runtime.js",
+          "line": 222,
+          "text": "syncWorkspaceRegions(targetLayout);"
+        },
+        {
+          "path": "app/static/modules/object-add-runtime.js",
+          "line": 28,
+          "text": "syncWorkspaceRegions,"
+        },
+        {
+          "path": "app/static/modules/object-add-runtime.js",
+          "line": 385,
+          "text": "syncWorkspaceRegions(layout);"
+        },
+        {
+          "path": "app/static/modules/object-add-runtime.js",
+          "line": 437,
+          "text": "syncWorkspaceRegions(layout);"
+        },
+        {
+          "path": "app/static/modules/object-add-runtime.js",
+          "line": 507,
+          "text": "syncWorkspaceRegions(layout);"
+        },
+        {
+          "path": "app/static/modules/panel-layout-hydration.js",
+          "line": 26,
+          "text": "syncWorkspaceRegions,"
+        },
+        {
+          "path": "app/static/modules/panel-layout-hydration.js",
+          "line": 127,
+          "text": "syncWorkspaceRegions(layout);"
+        },
+        {
+          "path": "app/static/modules/panel-layout-runtime.js",
+          "line": 31,
+          "text": "syncWorkspaceRegions,"
+        },
+        {
+          "path": "app/static/modules/panel-layout-runtime.js",
+          "line": 129,
+          "text": "syncWorkspaceRegions,"
+        },
+        {
+          "path": "app/static/modules/persisted-workspace-runtime.js",
+          "line": 4,
+          "text": "syncWorkspaceRegions,"
+        },
+        {
+          "path": "app/static/modules/persisted-workspace-runtime.js",
+          "line": 135,
+          "text": "if (panelLayout) syncWorkspaceRegions(panelLayout);"
+        },
+        {
+          "path": "app/static/modules/persisted-workspace-runtime.js",
+          "line": 136,
+          "text": "if (widgetLayout) syncWorkspaceRegions(widgetLayout);"
+        },
+        {
+          "path": "app/static/modules/widget-layout-hydration.js",
+          "line": 30,
+          "text": "syncWorkspaceRegions,"
+        },
+        {
+          "path": "app/static/modules/widget-layout-hydration.js",
+          "line": 135,
+          "text": "syncWorkspaceRegions(layout);"
+        },
+        {
+          "path": "app/static/modules/widget-layout-runtime.js",
+          "line": 35,
+          "text": "syncWorkspaceRegions,"
+        },
+        {
+          "path": "app/static/modules/widget-layout-runtime.js",
+          "line": 128,
+          "text": "syncWorkspaceRegions,"
+        }
+      ]
+    },
+    {
+      "symbol": "committedContextRegionLayout",
+      "graph_incoming": [
+        {
+          "from": "app",
+          "type": "call",
+          "line": 985,
+          "path": "app.js"
+        },
+        {
+          "from": "app",
+          "type": "call",
+          "line": 1042,
+          "path": "app.js"
+        },
+        {
+          "from": "app",
+          "type": "call",
+          "line": 1094,
+          "path": "app.js"
+        }
+      ],
+      "text_refs": [
+        {
+          "path": "app/static/app.js",
+          "line": 969,
+          "text": "const committedContextRegionLayout = (layoutKey = \"builder\") => ("
+        },
+        {
+          "path": "app/static/app.js",
+          "line": 985,
+          "text": "const layout = committedContextRegionLayout(layoutKey);"
+        },
+        {
+          "path": "app/static/app.js",
+          "line": 1042,
+          "text": "const layout = committedContextRegionLayout(layoutKey);"
+        },
+        {
+          "path": "app/static/app.js",
+          "line": 1094,
+          "text": "const context = resolveWorkspaceContextForItem(item || committedContextRegionLayout(layoutKey), { layoutKey, profile });"
+        }
+      ]
+    },
+    {
+      "symbol": "isCommittedContextRegionItem",
+      "graph_incoming": [],
+      "text_refs": [
+        {
+          "path": "app/static/app.js",
+          "line": 973,
+          "text": "const isCommittedContextRegionItem = (item) => ("
+        },
+        {
+          "path": "app/static/app.js",
+          "line": 990,
+          "text": ".filter(isCommittedContextRegionItem)"
+        },
+        {
+          "path": "app/static/app.js",
+          "line": 1064,
+          "text": "].filter(isCommittedContextRegionItem);"
+        }
+      ]
+    },
+    {
+      "symbol": "committedDividerRegionEntries",
+      "graph_incoming": [
+        {
+          "from": "app",
+          "type": "call",
+          "line": 999,
+          "path": "app.js"
+        },
+        {
+          "from": "app",
+          "type": "call",
+          "line": 1047,
+          "path": "app.js"
+        },
+        {
+          "from": "app",
+          "type": "call",
+          "line": 1069,
+          "path": "app.js"
+        }
+      ],
+      "text_refs": [
+        {
+          "path": "app/static/app.js",
+          "line": 984,
+          "text": "const committedDividerRegionEntries = (layoutKey = \"builder\") => {"
+        },
+        {
+          "path": "app/static/app.js",
+          "line": 999,
+          "text": "const dividers = committedDividerRegionEntries(layoutKey);"
+        },
+        {
+          "path": "app/static/app.js",
+          "line": 1047,
+          "text": "return committedDividerRegionEntries(layoutKey)"
+        },
+        {
+          "path": "app/static/app.js",
+          "line": 1069,
+          "text": "const divider = committedDividerRegionEntries(layoutKey)"
+        }
+      ]
+    },
+    {
+      "symbol": "deriveWorkspaceContextRegions",
+      "graph_incoming": [
+        {
+          "from": "app",
+          "type": "call",
+          "line": 1053,
+          "path": "app.js"
+        },
+        {
+          "from": "app",
+          "type": "call",
+          "line": 1083,
+          "path": "app.js"
+        }
+      ],
+      "text_refs": [
+        {
+          "path": "app/static/app.js",
+          "line": 998,
+          "text": "const deriveWorkspaceContextRegions = (layoutKey = \"builder\") => {"
+        },
+        {
+          "path": "app/static/app.js",
+          "line": 1053,
+          "text": "return deriveWorkspaceContextRegions(layoutKey)"
+        },
+        {
+          "path": "app/static/app.js",
+          "line": 1083,
+          "text": "const regions = deriveWorkspaceContextRegions(layoutKey);"
+        }
+      ]
+    },
+    {
+      "symbol": "gridRowFromContextRegionInput",
+      "graph_incoming": [
+        {
+          "from": "app",
+          "type": "call",
+          "line": 1046,
+          "path": "app.js"
+        },
+        {
+          "from": "app",
+          "type": "call",
+          "line": 1052,
+          "path": "app.js"
+        }
+      ],
+      "text_refs": [
+        {
+          "path": "app/static/app.js",
+          "line": 1038,
+          "text": "const gridRowFromContextRegionInput = (value, layoutKey = \"builder\") => {"
+        },
+        {
+          "path": "app/static/app.js",
+          "line": 1046,
+          "text": "const row = gridRowFromContextRegionInput(value, layoutKey);"
+        },
+        {
+          "path": "app/static/app.js",
+          "line": 1052,
+          "text": "const row = gridRowFromContextRegionInput(value, layoutKey);"
+        }
+      ]
+    },
+    {
+      "symbol": "nearestDividerAboveCommittedRow",
+      "graph_incoming": [],
+      "text_refs": [
+        {
+          "path": "app/static/app.js",
+          "line": 1045,
+          "text": "const nearestDividerAboveCommittedRow = (value, layoutKey = \"builder\") => {"
+        }
+      ]
+    },
+    {
+      "symbol": "resolveWorkspaceRegionForY",
+      "graph_incoming": [
+        {
+          "from": "app",
+          "type": "call",
+          "line": 1084,
+          "path": "app.js"
+        }
+      ],
+      "text_refs": [
+        {
+          "path": "app/static/app.js",
+          "line": 1051,
+          "text": "const resolveWorkspaceRegionForY = (value, layoutKey = \"builder\") => {"
+        },
+        {
+          "path": "app/static/app.js",
+          "line": 1084,
+          "text": "const region = regions.find((entry) => entry.id === regionId) || resolveWorkspaceRegionForY(item, layoutKey);"
+        }
+      ]
+    },
+    {
+      "symbol": "allCommittedWorkspaceGridItems",
+      "graph_incoming": [
+        {
+          "from": "app",
+          "type": "call",
+          "line": 1085,
+          "path": "app.js"
+        }
+      ],
+      "text_refs": [
+        {
+          "path": "app/static/app.js",
+          "line": 1058,
+          "text": "const allCommittedWorkspaceGridItems = (layoutKey = \"builder\") => {"
+        },
+        {
+          "path": "app/static/app.js",
+          "line": 1085,
+          "text": "const items = allCommittedWorkspaceGridItems(layoutKey)"
+        }
+      ]
+    },
+    {
+      "symbol": "regionLabelForSummary",
+      "graph_incoming": [
+        {
+          "from": "app",
+          "type": "call",
+          "line": 1097,
+          "path": "app.js"
+        }
+      ],
+      "text_refs": [
+        {
+          "path": "app/static/app.js",
+          "line": 1067,
+          "text": "const regionLabelForSummary = (regionId, layoutKey = \"builder\", profile = getActivePanelProfile(layoutKey)) => {"
+        },
+        {
+          "path": "app/static/app.js",
+          "line": 1097,
+          "text": "label: regionLabelForSummary(regionId, layoutKey, profile),"
+        }
+      ]
+    },
+    {
+      "symbol": "workspaceRegionSummaryForItem",
+      "graph_incoming": [
+        {
+          "from": "modules.workspace-post-init",
+          "type": "call",
+          "line": 23,
+          "path": "modules/workspace-post-init.js"
+        }
+      ],
+      "text_refs": [
+        {
+          "path": "app/static/app.js",
+          "line": 1076,
+          "text": "const workspaceRegionSummaryForItem = (itemOrKey, options = {}) => {"
+        },
+        {
+          "path": "app/static/app.js",
+          "line": 3249,
+          "text": "workspaceRegionSummaryForItem,"
+        },
+        {
+          "path": "app/static/modules/workspace-post-init.js",
+          "line": 6,
+          "text": "workspaceRegionSummaryForItem,"
+        },
+        {
+          "path": "app/static/modules/workspace-post-init.js",
+          "line": 23,
+          "text": "regionSummaryForWidget: (widgetKey) => workspaceRegionSummaryForItem(widgetKey),"
+        }
+      ]
+    },
+    {
+      "symbol": "initWorkspaceMinimapLayer",
+      "graph_incoming": [],
+      "text_refs": [
+        {
+          "path": "app/static/app.js",
+          "line": 1109,
+          "text": "const initWorkspaceMinimapLayer = () => {};"
+        },
+        {
+          "path": "app/static/app.js",
+          "line": 3247,
+          "text": "initWorkspaceMinimapLayer,"
+        },
+        {
+          "path": "app/static/modules/workspace-post-init.js",
+          "line": 4,
+          "text": "initWorkspaceMinimapLayer,"
+        },
+        {
+          "path": "app/static/modules/workspace-post-init.js",
+          "line": 18,
+          "text": "document.querySelectorAll(\".workspace-minimap-layer\").forEach(initWorkspaceMinimapLayer);"
+        }
+      ]
+    },
+    {
+      "symbol": "dataOriginDefinitions",
+      "graph_incoming": [],
+      "text_refs": [
+        {
+          "path": "app/static/app.js",
+          "line": 319,
+          "text": "dataOriginDefinitions,"
+        },
+        {
+          "path": "app/static/modules/data-adapter-runtime.js",
+          "line": 3,
+          "text": "const dataOriginDefinitions = new Map();"
+        },
+        {
+          "path": "app/static/modules/data-adapter-runtime.js",
+          "line": 7,
+          "text": "dataOriginDefinitions.set(kind, {"
+        },
+        {
+          "path": "app/static/modules/data-adapter-runtime.js",
+          "line": 266,
+          "text": "dataOriginDefinitions,"
+        }
+      ]
+    },
+    {
+      "symbol": "registerDataOriginDefinition",
+      "graph_incoming": [],
+      "text_refs": [
+        {
+          "path": "app/static/app.js",
+          "line": 320,
+          "text": "registerDataOriginDefinition,"
+        },
+        {
+          "path": "app/static/modules/data-adapter-runtime.js",
+          "line": 4,
+          "text": "const registerDataOriginDefinition = (definition = {}) => {"
+        },
+        {
+          "path": "app/static/modules/data-adapter-runtime.js",
+          "line": 31,
+          "text": "].forEach(registerDataOriginDefinition);"
+        },
+        {
+          "path": "app/static/modules/data-adapter-runtime.js",
+          "line": 267,
+          "text": "registerDataOriginDefinition,"
+        }
+      ]
+    },
+    {
+      "symbol": "registerDataSourceAdapter",
+      "graph_incoming": [
+        {
+          "from": "modules.data-adapter-runtime:createDataAdapterRuntime",
+          "type": "call",
+          "line": 252,
+          "path": "modules/data-adapter-runtime.js"
+        },
+        {
+          "from": "modules.data-adapter-runtime:createDataAdapterRuntime",
+          "type": "call",
+          "line": 253,
+          "path": "modules/data-adapter-runtime.js"
+        },
+        {
+          "from": "modules.data-adapter-runtime:createDataAdapterRuntime",
+          "type": "call",
+          "line": 254,
+          "path": "modules/data-adapter-runtime.js"
+        },
+        {
+          "from": "modules.data-adapter-runtime:createDataAdapterRuntime",
+          "type": "call",
+          "line": 255,
+          "path": "modules/data-adapter-runtime.js"
+        },
+        {
+          "from": "modules.data-adapter-runtime:createDataAdapterRuntime",
+          "type": "call",
+          "line": 256,
+          "path": "modules/data-adapter-runtime.js"
+        },
+        {
+          "from": "modules.data-adapter-runtime:createDataAdapterRuntime",
+          "type": "call",
+          "line": 257,
+          "path": "modules/data-adapter-runtime.js"
+        },
+        {
+          "from": "modules.data-adapter-runtime:createDataAdapterRuntime",
+          "type": "call",
+          "line": 258,
+          "path": "modules/data-adapter-runtime.js"
+        },
+        {
+          "from": "modules.data-adapter-runtime:createDataAdapterRuntime",
+          "type": "call",
+          "line": 259,
+          "path": "modules/data-adapter-runtime.js"
+        },
+        {
+          "from": "modules.data-adapter-runtime:createDataAdapterRuntime",
+          "type": "call",
+          "line": 260,
+          "path": "modules/data-adapter-runtime.js"
+        },
+        {
+          "from": "modules.data-adapter-runtime:createDataAdapterRuntime",
+          "type": "call",
+          "line": 261,
+          "path": "modules/data-adapter-runtime.js"
+        },
+        {
+          "from": "modules.data-adapter-runtime:createDataAdapterRuntime",
+          "type": "call",
+          "line": 262,
+          "path": "modules/data-adapter-runtime.js"
+        }
+      ],
+      "text_refs": [
+        {
+          "path": "app/static/app.js",
+          "line": 333,
+          "text": "registerDataSourceAdapter,"
+        },
+        {
+          "path": "app/static/modules/data-adapter-runtime.js",
+          "line": 247,
+          "text": "const registerDataSourceAdapter = (adapter) => {"
+        },
+        {
+          "path": "app/static/modules/data-adapter-runtime.js",
+          "line": 252,
+          "text": "registerDataSourceAdapter(createRecordAdapter(\"manual\"));"
+        },
+        {
+          "path": "app/static/modules/data-adapter-runtime.js",
+          "line": 253,
+          "text": "registerDataSourceAdapter(createRecordAdapter(\"json\"));"
+        },
+        {
+          "path": "app/static/modules/data-adapter-runtime.js",
+          "line": 254,
+          "text": "registerDataSourceAdapter(createRecordAdapter(\"csv\"));"
+        },
+        {
+          "path": "app/static/modules/data-adapter-runtime.js",
+          "line": 255,
+          "text": "registerDataSourceAdapter(createRecordAdapter(\"sql\"));"
+        },
+        {
+          "path": "app/static/modules/data-adapter-runtime.js",
+          "line": 256,
+          "text": "registerDataSourceAdapter(createRecordAdapter(\"api\"));"
+        },
+        {
+          "path": "app/static/modules/data-adapter-runtime.js",
+          "line": 257,
+          "text": "registerDataSourceAdapter(createRecordAdapter(\"uploaded-file\"));"
+        },
+        {
+          "path": "app/static/modules/data-adapter-runtime.js",
+          "line": 258,
+          "text": "registerDataSourceAdapter(createRecordAdapter(\"scenario\"));"
+        },
+        {
+          "path": "app/static/modules/data-adapter-runtime.js",
+          "line": 259,
+          "text": "registerDataSourceAdapter(createRecordAdapter(\"derived\"));"
+        },
+        {
+          "path": "app/static/modules/data-adapter-runtime.js",
+          "line": 260,
+          "text": "registerDataSourceAdapter(createRecordAdapter(\"ai-generated\"));"
+        },
+        {
+          "path": "app/static/modules/data-adapter-runtime.js",
+          "line": 261,
+          "text": "registerDataSourceAdapter(createRecordAdapter(\"realtime-stream\"));"
+        },
+        {
+          "path": "app/static/modules/data-adapter-runtime.js",
+          "line": 262,
+          "text": "registerDataSourceAdapter(createRecordAdapter(\"cached-query\"));"
+        },
+        {
+          "path": "app/static/modules/data-adapter-runtime.js",
+          "line": 280,
+          "text": "registerDataSourceAdapter,"
+        }
+      ]
+    }
+  ]
+}

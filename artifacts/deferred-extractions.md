@@ -86,12 +86,13 @@ The remaining `app/static/app.js` core is init-order-sensitive and still owns li
 - KEEP interaction entangled: widget runtime data hydration, runtime content rendering, panel/widget resize handler readiness.
 - Needed to finish safely: move this only as part of a broader widget runtime setup extraction with resize handler readiness checks, or add a deterministic init-order smoke around resize binding before e2e.
 
-## mixed-context-query-compatibility
+## mixed-context-query-compatibility dormant residue
 
 - Cluster/symbol + file:line: data-source/context/query compatibility helpers, `app/static/app.js:356-1179`
-- Why deferred: this is the previously identified load-bearing mixed compatibility island. It is not active product behavior, but KEEP code still calls pieces for panel color menu, resize span, hydration, and persistence compatibility.
-- KEEP interaction entangled: panel/widget hydration, panel color menu, resize span persistence, save/load/reset.
-- Needed to finish safely: isolate the exact KEEP persistence/hydration helpers into a minimal compatibility module, then remove dormant query/context naming in a separate gutting pass with full parity.
+- Dormant residue completed in MAW run: `runs/2026-06-06_increment-7-mixed-context-salvage_2566`
+- Outcome: deleted the unused app-level data adapter destructures, the orphan `ensureContextBadge` helper, and the unused data-origin definition registry from `data-adapter-runtime.js`.
+- KEEP interaction retained resident: active context resolution, widget query cache/runtime data, panel/widget hydration, panel color menu, resize span persistence, and save/load/reset compatibility remain in place.
+- Proof: JS code graph generated; deleted symbols had no live references; final hidden Electron suite passed 10/10; `verdict_check.py` passed.
 
 ## 2026-06-05 Removed Feature Update
 

@@ -1,0 +1,11 @@
+{
+  "check": "interaction_current",
+  "passed": true,
+  "items": [
+    {
+      "name": "hidden_electron_e2e_canaries_10x",
+      "passed": true,
+      "artifact": "artifacts/e2e-10x.json"
+    }
+  ]
+}

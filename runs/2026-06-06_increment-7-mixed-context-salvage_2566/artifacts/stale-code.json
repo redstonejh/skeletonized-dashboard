@@ -1,0 +1,13 @@
+{
+  "check": "salvage_stale_code",
+  "passed": true,
+  "items": [],
+  "removed_symbols": [
+    "app:dataOriginDefinitions",
+    "app:registerDataOriginDefinition",
+    "app:ensureContextBadge",
+    "modules.data-adapter-runtime:dataOriginDefinitions",
+    "modules.data-adapter-runtime:registerDataOriginDefinition"
+  ],
+  "violations": []
+}

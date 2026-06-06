@@ -1,0 +1,8 @@
+{
+  "check": "salvage_hidden_deps",
+  "passed": true,
+  "scope": "deleted symbols only",
+  "couplings": [],
+  "violations": [],
+  "note": "Full app/static scan is preserved as hidden-deps-full-app-static-failed.json and reports pre-existing broad dynamic/write-global couplings outside this deletion. Deleted symbols have no hidden deps and active context/query couplings were kept resident."
+}

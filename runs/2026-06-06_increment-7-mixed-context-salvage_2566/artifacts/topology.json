@@ -1,0 +1,21 @@
+{
+  "check": "salvage_topology",
+  "confidence": 0.75,
+  "passed": true,
+  "root": "C:\\Users\\redst\\OneDrive\\Documents\\skeletonized-dashboard",
+  "schema_version": 1,
+  "signals": {
+    "api_fetch": false,
+    "has_css": true,
+    "has_html": true,
+    "has_js_ts": true,
+    "has_package_json": true,
+    "has_python": false,
+    "has_templates_dir": false,
+    "jinja_or_django_markers": false,
+    "plain_dom": true,
+    "script_tags": true,
+    "spa_framework": false
+  },
+  "topology": "vanilla"
+}

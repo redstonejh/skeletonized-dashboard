@@ -1,0 +1,6 @@
+{
+  "check": "api_surface_diff",
+  "passed": true,
+  "removed_public_api": [],
+  "notes": "createDataAdapterRuntime remains internally imported; active caller only reads dataSourceAdapters"
+}

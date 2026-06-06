@@ -1,0 +1,5 @@
+{
+  "schema_version": 1,
+  "touched_candidates": [],
+  "justification": "deletion-only pass; no complexity refactor in scope"
+}

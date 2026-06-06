@@ -1,0 +1,78 @@
+{
+    "check":  "e2e_10x",
+    "passed":  true,
+    "command":  "npm.cmd run test:e2e -- --workers=1",
+    "hidden_env":  "MAW_HEADLESS=1",
+    "runs":  [
+                 {
+                     "run":  1,
+                     "exit_code":  0,
+                     "passed":  true,
+                     "duration_seconds":  29.81,
+                     "log":  "runs\\2026-06-06_increment-7-mixed-context-salvage_2566\\artifacts\\e2e-final-01.log"
+                 },
+                 {
+                     "run":  2,
+                     "exit_code":  0,
+                     "passed":  true,
+                     "duration_seconds":  29.95,
+                     "log":  "runs\\2026-06-06_increment-7-mixed-context-salvage_2566\\artifacts\\e2e-final-02.log"
+                 },
+                 {
+                     "run":  3,
+                     "exit_code":  0,
+                     "passed":  true,
+                     "duration_seconds":  29.75,
+                     "log":  "runs\\2026-06-06_increment-7-mixed-context-salvage_2566\\artifacts\\e2e-final-03.log"
+                 },
+                 {
+                     "run":  4,
+                     "exit_code":  0,
+                     "passed":  true,
+                     "duration_seconds":  29.72,
+                     "log":  "runs\\2026-06-06_increment-7-mixed-context-salvage_2566\\artifacts\\e2e-final-04.log"
+                 },
+                 {
+                     "run":  5,
+                     "exit_code":  0,
+                     "passed":  true,
+                     "duration_seconds":  29.64,
+                     "log":  "runs\\2026-06-06_increment-7-mixed-context-salvage_2566\\artifacts\\e2e-final-05.log"
+                 },
+                 {
+                     "run":  6,
+                     "exit_code":  0,
+                     "passed":  true,
+                     "duration_seconds":  29.67,
+                     "log":  "runs\\2026-06-06_increment-7-mixed-context-salvage_2566\\artifacts\\e2e-final-06.log"
+                 },
+                 {
+                     "run":  7,
+                     "exit_code":  0,
+                     "passed":  true,
+                     "duration_seconds":  29.76,
+                     "log":  "runs\\2026-06-06_increment-7-mixed-context-salvage_2566\\artifacts\\e2e-final-07.log"
+                 },
+                 {
+                     "run":  8,
+                     "exit_code":  0,
+                     "passed":  true,
+                     "duration_seconds":  27.7,
+                     "log":  "runs\\2026-06-06_increment-7-mixed-context-salvage_2566\\artifacts\\e2e-final-08.log"
+                 },
+                 {
+                     "run":  9,
+                     "exit_code":  0,
+                     "passed":  true,
+                     "duration_seconds":  29.81,
+                     "log":  "runs\\2026-06-06_increment-7-mixed-context-salvage_2566\\artifacts\\e2e-final-09.log"
+                 },
+                 {
+                     "run":  10,
+                     "exit_code":  0,
+                     "passed":  true,
+                     "duration_seconds":  29.96,
+                     "log":  "runs\\2026-06-06_increment-7-mixed-context-salvage_2566\\artifacts\\e2e-final-10.log"
+                 }
+             ]
+}

@@ -1,0 +1,2450 @@
+{
+  "candidate_count": 174,
+  "candidates": [
+    {
+      "body_sha256": "aa4eb169bee18a76be1611386e9003b9ad50028346ae105fa32df2a3b8e8174d",
+      "end_line": 2723,
+      "id": "app/static/app.js:absorbWidgetIntoPanel@2713",
+      "language": "javascript",
+      "line": 2713,
+      "metrics": {
+        "cyclomatic": 17,
+        "length": 11,
+        "nesting": 1
+      },
+      "name": "absorbWidgetIntoPanel",
+      "path": "app/static/app.js"
+    },
+    {
+      "body_sha256": "e49d7d380e95b736719e443dbaa93174c494069d8cb6066549da0221e75cf285",
+      "end_line": 1445,
+      "id": "app/static/app.js:applyConditionalStyleEffects@1414",
+      "language": "javascript",
+      "line": 1414,
+      "metrics": {
+        "cyclomatic": 14,
+        "length": 32,
+        "nesting": 3
+      },
+      "name": "applyConditionalStyleEffects",
+      "path": "app/static/app.js"
+    },
+    {
+      "body_sha256": "d1ebf04e34f57ad0d81cc2640db7c64363a9a6895822286e3e701eb4e79ebddb",
+      "end_line": 1378,
+      "id": "app/static/app.js:compareLogicValues@1368",
+      "language": "javascript",
+      "line": 1368,
+      "metrics": {
+        "cyclomatic": 15,
+        "length": 11,
+        "nesting": 0
+      },
+      "name": "compareLogicValues",
+      "path": "app/static/app.js"
+    },
+    {
+      "body_sha256": "9514ad71e404ba2df397340b9e3fc7c751ca2c00c8f5e00790d0ffda00b4e5bd",
+      "end_line": 2364,
+      "id": "app/static/app.js:endPanelExpansionSession@2350",
+      "language": "javascript",
+      "line": 2350,
+      "metrics": {
+        "cyclomatic": 13,
+        "length": 15,
+        "nesting": 2
+      },
+      "name": "endPanelExpansionSession",
+      "path": "app/static/app.js"
+    },
+    {
+      "body_sha256": "4ed8d591f906eb15f9a72cc6579c748740e41caeaf98b5f42fe419406e713e49",
+      "end_line": 2734,
+      "id": "app/static/app.js:extractPanelChildWidgetToWorkspace@2725",
+      "language": "javascript",
+      "line": 2725,
+      "metrics": {
+        "cyclomatic": 12,
+        "length": 10,
+        "nesting": 1
+      },
+      "name": "extractPanelChildWidgetToWorkspace",
+      "path": "app/static/app.js"
+    },
+    {
+      "body_sha256": "3ea733b371f1e5f1ffda7b1dcfa04dd7ac4e0666eb5a7c578e38df97f6c5cbb2",
+      "end_line": 1946,
+      "id": "app/static/app.js:findNearestAvailableSlot@1916",
+      "language": "javascript",
+      "line": 1916,
+      "metrics": {
+        "cyclomatic": 22,
+        "length": 31,
+        "nesting": 4
+      },
+      "name": "findNearestAvailableSlot",
+      "path": "app/static/app.js"
+    },
+    {
+      "body_sha256": "b5b0c00fdf8ef67c07205f48365314c2148f01bb159151a3a184935544a1e01b",
+      "end_line": 1944,
+      "id": "app/static/app.js:for@1927",
+      "language": "javascript",
+      "line": 1927,
+      "metrics": {
+        "cyclomatic": 17,
+        "length": 18,
+        "nesting": 3
+      },
+      "name": "for",
+      "path": "app/static/app.js"
+    },
+    {
+      "body_sha256": "6899169057a13e9134a2f5200aae90cc5ed530fc4f3ab22380e3eb900712b8b9",
+      "end_line": 1943,
+      "id": "app/static/app.js:for@1928",
+      "language": "javascript",
+      "line": 1928,
+      "metrics": {
+        "cyclomatic": 16,
+        "length": 16,
+        "nesting": 2
+      },
+      "name": "for",
+      "path": "app/static/app.js"
+    },
+    {
+      "body_sha256": "b527d7849cb6e120306ff25a177d961663cece9cb74b1a893938a02325c57b69",
+      "end_line": 1154,
+      "id": "app/static/app.js:gridCellFromDragPointer@1129",
+      "language": "javascript",
+      "line": 1129,
+      "metrics": {
+        "cyclomatic": 17,
+        "length": 26,
+        "nesting": 1
+      },
+      "name": "gridCellFromDragPointer",
+      "path": "app/static/app.js"
+    },
+    {
+      "body_sha256": "50eb2c8281d0760c5381b68d428e37aeb2e25c32a2902c488fa21e160d1885a8",
+      "end_line": 1127,
+      "id": "app/static/app.js:gridCellFromPoint@1109",
+      "language": "javascript",
+      "line": 1109,
+      "metrics": {
+        "cyclomatic": 13,
+        "length": 19,
+        "nesting": 1
+      },
+      "name": "gridCellFromPoint",
+      "path": "app/static/app.js"
+    },
+    {
+      "body_sha256": "d9af5627c7392317565dbef5aac6d6afeb549ec10e52edcc6dfe75f7f96710b2",
+      "end_line": 1366,
+      "id": "app/static/app.js:logicOperandValue@1354",
+      "language": "javascript",
+      "line": 1354,
+      "metrics": {
+        "cyclomatic": 11,
+        "length": 13,
+        "nesting": 1
+      },
+      "name": "logicOperandValue",
+      "path": "app/static/app.js"
+    },
+    {
+      "body_sha256": "1c9c00e462c362b7d9afdf0d2b298d4e6b2ed9b9919af02a95b396a49ae24708",
+      "end_line": 2147,
+      "id": "app/static/app.js:normalizeGridLayout@2090",
+      "language": "javascript",
+      "line": 2090,
+      "metrics": {
+        "cyclomatic": 26,
+        "length": 58,
+        "nesting": 3
+      },
+      "name": "normalizeGridLayout",
+      "path": "app/static/app.js"
+    },
+    {
+      "body_sha256": "afd4ff0e292f898cd1f1fa166bea78cf70f531d8635294aa625daedb2eb58ff3",
+      "end_line": 2080,
+      "id": "app/static/app.js:placeForcedItems@2047",
+      "language": "javascript",
+      "line": 2047,
+      "metrics": {
+        "cyclomatic": 11,
+        "length": 34,
+        "nesting": 3
+      },
+      "name": "placeForcedItems",
+      "path": "app/static/app.js"
+    },
+    {
+      "body_sha256": "e89c19f3220db334f6f57da2b19ba90a931a03b5f209b01b9ccb63b5c2a29637",
+      "end_line": 563,
+      "id": "app/static/app.js:regionIdForWorkspaceItem@559",
+      "language": "javascript",
+      "line": 559,
+      "metrics": {
+        "cyclomatic": 11,
+        "length": 5,
+        "nesting": 0
+      },
+      "name": "regionIdForWorkspaceItem",
+      "path": "app/static/app.js"
+    },
+    {
+      "body_sha256": "3334cb54e2583fb25df40142f797f0a44a0460f7a03031e698f1e2aa11962d4f",
+      "end_line": 2348,
+      "id": "app/static/app.js:relaxCollapsedExpansionDisplacement@2311",
+      "language": "javascript",
+      "line": 2311,
+      "metrics": {
+        "cyclomatic": 25,
+        "length": 38,
+        "nesting": 2
+      },
+      "name": "relaxCollapsedExpansionDisplacement",
+      "path": "app/static/app.js"
+    },
+    {
+      "body_sha256": "1a09997aed8404679c5742f2c41c32d475096190cf001e90749a3b68d203f3b4",
+      "end_line": 2553,
+      "id": "app/static/app.js:visibleRegionInsertionTarget@2502",
+      "language": "javascript",
+      "line": 2502,
+      "metrics": {
+        "cyclomatic": 18,
+        "length": 52,
+        "nesting": 2
+      },
+      "name": "visibleRegionInsertionTarget",
+      "path": "app/static/app.js"
+    },
+    {
+      "body_sha256": "81ceef85abd84d13728b670b26a2ef167c89325325c27fe931fe95e0baa0b134",
+      "end_line": 1274,
+      "id": "app/static/app.js:visualDropPlacement@1219",
+      "language": "javascript",
+      "line": 1219,
+      "metrics": {
+        "cyclomatic": 20,
+        "length": 56,
+        "nesting": 3
+      },
+      "name": "visualDropPlacement",
+      "path": "app/static/app.js"
+    },
+    {
+      "body_sha256": "73b08cfa1deba22b2f7a6367b6b2d5286f108954ac52e3f02b26c379c94a1cd1",
+      "end_line": 353,
+      "id": "app/static/app.js:workspaceContextFromElement@335",
+      "language": "javascript",
+      "line": 335,
+      "metrics": {
+        "cyclomatic": 53,
+        "length": 19,
+        "nesting": 1
+      },
+      "name": "workspaceContextFromElement",
+      "path": "app/static/app.js"
+    },
+    {
+      "body_sha256": "9c0d2b0947afeb9873b8d6e99a235e9ea057cb0bf7e01462fb10f5a02f671761",
+      "end_line": 490,
+      "id": "app/static/collision-reflow.js:findGroupDelta@469",
+      "language": "javascript",
+      "line": 469,
+      "metrics": {
+        "cyclomatic": 14,
+        "length": 22,
+        "nesting": 4
+      },
+      "name": "findGroupDelta",
+      "path": "app/static/collision-reflow.js"
+    },
+    {
+      "body_sha256": "8d45e3c1196f1cc449ee6be88f1b110d104615f814d4fdd036ca8c3a36e78ca9",
+      "end_line": 488,
+      "id": "app/static/collision-reflow.js:for@474",
+      "language": "javascript",
+      "line": 474,
+      "metrics": {
+        "cyclomatic": 12,
+        "length": 15,
+        "nesting": 3
+      },
+      "name": "for",
+      "path": "app/static/collision-reflow.js"
+    },
+    {
+      "body_sha256": "44a4b4eb84930b062f11895a92cbbc2eed0e832f4faf8a85869ab89066a67207",
+      "end_line": 68,
+      "id": "app/static/collision-reflow.js:for@57",
+      "language": "javascript",
+      "line": 57,
+      "metrics": {
+        "cyclomatic": 13,
+        "length": 12,
+        "nesting": 3
+      },
+      "name": "for",
+      "path": "app/static/collision-reflow.js"
+    },
+    {
+      "body_sha256": "63e5942617056bb2e7bb06aee35a87f4a7efcd8ac42caa3a22e8a927c480db66",
+      "end_line": 67,
+      "id": "app/static/collision-reflow.js:for@58",
+      "language": "javascript",
+      "line": 58,
+      "metrics": {
+        "cyclomatic": 12,
+        "length": 10,
+        "nesting": 2
+      },
+      "name": "for",
+      "path": "app/static/collision-reflow.js"
+    },
+    {
+      "body_sha256": "fdfe6ded9689292a6600b7d49dac699c1d8f55d504ae62953d1d9eb5185255c1",
+      "end_line": 33,
+      "id": "app/static/collision-reflow.js:indexedCollisionEntries@7",
+      "language": "javascript",
+      "line": 7,
+      "metrics": {
+        "cyclomatic": 14,
+        "length": 27,
+        "nesting": 3
+      },
+      "name": "indexedCollisionEntries",
+      "path": "app/static/collision-reflow.js"
+    },
+    {
+      "body_sha256": "81d2542a8e74258881fc1f70f37c6e8f3b4be68adfcd75ad329a9b4879d2e477",
+      "end_line": 70,
+      "id": "app/static/collision-reflow.js:nearestSparseSlot@51",
+      "language": "javascript",
+      "line": 51,
+      "metrics": {
+        "cyclomatic": 21,
+        "length": 20,
+        "nesting": 4
+      },
+      "name": "nearestSparseSlot",
+      "path": "app/static/collision-reflow.js"
+    },
+    {
+      "body_sha256": "87e62e9da33d810476ac452c9b630314fa1d96c1c13544f3a165192df183ba01",
+      "end_line": 577,
+      "id": "app/static/collision-reflow.js:packOrderedGridItems@532",
+      "language": "javascript",
+      "line": 532,
+      "metrics": {
+        "cyclomatic": 13,
+        "length": 46,
+        "nesting": 4
+      },
+      "name": "packOrderedGridItems",
+      "path": "app/static/collision-reflow.js"
+    },
+    {
+      "body_sha256": "bf60e3add7f6a8488270a513de2bed02419df27c0c35de7093f95efb135e743d",
+      "end_line": 453,
+      "id": "app/static/liquid-glass-webgl.js:isAnimatingGlassTarget@440",
+      "language": "javascript",
+      "line": 440,
+      "metrics": {
+        "cyclomatic": 11,
+        "length": 14,
+        "nesting": 2
+      },
+      "name": "isAnimatingGlassTarget",
+      "path": "app/static/liquid-glass-webgl.js"
+    },
+    {
+      "body_sha256": "f39ba89d819701e4fd9790204a4966809457e0d6b4e3f3345f847ac5ae981a74",
+      "end_line": 236,
+      "id": "app/static/liquid-glass-webgl.js:main@164",
+      "language": "javascript",
+      "line": 164,
+      "metrics": {
+        "cyclomatic": 6,
+        "length": 73,
+        "nesting": 2
+      },
+      "name": "main",
+      "path": "app/static/liquid-glass-webgl.js"
+    },
+    {
+      "body_sha256": "05a0cb4e1605d987fe8f044fc0e2089772e69c23be5502bb1fb02e42b9584602",
+      "end_line": 433,
+      "id": "app/static/liquid-glass-webgl.js:rasterizeBackgroundTexture@386",
+      "language": "javascript",
+      "line": 386,
+      "metrics": {
+        "cyclomatic": 17,
+        "length": 48,
+        "nesting": 1
+      },
+      "name": "rasterizeBackgroundTexture",
+      "path": "app/static/liquid-glass-webgl.js"
+    },
+    {
+      "body_sha256": "50e7a086af71049809ca7f8a02d55d94f4a216c951d6bfb95eee3887adf8ea9a",
+      "end_line": 117,
+      "id": "app/static/menu-overlay.js:restore@89",
+      "language": "javascript",
+      "line": 89,
+      "metrics": {
+        "cyclomatic": 14,
+        "length": 29,
+        "nesting": 3
+      },
+      "name": "restore",
+      "path": "app/static/menu-overlay.js"
+    },
+    {
+      "body_sha256": "13406ddd94b3a939fea65bd616608b32dff0d637908ccbb4e939aaa85e9cc988",
+      "end_line": 22,
+      "id": "app/static/modules/asset-runtime.js:mimeTypeFromSource@4",
+      "language": "javascript",
+      "line": 4,
+      "metrics": {
+        "cyclomatic": 19,
+        "length": 19,
+        "nesting": 0
+      },
+      "name": "mimeTypeFromSource",
+      "path": "app/static/modules/asset-runtime.js"
+    },
+    {
+      "body_sha256": "42e10af7f4ba6b354fd8835deddaeac5221d555b6ba281238a57b8501ef5c8c2",
+      "end_line": 50,
+      "id": "app/static/modules/background-controller.js:parseRgbFromColorValue@13",
+      "language": "javascript",
+      "line": 13,
+      "metrics": {
+        "cyclomatic": 12,
+        "length": 38,
+        "nesting": 3
+      },
+      "name": "parseRgbFromColorValue",
+      "path": "app/static/modules/background-controller.js"
+    },
+    {
+      "body_sha256": "e7f5c09641719442af5e3276ab6cf5a54c60d6b8d33596d0bbfc2d273aaaa5d9",
+      "end_line": 245,
+      "id": "app/static/modules/clipboard-runtime.js:pasteWorkspaceClipboardObjects@172",
+      "language": "javascript",
+      "line": 172,
+      "metrics": {
+        "cyclomatic": 26,
+        "length": 74,
+        "nesting": 3
+      },
+      "name": "pasteWorkspaceClipboardObjects",
+      "path": "app/static/modules/clipboard-runtime.js"
+    },
+    {
+      "body_sha256": "0546050cf2852ab4af2e9bdee7568298c7b9a5a6f74553f1e7a5127c2c501507",
+      "end_line": 154,
+      "id": "app/static/modules/clipboard-runtime.js:preparePastedWorkspaceElement@85",
+      "language": "javascript",
+      "line": 85,
+      "metrics": {
+        "cyclomatic": 13,
+        "length": 70,
+        "nesting": 2
+      },
+      "name": "preparePastedWorkspaceElement",
+      "path": "app/static/modules/clipboard-runtime.js"
+    },
+    {
+      "body_sha256": "4d07787d3658e7ba1446d11eff47b9cdc4a5cfce92c2d9e9d2045cec192c2ee1",
+      "end_line": 117,
+      "id": "app/static/modules/dashboard-dom-factories.js:cleanupWidgetRowBreaks@99",
+      "language": "javascript",
+      "line": 99,
+      "metrics": {
+        "cyclomatic": 13,
+        "length": 19,
+        "nesting": 2
+      },
+      "name": "cleanupWidgetRowBreaks",
+      "path": "app/static/modules/dashboard-dom-factories.js"
+    },
+    {
+      "body_sha256": "28142d69de7f4484fb4948311597f5ee8e8b552558aa143d22367ff9885a4f5f",
+      "end_line": 60,
+      "id": "app/static/modules/dashboard-dom-factories.js:createCustomPanel@8",
+      "language": "javascript",
+      "line": 8,
+      "metrics": {
+        "cyclomatic": 19,
+        "length": 53,
+        "nesting": 1
+      },
+      "name": "createCustomPanel",
+      "path": "app/static/modules/dashboard-dom-factories.js"
+    },
+    {
+      "body_sha256": "6e582cc65f3b16334d423bb2c10564587acd3569904c498b97b7ec7b2db2a297",
+      "end_line": 37,
+      "id": "app/static/modules/dashboard-form-bindings.js:bindRangeCustomControls@4",
+      "language": "javascript",
+      "line": 4,
+      "metrics": {
+        "cyclomatic": 11,
+        "length": 34,
+        "nesting": 3
+      },
+      "name": "bindRangeCustomControls",
+      "path": "app/static/modules/dashboard-form-bindings.js"
+    },
+    {
+      "body_sha256": "6229ff99e64abc61c15356f1c3b245b7dea303eba12e761d51de2d7bbffc5bc7",
+      "end_line": 55,
+      "id": "app/static/modules/dashboard-keyword-search.js:applyDashboardKeywordSearch@11",
+      "language": "javascript",
+      "line": 11,
+      "metrics": {
+        "cyclomatic": 32,
+        "length": 45,
+        "nesting": 3
+      },
+      "name": "applyDashboardKeywordSearch",
+      "path": "app/static/modules/dashboard-keyword-search.js"
+    },
+    {
+      "body_sha256": "9be7a6689d422feefdf5411ff5c5fabb019a9dfbfc01124a0f7fcda09773fee0",
+      "end_line": 86,
+      "id": "app/static/modules/dashboard-tool-drawer-runtime.js:positionDashboardToolDrawer@43",
+      "language": "javascript",
+      "line": 43,
+      "metrics": {
+        "cyclomatic": 23,
+        "length": 44,
+        "nesting": 2
+      },
+      "name": "positionDashboardToolDrawer",
+      "path": "app/static/modules/dashboard-tool-drawer-runtime.js"
+    },
+    {
+      "body_sha256": "c5f596a8e59de4689243c1fc41a6f5a941f7b1a4c87004b949dffb68bf79da25",
+      "end_line": 112,
+      "id": "app/static/modules/dashboard-tool-drawer-runtime.js:positionDashboardToolDrawerAtPointer@88",
+      "language": "javascript",
+      "line": 88,
+      "metrics": {
+        "cyclomatic": 11,
+        "length": 25,
+        "nesting": 1
+      },
+      "name": "positionDashboardToolDrawerAtPointer",
+      "path": "app/static/modules/dashboard-tool-drawer-runtime.js"
+    },
+    {
+      "body_sha256": "668498f7c3ae36f1af4334334734c639604a29b078f89e4fbf9f8ae999b1d9ae",
+      "end_line": 136,
+      "id": "app/static/modules/data-adapter-runtime.js:applyContextTimeRange@125",
+      "language": "javascript",
+      "line": 125,
+      "metrics": {
+        "cyclomatic": 13,
+        "length": 12,
+        "nesting": 1
+      },
+      "name": "applyContextTimeRange",
+      "path": "app/static/modules/data-adapter-runtime.js"
+    },
+    {
+      "body_sha256": "2864c1b9cb92b4178c3a2a35f3732a04d858e63b7bafaeae52d6f42f55e0f0af",
+      "end_line": 203,
+      "id": "app/static/modules/data-adapter-runtime.js:if@176",
+      "language": "javascript",
+      "line": 176,
+      "metrics": {
+        "cyclomatic": 14,
+        "length": 28,
+        "nesting": 3
+      },
+      "name": "if",
+      "path": "app/static/modules/data-adapter-runtime.js"
+    },
+    {
+      "body_sha256": "ef77bcc9111ddb917edadda9d8469390f3c34c1cbf08cbcc5e541a9900633ef6",
+      "end_line": 43,
+      "id": "app/static/modules/data-adapter-runtime.js:inferDataSchema@14",
+      "language": "javascript",
+      "line": 14,
+      "metrics": {
+        "cyclomatic": 17,
+        "length": 30,
+        "nesting": 3
+      },
+      "name": "inferDataSchema",
+      "path": "app/static/modules/data-adapter-runtime.js"
+    },
+    {
+      "body_sha256": "a3b0a33bb849f29f52b572c83499e482cddc4f8e5dbecbf31b3731ddcf16b289",
+      "end_line": 13,
+      "id": "app/static/modules/data-adapter-runtime.js:normalizeFieldType@3",
+      "language": "javascript",
+      "line": 3,
+      "metrics": {
+        "cyclomatic": 11,
+        "length": 11,
+        "nesting": 2
+      },
+      "name": "normalizeFieldType",
+      "path": "app/static/modules/data-adapter-runtime.js"
+    },
+    {
+      "body_sha256": "1c947b8350b45f4af064bc17f0c8461bfb17802f07c9f445e7a19dae41573cb3",
+      "end_line": 231,
+      "id": "app/static/modules/delete-runtime.js:extractPanelChildrenBeforeDelete@196",
+      "language": "javascript",
+      "line": 196,
+      "metrics": {
+        "cyclomatic": 13,
+        "length": 36,
+        "nesting": 2
+      },
+      "name": "extractPanelChildrenBeforeDelete",
+      "path": "app/static/modules/delete-runtime.js"
+    },
+    {
+      "body_sha256": "66509b87520f66756ac760f9b77be4242f981975cae6ea757444b6cc4aa6846f",
+      "end_line": 286,
+      "id": "app/static/modules/delete-runtime.js:performWorkspaceObjectDelete@192",
+      "language": "javascript",
+      "line": 192,
+      "metrics": {
+        "cyclomatic": 40,
+        "length": 95,
+        "nesting": 3
+      },
+      "name": "performWorkspaceObjectDelete",
+      "path": "app/static/modules/delete-runtime.js"
+    },
+    {
+      "body_sha256": "60de2ba8029d4dc457be42bc5e8cc74df23f7e7d6e3f8b868c03e6194f902ad6",
+      "end_line": 123,
+      "id": "app/static/modules/delete-runtime.js:widgetHasConfiguredContent@98",
+      "language": "javascript",
+      "line": 98,
+      "metrics": {
+        "cyclomatic": 32,
+        "length": 26,
+        "nesting": 2
+      },
+      "name": "widgetHasConfiguredContent",
+      "path": "app/static/modules/delete-runtime.js"
+    },
+    {
+      "body_sha256": "38c514534cf0949bea51f19f22ccb062ae32bf307550637a1d518d86c753d670",
+      "end_line": 60,
+      "id": "app/static/modules/delete-runtime.js:workspaceDeleteTitle@56",
+      "language": "javascript",
+      "line": 56,
+      "metrics": {
+        "cyclomatic": 11,
+        "length": 5,
+        "nesting": 0
+      },
+      "name": "workspaceDeleteTitle",
+      "path": "app/static/modules/delete-runtime.js"
+    },
+    {
+      "body_sha256": "62958982a7aec889e672122e745efb8211845b13a66be0a4d221858f392bf0dd",
+      "end_line": 18,
+      "id": "app/static/modules/grid-item-sizing-runtime.js:gridItemMinimumSpan@13",
+      "language": "javascript",
+      "line": 13,
+      "metrics": {
+        "cyclomatic": 11,
+        "length": 6,
+        "nesting": 0
+      },
+      "name": "gridItemMinimumSpan",
+      "path": "app/static/modules/grid-item-sizing-runtime.js"
+    },
+    {
+      "body_sha256": "767740b1e23e3d957ef834d7d914826c43f5ce5e652c4b9c986f7941f585615c",
+      "end_line": 71,
+      "id": "app/static/modules/grid-item-sizing-runtime.js:gridItemRowSpan@53",
+      "language": "javascript",
+      "line": 53,
+      "metrics": {
+        "cyclomatic": 18,
+        "length": 19,
+        "nesting": 1
+      },
+      "name": "gridItemRowSpan",
+      "path": "app/static/modules/grid-item-sizing-runtime.js"
+    },
+    {
+      "body_sha256": "f945ecdcb24f708b5985edfd7c49b0a27369479df71804d540ef8236b70dc58f",
+      "end_line": 159,
+      "id": "app/static/modules/group-resize-runtime.js:commitGroupResizeFromPreviews@130",
+      "language": "javascript",
+      "line": 130,
+      "metrics": {
+        "cyclomatic": 17,
+        "length": 30,
+        "nesting": 2
+      },
+      "name": "commitGroupResizeFromPreviews",
+      "path": "app/static/modules/group-resize-runtime.js"
+    },
+    {
+      "body_sha256": "a70582ee18bc9d4c7937cae271ea170bb2166c167050837cdba528098222433d",
+      "end_line": 260,
+      "id": "app/static/modules/group-resize-runtime.js:for@245",
+      "language": "javascript",
+      "line": 245,
+      "metrics": {
+        "cyclomatic": 11,
+        "length": 16,
+        "nesting": 3
+      },
+      "name": "for",
+      "path": "app/static/modules/group-resize-runtime.js"
+    },
+    {
+      "body_sha256": "31ed2d5da0f3ef05645ad50131e3bcf060ddc62cbfc693cdf1934dd78b33c674",
+      "end_line": 262,
+      "id": "app/static/modules/group-resize-runtime.js:nearestSizedSlot@241",
+      "language": "javascript",
+      "line": 241,
+      "metrics": {
+        "cyclomatic": 14,
+        "length": 22,
+        "nesting": 4
+      },
+      "name": "nearestSizedSlot",
+      "path": "app/static/modules/group-resize-runtime.js"
+    },
+    {
+      "body_sha256": "2839a9e70c098bae13f5f88348089493912e983570bbfcb1b4bca4924a49ca60",
+      "end_line": 493,
+      "id": "app/static/modules/group-resize-runtime.js:updateLiveGroupResize@427",
+      "language": "javascript",
+      "line": 427,
+      "metrics": {
+        "cyclomatic": 10,
+        "length": 67,
+        "nesting": 3
+      },
+      "name": "updateLiveGroupResize",
+      "path": "app/static/modules/group-resize-runtime.js"
+    },
+    {
+      "body_sha256": "a98284edba04fc3c0f7aec34afd88153af6e4403c44adf1f5164cd4fec090e9c",
+      "end_line": 105,
+      "id": "app/static/modules/group-selection-controls.js:createGroupSelectionRuntime@1",
+      "language": "javascript",
+      "line": 1,
+      "metrics": {
+        "cyclomatic": 37,
+        "length": 105,
+        "nesting": 3
+      },
+      "name": "createGroupSelectionRuntime",
+      "path": "app/static/modules/group-selection-controls.js"
+    },
+    {
+      "body_sha256": "1de063e5183583111b79f15c5b9b104f2a04f6593285d60d54bc47bf5259dbba",
+      "end_line": 148,
+      "id": "app/static/modules/layout-history-runtime.js:restoreLiveLayoutSnapshot@123",
+      "language": "javascript",
+      "line": 123,
+      "metrics": {
+        "cyclomatic": 17,
+        "length": 26,
+        "nesting": 1
+      },
+      "name": "restoreLiveLayoutSnapshot",
+      "path": "app/static/modules/layout-history-runtime.js"
+    },
+    {
+      "body_sha256": "4bff6923b7d18d1b7a58c8db8bf8dd9cec51bc3a919c00c2ef93b0468a22fac0",
+      "end_line": 89,
+      "id": "app/static/modules/layout-snapshot-runtime.js:expansionBaselineSnapshotForLayoutKey@78",
+      "language": "javascript",
+      "line": 78,
+      "metrics": {
+        "cyclomatic": 11,
+        "length": 12,
+        "nesting": 1
+      },
+      "name": "expansionBaselineSnapshotForLayoutKey",
+      "path": "app/static/modules/layout-snapshot-runtime.js"
+    },
+    {
+      "body_sha256": "37373ce5c94e214ad88d2867b655b48ac88c289a90121a88451f93c0d100caf5",
+      "end_line": 125,
+      "id": "app/static/modules/layout-snapshot-runtime.js:restoreLoadedExpansionBaseline@99",
+      "language": "javascript",
+      "line": 99,
+      "metrics": {
+        "cyclomatic": 11,
+        "length": 27,
+        "nesting": 3
+      },
+      "name": "restoreLoadedExpansionBaseline",
+      "path": "app/static/modules/layout-snapshot-runtime.js"
+    },
+    {
+      "body_sha256": "834b7cea9ea5c22884e72118ba092df3c7692b51ed6658b9edd5f11e9bed22ae",
+      "end_line": 209,
+      "id": "app/static/modules/layout-source-runtime.js:closeMenu@191",
+      "language": "javascript",
+      "line": 191,
+      "metrics": {
+        "cyclomatic": 13,
+        "length": 19,
+        "nesting": 3
+      },
+      "name": "closeMenu",
+      "path": "app/static/modules/layout-source-runtime.js"
+    },
+    {
+      "body_sha256": "ec17c3fd4c6115ade738b34843742bcfeb301da27b43036d13f81694592bc818",
+      "end_line": 309,
+      "id": "app/static/modules/layout-source-runtime.js:initializeLayoutSourceRuntime@1",
+      "language": "javascript",
+      "line": 1,
+      "metrics": {
+        "cyclomatic": 114,
+        "length": 309,
+        "nesting": 5
+      },
+      "name": "initializeLayoutSourceRuntime",
+      "path": "app/static/modules/layout-source-runtime.js"
+    },
+    {
+      "body_sha256": "d774d4328ad46c54d15e0c4d2c6cce47a5501e43b618fe9809fa1488bb957ccf",
+      "end_line": 283,
+      "id": "app/static/modules/object-add-runtime.js:closeMenu@264",
+      "language": "javascript",
+      "line": 264,
+      "metrics": {
+        "cyclomatic": 13,
+        "length": 20,
+        "nesting": 3
+      },
+      "name": "closeMenu",
+      "path": "app/static/modules/object-add-runtime.js"
+    },
+    {
+      "body_sha256": "f5041141c757522953bedb24703fd26461c8b240f3357d93f80aab2ec822a9bf",
+      "end_line": 340,
+      "id": "app/static/modules/object-add-runtime.js:closeObjectAddMenu@330",
+      "language": "javascript",
+      "line": 330,
+      "metrics": {
+        "cyclomatic": 14,
+        "length": 11,
+        "nesting": 0
+      },
+      "name": "closeObjectAddMenu",
+      "path": "app/static/modules/object-add-runtime.js"
+    },
+    {
+      "body_sha256": "e079f85594adf1d6d9d9cb48d536df7756f3ece01612b31e7938b40919e335a6",
+      "end_line": 527,
+      "id": "app/static/modules/object-add-runtime.js:handleWidgetAddAction@452",
+      "language": "javascript",
+      "line": 452,
+      "metrics": {
+        "cyclomatic": 33,
+        "length": 76,
+        "nesting": 2
+      },
+      "name": "handleWidgetAddAction",
+      "path": "app/static/modules/object-add-runtime.js"
+    },
+    {
+      "body_sha256": "85bd24e1f63a3d9d2bd95474746e39e64fa92d875b22b574a14d6386c525bf28",
+      "end_line": 550,
+      "id": "app/static/modules/object-add-runtime.js:initializeObjectAddRuntime@1",
+      "language": "javascript",
+      "line": 1,
+      "metrics": {
+        "cyclomatic": 164,
+        "length": 550,
+        "nesting": 6
+      },
+      "name": "initializeObjectAddRuntime",
+      "path": "app/static/modules/object-add-runtime.js"
+    },
+    {
+      "body_sha256": "98d3755fadb43fd97e6bd197b35b543ac1a799a8aeeb4da4356e006828d4ccd3",
+      "end_line": 104,
+      "id": "app/static/modules/object-add-runtime.js:suppressObjectAddBrowserTitles@93",
+      "language": "javascript",
+      "line": 93,
+      "metrics": {
+        "cyclomatic": 11,
+        "length": 12,
+        "nesting": 2
+      },
+      "name": "suppressObjectAddBrowserTitles",
+      "path": "app/static/modules/object-add-runtime.js"
+    },
+    {
+      "body_sha256": "4614ca8fa641859f0eec69541e281777665c6c3be2ae97e25627362492dc5dc6",
+      "end_line": 781,
+      "id": "app/static/modules/ordered-drag-runtime.js:if@650",
+      "language": "javascript",
+      "line": 650,
+      "metrics": {
+        "cyclomatic": 80,
+        "length": 132,
+        "nesting": 3
+      },
+      "name": "if",
+      "path": "app/static/modules/ordered-drag-runtime.js"
+    },
+    {
+      "body_sha256": "221ed0d250fcb1308d7916dbbfe0e8962cabd3a878e9275e121f05cdb905fa5a",
+      "end_line": 708,
+      "id": "app/static/modules/ordered-drag-runtime.js:if@690",
+      "language": "javascript",
+      "line": 690,
+      "metrics": {
+        "cyclomatic": 16,
+        "length": 19,
+        "nesting": 1
+      },
+      "name": "if",
+      "path": "app/static/modules/ordered-drag-runtime.js"
+    },
+    {
+      "body_sha256": "d9d8c5cedd679e7f803d6e41cc1137f258d3fec508b8a78e63b3afd01dc45a29",
+      "end_line": 627,
+      "id": "app/static/modules/ordered-drag-runtime.js:onMove@572",
+      "language": "javascript",
+      "line": 572,
+      "metrics": {
+        "cyclomatic": 28,
+        "length": 56,
+        "nesting": 2
+      },
+      "name": "onMove",
+      "path": "app/static/modules/ordered-drag-runtime.js"
+    },
+    {
+      "body_sha256": "109255a720aafb8178fad0157094578c96add087d10891cc8c571f3972d4a9ec",
+      "end_line": 798,
+      "id": "app/static/modules/ordered-drag-runtime.js:onUp@637",
+      "language": "javascript",
+      "line": 637,
+      "metrics": {
+        "cyclomatic": 94,
+        "length": 162,
+        "nesting": 5
+      },
+      "name": "onUp",
+      "path": "app/static/modules/ordered-drag-runtime.js"
+    },
+    {
+      "body_sha256": "c0dd8daa6a7ed93e4c98ed75876623c953d140bf4a8d21085464c41cd362f4bc",
+      "end_line": 199,
+      "id": "app/static/modules/ordered-drag-runtime.js:startDrag@142",
+      "language": "javascript",
+      "line": 142,
+      "metrics": {
+        "cyclomatic": 20,
+        "length": 58,
+        "nesting": 2
+      },
+      "name": "startDrag",
+      "path": "app/static/modules/ordered-drag-runtime.js"
+    },
+    {
+      "body_sha256": "fb53e5e81a67378d1ba5af99802fe8f80fb5d6d8e9b94a0a7e76f48f8e2b2edf",
+      "end_line": 476,
+      "id": "app/static/modules/ordered-drag-runtime.js:updatePanelDragPreview@428",
+      "language": "javascript",
+      "line": 428,
+      "metrics": {
+        "cyclomatic": 26,
+        "length": 49,
+        "nesting": 3
+      },
+      "name": "updatePanelDragPreview",
+      "path": "app/static/modules/ordered-drag-runtime.js"
+    },
+    {
+      "body_sha256": "0fbc6cbe21b3dec50ae9023f741cbe96e484c957ed3a9e4f6ffd669af06eaaa7",
+      "end_line": 39,
+      "id": "app/static/modules/overflow-titles.js:initializeOverflowTitles@1",
+      "language": "javascript",
+      "line": 1,
+      "metrics": {
+        "cyclomatic": 14,
+        "length": 39,
+        "nesting": 4
+      },
+      "name": "initializeOverflowTitles",
+      "path": "app/static/modules/overflow-titles.js"
+    },
+    {
+      "body_sha256": "73d5fe71deb9646e777ade133e0472b62d37e1ccf6ffec32092f394387542bce",
+      "end_line": 22,
+      "id": "app/static/modules/overflow-titles.js:refreshOverflowTitles@2",
+      "language": "javascript",
+      "line": 2,
+      "metrics": {
+        "cyclomatic": 14,
+        "length": 21,
+        "nesting": 3
+      },
+      "name": "refreshOverflowTitles",
+      "path": "app/static/modules/overflow-titles.js"
+    },
+    {
+      "body_sha256": "de950936a038785049b8d94f066a345498d8cbe0fd503a80b6b486184bc6c033",
+      "end_line": 174,
+      "id": "app/static/modules/panel-action-controls.js:togglePanel@124",
+      "language": "javascript",
+      "line": 124,
+      "metrics": {
+        "cyclomatic": 21,
+        "length": 51,
+        "nesting": 2
+      },
+      "name": "togglePanel",
+      "path": "app/static/modules/panel-action-controls.js"
+    },
+    {
+      "body_sha256": "d71d3623afac16f76513c1eab3b7d1adb20d812935c164335589053778795d58",
+      "end_line": 161,
+      "id": "app/static/modules/panel-appearance-runtime.js:addGroup@114",
+      "language": "javascript",
+      "line": 114,
+      "metrics": {
+        "cyclomatic": 4,
+        "length": 48,
+        "nesting": 5
+      },
+      "name": "addGroup",
+      "path": "app/static/modules/panel-appearance-runtime.js"
+    },
+    {
+      "body_sha256": "45063478ed7f3f910b29c1b74342666f55f7a6fac516055693a8ae8097d041ff",
+      "end_line": 169,
+      "id": "app/static/modules/panel-appearance-runtime.js:buildPanelColorMenu@97",
+      "language": "javascript",
+      "line": 97,
+      "metrics": {
+        "cyclomatic": 9,
+        "length": 73,
+        "nesting": 6
+      },
+      "name": "buildPanelColorMenu",
+      "path": "app/static/modules/panel-appearance-runtime.js"
+    },
+    {
+      "body_sha256": "fe2051c493f8ed416d7f68eea67edab429c93de173284b0d84252ab373d01592",
+      "end_line": 101,
+      "id": "app/static/modules/panel-layout-runtime.js:createPanelLayoutRuntime@8",
+      "language": "javascript",
+      "line": 8,
+      "metrics": {
+        "cyclomatic": 1,
+        "length": 94,
+        "nesting": 0
+      },
+      "name": "createPanelLayoutRuntime",
+      "path": "app/static/modules/panel-layout-runtime.js"
+    },
+    {
+      "body_sha256": "83563b20538742723ae05dbe572dc6095e18cc3eaed7f65b92397c95ff0d6722",
+      "end_line": 428,
+      "id": "app/static/modules/panel-layout-runtime.js:initPanel@132",
+      "language": "javascript",
+      "line": 132,
+      "metrics": {
+        "cyclomatic": 97,
+        "length": 297,
+        "nesting": 2
+      },
+      "name": "initPanel",
+      "path": "app/static/modules/panel-layout-runtime.js"
+    },
+    {
+      "body_sha256": "305b1765ca118c15922b73bded6123bec5dd3d3c8e8c968d0ec8b4e58ba66cf5",
+      "end_line": 433,
+      "id": "app/static/modules/panel-layout-runtime.js:initPanelLayouts@102",
+      "language": "javascript",
+      "line": 102,
+      "metrics": {
+        "cyclomatic": 97,
+        "length": 332,
+        "nesting": 4
+      },
+      "name": "initPanelLayouts",
+      "path": "app/static/modules/panel-layout-runtime.js"
+    },
+    {
+      "body_sha256": "66540452096da2b102942d88edbebff748e1bd3f2638a6d5c281f56cc5128825",
+      "end_line": 178,
+      "id": "app/static/modules/panel-layout-runtime.js:releasePanelToolLeaveClose@167",
+      "language": "javascript",
+      "line": 167,
+      "metrics": {
+        "cyclomatic": 12,
+        "length": 12,
+        "nesting": 0
+      },
+      "name": "releasePanelToolLeaveClose",
+      "path": "app/static/modules/panel-layout-runtime.js"
+    },
+    {
+      "body_sha256": "5812727b9781244658682a82c342ac78a4b2809c7e3015e61476782e7795e707",
+      "end_line": 229,
+      "id": "app/static/modules/panel-layout-runtime.js:scheduleClosePanelTools@213",
+      "language": "javascript",
+      "line": 213,
+      "metrics": {
+        "cyclomatic": 18,
+        "length": 17,
+        "nesting": 1
+      },
+      "name": "scheduleClosePanelTools",
+      "path": "app/static/modules/panel-layout-runtime.js"
+    },
+    {
+      "body_sha256": "f8cdf3b32240c7cad1a155c771bb5de7f3766039110395e1e14a9c9e51ce535d",
+      "end_line": 291,
+      "id": "app/static/modules/panel-resize-runtime.js:beginPanelResize@61",
+      "language": "javascript",
+      "line": 61,
+      "metrics": {
+        "cyclomatic": 69,
+        "length": 231,
+        "nesting": 4
+      },
+      "name": "beginPanelResize",
+      "path": "app/static/modules/panel-resize-runtime.js"
+    },
+    {
+      "body_sha256": "9fb14c4253def3a967b80b21498ca8ee44826ff268e8a50283c49a92ef9a3e0f",
+      "end_line": 269,
+      "id": "app/static/modules/panel-resize-runtime.js:finishPanelResize@204",
+      "language": "javascript",
+      "line": 204,
+      "metrics": {
+        "cyclomatic": 22,
+        "length": 66,
+        "nesting": 3
+      },
+      "name": "finishPanelResize",
+      "path": "app/static/modules/panel-resize-runtime.js"
+    },
+    {
+      "body_sha256": "4df6d14de39b7eb162580b6b0361c6c8bc31a2689e5b0f80ab004b65d0a04696",
+      "end_line": 202,
+      "id": "app/static/modules/panel-resize-runtime.js:onResizeMove@168",
+      "language": "javascript",
+      "line": 168,
+      "metrics": {
+        "cyclomatic": 11,
+        "length": 35,
+        "nesting": 2
+      },
+      "name": "onResizeMove",
+      "path": "app/static/modules/panel-resize-runtime.js"
+    },
+    {
+      "body_sha256": "05d178789fa41203a4aad331d6e74fd9250481831753e66345987a1b03a9f8a4",
+      "end_line": 61,
+      "id": "app/static/modules/persisted-workspace-runtime.js:canonicalWidgetInstanceForPersistence@30",
+      "language": "javascript",
+      "line": 30,
+      "metrics": {
+        "cyclomatic": 27,
+        "length": 32,
+        "nesting": 2
+      },
+      "name": "canonicalWidgetInstanceForPersistence",
+      "path": "app/static/modules/persisted-workspace-runtime.js"
+    },
+    {
+      "body_sha256": "3205453fc2ed88e94c65e70631ef12d72a4d439abc2665f5df18a41123c826f6",
+      "end_line": 207,
+      "id": "app/static/modules/resize-auto-zoom.js:createResizeAutoZoomRuntime@1",
+      "language": "javascript",
+      "line": 1,
+      "metrics": {
+        "cyclomatic": 49,
+        "length": 207,
+        "nesting": 3
+      },
+      "name": "createResizeAutoZoomRuntime",
+      "path": "app/static/modules/resize-auto-zoom.js"
+    },
+    {
+      "body_sha256": "6e98afb95495cc352deffd05a1b5237aca242bdf30b4f26b9b2e429f6dee17dd",
+      "end_line": 75,
+      "id": "app/static/modules/resize-auto-zoom.js:resizeAutoZoomElementLayoutRect@59",
+      "language": "javascript",
+      "line": 59,
+      "metrics": {
+        "cyclomatic": 11,
+        "length": 17,
+        "nesting": 1
+      },
+      "name": "resizeAutoZoomElementLayoutRect",
+      "path": "app/static/modules/resize-auto-zoom.js"
+    },
+    {
+      "body_sha256": "b1cd82f441e9b4dc19cf24a87c6bb1e15eb276d0774e35af370447e0fe093970",
+      "end_line": 57,
+      "id": "app/static/modules/resize-auto-zoom.js:resizeAutoZoomTargetForBounds@28",
+      "language": "javascript",
+      "line": 28,
+      "metrics": {
+        "cyclomatic": 17,
+        "length": 30,
+        "nesting": 2
+      },
+      "name": "resizeAutoZoomTargetForBounds",
+      "path": "app/static/modules/resize-auto-zoom.js"
+    },
+    {
+      "body_sha256": "9b63ca4f087c17c9640cdd244290d8e16b8079da9601ca1ed9f4cdd122b276e8",
+      "end_line": 30,
+      "id": "app/static/modules/resize-surface-runtime.js:createResizePreview@9",
+      "language": "javascript",
+      "line": 9,
+      "metrics": {
+        "cyclomatic": 17,
+        "length": 22,
+        "nesting": 0
+      },
+      "name": "createResizePreview",
+      "path": "app/static/modules/resize-surface-runtime.js"
+    },
+    {
+      "body_sha256": "357f431e61686fe358c80426f883cf7ead4274e2ba7ff46c183fb47ed994b00d",
+      "end_line": 52,
+      "id": "app/static/modules/surface-tools-runtime.js:isWorkspaceSurfaceDragStart@42",
+      "language": "javascript",
+      "line": 42,
+      "metrics": {
+        "cyclomatic": 17,
+        "length": 11,
+        "nesting": 1
+      },
+      "name": "isWorkspaceSurfaceDragStart",
+      "path": "app/static/modules/surface-tools-runtime.js"
+    },
+    {
+      "body_sha256": "bee5f53952fcfc1ad1b64b9a7c95c8b13c700fc6bbdb154c06b64d2d56b1a5e6",
+      "end_line": 146,
+      "id": "app/static/modules/surface-tools-runtime.js:scheduleSurfaceResponse@128",
+      "language": "javascript",
+      "line": 128,
+      "metrics": {
+        "cyclomatic": 11,
+        "length": 19,
+        "nesting": 1
+      },
+      "name": "scheduleSurfaceResponse",
+      "path": "app/static/modules/surface-tools-runtime.js"
+    },
+    {
+      "body_sha256": "432ba7f1b52fa5971048f29aa1df6c922e5597951c1c39e04e409a3ae5139549",
+      "end_line": 100,
+      "id": "app/static/modules/surface-tools-runtime.js:surfaceResponseTargetFromEvent@81",
+      "language": "javascript",
+      "line": 81,
+      "metrics": {
+        "cyclomatic": 20,
+        "length": 20,
+        "nesting": 0
+      },
+      "name": "surfaceResponseTargetFromEvent",
+      "path": "app/static/modules/surface-tools-runtime.js"
+    },
+    {
+      "body_sha256": "2c321ee1a25d1f577f1ae822e42176f44d802443b9e4055f6435ce342ae5eb0a",
+      "end_line": 80,
+      "id": "app/static/modules/surface-tools-runtime.js:surfaceZoneForPoint@72",
+      "language": "javascript",
+      "line": 72,
+      "metrics": {
+        "cyclomatic": 11,
+        "length": 9,
+        "nesting": 0
+      },
+      "name": "surfaceZoneForPoint",
+      "path": "app/static/modules/surface-tools-runtime.js"
+    },
+    {
+      "body_sha256": "bd0d824c109219d2c312145f6bfaf184b109756a58f5eac6914ffdbd35b6ce55",
+      "end_line": 127,
+      "id": "app/static/modules/surface-tools-runtime.js:updateSurfaceResponse@101",
+      "language": "javascript",
+      "line": 101,
+      "metrics": {
+        "cyclomatic": 13,
+        "length": 27,
+        "nesting": 1
+      },
+      "name": "updateSurfaceResponse",
+      "path": "app/static/modules/surface-tools-runtime.js"
+    },
+    {
+      "body_sha256": "fd49c89961044a45f9a9a65dbcef1dbdd4ecb5d0cabd556e0926003808b6a20b",
+      "end_line": 532,
+      "id": "app/static/modules/widget-layout-runtime.js:createWidgetLayoutRuntime@7",
+      "language": "javascript",
+      "line": 7,
+      "metrics": {
+        "cyclomatic": 163,
+        "length": 526,
+        "nesting": 6
+      },
+      "name": "createWidgetLayoutRuntime",
+      "path": "app/static/modules/widget-layout-runtime.js"
+    },
+    {
+      "body_sha256": "5d82acd0f0726d01c5c7fb67669d80a2e00728dfd5d214688513ca04c98db9be",
+      "end_line": 528,
+      "id": "app/static/modules/widget-layout-runtime.js:if@516",
+      "language": "javascript",
+      "line": 516,
+      "metrics": {
+        "cyclomatic": 12,
+        "length": 13,
+        "nesting": 1
+      },
+      "name": "if",
+      "path": "app/static/modules/widget-layout-runtime.js"
+    },
+    {
+      "body_sha256": "41c62f9fe0afba773fe108dae760cab547891a87ab2e53d12ab23cb03ccc723d",
+      "end_line": 513,
+      "id": "app/static/modules/widget-layout-runtime.js:initWidget@131",
+      "language": "javascript",
+      "line": 131,
+      "metrics": {
+        "cyclomatic": 150,
+        "length": 383,
+        "nesting": 4
+      },
+      "name": "initWidget",
+      "path": "app/static/modules/widget-layout-runtime.js"
+    },
+    {
+      "body_sha256": "389e9e491c4a7b63aeb80d2972f747b63c4af866be515af707b9af1f49f925fb",
+      "end_line": 529,
+      "id": "app/static/modules/widget-layout-runtime.js:initWidgetLayout@98",
+      "language": "javascript",
+      "line": 98,
+      "metrics": {
+        "cyclomatic": 163,
+        "length": 432,
+        "nesting": 5
+      },
+      "name": "initWidgetLayout",
+      "path": "app/static/modules/widget-layout-runtime.js"
+    },
+    {
+      "body_sha256": "8e3384afb52d904b4393cd5cd2b4767ef369874b3f839b0e7a9adcf6547bb498",
+      "end_line": 206,
+      "id": "app/static/modules/widget-layout-runtime.js:openTools@188",
+      "language": "javascript",
+      "line": 188,
+      "metrics": {
+        "cyclomatic": 16,
+        "length": 19,
+        "nesting": 1
+      },
+      "name": "openTools",
+      "path": "app/static/modules/widget-layout-runtime.js"
+    },
+    {
+      "body_sha256": "c37759ca73ebe8b3b402008ab66124d397067b8d3dcc02b7ead979701b6c38a2",
+      "end_line": 258,
+      "id": "app/static/modules/widget-layout-runtime.js:openWorkbench@229",
+      "language": "javascript",
+      "line": 229,
+      "metrics": {
+        "cyclomatic": 11,
+        "length": 30,
+        "nesting": 3
+      },
+      "name": "openWorkbench",
+      "path": "app/static/modules/widget-layout-runtime.js"
+    },
+    {
+      "body_sha256": "b4758b986ca5af5b64183a27e913de2d001a90fcbf5276ddd036c025d647a9a7",
+      "end_line": 180,
+      "id": "app/static/modules/widget-layout-runtime.js:releaseToolLeaveClose@169",
+      "language": "javascript",
+      "line": 169,
+      "metrics": {
+        "cyclomatic": 12,
+        "length": 12,
+        "nesting": 0
+      },
+      "name": "releaseToolLeaveClose",
+      "path": "app/static/modules/widget-layout-runtime.js"
+    },
+    {
+      "body_sha256": "39ebad385e09c350a7c278911b651caccb7d38360ca424ccf836c84ad40953fc",
+      "end_line": 295,
+      "id": "app/static/modules/widget-layout-runtime.js:scheduleClose@281",
+      "language": "javascript",
+      "line": 281,
+      "metrics": {
+        "cyclomatic": 13,
+        "length": 15,
+        "nesting": 1
+      },
+      "name": "scheduleClose",
+      "path": "app/static/modules/widget-layout-runtime.js"
+    },
+    {
+      "body_sha256": "fd86e7617df8eea67461ab546af8be5070ce453e8925a45ccdc44c2e20e4db88",
+      "end_line": 158,
+      "id": "app/static/modules/widget-layout-runtime.js:syncOpenWidgetToolPosition@150",
+      "language": "javascript",
+      "line": 150,
+      "metrics": {
+        "cyclomatic": 14,
+        "length": 9,
+        "nesting": 0
+      },
+      "name": "syncOpenWidgetToolPosition",
+      "path": "app/static/modules/widget-layout-runtime.js"
+    },
+    {
+      "body_sha256": "bc8442882bf9162a95e1584dd67c1683cd7f522de29e57c7f76666706962bc05",
+      "end_line": 264,
+      "id": "app/static/modules/widget-resize-runtime.js:beginWidgetResize@54",
+      "language": "javascript",
+      "line": 54,
+      "metrics": {
+        "cyclomatic": 63,
+        "length": 211,
+        "nesting": 4
+      },
+      "name": "beginWidgetResize",
+      "path": "app/static/modules/widget-resize-runtime.js"
+    },
+    {
+      "body_sha256": "ca98983293254b8c5528e40e3741845367b38c694269a502ee7d8db323721b83",
+      "end_line": 244,
+      "id": "app/static/modules/widget-resize-runtime.js:finishWidgetResize@178",
+      "language": "javascript",
+      "line": 178,
+      "metrics": {
+        "cyclomatic": 19,
+        "length": 67,
+        "nesting": 3
+      },
+      "name": "finishWidgetResize",
+      "path": "app/static/modules/widget-resize-runtime.js"
+    },
+    {
+      "body_sha256": "3aa85b45aaf359a491639a9f964859797aa6cf3c6fe949670380ac35a08b3406",
+      "end_line": 227,
+      "id": "app/static/modules/widget-runtime-controls.js:bindWidgetRuntimeControls@13",
+      "language": "javascript",
+      "line": 13,
+      "metrics": {
+        "cyclomatic": 114,
+        "length": 215,
+        "nesting": 4
+      },
+      "name": "bindWidgetRuntimeControls",
+      "path": "app/static/modules/widget-runtime-controls.js"
+    },
+    {
+      "body_sha256": "2a9da8820b08c6195deae78f00c6deea4d421a046866bac30de03b4370169d75",
+      "end_line": 179,
+      "id": "app/static/modules/widget-runtime-controls.js:handleRuntimeControlChange@154",
+      "language": "javascript",
+      "line": 154,
+      "metrics": {
+        "cyclomatic": 11,
+        "length": 26,
+        "nesting": 2
+      },
+      "name": "handleRuntimeControlChange",
+      "path": "app/static/modules/widget-runtime-controls.js"
+    },
+    {
+      "body_sha256": "83456ccf5fd2bc0b19dee12383335a980a7f94c82cf6fb12cdc5b5d07203ec00",
+      "end_line": 219,
+      "id": "app/static/modules/widget-runtime-controls.js:handleRuntimeControlClick@181",
+      "language": "javascript",
+      "line": 181,
+      "metrics": {
+        "cyclomatic": 21,
+        "length": 39,
+        "nesting": 2
+      },
+      "name": "handleRuntimeControlClick",
+      "path": "app/static/modules/widget-runtime-controls.js"
+    },
+    {
+      "body_sha256": "ba42f0cb2ebbe10a80bab9a6550f8f307846a2124c64a76ae2f78718e4463aa0",
+      "end_line": 45,
+      "id": "app/static/modules/widget-runtime-controls.js:updateFilterWidgetConfig@17",
+      "language": "javascript",
+      "line": 17,
+      "metrics": {
+        "cyclomatic": 20,
+        "length": 29,
+        "nesting": 2
+      },
+      "name": "updateFilterWidgetConfig",
+      "path": "app/static/modules/widget-runtime-controls.js"
+    },
+    {
+      "body_sha256": "b7b562f11768a3dedef8804530c63e6e7207866b3f0be10e57e0f5736395a10d",
+      "end_line": 152,
+      "id": "app/static/modules/widget-runtime-controls.js:updateTimeframeWidgetConfig@62",
+      "language": "javascript",
+      "line": 62,
+      "metrics": {
+        "cyclomatic": 55,
+        "length": 91,
+        "nesting": 3
+      },
+      "name": "updateTimeframeWidgetConfig",
+      "path": "app/static/modules/widget-runtime-controls.js"
+    },
+    {
+      "body_sha256": "ce94238b49ef2ec19ab450f46737b7407205a20493b229f9978a7e7310fa063e",
+      "end_line": 53,
+      "id": "app/static/modules/widget-runtime-data.js:if@20",
+      "language": "javascript",
+      "line": 20,
+      "metrics": {
+        "cyclomatic": 17,
+        "length": 34,
+        "nesting": 3
+      },
+      "name": "if",
+      "path": "app/static/modules/widget-runtime-data.js"
+    },
+    {
+      "body_sha256": "a74087f1b6b502c4e25f65d75f0779e68308cbe31d2afa16b808ca29fd1d0596",
+      "end_line": 37,
+      "id": "app/static/modules/widget-settings-service.js:coerceWidgetSettingValue@23",
+      "language": "javascript",
+      "line": 23,
+      "metrics": {
+        "cyclomatic": 11,
+        "length": 15,
+        "nesting": 1
+      },
+      "name": "coerceWidgetSettingValue",
+      "path": "app/static/modules/widget-settings-service.js"
+    },
+    {
+      "body_sha256": "7b56ecf394108ffc6b66dbae0eda8a9e64343a9bb6e1d60b4062f180154d31c2",
+      "end_line": 149,
+      "id": "app/static/modules/widget-settings-service.js:installGlobalSettingsRuntime@115",
+      "language": "javascript",
+      "line": 115,
+      "metrics": {
+        "cyclomatic": 20,
+        "length": 35,
+        "nesting": 4
+      },
+      "name": "installGlobalSettingsRuntime",
+      "path": "app/static/modules/widget-settings-service.js"
+    },
+    {
+      "body_sha256": "b486e1b18c106684d69d71b4a18d20e0391c6d04e23808e526105ef5b9186323",
+      "end_line": 252,
+      "id": "app/static/modules/widget-workbench-runtime.js:ensureWidgetWorkbenchPanel@226",
+      "language": "javascript",
+      "line": 226,
+      "metrics": {
+        "cyclomatic": 13,
+        "length": 27,
+        "nesting": 1
+      },
+      "name": "ensureWidgetWorkbenchPanel",
+      "path": "app/static/modules/widget-workbench-runtime.js"
+    },
+    {
+      "body_sha256": "10ee2059c72ab6eaf993047bf58b9ea1013b8d208b538cf4975594ba4acee56c",
+      "end_line": 14,
+      "id": "app/static/modules/widget-workbench-runtime.js:if@11",
+      "language": "javascript",
+      "line": 11,
+      "metrics": {
+        "cyclomatic": 13,
+        "length": 4,
+        "nesting": 1
+      },
+      "name": "if",
+      "path": "app/static/modules/widget-workbench-runtime.js"
+    },
+    {
+      "body_sha256": "2400ae564dcef8ebf3d84bb9d134c3ae481f6816a05fa487f10282d6c46e88a7",
+      "end_line": 207,
+      "id": "app/static/modules/widget-workbench-runtime.js:renderTimeframeWorkbenchPanel@165",
+      "language": "javascript",
+      "line": 165,
+      "metrics": {
+        "cyclomatic": 18,
+        "length": 43,
+        "nesting": 1
+      },
+      "name": "renderTimeframeWorkbenchPanel",
+      "path": "app/static/modules/widget-workbench-runtime.js"
+    },
+    {
+      "body_sha256": "bb02593de3f78fb90f1896c9e28afd3a6d19e92414b8f26478e6144a7abb81d0",
+      "end_line": 90,
+      "id": "app/static/modules/widget-workbench-runtime.js:renderWidgetSettingField@52",
+      "language": "javascript",
+      "line": 52,
+      "metrics": {
+        "cyclomatic": 25,
+        "length": 39,
+        "nesting": 1
+      },
+      "name": "renderWidgetSettingField",
+      "path": "app/static/modules/widget-workbench-runtime.js"
+    },
+    {
+      "body_sha256": "8f6ac3aeade8fddc15d8195f895d7788c27bbbb94b5693f0a9011f666c5bc336",
+      "end_line": 129,
+      "id": "app/static/modules/widget-workbench-runtime.js:renderWidgetSettingsSchemaPanel@105",
+      "language": "javascript",
+      "line": 105,
+      "metrics": {
+        "cyclomatic": 15,
+        "length": 25,
+        "nesting": 2
+      },
+      "name": "renderWidgetSettingsSchemaPanel",
+      "path": "app/static/modules/widget-workbench-runtime.js"
+    },
+    {
+      "body_sha256": "e31ba0a518113e54c3160fc5aedd5c9bb72af1d703a101a07583c4efd0f5c0be",
+      "end_line": 16,
+      "id": "app/static/modules/widget-workbench-runtime.js:settingFieldOptionRecord@10",
+      "language": "javascript",
+      "line": 10,
+      "metrics": {
+        "cyclomatic": 19,
+        "length": 7,
+        "nesting": 2
+      },
+      "name": "settingFieldOptionRecord",
+      "path": "app/static/modules/widget-workbench-runtime.js"
+    },
+    {
+      "body_sha256": "5d779c51ffe9c7cd46fc2a8f912a553406c103d00288e2e1370ed7c2b4ce4c39",
+      "end_line": 17,
+      "id": "app/static/modules/workspace-delete-dom.js:workspaceDeleteKind@12",
+      "language": "javascript",
+      "line": 12,
+      "metrics": {
+        "cyclomatic": 13,
+        "length": 6,
+        "nesting": 0
+      },
+      "name": "workspaceDeleteKind",
+      "path": "app/static/modules/workspace-delete-dom.js"
+    },
+    {
+      "body_sha256": "f2f3e3b161aec986a123c34c3a422988dea147528a7c94b1af6d16f24455c121",
+      "end_line": 63,
+      "id": "app/static/modules/workspace-object-model.js:workspaceObjectType@58",
+      "language": "javascript",
+      "line": 58,
+      "metrics": {
+        "cyclomatic": 14,
+        "length": 6,
+        "nesting": 0
+      },
+      "name": "workspaceObjectType",
+      "path": "app/static/modules/workspace-object-model.js"
+    },
+    {
+      "body_sha256": "4f7b1c5d92713f9209640e5bbac1ba221ea5da2eb73441217c20057181b6ab58",
+      "end_line": 56,
+      "id": "app/static/modules/workspace-object-model.js:workspaceObjectTypeFromDefinition@51",
+      "language": "javascript",
+      "line": 51,
+      "metrics": {
+        "cyclomatic": 13,
+        "length": 6,
+        "nesting": 0
+      },
+      "name": "workspaceObjectTypeFromDefinition",
+      "path": "app/static/modules/workspace-object-model.js"
+    },
+    {
+      "body_sha256": "ff93027611a2d471f29f998ae359b741947add21db4017f3f0e04403e5e20c84",
+      "end_line": 285,
+      "id": "app/static/panel-containment.js:for@261",
+      "language": "javascript",
+      "line": 261,
+      "metrics": {
+        "cyclomatic": 18,
+        "length": 25,
+        "nesting": 2
+      },
+      "name": "for",
+      "path": "app/static/panel-containment.js"
+    },
+    {
+      "body_sha256": "6304ff07878baf8bdf3ef3636609aae48719b1a53c43750de53124952d977cf4",
+      "end_line": 225,
+      "id": "app/static/panel-containment.js:panelBodyRectFromSnapshot@204",
+      "language": "javascript",
+      "line": 204,
+      "metrics": {
+        "cyclomatic": 21,
+        "length": 22,
+        "nesting": 1
+      },
+      "name": "panelBodyRectFromSnapshot",
+      "path": "app/static/panel-containment.js"
+    },
+    {
+      "body_sha256": "df78c28ab0cc23f441729211366164509624cba6867b1d42d3673dfefa267959",
+      "end_line": 242,
+      "id": "app/static/panel-containment.js:panelHeaderRectFromSnapshot@227",
+      "language": "javascript",
+      "line": 227,
+      "metrics": {
+        "cyclomatic": 13,
+        "length": 16,
+        "nesting": 1
+      },
+      "name": "panelHeaderRectFromSnapshot",
+      "path": "app/static/panel-containment.js"
+    },
+    {
+      "body_sha256": "74ed037c8f606792f57740bf97f8cb9e6ebb579b04d1062fbd252162e9349723",
+      "end_line": 202,
+      "id": "app/static/panel-containment.js:restorePanelChildWidgets@179",
+      "language": "javascript",
+      "line": 179,
+      "metrics": {
+        "cyclomatic": 12,
+        "length": 24,
+        "nesting": 2
+      },
+      "name": "restorePanelChildWidgets",
+      "path": "app/static/panel-containment.js"
+    },
+    {
+      "body_sha256": "b863a3cd3d8a52e27be0bbd50c65ea84bb148fdd87786f3af8b8df5201fc62c4",
+      "end_line": 35,
+      "id": "app/static/panel-runtime.js:panelMinimumRows@27",
+      "language": "javascript",
+      "line": 27,
+      "metrics": {
+        "cyclomatic": 11,
+        "length": 9,
+        "nesting": 0
+      },
+      "name": "panelMinimumRows",
+      "path": "app/static/panel-runtime.js"
+    },
+    {
+      "body_sha256": "8217ccfa46b901e8f060f9a3af868144a3476916aeefbf933d7b1e346f4ef8e8",
+      "end_line": 87,
+      "id": "app/static/resize-runtime.js:finish@69",
+      "language": "javascript",
+      "line": 69,
+      "metrics": {
+        "cyclomatic": 13,
+        "length": 19,
+        "nesting": 1
+      },
+      "name": "finish",
+      "path": "app/static/resize-runtime.js"
+    },
+    {
+      "body_sha256": "6cc8a57b24dd566209d29fc455345f0cdf22c952dde5b5028564885bfee4322b",
+      "end_line": 2647,
+      "id": "app/static/widget-registry.js:calendarExtractEvents@2637",
+      "language": "javascript",
+      "line": 2637,
+      "metrics": {
+        "cyclomatic": 18,
+        "length": 11,
+        "nesting": 2
+      },
+      "name": "calendarExtractEvents",
+      "path": "app/static/widget-registry.js"
+    },
+    {
+      "body_sha256": "6f4c6f63fc45fd6f5f32d699966b466fe11277a5f2b79463885d1b1cd06ccda7",
+      "end_line": 636,
+      "id": "app/static/widget-registry.js:chartRequiredFieldMessage@623",
+      "language": "javascript",
+      "line": 623,
+      "metrics": {
+        "cyclomatic": 14,
+        "length": 14,
+        "nesting": 0
+      },
+      "name": "chartRequiredFieldMessage",
+      "path": "app/static/widget-registry.js"
+    },
+    {
+      "body_sha256": "906ba93a6499c09d1d10e7df792ee7bcca85b87190e265881399f9bbe520b11f",
+      "end_line": 622,
+      "id": "app/static/widget-registry.js:chartSort@613",
+      "language": "javascript",
+      "line": 613,
+      "metrics": {
+        "cyclomatic": 15,
+        "length": 10,
+        "nesting": 1
+      },
+      "name": "chartSort",
+      "path": "app/static/widget-registry.js"
+    },
+    {
+      "body_sha256": "9cd75398a7e351f64f0e7566268a543dcf8b10fff5e0b4323c62ca72fffeb328",
+      "end_line": 212,
+      "id": "app/static/widget-registry.js:filterControlsFromConfig@183",
+      "language": "javascript",
+      "line": 183,
+      "metrics": {
+        "cyclomatic": 27,
+        "length": 30,
+        "nesting": 2
+      },
+      "name": "filterControlsFromConfig",
+      "path": "app/static/widget-registry.js"
+    },
+    {
+      "body_sha256": "c85ec95ffda21efd664707200fc0b597270c973437a2f3025e56fdcf8807904d",
+      "end_line": 182,
+      "id": "app/static/widget-registry.js:filterFieldForType@173",
+      "language": "javascript",
+      "line": 173,
+      "metrics": {
+        "cyclomatic": 27,
+        "length": 10,
+        "nesting": 1
+      },
+      "name": "filterFieldForType",
+      "path": "app/static/widget-registry.js"
+    },
+    {
+      "body_sha256": "6e4d446acf35d865f71404e88190a5d31f273f7cdf0265ac3634d7e3e9604944",
+      "end_line": 1236,
+      "id": "app/static/widget-registry.js:inferRuntimeState@1228",
+      "language": "javascript",
+      "line": 1228,
+      "metrics": {
+        "cyclomatic": 18,
+        "length": 9,
+        "nesting": 0
+      },
+      "name": "inferRuntimeState",
+      "path": "app/static/widget-registry.js"
+    },
+    {
+      "body_sha256": "4939feed5214db3fddfb7bc42c5874e2e4001f1915cedffb5754347010d1c74d",
+      "end_line": 1096,
+      "id": "app/static/widget-registry.js:loadMonaco@1065",
+      "language": "javascript",
+      "line": 1065,
+      "metrics": {
+        "cyclomatic": 9,
+        "length": 32,
+        "nesting": 5
+      },
+      "name": "loadMonaco",
+      "path": "app/static/widget-registry.js"
+    },
+    {
+      "body_sha256": "717bf331c63ac9534d645b309c1a2ee36e8ecd4634cd1cce87afcf815695b547",
+      "end_line": 2456,
+      "id": "app/static/widget-registry.js:mapExtractPoints@2443",
+      "language": "javascript",
+      "line": 2443,
+      "metrics": {
+        "cyclomatic": 27,
+        "length": 14,
+        "nesting": 1
+      },
+      "name": "mapExtractPoints",
+      "path": "app/static/widget-registry.js"
+    },
+    {
+      "body_sha256": "7bf5c8b8cadbee3e4a0c168786c6bed81f53d994ad4a6d887ca47dd174d142d5",
+      "end_line": 1695,
+      "id": "app/static/widget-registry.js:normalizeDefinition@1638",
+      "language": "javascript",
+      "line": 1638,
+      "metrics": {
+        "cyclomatic": 40,
+        "length": 58,
+        "nesting": 3
+      },
+      "name": "normalizeDefinition",
+      "path": "app/static/widget-registry.js"
+    },
+    {
+      "body_sha256": "e583352054a60c72883a1c6823a1541e56bf623e49b9b7567f326950a50193b0",
+      "end_line": 396,
+      "id": "app/static/widget-registry.js:normalizeTimeframeFilter@379",
+      "language": "javascript",
+      "line": 379,
+      "metrics": {
+        "cyclomatic": 43,
+        "length": 18,
+        "nesting": 1
+      },
+      "name": "normalizeTimeframeFilter",
+      "path": "app/static/widget-registry.js"
+    },
+    {
+      "body_sha256": "455c9e9df252cec6da1f77a6bcd55833fb62d70668b03ea5faadfea3c444cd41",
+      "end_line": 256,
+      "id": "app/static/widget-registry.js:renderFilterControl@213",
+      "language": "javascript",
+      "line": 213,
+      "metrics": {
+        "cyclomatic": 11,
+        "length": 44,
+        "nesting": 2
+      },
+      "name": "renderFilterControl",
+      "path": "app/static/widget-registry.js"
+    },
+    {
+      "body_sha256": "8a96808bfa2ed27bc37bb00f4fac152ba8d3fdf149e1295e269381716c4a4c61",
+      "end_line": 460,
+      "id": "app/static/widget-registry.js:repeatingIntervalRange@430",
+      "language": "javascript",
+      "line": 430,
+      "metrics": {
+        "cyclomatic": 11,
+        "length": 31,
+        "nesting": 2
+      },
+      "name": "repeatingIntervalRange",
+      "path": "app/static/widget-registry.js"
+    },
+    {
+      "body_sha256": "57035255581d5c2b3908c6d0ae3897abb81ae2a2eb250d20f7b6bbbb8b187862",
+      "end_line": 1341,
+      "id": "app/static/widget-registry.js:safeMediaUrl@1321",
+      "language": "javascript",
+      "line": 1321,
+      "metrics": {
+        "cyclomatic": 12,
+        "length": 21,
+        "nesting": 1
+      },
+      "name": "safeMediaUrl",
+      "path": "app/static/widget-registry.js"
+    },
+    {
+      "body_sha256": "3cb697c66edb08453eb0e8c3920e56a36baf3f3d53f1e48ddf2ed06ce45b9549",
+      "end_line": 1440,
+      "id": "app/static/widget-registry.js:youtubeEmbedUrl@1421",
+      "language": "javascript",
+      "line": 1421,
+      "metrics": {
+        "cyclomatic": 14,
+        "length": 20,
+        "nesting": 2
+      },
+      "name": "youtubeEmbedUrl",
+      "path": "app/static/widget-registry.js"
+    },
+    {
+      "body_sha256": "b1fa01dbbf4e182eb2ad749c502774bf5c85be414af0c3f1c2004a4d22bd9b57",
+      "end_line": 511,
+      "id": "app/static/widget-runtime.js:applyGridPosition@496",
+      "language": "javascript",
+      "line": 496,
+      "metrics": {
+        "cyclomatic": 12,
+        "length": 16,
+        "nesting": 1
+      },
+      "name": "applyGridPosition",
+      "path": "app/static/widget-runtime.js"
+    },
+    {
+      "body_sha256": "6cc541f115b78bf7955ba209da4af200dbf9f11d4c074d7c4834d1e9f631c5d8",
+      "end_line": 495,
+      "id": "app/static/widget-runtime.js:applySpan@472",
+      "language": "javascript",
+      "line": 472,
+      "metrics": {
+        "cyclomatic": 12,
+        "length": 24,
+        "nesting": 1
+      },
+      "name": "applySpan",
+      "path": "app/static/widget-runtime.js"
+    },
+    {
+      "body_sha256": "3e0b0f1bf924bd6e5b964bf397a996c0c3b23f95c9219525afbf28521533c52c",
+      "end_line": 558,
+      "id": "app/static/widget-runtime.js:createCustomWidget@512",
+      "language": "javascript",
+      "line": 512,
+      "metrics": {
+        "cyclomatic": 51,
+        "length": 47,
+        "nesting": 2
+      },
+      "name": "createCustomWidget",
+      "path": "app/static/widget-runtime.js"
+    },
+    {
+      "body_sha256": "d98b16a906abf99aae11fa5ca53ec8f59ee26770c09b30894c8b285b8c35a1cd",
+      "end_line": 448,
+      "id": "app/static/widget-runtime.js:hydrateRuntime@424",
+      "language": "javascript",
+      "line": 424,
+      "metrics": {
+        "cyclomatic": 37,
+        "length": 25,
+        "nesting": 1
+      },
+      "name": "hydrateRuntime",
+      "path": "app/static/widget-runtime.js"
+    },
+    {
+      "body_sha256": "46041ce4cd288e83cb50b1d1848b44ccefa954c8dea5769c3b693d2c26a52cdf",
+      "end_line": 254,
+      "id": "app/static/widget-runtime.js:if@235",
+      "language": "javascript",
+      "line": 235,
+      "metrics": {
+        "cyclomatic": 11,
+        "length": 20,
+        "nesting": 2
+      },
+      "name": "if",
+      "path": "app/static/widget-runtime.js"
+    },
+    {
+      "body_sha256": "47730ddf63a3d6fc02c5ba5185d965eed648022b215444b4aa190c711a7fda2c",
+      "end_line": 222,
+      "id": "app/static/widget-runtime.js:setRuntimeContent@196",
+      "language": "javascript",
+      "line": 196,
+      "metrics": {
+        "cyclomatic": 12,
+        "length": 27,
+        "nesting": 3
+      },
+      "name": "setRuntimeContent",
+      "path": "app/static/widget-runtime.js"
+    },
+    {
+      "body_sha256": "15e7ecc4c26361f1e3d88d5d35e80f15378c602f9b9d7f4ca3f5ebda3836e610",
+      "end_line": 471,
+      "id": "app/static/widget-runtime.js:syncRenderedHeightToFootprint@459",
+      "language": "javascript",
+      "line": 459,
+      "metrics": {
+        "cyclomatic": 19,
+        "length": 13,
+        "nesting": 1
+      },
+      "name": "syncRenderedHeightToFootprint",
+      "path": "app/static/widget-runtime.js"
+    },
+    {
+      "body_sha256": "b2682fb8759f696c6b52515096356e1373f092092ecd896c7ae34fdec0050af3",
+      "end_line": 156,
+      "id": "electron-tests/perf-dashboard.spec.js:installFrameProbe@112",
+      "language": "javascript",
+      "line": 112,
+      "metrics": {
+        "cyclomatic": 9,
+        "length": 45,
+        "nesting": 6
+      },
+      "name": "installFrameProbe",
+      "path": "electron-tests/perf-dashboard.spec.js"
+    },
+    {
+      "body_sha256": "9c02f531fc232aa62cc871975d3a9e74926cd91f1d88701b6982af9c88e99f9a",
+      "end_line": 102,
+      "id": "electron-tests/perf-dashboard.spec.js:seedScene@53",
+      "language": "javascript",
+      "line": 53,
+      "metrics": {
+        "cyclomatic": 11,
+        "length": 50,
+        "nesting": 3
+      },
+      "name": "seedScene",
+      "path": "electron-tests/perf-dashboard.spec.js"
+    },
+    {
+      "body_sha256": "597a0c073a6b2092faf1b2a250d526c8725406a19f2e8e0e59912044e5b33af5",
+      "end_line": 268,
+      "id": "electron-tests/perf-theme-switch.spec.js:collectThemeSwitchMetrics@205",
+      "language": "javascript",
+      "line": 205,
+      "metrics": {
+        "cyclomatic": 11,
+        "length": 64,
+        "nesting": 2
+      },
+      "name": "collectThemeSwitchMetrics",
+      "path": "electron-tests/perf-theme-switch.spec.js"
+    },
+    {
+      "body_sha256": "5bdbaea4b7779372468f7294a69e3f5be8d4b84709179d73017f5283d4342047",
+      "end_line": 199,
+      "id": "electron-tests/perf-theme-switch.spec.js:for@189",
+      "language": "javascript",
+      "line": 189,
+      "metrics": {
+        "cyclomatic": 12,
+        "length": 11,
+        "nesting": 1
+      },
+      "name": "for",
+      "path": "electron-tests/perf-theme-switch.spec.js"
+    },
+    {
+      "body_sha256": "701a2bc68edbc40d5853c3db5eae3944290ba4424d2f0e28e538c5c224efa969",
+      "end_line": 142,
+      "id": "electron-tests/perf-theme-switch.spec.js:installFrameProbe@93",
+      "language": "javascript",
+      "line": 93,
+      "metrics": {
+        "cyclomatic": 9,
+        "length": 50,
+        "nesting": 6
+      },
+      "name": "installFrameProbe",
+      "path": "electron-tests/perf-theme-switch.spec.js"
+    },
+    {
+      "body_sha256": "9d979e1a0498dcf6dd4f98016014107103e5ef4bc448e43ca773e08cf3e4ce68",
+      "end_line": 91,
+      "id": "electron-tests/perf-theme-switch.spec.js:seedScene@48",
+      "language": "javascript",
+      "line": 48,
+      "metrics": {
+        "cyclomatic": 11,
+        "length": 44,
+        "nesting": 2
+      },
+      "name": "seedScene",
+      "path": "electron-tests/perf-theme-switch.spec.js"
+    },
+    {
+      "body_sha256": "ac35a7819a76bb0fa95a141f321a60a2e9f03836df1858b9b768ea75d12125ed",
+      "end_line": 203,
+      "id": "electron-tests/perf-theme-switch.spec.js:summarizeTrace@179",
+      "language": "javascript",
+      "line": 179,
+      "metrics": {
+        "cyclomatic": 16,
+        "length": 25,
+        "nesting": 2
+      },
+      "name": "summarizeTrace",
+      "path": "electron-tests/perf-theme-switch.spec.js"
+    },
+    {
+      "body_sha256": "e697c4574582c1c2231bb5181b181f773b660467a677ded9e5275a84005d912f",
+      "end_line": 109,
+      "id": "runs/2026-06-06_increment-2b-group-resize-runtime_9377/artifacts/group-resize-helpers-before.js:commitGroupResizeFromPreviews@80",
+      "language": "javascript",
+      "line": 80,
+      "metrics": {
+        "cyclomatic": 14,
+        "length": 30,
+        "nesting": 2
+      },
+      "name": "commitGroupResizeFromPreviews",
+      "path": "runs/2026-06-06_increment-2b-group-resize-runtime_9377/artifacts/group-resize-helpers-before.js"
+    },
+    {
+      "body_sha256": "a70582ee18bc9d4c7937cae271ea170bb2166c167050837cdba528098222433d",
+      "end_line": 210,
+      "id": "runs/2026-06-06_increment-2b-group-resize-runtime_9377/artifacts/group-resize-helpers-before.js:for@195",
+      "language": "javascript",
+      "line": 195,
+      "metrics": {
+        "cyclomatic": 11,
+        "length": 16,
+        "nesting": 3
+      },
+      "name": "for",
+      "path": "runs/2026-06-06_increment-2b-group-resize-runtime_9377/artifacts/group-resize-helpers-before.js"
+    },
+    {
+      "body_sha256": "31ed2d5da0f3ef05645ad50131e3bcf060ddc62cbfc693cdf1934dd78b33c674",
+      "end_line": 212,
+      "id": "runs/2026-06-06_increment-2b-group-resize-runtime_9377/artifacts/group-resize-helpers-before.js:nearestSizedSlot@191",
+      "language": "javascript",
+      "line": 191,
+      "metrics": {
+        "cyclomatic": 14,
+        "length": 22,
+        "nesting": 4
+      },
+      "name": "nearestSizedSlot",
+      "path": "runs/2026-06-06_increment-2b-group-resize-runtime_9377/artifacts/group-resize-helpers-before.js"
+    },
+    {
+      "body_sha256": "d2cb7e9d2487d05b2b49405fa0c762b86676859ce18756255ff12b2ed67241bd",
+      "end_line": 160,
+      "id": "runs/2026-06-06_increment-2b-group-resize-runtime_9377/artifacts/runGroupResize-before.js:updateLiveGroupResize@94",
+      "language": "javascript",
+      "line": 94,
+      "metrics": {
+        "cyclomatic": 9,
+        "length": 67,
+        "nesting": 3
+      },
+      "name": "updateLiveGroupResize",
+      "path": "runs/2026-06-06_increment-2b-group-resize-runtime_9377/artifacts/runGroupResize-before.js"
+    },
+    {
+      "body_sha256": "e697c4574582c1c2231bb5181b181f773b660467a677ded9e5275a84005d912f",
+      "end_line": 882,
+      "id": "runs/2026-06-06_increment-4-phase0-body-zone-absorption/artifacts/runOrderedDrag-before.js:commitGroupResizeFromPreviews@853",
+      "language": "javascript",
+      "line": 853,
+      "metrics": {
+        "cyclomatic": 14,
+        "length": 30,
+        "nesting": 2
+      },
+      "name": "commitGroupResizeFromPreviews",
+      "path": "runs/2026-06-06_increment-4-phase0-body-zone-absorption/artifacts/runOrderedDrag-before.js"
+    },
+    {
+      "body_sha256": "a70582ee18bc9d4c7937cae271ea170bb2166c167050837cdba528098222433d",
+      "end_line": 983,
+      "id": "runs/2026-06-06_increment-4-phase0-body-zone-absorption/artifacts/runOrderedDrag-before.js:for@968",
+      "language": "javascript",
+      "line": 968,
+      "metrics": {
+        "cyclomatic": 11,
+        "length": 16,
+        "nesting": 3
+      },
+      "name": "for",
+      "path": "runs/2026-06-06_increment-4-phase0-body-zone-absorption/artifacts/runOrderedDrag-before.js"
+    },
+    {
+      "body_sha256": "4614ca8fa641859f0eec69541e281777665c6c3be2ae97e25627362492dc5dc6",
+      "end_line": 730,
+      "id": "runs/2026-06-06_increment-4-phase0-body-zone-absorption/artifacts/runOrderedDrag-before.js:if@599",
+      "language": "javascript",
+      "line": 599,
+      "metrics": {
+        "cyclomatic": 80,
+        "length": 132,
+        "nesting": 3
+      },
+      "name": "if",
+      "path": "runs/2026-06-06_increment-4-phase0-body-zone-absorption/artifacts/runOrderedDrag-before.js"
+    },
+    {
+      "body_sha256": "221ed0d250fcb1308d7916dbbfe0e8962cabd3a878e9275e121f05cdb905fa5a",
+      "end_line": 657,
+      "id": "runs/2026-06-06_increment-4-phase0-body-zone-absorption/artifacts/runOrderedDrag-before.js:if@639",
+      "language": "javascript",
+      "line": 639,
+      "metrics": {
+        "cyclomatic": 16,
+        "length": 19,
+        "nesting": 1
+      },
+      "name": "if",
+      "path": "runs/2026-06-06_increment-4-phase0-body-zone-absorption/artifacts/runOrderedDrag-before.js"
+    },
+    {
+      "body_sha256": "31ed2d5da0f3ef05645ad50131e3bcf060ddc62cbfc693cdf1934dd78b33c674",
+      "end_line": 985,
+      "id": "runs/2026-06-06_increment-4-phase0-body-zone-absorption/artifacts/runOrderedDrag-before.js:nearestSizedSlot@964",
+      "language": "javascript",
+      "line": 964,
+      "metrics": {
+        "cyclomatic": 14,
+        "length": 22,
+        "nesting": 4
+      },
+      "name": "nearestSizedSlot",
+      "path": "runs/2026-06-06_increment-4-phase0-body-zone-absorption/artifacts/runOrderedDrag-before.js"
+    },
+    {
+      "body_sha256": "d9d8c5cedd679e7f803d6e41cc1137f258d3fec508b8a78e63b3afd01dc45a29",
+      "end_line": 576,
+      "id": "runs/2026-06-06_increment-4-phase0-body-zone-absorption/artifacts/runOrderedDrag-before.js:onMove@521",
+      "language": "javascript",
+      "line": 521,
+      "metrics": {
+        "cyclomatic": 28,
+        "length": 56,
+        "nesting": 2
+      },
+      "name": "onMove",
+      "path": "runs/2026-06-06_increment-4-phase0-body-zone-absorption/artifacts/runOrderedDrag-before.js"
+    },
+    {
+      "body_sha256": "109255a720aafb8178fad0157094578c96add087d10891cc8c571f3972d4a9ec",
+      "end_line": 747,
+      "id": "runs/2026-06-06_increment-4-phase0-body-zone-absorption/artifacts/runOrderedDrag-before.js:onUp@586",
+      "language": "javascript",
+      "line": 586,
+      "metrics": {
+        "cyclomatic": 94,
+        "length": 162,
+        "nesting": 5
+      },
+      "name": "onUp",
+      "path": "runs/2026-06-06_increment-4-phase0-body-zone-absorption/artifacts/runOrderedDrag-before.js"
+    },
+    {
+      "body_sha256": "c0dd8daa6a7ed93e4c98ed75876623c953d140bf4a8d21085464c41cd362f4bc",
+      "end_line": 148,
+      "id": "runs/2026-06-06_increment-4-phase0-body-zone-absorption/artifacts/runOrderedDrag-before.js:startDrag@91",
+      "language": "javascript",
+      "line": 91,
+      "metrics": {
+        "cyclomatic": 20,
+        "length": 58,
+        "nesting": 2
+      },
+      "name": "startDrag",
+      "path": "runs/2026-06-06_increment-4-phase0-body-zone-absorption/artifacts/runOrderedDrag-before.js"
+    },
+    {
+      "body_sha256": "fb53e5e81a67378d1ba5af99802fe8f80fb5d6d8e9b94a0a7e76f48f8e2b2edf",
+      "end_line": 425,
+      "id": "runs/2026-06-06_increment-4-phase0-body-zone-absorption/artifacts/runOrderedDrag-before.js:updatePanelDragPreview@377",
+      "language": "javascript",
+      "line": 377,
+      "metrics": {
+        "cyclomatic": 26,
+        "length": 49,
+        "nesting": 3
+      },
+      "name": "updatePanelDragPreview",
+      "path": "runs/2026-06-06_increment-4-phase0-body-zone-absorption/artifacts/runOrderedDrag-before.js"
+    },
+    {
+      "body_sha256": "4614ca8fa641859f0eec69541e281777665c6c3be2ae97e25627362492dc5dc6",
+      "end_line": 730,
+      "id": "runs/2026-06-06_increment-4-phase0-body-zone-absorption/artifacts/runOrderedDrag-only.js:if@599",
+      "language": "javascript",
+      "line": 599,
+      "metrics": {
+        "cyclomatic": 80,
+        "length": 132,
+        "nesting": 3
+      },
+      "name": "if",
+      "path": "runs/2026-06-06_increment-4-phase0-body-zone-absorption/artifacts/runOrderedDrag-only.js"
+    },
+    {
+      "body_sha256": "221ed0d250fcb1308d7916dbbfe0e8962cabd3a878e9275e121f05cdb905fa5a",
+      "end_line": 657,
+      "id": "runs/2026-06-06_increment-4-phase0-body-zone-absorption/artifacts/runOrderedDrag-only.js:if@639",
+      "language": "javascript",
+      "line": 639,
+      "metrics": {
+        "cyclomatic": 16,
+        "length": 19,
+        "nesting": 1
+      },
+      "name": "if",
+      "path": "runs/2026-06-06_increment-4-phase0-body-zone-absorption/artifacts/runOrderedDrag-only.js"
+    },
+    {
+      "body_sha256": "d9d8c5cedd679e7f803d6e41cc1137f258d3fec508b8a78e63b3afd01dc45a29",
+      "end_line": 576,
+      "id": "runs/2026-06-06_increment-4-phase0-body-zone-absorption/artifacts/runOrderedDrag-only.js:onMove@521",
+      "language": "javascript",
+      "line": 521,
+      "metrics": {
+        "cyclomatic": 28,
+        "length": 56,
+        "nesting": 2
+      },
+      "name": "onMove",
+      "path": "runs/2026-06-06_increment-4-phase0-body-zone-absorption/artifacts/runOrderedDrag-only.js"
+    },
+    {
+      "body_sha256": "109255a720aafb8178fad0157094578c96add087d10891cc8c571f3972d4a9ec",
+      "end_line": 747,
+      "id": "runs/2026-06-06_increment-4-phase0-body-zone-absorption/artifacts/runOrderedDrag-only.js:onUp@586",
+      "language": "javascript",
+      "line": 586,
+      "metrics": {
+        "cyclomatic": 94,
+        "length": 162,
+        "nesting": 5
+      },
+      "name": "onUp",
+      "path": "runs/2026-06-06_increment-4-phase0-body-zone-absorption/artifacts/runOrderedDrag-only.js"
+    },
+    {
+      "body_sha256": "c0dd8daa6a7ed93e4c98ed75876623c953d140bf4a8d21085464c41cd362f4bc",
+      "end_line": 148,
+      "id": "runs/2026-06-06_increment-4-phase0-body-zone-absorption/artifacts/runOrderedDrag-only.js:startDrag@91",
+      "language": "javascript",
+      "line": 91,
+      "metrics": {
+        "cyclomatic": 20,
+        "length": 58,
+        "nesting": 2
+      },
+      "name": "startDrag",
+      "path": "runs/2026-06-06_increment-4-phase0-body-zone-absorption/artifacts/runOrderedDrag-only.js"
+    },
+    {
+      "body_sha256": "fb53e5e81a67378d1ba5af99802fe8f80fb5d6d8e9b94a0a7e76f48f8e2b2edf",
+      "end_line": 425,
+      "id": "runs/2026-06-06_increment-4-phase0-body-zone-absorption/artifacts/runOrderedDrag-only.js:updatePanelDragPreview@377",
+      "language": "javascript",
+      "line": 377,
+      "metrics": {
+        "cyclomatic": 26,
+        "length": 49,
+        "nesting": 3
+      },
+      "name": "updatePanelDragPreview",
+      "path": "runs/2026-06-06_increment-4-phase0-body-zone-absorption/artifacts/runOrderedDrag-only.js"
+    }
+  ],
+  "check": "salvage_complexity_candidates",
+  "function_count": 1429,
+  "passed": true,
+  "schema_version": 1,
+  "thresholds": {
+    "cyclomatic": 10,
+    "length": 60,
+    "nesting": 4
+  }
+}

@@ -1,0 +1,8 @@
+{
+  "check": "salvage_duplication",
+  "duplicates": [],
+  "passed": true,
+  "schema_version": 1,
+  "verified_groups": [],
+  "violations": []
+}

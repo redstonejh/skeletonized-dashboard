@@ -316,21 +316,6 @@ document.addEventListener("DOMContentLoaded", () => {
    */
   const {
     dataSourceAdapters,
-    dataOriginDefinitions,
-    registerDataOriginDefinition,
-    normalizeFieldType,
-    inferDataSchema,
-    semanticFieldScore,
-    suggestSemanticMappingFromSchema,
-    sourceRows,
-    dataSubstrateRowsForSource,
-    comparableFilterValue,
-    applyContextFilters,
-    applyContextTimeRange,
-    applyContextSort,
-    projectContextFields,
-    createRecordAdapter,
-    registerDataSourceAdapter,
   } = createDataAdapterRuntime({
     getActivePanelProfile,
     dataSourceById: (...args) => dataSourceById(...args),
@@ -891,15 +876,6 @@ document.addEventListener("DOMContentLoaded", () => {
     const mapping = context.semanticMapping || {};
     const mappedFields = [mapping.dateField, mapping.valueField, mapping.labelField, mapping.categoryField].filter(Boolean);
     return [context.dataSourceName || context.dataSourceId || "No source", ...mappedFields.slice(0, 2)].join(" / ");
-  };
-  const ensureContextBadge = (item) => {
-    let badge = item.querySelector(":scope > .workspace-context-badge");
-    if (!badge) {
-      badge = document.createElement("span");
-      badge.className = "workspace-context-badge";
-      item.appendChild(badge);
-    }
-    return badge;
   };
   const refreshResolvedContextDebug = (layoutKey = "default", profile = getActivePanelProfile(layoutKey)) => {
     const panelLayout = document.querySelector(`.panel-layout[data-layout-key="${CSS.escape(layoutKey)}"]`);

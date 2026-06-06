@@ -1,0 +1,5 @@
+{
+  "schema_version": 1,
+  "groups": [],
+  "justification": "deletion-only pass; no duplicate collapse in scope"
+}

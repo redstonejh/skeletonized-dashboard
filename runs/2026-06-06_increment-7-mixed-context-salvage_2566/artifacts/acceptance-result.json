@@ -1,0 +1,21 @@
+{
+  "verdict": "SHIP",
+  "passed": true,
+  "check": "acceptance_result",
+  "summary": "Mixed-context-query dormant residue deleted conservatively; active context/query compatibility kept resident.",
+  "evidence": [
+    "delegation-proof.json",
+    "keep-vs-dormant.json",
+    "dead-code.json",
+    "salvage-result.json",
+    "e2e-10x.json",
+    "verdict_check.py"
+  ],
+  "line_count": {
+    "app_js_before": 3287,
+    "app_js_after": 3263,
+    "app_js_decreased": true,
+    "data_adapter_before": 282,
+    "data_adapter_after": 251
+  }
+}

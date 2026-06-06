@@ -1,34 +1,5 @@
 export function createDataAdapterRuntime({ getActivePanelProfile, dataSourceById }) {
   const dataSourceAdapters = new Map();
-  const dataOriginDefinitions = new Map();
-  const registerDataOriginDefinition = (definition = {}) => {
-    const kind = String(definition.kind || "").trim();
-    if (!kind) return false;
-    dataOriginDefinitions.set(kind, {
-      kind,
-      label: String(definition.label || kind),
-      category: String(definition.category || "dataset"),
-      description: String(definition.description || ""),
-      durable: definition.durable !== false,
-      realtime: Boolean(definition.realtime),
-      derived: Boolean(definition.derived),
-      implemented: definition.implemented !== false,
-    });
-    return true;
-  };
-  [
-    { kind: "manual", label: "Dataset Origin", category: "local", description: "Normalized in-workspace rows." },
-    { kind: "json", label: "Uploaded JSON Origin", category: "file", description: "Uploaded or pasted JSON rows." },
-    { kind: "csv", label: "Uploaded CSV Origin", category: "file", description: "Uploaded CSV rows normalized into records." },
-    { kind: "sql", label: "SQL Origin", category: "external", description: "Future normalized SQL query output." },
-    { kind: "api", label: "API Origin", category: "external", description: "Future normalized API response rows." },
-    { kind: "uploaded-file", label: "Uploaded File Origin", category: "file", description: "Future file-backed normalized data." },
-    { kind: "scenario", label: "Scenario Origin", category: "scenario", description: "Scenario branch rows derived without mutating base data." },
-    { kind: "derived", label: "Derived Dataset Origin", category: "derived", description: "Reusable transformed dataset stream.", derived: true },
-    { kind: "ai-generated", label: "AI Generated Dataset Origin", category: "derived", description: "AI-created normalized dataset that remains inspectable.", derived: true },
-    { kind: "realtime-stream", label: "Real-time Stream Origin", category: "stream", description: "Future streaming records cache.", realtime: true },
-    { kind: "cached-query", label: "Cached Query Origin", category: "cache", description: "Cached query result promoted to substrate." },
-  ].forEach(registerDataOriginDefinition);
   const normalizeFieldType = (value) => {
     if (value instanceof Date) return "date";
     if (typeof value === "number") return "number";
@@ -263,8 +234,6 @@ export function createDataAdapterRuntime({ getActivePanelProfile, dataSourceById
   
   return {
     dataSourceAdapters,
-    dataOriginDefinitions,
-    registerDataOriginDefinition,
     normalizeFieldType,
     inferDataSchema,
     semanticFieldScore,

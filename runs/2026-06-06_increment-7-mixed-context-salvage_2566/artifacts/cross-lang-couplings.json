@@ -1,0 +1,8 @@
+{
+  "check": "salvage_cross_lang",
+  "passed": true,
+  "scope": "deleted symbols only",
+  "couplings": [],
+  "violations": [],
+  "note": "Full cross-lang scan is invoked by full resistance and reports pre-existing app-wide DOM refs outside this deletion."
+}
