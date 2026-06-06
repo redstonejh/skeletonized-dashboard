@@ -1,0 +1,19 @@
+{
+    "schema_version":  1,
+    "verdict":  "SHIP",
+    "shipped":  [
+                    "ordered-grid-items-runtime"
+                ],
+    "resident_deferred":  [
+                              "conditional-style-runtime"
+                          ],
+    "app_js_before":  3303,
+    "app_js_after":  3287,
+    "delegation_roles":  [
+                             "conductor",
+                             "planner",
+                             "worker",
+                             "critic",
+                             "acceptance_gate"
+                         ]
+}

@@ -1,0 +1,16 @@
+{
+    "check":  "refactor_structure",
+    "schema_version":  1,
+    "refactor_type":  "move-module",
+    "passed":  true,
+    "violations":  [
+
+                   ],
+    "moved_cluster":  "ordered-grid-items-runtime",
+    "line_count":  {
+                       "before":  3303,
+                       "after":  3287,
+                       "decreased":  true
+                   },
+    "module":  "app/static/modules/ordered-grid-items-runtime.js"
+}

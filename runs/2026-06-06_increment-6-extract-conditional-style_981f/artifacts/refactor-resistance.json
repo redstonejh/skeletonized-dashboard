@@ -1,0 +1,27 @@
+{
+    "check":  "refactor_resistance",
+    "schema_version":  1,
+    "passed":  true,
+    "clean":  {
+                  "passed":  true,
+                  "checks":  [
+                                 "post ordered-grid e2e 10x"
+                             ]
+              },
+    "mutations":  [
+                      {
+                          "name":  "ordered_grid_globalGridItems_transient_filter",
+                          "planted":  true,
+                          "failed_checks":  [
+                                                "ordered grid item runtime preserves query semantics"
+                                            ],
+                          "mutant_passed":  false,
+                          "artifact":  "artifacts/cluster-b-resistance-transient-filter.json",
+                          "caught":  true
+                      }
+                  ],
+    "summary":  {
+                    "total":  1,
+                    "caught":  1
+                }
+}

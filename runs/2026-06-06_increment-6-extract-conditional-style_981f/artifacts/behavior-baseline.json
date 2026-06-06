@@ -1,0 +1,27 @@
+{
+    "check":  "behavior_baseline",
+    "passed":  true,
+    "metadata":  {
+                     "captured_at_epoch":  1780752291,
+                     "source_paths":  [
+                                          "app/static/app.js",
+                                          "app/static/modules/ordered-grid-items-runtime.js",
+                                          "electron-tests/dashboard-electron.spec.js",
+                                          "artifacts/deferred-extractions.md",
+                                          "artifacts/extraction-floor-report.md"
+                                      ],
+                     "captures":  1,
+                     "command":  "npm.cmd run test:e2e -- --workers=1",
+                     "log":  "artifacts/post-ordered-grid-e2e.json"
+                 },
+    "items":  [
+                  {
+                      "name":  "cluster_a_noop_probe_blind",
+                      "passed":  true
+                  },
+                  {
+                      "name":  "cluster_b_post_move_e2e_10x",
+                      "passed":  true
+                  }
+              ]
+}

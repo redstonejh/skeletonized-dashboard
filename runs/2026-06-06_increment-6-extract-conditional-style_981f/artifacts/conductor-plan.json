@@ -1,0 +1,31 @@
+{
+    "task_type":  "refactor-task",
+    "checklist":  ".codex/checklists/refactor.md",
+    "roles":  [
+                  "conductor",
+                  "planner",
+                  "worker",
+                  "critic",
+                  "acceptance_gate"
+              ],
+    "caps":  {
+                 "max_agents":  5,
+                 "max_parallel":  1,
+                 "max_iters":  3
+             },
+    "parallel_roles":  [
+
+                       ],
+    "role_justifications":  {
+                                "conductor":  "gates sequenced app.js cluster extractions",
+                                "planner":  "classifies cluster boundaries",
+                                "worker":  "implements each cluster",
+                                "critic":  "checks canaries and hidden regressions",
+                                "acceptance_gate":  "validates SHIP artifacts"
+                            },
+    "refactor_type":  "move-module",
+    "sequence":  [
+                     "conditional-style-runtime",
+                     "ordered-grid-items-runtime"
+                 ]
+}

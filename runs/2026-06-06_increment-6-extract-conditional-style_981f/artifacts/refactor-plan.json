@@ -1,0 +1,8 @@
+{
+    "schema_version":  1,
+    "refactor_type":  "move-module",
+    "classification":  "both clusters touch app/static/app.js; sequenced",
+    "cluster_a":  "resident-deferred due blind oracle",
+    "cluster_b":  "moved exact ordered/global grid helper block",
+    "passed":  true
+}

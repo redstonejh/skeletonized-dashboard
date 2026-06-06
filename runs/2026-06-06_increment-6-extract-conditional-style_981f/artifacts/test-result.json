@@ -1,0 +1,6 @@
+{
+    "schema_version":  1,
+    "passed":  true,
+    "command":  "npm.cmd run test:e2e -- --workers=1",
+    "evidence":  "post-ordered-grid-e2e.json"
+}

@@ -1,0 +1,15 @@
+{
+    "schema_version":  1,
+    "passed":  true,
+    "changed_files":  [
+                          "app/static/app.js",
+                          "app/static/modules/ordered-grid-items-runtime.js",
+                          "electron-tests/dashboard-electron.spec.js",
+                          "artifacts/deferred-extractions.md",
+                          "artifacts/extraction-floor-report.md"
+                      ],
+    "coverage_evidence":  [
+                              "ordered grid module canary imports and exercises orderedGridItems/globalGridItems semantics",
+                              "full Electron suite 10/10 post-move"
+                          ]
+}

@@ -1,0 +1,23 @@
+{
+    "schema_version":  1,
+    "passed":  true,
+    "clusters":  [
+                     {
+                         "shipped":  false,
+                         "cluster":  "conditional-style-runtime",
+                         "before":  3303,
+                         "after":  3303
+                     },
+                     {
+                         "shipped":  true,
+                         "cluster":  "ordered-grid-items-runtime",
+                         "before":  3303,
+                         "after":  3287
+                     }
+                 ],
+    "final":  {
+                  "before":  3303,
+                  "after":  3287,
+                  "decreased":  true
+              }
+}

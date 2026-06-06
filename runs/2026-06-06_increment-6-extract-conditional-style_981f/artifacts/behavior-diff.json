@@ -1,0 +1,9 @@
+{
+    "schema_version":  1,
+    "passed":  true,
+    "phase":  "increment-6-partial",
+    "shipped_cluster":  "ordered-grid-items-runtime",
+    "deferred_cluster":  "conditional-style-runtime",
+    "post":  "post-ordered-grid-e2e.json",
+    "behavior":  "hidden Electron e2e 10/10 after ordered grid helper move"
+}

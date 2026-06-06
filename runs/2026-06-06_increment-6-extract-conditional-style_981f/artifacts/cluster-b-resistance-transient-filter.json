@@ -1,0 +1,10 @@
+{
+    "schema_version":  1,
+    "cluster":  "ordered-grid-items-runtime",
+    "mutation":  "globalGridItems includes transient interaction items",
+    "command":  "npm.cmd run test:e2e -- --workers=1",
+    "exit_code":  0,
+    "caught":  false,
+    "passed":  false,
+    "tail":  "\n\u003e configurable-dashboard-gui-electron@1.0.0 test:e2e\n\u003e playwright test electron-tests/dashboard-electron.spec.js --workers=1\n\n\nRunning 8 tests using 1 worker\n\n  ✓  1 electron-tests\\dashboard-electron.spec.js:202:1 › electron GUI boots without server APIs and preserves core customization (5.2s)\n  ✓  2 electron-tests\\dashboard-electron.spec.js:263:1 › electron GUI keeps drag and resize handlers active (2.8s)\n  ✓  3 electron-tests\\dashboard-electron.spec.js:331:1 › electron GUI keeps select-mode multi-resize deterministic (2.0s)\n  ✓  4 electron-tests\\dashboard-electron.spec.js:401:1 › electron GUI keeps widget resize-snap deterministic (1.9s)\n  ✓  5 electron-tests\\dashboard-electron.spec.js:439:1 › electron GUI restores widget tools through init (1.9s)\n  ✓  6 electron-tests\\dashboard-electron.spec.js:467:1 › electron GUI commits widget runtime content and meaning across reload (3.9s)\n  ✓  7 electron-tests\\dashboard-electron.spec.js:514:1 › electron GUI keeps ordered drag commit, ghost, collision, and edge scroll deterministic (4.8s)\n  ✓  8 electron-tests\\dashboard-electron.spec.js:604:1 › electron GUI absorbs a workspace widget through the panel body zone (4.0s)\n\n  8 passed (26.9s)"
+}

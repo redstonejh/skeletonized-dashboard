@@ -1,0 +1,12 @@
+{
+  "archive_dir": "C:\\Users\\redst\\OneDrive\\Documents\\research-archive\\2026-06-06_increment-6-extract-conditional-style_981f",
+  "archive_root_manifest": "C:\\Users\\redst\\OneDrive\\Documents\\research-archive\\manifest.json",
+  "capture_timestamp": "2026-06-06T20:26:15Z",
+  "check": "research_archive_export",
+  "files_archived": 9,
+  "hash_only_stubs": 1,
+  "manifest": "C:\\Users\\redst\\OneDrive\\Documents\\research-archive\\2026-06-06_increment-6-extract-conditional-style_981f\\manifest.json",
+  "passed": true,
+  "run": "C:\\Users\\redst\\OneDrive\\Documents\\skeletonized-dashboard\\runs\\2026-06-06_increment-6-extract-conditional-style_981f",
+  "schema_version": 1
+}

@@ -1,0 +1,10 @@
+{
+    "schema_version":  1,
+    "cluster":  "ordered-grid-items-runtime",
+    "mutation":  "orderedGridItems ignores placeholders",
+    "command":  "npm.cmd run test:e2e -- --workers=1 --grep \"ordered drag\"",
+    "exit_code":  0,
+    "caught":  false,
+    "passed":  false,
+    "tail":  "\n\u003e configurable-dashboard-gui-electron@1.0.0 test:e2e\n\u003e playwright test electron-tests/dashboard-electron.spec.js --workers=1 --grep ordered drag\n\n\nRunning 1 test using 1 worker\n\n  ✓  1 electron-tests\\dashboard-electron.spec.js:514:1 › electron GUI keeps ordered drag commit, ghost, collision, and edge scroll deterministic (4.9s)\n\n  1 passed (5.2s)"
+}

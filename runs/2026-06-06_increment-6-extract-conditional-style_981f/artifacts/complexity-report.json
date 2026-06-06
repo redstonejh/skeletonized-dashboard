@@ -1,0 +1,12 @@
+{
+    "check":  "refactor_complexity",
+    "schema_version":  1,
+    "passed":  true,
+    "functions":  [
+
+                  ],
+    "violations":  [
+
+                   ],
+    "note":  "Small body-preserving helper relocation; no behavior branches added."
+}

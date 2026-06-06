@@ -1,0 +1,7 @@
+{
+    "schema_version":  1,
+    "passed":  false,
+    "verdict":  "resident-deferred",
+    "cluster":  "conditional-style-runtime",
+    "reason":  "applyStyleRulesForWidget no-op mutation passed full Electron suite; no body move shipped"
+}

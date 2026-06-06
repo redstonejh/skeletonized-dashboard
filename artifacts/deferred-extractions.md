@@ -67,16 +67,17 @@ The remaining `app/static/app.js` core is init-order-sensitive and still owns li
 ## conditional-style-runtime
 
 - Cluster/symbol + file:line: conditional style helpers and `applyStyleRulesForWidget`, `app/static/app.js:606-766`
-- Why deferred: a direct module extraction passed Electron e2e but failed structured parity with a `resize-snap` geometry drift on `builder-notes` height, so the batch was reverted.
+- Why deferred: the visible oracle remains blind to the active clear-only behavior. In MAW run `runs/2026-06-06_increment-6-extract-conditional-style_981f`, an `applyStyleRulesForWidget` early-return mutation passed the full Electron suite, including the hardened resize-snap geometry assertion.
 - KEEP interaction entangled: widget runtime hydration, panel/widget resize-snap geometry, save/load evidence snapshots.
-- Needed to finish safely: extract only after widget runtime hydration and resize baseline state are separated, then compare resize-snap geometry before committing.
+- Needed to finish safely: add a deterministic runtime-hydration canary that reaches `applyStyleRulesForWidget` and fails when stale conditional class/CSS/dataset cleanup is skipped, then extract.
 
-## ordered-grid-items-runtime
+### ordered-grid-items-runtime
 
 - Cluster/symbol + file:line: ordered grid item query helpers around `orderedGridItems` / `globalGridItems`, `app/static/app.js:1375-1446`
-- Why deferred: the initial extraction boundary cut through adjacent `normalizeGridLayout` and workspace visual LOD setup, producing a renderer parse error; the batch was reverted before behavioral gates.
-- KEEP interaction entangled: collision/reflow, visual LOD, workspace scroll floor, ordered drag preview, resize occupancy.
-- Needed to finish safely: isolate the exact helper block with AST-aware extraction or first move visual LOD setup into a facade so the boundary is unambiguous.
+- Completed in MAW run: `runs/2026-06-06_increment-6-extract-conditional-style_981f`
+- Outcome: `orderedGridSelectorForLayout`, `orderedGridItems`, and `globalGridItems` now live in `app/static/modules/ordered-grid-items-runtime.js`. `layoutItemsForLogicalResolution`, `normalizeGridLayout`, visual LOD setup, and reflow helpers stayed resident.
+- API: `createOrderedGridItemsRuntime({ gridHostForLayout, isPanelInternalGridItem })` returns `{ globalGridItems, orderedGridItems, orderedGridSelectorForLayout }`.
+- Proof: module-level Electron canary catches transient-filter mutation; full hidden Electron suite passed 10/10 after extraction.
 
 ## widget-content-runtime
 

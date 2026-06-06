@@ -405,6 +405,7 @@ test("electron GUI keeps widget resize-snap deterministic", async () => {
   const before = await widget.evaluate((node) => ({
     span: node.dataset.currentSpan || node.dataset.defaultSpan || "",
     rows: node.dataset.gridRowSpan || node.dataset.defaultRows || "",
+    height: String(Math.round(node.getBoundingClientRect().height)),
   }));
 
   const resize = widget.locator(":scope > .widget-tools .panel-resize-handle");
@@ -427,8 +428,10 @@ test("electron GUI keeps widget resize-snap deterministic", async () => {
   const after = await widget.evaluate((node) => ({
     span: node.dataset.currentSpan || node.dataset.defaultSpan || "",
     rows: node.dataset.gridRowSpan || node.dataset.defaultRows || "",
+    height: String(Math.round(node.getBoundingClientRect().height)),
   }));
   expect(after.span).not.toBe(before.span);
+  expect(after.height).not.toBe(before.height);
   await writeInteractionScenarios(page, ["widget-resize-snap"], { before, after });
   await closeApp(app);
 });
@@ -678,5 +681,51 @@ test("electron GUI absorbs a workspace widget through the panel body zone", asyn
   }));
   expect(reloaded).toEqual(committed);
   await writeInteractionScenarios(page, ["body-zone-widget-absorption"], { target, committed, reloaded });
+  await closeApp(app);
+});
+
+test("ordered grid item runtime preserves query semantics", async () => {
+  const { app, page } = await launchApp();
+  const result = await page.evaluate(async () => {
+    const { createOrderedGridItemsRuntime } = await import("./app/static/modules/ordered-grid-items-runtime.js");
+    const host = document.createElement("section");
+    host.innerHTML = `
+      <div class="widget-layout">
+        <article class="widget-card" data-id="a"></article>
+        <article class="widget-card widget-dragging" data-id="dragging"></article>
+        <article class="widget-card dashboard-live-resize" data-id="resizing"></article>
+        <article class="widget-placeholder" data-id="placeholder"></article>
+      </div>
+      <div class="panel-layout">
+        <section class="db-panel" data-id="panel"></section>
+        <section class="db-panel-placeholder" data-id="panel-placeholder"></section>
+        <div class="panel-internal-widget-grid">
+          <article class="widget-card" data-id="internal"></article>
+        </div>
+      </div>`;
+    document.body.append(host);
+    const widgetLayout = host.querySelector(".widget-layout");
+    const panelLayout = host.querySelector(".panel-layout");
+    const internal = host.querySelector('[data-id="internal"]');
+    const runtime = createOrderedGridItemsRuntime({
+      gridHostForLayout: () => host,
+      isPanelInternalGridItem: (item) => item === internal,
+    });
+    const ids = (items) => items.map((item) => item.dataset.id);
+    const output = {
+      orderedWithPlaceholders: ids(runtime.orderedGridItems(widgetLayout, { includePlaceholders: true })),
+      orderedExcluded: ids(runtime.orderedGridItems(widgetLayout, { includePlaceholders: true, exclude: [host.querySelector('[data-id="a"]')] })),
+      globalWorkspace: ids(runtime.globalGridItems(widgetLayout, { includePlaceholders: true })),
+      globalPanel: ids(runtime.globalGridItems(panelLayout, { includePlaceholders: true })),
+    };
+    host.remove();
+    return output;
+  });
+  expect(result).toEqual({
+    orderedWithPlaceholders: ["a", "dragging", "resizing", "placeholder"],
+    orderedExcluded: ["dragging", "resizing", "placeholder"],
+    globalWorkspace: ["a", "placeholder", "panel", "panel-placeholder"],
+    globalPanel: ["a", "placeholder", "panel", "panel-placeholder"],
+  });
   await closeApp(app);
 });

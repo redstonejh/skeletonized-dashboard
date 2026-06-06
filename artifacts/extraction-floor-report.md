@@ -136,11 +136,24 @@ The floor moved for panel lifecycle ownership. The panel layout hydration loop a
 - Full hidden canary suite: 10/10 green
 - MAW run: `runs/2026-06-06_increment-5b-2-panel-layout_6453`
 
+## 2026-06-06 Increment 6 Ordered Grid Items Runtime Shipped
+
+The floor moved for ordered grid query helpers. `orderedGridSelectorForLayout`, `orderedGridItems`, and `globalGridItems` now live in `app/static/modules/ordered-grid-items-runtime.js`. The extraction intentionally did not move `layoutItemsForLogicalResolution`, `normalizeGridLayout`, visual LOD setup, or collision/reflow bodies.
+
+- Completed cluster: `ordered-grid-items-runtime`
+- Resident-deferred cluster: `conditional-style-runtime` remains blocked because `applyStyleRulesForWidget` no-op passed the full Electron suite; artifact: `runs/2026-06-06_increment-6-extract-conditional-style_981f/artifacts/cluster-a-oracle-precheck-applyStyleRulesForWidget-noop.json`
+- `app/static/app.js` line count before this phase: 3303
+- `app/static/app.js` line count after this phase: 3287
+- New runtime API: `createOrderedGridItemsRuntime({ gridHostForLayout, isPanelInternalGridItem })` returns `{ globalGridItems, orderedGridItems, orderedGridSelectorForLayout }`
+- Resistance: transient-filter mutation in `globalGridItems` was caught by the module-level ordered grid canary
+- Full hidden canary suite: 10/10 green
+- MAW run: `runs/2026-06-06_increment-6-extract-conditional-style_981f`
+
 ## Current State
 
-- `app/static/app.js` line count: 3303
-- `app/static/modules/*.js` count: 63
-- `app/static/app.js` SHA256: `5E5438346F2D61B332BE4E93494C895BE880DFB6C6BE41F80977A86ADBE7C26F`
+- `app/static/app.js` line count: 3287
+- `app/static/modules/*.js` count: 64
+- `app/static/app.js` SHA256: `E60ECAD9624D82DE0D36B04165C55ACEA1738DCB8FAC8158C636F80A90C2B608`
 - Core coverage artifact: `artifacts/app-core-map.md`
 - Deferred cluster artifact: `artifacts/deferred-extractions.md`
 
@@ -152,7 +165,6 @@ Do not retry these with the same factory/DI extraction strategy:
 - `panel-layout-lifecycle`
 - `conditional-style-runtime`
 - `panel-core-primitives`
-- `ordered-grid-items-runtime`
 - `widget-primitive-runtime`
 - `widget-content-runtime`
 - `mixed-context-query-compatibility`
