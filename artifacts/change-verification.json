@@ -1,0 +1,20 @@
+{
+  "passed": true,
+  "allowed_changes": [
+    "electron-tests/css-phase1-oracle.cjs",
+    "artifacts/css-core-map.md",
+    "artifacts/css-tangle-map.json",
+    "artifacts/computed-style-baseline.json",
+    "artifacts/computed-style-determinism.json",
+    "artifacts/css-oracle-resistance.json",
+    "artifacts/css-consolidation-plan.md",
+    "run artifacts under runs/2026-06-06_css-phase-1-map-oracle_17eb"
+  ],
+  "css_files_checked": [
+    "app/static/themes.css",
+    "app/static/dashboard-grid.css",
+    "app/static/tokens.css"
+  ],
+  "css_diff_clean": true,
+  "no_visual_css_change_shipped": true
+}

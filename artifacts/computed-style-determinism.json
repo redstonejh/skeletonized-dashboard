@@ -1,0 +1,59 @@
+{
+  "passed": true,
+  "repeat": "10/10",
+  "hashes": [
+    {
+      "index": 1,
+      "hash": "8ae63cc9dca87e4e5638e6116a5f55c8d87c5bcab5fb00428252acd3ef601841",
+      "recordCount": 533
+    },
+    {
+      "index": 2,
+      "hash": "8ae63cc9dca87e4e5638e6116a5f55c8d87c5bcab5fb00428252acd3ef601841",
+      "recordCount": 533
+    },
+    {
+      "index": 3,
+      "hash": "8ae63cc9dca87e4e5638e6116a5f55c8d87c5bcab5fb00428252acd3ef601841",
+      "recordCount": 533
+    },
+    {
+      "index": 4,
+      "hash": "8ae63cc9dca87e4e5638e6116a5f55c8d87c5bcab5fb00428252acd3ef601841",
+      "recordCount": 533
+    },
+    {
+      "index": 5,
+      "hash": "8ae63cc9dca87e4e5638e6116a5f55c8d87c5bcab5fb00428252acd3ef601841",
+      "recordCount": 533
+    },
+    {
+      "index": 6,
+      "hash": "8ae63cc9dca87e4e5638e6116a5f55c8d87c5bcab5fb00428252acd3ef601841",
+      "recordCount": 533
+    },
+    {
+      "index": 7,
+      "hash": "8ae63cc9dca87e4e5638e6116a5f55c8d87c5bcab5fb00428252acd3ef601841",
+      "recordCount": 533
+    },
+    {
+      "index": 8,
+      "hash": "8ae63cc9dca87e4e5638e6116a5f55c8d87c5bcab5fb00428252acd3ef601841",
+      "recordCount": 533
+    },
+    {
+      "index": 9,
+      "hash": "8ae63cc9dca87e4e5638e6116a5f55c8d87c5bcab5fb00428252acd3ef601841",
+      "recordCount": 533
+    },
+    {
+      "index": 10,
+      "hash": "8ae63cc9dca87e4e5638e6116a5f55c8d87c5bcab5fb00428252acd3ef601841",
+      "recordCount": 533
+    }
+  ],
+  "uniqueHashes": [
+    "8ae63cc9dca87e4e5638e6116a5f55c8d87c5bcab5fb00428252acd3ef601841"
+  ]
+}

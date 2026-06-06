@@ -1,0 +1,14 @@
+{
+  "passed": true,
+  "before": {
+    "app/static/tokens.css": "98033a36eec10578a39f5ca5297ba0f858ae35f9b3308d100bf81ef4bcf23606",
+    "app/static/themes.css": "a93f5d6a786b47f78b8e9772d5e33bf6c92b5877c2b7b2780a887546dc5841c8",
+    "app/static/dashboard-grid.css": "016c5f527aa60946d9d492254687c1c4df2caefe6632e6ad87580c19543dce6a"
+  },
+  "after": {
+    "app/static/tokens.css": "98033a36eec10578a39f5ca5297ba0f858ae35f9b3308d100bf81ef4bcf23606",
+    "app/static/themes.css": "a93f5d6a786b47f78b8e9772d5e33bf6c92b5877c2b7b2780a887546dc5841c8",
+    "app/static/dashboard-grid.css": "016c5f527aa60946d9d492254687c1c4df2caefe6632e6ad87580c19543dce6a"
+  },
+  "note": "No checked-out CSS files were edited by this phase; mutation probes run against temporary app copies."
+}

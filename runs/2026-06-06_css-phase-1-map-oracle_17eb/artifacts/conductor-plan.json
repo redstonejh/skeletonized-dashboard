@@ -1,0 +1,47 @@
+{
+  "task_type": "frontend",
+  "checklist_path": ".codex/checklists/frontend.md",
+  "roles": [
+    "conductor",
+    "planner",
+    "worker",
+    "change_verifier",
+    "a11y_auditor",
+    "critic",
+    "acceptance_gate"
+  ],
+  "caps": {
+    "max_agents": 7,
+    "max_parallel": 3
+  },
+  "role_justifications": {
+    "conductor": "Coordinates the CSS assessment and enforces no-CSS-change gates.",
+    "planner": "Defines CSS region mapping, oracle surfaces, and resistance strategy.",
+    "worker": "Builds the test-only computed-style oracle and writes CSS tangle artifacts.",
+    "change_verifier": "Verifies no CSS rule changes ship and mutation probes are restored.",
+    "a11y_auditor": "Checks the oracle includes accessibility-relevant visual states and controls.",
+    "critic": "Checks determinism, mutation resistance, and zero CSS rule changes.",
+    "acceptance_gate": "Validates delegation proof, artifacts, e2e, verdict, and committed scope."
+  },
+  "orchestration": "Use the frontend-ui-task scaffold for audit artifacts and delegate the frontend-required roles plus the core MAW roles. No CSS rule edits are allowed to ship.",
+  "quality_bar": "Computed-style captures must be deterministic 10/10 and must catch temporary color and spacing CSS mutations before any future CSS consolidation relies on the oracle.",
+  "deterministic_checks": [
+    "python C:/Users/redst/OneDrive/Documents/skeletonized-dashboard-main/maw-tools/delegation_check.py <run_dir>",
+    "python C:/Users/redst/OneDrive/Documents/skeletonized-dashboard-main/maw-tools/plan_check.py --file artifacts/conductor-plan.json",
+    "node tools/computed-style-oracle.js --output artifacts/computed-style-baseline.json --repeat 10",
+    "temporary CSS color and spacing mutation probes must be caught by the oracle, then reverted",
+    "npm.cmd run test:e2e -- --workers=1",
+    "git diff -- app/static/themes.css app/static/dashboard-grid.css app/static/tokens.css must be empty",
+    "python C:/Users/redst/OneDrive/Documents/skeletonized-dashboard-main/maw-tools/validate_handoffs.py <run_dir>",
+    "python C:/Users/redst/OneDrive/Documents/skeletonized-dashboard-main/maw-tools/verdict_check.py <run_dir>"
+  ],
+  "acceptance_criteria": [
+    "artifacts/css-core-map.md covers themes.css and dashboard-grid.css contiguously and 100%.",
+    "artifacts/computed-style-baseline.json records 10/10 deterministic computed-style captures.",
+    "artifacts/css-oracle-resistance.json proves one color and one spacing mutation were caught.",
+    "artifacts/css-consolidation-plan.md ranks future consolidation candidates without changing CSS.",
+    "No CSS file has a committed content diff.",
+    "Full hidden Electron e2e passes.",
+    "Final chat verdict matches artifacts/acceptance-result.json verbatim."
+  ]
+}

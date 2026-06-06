@@ -1,0 +1,5 @@
+{
+    "command":  "git diff --exit-code -- app/static/themes.css app/static/dashboard-grid.css app/static/tokens.css",
+    "note":  "No CSS rule changes shipped; phase changes are test/artifact only.",
+    "passed":  true
+}

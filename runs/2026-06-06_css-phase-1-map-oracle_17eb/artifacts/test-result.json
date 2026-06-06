@@ -1,0 +1,10 @@
+{
+  "passed": true,
+  "commands": [
+    "node electron-tests/css-phase1-oracle.cjs all",
+    "npm.cmd run test:e2e -- --workers=1"
+  ],
+  "e2e_log": "test-result-e2e.log",
+  "computed_style_determinism": "10/10",
+  "resistance": "color and spacing mutations caught"
+}

@@ -1,0 +1,37 @@
+{
+  "schema_version": 1,
+  "verdict": "SHIP",
+  "task": "CSS phase increment 1: map CSS tangle and establish computed-style oracle",
+  "checks": {
+    "delegation_proof": {
+      "passed": true,
+      "artifact": "artifacts/delegation-proof.json"
+    },
+    "plan_check": {
+      "passed": true,
+      "artifact": "artifacts/conductor-plan.json"
+    },
+    "css_core_map": {
+      "passed": true,
+      "artifact": "../../artifacts/css-core-map.md"
+    },
+    "computed_style_baseline": {
+      "passed": true,
+      "artifact": "../../artifacts/computed-style-baseline.json",
+      "repeat": "10/10"
+    },
+    "resistance": {
+      "passed": true,
+      "artifact": "../../artifacts/css-oracle-resistance.json"
+    },
+    "e2e": {
+      "passed": true,
+      "command": "npm.cmd run test:e2e -- --workers=1"
+    },
+    "zero_css_change": {
+      "passed": true,
+      "artifact": "artifacts/css-zero-diff.json"
+    }
+  },
+  "reason": "Read-only CSS phase shipped only test/oracle tooling and artifacts. CSS files remain unchanged, computed-style baseline is deterministic 10/10, and temp-copy color/spacing mutations are caught."
+}

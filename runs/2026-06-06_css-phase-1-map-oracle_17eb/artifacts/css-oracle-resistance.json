@@ -1,0 +1,25 @@
+{
+  "passed": true,
+  "mutations": [
+    {
+      "id": "color-panel-title",
+      "file": "app/static/themes.css",
+      "search": "color: var(--ink-strong);",
+      "replace": "color: rgb(255, 0, 255);",
+      "kind": "color",
+      "baselineHash": "8ae63cc9dca87e4e5638e6116a5f55c8d87c5bcab5fb00428252acd3ef601841",
+      "mutatedHash": "1ab2c5326a58c633b49100f00a180923d37193fb0103b76f69277f131309835c",
+      "caught": true
+    },
+    {
+      "id": "spacing-widget-gap",
+      "file": "app/static/dashboard-grid.css",
+      "search": "--widget-gap: 14px;",
+      "replace": "--widget-gap: 31px;",
+      "kind": "spacing",
+      "baselineHash": "8ae63cc9dca87e4e5638e6116a5f55c8d87c5bcab5fb00428252acd3ef601841",
+      "mutatedHash": "4777629c9026d26de41826299fcbc5776362f29642e2c85ead2bb23c07ed1db5",
+      "caught": true
+    }
+  ]
+}
