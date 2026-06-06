@@ -1,0 +1,8 @@
+{
+    "check":  "cluster_a_resistance",
+    "mutation":  "widget_layout_runtime_initWidget_early_return",
+    "expected_failure":  true,
+    "exit_code":  1,
+    "caught":  true,
+    "log":  "artifacts/cluster-a-resistance-initWidget-noop.log"
+}

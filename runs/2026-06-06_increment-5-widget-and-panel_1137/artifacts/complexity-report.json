@@ -1,0 +1,12 @@
+{
+    "check":  "refactor_complexity",
+    "schema_version":  1,
+    "passed":  true,
+    "functions":  [
+
+                  ],
+    "violations":  [
+
+                   ],
+    "note":  "Body-preserving relocation; no new behavior branches intended."
+}

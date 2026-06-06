@@ -1,0 +1,11 @@
+{
+    "check":  "increment_5_report",
+    "passed":  true,
+    "cluster_a":  "SHIP",
+    "cluster_b":  "resident-deferred",
+    "cluster_b_reason":  "Panel lifecycle not attempted in this commit; prior panel-tool-session state resistance remained blind in runs/2026-06-06_resume-fixed-point-extraction-panel_0404.",
+    "app_js":  {
+                   "before":  3874,
+                   "after":  3533
+               }
+}

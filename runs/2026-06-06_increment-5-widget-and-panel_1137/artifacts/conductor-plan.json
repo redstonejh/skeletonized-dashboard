@@ -1,0 +1,32 @@
+{
+    "task_type":  "refactor-task",
+    "checklist":  ".codex/checklists/refactor.md",
+    "roles":  [
+                  "conductor",
+                  "planner",
+                  "worker",
+                  "critic",
+                  "acceptance_gate"
+              ],
+    "caps":  {
+                 "max_agents":  5,
+                 "max_parallel":  3,
+                 "max_iters":  3
+             },
+    "parallel_roles":  [
+                           "planner",
+                           "worker",
+                           "critic"
+                       ],
+    "role_justifications":  {
+                                "conductor":  "gates increment 5 and records delegation",
+                                "planner":  "classifies widget lifecycle coupling",
+                                "worker":  "implements or identifies blocker",
+                                "critic":  "checks canary/resistance and init order",
+                                "acceptance_gate":  "validates SHIP/NO-SHIP artifacts"
+                            },
+    "sequence":  [
+                     "Cluster A widget-layout-lifecycle first",
+                     "Cluster B panel-layout-lifecycle only if A ships"
+                 ]
+}

@@ -1,0 +1,38 @@
+{
+    "check":  "refactor_resistance",
+    "schema_version":  1,
+    "passed":  true,
+    "clean":  {
+                  "passed":  true,
+                  "checks":  [
+                                 "cluster A post e2e",
+                                 "cluster A hidden e2e 10x"
+                             ]
+              },
+    "mutations":  [
+                      {
+                          "name":  "widget_layout_runtime_initWidget_early_return",
+                          "log":  "artifacts/cluster-a-resistance-initWidget-noop.log",
+                          "failed_checks":  [
+                                                "widget resize-snap / widget tools / runtime content canaries"
+                                            ],
+                          "caught":  true,
+                          "mutant_passed":  false,
+                          "planted":  true
+                      },
+                      {
+                          "name":  "app_js_initWidget_early_return_precheck",
+                          "log":  "artifacts/oracle-precheck-initWidget-noop.log",
+                          "failed_checks":  [
+                                                "widget precheck canaries"
+                                            ],
+                          "caught":  true,
+                          "mutant_passed":  false,
+                          "planted":  true
+                      }
+                  ],
+    "summary":  {
+                    "total":  2,
+                    "caught":  2
+                }
+}

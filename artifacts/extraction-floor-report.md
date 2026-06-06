@@ -96,11 +96,25 @@ The floor moved at the widget state-spine layer, not the widget lifecycle body. 
 - Full canary suite: 10/10 green
 - MAW run: `runs/2026-06-06_fixed-point-extraction-widget-tool_22eb`
 
+## 2026-06-06 Increment 5A Widget Layout Lifecycle Runtime Shipped
+
+The floor moved for widget lifecycle ownership. `initWidgetLayout` and its nested `initWidget` body now live in `app/static/modules/widget-layout-runtime.js`, bound to the existing widget tool-session spine, widget hydration module, and widget action/move/resize runtimes. `app.js` still constructs `initWidgetLayout` before `initializePanelRuntimes`, so panel runtime setup and panel internal widget-grid hydration receive the same callback in the same order.
+
+- Completed cluster: `widget-layout-lifecycle`
+- `app/static/app.js` line count before this increment: 3874
+- `app/static/app.js` line count after this increment: 3533
+- New runtime API: `createWidgetLayoutRuntime(deps)` returns `{ initWidgetLayout }`
+- Compatibility preserved: `layout.__initWidget = initWidget`; `widget.__saveWidgetLayout = () => saveWidgetLayouts(layout)`
+- Resistance: `initWidget` early-return mutation was caught before extraction and after the body moved
+- Full hidden canary suite: 10/10 green
+- Scope note: `panel-layout-lifecycle` remains deferred; no panel lifecycle body move shipped in this cluster
+- MAW run: `runs/2026-06-06_increment-5-widget-and-panel_1137`
+
 ## Current State
 
-- `app/static/app.js` line count: 3874
-- `app/static/modules/*.js` count: 61
-- `app/static/app.js` SHA256: `4F31793B3DD95A3F3A0499AC17AF1D24EDB1810AA20EC3B5D72FADEE79FE2156`
+- `app/static/app.js` line count: 3533
+- `app/static/modules/*.js` count: 62
+- `app/static/app.js` SHA256: `6910B851143D6DDD4F388C2172B0F207DCFB96F48E70F40A195150A16DDDB26B`
 - Core coverage artifact: `artifacts/app-core-map.md`
 - Deferred cluster artifact: `artifacts/deferred-extractions.md`
 

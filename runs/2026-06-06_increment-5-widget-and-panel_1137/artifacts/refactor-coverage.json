@@ -1,0 +1,28 @@
+{
+    "check":  "refactor_coverage",
+    "passed":  true,
+    "status":  "passed",
+    "schema_version":  1,
+    "changed_files":  [
+                          "app/static/app.js",
+                          "app/static/modules/widget-layout-runtime.js",
+                          "artifacts/deferred-extractions.md",
+                          "artifacts/extraction-floor-report.md"
+                      ],
+    "canaries":  [
+                     "widget resize-snap",
+                     "widget tools init",
+                     "widget runtime content and meaning",
+                     "ordered drag",
+                     "body-zone absorption",
+                     "save reload"
+                 ],
+    "repeat":  {
+                   "iterations":  10,
+                   "passed":  true,
+                   "artifact":  "artifacts/cluster-a-hidden-e2e-10x.json"
+               },
+    "violations":  [
+
+                   ]
+}

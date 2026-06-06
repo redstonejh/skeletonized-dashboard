@@ -1,0 +1,22 @@
+{
+    "check":  "api_surface_diff",
+    "passed":  true,
+    "status":  "passed",
+    "schema_version":  1,
+    "public_exports":  {
+                           "changed":  true,
+                           "added":  [
+                                         "createWidgetLayoutRuntime"
+                                     ]
+                       },
+    "additions":  [
+                      "app/static/modules/widget-layout-runtime.js:createWidgetLayoutRuntime(deps)"
+                  ],
+    "removals":  [
+
+                 ],
+    "violations":  [
+
+                   ],
+    "note":  "New internal module API; no public renderer/global API removed."
+}

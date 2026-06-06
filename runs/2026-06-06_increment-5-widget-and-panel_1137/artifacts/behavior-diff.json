@@ -1,0 +1,21 @@
+{
+    "check":  "behavior_diff",
+    "passed":  true,
+    "status":  "passed",
+    "schema_version":  1,
+    "comparisons":  [
+                        {
+                            "name":  "cluster_a_post_e2e",
+                            "artifact":  "artifacts/cluster-a-post-e2e.json",
+                            "passed":  true
+                        },
+                        {
+                            "name":  "cluster_a_hidden_e2e_10x",
+                            "artifact":  "artifacts/cluster-a-hidden-e2e-10x.json",
+                            "passed":  true
+                        }
+                    ],
+    "violations":  [
+
+                   ]
+}

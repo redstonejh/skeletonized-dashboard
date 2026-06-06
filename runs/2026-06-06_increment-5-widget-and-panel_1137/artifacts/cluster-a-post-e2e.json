@@ -1,0 +1,7 @@
+{
+    "check":  "cluster_a_post_e2e",
+    "passed":  true,
+    "exit_code":  0,
+    "command":  "npm.cmd run test:e2e -- --workers=1",
+    "log":  "artifacts/cluster-a-post-e2e.log"
+}

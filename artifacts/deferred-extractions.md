@@ -48,12 +48,13 @@ The remaining `app/static/app.js` core is init-order-sensitive and still owns li
 - Outcome: `createWidgetToolSession` now owns the remaining widget tool suppression and hover-close flags. `app.js` still owns the widget lifecycle body and only reads/writes those flags through the interaction-state API.
 - Proof: hardened the widget tools-init canary to assert action-close suppression blocks immediate hover reopen; a `setSuppressToolOpenUntil` no-op mutation was caught; full Electron suite 10/10 green.
 
-## widget-layout-lifecycle
+### widget-layout-lifecycle
 
 - Cluster/symbol + file:line: `initWidgetLayout` and nested `initWidget`, `app/static/app.js:3380-3889`
-- Why deferred: the remaining lifecycle body still spans widget tool chrome, workbench/color menu portals, runtime-control rebinding, move, resize, delete, and persistence bindings. The suppression and hover-close flags now live in `createWidgetToolSession`, but the body move still needs a lifecycle boundary that preserves init order around `ensureWidgetTools`, workbench creation, and move/resize binding.
-- KEEP interaction entangled: widget recolor/rename/pin/delete, widget settings workbench, widget drag, widget resize, panel-internal widget move/resize, save/load persistence.
-- Needed to finish safely: move the widget lifecycle body only after classifying the remaining workbench/color-menu portal handles and runtime-control rebinding as bind-existing, move-with-body, or keep-as-param.
+- Completed in MAW run: `runs/2026-06-06_increment-5-widget-and-panel_1137`
+- Outcome: `initWidgetLayout` and nested `initWidget` now live in `app/static/modules/widget-layout-runtime.js`. `app.js` constructs the runtime before `initializePanelRuntimes`, preserving the load-bearing order where panel runtimes receive a valid `initWidgetLayout` callback before panel hydration initializes internal widget grids.
+- API: `createWidgetLayoutRuntime(deps)` returns `{ initWidgetLayout }`; existing `layout.__initWidget = initWidget` and `widget.__saveWidgetLayout = () => saveWidgetLayouts(layout)` compatibility hooks are preserved.
+- Proof: `initWidget` early-return mutation was caught before extraction and again after the body moved; full hidden Electron suite passed 10/10 after extraction.
 
 ## panel-layout-lifecycle
 

@@ -1,0 +1,8 @@
+{
+    "check":  "oracle_precheck_initWidget_noop",
+    "mutation":  "initWidget_early_return",
+    "expected_failure":  true,
+    "exit_code":  1,
+    "caught":  true,
+    "log":  "artifacts/oracle-precheck-initWidget-noop.log"
+}

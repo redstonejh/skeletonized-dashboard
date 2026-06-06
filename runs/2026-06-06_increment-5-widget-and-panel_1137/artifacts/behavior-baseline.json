@@ -1,0 +1,22 @@
+{
+    "check":  "behavior_baseline",
+    "passed":  true,
+    "metadata":  {
+                     "captured_at_epoch":  1780768854,
+                     "source_paths":  [
+                                          "app/static/app.js",
+                                          "app/static/modules/widget-layout-runtime.js",
+                                          "artifacts/deferred-extractions.md",
+                                          "artifacts/extraction-floor-report.md"
+                                      ],
+                     "captures":  1,
+                     "command":  "npm.cmd run test:e2e -- --workers=1",
+                     "log":  "artifacts/pre-edit-e2e.log"
+                 },
+    "items":  [
+                  {
+                      "name":  "pre_edit_hidden_e2e",
+                      "passed":  true
+                  }
+              ]
+}
