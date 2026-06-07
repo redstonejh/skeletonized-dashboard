@@ -1,0 +1,8 @@
+{
+  "schema_version": 1,
+  "passed": true,
+  "command": "npm.cmd run test:e2e -- --workers=1",
+  "result": "13 passed (48.7s)",
+  "output": "artifacts/e2e-output-final.txt",
+  "canary_policy": "CSS-only material change; interaction canaries run once, not 10x."
+}

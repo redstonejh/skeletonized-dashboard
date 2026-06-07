@@ -1,0 +1,13 @@
+{
+  "schema_version": 1,
+  "passed": true,
+  "changed_files_scope": [
+    "app/static/dashboard-grid.css fixed panel empty-state glass material",
+    "electron-tests/dashboard-electron.spec.js object material invariance oracle",
+    "MAW run artifacts"
+  ],
+  "dependency_changes": false,
+  "electron_changes": false,
+  "photo_background_logic_changed": false,
+  "interaction_timing_code_changed": false
+}

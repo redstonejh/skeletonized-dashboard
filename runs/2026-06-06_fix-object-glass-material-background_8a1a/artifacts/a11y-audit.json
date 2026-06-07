@@ -1,0 +1,9 @@
+{
+  "schema_version": 1,
+  "passed": true,
+  "notes": [
+    "No new markup was added in this material-only change.",
+    "Backdrop-filter blur remains intact on representative object glass material; e2e oracle asserts at least one object material includes blur.",
+    "Known pre-existing static a11y warnings in index.html are unrelated to this CSS-only material change."
+  ]
+}

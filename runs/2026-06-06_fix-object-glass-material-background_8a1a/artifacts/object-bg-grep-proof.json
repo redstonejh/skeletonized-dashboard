@@ -1,0 +1,7 @@
+{
+    "schema_version":  1,
+    "passed":  true,
+    "object_surface_bg_refs_after":  0,
+    "command":  "Select-String app/static/dashboard-grid.css -Pattern var\\\\(--bg(?:-end)?\\\\b",
+    "allowed_uses":  "base.css html/body backdrop, themes.css html/body backdrop, background-tone-dot preview"
+}

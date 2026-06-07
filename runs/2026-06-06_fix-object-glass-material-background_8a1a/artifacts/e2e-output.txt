@@ -1,0 +1,19 @@
+﻿
+> configurable-dashboard-gui-electron@1.0.0 test:e2e
+> playwright test electron-tests/dashboard-electron.spec.js --workers=1
+
+
+Running 13 tests using 1 worker
+
+  ✓   1 electron-tests\dashboard-electron.spec.js:238:1 › electron GUI boots without server APIs and preserves core customization (6.0s)
+  ✓   2 electron-tests\dashboard-electron.spec.js:299:1 › electron GUI applies derived background presets, custom color, persistence, undo, and photos (4.9s)
+  ✓   3 electron-tests\dashboard-electron.spec.js:357:1 › electron GUI keeps object glass material independent from workspace background tokens (4.6s)
+  ✓   4 electron-tests\dashboard-electron.spec.js:434:1 › electron GUI keeps drag and resize handlers active (13.8s)
+  ✓   5 electron-tests\dashboard-electron.spec.js:502:1 › electron GUI keeps select-mode multi-resize deterministic (13.5s)
+  ✓   6 electron-tests\dashboard-electron.spec.js:572:1 › electron GUI keeps widget resize-snap deterministic (13.4s)
+  ✓   7 electron-tests\dashboard-electron.spec.js:610:1 › electron GUI restores widget tools through init (13.3s)
+  ✓   8 electron-tests\dashboard-electron.spec.js:638:1 › electron GUI commits widget runtime content and meaning across reload (15.4s)
+  ✓   9 electron-tests\dashboard-electron.spec.js:685:1 › electron GUI clears stale conditional style state on widget render (16.4s)
+  ✓  10 electron-tests\dashboard-electron.spec.js:758:1 › electron GUI keeps widget runtime content, tools, and resize ready after render and reload (12.8s)
+  ✓  11 electron-tests\dashboard-electron.spec.js:834:1 › electron GUI keeps ordered drag commit, ghost, collision, and edge scroll deterministic (4.7s)
+

@@ -1,0 +1,14 @@
+{
+  "verdict": "SHIP",
+  "passed": true,
+  "checks": {
+    "audit": "artifacts/object-bg-reference-audit.json: object-surface refs 3 -> 0; allowed backdrop/preview refs remain.",
+    "grep": "artifacts/object-bg-grep-proof.json: dashboard-grid.css has zero var(--bg*) references.",
+    "object_invariance": "electron GUI keeps object glass material independent from workspace background tokens passed in full e2e.",
+    "e2e": "npm.cmd run test:e2e -- --workers=1 passed 13/13 once.",
+    "background_selection": "existing derived preset/custom/photo e2e passed in same full run.",
+    "blur_intact": "object invariance e2e asserts a representative object backdropFilter includes blur.",
+    "delegation": "artifacts/delegation-proof.json passes delegation_check.py.",
+    "fingerprint_parity": "Not applied; visual material change is intentional."
+  }
+}

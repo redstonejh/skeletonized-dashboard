@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "task_type": "frontend-ui-task",
+  "checklist_path": "C:/Users/redst/OneDrive/Documents/skeletonized-dashboard-main/.codex/checklists/frontend.md",
+  "roles": ["conductor", "planner", "worker", "change_verifier", "a11y_auditor", "critic", "acceptance_gate"],
+  "caps": { "max_agents": 7, "max_parallel": 3, "max_iters": 3 },
+  "hard_gates": [
+    "Object surfaces must not reference var(--bg) or var(--bg-end).",
+    "Backdrop and preview controls may still reference --bg/--bg-end.",
+    "Representative object computed material is invariant across two background colors.",
+    "CSS material visual change is intentional; no fingerprint parity gate.",
+    "Full e2e/canaries run once and pass.",
+    "No dependency or Electron changes."
+  ]
+}

@@ -1,0 +1,6 @@
+{
+  "schema_version": 1,
+  "passed": true,
+  "perf_intent": false,
+  "reason": "CSS material token replacement only; no scheduling, JS interaction timing, dependency, or perf optimization changes."
+}

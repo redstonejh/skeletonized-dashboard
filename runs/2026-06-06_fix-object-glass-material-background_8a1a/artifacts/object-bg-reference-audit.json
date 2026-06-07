@@ -1,0 +1,120 @@
+{
+    "schema_version":  1,
+    "source":  "Select-String over app/static/*.css for var(--bg) and var(--bg-end)",
+    "before_counts":  {
+                          "total":  9,
+                          "object_surface":  3,
+                          "keep":  6
+                      },
+    "entries":  [
+                    {
+                        "action":  "KEEP",
+                        "line":  9,
+                        "usage":  "--page-background: linear-gradient(... var(--bg) ... var(--bg-end) ...)",
+                        "reason":  "Document backdrop background formula.",
+                        "classification":  "backdrop",
+                        "file":  "app/static/base.css"
+                    },
+                    {
+                        "action":  "KEEP",
+                        "line":  13,
+                        "usage":  "html background-color: var(--bg)",
+                        "reason":  "Document backdrop fallback color.",
+                        "classification":  "backdrop",
+                        "file":  "app/static/base.css"
+                    },
+                    {
+                        "action":  "KEEP",
+                        "line":  21,
+                        "usage":  "body background-color: var(--bg)",
+                        "reason":  "Document backdrop fallback color.",
+                        "classification":  "backdrop",
+                        "file":  "app/static/base.css"
+                    },
+                    {
+                        "action":  "KEEP",
+                        "line":  1826,
+                        "usage":  "html background-color: var(--bg) !important",
+                        "reason":  "Workspace polish layer for root backdrop.",
+                        "classification":  "backdrop",
+                        "file":  "app/static/themes.css"
+                    },
+                    {
+                        "action":  "KEEP",
+                        "line":  1829,
+                        "usage":  "body background-color: var(--bg) !important",
+                        "reason":  "Workspace polish layer for root backdrop.",
+                        "classification":  "backdrop",
+                        "file":  "app/static/themes.css"
+                    },
+                    {
+                        "action":  "KEEP",
+                        "line":  2059,
+                        "usage":  ".background-tone-dot background: linear-gradient(... var(--bg), var(--bg-end) ...)",
+                        "reason":  "Background selector trigger preview.",
+                        "classification":  "preview-control",
+                        "file":  "app/static/themes.css"
+                    },
+                    {
+                        "action":  "STRIP",
+                        "line":  2363,
+                        "usage":  ".db-panel-body \u003e .panel-empty-state background gradient uses var(--bg-end, var(--bg)) and var(--bg)",
+                        "reason":  "Panel empty state is an object glass surface.",
+                        "classification":  "object-surface",
+                        "file":  "app/static/dashboard-grid.css"
+                    },
+                    {
+                        "action":  "STRIP",
+                        "line":  2364,
+                        "usage":  ".db-panel-body \u003e .panel-empty-state base color uses var(--bg)",
+                        "reason":  "Panel empty state is an object glass surface.",
+                        "classification":  "object-surface",
+                        "file":  "app/static/dashboard-grid.css"
+                    },
+                    {
+                        "action":  "STRIP",
+                        "line":  2390,
+                        "usage":  ".panel-empty-action background uses var(--bg-end, var(--bg))",
+                        "reason":  "Panel empty action is an object glass surface.",
+                        "classification":  "object-surface",
+                        "file":  "app/static/dashboard-grid.css"
+                    }
+                ],
+    "after_counts":  {
+                         "total_remaining":  6,
+                         "object_surface_remaining":  0,
+                         "allowed_remaining":  6
+                     },
+    "remaining_references":  [
+                                 {
+                                     "file":  "app\\static\\base.css",
+                                     "line":  9,
+                                     "text":  "--page-background: linear-gradient(180deg, var(--bg) 0%, var(--bg-end, var(--bg)) 100%);"
+                                 },
+                                 {
+                                     "file":  "app\\static\\base.css",
+                                     "line":  13,
+                                     "text":  "background-color: var(--bg);"
+                                 },
+                                 {
+                                     "file":  "app\\static\\base.css",
+                                     "line":  21,
+                                     "text":  "background-color: var(--bg);"
+                                 },
+                                 {
+                                     "file":  "app\\static\\themes.css",
+                                     "line":  1826,
+                                     "text":  "background-color: var(--bg) !important;"
+                                 },
+                                 {
+                                     "file":  "app\\static\\themes.css",
+                                     "line":  1829,
+                                     "text":  "background-color: var(--bg) !important;"
+                                 },
+                                 {
+                                     "file":  "app\\static\\themes.css",
+                                     "line":  2059,
+                                     "text":  "background: linear-gradient(135deg, var(--bg), var(--bg-end, var(--surface-soft)));"
+                                 }
+                             ]
+}

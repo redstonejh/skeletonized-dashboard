@@ -1,0 +1,12 @@
+﻿
+> configurable-dashboard-gui-electron@1.0.0 test:e2e
+> playwright test electron-tests/dashboard-electron.spec.js --workers=1 --grep absorbs|ordered grid item
+
+
+Running 2 tests using 1 worker
+
+  ✓  1 electron-tests\dashboard-electron.spec.js:924:1 › electron GUI absorbs a workspace widget through the panel body zone (4.2s)
+  ✓  2 electron-tests\dashboard-electron.spec.js:1007:1 › ordered grid item runtime preserves query semantics (1.9s)
+
+  2 passed (6.5s)
+

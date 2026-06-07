@@ -354,6 +354,89 @@ test("electron GUI applies derived background presets, custom color, persistence
   await closeApp(app);
 });
 
+test("electron GUI keeps object glass material independent from workspace background tokens", async () => {
+  const { app, page } = await launchApp();
+  const dashboardGridCss = fs.readFileSync(path.join(__dirname, "..", "app", "static", "dashboard-grid.css"), "utf8");
+  expect(dashboardGridCss).not.toMatch(/var\(--bg(?:-end)?\b/);
+
+  await page.locator(".background-tone-trigger").click({ force: true });
+  const before = await page.evaluate(() => {
+    const selectors = [
+      ".db-panel",
+      ".widget-card",
+      ".background-tone-popover",
+      ".db-panel-body > .panel-empty-state",
+      ".db-panel-body > .panel-empty-state .panel-empty-action",
+    ];
+    const snapshotFor = (selector) => {
+      const node = document.querySelector(selector);
+      if (!node) return null;
+      const styles = getComputedStyle(node);
+      return {
+        selector,
+        background: styles.background,
+        backgroundColor: styles.backgroundColor,
+        backgroundImage: styles.backgroundImage,
+        borderColor: styles.borderColor,
+        boxShadow: styles.boxShadow,
+        backdropFilter: styles.backdropFilter || styles.webkitBackdropFilter || "",
+      };
+    };
+    const objects = selectors.map(snapshotFor).filter(Boolean);
+    return {
+      bodyBackground: getComputedStyle(document.body).backgroundImage,
+      tonePreview: getComputedStyle(document.querySelector(".background-tone-dot")).backgroundImage,
+      missing: selectors.filter((selector) => !objects.some((item) => item.selector === selector)),
+      objects,
+    };
+  });
+
+  await page.evaluate(() => {
+    document.documentElement.style.setProperty("--bg", "rgb(1, 2, 3)");
+    document.documentElement.style.setProperty("--bg-end", "rgb(250, 240, 10)");
+  });
+  await page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+
+  const after = await page.evaluate(() => {
+    const selectors = [
+      ".db-panel",
+      ".widget-card",
+      ".background-tone-popover",
+      ".db-panel-body > .panel-empty-state",
+      ".db-panel-body > .panel-empty-state .panel-empty-action",
+    ];
+    const snapshotFor = (selector) => {
+      const node = document.querySelector(selector);
+      if (!node) return null;
+      const styles = getComputedStyle(node);
+      return {
+        selector,
+        background: styles.background,
+        backgroundColor: styles.backgroundColor,
+        backgroundImage: styles.backgroundImage,
+        borderColor: styles.borderColor,
+        boxShadow: styles.boxShadow,
+        backdropFilter: styles.backdropFilter || styles.webkitBackdropFilter || "",
+      };
+    };
+    const objects = selectors.map(snapshotFor).filter(Boolean);
+    return {
+      bodyBackground: getComputedStyle(document.body).backgroundImage,
+      tonePreview: getComputedStyle(document.querySelector(".background-tone-dot")).backgroundImage,
+      missing: selectors.filter((selector) => !objects.some((item) => item.selector === selector)),
+      objects,
+    };
+  });
+
+  expect(before.missing).toEqual([]);
+  expect(after.missing).toEqual([]);
+  expect(after.bodyBackground).not.toBe(before.bodyBackground);
+  expect(after.tonePreview).not.toBe(before.tonePreview);
+  expect(after.objects).toEqual(before.objects);
+  expect(after.objects.some((item) => item.backdropFilter.includes("blur"))).toBe(true);
+  await closeApp(app);
+});
+
 test("electron GUI keeps drag and resize handlers active", async () => {
   const { app, page } = await launchApp();
   const panel = await openTools(page, '.panel-layout > .db-panel[data-panel-key="builder-notes"]');
