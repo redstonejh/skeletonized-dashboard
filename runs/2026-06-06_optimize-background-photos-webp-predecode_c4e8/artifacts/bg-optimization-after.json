@@ -1,0 +1,222 @@
+{
+  "format": "webp",
+  "target_viewport": {
+    "width": 2560,
+    "height": 1440
+  },
+  "quality": 82,
+  "image_count": 26,
+  "total_bytes": 24617914,
+  "total_mb": 23.477,
+  "total_megapixels": 198.942,
+  "images": [
+    {
+      "path": "app/static/backgrounds/abstract/paint.webp",
+      "width": 2560,
+      "height": 3840,
+      "megapixels": 9.83,
+      "bytes": 386134,
+      "mb": 0.368
+    },
+    {
+      "path": "app/static/backgrounds/abstract/paintspill.webp",
+      "width": 2560,
+      "height": 3840,
+      "megapixels": 9.83,
+      "bytes": 483026,
+      "mb": 0.461
+    },
+    {
+      "path": "app/static/backgrounds/nature/bark.webp",
+      "width": 2000,
+      "height": 3000,
+      "megapixels": 6.0,
+      "bytes": 1780198,
+      "mb": 1.698
+    },
+    {
+      "path": "app/static/backgrounds/nature/cloud.webp",
+      "width": 2560,
+      "height": 3840,
+      "megapixels": 9.83,
+      "bytes": 236490,
+      "mb": 0.226
+    },
+    {
+      "path": "app/static/backgrounds/nature/jungle.webp",
+      "width": 2560,
+      "height": 3838,
+      "megapixels": 9.825,
+      "bytes": 1924474,
+      "mb": 1.835
+    },
+    {
+      "path": "app/static/backgrounds/nature/moss.webp",
+      "width": 2560,
+      "height": 3840,
+      "megapixels": 9.83,
+      "bytes": 1043986,
+      "mb": 0.996
+    },
+    {
+      "path": "app/static/backgrounds/nature/sand.webp",
+      "width": 2448,
+      "height": 3264,
+      "megapixels": 7.99,
+      "bytes": 2034760,
+      "mb": 1.94
+    },
+    {
+      "path": "app/static/backgrounds/nature/shore.webp",
+      "width": 2560,
+      "height": 4556,
+      "megapixels": 11.663,
+      "bytes": 875070,
+      "mb": 0.835
+    },
+    {
+      "path": "app/static/backgrounds/nature/turf.webp",
+      "width": 2560,
+      "height": 1440,
+      "megapixels": 3.686,
+      "bytes": 1530122,
+      "mb": 1.459
+    },
+    {
+      "path": "app/static/backgrounds/nature/water.webp",
+      "width": 2246,
+      "height": 3992,
+      "megapixels": 8.966,
+      "bytes": 1345466,
+      "mb": 1.283
+    },
+    {
+      "path": "app/static/backgrounds/nature/water2.webp",
+      "width": 1600,
+      "height": 2399,
+      "megapixels": 3.838,
+      "bytes": 225548,
+      "mb": 0.215
+    },
+    {
+      "path": "app/static/backgrounds/space/earth.webp",
+      "width": 2560,
+      "height": 1920,
+      "megapixels": 4.915,
+      "bytes": 218388,
+      "mb": 0.208
+    },
+    {
+      "path": "app/static/backgrounds/space/jupiter.webp",
+      "width": 2560,
+      "height": 1463,
+      "megapixels": 3.745,
+      "bytes": 87704,
+      "mb": 0.084
+    },
+    {
+      "path": "app/static/backgrounds/space/mars.webp",
+      "width": 2560,
+      "height": 3200,
+      "megapixels": 8.192,
+      "bytes": 178994,
+      "mb": 0.171
+    },
+    {
+      "path": "app/static/backgrounds/space/mercury.webp",
+      "width": 2560,
+      "height": 1440,
+      "megapixels": 3.686,
+      "bytes": 231316,
+      "mb": 0.221
+    },
+    {
+      "path": "app/static/backgrounds/space/neptune.webp",
+      "width": 2560,
+      "height": 1920,
+      "megapixels": 4.915,
+      "bytes": 58210,
+      "mb": 0.056
+    },
+    {
+      "path": "app/static/backgrounds/space/pluto.webp",
+      "width": 2560,
+      "height": 1919,
+      "megapixels": 4.913,
+      "bytes": 70670,
+      "mb": 0.067
+    },
+    {
+      "path": "app/static/backgrounds/space/saturn.webp",
+      "width": 2560,
+      "height": 1920,
+      "megapixels": 4.915,
+      "bytes": 40706,
+      "mb": 0.039
+    },
+    {
+      "path": "app/static/backgrounds/space/uranus.webp",
+      "width": 2560,
+      "height": 1920,
+      "megapixels": 4.915,
+      "bytes": 58210,
+      "mb": 0.056
+    },
+    {
+      "path": "app/static/backgrounds/space/venus.webp",
+      "width": 2560,
+      "height": 2560,
+      "megapixels": 6.554,
+      "bytes": 238996,
+      "mb": 0.228
+    },
+    {
+      "path": "app/static/backgrounds/textures/denim.webp",
+      "width": 2560,
+      "height": 4086,
+      "megapixels": 10.46,
+      "bytes": 1642352,
+      "mb": 1.566
+    },
+    {
+      "path": "app/static/backgrounds/textures/leather.webp",
+      "width": 2560,
+      "height": 3871,
+      "megapixels": 9.91,
+      "bytes": 2485522,
+      "mb": 2.37
+    },
+    {
+      "path": "app/static/backgrounds/textures/marble.webp",
+      "width": 2560,
+      "height": 4312,
+      "megapixels": 11.039,
+      "bytes": 1443306,
+      "mb": 1.376
+    },
+    {
+      "path": "app/static/backgrounds/textures/texture.webp",
+      "width": 2560,
+      "height": 3840,
+      "megapixels": 9.83,
+      "bytes": 2794266,
+      "mb": 2.665
+    },
+    {
+      "path": "app/static/backgrounds/urban/city.webp",
+      "width": 2560,
+      "height": 3840,
+      "megapixels": 9.83,
+      "bytes": 557552,
+      "mb": 0.532
+    },
+    {
+      "path": "app/static/backgrounds/urban/modern.webp",
+      "width": 2560,
+      "height": 3840,
+      "megapixels": 9.83,
+      "bytes": 2646448,
+      "mb": 2.524
+    }
+  ]
+}

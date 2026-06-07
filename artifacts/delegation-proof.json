@@ -1,0 +1,46 @@
+{
+  "schema_version": 1,
+  "delegation_capability": {
+    "available": true,
+    "primitive": "multi_agent_v1.spawn_agent"
+  },
+  "selected_roles": [
+    "conductor",
+    "planner",
+    "worker",
+    "critic",
+    "acceptance_gate",
+    "change_verifier",
+    "a11y_auditor"
+  ],
+  "roles": {
+    "conductor": {
+      "agent_id": "019ea007-e96a-75a0-bccd-97be2842f8bf",
+      "role_prompt_path": ".codex/agents/conductor.md"
+    },
+    "planner": {
+      "agent_id": "019ea007-ffe4-7651-9d9f-1eb7a6214156",
+      "role_prompt_path": ".codex/agents/planner.md"
+    },
+    "worker": {
+      "agent_id": "019ea008-1d4a-7da0-811f-3062a0d3de6a",
+      "role_prompt_path": ".codex/agents/worker.md"
+    },
+    "critic": {
+      "agent_id": "019ea008-4c7a-7d81-a372-2a4817f9c708",
+      "role_prompt_path": ".codex/agents/critic.md"
+    },
+    "acceptance_gate": {
+      "agent_id": "019ea008-a35b-76c3-a044-1bc94fc276ef",
+      "role_prompt_path": ".codex/agents/acceptance_gate.md"
+    },
+    "change_verifier": {
+      "agent_id": "019ea008-3990-7120-83b6-281a1ee8e58e",
+      "role_prompt_path": ".codex/agents/change_verifier.md"
+    },
+    "a11y_auditor": {
+      "agent_id": "019ea008-8f32-7f12-b57f-143337d992e0",
+      "role_prompt_path": ".codex/agents/a11y_auditor.md"
+    }
+  }
+}

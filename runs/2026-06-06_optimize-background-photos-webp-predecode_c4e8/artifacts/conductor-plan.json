@@ -1,0 +1,38 @@
+{
+  "schema_version": 1,
+  "task_type": "frontend-ui-task",
+  "objective": "Optimize background photos to display-cover WebP assets and pre-decode selected image backgrounds before swapping.",
+  "roles": [
+    "conductor",
+    "planner",
+    "worker",
+    "critic",
+    "acceptance_gate",
+    "change_verifier",
+    "a11y_auditor"
+  ],
+  "parallel_roles": [
+    "worker",
+    "critic",
+    "change_verifier",
+    "a11y_auditor"
+  ],
+  "caps": {
+    "max_agents": 7,
+    "max_parallel": 4,
+    "max_iters": 3
+  },
+  "role_justifications": {
+    "change_verifier": "Verify the asset conversion, runtime references, and scoped product/test changes.",
+    "a11y_auditor": "Review photo/downscale visual accessibility risks and ensure no adjacent a11y regression is hidden."
+  },
+  "acceptance": [
+    "WebP assets replace JPEG backgrounds with material size reduction and no upscaling.",
+    "Photo background switch pre-decodes selected assets and falls back without blocking if decode stalls.",
+    "Every photo option selects and renders a decodable WebP.",
+    "perf-theme-switch improves p95 and long tasks against artifacts/perf-theme-baseline.json at 30 and 100 objects.",
+    "npm.cmd run test:e2e -- --workers=1 passes.",
+    "Interaction canary subset passes 10/10 via Playwright repeat-each.",
+    "Delegation proof and verdict check pass."
+  ]
+}

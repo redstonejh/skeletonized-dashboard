@@ -1,0 +1,52 @@
+{
+  "against_perf_theme_baseline": {
+    "30": {
+      "p95_before": 270.1,
+      "p95_after": 0,
+      "p95_delta": -270.1,
+      "long_tasks_before": 6,
+      "long_tasks_after": 1,
+      "long_tasks_delta": -5,
+      "duration_before": 2733,
+      "duration_after": 750,
+      "duration_delta": -1983
+    },
+    "100": {
+      "p95_before": 10.5,
+      "p95_after": 0,
+      "p95_delta": -10.5,
+      "long_tasks_before": 10,
+      "long_tasks_after": 3,
+      "long_tasks_delta": -7,
+      "duration_before": 6218,
+      "duration_after": 881,
+      "duration_delta": -5337
+    }
+  },
+  "against_task_before": {
+    "30": {
+      "p95_before": 0,
+      "p95_after": 0,
+      "p95_delta": 0,
+      "long_tasks_before": 2,
+      "long_tasks_after": 1,
+      "long_tasks_delta": -1,
+      "duration_before": 999,
+      "duration_after": 750,
+      "duration_delta": -249
+    },
+    "100": {
+      "p95_before": 0,
+      "p95_after": 0,
+      "p95_delta": 0,
+      "long_tasks_before": 3,
+      "long_tasks_after": 3,
+      "long_tasks_delta": 0,
+      "duration_before": 1124,
+      "duration_after": 881,
+      "duration_delta": -243
+    }
+  },
+  "passed": true,
+  "note": "p95/long-task gate is evaluated against artifacts/perf-theme-baseline.json; task before capture is included for transparency."
+}

@@ -1,0 +1,518 @@
+{
+  "schema_version": 1,
+  "target_viewport": {
+    "width": 2560,
+    "height": 1440
+  },
+  "image_count": 26,
+  "total_bytes": 83352316,
+  "total_mb": 79.49,
+  "total_megapixels": 584.5,
+  "images": [
+    {
+      "path": "app/static/backgrounds/abstract/paint.jpg",
+      "format": "jpg",
+      "width": 4000,
+      "height": 6000,
+      "megapixels": 24.0,
+      "bytes": 2161319,
+      "mb": 2.06
+    },
+    {
+      "path": "app/static/backgrounds/abstract/paintspill.jpg",
+      "format": "jpg",
+      "width": 3000,
+      "height": 4500,
+      "megapixels": 13.5,
+      "bytes": 1627934,
+      "mb": 1.55
+    },
+    {
+      "path": "app/static/backgrounds/nature/bark.jpg",
+      "format": "jpg",
+      "width": 2000,
+      "height": 3000,
+      "megapixels": 6.0,
+      "bytes": 2263530,
+      "mb": 2.16
+    },
+    {
+      "path": "app/static/backgrounds/nature/cloud.jpg",
+      "format": "jpg",
+      "width": 2848,
+      "height": 4272,
+      "megapixels": 12.17,
+      "bytes": 609381,
+      "mb": 0.58
+    },
+    {
+      "path": "app/static/backgrounds/nature/jungle.jpg",
+      "format": "jpg",
+      "width": 5304,
+      "height": 7952,
+      "megapixels": 42.18,
+      "bytes": 11027601,
+      "mb": 10.52
+    },
+    {
+      "path": "app/static/backgrounds/nature/moss.jpg",
+      "format": "jpg",
+      "width": 3003,
+      "height": 4504,
+      "megapixels": 13.53,
+      "bytes": 2608289,
+      "mb": 2.49
+    },
+    {
+      "path": "app/static/backgrounds/nature/sand.jpg",
+      "format": "jpg",
+      "width": 2448,
+      "height": 3264,
+      "megapixels": 7.99,
+      "bytes": 2504162,
+      "mb": 2.39
+    },
+    {
+      "path": "app/static/backgrounds/nature/shore.jpg",
+      "format": "jpg",
+      "width": 2902,
+      "height": 5165,
+      "megapixels": 14.99,
+      "bytes": 2750063,
+      "mb": 2.62
+    },
+    {
+      "path": "app/static/backgrounds/nature/turf.jpg",
+      "format": "jpg",
+      "width": 6000,
+      "height": 3376,
+      "megapixels": 20.26,
+      "bytes": 7023972,
+      "mb": 6.7
+    },
+    {
+      "path": "app/static/backgrounds/nature/water.jpg",
+      "format": "jpg",
+      "width": 2246,
+      "height": 3992,
+      "megapixels": 8.97,
+      "bytes": 2258895,
+      "mb": 2.15
+    },
+    {
+      "path": "app/static/backgrounds/nature/water2.jpg",
+      "format": "jpg",
+      "width": 1600,
+      "height": 2399,
+      "megapixels": 3.84,
+      "bytes": 589080,
+      "mb": 0.56
+    },
+    {
+      "path": "app/static/backgrounds/space/earth.jpg",
+      "format": "jpg",
+      "width": 6561,
+      "height": 4920,
+      "megapixels": 32.28,
+      "bytes": 1576520,
+      "mb": 1.5
+    },
+    {
+      "path": "app/static/backgrounds/space/jupiter.jpg",
+      "format": "jpg",
+      "width": 3500,
+      "height": 2000,
+      "megapixels": 7.0,
+      "bytes": 431036,
+      "mb": 0.41
+    },
+    {
+      "path": "app/static/backgrounds/space/mars.jpg",
+      "format": "jpg",
+      "width": 6400,
+      "height": 8000,
+      "megapixels": 51.2,
+      "bytes": 3182869,
+      "mb": 3.04
+    },
+    {
+      "path": "app/static/backgrounds/space/mercury.jpg",
+      "format": "jpg",
+      "width": 7680,
+      "height": 4320,
+      "megapixels": 33.18,
+      "bytes": 3035860,
+      "mb": 2.9
+    },
+    {
+      "path": "app/static/backgrounds/space/neptune.jpg",
+      "format": "jpg",
+      "width": 7812,
+      "height": 5859,
+      "megapixels": 45.77,
+      "bytes": 2630936,
+      "mb": 2.51
+    },
+    {
+      "path": "app/static/backgrounds/space/pluto.jpg",
+      "format": "jpg",
+      "width": 4098,
+      "height": 3072,
+      "megapixels": 12.59,
+      "bytes": 377960,
+      "mb": 0.36
+    },
+    {
+      "path": "app/static/backgrounds/space/saturn.jpg",
+      "format": "jpg",
+      "width": 4852,
+      "height": 3639,
+      "megapixels": 17.66,
+      "bytes": 359813,
+      "mb": 0.34
+    },
+    {
+      "path": "app/static/backgrounds/space/uranus.jpg",
+      "format": "jpg",
+      "width": 7812,
+      "height": 5859,
+      "megapixels": 45.77,
+      "bytes": 2630936,
+      "mb": 2.51
+    },
+    {
+      "path": "app/static/backgrounds/space/venus.jpg",
+      "format": "jpg",
+      "width": 8008,
+      "height": 8008,
+      "megapixels": 64.13,
+      "bytes": 7304764,
+      "mb": 6.97
+    },
+    {
+      "path": "app/static/backgrounds/textures/denim.jpg",
+      "format": "jpg",
+      "width": 3320,
+      "height": 5299,
+      "megapixels": 17.59,
+      "bytes": 4041413,
+      "mb": 3.85
+    },
+    {
+      "path": "app/static/backgrounds/textures/leather.jpg",
+      "format": "jpg",
+      "width": 3641,
+      "height": 5506,
+      "megapixels": 20.05,
+      "bytes": 5883593,
+      "mb": 5.61
+    },
+    {
+      "path": "app/static/backgrounds/textures/marble.jpg",
+      "format": "jpg",
+      "width": 3265,
+      "height": 5500,
+      "megapixels": 17.96,
+      "bytes": 3191080,
+      "mb": 3.04
+    },
+    {
+      "path": "app/static/backgrounds/textures/texture.jpg",
+      "format": "jpg",
+      "width": 3264,
+      "height": 4896,
+      "megapixels": 15.98,
+      "bytes": 5554762,
+      "mb": 5.3
+    },
+    {
+      "path": "app/static/backgrounds/urban/city.jpg",
+      "format": "jpg",
+      "width": 3648,
+      "height": 5472,
+      "megapixels": 19.96,
+      "bytes": 2421938,
+      "mb": 2.31
+    },
+    {
+      "path": "app/static/backgrounds/urban/modern.jpg",
+      "format": "jpg",
+      "width": 3264,
+      "height": 4896,
+      "megapixels": 15.98,
+      "bytes": 5304610,
+      "mb": 5.06
+    }
+  ],
+  "current_perf_theme_switch": {
+    "schema_version": 1,
+    "captured_at": "2026-06-07T03:03:24.846Z",
+    "frame_budget_ms": 16.67,
+    "long_task_budget_ms": 50,
+    "target_counts": [
+      30,
+      100
+    ],
+    "interactions": [
+      {
+        "name": "theme-background-switch",
+        "object_count": 30,
+        "duration_ms": 999,
+        "frame_count": 0,
+        "p50_frame_ms": 0,
+        "p95_frame_ms": 0,
+        "p99_frame_ms": 0,
+        "max_frame_ms": 0,
+        "dropped_frame_count": 0,
+        "long_task_count": 2,
+        "long_tasks": [
+          {
+            "start_ms": 539.3,
+            "duration_ms": 146,
+            "name": "self"
+          },
+          {
+            "start_ms": 753.4,
+            "duration_ms": 175,
+            "name": "self"
+          }
+        ],
+        "marks": [
+          {
+            "name": "menu-opened",
+            "time": 533.7999999523163
+          },
+          {
+            "name": "photo-earth-clicked",
+            "time": 689.8999999761581
+          },
+          {
+            "name": "tone-graphite-clicked",
+            "time": 1050.699999988079
+          }
+        ],
+        "dom_nodes": 1023,
+        "final_background": "tone-graphite",
+        "final_has_photo": false,
+        "gate": {
+          "p95_under_16_67ms": true,
+          "no_long_tasks_over_50ms": false
+        }
+      },
+      {
+        "name": "theme-background-switch",
+        "object_count": 100,
+        "duration_ms": 1124,
+        "frame_count": 0,
+        "p50_frame_ms": 0,
+        "p95_frame_ms": 0,
+        "p99_frame_ms": 0,
+        "max_frame_ms": 0,
+        "dropped_frame_count": 0,
+        "long_task_count": 3,
+        "long_tasks": [
+          {
+            "start_ms": 542.7,
+            "duration_ms": 221,
+            "name": "self"
+          },
+          {
+            "start_ms": 856.2,
+            "duration_ms": 169,
+            "name": "self"
+          },
+          {
+            "start_ms": 1057.1,
+            "duration_ms": 104,
+            "name": "self"
+          }
+        ],
+        "marks": [
+          {
+            "name": "menu-opened",
+            "time": 537.2999999523163
+          },
+          {
+            "name": "photo-earth-clicked",
+            "time": 784.5999999642372
+          },
+          {
+            "name": "tone-graphite-clicked",
+            "time": 1171.5
+          }
+        ],
+        "dom_nodes": 2528,
+        "final_background": "tone-graphite",
+        "final_has_photo": false,
+        "gate": {
+          "p95_under_16_67ms": true,
+          "no_long_tasks_over_50ms": false
+        }
+      }
+    ],
+    "passed": false
+  },
+  "repository_perf_theme_baseline": {
+    "schema_version": 1,
+    "captured_at": "2026-06-05T22:38:13.828Z",
+    "frame_budget_ms": 16.67,
+    "long_task_budget_ms": 50,
+    "target_counts": [
+      30,
+      100
+    ],
+    "interactions": [
+      {
+        "name": "theme-background-switch",
+        "object_count": 30,
+        "duration_ms": 2733,
+        "frame_count": 62,
+        "p50_frame_ms": 10,
+        "p95_frame_ms": 270.1,
+        "p99_frame_ms": 470,
+        "max_frame_ms": 470,
+        "dropped_frame_count": 12,
+        "long_task_count": 6,
+        "long_tasks": [
+          {
+            "start_ms": 870.5,
+            "duration_ms": 420,
+            "name": "self"
+          },
+          {
+            "start_ms": 1291.4,
+            "duration_ms": 217,
+            "name": "self"
+          },
+          {
+            "start_ms": 1564.3,
+            "duration_ms": 294,
+            "name": "self"
+          },
+          {
+            "start_ms": 1880,
+            "duration_ms": 529,
+            "name": "self"
+          },
+          {
+            "start_ms": 2600.3,
+            "duration_ms": 215,
+            "name": "self"
+          },
+          {
+            "start_ms": 2815.9,
+            "duration_ms": 172,
+            "name": "self"
+          }
+        ],
+        "marks": [
+          {
+            "name": "menu-opened",
+            "time": 856.6000000238419
+          },
+          {
+            "name": "photo-earth-clicked",
+            "time": 2410.5
+          },
+          {
+            "name": "dark-steel-clicked",
+            "time": 3035.199999988079
+          }
+        ],
+        "dom_nodes": 1062,
+        "final_background": "dark-steel",
+        "final_has_photo": false,
+        "gate": {
+          "p95_under_16_67ms": false,
+          "no_long_tasks_over_50ms": false
+        }
+      },
+      {
+        "name": "theme-background-switch",
+        "object_count": 100,
+        "duration_ms": 6218,
+        "frame_count": 352,
+        "p50_frame_ms": 10,
+        "p95_frame_ms": 10.5,
+        "p99_frame_ms": 159.9,
+        "max_frame_ms": 919.6,
+        "dropped_frame_count": 13,
+        "long_task_count": 10,
+        "long_tasks": [
+          {
+            "start_ms": 871.3,
+            "duration_ms": 102,
+            "name": "self"
+          },
+          {
+            "start_ms": 1021.3,
+            "duration_ms": 425,
+            "name": "self"
+          },
+          {
+            "start_ms": 1447.3,
+            "duration_ms": 471,
+            "name": "self"
+          },
+          {
+            "start_ms": 1918.7,
+            "duration_ms": 51,
+            "name": "self"
+          },
+          {
+            "start_ms": 1970.9,
+            "duration_ms": 77,
+            "name": "self"
+          },
+          {
+            "start_ms": 2067.7,
+            "duration_ms": 136,
+            "name": "self"
+          },
+          {
+            "start_ms": 2232.7,
+            "duration_ms": 368,
+            "name": "self"
+          },
+          {
+            "start_ms": 2826.5,
+            "duration_ms": 252,
+            "name": "self"
+          },
+          {
+            "start_ms": 3079.3,
+            "duration_ms": 442,
+            "name": "self"
+          },
+          {
+            "start_ms": 3570.4,
+            "duration_ms": 125,
+            "name": "self"
+          }
+        ],
+        "marks": [
+          {
+            "name": "menu-opened",
+            "time": 1003.4000000357628
+          },
+          {
+            "name": "photo-earth-clicked",
+            "time": 2603.400000035763
+          },
+          {
+            "name": "dark-steel-clicked",
+            "time": 3739.7000000476837
+          }
+        ],
+        "dom_nodes": 2567,
+        "final_background": "dark-steel",
+        "final_has_photo": false,
+        "gate": {
+          "p95_under_16_67ms": true,
+          "no_long_tasks_over_50ms": false
+        }
+      }
+    ],
+    "passed": false
+  }
+}

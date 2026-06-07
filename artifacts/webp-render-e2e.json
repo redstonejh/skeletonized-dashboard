@@ -1,0 +1,11 @@
+{
+  "passed": true,
+  "source": "npm.cmd run test:e2e -- --workers=1 --grep \"derived background presets\"",
+  "assertions": [
+    "photo-earth selection sets data-background",
+    "workspace photo panel backgroundImage contains .webp and earth.webp",
+    "selected image decodes with naturalWidth/naturalHeight > 0",
+    "__dashboardBackgroundPreloadDone is true before rendered assertion",
+    "no failed image requests observed during test"
+  ]
+}

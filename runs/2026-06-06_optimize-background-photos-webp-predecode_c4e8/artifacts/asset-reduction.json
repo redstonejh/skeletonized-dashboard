@@ -1,0 +1,14 @@
+{
+  "before_bytes": 83352316,
+  "after_bytes": 24617914,
+  "saved_bytes": 58734402,
+  "before_mb": 79.49,
+  "after_mb": 23.477,
+  "saved_mb": 56.013,
+  "byte_reduction_percent": 70.47,
+  "before_megapixels": 584.5,
+  "after_megapixels": 198.942,
+  "megapixel_reduction_percent": 65.96,
+  "image_count_before": 26,
+  "image_count_after": 26
+}

@@ -149,44 +149,44 @@ export function initializeBackgroundController({ portalFloatingMenu, restoreFloa
   const setBackgroundExposureCompensation = () => {};
   // ── Photo / image background system ───────────────────────────────
   const PHOTO_BACKGROUNDS = {
-    "photo-bark":        { src: "app/static/backgrounds/nature/bark.jpg",        luminance: 0.08 },
-    "photo-cloud":       { src: "app/static/backgrounds/nature/cloud.jpg",       luminance: 0.70 },
-    "photo-jungle":      { src: "app/static/backgrounds/nature/jungle.jpg",      luminance: 0.06 },
-    "photo-moss":        { src: "app/static/backgrounds/nature/moss.jpg",        luminance: 0.10 },
-    "photo-sand":        { src: "app/static/backgrounds/nature/sand.jpg",        luminance: 0.65 },
-    "photo-shore":       { src: "app/static/backgrounds/nature/shore.jpg",       luminance: 0.42 },
-    "photo-turf":        { src: "app/static/backgrounds/nature/turf.jpg",        luminance: 0.12 },
-    "photo-water":       { src: "app/static/backgrounds/nature/water.jpg",       luminance: 0.08 },
-    "photo-water2":      { src: "app/static/backgrounds/nature/water2.jpg",      luminance: 0.58 },
-    "photo-denim":       { src: "app/static/backgrounds/textures/denim.jpg",     luminance: 0.08 },
-    "photo-marble":      { src: "app/static/backgrounds/textures/marble.jpg",    luminance: 0.72 },
-    "photo-leather":     { src: "app/static/backgrounds/textures/leather.jpg",   luminance: 0.22 },
-    "photo-texture":     { src: "app/static/backgrounds/textures/texture.jpg",   luminance: 0.55 },
-    "photo-paint":       { src: "app/static/backgrounds/abstract/paint.jpg",     luminance: 0.50 },
-    "photo-paintspill":  { src: "app/static/backgrounds/abstract/paintspill.jpg",luminance: 0.05 },
-    "photo-city":        { src: "app/static/backgrounds/urban/city.jpg",         luminance: 0.04 },
-    "photo-modern":      { src: "app/static/backgrounds/urban/modern.jpg",       luminance: 0.40 },
-    "photo-mercury":     { src: "app/static/backgrounds/space/mercury.jpg",      luminance: 0.04 },
-    "photo-venus":       { src: "app/static/backgrounds/space/venus.jpg",        luminance: 0.12 },
-    "photo-earth":       { src: "app/static/backgrounds/space/earth.jpg",        luminance: 0.06 },
-    "photo-mars":        { src: "app/static/backgrounds/space/mars.jpg",         luminance: 0.08 },
-    "photo-jupiter":     { src: "app/static/backgrounds/space/jupiter.jpg",      luminance: 0.12 },
-    "photo-saturn":      { src: "app/static/backgrounds/space/saturn.jpg",       luminance: 0.06 },
-    "photo-uranus":      { src: "app/static/backgrounds/space/uranus.jpg",       luminance: 0.10 },
-    "photo-neptune":     { src: "app/static/backgrounds/space/neptune.jpg",      luminance: 0.08 },
-    "photo-pluto":       { src: "app/static/backgrounds/space/pluto.jpg",        luminance: 0.06 },
+    "photo-bark":        { src: "app/static/backgrounds/nature/bark.webp",        luminance: 0.08 },
+    "photo-cloud":       { src: "app/static/backgrounds/nature/cloud.webp",       luminance: 0.70 },
+    "photo-jungle":      { src: "app/static/backgrounds/nature/jungle.webp",      luminance: 0.06 },
+    "photo-moss":        { src: "app/static/backgrounds/nature/moss.webp",        luminance: 0.10 },
+    "photo-sand":        { src: "app/static/backgrounds/nature/sand.webp",        luminance: 0.65 },
+    "photo-shore":       { src: "app/static/backgrounds/nature/shore.webp",       luminance: 0.42 },
+    "photo-turf":        { src: "app/static/backgrounds/nature/turf.webp",        luminance: 0.12 },
+    "photo-water":       { src: "app/static/backgrounds/nature/water.webp",       luminance: 0.08 },
+    "photo-water2":      { src: "app/static/backgrounds/nature/water2.webp",      luminance: 0.58 },
+    "photo-denim":       { src: "app/static/backgrounds/textures/denim.webp",     luminance: 0.08 },
+    "photo-marble":      { src: "app/static/backgrounds/textures/marble.webp",    luminance: 0.72 },
+    "photo-leather":     { src: "app/static/backgrounds/textures/leather.webp",   luminance: 0.22 },
+    "photo-texture":     { src: "app/static/backgrounds/textures/texture.webp",   luminance: 0.55 },
+    "photo-paint":       { src: "app/static/backgrounds/abstract/paint.webp",     luminance: 0.50 },
+    "photo-paintspill":  { src: "app/static/backgrounds/abstract/paintspill.webp",luminance: 0.05 },
+    "photo-city":        { src: "app/static/backgrounds/urban/city.webp",         luminance: 0.04 },
+    "photo-modern":      { src: "app/static/backgrounds/urban/modern.webp",       luminance: 0.40 },
+    "photo-mercury":     { src: "app/static/backgrounds/space/mercury.webp",      luminance: 0.04 },
+    "photo-venus":       { src: "app/static/backgrounds/space/venus.webp",        luminance: 0.12 },
+    "photo-earth":       { src: "app/static/backgrounds/space/earth.webp",        luminance: 0.06 },
+    "photo-mars":        { src: "app/static/backgrounds/space/mars.webp",         luminance: 0.08 },
+    "photo-jupiter":     { src: "app/static/backgrounds/space/jupiter.webp",      luminance: 0.12 },
+    "photo-saturn":      { src: "app/static/backgrounds/space/saturn.webp",       luminance: 0.06 },
+    "photo-uranus":      { src: "app/static/backgrounds/space/uranus.webp",       luminance: 0.10 },
+    "photo-neptune":     { src: "app/static/backgrounds/space/neptune.webp",      luminance: 0.08 },
+    "photo-pluto":       { src: "app/static/backgrounds/space/pluto.webp",        luminance: 0.06 },
     "solar-system":      { luminance: 0.06, solarSystem: true },
   };
   const SOLAR_SYSTEM_SEQUENCE = [
-    "app/static/backgrounds/space/mercury.jpg",
-    "app/static/backgrounds/space/venus.jpg",
-    "app/static/backgrounds/space/earth.jpg",
-    "app/static/backgrounds/space/mars.jpg",
-    "app/static/backgrounds/space/jupiter.jpg",
-    "app/static/backgrounds/space/saturn.jpg",
-    "app/static/backgrounds/space/uranus.jpg",
-    "app/static/backgrounds/space/neptune.jpg",
-    "app/static/backgrounds/space/pluto.jpg",
+    "app/static/backgrounds/space/mercury.webp",
+    "app/static/backgrounds/space/venus.webp",
+    "app/static/backgrounds/space/earth.webp",
+    "app/static/backgrounds/space/mars.webp",
+    "app/static/backgrounds/space/jupiter.webp",
+    "app/static/backgrounds/space/saturn.webp",
+    "app/static/backgrounds/space/uranus.webp",
+    "app/static/backgrounds/space/neptune.webp",
+    "app/static/backgrounds/space/pluto.webp",
   ];
   const isPhotoTone = (tone) => tone && (tone.startsWith("photo-") || tone === "solar-system");
   const getPhotoImages = (tone) =>
@@ -201,6 +201,48 @@ export function initializeBackgroundController({ portalFloatingMenu, restoreFloa
   let photoPanelCount = 0;
   let photoCurrentTone = null;
   let photoCurrentImages = [];
+  let photoApplyToken = 0;
+  const photoDecodeCache = new Map();
+
+  const setPhotoPreloadReady = (promise) => {
+    window.__dashboardBackgroundPreloadDone = false;
+    window.__dashboardBackgroundPreloadReady = promise.finally(() => {
+      window.__dashboardBackgroundPreloadDone = true;
+    });
+    return window.__dashboardBackgroundPreloadReady;
+  };
+
+  const decodePhotoImage = (src) => {
+    if (photoDecodeCache.has(src)) return photoDecodeCache.get(src);
+    const promise = (async () => {
+      const image = new Image();
+      image.decoding = "async";
+      image.src = src;
+      const loadReady = image.complete
+        ? Promise.resolve()
+        : new Promise((resolve) => {
+            image.onload = resolve;
+            image.onerror = resolve;
+          });
+      const timeoutReady = new Promise((resolve) => window.setTimeout(resolve, 1000));
+      try {
+        if (typeof image.decode === "function") {
+          await Promise.race([image.decode(), loadReady, timeoutReady]);
+        } else {
+          await Promise.race([loadReady, timeoutReady]);
+        }
+        return { src, ok: image.naturalWidth > 0 && image.naturalHeight > 0 };
+      } catch {
+        return { src, ok: false };
+      }
+    })();
+    photoDecodeCache.set(src, promise);
+    return promise;
+  };
+
+  const predecodePhotoImages = (images) => setPhotoPreloadReady(
+    Promise.all(images.map((src) => decodePhotoImage(src)))
+  );
   
   const photoEnsurePanel = (panelIndex) => {
     if (!photoTrackEl || !photoCurrentImages.length) return;
@@ -227,44 +269,51 @@ export function initializeBackgroundController({ portalFloatingMenu, restoreFloa
   
   const applyPhotoBackground = (tone) => {
     const meta = PHOTO_BACKGROUNDS[tone];
-    if (!meta) return;
+    if (!meta) return Promise.resolve([]);
     const newImages = getPhotoImages(tone);
-    const toneChanged = tone !== photoCurrentTone;
-    if (toneChanged) {
-      if (photoTrackEl) photoTrackEl.replaceChildren();
-      photoPanelCount = 0;
-      photoCurrentTone = tone;
-      photoCurrentImages = newImages;
-    }
-    if (!photoBackdropEl) {
-      photoBackdropEl = document.createElement("div");
-      photoBackdropEl.className = "workspace-photo-backdrop";
-      photoBackdropEl.setAttribute("aria-hidden", "true");
-      photoTrackEl = document.createElement("div");
-      photoTrackEl.className = "workspace-photo-track";
-      photoBackdropEl.appendChild(photoTrackEl);
-      document.body.insertBefore(photoBackdropEl, document.body.firstChild);
-    }
-    photoBackdropEl.hidden = false;
-    if (!photoScrollHandler) {
-      photoScrollHandler = () => photoSyncScroll();
-      window.addEventListener("scroll", photoScrollHandler, { passive: true });
-    }
-    if (!photoResizeObserver) {
-      photoResizeObserver = new ResizeObserver(() => photoEnsureEnoughPanels());
-      photoResizeObserver.observe(document.documentElement);
-    }
-    document.documentElement.classList.add("has-photo-background");
-    document.body.classList.add("has-photo-background");
-    // Adaptive material vars intentionally NOT written here. Photo
-    // backgrounds use the same fixed token values as solid backgrounds;
-    // photo-specific glass comes from the body.has-photo-background CSS
-    // block in themes.css with its own fixed tokens.
-    photoEnsureEnoughPanels();
-    photoSyncScroll();
+    const token = ++photoApplyToken;
+    const ready = predecodePhotoImages(newImages);
+    ready.then(() => {
+      if (token !== photoApplyToken) return;
+      const toneChanged = tone !== photoCurrentTone;
+      if (toneChanged) {
+        if (photoTrackEl) photoTrackEl.replaceChildren();
+        photoPanelCount = 0;
+        photoCurrentTone = tone;
+        photoCurrentImages = newImages;
+      }
+      if (!photoBackdropEl) {
+        photoBackdropEl = document.createElement("div");
+        photoBackdropEl.className = "workspace-photo-backdrop";
+        photoBackdropEl.setAttribute("aria-hidden", "true");
+        photoTrackEl = document.createElement("div");
+        photoTrackEl.className = "workspace-photo-track";
+        photoBackdropEl.appendChild(photoTrackEl);
+        document.body.insertBefore(photoBackdropEl, document.body.firstChild);
+      }
+      photoBackdropEl.hidden = false;
+      if (!photoScrollHandler) {
+        photoScrollHandler = () => photoSyncScroll();
+        window.addEventListener("scroll", photoScrollHandler, { passive: true });
+      }
+      if (!photoResizeObserver) {
+        photoResizeObserver = new ResizeObserver(() => photoEnsureEnoughPanels());
+        photoResizeObserver.observe(document.documentElement);
+      }
+      document.documentElement.classList.add("has-photo-background");
+      document.body.classList.add("has-photo-background");
+      // Adaptive material vars intentionally NOT written here. Photo
+      // backgrounds use the same fixed token values as solid backgrounds;
+      // photo-specific glass comes from the body.has-photo-background CSS
+      // block in themes.css with its own fixed tokens.
+      photoEnsureEnoughPanels();
+      photoSyncScroll();
+    });
+    return ready;
   };
   
   const destroyPhotoBackground = () => {
+    photoApplyToken++;
     if (photoScrollHandler) {
       window.removeEventListener("scroll", photoScrollHandler, { passive: true });
       photoScrollHandler = null;
@@ -279,6 +328,7 @@ export function initializeBackgroundController({ portalFloatingMenu, restoreFloa
     photoPanelCount = 0;
     photoCurrentTone = null;
     photoCurrentImages = [];
+    setPhotoPreloadReady(Promise.resolve([]));
     document.documentElement.classList.remove("has-photo-background");
     document.body.classList.remove("has-photo-background");
   };
@@ -373,6 +423,8 @@ export function initializeBackgroundController({ portalFloatingMenu, restoreFloa
       } else {
         destroyPhotoBackground();
       }
+    } else if (!options.preview) {
+      setPhotoPreloadReady(Promise.resolve([]));
     }
 
     const baseTone = state.kind === "custom" ? state.hex : (COLOR_PRESETS[state.tone]?.hex || COLOR_PRESETS[backgroundDefault].hex);

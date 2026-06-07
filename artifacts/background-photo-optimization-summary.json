@@ -1,0 +1,80 @@
+{
+  "verdict": "SHIP",
+  "asset_reduction": {
+    "before_bytes": 83352316,
+    "after_bytes": 24617914,
+    "saved_bytes": 58734402,
+    "before_mb": 79.49,
+    "after_mb": 23.477,
+    "saved_mb": 56.013,
+    "byte_reduction_percent": 70.47,
+    "before_megapixels": 584.5,
+    "after_megapixels": 198.942,
+    "megapixel_reduction_percent": 65.96,
+    "image_count_before": 26,
+    "image_count_after": 26
+  },
+  "perf_comparison": {
+    "against_perf_theme_baseline": {
+      "30": {
+        "p95_before": 270.1,
+        "p95_after": 0,
+        "p95_delta": -270.1,
+        "long_tasks_before": 6,
+        "long_tasks_after": 1,
+        "long_tasks_delta": -5,
+        "duration_before": 2733,
+        "duration_after": 750,
+        "duration_delta": -1983
+      },
+      "100": {
+        "p95_before": 10.5,
+        "p95_after": 0,
+        "p95_delta": -10.5,
+        "long_tasks_before": 10,
+        "long_tasks_after": 3,
+        "long_tasks_delta": -7,
+        "duration_before": 6218,
+        "duration_after": 881,
+        "duration_delta": -5337
+      }
+    },
+    "against_task_before": {
+      "30": {
+        "p95_before": 0,
+        "p95_after": 0,
+        "p95_delta": 0,
+        "long_tasks_before": 2,
+        "long_tasks_after": 1,
+        "long_tasks_delta": -1,
+        "duration_before": 999,
+        "duration_after": 750,
+        "duration_delta": -249
+      },
+      "100": {
+        "p95_before": 0,
+        "p95_after": 0,
+        "p95_delta": 0,
+        "long_tasks_before": 3,
+        "long_tasks_after": 3,
+        "long_tasks_delta": 0,
+        "duration_before": 1124,
+        "duration_after": 881,
+        "duration_delta": -243
+      }
+    },
+    "passed": true,
+    "note": "p95/long-task gate is evaluated against artifacts/perf-theme-baseline.json; task before capture is included for transparency."
+  },
+  "checks": {
+    "targeted_photo_test": "npm.cmd run test:e2e -- --workers=1 --grep \"renders every WebP photo\" => passed",
+    "full_e2e": "npm.cmd run test:e2e -- --workers=1 => 14 passed",
+    "canary_repeat": "npm.cmd run test:e2e -- --workers=1 --grep \"applies derived background|keeps drag|keeps select-mode|keeps widget resize|restores widget tools|commits widget runtime|clears stale conditional|keeps widget runtime|keeps ordered drag|absorbs a workspace widget|ordered grid item\" --repeat-each=10 => 110 passed",
+    "perf_theme": "npm.cmd run test:perf:theme -- --workers=1 => passed; comparison artifact passed=true"
+  },
+  "notes": [
+    "WebP conversion used Pillow as a one-time tool; no runtime dependency was added.",
+    "Predecode attempts image.decode/load and fails open after 1000ms so background switching cannot hang.",
+    "Photo backgrounds and solar-system sequence now reference .webp; old .jpg assets are removed."
+  ]
+}

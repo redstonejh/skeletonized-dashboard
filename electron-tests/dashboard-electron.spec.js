@@ -298,6 +298,10 @@ test("electron GUI boots without server APIs and preserves core customization", 
 
 test("electron GUI applies derived background presets, custom color, persistence, undo, and photos", async () => {
   const { app, page } = await launchApp();
+  const failedImageRequests = [];
+  page.on("requestfailed", (request) => {
+    if (request.resourceType() === "image") failedImageRequests.push(request.url());
+  });
   await expect(page.locator(".background-photo-option")).toHaveCount(27);
   await expect(page.locator(".background-tone-option")).toHaveCount(6);
 
@@ -350,7 +354,73 @@ test("electron GUI applies derived background presets, custom color, persistence
   await expect(page.locator("html")).toHaveAttribute("data-background", "photo-earth");
   await expect(page.locator("body")).toHaveClass(/has-photo-background/);
   await expect(page.locator(".workspace-photo-panel").first()).toBeVisible();
+  await expect.poll(() => page.locator(".workspace-photo-panel").first().evaluate((node) => getComputedStyle(node).backgroundImage)).toContain(".webp");
+  const renderedPhoto = await page.locator(".workspace-photo-panel").first().evaluate(async (node) => {
+    const backgroundImage = getComputedStyle(node).backgroundImage;
+    const src = backgroundImage.match(/url\(["']?(.*?)["']?\)/)?.[1] || "";
+    const image = new Image();
+    image.src = src;
+    try {
+      if (typeof image.decode === "function") await image.decode();
+    } catch {}
+    return {
+      backgroundImage,
+      naturalWidth: image.naturalWidth,
+      naturalHeight: image.naturalHeight,
+      preloadDone: window.__dashboardBackgroundPreloadDone === true,
+    };
+  });
+  expect(renderedPhoto.backgroundImage).toContain("earth.webp");
+  expect(renderedPhoto.naturalWidth).toBeGreaterThan(0);
+  expect(renderedPhoto.naturalHeight).toBeGreaterThan(0);
+  expect(renderedPhoto.preloadDone).toBe(true);
+  expect(failedImageRequests).toEqual([]);
   await writeInteractionScenarios(page, ["derived-background-color-selector"]);
+  await closeApp(app);
+});
+
+test("electron GUI renders every WebP photo background", async () => {
+  test.setTimeout(120000);
+  const { app, page } = await launchApp();
+  const failedImages = [];
+  page.on("requestfailed", (request) => {
+    if (request.resourceType() === "image") failedImages.push(request.url());
+  });
+
+  const photoTones = await page.locator(".background-photo-option").evaluateAll((options) =>
+    options.map((option) => option.getAttribute("data-background-tone")).filter(Boolean)
+  );
+  expect(photoTones).toHaveLength(27);
+
+  for (const tone of photoTones) {
+    await page.locator(".background-tone-trigger").click({ force: true });
+    await page.locator(`.background-photo-option[data-background-tone="${tone}"]`).click({ force: true });
+    await expect(page.locator("html")).toHaveAttribute("data-background", tone);
+    await expect(page.locator("body")).toHaveClass(/has-photo-background/);
+    await expect.poll(() => page.evaluate(() => window.__dashboardBackgroundPreloadDone === true)).toBe(true);
+    await expect(page.locator(".workspace-photo-panel").first()).toBeVisible();
+    await expect.poll(() => page.locator(".workspace-photo-panel").first().evaluate((node) => getComputedStyle(node).backgroundImage)).toContain(".webp");
+    const rendered = await page.locator(".workspace-photo-panel").first().evaluate(async (node) => {
+      const backgroundImage = getComputedStyle(node).backgroundImage;
+      const src = backgroundImage.match(/url\(["']?(.*?)["']?\)/)?.[1] || "";
+      const image = new Image();
+      image.src = src;
+      try {
+        if (typeof image.decode === "function") await image.decode();
+      } catch {}
+      return {
+        backgroundImage,
+        naturalWidth: image.naturalWidth,
+        naturalHeight: image.naturalHeight,
+        preloadDone: window.__dashboardBackgroundPreloadDone === true,
+      };
+    });
+    expect(rendered.backgroundImage).toContain(".webp");
+    expect(rendered.naturalWidth).toBeGreaterThan(0);
+    expect(rendered.naturalHeight).toBeGreaterThan(0);
+    expect(rendered.preloadDone).toBe(true);
+  }
+  expect(failedImages).toEqual([]);
   await closeApp(app);
 });
 
