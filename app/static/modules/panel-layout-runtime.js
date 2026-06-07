@@ -228,26 +228,14 @@ export const createPanelLayoutRuntime = ({
           }, 300));
         };
         const resumePanelToolHoverClose = () => {
-          const wasOpen = panel.classList.contains("db-panel-tools-open");
           releasePanelToolLeaveClose();
-          if (wasOpen) {
-            panelToolSession.clearToolsCloseTimer();
-            return;
-          }
-          openPanelTools();
-          if (!wasOpen && panel.classList.contains("db-panel-tools-open")) panelToolSession.setToolsOpenedByApproach(true);
+          if (panel.classList.contains("db-panel-tools-open")) panelToolSession.clearToolsCloseTimer();
         };
 
         panelTools?.addEventListener("click", (event) => event.stopPropagation());
         panelTools?.addEventListener("keydown", (event) => event.stopPropagation());
         panelTools?.addEventListener("mouseleave", scheduleClosePanelTools);
-        panelTools?.addEventListener("focusin", resumePanelToolHoverClose);
         panelTools?.addEventListener("focusout", scheduleClosePanelTools);
-        settingsButton?.addEventListener("mouseenter", () => {
-          if (performance.now() < panelToolSession.getSuppressToolOpenUntil()) return;
-          panelToolSession.setSuppressHeaderToggleUntil(performance.now() + 250);
-          resumePanelToolHoverClose();
-        });
         settingsButton?.addEventListener("mouseleave", scheduleClosePanelTools);
         panelToolDrawer?.addEventListener("mouseenter", resumePanelToolHoverClose);
         panelToolDrawer?.addEventListener("mouseleave", scheduleClosePanelTools);
@@ -267,16 +255,7 @@ export const createPanelLayoutRuntime = ({
           event.stopPropagation();
           panelToolSession.setSuppressHeaderToggleUntil(0);
           releasePanelToolLeaveClose();
-          if (!canOpenDashboardTools(panel)) return;
-          const shouldClose = panel.classList.contains("db-panel-tools-open") && !panelToolSession.getToolsOpenedByApproach();
           panelToolSession.setToolsOpenedByApproach(false);
-          if (shouldClose) {
-            closePanelTools();
-          } else {
-            panelToolSession.setSuppressToolOpenUntil(0);
-            closeInactiveDashboardTools(panel);
-            openPanelTools();
-          }
         });
 
         colorToggle?.addEventListener("click", (event) => {

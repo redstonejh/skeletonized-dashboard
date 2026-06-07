@@ -315,25 +315,6 @@ test("electron GUI boots without server APIs and preserves core customization", 
     button.setAttribute("aria-expanded", "false");
   });
   await expect(page.locator(".panel-color-menu-open")).toHaveCount(0);
-  await widget.evaluate((node) => {
-    node.classList.remove("widget-tools-open");
-    const rect = node.getBoundingClientRect();
-    node.dispatchEvent(new MouseEvent("click", {
-      bubbles: true,
-      cancelable: true,
-      clientX: rect.left + (rect.width / 2),
-      clientY: rect.top + (rect.height / 2),
-    }));
-  });
-  const widgetWorkbench = page.locator('.workspace-menu-overlay-layer > .widget-workbench-panel.menu-portaled:not([hidden])');
-  await expect(widgetWorkbench).toBeVisible();
-  const whiteWidgetWorkbenchStyles = await widgetWorkbench.evaluate((node) => {
-    const style = getComputedStyle(node);
-    return { backgroundColor: style.backgroundColor, color: style.color };
-  });
-  expect(whiteWidgetWorkbenchStyles.backgroundColor).not.toBe("rgb(255, 255, 255)");
-  expect(whiteWidgetWorkbenchStyles.backgroundColor).not.toBe("rgba(255, 255, 255, 1)");
-  expect(rgbChannelSum(whiteWidgetWorkbenchStyles.color)).toBeLessThan(150);
 
   await page.locator(".layout-save-button").click();
   await page.reload();
@@ -396,6 +377,63 @@ test("electron GUI keeps slim navbar controls wired", async () => {
   await page.getByRole("button", { name: "Reset to default layout" }).click({ force: true });
   await expect(page.locator('.widget-layout > .widget-card[data-custom-widget="true"]')).toHaveCount(0);
   expect(failed).toEqual([]);
+  await closeApp(app);
+});
+
+test("electron GUI opens customization drawers only from right click", async () => {
+  const { app, page } = await launchApp();
+  const panel = page.locator('.panel-layout > .db-panel[data-panel-key="builder-content"]');
+  const panelHeader = panel.locator(":scope > .db-panel-hd");
+
+  await panel.click({ force: true, position: { x: 32, y: 96 } });
+  await expect(panel).not.toHaveClass(/db-panel-tools-open/);
+  await panel.evaluate((node) => {
+    const rect = node.getBoundingClientRect();
+    window.__rightClickOnlyPanelHoverPoint = {
+      x: rect.right - 18,
+      y: rect.top + 18,
+    };
+  });
+  const panelHoverPoint = await page.evaluate(() => window.__rightClickOnlyPanelHoverPoint);
+  await page.mouse.move(panelHoverPoint.x, panelHoverPoint.y);
+  await expect(panel).not.toHaveClass(/db-panel-tools-open/);
+  await panelHeader.click({ force: true });
+  await expect(panelHeader).toHaveAttribute("aria-expanded", "false");
+  await expect(panel).not.toHaveClass(/db-panel-tools-open/);
+  await panelHeader.click({ force: true });
+  await expect(panelHeader).toHaveAttribute("aria-expanded", "true");
+
+  await panel.click({ button: "right", force: true, position: { x: 48, y: 96 } });
+  await expect(panel).toHaveClass(/db-panel-tools-open/);
+  await expect(page.locator(".workspace-menu-overlay-layer > .panel-tool-drawer.dashboard-tool-drawer-open")).toBeVisible();
+  const panelPin = page.locator(".workspace-menu-overlay-layer > .panel-tool-drawer.dashboard-tool-drawer-open .panel-pin-toggle");
+  const panelWasPinned = await panel.evaluate((node) => node.classList.contains("db-panel-pinned"));
+  await panelPin.click({ force: true });
+  await expect.poll(() => panel.evaluate((node) => node.classList.contains("db-panel-pinned"))).toBe(!panelWasPinned);
+  await page.keyboard.press("Escape");
+  await expect(panel).not.toHaveClass(/db-panel-tools-open/);
+
+  const widget = await addTextWidget(page);
+  await widget.click({ force: true, position: { x: 32, y: 36 } });
+  await expect(widget).not.toHaveClass(/widget-tools-open/);
+  await widget.evaluate((node) => {
+    const rect = node.getBoundingClientRect();
+    window.__rightClickOnlyWidgetHoverPoint = {
+      x: rect.right - 18,
+      y: rect.top + 18,
+    };
+  });
+  const widgetHoverPoint = await page.evaluate(() => window.__rightClickOnlyWidgetHoverPoint);
+  await page.mouse.move(widgetHoverPoint.x, widgetHoverPoint.y);
+  await expect(widget).not.toHaveClass(/widget-tools-open/);
+  await widget.click({ button: "right", force: true, position: { x: 40, y: 40 } });
+  await expect(widget).toHaveClass(/widget-tools-open/);
+  await expect(page.locator(".workspace-menu-overlay-layer > .panel-tool-drawer.dashboard-tool-drawer-open")).toBeVisible();
+  const widgetPin = page.locator(".workspace-menu-overlay-layer > .panel-tool-drawer.dashboard-tool-drawer-open .panel-pin-toggle");
+  const widgetWasPinned = await widget.evaluate((node) => node.classList.contains("db-panel-pinned"));
+  await widgetPin.click({ force: true });
+  await expect.poll(() => widget.evaluate((node) => node.classList.contains("db-panel-pinned"))).toBe(!widgetWasPinned);
+
   await closeApp(app);
 });
 

@@ -275,23 +275,12 @@ export const createWidgetLayoutRuntime = (deps) => {
         releaseToolLeaveClose();
         closeWorkbench();
         if (!canOpenDashboardTools(widget)) return;
-        const shouldClose = widget.classList.contains("widget-tools-open") &&
-          !widgetToolSession.getToolsOpenedByApproach();
         widgetToolSession.setToolsOpenedByApproach(false);
-        if (shouldClose) {
-          closeTools();
-          return;
-        }
         widgetToolSession.setSuppressToolOpenUntil(0);
         closeInactiveDashboardTools(widget);
         openTools(pointerCoords);
         colorMenu?.classList.remove("panel-color-menu-open");
         colorToggle?.setAttribute("aria-expanded", "false");
-      };
-      const pointerIntersectsSettingsToggle = (event) => {
-        if (!settings || event?.clientX == null || event?.clientY == null) return false;
-        const rect = settings.getBoundingClientRect();
-        return pointInRect(event.clientX, event.clientY, rect);
       };
       const scheduleClose = () => {
         widgetToolSession.clearCloseTimer();
@@ -309,21 +298,13 @@ export const createWidgetLayoutRuntime = (deps) => {
         }, 260));
       };
       const resumeToolHoverClose = () => {
-        const wasOpen = widget.classList.contains("widget-tools-open");
         releaseToolLeaveClose();
-        if (wasOpen) {
-          widgetToolSession.clearCloseTimer();
-          return;
-        }
-        openTools();
-        if (!wasOpen && widget.classList.contains("widget-tools-open")) widgetToolSession.setToolsOpenedByApproach(true);
+        if (widget.classList.contains("widget-tools-open")) widgetToolSession.clearCloseTimer();
       };
       tools?.addEventListener("click", (event) => {
         event.preventDefault();
         event.stopPropagation();
       });
-      settings?.addEventListener("mouseenter", resumeToolHoverClose);
-      settings?.addEventListener("pointermove", resumeToolHoverClose, { passive: true });
       const isInteractiveWidgetSurfaceTarget = (event) => {
         const interactiveTarget = event.target?.closest?.(
           `${surfaceResponseControlSelector}, .media-widget-stage, [contenteditable='true']`,
@@ -331,20 +312,8 @@ export const createWidgetLayoutRuntime = (deps) => {
         return interactiveTarget && interactiveTarget !== widget && widget.contains(interactiveTarget);
       };
       widget.addEventListener("click", (event) => {
-        if (!event.target?.closest?.(".widget-tools") && pointerIntersectsSettingsToggle(event)) {
-          event.preventDefault();
-          event.stopPropagation();
-          widgetToolSession.setSuppressSettingsClickUntil(performance.now() + 320);
-          toggleAppearanceSettings();
-          return;
-        }
         if (event.target?.closest?.(".widget-tools")) return;
         if (isInteractiveWidgetSurfaceTarget(event)) return;
-        event.preventDefault();
-        event.stopPropagation();
-        if (performance.now() < widgetToolSession.getSuppressWidgetClickUntil()) return;
-        widgetToolSession.setSuppressToolOpenUntil(0);
-        openWorkbench({ clientX: event.clientX, clientY: event.clientY });
         try {
           widget.focus?.({ preventScroll: true });
         } catch {
@@ -352,16 +321,12 @@ export const createWidgetLayoutRuntime = (deps) => {
         }
       }, true);
       widget.__openCustomization = (event) => {
-        if (event.target?.closest?.(".widget-tools") || isInteractiveWidgetSurfaceTarget(event)) return;
+        if (event.target?.closest?.(".widget-tools")) return;
+        if (event.type !== "contextmenu" && isInteractiveWidgetSurfaceTarget(event)) return;
         event.preventDefault();
         event.stopPropagation();
         toggleAppearanceSettings({ clientX: event.clientX, clientY: event.clientY });
       };
-      widget.addEventListener("pointermove", (event) => {
-        if (event.target?.closest?.(".widget-tools")) return;
-        if (!pointerIntersectsSettingsToggle(event)) return;
-        resumeToolHoverClose();
-      }, { passive: true });
       tools?.addEventListener("mouseenter", resumeToolHoverClose);
       tools?.addEventListener("mouseleave", scheduleClose);
       workbenchPanel?.addEventListener("click", (event) => {
@@ -393,15 +358,11 @@ export const createWidgetLayoutRuntime = (deps) => {
       settings?.addEventListener("click", (event) => {
         event.preventDefault();
         event.stopPropagation();
-        if (performance.now() < widgetToolSession.getSuppressSettingsClickUntil()) return;
-        toggleAppearanceSettings();
       });
       settings?.addEventListener("pointerdown", (event) => {
         if (event.button !== 0) return;
         event.preventDefault();
         event.stopPropagation();
-        widgetToolSession.setSuppressSettingsClickUntil(performance.now() + 320);
-        toggleAppearanceSettings();
       });
       colorToggle?.addEventListener("click", (event) => {
         event.preventDefault();

@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "verdict": "SHIP",
+  "task": "tool drawer opens on right-click only",
+  "checks": {
+    "discovery_guard": "passed",
+    "delegation_proof": "passed",
+    "syntax_checks": "passed",
+    "focused_right_click_only_canary": "passed",
+    "full_e2e": "18 passed",
+    "dependencies_unchanged": "passed",
+    "electron_unchanged": "passed"
+  },
+  "notes": [
+    "External drawer open paths are now limited to contextmenu -> __openCustomization.",
+    "Move/resize runtimes still receive open helper references only to preserve already-open drawer state around drawer-initiated tool interactions."
+  ]
+}

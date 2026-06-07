@@ -571,8 +571,7 @@ and ghost states */ .widget-card.widget-tools-open,
   transform-origin: top right;
   transition: transform var(--motion-popover), opacity .14s ease, background .16s ease, border-color .16s ease, visibility 0s linear .18s;
   z-index: var(--z-object-control);
-}.widget-tools-open .widget-tool-drawer,
-.widget-tools:focus-within:not(:has(> .widget-workbench-panel:not([hidden]))) .widget-tool-drawer{
+}.widget-tools-open .widget-tool-drawer{
   visibility: visible;
   opacity: 1;
   pointer-events: auto;
@@ -1216,8 +1215,7 @@ body.resize-auto-zoom-active .dashboard-expanded-footprint-ghost{
   margin-top: 16px;
   overflow-x: visible;
   padding-bottom: 2px;
-}/* Panel layout and base styles */ .panel-layout:has(.db-panel-tools-open),
-.panel-layout:has(.panel-tools:focus-within){
+}/* Panel layout and base styles */ .panel-layout:has(.db-panel-tools-open){
   overflow: visible;
 }.panel-layout > .db-panel{
   grid-column: span 6;
@@ -1659,13 +1657,9 @@ body.panel-resize-active .widget-placeholder,
 body.panel-resize-active .widget-spacer{
   transition: none !important;
 }body.panel-interaction-active .widget-tools-open .panel-tool-drawer,
-body.panel-interaction-active .widget-tools:focus-within .panel-tool-drawer,
 body.panel-interaction-active .db-panel.db-panel-tools-open > .db-panel-hd .panel-tool-drawer,
-body.panel-interaction-active .db-panel > .db-panel-hd .panel-tools:focus-within .panel-tool-drawer,
 body.panel-resize-active .widget-tools-open .panel-tool-drawer,
-body.panel-resize-active .widget-tools:focus-within .panel-tool-drawer,
-body.panel-resize-active .db-panel.db-panel-tools-open > .db-panel-hd .panel-tool-drawer,
-body.panel-resize-active .db-panel > .db-panel-hd .panel-tools:focus-within .panel-tool-drawer{
+body.panel-resize-active .db-panel.db-panel-tools-open > .db-panel-hd .panel-tool-drawer{
   visibility: hidden;
   opacity: 0;
   pointer-events: none;
@@ -1970,8 +1964,6 @@ body.panel-resize-active .db-panel:not(.db-panel-dragging):not(.dashboard-active
   right: auto;
   z-index: calc(var(--z-menu-overlay, 2600) + 1);
 }.db-panel.db-panel-tools-open > .db-panel-hd .panel-tool-drawer,
-.db-panel > .db-panel-hd .panel-tools:focus-within .panel-tool-drawer,
-.panel-tools:focus-within > .panel-tool-drawer,
 .workspace-menu-overlay-layer > .panel-tool-drawer.dashboard-tool-drawer-open{
   visibility: visible;
   opacity: 1;
