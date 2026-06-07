@@ -1,0 +1,94 @@
+{
+  "schema_version": 1,
+  "captured_at": "2026-06-07T04:24:29.723Z",
+  "frame_budget_ms": 16.67,
+  "long_task_budget_ms": 50,
+  "target_counts": [
+    30,
+    100
+  ],
+  "selected_interactions": [
+    "drag-with-collision"
+  ],
+  "interactions": [
+    {
+      "name": "drag-with-collision",
+      "object_count": 30,
+      "duration_ms": 60890,
+      "frame_count": 60,
+      "p50_frame_ms": 1000.2,
+      "p95_frame_ms": 1000.3,
+      "p99_frame_ms": 1000.3,
+      "max_frame_ms": 1000.3,
+      "dropped_frame_count": 60,
+      "long_task_count": 1,
+      "long_tasks": [
+        {
+          "start_ms": 60886.3,
+          "duration_ms": 79,
+          "name": "self"
+        }
+      ],
+      "dom_nodes": 1022,
+      "gate": {
+        "p95_under_16_67ms": false,
+        "no_long_tasks_over_50ms": false
+      }
+    },
+    {
+      "name": "drag-with-collision",
+      "object_count": 100,
+      "duration_ms": 60722,
+      "frame_count": 60,
+      "p50_frame_ms": 1000.2,
+      "p95_frame_ms": 1000.2,
+      "p99_frame_ms": 1000.3,
+      "max_frame_ms": 1000.3,
+      "dropped_frame_count": 60,
+      "long_task_count": 7,
+      "long_tasks": [
+        {
+          "start_ms": 550.8,
+          "duration_ms": 75,
+          "name": "self"
+        },
+        {
+          "start_ms": 626.5,
+          "duration_ms": 60,
+          "name": "self"
+        },
+        {
+          "start_ms": 1551.2,
+          "duration_ms": 170,
+          "name": "self"
+        },
+        {
+          "start_ms": 12553.1,
+          "duration_ms": 144,
+          "name": "self"
+        },
+        {
+          "start_ms": 25555.2,
+          "duration_ms": 136,
+          "name": "self"
+        },
+        {
+          "start_ms": 37557.3,
+          "duration_ms": 135,
+          "name": "self"
+        },
+        {
+          "start_ms": 60574.6,
+          "duration_ms": 236,
+          "name": "self"
+        }
+      ],
+      "dom_nodes": 2527,
+      "gate": {
+        "p95_under_16_67ms": false,
+        "no_long_tasks_over_50ms": false
+      }
+    }
+  ],
+  "passed": false
+}

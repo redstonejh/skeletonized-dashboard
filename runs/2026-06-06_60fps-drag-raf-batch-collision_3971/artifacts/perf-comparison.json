@@ -1,0 +1,132 @@
+{
+  "schema_version": 1,
+  "verdict": "FAIL",
+  "passed": false,
+  "baseline_artifact": "artifacts/perf-full-60fps-baseline.json",
+  "attempt_artifacts": [
+    "artifacts/perf-drag-with-collision-after.json",
+    "artifacts/perf-collision-heavy-reflow-after.json"
+  ],
+  "missing_artifacts": [
+    "artifacts/perf-edge-auto-scroll-after.json"
+  ],
+  "comparisons": [
+    {
+      "name": "drag-with-collision",
+      "object_count": 30,
+      "baseline": {
+        "duration_ms": 8790,
+        "p95_frame_ms": 89.9,
+        "max_frame_ms": 220,
+        "long_task_count": 63
+      },
+      "attempt": {
+        "duration_ms": 60890,
+        "p95_frame_ms": 1000.3,
+        "max_frame_ms": 1000.3,
+        "long_task_count": 1
+      },
+      "deltas": {
+        "duration_ms": 52100,
+        "p95_frame_ms": 910.4,
+        "max_frame_ms": 780.3,
+        "long_task_count": -62
+      },
+      "passed": false
+    },
+    {
+      "name": "drag-with-collision",
+      "object_count": 100,
+      "baseline": {
+        "duration_ms": 4399,
+        "p95_frame_ms": 39.9,
+        "max_frame_ms": 480.1,
+        "long_task_count": 8
+      },
+      "attempt": {
+        "duration_ms": 60722,
+        "p95_frame_ms": 1000.2,
+        "max_frame_ms": 1000.3,
+        "long_task_count": 7
+      },
+      "deltas": {
+        "duration_ms": 56323,
+        "p95_frame_ms": 960.3,
+        "max_frame_ms": 520.2,
+        "long_task_count": -1
+      },
+      "passed": false
+    },
+    {
+      "name": "collision-heavy-reflow",
+      "object_count": 30,
+      "baseline": {
+        "duration_ms": 3626,
+        "p95_frame_ms": 40,
+        "max_frame_ms": 180,
+        "long_task_count": 7
+      },
+      "attempt": {
+        "duration_ms": 72840,
+        "p95_frame_ms": 1000.3,
+        "max_frame_ms": 1004.1,
+        "long_task_count": 1
+      },
+      "deltas": {
+        "duration_ms": 69214,
+        "p95_frame_ms": 960.3,
+        "max_frame_ms": 824.1,
+        "long_task_count": -6
+      },
+      "passed": false
+    },
+    {
+      "name": "collision-heavy-reflow",
+      "object_count": 100,
+      "baseline": {
+        "duration_ms": 5363,
+        "p95_frame_ms": 40.3,
+        "max_frame_ms": 469.9,
+        "long_task_count": 9
+      },
+      "attempt": {
+        "duration_ms": 72740,
+        "p95_frame_ms": 1000.3,
+        "max_frame_ms": 1000.3,
+        "long_task_count": 8
+      },
+      "deltas": {
+        "duration_ms": 67377,
+        "p95_frame_ms": 960.0,
+        "max_frame_ms": 530.4,
+        "long_task_count": -1
+      },
+      "passed": false
+    },
+    {
+      "name": "edge-auto-scroll",
+      "object_count": "30,100",
+      "baseline": {
+        "30": {
+          "duration_ms": 12700,
+          "p95_frame_ms": 139.9,
+          "max_frame_ms": 230,
+          "long_task_count": 77
+        },
+        "100": {
+          "duration_ms": 61746,
+          "p95_frame_ms": 650,
+          "max_frame_ms": 1120.1,
+          "long_task_count": 186
+        }
+      },
+      "attempt": {
+        "status": "timeout",
+        "command": "PERF_INTERACTIONS=edge-auto-scroll PERF_OBJECT_COUNTS=30,100 npm.cmd run test:perf -- --workers=1",
+        "timeout_ms": 180000
+      },
+      "passed": false
+    }
+  ],
+  "reason": "The rAF preview-reflow attempt preserved the ordered-drag canary but regressed p95/max frame duration to about 1000ms and edge-auto-scroll timed out under the perf spec. Source changes were reverted."
+}

@@ -1,0 +1,16 @@
+{
+  "verdict": "NEEDS-HUMAN",
+  "passed": false,
+  "reason": "rAF-batched collision attempt failed perf acceptance; no product change is shipped or pushed.",
+  "failed_gates": [
+    "perf-comparison",
+    "edge-auto-scroll perf timeout",
+    "full 10x canary gate not run after perf failure"
+  ],
+  "source_reverted": true,
+  "artifacts": [
+    "artifacts/perf-comparison.json",
+    "artifacts/behavior-canary.json",
+    "artifacts/delegation-proof.json"
+  ]
+}

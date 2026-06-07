@@ -1,0 +1,8 @@
+{
+  "schema_version": 1,
+  "passed": false,
+  "ordered_drag_canary": "npm.cmd run test:e2e -- --workers=1 --grep \"keeps ordered drag\" => passed during attempted patch",
+  "full_10x_canaries": "not run because perf gate failed and source was reverted before SHIP",
+  "committed_layout_outcome": "not accepted for SHIP; attempted source reverted",
+  "reason": "Behavior canary did not fail, but perf acceptance failed before full behavior gate."
+}
