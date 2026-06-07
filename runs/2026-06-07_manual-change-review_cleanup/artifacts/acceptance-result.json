@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "verdict": "SHIP",
+  "task": "review recent manual changes for sloppiness and fix safe issues",
+  "checks": {
+    "delegation_proof": "passed",
+    "full_e2e_before_cleanup": "17 passed",
+    "full_e2e_after_cleanup": "17 passed",
+    "object_glass_independence": "covered by full e2e",
+    "no_auto_scroll_on_drag": "covered by full e2e",
+    "safe_fixes_only": "passed",
+    "dependencies_unchanged": "passed"
+  },
+  "deferred": [
+    {
+      "severity": "needs-human",
+      "item": "workspace tab context menu contains a rename text input inside a menu-like popover; consider a dialog/popover ARIA model in a dedicated UX pass"
+    }
+  ]
+}

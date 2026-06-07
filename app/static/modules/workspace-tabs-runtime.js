@@ -46,7 +46,8 @@ export const initializeWorkspaceTabsRuntime = ({
   let invokingTab = null;
   let menuActionInProgress = false;
 
-  root.setAttribute("role", "tablist");
+  root.setAttribute("role", "toolbar");
+  root.setAttribute("aria-label", "Workspace tabs");
 
   const save = () => writeJsonStore(storageKey, state);
 
@@ -80,8 +81,7 @@ export const initializeWorkspaceTabsRuntime = ({
       button.className = "workspace-tab";
       button.dataset.tabIndex = String(index);
       button.id = `workspace-tab-${tab.id}`;
-      button.setAttribute("aria-selected", String(index === state.activeIndex));
-      button.setAttribute("role", "tab");
+      button.setAttribute("aria-pressed", String(index === state.activeIndex));
       button.setAttribute("tabindex", index === state.activeIndex ? "0" : "-1");
       button.style.setProperty("--tab-accent", tab.color);
       button.dataset.tabLabel = tab.label;
@@ -193,7 +193,7 @@ export const initializeWorkspaceTabsRuntime = ({
       swatch.style.setProperty("--swatch", color);
       swatch.setAttribute("role", "menuitemradio");
       swatch.setAttribute("aria-label", `Set tab color ${color}`);
-      swatch.setAttribute("aria-pressed", String(cleanHex(color) === tab.color));
+      swatch.setAttribute("aria-checked", String(cleanHex(color) === tab.color));
       swatch.addEventListener("click", (event) => {
         event.preventDefault();
         event.stopPropagation();
@@ -203,7 +203,7 @@ export const initializeWorkspaceTabsRuntime = ({
         render();
         invokingTab = root.querySelector(`[data-tab-index="${index}"]`);
         menu?.querySelectorAll(".panel-color-swatch").forEach((item) => {
-          item.setAttribute("aria-pressed", String(cleanHex(item.dataset.color) === nextColor));
+          item.setAttribute("aria-checked", String(cleanHex(item.dataset.color) === nextColor));
         });
         menuActionInProgress = false;
       });

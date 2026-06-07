@@ -1464,10 +1464,6 @@ but make focus unmistakable. */ .panel-tool-drawer .panel-tool-button:focus-visi
   --panel-custom-control-border: rgba(15, 23, 42, .32) !important;
   --panel-custom-control-hover-border: rgba(15, 23, 42, .44) !important;
   --panel-custom-control-shadow: rgba(15, 23, 42, .14) !important;
-}.db-panel.db-panel-custom-color[data-panel-color="#ffffff"] :is(.panel-lock-toggle, .panel-pin-toggle, .panel-settings-toggle, .panel-tool-button),
-.widget-card.db-panel-custom-color[data-panel-color="#ffffff"] :is(.panel-settings-toggle, .panel-tool-button){
-  --panel-lock-fg: #102033 !important;
-  color: #102033 !important;
 }.widget-layout > .widget-card.db-panel-custom-color.widget-runtime-meaning,
 .panel-internal-widget-grid > .widget-card.db-panel-custom-color.widget-runtime-meaning{
   background: var(--panel-chrome-bg), var(--panel-chrome-surface) !important;
@@ -5486,11 +5482,11 @@ no card. Active * filter is indicated by a subtle underline + slightly higher * 
   outline: 1px solid rgba(255, 255, 255, .54);
   outline-offset: 6px;
 }
-.workspace-tab[aria-selected="true"]{
+.workspace-tab[aria-pressed="true"]{
   --tab-scale: 1.12;
 }
-.workspace-tab[aria-selected="true"]:hover,
-.workspace-tab[aria-selected="true"]:focus-visible{
+.workspace-tab[aria-pressed="true"]:hover,
+.workspace-tab[aria-pressed="true"]:focus-visible{
   --tab-lift: -1px;
   --tab-shadow-alpha: .48;
   --tab-shadow-y: .38em;
@@ -5540,7 +5536,7 @@ no card. Active * filter is indicated by a subtle underline + slightly higher * 
 }
 @media (prefers-reduced-motion: reduce){
   .workspace-tab,
-  .workspace-tab::after{
+  .workspace-tab::before{
     transition: none !important;
   }
 }

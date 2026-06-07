@@ -404,7 +404,7 @@ test("electron GUI renders glass text tabs with active scaling and persisted edi
   await expect(page.locator(".workspace-tab-bar")).toBeVisible();
   await expect(page.locator(".workspace-tab")).toHaveCount(3);
   await page.locator(".workspace-tab").nth(0).click();
-  await expect(page.locator(".workspace-tab").nth(0)).toHaveAttribute("aria-selected", "true");
+  await expect(page.locator(".workspace-tab").nth(0)).toHaveAttribute("aria-pressed", "true");
 
   const glassStyle = await page.locator(".workspace-tab").first().evaluate((node) => {
     const button = getComputedStyle(node);
@@ -424,7 +424,7 @@ test("electron GUI renders glass text tabs with active scaling and persisted edi
   const secondBoxBefore = await page.locator(".workspace-tab").nth(1).boundingBox();
   expect(secondBoxBefore).toBeTruthy();
   await page.locator(".workspace-tab").nth(1).click();
-  await expect(page.locator(".workspace-tab").nth(1)).toHaveAttribute("aria-selected", "true");
+  await expect(page.locator(".workspace-tab").nth(1)).toHaveAttribute("aria-pressed", "true");
   const secondBoxAfter = await page.locator(".workspace-tab").nth(1).boundingBox();
   expect(secondBoxAfter.width).toBeGreaterThan(secondBoxBefore.width);
 
@@ -439,20 +439,20 @@ test("electron GUI renders glass text tabs with active scaling and persisted edi
   await page.locator('.workspace-tab-menu .panel-color-swatch[data-color="#dc2626"]').click();
   await expect.poll(() => page.locator(".workspace-tab").nth(1).evaluate((node) => getComputedStyle(node).getPropertyValue("--tab-accent").trim())).toBe("#dc2626");
   await expect(page.locator(".workspace-tab-menu")).toBeVisible();
-  await expect(page.locator('.workspace-tab-menu .panel-color-swatch[data-color="#dc2626"]')).toHaveAttribute("aria-pressed", "true");
+  await expect(page.locator('.workspace-tab-menu .panel-color-swatch[data-color="#dc2626"]')).toHaveAttribute("aria-checked", "true");
   await page.keyboard.press("Escape");
   await expect(page.locator(".workspace-tab-menu")).toHaveCount(0);
 
   await page.reload();
   await page.waitForSelector(".dashboard-layout-grid");
   await expect(page.locator(".workspace-tab").nth(1)).toHaveText("planning");
-  await expect(page.locator(".workspace-tab").nth(1)).toHaveAttribute("aria-selected", "true");
+  await expect(page.locator(".workspace-tab").nth(1)).toHaveAttribute("aria-pressed", "true");
   await expect.poll(() => page.locator(".workspace-tab").nth(1).evaluate((node) => getComputedStyle(node).getPropertyValue("--tab-accent").trim())).toBe("#dc2626");
 
   await page.emulateMedia({ reducedMotion: "reduce" });
   const reducedMotion = await page.locator(".workspace-tab").nth(1).evaluate((node) => ({
     transitionDuration: getComputedStyle(node).transitionDuration,
-    pseudoTransitionDuration: getComputedStyle(node, "::after").transitionDuration,
+    pseudoTransitionDuration: getComputedStyle(node, "::before").transitionDuration,
   }));
   expect(reducedMotion.transitionDuration.split(",").every((value) => value.trim() === "0s")).toBe(true);
   expect(reducedMotion.pseudoTransitionDuration.split(",").every((value) => value.trim() === "0s")).toBe(true);
