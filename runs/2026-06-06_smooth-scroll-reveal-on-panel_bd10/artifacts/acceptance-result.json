@@ -1,0 +1,17 @@
+{
+    "schema_version":  1,
+    "verdict":  "SHIP",
+    "passed":  true,
+    "summary":  "Added smooth panel open reveal and smooth close scroll-back with temporary one-shot runway, manual-scroll guard, reduced-motion auto path, and no layout/collision changes.",
+    "gates":  {
+                  "affected_panel_drag_tests":  true,
+                  "full_e2e":  true,
+                  "no_collision_reflow":  true,
+                  "delegation":  "passed",
+                  "targeted_scroll_reveal":  true,
+                  "verdict_check":  "passed",
+                  "plan_check":  "passed",
+                  "a11y_auditor":  "passed_with_residual_keyboard_focus_risk",
+                  "change_verifier":  "passed_with_transient_runway_note"
+              }
+}

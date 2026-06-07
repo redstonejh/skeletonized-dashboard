@@ -1,0 +1,46 @@
+{
+    "schema_version":  1,
+    "delegation_capability":  {
+                                  "available":  true,
+                                  "primitive":  "multi_agent_v1.spawn_agent"
+                              },
+    "selected_roles":  [
+                           "conductor",
+                           "planner",
+                           "worker",
+                           "critic",
+                           "acceptance_gate",
+                           "a11y_auditor",
+                           "change_verifier"
+                       ],
+    "roles":  {
+                  "worker":  {
+                                 "role_prompt_path":  ".codex/agents/worker.md",
+                                 "agent_id":  "019ea0d1-de1e-7610-9c60-ad9ef4063749"
+                             },
+                  "critic":  {
+                                 "role_prompt_path":  ".codex/agents/critic.md",
+                                 "agent_id":  "019ea0d1-fa2e-7503-8446-de98ae96e6c0"
+                             },
+                  "acceptance_gate":  {
+                                          "role_prompt_path":  ".codex/agents/acceptance_gate.md",
+                                          "agent_id":  "019ea0d2-0f6c-7593-bb78-081d0d52ac60"
+                                      },
+                  "planner":  {
+                                  "role_prompt_path":  ".codex/agents/planner.md",
+                                  "agent_id":  "019ea0d1-92a9-71e0-9cfb-b84da6a6bf57"
+                              },
+                  "conductor":  {
+                                    "role_prompt_path":  ".codex/agents/conductor.md",
+                                    "agent_id":  "019ea0e9-00bd-7e43-b0e8-4ec79e8ec811"
+                                },
+                  "a11y_auditor":  {
+                                       "agent_id":  "019ea0ea-7c41-7381-a13d-1ab1c6701c5f",
+                                       "role_prompt_path":  ".codex/agents/a11y_auditor.md"
+                                   },
+                  "change_verifier":  {
+                                          "agent_id":  "019ea0ea-b8ea-7c02-91b1-acd18b13ff3c",
+                                          "role_prompt_path":  ".codex/agents/change_verifier.md"
+                                      }
+              }
+}

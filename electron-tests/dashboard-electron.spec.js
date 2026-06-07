@@ -507,6 +507,137 @@ test("electron GUI keeps object glass material independent from workspace backgr
   await closeApp(app);
 });
 
+test("electron GUI scrolls panel expansion into view and restores on collapse", async () => {
+  const { app, page } = await launchApp();
+  const selector = '.panel-layout > .db-panel[data-panel-key="builder-content"]';
+
+  await page.evaluate((selector) => {
+    const panel = document.querySelector(selector);
+    if (!panel) return;
+    panel.classList.add("db-panel-collapsed");
+    panel.dataset.savedHeight = "620";
+    panel.dataset.gridRowSpan = "1";
+    panel.dataset.gridRow = "14";
+    panel.style.gridRow = "14 / span 1";
+    panel.style.height = "";
+    panel.querySelector(":scope > .db-panel-hd")?.setAttribute("aria-expanded", "false");
+  }, selector);
+  await page.evaluate((selector) => {
+    const panel = document.querySelector(selector);
+    const rect = panel?.getBoundingClientRect();
+    if (!rect) return;
+    window.scrollTo(0, Math.max(0, window.scrollY + rect.top - window.innerHeight + 84));
+  }, selector);
+
+  const beforeOpenScroll = await page.evaluate(() => Math.round(window.scrollY || 0));
+  await page.locator(`${selector} > .db-panel-hd`).click({ force: true });
+  await expect(page.locator(`${selector} > .db-panel-hd`)).toHaveAttribute("aria-expanded", "true");
+  await expect.poll(() => page.evaluate(() => Math.round(window.scrollY || 0))).toBeGreaterThan(beforeOpenScroll);
+  await expect.poll(() => page.locator(selector).evaluate((panel) => {
+    const rect = panel.getBoundingClientRect();
+    return Math.round(rect.bottom <= window.innerHeight + 1 ? 1 : 0);
+  })).toBe(1);
+
+  const revealedScroll = await page.evaluate(() => Math.round(window.scrollY || 0));
+  await page.locator(`${selector} > .db-panel-hd`).click({ force: true });
+  await expect(page.locator(`${selector} > .db-panel-hd`)).toHaveAttribute("aria-expanded", "false");
+  await expect.poll(() => page.evaluate(() => Math.round(window.scrollY || 0))).toBeLessThan(revealedScroll);
+  const expectedRestoredScroll = await page.evaluate((beforeOpenScroll) => Math.min(
+    beforeOpenScroll,
+    Math.max(0, document.documentElement.scrollHeight - window.innerHeight)
+  ), beforeOpenScroll);
+  await expect.poll(() => page.evaluate((expectedRestoredScroll) => (
+    Math.abs(Math.round(window.scrollY || 0) - expectedRestoredScroll) <= 32
+  ), expectedRestoredScroll)).toBe(true);
+  await expect.poll(() => page.evaluate(() => document.body.style.paddingBottom || "")).toBe("");
+
+  await page.evaluate((selector) => {
+    const panel = document.querySelector(selector);
+    if (!panel) return;
+    panel.classList.add("db-panel-collapsed");
+    panel.dataset.savedHeight = "180";
+    panel.dataset.gridRowSpan = "1";
+    panel.dataset.gridRow = "2";
+    panel.style.gridRow = "2 / span 1";
+    panel.style.height = "";
+    panel.querySelector(":scope > .db-panel-hd")?.setAttribute("aria-expanded", "false");
+    window.scrollTo(0, 0);
+  }, selector);
+  const visibleBefore = await page.evaluate(() => Math.round(window.scrollY || 0));
+  await page.locator(`${selector} > .db-panel-hd`).click({ force: true });
+  await expect(page.locator(`${selector} > .db-panel-hd`)).toHaveAttribute("aria-expanded", "true");
+  await page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+  const visibleAfter = await page.evaluate(() => Math.round(window.scrollY || 0));
+  expect(visibleAfter).toBe(visibleBefore);
+
+  await page.evaluate((selector) => {
+    const panel = document.querySelector(selector);
+    if (!panel) return;
+    panel.classList.add("db-panel-collapsed");
+    panel.dataset.savedHeight = "620";
+    panel.dataset.gridRowSpan = "1";
+    panel.dataset.gridRow = "14";
+    panel.style.gridRow = "14 / span 1";
+    panel.style.height = "";
+    panel.querySelector(":scope > .db-panel-hd")?.setAttribute("aria-expanded", "false");
+    const rect = panel.getBoundingClientRect();
+    window.scrollTo(0, Math.max(0, window.scrollY + rect.top - window.innerHeight + 84));
+  }, selector);
+  const beforeManualOpenScroll = await page.evaluate(() => Math.round(window.scrollY || 0));
+  await page.locator(`${selector} > .db-panel-hd`).click({ force: true });
+  await expect.poll(() => page.evaluate(() => Math.round(window.scrollY || 0))).toBeGreaterThan(beforeManualOpenScroll);
+  await page.waitForFunction((selector) => Boolean(document.querySelector(selector)?.__panelRevealScrollState), selector);
+  await page.evaluate(() => {
+    window.dispatchEvent(new WheelEvent("wheel", { bubbles: true, cancelable: true, deltaY: -160 }));
+    window.scrollBy(0, -160);
+  });
+  const manualScroll = await page.evaluate(() => Math.round(window.scrollY || 0));
+  await page.locator(`${selector} > .db-panel-hd`).click({ force: true });
+  await expect(page.locator(`${selector} > .db-panel-hd`)).toHaveAttribute("aria-expanded", "false");
+  await page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+  const afterManualCollapseScroll = await page.evaluate(() => Math.round(window.scrollY || 0));
+  const expectedManualCollapseScroll = await page.evaluate((manualScroll) => Math.min(
+    manualScroll,
+    Math.max(0, document.documentElement.scrollHeight - window.innerHeight)
+  ), manualScroll);
+  expect(Math.abs(afterManualCollapseScroll - expectedManualCollapseScroll)).toBeLessThanOrEqual(24);
+
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  const reducedMotionBehavior = await page.evaluate((selector) => {
+    const panel = document.querySelector(selector);
+    if (!panel) return null;
+    const originalScrollTo = window.scrollTo.bind(window);
+    const calls = [];
+    window.scrollTo = (...args) => {
+      calls.push(args);
+      return originalScrollTo(...args);
+    };
+    panel.classList.add("db-panel-collapsed");
+    panel.dataset.savedHeight = "620";
+    panel.dataset.gridRowSpan = "1";
+    panel.dataset.gridRow = "14";
+    panel.style.gridRow = "14 / span 1";
+    panel.style.height = "";
+    panel.querySelector(":scope > .db-panel-hd")?.setAttribute("aria-expanded", "false");
+    const rect = panel.getBoundingClientRect();
+    originalScrollTo(0, Math.max(0, window.scrollY + rect.top - window.innerHeight + 84));
+    return new Promise((resolve) => {
+      panel.querySelector(":scope > .db-panel-hd")?.click();
+      requestAnimationFrame(() => requestAnimationFrame(() => {
+        window.scrollTo = originalScrollTo;
+        const optionCall = calls.find((entry) => entry[0] && typeof entry[0] === "object");
+        resolve(optionCall?.[0]?.behavior || "");
+      }));
+    });
+  }, selector);
+  expect(reducedMotionBehavior).toBe("auto");
+
+  const panelActionControlsSource = fs.readFileSync(path.join(__dirname, "..", "app", "static", "modules", "panel-action-controls.js"), "utf8");
+  expect(panelActionControlsSource).not.toMatch(/resolveSparseGridLayout|reflowItemsForLayout|collisionReflow/i);
+  await writeInteractionScenarios(page, ["panel-scroll-reveal-collapse"], { beforeOpenScroll, revealedScroll, manualScroll, afterManualCollapseScroll, reducedMotionBehavior });
+  await closeApp(app);
+});
+
 test("electron GUI keeps drag and resize handlers active", async () => {
   const { app, page } = await launchApp();
   const panel = await openTools(page, '.panel-layout > .db-panel[data-panel-key="builder-notes"]');

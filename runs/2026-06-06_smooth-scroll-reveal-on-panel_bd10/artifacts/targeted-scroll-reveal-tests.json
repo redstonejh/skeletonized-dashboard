@@ -1,0 +1,15 @@
+{
+    "schema_version":  1,
+    "passed":  true,
+    "command":  "npm.cmd run test:e2e -- --workers=1 --grep \"scrolls panel expansion\"",
+    "result":  "1 passed in 23.5s after final runway cleanup assertion",
+    "coverage":  [
+                     "open reveal",
+                     "close scroll-back",
+                     "already-visible no-op",
+                     "manual-scroll override",
+                     "reduced-motion auto behavior",
+                     "no collision/reflow import assertion",
+                     "temporary runway cleanup"
+                 ]
+}

@@ -1,0 +1,7 @@
+{
+    "schema_version":  1,
+    "passed":  true,
+    "source":  "app/static/modules/panel-action-controls.js",
+    "evidence":  "Static check and canary assert panel scroll path does not reference resolveSparseGridLayout, reflowItemsForLayout, or collisionReflow; implementation uses window.scrollTo and one-shot requestAnimationFrame only.",
+    "old_drag_autoscroll_grep":  "clean"
+}

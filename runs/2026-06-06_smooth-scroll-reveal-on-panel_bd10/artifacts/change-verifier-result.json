@@ -1,0 +1,12 @@
+{
+    "schema_version":  1,
+    "role":  "change_verifier",
+    "passed":  true,
+    "result":  "PASS with risks",
+    "notes":  [
+                  "diff limited to panel-action-controls.js and dashboard-electron.spec.js plus run artifacts",
+                  "no collision/reflow references in scroll path",
+                  "full e2e evidence green",
+                  "temporary body padding runway is transient and covered by cleanup assertion"
+              ]
+}

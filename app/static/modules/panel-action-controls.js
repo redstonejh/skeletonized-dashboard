@@ -37,6 +37,81 @@ export const bindPanelActionControls = ({
   closeInactiveDashboardTools,
   openPanelTools,
 }) => {
+  const prefersReducedMotion = () => window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches === true;
+  const currentScrollY = () => window.scrollY || document.documentElement.scrollTop || 0;
+  const maxScrollY = () => Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
+  const scrollViewportTo = (top) => {
+    window.scrollTo({
+      top: Math.max(0, Math.min(maxScrollY(), Math.round(top))),
+      behavior: prefersReducedMotion() ? "auto" : "smooth",
+    });
+  };
+  const preserveScrollBackRunway = (state) => {
+    if (!state || state.cleanupRunway) return;
+    const originalPadding = document.body.style.paddingBottom || "";
+    const currentPadding = Number.parseFloat(getComputedStyle(document.body).paddingBottom) || 0;
+    const panelHeight = Math.ceil(panel.getBoundingClientRect().height || 0);
+    const runway = Math.max(0, (state.targetScrollY - state.beforeScrollY) + panelHeight + 32);
+    if (!runway) return;
+    document.body.style.paddingBottom = `${currentPadding + runway}px`;
+    state.cleanupRunway = () => {
+      if (originalPadding) {
+        document.body.style.paddingBottom = originalPadding;
+      } else {
+        document.body.style.removeProperty("padding-bottom");
+      }
+      state.cleanupRunway = null;
+    };
+  };
+  const revealOpenPanelInViewport = (wasScrollY) => {
+    window.requestAnimationFrame(() => {
+      const rect = panel.getBoundingClientRect();
+      const viewportBottom = window.innerHeight || document.documentElement.clientHeight || 0;
+      if (!viewportBottom || rect.bottom <= viewportBottom) {
+        delete panel.__panelRevealScrollState;
+        return;
+      }
+      const targetScrollY = Math.min(maxScrollY(), currentScrollY() + (rect.bottom - viewportBottom) + 16);
+      const state = { beforeScrollY: wasScrollY, targetScrollY, userScrolled: false, cleanupManualListeners: null, cleanupRunway: null };
+      const markManualScroll = () => {
+        state.userScrolled = true;
+      };
+      const markManualKeyScroll = (event) => {
+        if (["ArrowDown", "ArrowUp", "PageDown", "PageUp", "Home", "End", " "].includes(event.key)) markManualScroll();
+      };
+      state.cleanupManualListeners = () => {
+        window.removeEventListener("wheel", markManualScroll, true);
+        window.removeEventListener("touchmove", markManualScroll, true);
+        window.removeEventListener("keydown", markManualKeyScroll, true);
+      };
+      window.addEventListener("wheel", markManualScroll, { capture: true, passive: true });
+      window.addEventListener("touchmove", markManualScroll, { capture: true, passive: true });
+      window.addEventListener("keydown", markManualKeyScroll, true);
+      panel.__panelRevealScrollState = state;
+      scrollViewportTo(targetScrollY);
+    });
+  };
+  const canRestorePanelRevealScroll = () => {
+    const state = panel.__panelRevealScrollState;
+    return Boolean(state && !state.userScrolled && Math.abs(currentScrollY() - state.targetScrollY) <= 192);
+  };
+  const restorePanelRevealScroll = (allowRestore = false) => {
+    const state = panel.__panelRevealScrollState;
+    delete panel.__panelRevealScrollState;
+    if (!state) return;
+    state.cleanupManualListeners?.();
+    if (state.userScrolled) return;
+    if (!allowRestore && Math.abs(currentScrollY() - state.targetScrollY) > 192) return;
+    window.requestAnimationFrame(() => {
+      window.requestAnimationFrame(() => {
+        scrollViewportTo(state.beforeScrollY);
+        const cleanup = () => state.cleanupRunway?.();
+        window.addEventListener("scrollend", cleanup, { once: true });
+        window.setTimeout(cleanup, prefersReducedMotion() ? 50 : 900);
+      });
+    });
+  };
+
   pinButton?.addEventListener("click", (event) => {
     event.preventDefault();
     event.stopPropagation();
@@ -129,6 +204,9 @@ export const bindPanelActionControls = ({
       return;
     }
     const wasCollapsed = panel.classList.contains("db-panel-collapsed");
+    const beforeScrollY = currentScrollY();
+    const shouldRestoreRevealScroll = !wasCollapsed && canRestorePanelRevealScroll();
+    if (shouldRestoreRevealScroll) preserveScrollBackRunway(panel.__panelRevealScrollState);
     if (wasCollapsed) {
       ensureRenderedGridPosition(layout, panel);
       beginPanelExpansionSession(layout, panel);
@@ -154,8 +232,10 @@ export const bindPanelActionControls = ({
         endPanelExpansionSession(layout, panel);
       } else {
         applyVerticalPanelExpansion(layout, panel);
+        revealOpenPanelInViewport(beforeScrollY);
       }
     }, panel);
+    if (collapsed) restorePanelRevealScroll(shouldRestoreRevealScroll);
     if (capabilities.canExpand) header.setAttribute("aria-expanded", (!collapsed).toString());
     savePanelLayouts(layout);
     emitWorkspaceEvent({

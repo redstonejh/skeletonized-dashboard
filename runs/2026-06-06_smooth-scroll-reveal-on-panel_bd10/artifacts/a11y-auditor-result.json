@@ -1,0 +1,12 @@
+{
+    "schema_version":  1,
+    "role":  "a11y_auditor",
+    "passed":  true,
+    "result":  "PASS with residual keyboard-focus risk",
+    "notes":  [
+                  "reduced motion uses auto behavior",
+                  "manual scroll and scroll keys prevent restore",
+                  "header keyboard toggle and aria-expanded preserved",
+                  "Tab focus navigation is a residual risk not newly covered"
+              ]
+}

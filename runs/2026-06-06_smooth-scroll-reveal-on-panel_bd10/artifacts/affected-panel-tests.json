@@ -1,0 +1,11 @@
+{
+    "schema_version":  1,
+    "passed":  true,
+    "command":  "npm.cmd run test:e2e -- --workers=1 --grep \"boots without server APIs|keeps drag and resize handlers active|keeps ordered drag\"",
+    "result":  "3 passed in 27.7s",
+    "coverage":  [
+                     "pin/core customization",
+                     "panel resize-snap",
+                     "drag no-interaction-scroll"
+                 ]
+}

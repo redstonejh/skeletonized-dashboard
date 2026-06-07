@@ -1,0 +1,47 @@
+{
+    "schema_version":  1,
+    "task_type":  "frontend-ui-task",
+    "objective":  "Add smooth viewport scroll-to-reveal on panel open and smooth scroll-back on close without layout/collision changes.",
+    "roles":  [
+                  "conductor",
+                  "planner",
+                  "worker",
+                  "critic",
+                  "acceptance_gate",
+                  "a11y_auditor",
+                  "change_verifier"
+              ],
+    "parallel_roles":  [
+                           "conductor",
+                           "planner",
+                           "worker",
+                           "critic",
+                           "acceptance_gate",
+                           "a11y_auditor",
+                           "change_verifier"
+                       ],
+    "caps":  {
+                 "max_iters":  3,
+                 "max_parallel":  7,
+                 "max_agents":  7
+             },
+    "role_justifications":  {
+                                "worker":  "Implemented pure viewport scroll helper and canary coverage.",
+                                "critic":  "Checked manual-scroll, reduced-motion, layout/collision, and drag-auto-scroll risks.",
+                                "acceptance_gate":  "Defined final targeted and full e2e acceptance evidence.",
+                                "planner":  "Identified panel-action-controls toggle hook and test scope.",
+                                "conductor":  "Selected core MAW roster and enforced fast frontend gates.",
+                                "a11y_auditor":  "Reviewed reduced-motion and user-scroll accessibility risks.",
+                                "change_verifier":  "Verified diff scope and evidence against frontend change gates."
+                            },
+    "acceptance_criteria":  [
+                                "open below fold scrolls panel into view",
+                                "close smoothly scrolls back up",
+                                "manual user scroll prevents automatic restore",
+                                "prefers-reduced-motion uses auto behavior",
+                                "already visible panel does not scroll",
+                                "no collision/reflow symbols in scroll path",
+                                "drag no-interaction-scroll canary stays green",
+                                "full e2e passes once"
+                            ]
+}
