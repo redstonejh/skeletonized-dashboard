@@ -1,0 +1,17 @@
+{
+  "passed": true,
+  "model": "single live dashboard object tree with per-tab serialized page snapshots",
+  "active_page_only_mounted": true,
+  "inactive_pages_connected_dom": false,
+  "new_page_control": ".workspace-tab-add",
+  "storage_key": "dashboard-workspace-pages:builder",
+  "covered_behaviors": [
+    "add tab and empty page",
+    "click tab to activate page",
+    "per-page widget isolation",
+    "switch back preserves page state",
+    "save and reload restores all pages",
+    "reduced-motion disables page transition",
+    "legacy tab-1 layout storage remains compatible"
+  ]
+}

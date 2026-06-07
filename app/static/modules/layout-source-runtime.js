@@ -34,6 +34,16 @@ export function initializeLayoutSourceRuntime(deps) {
   scheduleWorkspaceVisualLodRefresh();
 
   const saveSingleWorkspaceState = (layoutKey = "builder") => {
+    window.dashboardWorkspacePagesRuntime?.persistActivePage?.();
+    if (window.dashboardWorkspacePagesRuntime) {
+      showToast("Workspace saved.", "info", {
+        type: "layout-save-completed",
+        source: "layout-save",
+        layoutKey,
+        payload: { profile: singleProfile, pages: window.dashboardWorkspacePagesRuntime.pageIds?.() || [] },
+      });
+      if (window.dashboardWorkspacePagesRuntime.activeTabId?.() !== "tab-1") return;
+    }
     layoutPersistence?.setActiveProfile?.(layoutKey, singleProfile);
     layoutPersistence?.remove?.(layoutPersistence.key.layoutSource(layoutKey));
     const layout = document.querySelector(`.panel-layout[data-layout-key="${CSS.escape(layoutKey)}"]`);
@@ -51,6 +61,7 @@ export function initializeLayoutSourceRuntime(deps) {
   };
 
   const loadSingleWorkspaceState = (layoutKey = "builder") => {
+    window.dashboardWorkspacePagesRuntime?.skipNextBeforeUnloadPersist?.();
     layoutPersistence?.setActiveProfile?.(layoutKey, singleProfile);
     layoutPersistence?.remove?.(layoutPersistence.key.layoutSource(layoutKey));
     showToast("Workspace loaded.", "info", {

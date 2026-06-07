@@ -1,0 +1,27 @@
+{
+  "verdict": "SHIP",
+  "checks": {
+    "syntax": {
+      "passed": true,
+      "command": "node --check app/static/app.js; node --check app/static/modules/workspace-tabs-runtime.js; node --check app/static/modules/workspace-pages-runtime.js; node --check app/static/modules/layout-source-runtime.js; node --check electron-tests/dashboard-electron.spec.js"
+    },
+    "e2e": {
+      "passed": true,
+      "command": "npm.cmd run test:e2e -- --workers=1",
+      "tests": 21
+    },
+    "page_isolation": {
+      "passed": true,
+      "coverage": "electron GUI wires tabs to isolated lazy-loaded workspace pages"
+    },
+    "dependency_guard": {
+      "passed": true,
+      "electron": "^35.0.0",
+      "dependency_files_changed": false
+    },
+    "delegation": {
+      "passed": true,
+      "artifact": "artifacts/delegation-proof.json"
+    }
+  }
+}

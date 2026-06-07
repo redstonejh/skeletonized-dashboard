@@ -5482,6 +5482,31 @@ no card. Active * filter is indicated by a subtle underline + slightly higher * 
   outline: 1px solid rgba(255, 255, 255, .54);
   outline-offset: 6px;
 }
+.workspace-tab-add{
+  min-width: 2.35rem;
+  opacity: .82;
+}
+.workspace-tab-add .workspace-tab-label{
+  font-size: 1.15em;
+}
+.workspace-page-surface{
+  transition: transform 180ms ease, opacity 180ms ease;
+  will-change: transform, opacity;
+}
+.workspace-page-surface.workspace-page-slide-out{
+  opacity: .2;
+  transform: translateX(var(--workspace-page-exit-x, -28px));
+  pointer-events: none;
+}
+.workspace-page-surface.workspace-page-slide-in{
+  opacity: .2;
+  transform: translateX(var(--workspace-page-enter-x, 28px));
+}
+@media (prefers-reduced-motion: reduce){
+  .workspace-page-surface{
+    transition: none !important;
+  }
+}
 .workspace-tab[aria-pressed="true"]{
   --tab-scale: 1.12;
 }

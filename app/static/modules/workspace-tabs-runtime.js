@@ -18,8 +18,8 @@ const cleanLabel = (value, fallback) => {
 
 const normalizeState = (value) => {
   const sourceTabs = Array.isArray(value?.tabs) ? value.tabs : DEFAULT_TABS;
-  const tabs = sourceTabs.slice(0, 3).map((tab, index) => ({
-    id: DEFAULT_TABS[index]?.id || `tab-${index + 1}`,
+  const tabs = sourceTabs.map((tab, index) => ({
+    id: String(tab?.id || DEFAULT_TABS[index]?.id || `tab-${index + 1}`).replace(/[^a-z0-9_-]/gi, "") || `tab-${index + 1}`,
     label: cleanLabel(tab?.label, DEFAULT_TABS[index]?.label || `tab ${index + 1}`),
     color: cleanHex(tab?.color, DEFAULT_TABS[index]?.color || "#edf2f8"),
   }));
@@ -36,6 +36,8 @@ export const initializeWorkspaceTabsRuntime = ({
   writeJsonStore,
   panelThemePresets,
   storageKey = STORAGE_KEY,
+  onActivate,
+  onCreateTab,
 } = {}) => {
   const root = document.querySelector("[data-workspace-tabs]");
   if (!root || !readJsonStore || !writeJsonStore) return null;
@@ -45,6 +47,8 @@ export const initializeWorkspaceTabsRuntime = ({
   let editingIndex = -1;
   let invokingTab = null;
   let menuActionInProgress = false;
+  let activationHandler = typeof onActivate === "function" ? onActivate : null;
+  let createHandler = typeof onCreateTab === "function" ? onCreateTab : null;
 
   root.setAttribute("role", "toolbar");
   root.setAttribute("aria-label", "Workspace tabs");
@@ -77,6 +81,46 @@ export const initializeWorkspaceTabsRuntime = ({
     menu.style.top = `${top}px`;
   };
 
+  const activateTab = (index) => {
+    if (index === state.activeIndex) return;
+    const previousIndex = state.activeIndex;
+    const previousTab = state.tabs[previousIndex] || null;
+    const nextTab = state.tabs[index] || null;
+    state = { ...state, activeIndex: index };
+    save();
+    activationHandler?.({
+      previousIndex,
+      nextIndex: index,
+      previousTab,
+      nextTab,
+      direction: index > previousIndex ? 1 : -1,
+      state: normalizeState(state),
+    });
+    render();
+  };
+
+  const createTab = () => {
+    const nextNumber = state.tabs.length + 1;
+    const tab = {
+      id: `tab-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`,
+      label: `tab ${nextNumber}`,
+      color: DEFAULT_TABS[(nextNumber - 1) % DEFAULT_TABS.length]?.color || "#edf2f8",
+    };
+    const previousIndex = state.activeIndex;
+    state = { tabs: [...state.tabs, tab], activeIndex: state.tabs.length };
+    save();
+    createHandler?.({ tab, index: state.activeIndex, previousIndex, state: normalizeState(state) });
+    activationHandler?.({
+      previousIndex,
+      nextIndex: state.activeIndex,
+      previousTab: state.tabs[previousIndex] || null,
+      nextTab: tab,
+      direction: 1,
+      state: normalizeState(state),
+    });
+    render();
+  };
+
   const render = () => {
     root.innerHTML = "";
     root.style.setProperty("--workspace-tab-count", String(state.tabs.length));
@@ -96,9 +140,7 @@ export const initializeWorkspaceTabsRuntime = ({
       label.textContent = tab.label;
       button.appendChild(label);
       button.addEventListener("click", () => {
-        state = { ...state, activeIndex: index };
-        save();
-        render();
+        activateTab(index);
       });
       button.addEventListener("contextmenu", (event) => {
         event.preventDefault();
@@ -117,9 +159,7 @@ export const initializeWorkspaceTabsRuntime = ({
                 : index;
         if (nextIndex !== index) {
           event.preventDefault();
-          state = { ...state, activeIndex: nextIndex };
-          save();
-          render();
+          activateTab(nextIndex);
           root.querySelector(`[data-tab-index="${nextIndex}"]`)?.focus({ preventScroll: true });
           return;
         }
@@ -130,6 +170,18 @@ export const initializeWorkspaceTabsRuntime = ({
       });
       root.appendChild(button);
     });
+    const addButton = document.createElement("button");
+    addButton.type = "button";
+    addButton.className = "workspace-tab workspace-tab-add";
+    addButton.setAttribute("aria-label", "Add workspace page");
+    addButton.title = "Add workspace page";
+    addButton.dataset.tabLabel = "+";
+    const addLabel = document.createElement("span");
+    addLabel.className = "workspace-tab-label";
+    addLabel.textContent = "+";
+    addButton.appendChild(addLabel);
+    addButton.addEventListener("click", createTab);
+    root.appendChild(addButton);
   };
 
   const commitRename = (index, input, { renderTabs = true } = {}) => {
@@ -249,5 +301,13 @@ export const initializeWorkspaceTabsRuntime = ({
       save();
       render();
     },
+    setActivationHandler: (handler) => {
+      activationHandler = typeof handler === "function" ? handler : null;
+    },
+    setCreateHandler: (handler) => {
+      createHandler = typeof handler === "function" ? handler : null;
+    },
+    activateTab,
+    createTab,
   };
 };

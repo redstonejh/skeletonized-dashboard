@@ -75,6 +75,7 @@ import { createOrderedGridItemsRuntime } from "./modules/ordered-grid-items-runt
 import { createConditionalStyleRuntime } from "./modules/conditional-style-runtime.js";
 import { createWidgetContentRuntime } from "./modules/widget-content-runtime.js";
 import { initializeWorkspaceTabsRuntime } from "./modules/workspace-tabs-runtime.js";
+import { initializeWorkspacePagesRuntime } from "./modules/workspace-pages-runtime.js";
 import {
   applyPanelColor,
   applyPanelTitleColor,
@@ -148,11 +149,12 @@ document.addEventListener("DOMContentLoaded", () => {
   const readRawStore = layoutPersistence.readRaw;
   const writeRawStore = layoutPersistence.writeRaw;
   const removeStore = layoutPersistence.remove;
-  initializeWorkspaceTabsRuntime({
+  const workspaceTabsRuntime = initializeWorkspaceTabsRuntime({
     readJsonStore,
     writeJsonStore,
     panelThemePresets,
   });
+  let workspacePagesRuntime = null;
   const {
     assetId,
     mediaWidgetAssetTypes,
@@ -3110,6 +3112,21 @@ document.addEventListener("DOMContentLoaded", () => {
     applyDashboardKeywordSearch,
   });
   bindDashboardKeywordForms();
+
+  const refreshMountedWorkspacePage = () => {
+    document.querySelectorAll(".widget-layout").forEach(initWidgetLayout);
+    initPanelLayouts();
+    bindDashboardKeywordForms();
+    syncWorkspaceRegions();
+    syncDefaultDashboardGrid("builder");
+    scheduleWorkspaceVisualLodRefresh();
+  };
+  workspacePagesRuntime = initializeWorkspacePagesRuntime({
+    tabsRuntime: workspaceTabsRuntime,
+    readJsonStore,
+    writeJsonStore,
+    onPageMounted: refreshMountedWorkspacePage,
+  });
 
   ({
     copySelectedWorkspaceObjects,

@@ -578,7 +578,8 @@ test("electron GUI opens customization drawers only from right click", async () 
 test("electron GUI renders glass text tabs with active scaling and persisted edits", async () => {
   const { app, page } = await launchApp();
   await expect(page.locator(".workspace-tab-bar")).toBeVisible();
-  await expect(page.locator(".workspace-tab")).toHaveCount(3);
+  await expect(page.locator(".workspace-tab:not(.workspace-tab-add)")).toHaveCount(3);
+  await expect(page.locator(".workspace-tab-add")).toBeVisible();
   await page.locator(".workspace-tab").nth(0).click();
   await expect(page.locator(".workspace-tab").nth(0)).toHaveAttribute("aria-pressed", "true");
 
@@ -632,6 +633,56 @@ test("electron GUI renders glass text tabs with active scaling and persisted edi
   }));
   expect(reducedMotion.transitionDuration.split(",").every((value) => value.trim() === "0s")).toBe(true);
   expect(reducedMotion.pseudoTransitionDuration.split(",").every((value) => value.trim() === "0s")).toBe(true);
+  await closeApp(app);
+});
+
+test("electron GUI wires tabs to isolated lazy-loaded workspace pages", async () => {
+  const { app, page } = await launchApp();
+  await expect(page.locator(".workspace-tab:not(.workspace-tab-add)")).toHaveCount(3);
+  await expect(page.locator(".widget-layout > .widget-card")).toHaveCount(4);
+
+  await page.locator(".workspace-tab-add").click();
+  await expect(page.locator(".workspace-tab:not(.workspace-tab-add)")).toHaveCount(4);
+  await expect(page.locator(".workspace-tab:not(.workspace-tab-add)").nth(3)).toHaveAttribute("aria-pressed", "true");
+  await expect(page.locator(".widget-layout > .widget-card")).toHaveCount(0);
+  await expect(page.locator(".panel-layout > .db-panel")).toHaveCount(0);
+
+  const pageFourWidget = await addTextWidget(page);
+  const pageFourKey = await pageFourWidget.evaluate((node) => node.dataset.widgetKey || "");
+  expect(pageFourKey).toBeTruthy();
+  await expect(page.locator(".widget-layout > .widget-card")).toHaveCount(1);
+
+  await page.locator(".workspace-tab:not(.workspace-tab-add)").nth(0).click();
+  await expect(page.locator(".widget-layout > .widget-card")).toHaveCount(4);
+  await expect(page.locator(`.widget-layout > .widget-card[data-widget-key="${pageFourKey}"]`)).toHaveCount(0);
+
+  await page.locator(".workspace-tab:not(.workspace-tab-add)").nth(3).click();
+  await expect(page.locator(`.widget-layout > .widget-card[data-widget-key="${pageFourKey}"]`)).toBeVisible();
+  await expect(page.locator(".widget-layout > .widget-card")).toHaveCount(1);
+  const pageRuntime = await page.evaluate(() => ({
+    persisted: window.dashboardWorkspacePagesRuntime?.persistActivePage?.(),
+    activeTabId: window.dashboardWorkspacePagesRuntime?.activeTabId?.(),
+    pageIds: window.dashboardWorkspacePagesRuntime?.pageIds?.(),
+    activePageWidgetHtml: window.dashboardWorkspacePagesRuntime?.pageForTab?.(window.dashboardWorkspacePagesRuntime?.activeTabId?.())?.widgetHtml || "",
+  }));
+  expect(pageRuntime.pageIds.length).toBe(4);
+  expect(pageRuntime.activePageWidgetHtml).toContain(pageFourKey);
+
+  await openControlBar(page);
+  await page.locator(".layout-save-button").click({ force: true });
+  await page.reload();
+  await page.waitForSelector(".dashboard-layout-grid");
+  await expect(page.locator(".workspace-tab:not(.workspace-tab-add)").nth(3)).toHaveAttribute("aria-pressed", "true");
+  await expect(page.locator(`.widget-layout > .widget-card[data-widget-key="${pageFourKey}"]`)).toBeVisible();
+  await page.locator(".workspace-tab:not(.workspace-tab-add)").nth(0).click({ force: true });
+  await expect(page.locator(".workspace-tab:not(.workspace-tab-add)").nth(0)).toHaveAttribute("aria-pressed", "true");
+  await expect.poll(() => page.evaluate(() => window.dashboardWorkspacePagesRuntime?.activeTabId?.())).toBe("tab-1");
+  await expect(page.locator(`.widget-layout > .widget-card[data-widget-key="${pageFourKey}"]`)).toHaveCount(0);
+  await expect(page.locator(".widget-layout > .widget-card")).toHaveCount(4);
+
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  const transitionDuration = await page.locator(".dashboard-layout-grid").evaluate((node) => getComputedStyle(node).transitionDuration);
+  expect(transitionDuration).toBe("0s");
   await closeApp(app);
 });
 
