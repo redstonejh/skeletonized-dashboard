@@ -238,6 +238,21 @@ export const createWidgetLayoutRuntime = (deps) => {
         widget.classList.add("widget-workbench-open");
         const panel = ensureWidgetWorkbenchPanel(widget);
         if (panel) {
+          const widgetStyle = getComputedStyle(widget);
+          [
+            "--panel-accent",
+            "--panel-accent-rgb",
+            "--panel-accent-text",
+            "--panel-lock-fg",
+            "--panel-drawer-bg",
+            "--widget-drawer-bg",
+            "--panel-drawer-border",
+            "--panel-drawer-shadow",
+          ].forEach((name) => {
+            const value = widgetStyle.getPropertyValue(name);
+            if (value) panel.style.setProperty(name, value);
+          });
+          panel.dataset.panelColor = widget.dataset.panelColor || "";
           portalFloatingMenu(panel, settings || widget, { skipPosition: true });
           panel.style.left = "0px";
           panel.style.top = "0px";

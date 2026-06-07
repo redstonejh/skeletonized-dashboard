@@ -14,6 +14,7 @@ export const readableTextFor = ({ r, g, b }) => {
 };
 
 export const panelThemePresets = [
+  "#ffffff",
   "#2563eb", "#0ea5e9", "#0891b2", "#14b8a6", "#16a34a", "#65a30d", "#ca8a04", "#d97706",
   "#dc2626", "#e11d48", "#db2777", "#9333ea", "#7c3aed", "#4f46e5", "#64748b", "#111827",
 ];
@@ -49,14 +50,35 @@ export const applyPanelColor = (panel, color) => {
     panel.style.removeProperty("--panel-accent");
     panel.style.removeProperty("--panel-accent-rgb");
     panel.style.removeProperty("--panel-accent-text");
+    panel.style.removeProperty("--panel-header-control-fg");
+    panel.style.removeProperty("--panel-lock-fg");
+    panel.style.removeProperty("--panel-custom-control-bg");
+    panel.style.removeProperty("--panel-custom-control-border");
+    panel.style.removeProperty("--panel-custom-control-hover-border");
+    panel.style.removeProperty("--panel-custom-control-shadow");
     delete panel.dataset.panelColor;
     return;
   }
+  const textColor = readableTextFor(rgb);
+  const isWhite = String(color).replace("#", "").toLowerCase() === "ffffff";
   panel.dataset.panelColor = `#${String(color).replace("#", "")}`;
   panel.classList.add("db-panel-custom-color");
   panel.style.setProperty("--panel-accent", panel.dataset.panelColor);
   panel.style.setProperty("--panel-accent-rgb", `${rgb.r}, ${rgb.g}, ${rgb.b}`);
-  panel.style.setProperty("--panel-accent-text", readableTextFor(rgb));
+  panel.style.setProperty("--panel-accent-text", textColor, "important");
+  panel.style.setProperty("--panel-header-control-fg", textColor, "important");
+  panel.style.setProperty("--panel-lock-fg", textColor, "important");
+  if (isWhite) {
+    panel.style.setProperty("--panel-custom-control-bg", "color-mix(in srgb, var(--surface-raised) 74%, #ffffff 26%)", "important");
+    panel.style.setProperty("--panel-custom-control-border", "rgba(15, 23, 42, .32)", "important");
+    panel.style.setProperty("--panel-custom-control-hover-border", "rgba(15, 23, 42, .44)", "important");
+    panel.style.setProperty("--panel-custom-control-shadow", "rgba(15, 23, 42, .14)", "important");
+  } else {
+    panel.style.removeProperty("--panel-custom-control-bg");
+    panel.style.removeProperty("--panel-custom-control-border");
+    panel.style.removeProperty("--panel-custom-control-hover-border");
+    panel.style.removeProperty("--panel-custom-control-shadow");
+  }
 };
 
 export const applyPanelTitleColor = (panel, color) => {

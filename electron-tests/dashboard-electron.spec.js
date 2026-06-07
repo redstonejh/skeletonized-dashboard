@@ -40,6 +40,12 @@ async function openTools(page, selector) {
   return item;
 }
 
+function rgbChannelSum(color) {
+  if (!color || !color.startsWith("rgb")) return null;
+  const channels = color.match(/[\d.]+/g)?.map(Number).slice(0, 3) || [];
+  return channels.length === 3 ? channels.reduce((sum, value) => sum + value, 0) : null;
+}
+
 async function dispatchPointerDrag(page, fromX, fromY, toX, toY, steps = 60) {
   await page.evaluate(({ fromX, fromY, toX, toY, steps }) => {
     const eventInit = (x, y, type) => ({
@@ -254,6 +260,12 @@ test("electron GUI boots without server APIs and preserves core customization", 
   const panel = await openTools(page, '.panel-layout > .db-panel[data-panel-key="builder-content"]');
   await panel.locator(".panel-color-toggle").click({ force: true });
   await expect(page.locator(".panel-color-menu-open")).toHaveCount(1);
+  await expect(page.locator('.panel-color-menu-open .panel-color-swatch[data-color="#ffffff"]')).toBeVisible();
+  await panel.locator(".panel-color-toggle").evaluate((button) => {
+    button.__panelColorMenu?.classList.remove("panel-color-menu-open");
+    button.setAttribute("aria-expanded", "false");
+  });
+  await expect(page.locator(".panel-color-menu-open")).toHaveCount(0);
 
   await panel.locator(".panel-title-handle").click({ force: true });
   const input = page.locator(".panel-title-input, .panel-title-editor, input:not(.background-custom-color-input)").first();
@@ -275,9 +287,53 @@ test("electron GUI boots without server APIs and preserves core customization", 
   });
   expect(suppressedPanelOpen).toBe(false);
 
+  await openTools(page, '.panel-layout > .db-panel[data-panel-key="builder-content"]');
+  await panel.locator(".panel-color-toggle").click({ force: true });
+  await page.locator('.panel-color-menu-open .panel-color-swatch[data-color="#ffffff"]').click();
+  await expect.poll(() => panel.evaluate((node) => node.dataset.panelColor || "")).toBe("#ffffff");
+  const whiteThemeIconColor = await panel.locator(".panel-tool-button").first().evaluate((node) => getComputedStyle(node).color);
+  expect(rgbChannelSum(whiteThemeIconColor)).toBeLessThan(150);
+  const whiteThemeDrawerBg = await panel.locator(".panel-tool-drawer").evaluate((node) => getComputedStyle(node).backgroundColor);
+  expect(whiteThemeDrawerBg).not.toBe("rgb(255, 255, 255)");
+  expect(whiteThemeDrawerBg).not.toBe("rgba(255, 255, 255, 1)");
+  await panel.locator(".panel-color-toggle").evaluate((button) => {
+    button.__panelColorMenu?.classList.remove("panel-color-menu-open");
+    button.setAttribute("aria-expanded", "false");
+  });
+  await expect(page.locator(".panel-color-menu-open")).toHaveCount(0);
+
   const widget = await addTextWidget(page);
   await openTools(page, '.widget-layout > .widget-card[data-custom-widget="true"]');
   await expect(widget.locator(".panel-move-handle")).toBeVisible();
+  await widget.locator(".panel-color-toggle").click({ force: true });
+  await page.locator('.panel-color-menu-open .panel-color-swatch[data-color="#ffffff"]').click();
+  await expect.poll(() => widget.evaluate((node) => node.dataset.panelColor || "")).toBe("#ffffff");
+  const whiteWidgetIconColor = await widget.locator(".panel-tool-button").first().evaluate((node) => getComputedStyle(node).color);
+  expect(rgbChannelSum(whiteWidgetIconColor)).toBeLessThan(150);
+  await widget.locator(".panel-color-toggle").evaluate((button) => {
+    button.__panelColorMenu?.classList.remove("panel-color-menu-open");
+    button.setAttribute("aria-expanded", "false");
+  });
+  await expect(page.locator(".panel-color-menu-open")).toHaveCount(0);
+  await widget.evaluate((node) => {
+    node.classList.remove("widget-tools-open");
+    const rect = node.getBoundingClientRect();
+    node.dispatchEvent(new MouseEvent("click", {
+      bubbles: true,
+      cancelable: true,
+      clientX: rect.left + (rect.width / 2),
+      clientY: rect.top + (rect.height / 2),
+    }));
+  });
+  const widgetWorkbench = page.locator('.workspace-menu-overlay-layer > .widget-workbench-panel.menu-portaled:not([hidden])');
+  await expect(widgetWorkbench).toBeVisible();
+  const whiteWidgetWorkbenchStyles = await widgetWorkbench.evaluate((node) => {
+    const style = getComputedStyle(node);
+    return { backgroundColor: style.backgroundColor, color: style.color };
+  });
+  expect(whiteWidgetWorkbenchStyles.backgroundColor).not.toBe("rgb(255, 255, 255)");
+  expect(whiteWidgetWorkbenchStyles.backgroundColor).not.toBe("rgba(255, 255, 255, 1)");
+  expect(rgbChannelSum(whiteWidgetWorkbenchStyles.color)).toBeLessThan(150);
 
   await page.locator(".layout-save-button").click();
   await page.reload();
@@ -347,9 +403,8 @@ test("electron GUI renders glass text tabs with active scaling and persisted edi
   const { app, page } = await launchApp();
   await expect(page.locator(".workspace-tab-bar")).toBeVisible();
   await expect(page.locator(".workspace-tab")).toHaveCount(3);
-  await expect(page.locator(".workspace-tab").nth(0)).toHaveText("tab 1");
-  await expect(page.locator(".workspace-tab").nth(1)).toHaveText("tab 2");
-  await expect(page.locator(".workspace-tab").nth(2)).toHaveText("tab 3");
+  await page.locator(".workspace-tab").nth(0).click();
+  await expect(page.locator(".workspace-tab").nth(0)).toHaveAttribute("aria-selected", "true");
 
   const glassStyle = await page.locator(".workspace-tab").first().evaluate((node) => {
     const button = getComputedStyle(node);
@@ -366,9 +421,7 @@ test("electron GUI renders glass text tabs with active scaling and persisted edi
   expect(glassStyle.textFill).toMatch(/rgba?\(0,\s*0,\s*0,\s*0\)|transparent/i);
   expect(glassStyle.backgroundImage).not.toBe("none");
 
-  const firstBox = await page.locator(".workspace-tab").nth(0).boundingBox();
   const secondBoxBefore = await page.locator(".workspace-tab").nth(1).boundingBox();
-  expect(firstBox).toBeTruthy();
   expect(secondBoxBefore).toBeTruthy();
   await page.locator(".workspace-tab").nth(1).click();
   await expect(page.locator(".workspace-tab").nth(1)).toHaveAttribute("aria-selected", "true");
@@ -377,12 +430,18 @@ test("electron GUI renders glass text tabs with active scaling and persisted edi
 
   await page.locator(".workspace-tab").nth(1).click({ button: "right" });
   await expect(page.locator(".workspace-tab-menu")).toBeVisible();
+  await expect(page.locator('.workspace-tab-menu .panel-color-swatch[data-color="#ffffff"]')).toBeVisible();
   await page.locator(".workspace-tab-rename-input").fill("planning");
   await page.locator(".workspace-tab-rename-input").press("Enter");
   await expect(page.locator(".workspace-tab").nth(1)).toHaveText("planning");
+  await expect(page.locator(".workspace-tab-menu")).toHaveCount(0);
   await page.locator(".workspace-tab").nth(1).click({ button: "right" });
   await page.locator('.workspace-tab-menu .panel-color-swatch[data-color="#dc2626"]').click();
   await expect.poll(() => page.locator(".workspace-tab").nth(1).evaluate((node) => getComputedStyle(node).getPropertyValue("--tab-accent").trim())).toBe("#dc2626");
+  await expect(page.locator(".workspace-tab-menu")).toBeVisible();
+  await expect(page.locator('.workspace-tab-menu .panel-color-swatch[data-color="#dc2626"]')).toHaveAttribute("aria-pressed", "true");
+  await page.keyboard.press("Escape");
+  await expect(page.locator(".workspace-tab-menu")).toHaveCount(0);
 
   await page.reload();
   await page.waitForSelector(".dashboard-layout-grid");

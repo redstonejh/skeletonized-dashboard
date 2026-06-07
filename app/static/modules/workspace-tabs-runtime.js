@@ -44,6 +44,7 @@ export const initializeWorkspaceTabsRuntime = ({
   let menu = null;
   let editingIndex = -1;
   let invokingTab = null;
+  let menuActionInProgress = false;
 
   root.setAttribute("role", "tablist");
 
@@ -55,6 +56,7 @@ export const initializeWorkspaceTabsRuntime = ({
     menu = null;
     editingIndex = -1;
     invokingTab = null;
+    menuActionInProgress = false;
     if (restoreFocus) focusTarget?.focus?.({ preventScroll: true });
   };
 
@@ -82,6 +84,7 @@ export const initializeWorkspaceTabsRuntime = ({
       button.setAttribute("role", "tab");
       button.setAttribute("tabindex", index === state.activeIndex ? "0" : "-1");
       button.style.setProperty("--tab-accent", tab.color);
+      button.dataset.tabLabel = tab.label;
       button.title = tab.label;
       const label = document.createElement("span");
       label.className = "workspace-tab-label";
@@ -132,7 +135,6 @@ export const initializeWorkspaceTabsRuntime = ({
     };
     save();
     render();
-    openMenu(index, root.querySelector(`[data-tab-index="${index}"]`));
   };
 
   const openMenu = (index, button) => {
@@ -160,6 +162,7 @@ export const initializeWorkspaceTabsRuntime = ({
       if (event.key === "Enter") {
         event.preventDefault();
         commitRename(index, input);
+        closeMenu();
       } else if (event.key === "Escape") {
         event.preventDefault();
         closeMenu();
@@ -167,7 +170,11 @@ export const initializeWorkspaceTabsRuntime = ({
     });
     input.addEventListener("blur", (event) => {
       if (event.relatedTarget && menu?.contains(event.relatedTarget)) return;
-      if (editingIndex === index && menu?.isConnected) commitRename(index, input);
+      if (menuActionInProgress) return;
+      if (editingIndex === index && menu?.isConnected) {
+        commitRename(index, input);
+        closeMenu({ restoreFocus: false });
+      }
     });
     renameGroup.append(renameLabel, input);
 
@@ -190,17 +197,23 @@ export const initializeWorkspaceTabsRuntime = ({
       swatch.addEventListener("click", (event) => {
         event.preventDefault();
         event.stopPropagation();
-        state.tabs[index] = { ...state.tabs[index], color: cleanHex(color) };
+        const nextColor = cleanHex(color);
+        state.tabs[index] = { ...state.tabs[index], color: nextColor };
         save();
         render();
-        openMenu(index, root.querySelector(`[data-tab-index="${index}"]`));
+        invokingTab = root.querySelector(`[data-tab-index="${index}"]`);
+        menu?.querySelectorAll(".panel-color-swatch").forEach((item) => {
+          item.setAttribute("aria-pressed", String(cleanHex(item.dataset.color) === nextColor));
+        });
+        menuActionInProgress = false;
       });
       swatches.appendChild(swatch);
     });
     colorGroup.append(colorLabel, swatches);
     menu.append(renameGroup, colorGroup);
     menu.addEventListener("pointerdown", (event) => {
-      if (!event.target?.closest?.(".workspace-tab-rename-input")) event.preventDefault();
+      menuActionInProgress = !event.target?.closest?.(".workspace-tab-rename-input");
+      if (menuActionInProgress) event.preventDefault();
     });
     document.body.appendChild(menu);
     positionMenu(button);

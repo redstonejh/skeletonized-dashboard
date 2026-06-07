@@ -2173,6 +2173,9 @@ that put the drawer on top — palette * has to declare its tier explicitly. */ 
   transition: transform .12s ease, box-shadow .14s ease, border-color .14s ease;
   outline: 0;
   -webkit-tap-highlight-color: transparent;
+}.panel-color-swatch[data-color="#ffffff"]{
+  border-color: rgba(15, 23, 42, .34);
+  box-shadow: 0 6px 14px rgba(15, 23, 42, .18), inset 0 0 0 1px rgba(255, 255, 255, .90);
 }.panel-color-swatch:hover,
 .panel-color-swatch:focus,
 .panel-color-swatch:focus-visible,
