@@ -1,0 +1,7 @@
+{
+  "runtime_data_source": "definition.getDemoData or empty display rows",
+  "network_adapter_removed_previous_commit": "53a6a6a",
+  "this_run": "registry/runtime no longer serializes query requirements or query builders",
+  "kept": "demo/static content is the display data provider for table/chart/map/calendar/stat placeholders"
+}
+

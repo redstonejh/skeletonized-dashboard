@@ -141,9 +141,39 @@ async function addTextWidget(page) {
     node.classList.add("is-open");
     node.querySelector(".object-add-category-trigger")?.setAttribute("aria-expanded", "true");
   });
-  await content.locator('.widget-add-action[data-widget-kind="text"]').click({ force: true });
+  const beforeCount = await page.locator('.widget-layout > .widget-card[data-custom-widget="true"]').count();
+  await content.locator('.widget-add-action[data-widget-kind="text"]').evaluate((node) => node.click());
+  await expect(page.locator('.widget-layout > .widget-card[data-custom-widget="true"]')).toHaveCount(beforeCount + 1);
   const widget = page.locator('.widget-layout > .widget-card[data-custom-widget="true"]').last();
   await expect(widget).toBeVisible();
+  await expect(widget).toHaveAttribute("data-widget-definition", "text");
+  await widget.scrollIntoViewIfNeeded();
+  return widget;
+}
+
+async function addWidget(page, { kind, category, subcategory = "", expectedDefinition = kind }) {
+  await openControlBar(page);
+  await page.locator(".panel-add-button").click({ force: true });
+  const menu = page.locator(".panel-add-menu");
+  await expect(menu).toHaveClass(/open/);
+  const group = menu.locator(`.object-add-category[data-object-menu-category="${category}"]`);
+  await group.evaluate((node, subcategory) => {
+    node.classList.add("is-open");
+    node.querySelector(":scope > .object-add-category-trigger")?.setAttribute("aria-expanded", "true");
+    if (subcategory) {
+      const subgroup = [...node.querySelectorAll(".object-add-subcategory")]
+        .find((entry) => entry.dataset.objectAddSubcategory === subcategory);
+      subgroup?.classList.add("is-open");
+      subgroup?.querySelector(":scope > .object-add-subcategory-trigger")?.setAttribute("aria-expanded", "true");
+    }
+  }, subcategory);
+  const beforeCount = await page.locator('.widget-layout > .widget-card[data-custom-widget="true"]').count();
+  await group.locator(`.widget-add-action[data-widget-kind="${kind}"]`).evaluate((node) => node.click());
+  await expect(page.locator('.widget-layout > .widget-card[data-custom-widget="true"]')).toHaveCount(beforeCount + 1);
+  const widget = page.locator('.widget-layout > .widget-card[data-custom-widget="true"]').last();
+  await expect(widget).toBeVisible();
+  await expect(widget).toHaveAttribute("data-widget-definition", expectedDefinition);
+  await widget.scrollIntoViewIfNeeded();
   return widget;
 }
 
@@ -1310,6 +1340,40 @@ test("electron GUI treats widgets as display objects without data-source configu
   expect(before.text).not.toMatch(/needs data source|data substrate|configure a data source/i);
   expect(before.sourceAttrs).toEqual([]);
 
+  const displayWidgetKinds = [
+    { kind: "stat", category: "data", label: "stat" },
+    { kind: "table", category: "data", label: "table" },
+    { kind: "graph", category: "visualization", subcategory: "Charts", expectedDefinition: "chart", label: "chart" },
+    { kind: "map", category: "visualization", subcategory: "Geospatial", label: "map" },
+    { kind: "calendar", category: "controls", label: "calendar" },
+    { kind: "image", category: "media", label: "media" },
+  ];
+  const added = [];
+  for (const entry of displayWidgetKinds) {
+    const widget = await addWidget(page, entry);
+    const key = await widget.evaluate((node) => node.dataset.widgetKey || "");
+    const widgetSelector = `.widget-layout > .widget-card[data-widget-key="${key}"]`;
+    await page.waitForFunction((widgetSelector) => {
+      const node = document.querySelector(widgetSelector);
+      return Boolean(node?.dataset.widgetRuntimeStatus === "ready" && node.querySelector("[data-widget-shell-content='true'], .widget-runtime-state, .runtime-table-widget, .runtime-chart-widget, .runtime-map-widget, .runtime-calendar-widget"));
+    }, widgetSelector);
+    const state = await page.locator(widgetSelector).evaluate((node) => ({
+      kind: node.dataset.widgetDefinition || "",
+      text: node.textContent || "",
+      status: node.dataset.widgetRuntimeStatus || "",
+      width: node.getBoundingClientRect().width,
+      height: node.getBoundingClientRect().height,
+      sourceAttrs: Object.keys(node.dataset).filter((key) => /dataSource|dataAdapter|dataOrigin|workspaceContext/i.test(key)),
+    }));
+    expect(state.kind).toBe(entry.expectedDefinition || entry.kind);
+    expect(state.status).toBe("ready");
+    expect(state.width).toBeGreaterThan(60);
+    expect(state.height).toBeGreaterThan(40);
+    expect(state.text).not.toMatch(/needs data source|data substrate|configure a data source|required fields|connect an input stream/i);
+    expect(state.sourceAttrs).toEqual([]);
+    added.push({ ...entry, key, expectedDefinition: entry.expectedDefinition || entry.kind });
+  }
+
   await openControlBar(page);
   await page.locator(".layout-save-button").click();
   await page.reload();
@@ -1328,6 +1392,20 @@ test("electron GUI treats widgets as display objects without data-source configu
     status: "ready",
     sourceAttrs: [],
   });
+  for (const entry of added) {
+    const widgetSelector = `.widget-layout > .widget-card[data-widget-key="${entry.key}"]`;
+    await expect(page.locator(widgetSelector)).toHaveCount(1);
+    const state = await page.locator(widgetSelector).evaluate((node) => ({
+      kind: node.dataset.widgetDefinition || "",
+      text: node.textContent || "",
+      status: node.dataset.widgetRuntimeStatus || "",
+      sourceAttrs: Object.keys(node.dataset).filter((key) => /dataSource|dataAdapter|dataOrigin|workspaceContext/i.test(key)),
+    }));
+    expect(state.kind).toBe(entry.expectedDefinition);
+    expect(state.status).toBe("ready");
+    expect(state.text).not.toMatch(/needs data source|data substrate|configure a data source|required fields|connect an input stream/i);
+    expect(state.sourceAttrs).toEqual([]);
+  }
   await closeApp(app);
 });
 

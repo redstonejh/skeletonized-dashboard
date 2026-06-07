@@ -1,0 +1,5 @@
+{
+  "command": "Get-ChildItem app/static -Recurse -File | Where-Object { $_.Extension -in '.js','.css','.html' } | Select-String -Pattern requiresDataSource,queryRequirements,dataSource,defaultQueryFields,'no data source','needs data source','data substrate','connect an input stream',resolveQuery -CaseSensitive",
+  "result": "no matches in shipped app/static JS/CSS/HTML"
+}
+

@@ -8,13 +8,13 @@ export const createWidgetRuntimeData = ({
     if (widget.contains(document.activeElement) && !options.allowFocused) return;
     const definition = widgetDefinitionForElement(widget);
     const instance = widgetInstanceFromElement(widget, definition);
-    const sequence = (Number(widget.dataset.widgetQuerySeq) || 0) + 1;
-    widget.dataset.widgetQuerySeq = String(sequence);
+    const sequence = (Number(widget.dataset.widgetRenderSeq) || 0) + 1;
+    widget.dataset.widgetRenderSeq = String(sequence);
     const data = typeof definition.getDemoData === "function"
       ? await definition.getDemoData(instance.config || {}, resolvedContext || {})
       : { rows: [], schema: { fields: [] } };
     if (!widget.isConnected || (widget.contains(document.activeElement) && !options.allowFocused)) return;
-    if (Number(widget.dataset.widgetQuerySeq) !== sequence) return;
+    if (Number(widget.dataset.widgetRenderSeq) !== sequence) return;
     widget.dataset.widgetRuntimeStatus = "ready";
     renderWidgetRuntimeContent(widget, {
       resolvedContext,

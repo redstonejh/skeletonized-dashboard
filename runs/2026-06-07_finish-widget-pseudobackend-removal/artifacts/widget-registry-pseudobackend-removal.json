@@ -1,0 +1,23 @@
+{
+  "removed_contracts": [
+    "requiresDataSource",
+    "queryRequirements",
+    "resolveQuery",
+    "defaultQueryFields",
+    "queryTransformsFromConfig",
+    "tableSemanticFields"
+  ],
+  "preserved_live_metadata": [
+    "widget layer metadata",
+    "backendOnly menu filtering",
+    "getDemoData display provider",
+    "media asset setup states"
+  ],
+  "changed_files": [
+    "app/static/widget-registry.js",
+    "app/static/widget-runtime.js",
+    "app/static/modules/widget-runtime-data.js",
+    "electron-tests/dashboard-electron.spec.js"
+  ]
+}
+

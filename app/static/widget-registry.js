@@ -62,19 +62,6 @@
     };
   };
 
-  const defaultQueryFields = (resolvedContext) => {
-    const mapping = resolvedContext?.semanticMapping || {};
-    return [
-      mapping.labelField,
-      mapping.valueField,
-      mapping.dateField,
-      mapping.categoryField,
-      mapping.statusField,
-      mapping.ownerField,
-      mapping.locationField,
-    ].filter(Boolean);
-  };
-
   const unique = (values) => [...new Set(values.filter(Boolean))];
   const DENSITY_TIERS = ["tiny", "compact", "standard", "expanded", "rich"];
   const WIDGET_LAYERS = ["presentation", "backend", "both"];
@@ -145,19 +132,18 @@
 
   const statLabelFor = (config) => config?.label || config?.title || "Stat";
 
-  const tableSemanticFields = (resolvedContext) => unique(defaultQueryFields(resolvedContext));
+  const displaySchemaFields = (data = null) => (
+    Array.isArray(data?.schema?.fields)
+      ? data.schema.fields.map((field) => field?.name || field).filter(Boolean)
+      : []
+  );
+  const displayMappingFor = (resolvedContext = {}, data = null) => ({
+    ...(data?.semanticMapping || {}),
+    ...(resolvedContext?.semanticMapping || {}),
+  });
   const tableConfiguredColumns = (config) => Array.isArray(config?.columns)
     ? config.columns.map((field) => String(field || "").trim()).filter(Boolean)
     : [];
-  const queryTransformsFromConfig = (config = {}) => ({
-    calculatedFields: Array.isArray(config.calculatedFields) ? config.calculatedFields : [],
-    equationFilters: Array.isArray(config.equationFilters) ? config.equationFilters : [],
-    thresholds: Array.isArray(config.thresholds) ? config.thresholds : [],
-    unitConversions: Array.isArray(config.unitConversions) ? config.unitConversions : [],
-    staleRules: Array.isArray(config.staleRules) ? config.staleRules : [],
-    aggregations: Array.isArray(config.aggregations) ? config.aggregations : [],
-    timeBucket: config.timeBucket && typeof config.timeBucket === "object" ? config.timeBucket : null,
-  });
   const tableVisibleColumnCount = (cols) => {
     const safeCols = Number(cols) || 2;
     if (safeCols <= 2) return 3;
@@ -588,7 +574,7 @@
     return chartVisualDensity(tier);
   };
 
-  const chartSemantic = (resolvedContext) => resolvedContext?.semanticMapping || {};
+  const chartSemantic = (resolvedContext, data = null) => displayMappingFor(resolvedContext, data);
   const chartField = (config, resolvedContext, key, fallbacks = []) => {
     const explicit = String(config?.[key] || "").trim();
     if (explicit) return explicit;
@@ -633,17 +619,6 @@
     if (needsY && !chartValueField(config, resolvedContext)) return "Missing y field";
     if (needsSeries && !chartSeriesField(config, resolvedContext)) return "Missing series field";
     return "";
-  };
-  const chartQueryFieldsFor = (definition, config, resolvedContext) => {
-    const fields = unique([
-      chartXField(config, resolvedContext),
-      chartValueField(config, resolvedContext),
-      chartSeriesField(config, resolvedContext),
-      chartField(config, resolvedContext, "sizeField", ["valueField"]),
-      chartField(config, resolvedContext, "colorField", ["categoryField"]),
-      ...defaultQueryFields(resolvedContext),
-    ]);
-    return definition.queryUsesAllFields ? fields : fields.filter(Boolean);
   };
   const aggregateValues = (values, aggregation) => {
     const numeric = values.map(numberValue).filter((value) => value != null);
@@ -981,9 +956,8 @@
     const config = instance?.config || {};
     const rows = Array.isArray(data?.rows) ? data.rows : [];
     const configuredColumns = tableConfiguredColumns(config);
-    const semanticFields = tableSemanticFields(resolvedContext);
-    const schemaFields = data?.schema?.fields?.map((f) => f.name) || Object.keys(rows[0] || {});
-    const allFields = unique(configuredColumns.length ? configuredColumns : semanticFields.length ? semanticFields : schemaFields);
+    const schemaFields = displaySchemaFields(data).length ? displaySchemaFields(data) : Object.keys(rows[0] || {});
+    const allFields = unique(configuredColumns.length ? configuredColumns : schemaFields);
     const visibleFields = allFields.slice(0, tableVisibleColumnCount(instance.cols));
     const visibleRows = rows.slice(0, tableVisibleRowCount(instance.rows, config.limit));
     let disposed = false;
@@ -1230,7 +1204,7 @@
     if (text.includes("loading")) return "loading";
     if (text.includes("error") || text.includes("unable") || text.includes("failed")) return "error";
     if (text.includes("unsupported")) return "unsupported";
-    if (text.includes("configure") || text.includes("needs") || text.includes("map a ") || text.includes("no data source")) return "configure";
+    if (text.includes("configure") || text.includes("map a ")) return "configure";
     if (text.includes("empty") || text.includes("no data") || text.includes("no rows") || text.includes("no map rows") || text.includes("no date rows") || text.includes("no numeric") || text.includes("no valid") || text.includes("no coordinates")) return "empty";
     return "idle";
   };
@@ -1259,13 +1233,13 @@
       return "Runtime content that matches this widget configuration.";
     })();
     const reason = options.reason || (() => {
-      if (state === "loading") return "The query is still hydrating.";
+      if (state === "loading") return "The widget is preparing content.";
       if (state === "error") return "The widget reported a load or configuration error.";
       if (state === "unsupported") return "This saved object uses a widget type that is not registered.";
-      if (isConfigure || text.includes("map a ") || text.includes("configure")) return "Required fields or asset settings have not been mapped yet.";
+      if (isConfigure || text.includes("map a ") || text.includes("configure")) return "This widget needs one local setting before it can render.";
       if (isEmpty && (text.includes("match") || text.includes("current view"))) return "The current filters or time range returned zero rows.";
       if (isEmpty && (text.includes("numeric") || text.includes("coordinate") || text.includes("valid"))) return "Rows exist, but the required field values are missing or incompatible.";
-      if (isEmpty) return "The query returned no usable records for this widget.";
+      if (isEmpty) return "No display rows are available for this widget.";
       return "The widget is waiting for runtime input.";
     })();
     const action = options.action || (() => {
@@ -1273,10 +1247,10 @@
       if (state === "error") return "Open settings and inspect the widget configuration.";
       if (state === "unsupported") return "Install or restore the missing registry definition.";
       if (text.includes("image") || text.includes("video") || text.includes("document") || text.includes("asset") || text.includes("url")) return "Open settings and provide a safe asset URL or reference.";
-      if (isConfigure || text.includes("field") || text.includes("column")) return "Open settings and map the required fields.";
+      if (isConfigure || text.includes("field") || text.includes("column")) return "Open settings and choose the local display fields.";
       if (isEmpty && text.includes("current view")) return "Adjust filters or time range.";
       if (isEmpty) return "Check the widget content or broaden the widget scope.";
-      return "Configure the widget or connect an input stream.";
+      return "Adjust the widget settings or content.";
     })();
     return { expected, reason, action };
   };
@@ -1599,15 +1573,12 @@
     capabilities: {
       readsContext: false,
       writesContext: false,
-      requiresDataSource: false,
       supportsFilters: false,
       supportsTimeRange: false,
       supportsResize: true,
     },
     supportedSettings: ["title", "color", "pin", "delete"],
-    queryRequirements: { fields: [] },
     getDefaultConfig: () => ({ title: `Unsupported: ${type || "unknown"}` }),
-    resolveQuery: () => null,
     render: ({ instance }) => runtimeState("Unsupported widget", instance.type || type || "unknown", {
       className: "unsupported-widget-state",
       state: "unsupported",
@@ -1657,7 +1628,6 @@
       capabilities: {
         readsContext: false,
         writesContext: false,
-        requiresDataSource: false,
         supportsFilters: false,
         supportsTimeRange: false,
         supportsResize: true,
@@ -1668,7 +1638,6 @@
         : ["title", "color", "pin", "delete"],
       settingsSchema: normalizedSettingsSchema(definition.settingsSchema, definition.supportedSettings || ["title"]),
       densityBehavior: definition.densityBehavior || {},
-      queryRequirements: definition.queryRequirements || { fields: [] },
       getDefaultConfig,
       shell: definition.shell === false ? false : {
         mode: definition.renderContent ? "content" : "compat",
@@ -1682,7 +1651,6 @@
       getEmptyState: typeof definition.getEmptyState === "function" ? definition.getEmptyState : null,
       densityRules: definition.densityRules || definition.densityBehavior || {},
       getDemoData: typeof definition.getDemoData === "function" ? definition.getDemoData : null,
-      resolveQuery: typeof definition.resolveQuery === "function" ? definition.resolveQuery : () => null,
       mountBodyRenderer: typeof definition.mountBodyRenderer === "function" ? definition.mountBodyRenderer : null,
       unmountBodyRenderer: typeof definition.unmountBodyRenderer === "function" ? definition.unmountBodyRenderer : null,
       renderContent: typeof definition.renderContent === "function" ? definition.renderContent : null,
@@ -1776,7 +1744,6 @@
     className: "stat-card widget-card widget-card-custom",
     capabilities: {
       readsContext: true,
-      requiresDataSource: false,
       supportsFilters: true,
       supportsTimeRange: true,
       supportsResize: true,
@@ -1796,7 +1763,6 @@
         ],
       }],
     },
-    queryRequirements: { fields: ["semantic"], metric: ["count", "sum", "avg", "min", "max"] },
     getDefaultConfig: () => ({ label: "Widget", title: "Widget", metric: "count", format: "number" }),
     shell: {
       mode: "content",
@@ -1813,23 +1779,6 @@
       return runtimeMeta(metricContext, props.data);
     },
     getDemoData: (config = {}) => demoDataResult({ widgetType: "stat", config }),
-    resolveQuery: (config, resolvedContext) => {
-      const mapping = resolvedContext.semanticMapping || {};
-      const metric = ["count", "sum", "avg", "min", "max"].includes(config.metric) ? config.metric : "count";
-      const valueField = config.valueField || mapping.valueField;
-      if (metric !== "count" && !valueField) return null;
-      const configuredFields = Array.isArray(config.fields) ? config.fields : [];
-      const fields = metric === "count"
-        ? unique([...configuredFields, ...defaultQueryFields(resolvedContext)])
-        : unique([valueField, ...configuredFields, ...defaultQueryFields(resolvedContext)]);
-      return {
-        fields,
-        filters: Array.isArray(config.filters) ? config.filters : [],
-        timeRange: config.timeRange || null,
-        sort: Array.isArray(config.sort) ? config.sort : [],
-        ...queryTransformsFromConfig(config),
-      };
-    },
     renderContent: ({ instance, resolvedContext, data, status }) => {
       const config = instance.config || {};
       const label = statLabelFor(config);
@@ -1869,13 +1818,11 @@
     capabilities: {
       readsContext: true,
       writesContext: true,
-      requiresDataSource: false,
       supportsTimeRange: true,
       supportsResize: true,
     },
     supportedSettings: ["color", "pin", "delete"],
     settingsSchema: { sections: [] },
-    queryRequirements: { timeRange: true },
     getDefaultConfig: () => ({
       title: "Timeframe",
       activeLabel: "Any time",
@@ -1886,7 +1833,6 @@
       customEnd: "",
       filters: [],
     }),
-    resolveQuery: () => null,
     render: ({ instance }) => {
       const config = instance.config || {};
       const filters = normalizeTimeframeFilters(config);
@@ -1920,7 +1866,6 @@
     capabilities: {
       readsContext: false,
       writesContext: false,
-      requiresDataSource: false,
       supportsResize: true,
     },
     supportedSettings: ["text", "color", "pin", "duplicate", "delete"],
@@ -1935,9 +1880,7 @@
         ],
       }],
     },
-    queryRequirements: { fields: [] },
     getDefaultConfig: () => ({ title: "Note", body: "", placeholder: "Write a note" }),
-    resolveQuery: () => null,
     render: ({ instance }) => {
       const config = instance.config || {};
       const body = String(config.body || "");
@@ -1972,7 +1915,6 @@
     capabilities: {
       readsContext: true,
       writesContext: false,
-      requiresDataSource: false,
       supportsFilters: false,
       supportsTimeRange: false,
       supportsResize: true,
@@ -1987,9 +1929,7 @@
         ],
       }],
     },
-    queryRequirements: { region: true },
     getDefaultConfig: () => ({ title: "Region Summary" }),
-    resolveQuery: () => null,
     render: ({ instance, resolvedContext }) => {
       const summary = window.dashboardSpatialRuntime?.regionSummaryForWidget?.(instance.id) || {};
       const cols = Number(instance.cols) || 2;
@@ -2027,7 +1967,6 @@
     capabilities: {
       readsContext: false,
       writesContext: false,
-      requiresDataSource: false,
       supportsResize: true,
     },
     supportedSettings: ["source", "fit", "caption", "color", "pin", "duplicate", "delete"],
@@ -2044,9 +1983,7 @@
         ],
       }],
     },
-    queryRequirements: { fields: [] },
     getDefaultConfig: () => ({ title: "Image", assetId: "", alt: "", fit: "contain", caption: "" }),
-    resolveQuery: () => null,
     render: ({ instance }) => {
       const config = instance.config || {};
       const title = mediaTitle(config, "Image");
@@ -2082,7 +2019,6 @@
     capabilities: {
       readsContext: false,
       writesContext: false,
-      requiresDataSource: false,
       supportsResize: true,
     },
     supportedSettings: ["source", "caption", "color", "pin", "duplicate", "delete"],
@@ -2100,9 +2036,7 @@
         ],
       }],
     },
-    queryRequirements: { fields: [] },
     getDefaultConfig: () => ({ title: "Video", assetId: "", embedType: "url", autoplay: false, muted: true, caption: "" }),
-    resolveQuery: () => null,
     render: ({ instance }) => {
       const config = instance.config || {};
       const title = mediaTitle(config, "Video");
@@ -2147,7 +2081,6 @@
     capabilities: {
       readsContext: false,
       writesContext: false,
-      requiresDataSource: false,
       supportsResize: true,
     },
     supportedSettings: ["source", "page", "caption", "color", "pin", "duplicate", "delete"],
@@ -2165,9 +2098,7 @@
         ],
       }],
     },
-    queryRequirements: { fields: [] },
     getDefaultConfig: () => ({ title: "Document", assetId: "", documentType: "unknown", currentPage: 1, caption: "", content: "" }),
-    resolveQuery: () => null,
     render: ({ instance }) => {
       const config = instance.config || {};
       const title = mediaTitle(config, "Document");
@@ -2223,7 +2154,6 @@
     className: "stat-card widget-card widget-card-custom table-widget-card",
     capabilities: {
       readsContext: true,
-      requiresDataSource: true,
       supportsFilters: true,
       supportsTimeRange: true,
       supportsResize: true,
@@ -2244,39 +2174,21 @@
         ],
       }],
     },
-    queryRequirements: { fields: "semantic-or-configured", limit: 50, sort: true },
     getDefaultConfig: () => ({ title: "Table", columns: [], limit: 50, sortBy: "", sortDirection: "asc" }),
     getDemoData: (config = {}) => demoDataResult({ widgetType: "table", config }),
     mountBodyRenderer: mountTableBodyRenderer,
-    resolveQuery: (config, resolvedContext) => {
-      if (!resolvedContext?.canQuery) return null;
-      const columns = tableConfiguredColumns(config);
-      const semanticFields = tableSemanticFields(resolvedContext);
-      const fields = columns.length ? columns : semanticFields;
-      const sortBy = String(config.sortBy || "").trim();
-      return {
-        fields,
-        filters: Array.isArray(config.filters) ? config.filters : [],
-        timeRange: config.timeRange || null,
-        sort: sortBy ? [{ field: sortBy, direction: config.sortDirection === "desc" ? "desc" : "asc" }] : [],
-        limit: Number(config.limit) || 50,
-        ...queryTransformsFromConfig(config),
-      };
-    },
     render: ({ instance, resolvedContext, data, status, density = instance.density || "standard" }) => {
       const config = instance.config || {};
       const densityTier = normalizeDensity(density);
       const title = config.title || "Table";
       if (status === "loading") return runtimeState(title, "Loading");
       if (status === "error") return runtimeState(title, data?.error || "Unable to load rows");
-      const rows = data?.rows || [];
+      const displayData = Array.isArray(data?.rows) && data.rows.length ? data : demoDataResult({ widgetType: "table", config });
+      const rows = displayData?.rows || [];
       const configuredColumns = tableConfiguredColumns(config);
-      const semanticFields = tableSemanticFields(resolvedContext);
-      if (!configuredColumns.length && !semanticFields.length) return runtimeState(title, "Configure columns");
-      const schemaFields = data?.schema?.fields?.map((field) => field.name) || Object.keys(rows[0] || {});
-      const allFields = unique(configuredColumns.length ? configuredColumns : semanticFields.length ? semanticFields : schemaFields);
-      if (!allFields.length) return runtimeState(title, "Configure columns");
-      if (!rows.length) return runtimeState(title, "No rows match the current context");
+      const schemaFields = displaySchemaFields(displayData).length ? displaySchemaFields(displayData) : Object.keys(rows[0] || {});
+      const allFields = unique(configuredColumns.length ? configuredColumns : schemaFields);
+      if (!allFields.length || !rows.length) return runtimeState(title, "No display rows");
       const visibleFields = allFields.slice(0, tableVisibleColumnCount(instance.cols));
       const visibleRows = rows.slice(0, tableVisibleRowCount(instance.rows, config.limit));
       const tableDensity = Number(instance.rows) <= 2 || Number(instance.cols) <= 2
@@ -2284,9 +2196,9 @@
         : Number(instance.rows) >= 4 || Number(instance.cols) >= 4 || densityTier === "rich"
           ? "rich"
           : "comfortable";
-      const total = Number.isFinite(Number(data?.total)) ? Number(data.total) : rows.length;
+      const total = Number.isFinite(Number(displayData?.total)) ? Number(displayData.total) : rows.length;
       return `
-        <div class="runtime-table-widget runtime-table-density-${tableDensity} widget-density-${densityTier}" data-density="${escapeHtml(densityTier)}" data-runtime-state="ready" data-runtime-source="${escapeHtml(runtimeSource(data))}" data-visible-rows="${visibleRows.length}" data-visible-columns="${visibleFields.length}">
+        <div class="runtime-table-widget runtime-table-density-${tableDensity} widget-density-${densityTier}" data-density="${escapeHtml(densityTier)}" data-runtime-state="ready" data-runtime-source="${escapeHtml(runtimeSource(displayData))}" data-visible-rows="${visibleRows.length}" data-visible-columns="${visibleFields.length}">
           <div class="widget-content-well widget-library-surface runtime-table-library-surface">
             <div class="runtime-table-tanstack" data-table-renderer="tanstack" role="region" aria-label="${escapeHtml(title)}"></div>
           </div>
@@ -2309,7 +2221,6 @@
     className: "stat-card widget-card widget-card-custom chart-widget-card",
     capabilities: {
       readsContext: true,
-      requiresDataSource: true,
       supportsFilters: true,
       supportsTimeRange: true,
       supportsResize: true,
@@ -2332,12 +2243,6 @@
           { key: "limit", label: "Limit", type: "number", defaultValue: 60, min: 1, max: 200, step: 1, affectsQuery: true },
         ],
       }],
-    },
-    queryRequirements: {
-      chartTypes: listChartDefinitions().map((definition) => definition.chartType),
-      fields: "chart-definition",
-      aggregations: CHART_AGGREGATIONS,
-      limit: 60,
     },
     getDefaultConfig: () => ({
       title: "Chart",
@@ -2362,40 +2267,25 @@
         : {},
     }),
     mountBodyRenderer: mountChartBodyRenderer,
-    resolveQuery: (config, resolvedContext) => {
-      if (!resolvedContext?.canQuery) return null;
-      const definition = getChartDefinition(config.chartType || "bar");
-      if (!definition) return null;
-      const message = chartRequiredFieldMessage(definition, config, resolvedContext);
-      if (message) return null;
-      const sortBy = String(config.sortBy || "").trim();
-      return {
-        fields: chartQueryFieldsFor(definition, config, resolvedContext),
-        filters: Array.isArray(config.filters) ? config.filters : [],
-        timeRange: config.timeRange || null,
-        groupBy: Array.isArray(config.groupBy) ? config.groupBy : [],
-        sort: sortBy ? [{ field: sortBy, direction: config.sortDirection === "desc" ? "desc" : "asc" }] : [],
-        limit: chartLimit(config, 60),
-        ...queryTransformsFromConfig(config),
-      };
-    },
     render: ({ instance, resolvedContext, data, status }) => {
       const config = instance.config || {};
       const chartType = config.chartType || "bar";
       const definition = getChartDefinition(chartType);
       const title = config.title || "Chart";
       if (!definition) return runtimeState(title, "Unsupported chart config");
-      const requiredMessage = chartRequiredFieldMessage(definition, config, resolvedContext);
+      const displayData = Array.isArray(data?.rows) && data.rows.length ? data : demoDataResult({ widgetType: "chart", config });
+      const renderContext = { ...(resolvedContext || {}), semanticMapping: displayMappingFor(resolvedContext, displayData) };
+      const requiredMessage = chartRequiredFieldMessage(definition, config, renderContext);
       if (requiredMessage) return runtimeState(title, requiredMessage);
       if (status === "loading") return runtimeState(title, "Loading");
       if (status === "error") return runtimeState(title, data?.error || "Unable to load chart");
-      const rows = Array.isArray(data?.rows) ? data.rows : [];
-      if (!rows.length) return runtimeState(title, "No rows match the current context");
+      const rows = Array.isArray(displayData?.rows) ? displayData.rows : [];
+      if (!rows.length) return runtimeState(title, "No chart rows");
       return definition.render({
         instance,
         definition,
-        resolvedContext,
-        data,
+        resolvedContext: renderContext,
+        data: displayData,
         rows,
         display: chartDisplayConfig(config),
         status,
@@ -2464,7 +2354,6 @@
     className: "stat-card widget-card widget-card-custom map-widget-card",
     capabilities: {
       readsContext: true,
-      requiresDataSource: true,
       supportsFilters: true,
       supportsTimeRange: true,
       supportsResize: true,
@@ -2484,11 +2373,6 @@
         ],
       }],
     },
-    queryRequirements: {
-      fields: "geospatial",
-      geometry: ["latitude-longitude", "location", "region", "route"],
-      limit: 250,
-    },
     getDefaultConfig: () => ({
       title: "Map",
       latitudeField: "",
@@ -2498,52 +2382,25 @@
       limit: 250,
     }),
     getDemoData: (config = {}) => demoDataResult({ widgetType: "map", config }),
-    resolveQuery: (config, resolvedContext) => {
-      if (!resolvedContext?.canQuery) return null;
-      const mapping = resolvedContext.semanticMapping || {};
-      const latitudeField = String(config.latitudeField || mapping.latitudeField || "").trim();
-      const longitudeField = String(config.longitudeField || mapping.longitudeField || "").trim();
-      const locationField = String(config.locationField || mapping.locationField || "").trim();
-      const fields = unique([
-        latitudeField,
-        longitudeField,
-        locationField,
-        mapping.labelField,
-        mapping.categoryField,
-        mapping.statusField,
-      ]);
-      if ((!latitudeField || !longitudeField) && !locationField) return null;
-      return {
-        fields,
-        filters: Array.isArray(config.filters) ? config.filters : [],
-        timeRange: config.timeRange || null,
-        limit: Number(config.limit) || 250,
-        geospatial: {
-          layerType: config.layerType || "points",
-          latitudeField,
-          longitudeField,
-          locationField,
-        },
-      };
-    },
     render: ({ instance, resolvedContext, data, status }) => {
       const config = instance.config || {};
       const title = config.title || "Map";
-      const mapping = resolvedContext?.semanticMapping || {};
+      const displayData = Array.isArray(data?.rows) && data.rows.length ? data : demoDataResult({ widgetType: "map", config });
+      const mapping = displayMappingFor(resolvedContext, displayData);
       const latitudeField = String(config.latitudeField || mapping.latitudeField || "").trim();
       const longitudeField = String(config.longitudeField || mapping.longitudeField || "").trim();
       const locationField = String(config.locationField || mapping.locationField || "").trim();
       if ((!latitudeField || !longitudeField) && !locationField) return runtimeState(title, "Configure location fields");
       if (status === "loading") return runtimeState(title, "Loading");
       if (status === "error") return runtimeState(title, data?.error || "Unable to load map data");
-      const rows = Array.isArray(data?.rows) ? data.rows : [];
-      if (!rows.length) return runtimeState(title, "No map rows match the current context");
-      const points = mapExtractPoints(data, config, mapping);
+      const rows = Array.isArray(displayData?.rows) ? displayData.rows : [];
+      if (!rows.length) return runtimeState(title, "No map rows");
+      const points = mapExtractPoints(displayData, config, mapping);
       if (!points.length) return runtimeState(title, "No coordinates");
       const density = chartVisualDensity(instance.density || "standard");
       const labels = points.slice(0, density === "large" ? 4 : 2).map((point) => `<span>${escapeHtml(point.label)}</span>`).join("");
       return `
-        <div class="runtime-map-widget runtime-map-density-${escapeHtml(density)}" data-runtime-state="ready" data-runtime-source="${escapeHtml(runtimeSource(data))}" data-map-layer="${escapeHtml(config.layerType || "points")}" data-map-demo="${data?.demo ? "true" : "false"}">
+        <div class="runtime-map-widget runtime-map-density-${escapeHtml(density)}" data-runtime-state="ready" data-runtime-source="${escapeHtml(runtimeSource(displayData))}" data-map-layer="${escapeHtml(config.layerType || "points")}" data-map-demo="${displayData?.demo ? "true" : "false"}">
           <div class="widget-content-well widget-library-surface runtime-map-leaflet-surface">
             <div class="runtime-map-leaflet" role="region" aria-label="${escapeHtml(title)}"></div>
           </div>
@@ -2652,7 +2509,6 @@
     className: "stat-card widget-card widget-card-custom calendar-widget-card",
     capabilities: {
       readsContext: true,
-      requiresDataSource: true,
       supportsTimeRange: true,
       supportsResize: true,
     },
@@ -2671,35 +2527,24 @@
     },
     getDefaultConfig: () => ({ title: "Calendar", dateField: "", labelField: "", limit: 12 }),
     getDemoData: (config = {}) => demoDataResult({ widgetType: "calendar", config }),
-    resolveQuery: (config, resolvedContext) => {
-      if (!resolvedContext?.canQuery) return null;
-      const mapping = resolvedContext.semanticMapping || {};
-      return {
-        fields: unique([
-          config.dateField || mapping.dateField,
-          config.labelField || mapping.labelField,
-          ...defaultQueryFields(resolvedContext),
-        ]).slice(0, 4),
-        limit: Number(config.limit) || 12,
-      };
-    },
     render: ({ instance, resolvedContext, data, status }) => {
       const title = instance.config.title || "Calendar";
       const config = instance.config || {};
-      const mapping = resolvedContext?.semanticMapping || {};
+      const displayData = Array.isArray(data?.rows) && data.rows.length ? data : demoDataResult({ widgetType: "calendar", config });
+      const mapping = displayMappingFor(resolvedContext, displayData);
       const dateField = String(config.dateField || mapping.dateField || "").trim();
       if (!dateField) return runtimeState(title, "Configure date field");
       if (status === "loading") return runtimeState(title, "Loading");
       if (status === "error") return runtimeState(title, data?.error || "Unable to load dates");
-      const rows = Array.isArray(data?.rows) ? data.rows : [];
-      if (!rows.length) return runtimeState(title, "No date rows match the current context");
-      const events = calendarExtractEvents(data, config, mapping);
+      const rows = Array.isArray(displayData?.rows) ? displayData.rows : [];
+      if (!rows.length) return runtimeState(title, "No date rows");
+      const events = calendarExtractEvents(displayData, config, mapping);
       if (!events.length) return runtimeState(title, "No valid dates");
       const first = events[0].date;
       const monthName = first.toLocaleDateString(undefined, { month: "short", year: "numeric" });
       const initialDate = first.toISOString().split("T")[0];
       return `
-        <div class="runtime-calendar-widget" data-runtime-state="ready" data-runtime-source="${escapeHtml(runtimeSource(data))}" data-calendar-demo="${data?.demo ? "true" : "false"}">
+        <div class="runtime-calendar-widget" data-runtime-state="ready" data-runtime-source="${escapeHtml(runtimeSource(displayData))}" data-calendar-demo="${displayData?.demo ? "true" : "false"}">
           <div class="widget-content-well widget-library-surface runtime-calendar-fullcalendar-surface">
             <div class="runtime-calendar-fullcalendar" data-calendar-initial="${escapeHtml(initialDate)}" role="region" aria-label="${escapeHtml(monthName)}"></div>
           </div>
@@ -2830,7 +2675,6 @@
       supportedSettings: definition.supportedSettings,
       settingsSchema: definition.settingsSchema,
       densityBehavior: definition.densityBehavior,
-      queryRequirements: definition.queryRequirements,
       category: definition.category,
       subcategory: definition.subcategory,
       layer: definition.layer,

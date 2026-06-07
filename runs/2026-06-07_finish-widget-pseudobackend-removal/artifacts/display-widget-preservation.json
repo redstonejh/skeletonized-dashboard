@@ -1,0 +1,19 @@
+{
+  "widgets_guarded_by_e2e": [
+    "text",
+    "stat",
+    "table",
+    "chart",
+    "map",
+    "calendar",
+    "image"
+  ],
+  "assertions": [
+    "widget runtime status is ready",
+    "normal widget dimensions are present",
+    "no data-source error text is visible",
+    "no data-source/data-adapter/workspace-context dataset attributes are present",
+    "save/reload preserves widgets"
+  ]
+}
+

@@ -1,0 +1,30 @@
+{
+  "verdict": "NEEDS-HUMAN",
+  "reason": "The requested widget pseudo-backend cleanup passes static proof and the focused display-object canary, but full e2e acceptance is not green.",
+  "passed": [
+    "delegation_check.py passed",
+    "app/static dead-string proof passed for requiresDataSource, queryRequirements, dataSource, defaultQueryFields, no data source, needs data source, data substrate, connect an input stream, resolveQuery",
+    "node --check passed for changed JavaScript files",
+    "focused display-object canary passed"
+  ],
+  "failed": [
+    {
+      "command": "npm.cmd run test:e2e -- --workers=1",
+      "result": "10 failed, 12 passed",
+      "failing_tests": [
+        "electron GUI boots without server APIs and preserves core customization",
+        "electron GUI keeps slim navbar controls wired",
+        "electron GUI opens customization drawers only from right click",
+        "electron GUI wires tabs to isolated lazy-loaded workspace pages",
+        "electron GUI applies derived background presets, custom color, persistence, undo, and photos",
+        "electron GUI scrolls panel expansion into view and restores on collapse",
+        "electron GUI keeps drag and resize handlers active",
+        "electron GUI keeps select-mode multi-resize deterministic",
+        "electron GUI keeps widget runtime content, tools, and resize ready after render and reload",
+        "electron GUI keeps ordered drag commit, ghost, collision, and no interaction scrolling deterministic"
+      ],
+      "trace_root": "test-results/"
+    }
+  ]
+}
+

@@ -15,9 +15,7 @@
     minSize: { cols: 1, rows: 1 },
     capabilities: { supportsResize: true },
     supportedSettings: ["title", "color", "pin", "delete"],
-    queryRequirements: { fields: [] },
     getDefaultConfig: () => ({ title: `Unsupported: ${type || "unknown"}` }),
-    resolveQuery: () => null,
     render: ({ instance }) => `
       <div class="unsupported-widget-state widget-runtime-state" role="status">
         <span class="stat-val">Unsupported widget</span>
@@ -436,7 +434,6 @@
       widget.dataset.widgetCapabilities = JSON.stringify(definition.capabilities || {});
       widget.dataset.widgetSupportedSettings = JSON.stringify(definition.supportedSettings || []);
       widget.dataset.widgetSettingsSchema = JSON.stringify(definition.settingsSchema || { sections: [] });
-      widget.dataset.widgetQueryRequirements = JSON.stringify(definition.queryRequirements || {});
       if (!widget.dataset.defaultSpan) widget.dataset.defaultSpan = String(definition.defaultSize?.cols || 1);
       if (!widget.dataset.minW && definition.minSize?.cols) widget.dataset.minW = String(definition.minSize.cols);
       if (!widget.dataset.minH && definition.minSize?.rows > 1) widget.dataset.minH = String(definition.minSize.rows);
