@@ -74,6 +74,7 @@ import { createPanelLayoutRuntime } from "./modules/panel-layout-runtime.js";
 import { createOrderedGridItemsRuntime } from "./modules/ordered-grid-items-runtime.js";
 import { createConditionalStyleRuntime } from "./modules/conditional-style-runtime.js";
 import { createWidgetContentRuntime } from "./modules/widget-content-runtime.js";
+import { initializeWorkspaceTabsRuntime } from "./modules/workspace-tabs-runtime.js";
 import {
   applyPanelColor,
   applyPanelTitleColor,
@@ -148,6 +149,11 @@ document.addEventListener("DOMContentLoaded", () => {
   const readRawStore = layoutPersistence.readRaw;
   const writeRawStore = layoutPersistence.writeRaw;
   const removeStore = layoutPersistence.remove;
+  initializeWorkspaceTabsRuntime({
+    readJsonStore,
+    writeJsonStore,
+    panelThemePresets,
+  });
   const {
     assetId,
     mediaWidgetAssetTypes,

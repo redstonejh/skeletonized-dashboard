@@ -1,0 +1,7 @@
+{
+  "check": "links",
+  "file": "index.html",
+  "passed": true,
+  "reference_count": 3,
+  "violations": []
+}

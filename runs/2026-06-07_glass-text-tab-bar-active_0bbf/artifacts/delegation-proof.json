@@ -1,0 +1,46 @@
+{
+    "delegation_capability":  {
+                                  "available":  true,
+                                  "primitive":  "multi_agent_v1.spawn_agent"
+                              },
+    "selected_roles":  [
+                           "conductor",
+                           "planner",
+                           "worker",
+                           "critic",
+                           "acceptance_gate",
+                           "a11y_auditor",
+                           "change_verifier"
+                       ],
+    "roles":  {
+                  "conductor":  {
+                                    "agent_id":  "019ea107-5352-71e2-a8d3-5e0d57c4423b",
+                                    "role_prompt_path":  ".codex/agents/conductor.md"
+                                },
+                  "planner":  {
+                                  "agent_id":  "019ea107-665b-7a42-889b-749e49c72d29",
+                                  "role_prompt_path":  ".codex/agents/planner.md"
+                              },
+                  "worker":  {
+                                 "agent_id":  "019ea107-776c-7c43-a8ff-150dccd0e729",
+                                 "role_prompt_path":  ".codex/agents/worker.md"
+                             },
+                  "critic":  {
+                                 "agent_id":  "019ea107-8b7a-71a3-aeee-174dcab503e7",
+                                 "role_prompt_path":  ".codex/agents/critic.md"
+                             },
+                  "acceptance_gate":  {
+                                          "agent_id":  "019ea107-fdc7-7d01-acd4-e5bccb4ba5a3",
+                                          "role_prompt_path":  ".codex/agents/acceptance_gate.md"
+                                      },
+                  "a11y_auditor":  {
+                                       "agent_id":  "019ea108-1446-74c0-9b7a-2719f17cc596",
+                                       "role_prompt_path":  ".codex/agents/a11y_auditor.md"
+                                   },
+                  "change_verifier":  {
+                                          "agent_id":  "019ea112-b3c9-7271-89df-6cc098914992",
+                                          "role_prompt_path":  ".codex/agents/change_verifier.md"
+                                      }
+              },
+    "note":  "Each selected role was spawned as a distinct real sub-agent context. Some advisory sub-agents reported from the framework checkout; local deterministic gates and git scope evidence are canonical for this dashboard checkout."
+}

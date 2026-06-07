@@ -1,0 +1,40 @@
+{
+    "task_type":  "frontend-ui-task",
+    "checklist_path":  ".codex/checklists/frontend-ui-task.md",
+    "roles":  [
+                  "conductor",
+                  "planner",
+                  "worker",
+                  "critic",
+                  "acceptance_gate",
+                  "a11y_auditor",
+                  "change_verifier"
+              ],
+    "parallel_roles":  [
+                           "a11y_auditor",
+                           "change_verifier"
+                       ],
+    "caps":  {
+                 "max_agents":  7,
+                 "max_parallel":  3,
+                 "max_iters":  3
+             },
+    "role_justifications":  {
+                                "conductor":  "Selects roster, validates explicit user-requested redesign exception, and records gates.",
+                                "planner":  "Converts the tab bar request into implementation and acceptance criteria.",
+                                "worker":  "Implements the tab data model, UI, styling, persistence, and e2e canary.",
+                                "critic":  "Reviews behavior, visual, accessibility, and persistence risks.",
+                                "acceptance_gate":  "Independently checks delegation, deterministic artifacts, e2e, and final verdict.",
+                                "a11y_auditor":  "Checks tab semantics, keyboard access, focus, and static accessibility.",
+                                "change_verifier":  "Checks requested style/DOM change evidence and scope."
+                            },
+    "redesign_exception":  "User explicitly requested this tab bar UI feature/redesign, satisfying the AGENTS.md exception.",
+    "acceptance":  [
+                       "Three placeholder glass-text tabs render below the navbar with no container chrome.",
+                       "Clicking a tab makes it active and scales it up; reduced motion disables animation.",
+                       "Right-click opens rename/recolor menu; both persist across reload.",
+                       "No page swapping, lazy loading, or add-tab behavior is wired in this increment.",
+                       "Existing Electron e2e canaries remain green once.",
+                       "delegation_check.py and verdict_check.py pass."
+                   ]
+}

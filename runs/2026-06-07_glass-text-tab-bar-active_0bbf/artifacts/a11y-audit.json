@@ -1,0 +1,7 @@
+{
+  "check": "a11y",
+  "file": "index.html",
+  "passed": true,
+  "violation_count": 0,
+  "violations": []
+}

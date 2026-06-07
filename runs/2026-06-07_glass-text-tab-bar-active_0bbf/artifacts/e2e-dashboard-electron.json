@@ -1,0 +1,11 @@
+{
+    "check":  "electron_e2e",
+    "command":  "npm.cmd run test:e2e -- --workers=1",
+    "passed":  true,
+    "result":  "17 passed",
+    "environment":  {
+                        "MAW_HEADLESS":  "1",
+                        "workers":  1
+                    },
+    "note":  "The full suite passed after fixing the tab menu rename/recolor ordering. A prior focused failure was corrected before the final run."
+}

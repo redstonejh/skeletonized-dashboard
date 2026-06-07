@@ -5352,3 +5352,140 @@ no card. Active * filter is indicated by a subtle underline + slightly higher * 
   outline: none;
   box-shadow: var(--shadow-control-hover);
 }
+
+/* Glass-text workspace tabs. The glyph fill is clipped material, not a
+   glass slab behind ordinary text. */
+.workspace-tab-bar{
+  position: relative;
+  z-index: calc(var(--z-header) - 1);
+  display: flex;
+  align-items: baseline;
+  justify-content: flex-start;
+  gap: clamp(18px, 3vw, 42px);
+  width: max-content;
+  max-width: 100%;
+  margin: -2px 0 18px 12px;
+  padding: 0;
+  overflow: visible;
+}
+.workspace-tab{
+  appearance: none;
+  -webkit-appearance: none;
+  position: relative;
+  display: inline-flex;
+  align-items: baseline;
+  justify-content: center;
+  max-width: min(32vw, 220px);
+  min-height: 38px;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  cursor: pointer;
+  transform: scale(1);
+  transform-origin: center bottom;
+  transition:
+    transform .22s cubic-bezier(.2, .8, .2, 1),
+    filter .22s ease,
+    opacity .18s ease;
+}
+.workspace-tab-label{
+  display: block;
+  max-width: 100%;
+  overflow: hidden;
+  font-size: clamp(18px, 2.5vw, 27px);
+  font-weight: 760;
+  line-height: 1.05;
+  letter-spacing: 0;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+  background:
+    radial-gradient(circle at 26% 16%, rgba(255, 255, 255, .96), rgba(255, 255, 255, .30) 34%, transparent 62%),
+    linear-gradient(135deg,
+      color-mix(in srgb, var(--tab-accent) 48%, white),
+      rgba(255, 255, 255, .88) 42%,
+      color-mix(in srgb, var(--tab-accent) 64%, var(--ink-strong)) 100%);
+  background-clip: text;
+  -webkit-background-clip: text;
+  filter:
+    drop-shadow(0 1px 1px rgba(255, 255, 255, .28))
+    drop-shadow(0 7px 14px color-mix(in srgb, var(--tab-accent) 24%, transparent));
+}
+.workspace-tab::after{
+  content: "";
+  position: absolute;
+  left: 12%;
+  right: 12%;
+  bottom: -4px;
+  height: 2px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--tab-accent) 64%, rgba(255, 255, 255, .86));
+  opacity: 0;
+  transform: scaleX(.55);
+  transition: opacity .18s ease, transform .22s cubic-bezier(.2, .8, .2, 1);
+}
+.workspace-tab:hover,
+.workspace-tab:focus-visible{
+  filter: brightness(1.08);
+}
+.workspace-tab:focus-visible{
+  outline: 2px solid color-mix(in srgb, var(--tab-accent) 48%, rgba(255, 255, 255, .74));
+  outline-offset: 7px;
+}
+.workspace-tab[aria-selected="true"]{
+  transform: scale(1.24);
+}
+.workspace-tab[aria-selected="true"] .workspace-tab-label{
+  font-weight: 840;
+}
+.workspace-tab[aria-selected="true"]::after{
+  opacity: .86;
+  transform: scaleX(1);
+}
+.workspace-tab-menu{
+  position: fixed;
+  z-index: var(--z-navbar-dropdown);
+  min-width: 248px;
+  padding: 12px;
+}
+.workspace-tab-menu-group{
+  display: grid;
+  gap: var(--space-8);
+  margin-bottom: var(--space-10);
+}
+.workspace-tab-rename-input{
+  width: 100%;
+  height: 34px;
+  border: 1.5px solid var(--glass-border);
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--glass-surface-strong) 82%, var(--surface-soft));
+  color: var(--ink-strong);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 720;
+  padding: 0 10px;
+}
+.workspace-tab-rename-input:focus-visible{
+  outline: 2px solid color-mix(in srgb, var(--blue) 42%, transparent);
+  outline-offset: 2px;
+}
+@media (prefers-reduced-motion: reduce){
+  .workspace-tab,
+  .workspace-tab::after{
+    transition: none !important;
+  }
+}
+@media (max-width: 760px){
+  .workspace-tab-bar{
+    width: 100%;
+    margin-left: 0;
+    justify-content: space-around;
+    gap: 12px;
+  }
+  .workspace-tab{
+    max-width: 30vw;
+  }
+}

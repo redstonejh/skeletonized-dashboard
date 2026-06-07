@@ -1,0 +1,13 @@
+{
+    "check":  "glass_text_tab_bar_canary",
+    "command":  "npm.cmd run test:e2e -- --workers=1 -g \"glass text tabs\"",
+    "passed":  true,
+    "result":  "1 passed",
+    "assertions":  [
+                       "Three tabs render as clipped transparent glass text with no button box background.",
+                       "Clicking tab 2 sets aria-selected=true and scales it up.",
+                       "Right-click rename persists label across reload.",
+                       "Right-click recolor persists --tab-accent across reload.",
+                       "prefers-reduced-motion removes transition duration."
+                   ]
+}

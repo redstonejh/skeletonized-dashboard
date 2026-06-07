@@ -1,0 +1,3 @@
+# a11y_auditor Notes - 2026-06-07_glass-text-tab-bar-active_0bbf
+
+Local scratchpad for this role.

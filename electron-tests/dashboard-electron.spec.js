@@ -343,6 +343,63 @@ test("electron GUI keeps slim navbar controls wired", async () => {
   await closeApp(app);
 });
 
+test("electron GUI renders glass text tabs with active scaling and persisted edits", async () => {
+  const { app, page } = await launchApp();
+  await expect(page.locator(".workspace-tab-bar")).toBeVisible();
+  await expect(page.locator(".workspace-tab")).toHaveCount(3);
+  await expect(page.locator(".workspace-tab").nth(0)).toHaveText("tab 1");
+  await expect(page.locator(".workspace-tab").nth(1)).toHaveText("tab 2");
+  await expect(page.locator(".workspace-tab").nth(2)).toHaveText("tab 3");
+
+  const glassStyle = await page.locator(".workspace-tab").first().evaluate((node) => {
+    const button = getComputedStyle(node);
+    const label = getComputedStyle(node.querySelector(".workspace-tab-label"));
+    return {
+      buttonBackground: button.backgroundColor,
+      backgroundClip: label.backgroundClip || label.webkitBackgroundClip || "",
+      textFill: label.webkitTextFillColor || label.color,
+      backgroundImage: label.backgroundImage,
+    };
+  });
+  expect(glassStyle.buttonBackground).toBe("rgba(0, 0, 0, 0)");
+  expect(glassStyle.backgroundClip).toContain("text");
+  expect(glassStyle.textFill).toMatch(/rgba?\(0,\s*0,\s*0,\s*0\)|transparent/i);
+  expect(glassStyle.backgroundImage).not.toBe("none");
+
+  const firstBox = await page.locator(".workspace-tab").nth(0).boundingBox();
+  const secondBoxBefore = await page.locator(".workspace-tab").nth(1).boundingBox();
+  expect(firstBox).toBeTruthy();
+  expect(secondBoxBefore).toBeTruthy();
+  await page.locator(".workspace-tab").nth(1).click();
+  await expect(page.locator(".workspace-tab").nth(1)).toHaveAttribute("aria-selected", "true");
+  const secondBoxAfter = await page.locator(".workspace-tab").nth(1).boundingBox();
+  expect(secondBoxAfter.width).toBeGreaterThan(secondBoxBefore.width);
+
+  await page.locator(".workspace-tab").nth(1).click({ button: "right" });
+  await expect(page.locator(".workspace-tab-menu")).toBeVisible();
+  await page.locator(".workspace-tab-rename-input").fill("planning");
+  await page.locator(".workspace-tab-rename-input").press("Enter");
+  await expect(page.locator(".workspace-tab").nth(1)).toHaveText("planning");
+  await page.locator(".workspace-tab").nth(1).click({ button: "right" });
+  await page.locator('.workspace-tab-menu .panel-color-swatch[data-color="#dc2626"]').click();
+  await expect.poll(() => page.locator(".workspace-tab").nth(1).evaluate((node) => getComputedStyle(node).getPropertyValue("--tab-accent").trim())).toBe("#dc2626");
+
+  await page.reload();
+  await page.waitForSelector(".dashboard-layout-grid");
+  await expect(page.locator(".workspace-tab").nth(1)).toHaveText("planning");
+  await expect(page.locator(".workspace-tab").nth(1)).toHaveAttribute("aria-selected", "true");
+  await expect.poll(() => page.locator(".workspace-tab").nth(1).evaluate((node) => getComputedStyle(node).getPropertyValue("--tab-accent").trim())).toBe("#dc2626");
+
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  const reducedMotion = await page.locator(".workspace-tab").nth(1).evaluate((node) => ({
+    transitionDuration: getComputedStyle(node).transitionDuration,
+    pseudoTransitionDuration: getComputedStyle(node, "::after").transitionDuration,
+  }));
+  expect(reducedMotion.transitionDuration.split(",").every((value) => value.trim() === "0s")).toBe(true);
+  expect(reducedMotion.pseudoTransitionDuration.split(",").every((value) => value.trim() === "0s")).toBe(true);
+  await closeApp(app);
+});
+
 test("electron GUI applies derived background presets, custom color, persistence, undo, and photos", async () => {
   const { app, page } = await launchApp();
   const failedImageRequests = [];

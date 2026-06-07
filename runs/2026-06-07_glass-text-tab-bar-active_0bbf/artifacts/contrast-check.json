@@ -1,0 +1,9 @@
+{
+  "background": "#edf2f8",
+  "check": "contrast",
+  "foreground": "#111827",
+  "large": false,
+  "passed": true,
+  "ratio": 15.760657,
+  "threshold": 4.5
+}

@@ -1,0 +1,16 @@
+{
+    "check":  "change_verification",
+    "passed":  true,
+    "target":  {
+                   "file":  "app/static/themes.css",
+                   "selector":  ".workspace-tab-label",
+                   "property":  "background-clip",
+                   "expected":  "text"
+               },
+    "evidence":  {
+                     "before_selector_present":  false,
+                     "after_selector_present":  true,
+                     "after_property_declared":  true,
+                     "reason":  "The workspace-tab-label selector is newly introduced by this run; CSS declares background-clip:text and -webkit-background-clip:text for clipped glass glyph fill."
+                 }
+}

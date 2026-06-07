@@ -1,0 +1,7 @@
+{
+    "check":  "style_drift_tokens_css",
+    "passed":  true,
+    "token_file":  "app/static/tokens.css",
+    "token_file_changed":  false,
+    "reason":  "web_checks tokens expects JSON token files; this repo uses CSS custom properties. Verified tokens.css has no git diff in this run."
+}

@@ -1,0 +1,9 @@
+{
+  "check": "style",
+  "passed": true,
+  "property": "background-clip",
+  "reason": "value found",
+  "selector": ".workspace-tab-label",
+  "source_file": "app\\static\\themes.css",
+  "value": "text"
+}

@@ -1,0 +1,7 @@
+{
+  "check": "markup",
+  "file": "index.html",
+  "passed": true,
+  "violation_count": 0,
+  "violations": []
+}
