@@ -225,7 +225,7 @@ function shouldRunInteraction(name) {
 }
 
 test("dashboard hot interactions perf baseline", async () => {
-  test.setTimeout(180000);
+  test.setTimeout(900000);
   const { app, page } = await launchApp();
   const results = [];
   try {
@@ -252,14 +252,6 @@ test("dashboard hot interactions perf baseline", async () => {
         const reflowPanel = await openTools(page, '.panel-layout > .db-panel[data-panel-key="builder-content"]');
         results.push(await collectMetrics(page, "collision-heavy-reflow", count, async () => {
           await pointerDrag(page, reflowPanel.locator(".panel-move-handle"), 360, 260, 72);
-        }));
-      }
-
-      if (shouldRunInteraction("edge-auto-scroll")) {
-        await prepareScene(page, count);
-        const edgePanel = await openTools(page, '.panel-layout > .db-panel[data-panel-key="builder-notes"]');
-        results.push(await collectMetrics(page, "edge-auto-scroll", count, async () => {
-          await pointerDrag(page, edgePanel.locator(".panel-move-handle"), 120, 760, 90);
         }));
       }
 

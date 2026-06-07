@@ -18,7 +18,7 @@
 
 ## M3 resize lifecycle rAF coalescing
 
-- **Attempted change:** coalesce `resize-runtime.js` pointermove `onMove` work to one `requestAnimationFrame`, while keeping `autoScroll.update()` immediate and flushing before auto-scroll frames.
+- **Attempted change:** coalesce `resize-runtime.js` pointermove `onMove` work to one `requestAnimationFrame`, while keeping the former interaction-scroll update immediate and flushing before its frames.
 - **Why deferred:** the state-first cadence split still regressed the resize canary. `100`-object `resize-snap` worsened from `p95 29.9ms / max 179.9ms / 3 long tasks` to `p95 290ms / max 670ms / 67 long tasks`; `30`-object max also worsened from `69.9ms` to `180.3ms`.
 - **KEEP behavior at risk:** resize-snap span and resize/collision cadence. The failure indicates the expensive reflow work is tied to pointer cadence and final flush timing more deeply than the shared lifecycle wrapper can safely separate.
 - **Evidence:** `artifacts/perf-m3-resize-raf.json`.

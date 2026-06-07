@@ -4,7 +4,6 @@ export const createOrderedDragRuntime = (deps = {}) => {
     DASHBOARD_GRID_ROW_HEIGHT,
     dashboardDragRuntime,
     workspaceObjectCapabilities,
-    beginInteractionAutoScroll,
     gridHostForLayout,
     clearSurfaceResponse,
     groupTransformItems,
@@ -124,20 +123,6 @@ export const createOrderedDragRuntime = (deps = {}) => {
       row: Number(item.dataset.gridRow) || 1,
     };
     let lastMoveEvent = event;
-    const autoScroll = beginInteractionAutoScroll({
-      layout,
-      onScrollFrame: (scrollEvent) => {
-        if (!dragging || !lastMoveEvent) return;
-        try {
-          onMove(scrollEvent || lastMoveEvent);
-        } catch (error) {
-          onUp({ type: "pointercancel" });
-          window.setTimeout(() => {
-            throw error;
-          }, 0);
-        }
-      },
-    });
 
     const startDrag = (sourceEvent = null) => {
       if (dragging) return;
@@ -577,9 +562,7 @@ export const createOrderedDragRuntime = (deps = {}) => {
       moveEvent.preventDefault();
       moveEvent.stopPropagation();
       lastMoveEvent = moveEvent;
-      autoScroll.update(moveEvent);
-      const isAutoScrollFrame = moveEvent.type === "autoscroll";
-      const panelEntryMotion = isAutoScrollFrame ? null : panelEntryMotionFor(moveEvent);
+      const panelEntryMotion = panelEntryMotionFor(moveEvent);
       const currentMetrics = refreshGridMetricsRect(dragMetrics);
       const gridRect = currentMetrics?.rect || gridRectForLayout(layout);
       const dragRect = groupLive?.groupRect || rect;
@@ -587,8 +570,7 @@ export const createOrderedDragRuntime = (deps = {}) => {
       const maxLeft = Math.max(minLeft, gridRect.right - dragRect.width);
       const rawLeft = moveEvent.clientX - offsetX;
       const rawTop = moveEvent.clientY - offsetY;
-      const scrollingTowardTop = moveEvent.clientY < 104 && (window.scrollY || document.documentElement.scrollTop || 0) > 0;
-      const minTop = scrollingTowardTop ? Math.min(rawTop, 0, gridRect.top) : Math.max(0, gridRect.top);
+      const minTop = Math.max(0, gridRect.top);
       const visibleBottom = Math.max(gridRect.bottom, window.innerHeight - 16);
       const maxTop = Math.max(minTop, visibleBottom - Math.min(dragRect.height, window.innerHeight - 32));
       const isPanelLocalDirectDrag = isPanelInternalWidgetLayout(layout) && !groupDrag;
@@ -607,13 +589,10 @@ export const createOrderedDragRuntime = (deps = {}) => {
           width: rect.width,
         });
       }
-      if (!isAutoScrollFrame && updatePanelDragPreview(moveEvent, panelEntryMotion)) {
+      if (updatePanelDragPreview(moveEvent, panelEntryMotion)) {
         return;
       }
-      if (isAutoScrollFrame && panelDrag) {
-        clearPanelDragPreview();
-      }
-      if (!isAutoScrollFrame && updatePanelExitPreview(moveEvent)) {
+      if (updatePanelExitPreview(moveEvent)) {
         return;
       }
       const previewRect = groupDrag && groupLive
@@ -638,16 +617,11 @@ export const createOrderedDragRuntime = (deps = {}) => {
       if (ended) return;
       ended = true;
       const canceled = upEvent?.type === "pointercancel";
-      const releaseScrollY = window.scrollY || document.documentElement.scrollTop || 0;
-      const releaseUsedExtendedWorkspace = dragging && placeholder && !canceled && document.body.classList.contains("dashboard-interaction-scroll-extended");
-      let committedExtendedWorkspaceScrollY = null;
-      autoScroll.stop({ preserveExtension: dragging && placeholder && !canceled });
       removeListeners();
       releasePointer();
       document.body.classList.remove("panel-interaction-active");
       document.body.classList.remove("panel-resize-active");
-      try {
-        if (dragging && placeholder) {
+      if (dragging && placeholder) {
           const releaseItemRect = item.getBoundingClientRect();
           if (!groupDrag) {
             item.classList.remove(draggingClass);
@@ -765,10 +739,8 @@ export const createOrderedDragRuntime = (deps = {}) => {
                 : commitActiveDropSlot(layout, item, finalCell, { localVacancy });
             }
             const finalBounds = result.bounds;
-            committedExtendedWorkspaceScrollY = releaseUsedExtendedWorkspace ? releaseScrollY : null;
             syncCommittedWorkspaceScrollFloor(layout, {
-              preserveViewport: committedExtendedWorkspaceScrollY !== null,
-              scrollY: committedExtendedWorkspaceScrollY,
+              preserveViewport: false,
             });
             if (result.absorbed === false) {
               // The attempted panel commit failed and onCancel has already restored callers.
@@ -777,15 +749,6 @@ export const createOrderedDragRuntime = (deps = {}) => {
             } else {
               onCommit?.({ moved: result.absorbed || result.extracted || finalBounds.col !== originalCell.col || finalBounds.row !== originalCell.row || result.movedItems > 0 });
             }
-          }
-        }
-      } finally {
-        autoScroll.clearExtension();
-        if (committedExtendedWorkspaceScrollY !== null) {
-          syncCommittedWorkspaceScrollFloor(layout, {
-            preserveViewport: true,
-            scrollY: committedExtendedWorkspaceScrollY,
-          });
         }
       }
       if (groupDrag) {

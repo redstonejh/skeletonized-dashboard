@@ -6,7 +6,6 @@
     activeMenuState: null,
     activePointerState: null,
     currentInteractionMode: "idle",
-    activeAutoScroll: null,
     activeWorkspaceDrag: null,
     activeResizeLifecycle: null,
   };

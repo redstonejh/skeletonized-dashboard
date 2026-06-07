@@ -1,0 +1,17 @@
+{
+    "schema_version":  1,
+    "passed":  true,
+    "syntax":  "node --check passed for edited JS modules",
+    "e2e":  {
+                "result":  "14 passed in 3.0m",
+                "command":  "npm.cmd run test:e2e -- --workers=1"
+            },
+    "canaries":  {
+                     "result":  "100 passed in 14.3m",
+                     "command":  "npm.cmd run test:e2e -- --workers=1 --grep \"keeps drag and resize handlers active|keeps select-mode multi-resize|keeps widget resize-snap|restores widget tools|commits widget runtime|clears stale conditional|keeps widget runtime content|keeps ordered drag|absorbs a workspace widget|ordered grid item\" --repeat-each=10"
+                 },
+    "perf":  {
+                 "result":  "1 passed in 8.8m",
+                 "command":  "npm.cmd run test:perf -- --workers=1"
+             }
+}

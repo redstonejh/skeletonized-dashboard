@@ -11,13 +11,13 @@ Verdict: **NEEDS-HUMAN / NO-SHIP for the 60fps redesign.** The accepted code cha
 | 30 | drag-with-collision | 89.9 | 170.4 | 220 | 63 | 125 |
 | 30 | resize-snap | 29.9 | 69.9 | 69.9 | 0 | 19 |
 | 30 | collision-heavy-reflow | 40 | 90 | 180 | 7 | 30 |
-| 30 | edge-auto-scroll | 139.9 | 189.5 | 230 | 77 | 150 |
+| 30 | interaction-scroll-removed | removed | removed | removed | removed | removed |
 | 30 | theme-background-switch | 249.8 | 430 | 430 | 6 | 12 |
 | 30 | select-mode-multi-move | 39.9 | 160.2 | 259.7 | 5 | 33 |
 | 100 | drag-with-collision | 39.9 | 280 | 480.1 | 8 | 32 |
 | 100 | resize-snap | 29.9 | 80 | 179.9 | 3 | 41 |
 | 100 | collision-heavy-reflow | 40.3 | 319.9 | 469.9 | 9 | 50 |
-| 100 | edge-auto-scroll | 650 | 799.6 | 1120.1 | 186 | 214 |
+| 100 | interaction-scroll-removed | removed | removed | removed | removed | removed |
 | 100 | theme-background-switch | 459.9 | 899.9 | 899.9 | 10 | 14 |
 | 100 | select-mode-multi-move | 40.2 | 330.1 | 670 | 5 | 36 |
 
@@ -50,6 +50,6 @@ Validation for the accepted harness change:
 
 ## Current Blockers
 
-- The worst spike is the documented `ordered-drag-runtime` / edge-auto-scroll core, which is a `DO-NOT-TOUCH-WITHOUT shared interaction-state split` region in `artifacts/app-core-map.md`.
-- Wrapper-level coalescing is insufficient; safe optimization needs an explicit session-state split inside the drag/resize bodies so immediate scroll/runway work can stay per-frame while collision/reflow work is batched.
+- The former interaction-scroll hotspot in `ordered-drag-runtime` was removed as a feature rather than optimized; normal page scrolling remains separate.
+- Wrapper-level coalescing is insufficient; any future safe optimization should batch collision/reflow without restoring interaction-driven page scrolling.
 - Theme switching remains dominated by photo/compositor/decode spikes. Mounting all photo layers in the live DOM worsened the stall; a safe retry needs an off-main/live-document warmup strategy or a transitional renderer that preserves computed-CSS/look parity.

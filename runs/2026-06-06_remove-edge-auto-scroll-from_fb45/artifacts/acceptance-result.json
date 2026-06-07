@@ -1,0 +1,31 @@
+{
+    "schema_version":  1,
+    "verdict":  "SHIP",
+    "passed":  true,
+    "summary":  "Interaction edge scrolling removed from drag, resize, and group flows; inverse canary added; active-source dead-code grep clean; e2e, repeat canaries, and perf harness pass.",
+    "line_counts":  {
+                        "app_js":  {
+                                       "before":  3121,
+                                       "delta":  -7,
+                                       "after":  3114
+                                   },
+                        "drag_runtime":  {
+                                             "before":  322,
+                                             "delta":  -238,
+                                             "after":  84
+                                         },
+                        "ordered_drag_runtime":  {
+                                                     "before":  795,
+                                                     "delta":  -37,
+                                                     "after":  758
+                                                 }
+                    },
+    "gates":  {
+                  "perf_removed":  true,
+                  "verdict_check":  "passed",
+                  "dead_code":  true,
+                  "delegation":  true,
+                  "canaries_10x":  true,
+                  "e2e":  true
+              }
+}

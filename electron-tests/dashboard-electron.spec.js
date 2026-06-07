@@ -569,7 +569,7 @@ test("electron GUI keeps drag and resize handlers active", async () => {
     "grid-snap",
     "collision-reflow",
     "select-mode-multi-move",
-    "edge-auto-scroll",
+    "no-interaction-scroll",
   ], { moveBefore, afterMove });
 
   await closeApp(app);
@@ -907,7 +907,7 @@ test("electron GUI keeps widget runtime content, tools, and resize ready after r
   await closeApp(app);
 });
 
-test("electron GUI keeps ordered drag commit, ghost, collision, and edge scroll deterministic", async () => {
+test("electron GUI keeps ordered drag commit, ghost, collision, and no interaction scrolling deterministic", async () => {
   const { app, page } = await launchApp();
   const selector = '.panel-layout > .db-panel[data-panel-key="builder-notes"]';
   const panel = await openTools(page, selector);
@@ -981,12 +981,14 @@ test("electron GUI keeps ordered drag commit, ghost, collision, and edge scroll 
   const scrollStartX = scrollBox.x + scrollBox.width / 2;
   const scrollStartY = scrollBox.y + scrollBox.height / 2;
   const beforeScroll = await page.evaluate(() => Math.round(window.scrollY || 0));
-  await dispatchPointerDragUntilMove(page, scrollStartX, scrollStartY, scrollStartX, 12 + await page.evaluate(() => window.innerHeight));
-  await page.waitForFunction((beforeScroll) => Math.round(window.scrollY || 0) > beforeScroll, beforeScroll);
+  const viewportBottom = await page.evaluate(() => window.innerHeight - 12);
+  await dispatchPointerDragUntilMove(page, scrollStartX, scrollStartY, scrollStartX, viewportBottom);
+  await page.waitForFunction(() => Boolean(document.querySelector(".db-panel-dragging, .widget-dragging")));
+  await page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))));
   const afterScroll = await page.evaluate(() => Math.round(window.scrollY || 0));
-  expect(afterScroll).toBeGreaterThan(beforeScroll);
-  await finishPointerDrag(page, scrollStartX, await page.evaluate(() => window.innerHeight - 12), "pointercancel");
-  await writeInteractionScenarios(page, ["drag-core-commit-ghost-collision-scroll"], {
+  expect(afterScroll).toBe(beforeScroll);
+  await finishPointerDrag(page, scrollStartX, viewportBottom, "pointercancel");
+  await writeInteractionScenarios(page, ["drag-core-commit-ghost-collision-no-interaction-scroll"], {
     before,
     live,
     afterCancel,

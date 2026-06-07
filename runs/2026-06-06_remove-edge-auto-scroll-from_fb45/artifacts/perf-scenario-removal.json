@@ -1,0 +1,13 @@
+{
+    "schema_version":  1,
+    "passed":  true,
+    "full_command":  "npm.cmd run test:perf -- --workers=1",
+    "full_result":  "1 passed in 8.8m",
+    "removed_scenario_probe":  {
+                                   "result":  "1 passed in 7.3s with zero interactions recorded",
+                                   "command":  "PERF_INTERACTIONS=edge-auto-scroll npm.cmd run test:perf -- --workers=1"
+                               },
+    "default_interaction_count":  10,
+    "removed_interaction_present":  false,
+    "note":  "The removed interaction is no longer scheduled by the perf harness; remaining default matrix still runs."
+}

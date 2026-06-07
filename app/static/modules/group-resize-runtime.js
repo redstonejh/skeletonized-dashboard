@@ -360,7 +360,6 @@ export const createGroupResizeRuntime = (deps = {}) => {
     const resizeParentPanel = isPanelInternalWidgetLayout(layout) ? panelForInternalWidgetLayout(layout) : null;
     const resizeParentPanelLayout = resizeParentPanel?.closest?.(".panel-layout") || null;
     const gap = layoutMetrics.gap;
-    const startScrollY = window.scrollY || document.documentElement.scrollTop || 0;
     const layoutRect = layoutMetrics.rect;
     const columnWidth = (Math.max(1, layoutRect.width) - (gap * (DASHBOARD_GRID_COLUMNS - 1))) / DASHBOARD_GRID_COLUMNS;
     const columnStep = Math.max(1, columnWidth + gap);
@@ -425,17 +424,15 @@ export const createGroupResizeRuntime = (deps = {}) => {
     resizeSession.setReflowItems(reflowItemsForLayout(layout, source).filter((item) => !memberSet.has(item)));
     resizeSession.setRuntime({ groupFootprint, resizeBoundary });
     const updateLiveGroupResize = (clientX, clientY) => {
-      const scrollDeltaY = (window.scrollY || document.documentElement.scrollTop || 0) - startScrollY;
-      const effectiveClientY = clientY + scrollDeltaY;
       const rawCols = Math.max(1, startWidth + ((clientX - startX) / columnStep));
-      const rawRows = Math.max(1, startHeight + ((effectiveClientY - startY) / rowStep));
+      const rawRows = Math.max(1, startHeight + ((clientY - startY) / rowStep));
       const scaleX = Math.max(liveMinScaleX, Math.min(liveMaxScaleX, rawCols / startWidth));
       const scaleY = Math.max(liveMinScaleY, rawRows / startHeight);
       const liveBounds = { left: Infinity, top: Infinity, right: -Infinity, bottom: -Infinity };
       previewEntries.forEach((entry) => {
         const startRect = entry.rect;
         const left = groupStartRect.left + ((startRect.left - groupStartRect.left) * scaleX);
-        const top = groupStartRect.top - scrollDeltaY + (startRect.top - groupStartRect.top);
+        const top = groupStartRect.top + (startRect.top - groupStartRect.top);
         const width = Math.max(gridItemPixelWidthForSpan(entry.memberLayout, gridItemMinimumSpan(entry.member), entry.memberMetrics), startRect.width * scaleX);
         const liveRows = isWidgetGridItem(entry.member)
           ? groupResizeWidgetRowSpan(
@@ -494,10 +491,8 @@ export const createGroupResizeRuntime = (deps = {}) => {
 
     const applyFromPointer = (clientX, clientY) => {
       updateLiveGroupResize(clientX, clientY);
-      const scrollDeltaY = (window.scrollY || document.documentElement.scrollTop || 0) - startScrollY;
-      const effectiveClientY = clientY + scrollDeltaY;
       const nextCols = Math.max(1, startWidth + Math.round((clientX - startX) / columnStep));
-      const nextRows = Math.max(1, startHeight + Math.round((effectiveClientY - startY) / rowStep));
+      const nextRows = Math.max(1, startHeight + Math.round((clientY - startY) / rowStep));
       if (nextCols === resizeSession.getPreviewCols() && nextRows === resizeSession.getPreviewRows()) return;
       resizeSession.setPreviewSize(nextCols, nextRows);
       animateOrderedGridReflow(layout, () => {
@@ -554,7 +549,7 @@ export const createGroupResizeRuntime = (deps = {}) => {
           if (resizeParentPanel) syncOpenPanelHeightToInternalGrid(resizeParentPanel);
         }, source, { items: resizeSession.getReflowItems(), metrics: layoutMetrics });
         syncCommittedWorkspaceScrollFloor(layout, {
-          preserveViewport: document.body.classList.contains("dashboard-interaction-scroll-extended"),
+          preserveViewport: false,
         });
         onCommit?.();
       }

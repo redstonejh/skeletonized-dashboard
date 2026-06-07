@@ -1,0 +1,40 @@
+{
+    "schema_version":  1,
+    "task_type":  "refactor-task",
+    "objective":  "Remove interaction edge scrolling from drag, resize, and group interactions while preserving normal scrolling and committed in-viewport outcomes.",
+    "roles":  [
+                  "conductor",
+                  "planner",
+                  "worker",
+                  "critic",
+                  "acceptance_gate"
+              ],
+    "parallel_roles":  [
+                           "planner",
+                           "worker",
+                           "critic",
+                           "acceptance_gate",
+                           "conductor"
+                       ],
+    "caps":  {
+                 "max_iters":  3,
+                 "max_parallel":  5,
+                 "max_agents":  5
+             },
+    "role_justifications":  {
+                                "worker":  "Removed the feature from product code, tests, perf harness, and docs.",
+                                "critic":  "Checked for dangling auto-scroll logic, stale tests, and behavioral risks.",
+                                "acceptance_gate":  "Independently verified e2e, repeat canaries, perf removal, dead-code proof, and verdict.",
+                                "planner":  "Mapped deletion scope and gates before source edits.",
+                                "conductor":  "Selected the smallest core MAW roster and enforced delegation proof and acceptance gates."
+                            },
+    "acceptance_criteria":  [
+                                "removed interaction auto-scroll entry point and call sites",
+                                "inverse no-interaction-scroll canary added",
+                                "remaining interaction canaries pass 10/10",
+                                "full e2e passes",
+                                "perf harness no longer runs the removed scenario",
+                                "active-source grep clean for removed symbols",
+                                "normal page scrolling and overflow-anchor stabilization not removed"
+                            ]
+}

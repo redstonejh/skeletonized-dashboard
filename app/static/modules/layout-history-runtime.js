@@ -89,16 +89,7 @@ export const createLayoutHistoryRuntime = ({
       "panel-interaction-active",
       "panel-resize-active",
       "group-transform-active",
-      "dashboard-auto-scroll-active",
-      "dashboard-interaction-scroll-extended",
     );
-    document.body.style.removeProperty("padding-bottom");
-    document.documentElement.style.removeProperty("overflow-anchor");
-    document.body.style.removeProperty("overflow-anchor");
-    document.documentElement.style.removeProperty("overscroll-behavior-y");
-    document.body.style.removeProperty("overscroll-behavior-y");
-    document.documentElement.style.removeProperty("scroll-behavior");
-    document.querySelectorAll(".dashboard-layout-grid").forEach((host) => host.style.removeProperty("overflow-anchor"));
     document.querySelectorAll(".dashboard-active-resize, .dashboard-resize-source, .group-transform-member").forEach((item) => {
       item.classList.remove("dashboard-active-resize", "dashboard-resize-source", "group-transform-member");
     });

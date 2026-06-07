@@ -122,7 +122,6 @@ export const bindWidgetResizeRuntime = ({
     const groupResizeItems = [{ peer: widget, startSpan, startRows }, ...resizePeers];
     const startX = event.clientX;
     const startY = event.clientY;
-    const startScrollY = window.scrollY || document.documentElement.scrollTop || 0;
     const resizeStartSnapshot = snapshotGridLayout(layout);
     const resizeParentPanelLayoutSnapshot = resizeParentPanelLayout ? snapshotGridLayout(resizeParentPanelLayout) : null;
     let previewSpan = startSpan;
@@ -153,15 +152,13 @@ export const bindWidgetResizeRuntime = ({
     };
     const onMove = (moveEvent) => {
       moveEvent.preventDefault();
-      const scrollDeltaY = (window.scrollY || document.documentElement.scrollTop || 0) - startScrollY;
       const scenePoint = resizeAutoZoomPointerToScenePoint(moveEvent.clientX, moveEvent.clientY);
       const deltaX = moveEvent.clientX - startX;
-      const effectiveClientY = scenePoint.y + scrollDeltaY;
-      const deltaY = effectiveClientY - startY;
+      const deltaY = scenePoint.y - startY;
       const liveWidth = Math.max(minLiveWidth, Math.min(maxLiveWidth, startRect.width + (resizeEdge === "left" ? -deltaX : deltaX)));
       const liveHeight = Math.max(minLiveHeight, startRect.height + deltaY);
       const liveLeft = resizeEdge === "left" ? startRect.right - liveWidth : startRect.left;
-      const liveTop = startRect.top - scrollDeltaY;
+      const liveTop = startRect.top;
       updateLiveResizeSurface(liveResizePreview, liveWidth, liveHeight, liveLeft, liveTop);
       updateResizeAutoZoomCamera({
         top: liveTop,
@@ -184,9 +181,7 @@ export const bindWidgetResizeRuntime = ({
         animateOrderedGridReflow(layout, () => {
           const currentSpan = previewSpan || Number(widget.dataset.currentSpan) || startSpan;
           const groupedSpan = groupedWidgetReleaseSpan(currentSpan, resizePeers.length + 1);
-          const releaseSpan = document.body.classList.contains("dashboard-interaction-scroll-extended")
-            ? Math.round(currentSpan)
-            : alignedResizeSpan({
+          const releaseSpan = alignedResizeSpan({
               layout,
               item: resizePreview,
               currentSpan,
@@ -238,7 +233,7 @@ export const bindWidgetResizeRuntime = ({
           },
         });
         syncCommittedWorkspaceScrollFloor(layout, {
-          preserveViewport: document.body.classList.contains("dashboard-interaction-scroll-extended"),
+          preserveViewport: false,
         });
       }
     };

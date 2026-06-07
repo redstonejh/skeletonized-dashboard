@@ -2,12 +2,6 @@
   const interactionState = window.dashboardInteractionState;
   const resizeLifecycleState = interactionState?.slot?.("activeResizeLifecycle");
 
-  const noopAutoScroll = Object.freeze({
-    update() {},
-    stop() {},
-    clearExtension() {},
-  });
-
   const beginResizeLifecycle = ({
     event,
     source,
@@ -15,7 +9,6 @@
     onMove,
     onEnd,
     onCleanup,
-    beginInteractionAutoScroll,
     clearSurfaceResponse,
   } = {}) => {
     resizeLifecycleState?.get()?.cancel();
@@ -37,18 +30,6 @@
       };
     }
     let ended = false;
-    let lastMoveEvent = event;
-    const autoScroll = beginInteractionAutoScroll?.({
-      layout,
-      onScrollFrame: (scrollEvent) => {
-        if (ended || !lastMoveEvent) return;
-        try {
-          onMove?.(scrollEvent || lastMoveEvent);
-        } catch (error) {
-          fail(error, scrollEvent || lastMoveEvent);
-        }
-      },
-    }) || noopAutoScroll;
     const pointerId = event?.pointerId;
 
     const removeListeners = () => {
@@ -69,7 +50,6 @@
     const finish = (finishEvent = null, canceled = false) => {
       if (ended) return;
       ended = true;
-      autoScroll.stop({ preserveExtension: !canceled });
       removeListeners();
       releasePointer();
       document.body.classList.remove("panel-interaction-active");
@@ -79,7 +59,6 @@
         onEnd?.(finishEvent, canceled);
       } finally {
         onCleanup?.(finishEvent, canceled);
-        autoScroll.clearExtension();
         if (interactionState?.state) interactionState.state.activeResizeState = null;
         interactionToken?.end?.();
         if (resizeLifecycleState?.get()?.finish === finish) resizeLifecycleState.clear();
@@ -96,8 +75,6 @@
     };
     function handleMove(moveEvent) {
       try {
-        lastMoveEvent = moveEvent;
-        autoScroll.update(moveEvent);
         onMove?.(moveEvent);
       } catch (error) {
         fail(error, moveEvent);

@@ -1,0 +1,24 @@
+{
+    "schema_version":  1,
+    "check":  "removed_interaction_scroll_dead_code",
+    "passed":  true,
+    "removed_symbols":  [
+                            "beginInteractionAutoScroll",
+                            "activeAutoScroll",
+                            "dashboard-auto-scroll-active",
+                            "dashboard-interaction-scroll-extended",
+                            "autoscroll",
+                            "edge-auto-scroll",
+                            "preserveExtension"
+                        ],
+    "active_source_globs":  [
+                                "AGENTS.md",
+                                "README.md",
+                                "artifacts/*.md",
+                                "electron-tests/*.js",
+                                "app/static/**/*.js",
+                                "app/static/*.js"
+                            ],
+    "grep_result":  "clean",
+    "note":  "Run artifacts may name removed symbols as proof; active source, tests, and docs are clean."
+}

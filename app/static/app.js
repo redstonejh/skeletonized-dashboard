@@ -1648,14 +1648,8 @@ document.addEventListener("DOMContentLoaded", () => {
     isWidgetGridItem,
   });
 
-  const beginInteractionAutoScroll = ({ layout = null, onScrollFrame } = {}) => dashboardDragRuntime.beginInteractionAutoScroll({
-    layout,
-    onScrollFrame,
-    gridHostForLayout,
-  });
   const beginResizeLifecycle = (options = {}) => dashboardResizeRuntime.beginResizeLifecycle({
     ...options,
-    beginInteractionAutoScroll,
     clearSurfaceResponse,
   });
 
@@ -2665,7 +2659,6 @@ document.addEventListener("DOMContentLoaded", () => {
     DASHBOARD_GRID_ROW_HEIGHT,
     dashboardDragRuntime,
     workspaceObjectCapabilities,
-    beginInteractionAutoScroll,
     gridHostForLayout,
     clearSurfaceResponse,
     groupTransformItems,

@@ -97,7 +97,6 @@ export const bindPanelResizeRuntime = ({
     window.getSelection?.()?.removeAllRanges();
     const startX = event.clientX;
     const startY = event.clientY;
-    const startScrollY = window.scrollY || document.documentElement.scrollTop || 0;
     const startRect = panel.getBoundingClientRect();
     const layoutMetrics = createGridMetrics(layout);
     const gap = layoutMetrics.gap;
@@ -167,18 +166,16 @@ export const bindPanelResizeRuntime = ({
 
     const onResizeMove = (moveEvent) => {
       moveEvent.preventDefault();
-      const scrollDeltaY = (window.scrollY || document.documentElement.scrollTop || 0) - startScrollY;
       const scenePoint = resizeAutoZoomPointerToScenePoint(moveEvent.clientX, moveEvent.clientY);
-      const effectiveClientY = scenePoint.y + scrollDeltaY;
       const deltaX = moveEvent.clientX - startX;
       const liveWidth = Math.max(minLiveWidth, Math.min(maxLiveWidth, startRect.width + (resizeEdge === "left" ? -deltaX : deltaX)));
       const liveLeft = resizeEdge === "left" ? startRect.right - liveWidth : startRect.left;
-      const liveHeight = collapsedPanelResize ? startRect.height : Math.max(minLiveHeight, startRect.height + (effectiveClientY - startY));
-      const liveTop = startRect.top - scrollDeltaY;
+      const liveHeight = collapsedPanelResize ? startRect.height : Math.max(minLiveHeight, startRect.height + (scenePoint.y - startY));
+      const liveTop = startRect.top;
       updateLiveResizeSurface(liveResizePreview, liveWidth, liveHeight, liveLeft, liveTop);
       const rawSpan = startSpan + ((((resizeEdge === "left" ? -deltaX : deltaX)) / layoutWidth) * 6);
       const nextSpan = Math.max(gridItemMinimumSpan(panel), Math.min(6, Math.round(rawSpan)));
-      const nextRows = Math.max(panelMinimumRows(panel, layoutMetrics), startRows + Math.round((effectiveClientY - startY) / rowStep));
+      const nextRows = Math.max(panelMinimumRows(panel, layoutMetrics), startRows + Math.round((scenePoint.y - startY) / rowStep));
       const nextHeight = gridHeightForRows(nextRows, gap);
       const cameraHeight = collapsedPanelResize
         ? expandedPanelFootprintHeight(panel, layout, nextRows, layoutMetrics)
@@ -209,9 +206,7 @@ export const bindPanelResizeRuntime = ({
         animateOrderedGridReflow(layout, () => {
           const currentSpan = previewSpan || Number(panel.dataset.currentSpan) || startSpan;
           const groupedSpan = groupedPanelReleaseSpan(currentSpan, resizePeers.length + 1);
-          const releaseSpan = document.body.classList.contains("dashboard-interaction-scroll-extended")
-            ? Math.round(currentSpan)
-            : alignedResizeSpan({
+          const releaseSpan = alignedResizeSpan({
               layout,
               item: resizePreview,
               currentSpan,
@@ -263,7 +258,7 @@ export const bindPanelResizeRuntime = ({
           },
         });
         syncCommittedWorkspaceScrollFloor(layout, {
-          preserveViewport: document.body.classList.contains("dashboard-interaction-scroll-extended"),
+          preserveViewport: false,
         });
       }
     };

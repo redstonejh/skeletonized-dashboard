@@ -1,0 +1,19 @@
+{
+    "schema_version":  1,
+    "passed":  true,
+    "repeat_each":  10,
+    "total_tests":  100,
+    "command":  "npm.cmd run test:e2e -- --workers=1 --grep \"keeps drag and resize handlers active|keeps select-mode multi-resize|keeps widget resize-snap|restores widget tools|commits widget runtime|clears stale conditional|keeps widget runtime content|keeps ordered drag|absorbs a workspace widget|ordered grid item\" --repeat-each=10",
+    "covered":  [
+                    "drag commit",
+                    "live ghost",
+                    "reversible collision preview",
+                    "absorption",
+                    "resize snap",
+                    "select-mode multi-resize",
+                    "panel/widget pin/tools",
+                    "save/reload",
+                    "ordered grid queries",
+                    "no interaction scrolling at viewport edge"
+                ]
+}
