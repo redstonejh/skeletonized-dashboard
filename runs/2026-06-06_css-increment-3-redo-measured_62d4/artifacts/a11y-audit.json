@@ -1,0 +1,5 @@
+{
+    "passed":  true,
+    "risk":  "none from source code",
+    "note":  "Measurement-only outcome. No CSS source changed, so accessibility surfaces are unchanged."
+}

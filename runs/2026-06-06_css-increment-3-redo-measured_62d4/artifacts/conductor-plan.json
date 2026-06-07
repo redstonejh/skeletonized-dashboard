@@ -1,0 +1,16 @@
+{
+  "task_type": "frontend",
+  "checklist": "frontend-ui-task",
+  "roles": ["conductor", "planner", "worker", "change_verifier", "a11y_auditor", "critic", "acceptance_gate"],
+  "parallel_roles": [],
+  "caps": { "max_agents": 7, "max_parallel": 3, "max_iters": 3 },
+  "role_justifications": {
+    "conductor": "classifies the REDO and enforces real delegation",
+    "planner": "defines the measurement and progress gate",
+    "worker": "produces deterministic per-tone duplication measurement",
+    "change_verifier": "verifies no CSS source changes and stale artifact deletion",
+    "a11y_auditor": "checks no accessibility risk from measurement-only outcome",
+    "critic": "reviews the Phase 1 stop condition and evidence",
+    "acceptance_gate": "independently validates final evidence and verdict"
+  }
+}

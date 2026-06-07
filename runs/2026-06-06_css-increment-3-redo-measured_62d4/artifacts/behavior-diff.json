@@ -1,0 +1,15 @@
+{
+    "passed":  true,
+    "cssSourceChanged":  false,
+    "computedStyleParity":  "not rerun because Phase 1 stopped before CSS source edits; existing fingerprint remains valid for unchanged CSS source.",
+    "backgroundToneDeclarationsBefore":  404,
+    "backgroundToneDeclarationsAfter":  404,
+    "collapsibleRemaining":  2,
+    "reducibleRemaining":  1,
+    "hexLiteralCountBefore":  206,
+    "hexLiteralCountAfter":  206,
+    "themesCssLinesBefore":  5393,
+    "themesCssLinesAfter":  5393,
+    "importantBefore":  412,
+    "importantAfter":  412
+}

@@ -1,0 +1,41 @@
+{
+  "schemaVersion": 1,
+  "file": "app/static/themes.css",
+  "definition": {
+    "backgroundToneDeclaration": "Any declaration in a themes.css rule whose selector contains background-tone or background-photo-option[data-background-tone].",
+    "toneSpecificDeclaration": "Declaration in an exact .background-tone-option[data-background-tone=\"...\"] block or .background-photo-option[data-background-tone=\"...\"]::before block.",
+    "collapsible": "Exact repeated property/value among tone-specific declarations that can be represented once in a grouped selector with equal specificity and original per-tone blocks retaining unique values."
+  },
+  "totals": {
+    "backgroundToneBlocks": 128,
+    "backgroundToneDeclarations": 404,
+    "toneSpecificDeclarations": 165,
+    "collapsibleDeclarations": 2,
+    "reducibleDuplicateDeclarations": 1,
+    "collapsibleGroups": 1,
+    "estimatedLineReductionIfAllCollapsibleMerged": 1
+  },
+  "decision": "SMALL_COLLAPSIBLE_SET_STOP_ELIGIBLE",
+  "groups": [
+    {
+      "property": "background-image",
+      "value": "url(\"backgrounds/space/earth.jpg\")",
+      "count": 2,
+      "reducible": 1,
+      "selectors": [
+        {
+          "selector": ".background-photo-option[data-background-tone=\"photo-earth\"]::before",
+          "line": 4352
+        },
+        {
+          "selector": ".background-photo-option[data-background-tone=\"solar-system\"]::before",
+          "line": 4352
+        }
+      ]
+    }
+  ],
+  "nonCollapsibleSummary": {
+    "reason": "Most tone-specific swatch declarations are distinct per tone: --tone-swatch-start, --tone-swatch-end, and --tone-swatch-border intentionally vary by palette. Photo option declarations each point at a different image except the solar-system fallback and are not mergeable without changing preview imagery.",
+    "distinctToneSpecificDeclarations": 163
+  }
+}

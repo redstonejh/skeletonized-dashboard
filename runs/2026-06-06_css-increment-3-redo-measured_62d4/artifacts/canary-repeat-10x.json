@@ -1,0 +1,42 @@
+[
+    {
+        "run":  1,
+        "passed":  true
+    },
+    {
+        "run":  2,
+        "passed":  true
+    },
+    {
+        "run":  3,
+        "passed":  true
+    },
+    {
+        "run":  4,
+        "passed":  true
+    },
+    {
+        "run":  5,
+        "passed":  true
+    },
+    {
+        "run":  6,
+        "passed":  true
+    },
+    {
+        "run":  7,
+        "passed":  true
+    },
+    {
+        "run":  8,
+        "passed":  true
+    },
+    {
+        "run":  9,
+        "passed":  true
+    },
+    {
+        "run":  10,
+        "passed":  true
+    }
+]

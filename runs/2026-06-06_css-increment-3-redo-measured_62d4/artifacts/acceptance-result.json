@@ -1,0 +1,14 @@
+{
+    "verdict":  "SHIP",
+    "passed":  true,
+    "checks":  {
+                   "phase1Measurement":  "artifacts/per-tone-duplication-report.json: 2 collapsible of 165 tone-specific declarations, 1 reducible duplicate declaration",
+                   "decisionGate":  "SMALL_COLLAPSIBLE_SET_STOP_ELIGIBLE",
+                   "sourceCssChanged":  false,
+                   "staleArtifactDeleted":  "artifacts/css-zero-diff.json",
+                   "delegation":  "artifacts/delegation-proof.json",
+                   "canaries":  "artifacts/canary-repeat-10x.json: 10/10 npm.cmd run test:e2e -- --workers=1 runs passed",
+                   "e2e":  "artifacts/test-result-e2e.json: npm.cmd run test:e2e -- --workers=1 passed",
+                   "noLargeFiles":  "change-verification introducedOrModifiedFilesOverOneMb is empty"
+               }
+}

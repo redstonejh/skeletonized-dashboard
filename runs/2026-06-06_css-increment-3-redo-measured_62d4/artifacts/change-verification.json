@@ -1,0 +1,9 @@
+{
+    "passed":  true,
+    "sourceCssChanged":  false,
+    "deletedStaleArtifact":  "artifacts/css-zero-diff.json",
+    "planUpdated":  "artifacts/css-consolidation-plan.md",
+    "introducedOrModifiedFilesOverOneMb":  [
+
+                                           ]
+}
