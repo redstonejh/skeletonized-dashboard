@@ -222,6 +222,7 @@ export function initializeObjectAddRuntime(deps) {
     const trigger = picker.querySelector(".panel-add-button");
     const menu = picker.querySelector(".panel-add-menu");
     let closeTimer;
+    let clickOpened = false;
     const syncMenuViewportSize = () => {
       if (!menu) return;
       const triggerRect = trigger?.getBoundingClientRect?.();
@@ -256,12 +257,14 @@ export function initializeObjectAddRuntime(deps) {
       trigger?.setAttribute("aria-expanded", "true");
     };
     const scheduleClose = () => {
+      if (clickOpened) return;
       window.clearTimeout(closeTimer);
       closeTimer = window.setTimeout(() => {
         closeMenu();
       }, 140);
     };
     const closeMenu = () => {
+      clickOpened = false;
       window.clearTimeout(closeTimer);
       closeObjectAddSubmenus(menu);
       menu?.classList.remove("open");
@@ -292,8 +295,14 @@ export function initializeObjectAddRuntime(deps) {
     trigger?.addEventListener("click", (event) => {
       event.preventDefault();
       event.stopPropagation();
+      clickOpened = true;
       openMenu();
     });
+    document.addEventListener("pointerdown", (event) => {
+      if (!clickOpened) return;
+      if (picker.contains(event.target) || menu?.contains(event.target)) return;
+      closeMenu();
+    }, true);
     menu?.addEventListener("pointerenter", (event) => {
       suppressObjectAddBrowserTitles(menu);
       const group = event.target?.closest?.(".object-add-category, .object-add-subcategory");

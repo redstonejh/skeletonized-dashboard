@@ -20,6 +20,7 @@ import { initializeSurfaceToolsRuntime } from "./modules/surface-tools-runtime.j
 import { createDataAdapterRuntime } from "./modules/data-adapter-runtime.js";
 import { initializeObjectAddRuntime } from "./modules/object-add-runtime.js";
 import { initializeLayoutSourceRuntime } from "./modules/layout-source-runtime.js";
+import { initializeFloatingControlBarRuntime } from "./modules/floating-control-bar-runtime.js";
 import { createClipboardRuntime } from "./modules/clipboard-runtime.js";
 import { initializeHistoryResetRuntime } from "./modules/history-reset-runtime.js";
 import { initializeDeleteRuntime } from "./modules/delete-runtime.js";
@@ -117,6 +118,7 @@ document.addEventListener("DOMContentLoaded", () => {
   let refreshWorkspaceMiniMaps = () => {};
 
   initializeNavStatusMenus();
+  void initializeFloatingControlBarRuntime();
 
   const { scheduleOverflowTitles } = initializeOverflowTitles();
   const { applyDashboardKeywordSearch } = initializeDashboardKeywordSearch({ scheduleOverflowTitles });

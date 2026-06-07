@@ -29,6 +29,23 @@ async function closeApp(app) {
   await new Promise((resolve) => setTimeout(resolve, 500));
 }
 
+async function openControlBar(page) {
+  const gear = page.locator(".control-bar-gear");
+  const bar = page.locator("[data-floating-control-bar]");
+  if (await bar.evaluate((node) => !node.classList.contains("is-open")).catch(() => true)) {
+    await gear.click({ force: true });
+  }
+  await expect(gear).toHaveAttribute("aria-expanded", "true");
+  await expect(bar).toBeVisible();
+  await expect.poll(() => bar.evaluate((node) => {
+    const transform = getComputedStyle(node).transform;
+    if (!transform || transform === "none") return 1;
+    const scale = Number(transform.match(/matrix\(([^,]+)/)?.[1] || "0");
+    return Math.round(scale * 100) / 100;
+  })).toBe(1);
+  return bar;
+}
+
 async function openTools(page, selector) {
   const item = page.locator(selector).first();
   await item.evaluate((node) => {
@@ -115,6 +132,7 @@ async function finishPointerDrag(page, x, y, type = "pointerup") {
 }
 
 async function addTextWidget(page) {
+  await openControlBar(page);
   await page.locator(".panel-add-button").click({ force: true });
   const menu = page.locator(".panel-add-menu");
   await expect(menu).toHaveClass(/open/);
@@ -253,6 +271,7 @@ test("electron GUI boots without server APIs and preserves core customization", 
   await expect(page.locator(".workspace-assistant-rail")).toHaveCount(0);
   await expect(page.locator(".background-photo-option")).toHaveCount(27);
 
+  await openControlBar(page);
   await page.locator(".background-tone-trigger").click({ force: true });
   await page.locator('.background-photo-option[data-background-tone="photo-earth"]').evaluate((node) => node.click());
   await expect(page.locator("html")).toHaveAttribute("data-background", "photo-earth");
@@ -316,6 +335,7 @@ test("electron GUI boots without server APIs and preserves core customization", 
   });
   await expect(page.locator(".panel-color-menu-open")).toHaveCount(0);
 
+  await openControlBar(page);
   await page.locator(".layout-save-button").click();
   await page.reload();
   await page.waitForSelector(".dashboard-layout-grid");
@@ -343,6 +363,7 @@ test("electron GUI keeps slim navbar controls wired", async () => {
   await expect(page.getByRole("button", { name: "Restore default layout" })).toHaveCount(0);
   await expect(page.locator(".layout-slot-picker, .layout-slot-trigger, .layout-slot-menu, [data-slot]")).toHaveCount(0);
   await expect(page.getByText(/^Layout [0-9]+$/)).toHaveCount(0);
+  await openControlBar(page);
   await expect(page.locator(".background-tone-popover [data-liquid-glass-toggle]")).toHaveCount(1);
   await expect(page.locator(".app-nav-status [data-liquid-glass-toggle]")).toHaveCount(0);
   await expect(page.locator(".app-nav-actions > .appearance-command-island > [data-liquid-glass-toggle]")).toHaveCount(0);
@@ -357,6 +378,7 @@ test("electron GUI keeps slim navbar controls wired", async () => {
   await page.locator(".layout-group-button").click({ force: true });
   await expect(page.locator(".layout-group-button")).toHaveAttribute("aria-pressed", "false");
 
+  await openControlBar(page);
   await page.locator(".background-tone-trigger").click({ force: true });
   await page.waitForFunction(() => Boolean(window.LiquidGlassWebGL));
   const glassToggle = page.getByRole("button", { name: "Toggle liquid glass effect" });
@@ -366,28 +388,79 @@ test("electron GUI keeps slim navbar controls wired", async () => {
   await expect.poll(() => page.evaluate(() => Boolean(window.LIQUID_GLASS_WEBGL))).toBe(!beforeGlass);
   await expect.poll(() => page.evaluate(() => localStorage.getItem("dashboard-liquid-glass-webgl"))).toBe(beforeGlass ? "false" : "true");
 
-  const firstWidget = await addTextWidget(page);
-  await expect(firstWidget).toBeVisible();
-  const savedWidgetKey = await firstWidget.evaluate((node) => node.dataset.widgetKey || "");
   await page.locator(".workspace-tab").nth(1).click({ force: true });
   await page.locator(".workspace-tab").nth(1).click({ button: "right" });
   await page.locator(".workspace-tab-rename-input").fill("saved tab");
   await page.locator(".workspace-tab-rename-input").press("Enter");
+  const firstWidget = await addTextWidget(page);
+  await expect(firstWidget).toBeVisible();
+  await openControlBar(page);
   await page.locator(".layout-save-button").click({ force: true });
   await firstWidget.evaluate((node) => node.remove());
-  await expect(page.locator(`.widget-layout > .widget-card[data-widget-key="${savedWidgetKey}"]`)).toHaveCount(0);
+  await expect(page.locator('.widget-layout > .widget-card[data-custom-widget="true"]')).toHaveCount(0);
+  await openControlBar(page);
   await page.locator(".layout-load-button").click({ force: true });
   await page.waitForLoadState("domcontentloaded");
   await page.waitForSelector(".dashboard-layout-grid");
-  await expect(page.locator(`.widget-layout > .widget-card[data-widget-key="${savedWidgetKey}"]`)).toHaveCount(1);
+  await expect(page.locator('.widget-layout > .widget-card[data-custom-widget="true"]')).toHaveCount(1);
   await expect(page.locator(".workspace-tab").nth(1)).toHaveText("saved tab");
 
+  await openControlBar(page);
   await page.getByRole("button", { name: "Reset to default layout" }).click({ force: true });
   await expect(page.locator('.widget-layout > .widget-card[data-custom-widget="true"]')).toHaveCount(0);
 
   await addTextWidget(page);
   await expect(page.locator('.widget-layout > .widget-card[data-custom-widget="true"]')).toHaveCount(1);
   expect(failed).toEqual([]);
+  await closeApp(app);
+});
+
+test("electron GUI floats dashboard controls behind a draggable WebGL gear panel", async () => {
+  const { app, page } = await launchApp();
+  await expect(page.locator(".control-bar-gear")).toBeVisible();
+  await expect(page.locator("[data-floating-control-bar]")).not.toBeVisible();
+
+  const tabTop = await page.locator(".workspace-tab-bar").evaluate((node) => Math.round(node.getBoundingClientRect().top));
+  expect(tabTop).toBeLessThan(90);
+
+  const bar = await openControlBar(page);
+  await expect(bar.locator(".liquid-glass-webgl-panel-canvas")).toHaveCount(1);
+  await expect.poll(() => bar.evaluate((node) => {
+    window.LiquidGlassWebGL?.mountFloatingPanel?.(node)?.refresh?.();
+    const canvas = node.querySelector(".liquid-glass-webgl-panel-canvas");
+    const gl = canvas?.getContext("webgl", { premultipliedAlpha: false, alpha: true });
+    if (!gl || canvas.width <= 0 || canvas.height <= 0) return 0;
+    const pixels = new Uint8Array(4);
+    gl.readPixels(Math.floor(canvas.width / 2), Math.floor(canvas.height / 2), 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
+    return Array.from(pixels).reduce((sum, value) => sum + value, 0);
+  })).toBeGreaterThan(0);
+
+  const before = await bar.boundingBox();
+  expect(before).toBeTruthy();
+  const handle = bar.locator(".control-bar-drag-handle");
+  const handleBox = await handle.boundingBox();
+  expect(handleBox).toBeTruthy();
+  await page.mouse.move(handleBox.x + handleBox.width / 2, handleBox.y + handleBox.height / 2);
+  await page.mouse.down();
+  await page.mouse.move(handleBox.x + 180, handleBox.y + 92, { steps: 8 });
+  await page.mouse.up();
+  const after = await bar.boundingBox();
+  expect(Math.abs(after.x - before.x)).toBeGreaterThan(40);
+  expect(Math.abs(after.y - before.y)).toBeGreaterThan(20);
+
+  await page.reload();
+  await page.waitForSelector(".dashboard-layout-grid");
+  await openControlBar(page);
+  const restored = await page.locator("[data-floating-control-bar]").boundingBox();
+  expect(Math.abs(restored.x - after.x)).toBeLessThanOrEqual(12);
+  expect(Math.abs(restored.y - after.y)).toBeLessThanOrEqual(12);
+
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  const reducedMotion = await page.locator("[data-floating-control-bar]").evaluate((node) => getComputedStyle(node).transitionDuration);
+  expect(reducedMotion.split(",").every((value) => value.trim() === "0s")).toBe(true);
+
+  await page.locator(".control-bar-gear").click({ force: true });
+  await expect(page.locator("[data-floating-control-bar]")).not.toBeVisible();
   await closeApp(app);
 });
 
@@ -572,6 +645,7 @@ test("electron GUI applies derived background presets, custom color, persistence
   await expect(page.locator(".background-tone-option")).toHaveCount(6);
 
   const initialBackground = await page.locator("body").evaluate((node) => getComputedStyle(node).backgroundImage);
+  await openControlBar(page);
   await page.locator(".background-tone-trigger").click({ force: true });
   await page.locator('.background-tone-option[data-background-tone="tone-slate"]').click({ force: true });
   await expect(page.locator("html")).toHaveAttribute("data-background", "tone-slate");
@@ -584,6 +658,7 @@ test("electron GUI applies derived background presets, custom color, persistence
   expect(preset.background).not.toBe(initialBackground);
   expect(preset.selected).toBe("true");
 
+  await openControlBar(page);
   await page.locator(".background-tone-trigger").click({ force: true });
   await page.locator(".background-custom-color-input").evaluate((input) => {
     input.value = "#336699";
@@ -608,6 +683,7 @@ test("electron GUI applies derived background presets, custom color, persistence
   await expect(page.locator("html")).toHaveAttribute("data-background", "custom-color");
   await expect.poll(() => page.locator("html").evaluate(() => getComputedStyle(document.documentElement).getPropertyValue("--base-tone").trim())).toBe("#336699");
 
+  await openControlBar(page);
   await page.locator(".background-tone-trigger").click({ force: true });
   await page.locator('.background-tone-option[data-background-tone="tone-mist"]').click({ force: true });
   await expect(page.locator("html")).toHaveAttribute("data-background", "tone-mist");
@@ -615,6 +691,7 @@ test("electron GUI applies derived background presets, custom color, persistence
   await expect(page.locator("html")).toHaveAttribute("data-background", "custom-color");
   await expect.poll(() => page.locator("html").evaluate(() => getComputedStyle(document.documentElement).getPropertyValue("--base-tone").trim())).toBe("#336699");
 
+  await openControlBar(page);
   await page.locator(".background-tone-trigger").click({ force: true });
   await page.locator('.background-photo-option[data-background-tone="photo-earth"]').click({ force: true });
   await expect(page.locator("html")).toHaveAttribute("data-background", "photo-earth");
@@ -659,6 +736,7 @@ test("electron GUI renders every WebP photo background", async () => {
   expect(photoTones).toHaveLength(27);
 
   for (const tone of photoTones) {
+    await openControlBar(page);
     await page.locator(".background-tone-trigger").click({ force: true });
     await page.locator(`.background-photo-option[data-background-tone="${tone}"]`).click({ force: true });
     await expect(page.locator("html")).toHaveAttribute("data-background", tone);
@@ -695,6 +773,7 @@ test("electron GUI keeps object glass material independent from workspace backgr
   const dashboardGridCss = fs.readFileSync(path.join(__dirname, "..", "app", "static", "dashboard-grid.css"), "utf8");
   expect(dashboardGridCss).not.toMatch(/var\(--bg(?:-end)?\b/);
 
+  await openControlBar(page);
   await page.locator(".background-tone-trigger").click({ force: true });
   const before = await page.evaluate(() => {
     const selectors = [
@@ -977,6 +1056,7 @@ test("electron GUI keeps select-mode multi-resize deterministic", async () => {
   const firstSelector = '.panel-layout > .db-panel[data-panel-key="builder-notes"]';
   const secondSelector = '.panel-layout > .db-panel[data-panel-key="builder-content"]';
 
+  await openControlBar(page);
   await page.locator(".layout-group-button").click({ force: true });
   await expect(page.locator(".layout-group-button")).toHaveAttribute("aria-pressed", "true");
   await page.locator(firstSelector).click({ force: true });
@@ -1130,6 +1210,7 @@ test("electron GUI commits widget runtime content and meaning across reload", as
   }));
   expect(before.content.length).toBeGreaterThan(0);
   expect(before.condition.length).toBeGreaterThan(0);
+  await openControlBar(page);
   await page.locator(".layout-save-button").click();
   await page.reload();
   await page.waitForSelector(".dashboard-layout-grid");
@@ -1213,6 +1294,7 @@ test("electron GUI clears stale conditional style state on widget render", async
   });
   expect(cleaned.content).toContain("Conditional cleanup canary");
 
+  await openControlBar(page);
   await page.locator(".layout-save-button").click();
   await page.reload();
   await page.waitForSelector(".dashboard-layout-grid");
@@ -1248,6 +1330,7 @@ test("electron GUI keeps widget runtime content, tools, and resize ready after r
   expect(before.tools).toBe(1);
   expect(before.resizeHandles).toBe(1);
 
+  await openControlBar(page);
   await page.locator(".layout-save-button").click();
   await page.reload();
   await page.waitForSelector(".dashboard-layout-grid");
@@ -1464,6 +1547,7 @@ test("electron GUI absorbs a workspace widget through the panel body zone", asyn
     panelChildWidget: "true",
   });
 
+  await openControlBar(page);
   await page.locator(".layout-save-button").click();
   await page.reload();
   await page.waitForSelector(".dashboard-layout-grid");

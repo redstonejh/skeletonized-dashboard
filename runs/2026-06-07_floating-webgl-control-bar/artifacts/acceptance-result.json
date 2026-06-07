@@ -1,0 +1,24 @@
+{
+  "verdict": "SHIP",
+  "checks": {
+    "syntax": {
+      "passed": true,
+      "command": "node --check app/static/app.js; node --check app/static/modules/floating-control-bar-runtime.js; node --check app/static/liquid-glass-webgl.js; node --check app/static/modules/object-add-runtime.js; node --check electron-tests/dashboard-electron.spec.js"
+    },
+    "e2e": {
+      "passed": true,
+      "command": "npm.cmd run test:e2e -- --workers=1",
+      "tests": 20
+    },
+    "perf_smoke": {
+      "passed": true,
+      "command": "PERF_OBJECT_COUNTS=30 PERF_INTERACTIONS=drag-with-collision npm.cmd run test:perf -- --workers=1",
+      "artifact": "artifacts/perf-smoke.json",
+      "note": "Playwright perf smoke passed. The recorded drag perf gate remains an existing red baseline for this unchanged interaction, not a new WebGL panel regression claim."
+    },
+    "delegation": {
+      "passed": true,
+      "artifact": "artifacts/delegation-proof.json"
+    }
+  }
+}
