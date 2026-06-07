@@ -1,0 +1,8 @@
+{
+  "check": "electron_e2e",
+  "passed": true,
+  "command": "npm.cmd run test:e2e -- --workers=1",
+  "tests": 16,
+  "failed": 0,
+  "duration": "3.5m"
+}

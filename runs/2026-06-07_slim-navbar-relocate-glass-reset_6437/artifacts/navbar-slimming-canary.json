@@ -1,0 +1,19 @@
+{
+  "check": "navbar_slimming_canary",
+  "passed": true,
+  "command": "npm.cmd run test:e2e -- --workers=1 -g \"slim navbar controls wired\"",
+  "selectors_checked": [
+    "Workspace User absent",
+    "user@example.com absent",
+    ".app-nav-status [data-liquid-glass-toggle] absent",
+    ".app-nav-actions > .appearance-command-island > [data-liquid-glass-toggle] absent",
+    ".background-tone-popover [data-liquid-glass-toggle] present",
+    ".mode-command-island buttons are Select, Reset",
+    ".layout-save-button",
+    ".layout-load-button",
+    ".layout-group-button",
+    ".panel-add-button",
+    ".panel-undo-button",
+    ".restore-layout-button"
+  ]
+}

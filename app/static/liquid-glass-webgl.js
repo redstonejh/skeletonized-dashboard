@@ -746,7 +746,7 @@
 
   const bindToggleButtons = () => {
     // Delegated click handler — works even if the button is added/removed.
-    document.addEventListener("click", handleToggleClick);
+    document.addEventListener("click", handleToggleClick, true);
     syncToggleButtons();
   };
 

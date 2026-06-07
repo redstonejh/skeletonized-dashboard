@@ -296,6 +296,53 @@ test("electron GUI boots without server APIs and preserves core customization", 
   await closeApp(app);
 });
 
+test("electron GUI keeps slim navbar controls wired", async () => {
+  const { app, page } = await launchApp();
+  const failed = [];
+  page.on("pageerror", (error) => failed.push(error.message));
+
+  await expect(page.getByText("Workspace User")).toHaveCount(0);
+  await expect(page.getByText("user@example.com")).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Restore default layout" })).toHaveCount(0);
+  await expect(page.locator(".background-tone-popover [data-liquid-glass-toggle]")).toHaveCount(1);
+  await expect(page.locator(".app-nav-status [data-liquid-glass-toggle]")).toHaveCount(0);
+  await expect(page.locator(".app-nav-actions > .appearance-command-island > [data-liquid-glass-toggle]")).toHaveCount(0);
+
+  const modeButtons = await page.locator(".mode-command-island > button").evaluateAll((buttons) =>
+    buttons.map((button) => button.textContent?.trim())
+  );
+  expect(modeButtons).toEqual(["Select", "Reset"]);
+
+  await page.locator(".layout-group-button").click({ force: true });
+  await expect(page.locator(".layout-group-button")).toHaveAttribute("aria-pressed", "true");
+  await page.locator(".layout-group-button").click({ force: true });
+  await expect(page.locator(".layout-group-button")).toHaveAttribute("aria-pressed", "false");
+
+  await page.locator(".background-tone-trigger").click({ force: true });
+  await page.waitForFunction(() => Boolean(window.LiquidGlassWebGL));
+  const glassToggle = page.getByRole("button", { name: "Toggle liquid glass effect" });
+  await expect(glassToggle).toBeVisible();
+  const beforeGlass = await page.evaluate(() => Boolean(window.LIQUID_GLASS_WEBGL));
+  await glassToggle.click({ force: true });
+  await expect.poll(() => page.evaluate(() => Boolean(window.LIQUID_GLASS_WEBGL))).toBe(!beforeGlass);
+  await expect.poll(() => page.evaluate(() => localStorage.getItem("dashboard-liquid-glass-webgl"))).toBe(beforeGlass ? "false" : "true");
+
+  await page.locator(".layout-save-button").click({ force: true });
+  await page.locator(".layout-load-button").click({ force: true });
+
+  const firstWidget = await addTextWidget(page);
+  await expect(firstWidget).toBeVisible();
+  await page.locator(".panel-undo-button").click({ force: true });
+  await expect(page.locator('.widget-layout > .widget-card[data-custom-widget="true"]')).toHaveCount(0);
+
+  await addTextWidget(page);
+  await expect(page.locator('.widget-layout > .widget-card[data-custom-widget="true"]')).toHaveCount(1);
+  await page.getByRole("button", { name: "Reset to default layout" }).click({ force: true });
+  await expect(page.locator('.widget-layout > .widget-card[data-custom-widget="true"]')).toHaveCount(0);
+  expect(failed).toEqual([]);
+  await closeApp(app);
+});
+
 test("electron GUI applies derived background presets, custom color, persistence, undo, and photos", async () => {
   const { app, page } = await launchApp();
   const failedImageRequests = [];

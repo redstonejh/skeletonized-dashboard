@@ -5251,3 +5251,104 @@ no card. Active * filter is indicated by a subtle underline + slightly higher * 
 }.timeframe-widget-card .timeframe-body::-webkit-scrollbar{
   display: none !important;
 }
+
+/* User-requested slim navbar redesign: the bar now hugs its controls and
+   the glass toggle lives in the background popover. */
+.app-nav.workspace-chrome:not(.settings-nav){
+  --navbar-control-height: 32px;
+  align-self: flex-start;
+  width: max-content;
+  max-width: 100%;
+  min-height: 46px;
+  margin: -8px 0 10px;
+  padding: 6px 8px;
+  gap: var(--space-6);
+  justify-content: flex-start;
+  flex-wrap: wrap;
+  border-radius: 15px;
+}
+.app-nav.workspace-chrome:not(.settings-nav) > .app-nav-status,
+.app-nav.workspace-chrome:not(.settings-nav) > .app-nav-actions{
+  flex: 0 0 auto;
+  gap: var(--space-6);
+}
+.app-nav.workspace-chrome:not(.settings-nav) .workspace-command-island,
+.app-nav.workspace-chrome:not(.settings-nav) .layout-slot-controls{
+  min-height: var(--navbar-control-height);
+  gap: 3px;
+}
+.app-nav.workspace-chrome:not(.settings-nav) .appearance-command-island,
+.app-nav.workspace-chrome:not(.settings-nav) .mode-command-island{
+  opacity: 1;
+  padding: 2px;
+}
+.app-nav.workspace-chrome:not(.settings-nav) .layout-slot-trigger,
+.app-nav.workspace-chrome:not(.settings-nav) .layout-slot-button,
+.app-nav.workspace-chrome:not(.settings-nav) .panel-undo-button,
+.app-nav.workspace-chrome:not(.settings-nav) .panel-reset-button,
+.app-nav.workspace-chrome:not(.settings-nav) .workspace-mode-button,
+.app-nav.workspace-chrome:not(.settings-nav) .background-tone-trigger,
+.app-nav.workspace-chrome:not(.settings-nav) .composition-add-button{
+  height: var(--navbar-control-height);
+  min-height: var(--navbar-control-height);
+  font-size: 11px;
+}
+.app-nav.workspace-chrome:not(.settings-nav) .layout-slot-trigger{
+  min-width: 76px;
+  padding-inline: 10px 24px;
+}
+.app-nav.workspace-chrome:not(.settings-nav) .layout-slot-button,
+.app-nav.workspace-chrome:not(.settings-nav) .panel-undo-button,
+.app-nav.workspace-chrome:not(.settings-nav) .panel-reset-button{
+  padding-inline: 9px;
+}
+.app-nav.workspace-chrome:not(.settings-nav) .background-tone-trigger,
+.app-nav.workspace-chrome:not(.settings-nav) .composition-rocker-control{
+  flex-basis: var(--navbar-control-height);
+  inline-size: var(--navbar-control-height);
+  block-size: var(--navbar-control-height);
+  width: var(--navbar-control-height);
+  min-width: var(--navbar-control-height);
+  max-width: var(--navbar-control-height);
+  height: var(--navbar-control-height);
+  min-height: var(--navbar-control-height);
+  max-height: var(--navbar-control-height);
+}
+.background-glass-group{
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-8);
+  padding-top: 4px;
+  border-top: 1px solid var(--glass-border);
+  margin-top: 4px;
+}
+.background-glass-toggle{
+  min-height: 34px;
+  border: 1.5px solid var(--glass-border);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--glass-surface-strong) 86%, var(--surface-soft));
+  color: var(--muted-strong);
+  font-size: 12px;
+  font-weight: 760;
+  cursor: pointer;
+  box-shadow: var(--shadow-control);
+  transition:
+    transform var(--motion-fast),
+    border-color var(--motion-fast),
+    background var(--motion-fast),
+    color var(--motion-fast),
+    box-shadow var(--motion-fast);
+}
+.background-glass-toggle[aria-pressed="true"]{
+  border-color: color-mix(in srgb, var(--blue) 62%, var(--glass-border));
+  background: color-mix(in srgb, var(--blue) 16%, var(--glass-surface-strong));
+  color: var(--blue);
+}
+.background-glass-toggle:hover,
+.background-glass-toggle:focus-visible{
+  border-color: color-mix(in srgb, var(--blue) 42%, var(--glass-border));
+  background: color-mix(in srgb, var(--blue) 10%, var(--glass-surface-strong));
+  color: var(--ink-strong);
+  outline: none;
+  box-shadow: var(--shadow-control-hover);
+}

@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "task_type": "frontend-ui-task",
+  "checklist": ".codex/checklists/frontend.md",
+  "roles": [
+    "conductor",
+    "planner",
+    "worker",
+    "critic",
+    "acceptance_gate",
+    "a11y_auditor",
+    "change_verifier"
+  ],
+  "parallel_roles": [
+    "a11y_auditor",
+    "change_verifier"
+  ],
+  "caps": {
+    "max_agents": 7,
+    "max_parallel": 3,
+    "max_iters": 3
+  },
+  "role_justifications": {
+    "a11y_auditor": "Navbar controls and relocated toggle need accessible names and keyboard reachability review.",
+    "change_verifier": "The task is a scoped UI redesign and needs an independent scope guard."
+  },
+  "redesign_exception": "AGENTS.md allows redesign when explicitly requested; the user explicitly requested this navbar/background-popover redesign.",
+  "acceptance": [
+    "Workspace User, user@example.com, navbar Glass, and Restore are removed.",
+    "Reset appears next to Select and uses the existing reset-to-default layout path.",
+    "Glass toggle is reachable inside the background popover and keeps aria-pressed wiring.",
+    "Save, Load, Select, add, undo, drag, resize, pin, and save/reload canaries pass in the e2e suite.",
+    "delegation_check.py and verdict_check.py pass."
+  ]
+}

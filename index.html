@@ -42,29 +42,6 @@
 
 
 <header class="app-nav workspace-chrome">
-  <div class="app-nav-brand-group">
-    <div class="workspace-command-island workspace-identity-island" aria-label="Workspace identity">
-      <div class="dash-switcher">
-      <button class="dash-switch-btn dash-switch-hero" type="button" id="dash-switcher-toggle" aria-haspopup="true" aria-expanded="false" aria-label="Open account and workspace menu">
-        <span class="dash-identity-copy">
-          <span class="dash-identity-name">Workspace User</span>
-          <span class="dash-identity-email">user@example.com</span>
-        </span>
-      </button>
-      <div class="dash-switch-menu nav-menu-shell floating-glass-menu" id="dash-switch-menu">
-        <button class="dash-switch-opt dash-switch-profile dash-switch-opt-active" type="button" disabled>
-          <span><strong>Workspace User</strong><small>user@example.com</small></span>
-        </button>
-        <a class="dash-switch-opt" href="#" aria-current="page">
-          <span><strong>Configurable Dashboard Builder</strong><small>Current workspace</small></span>
-        </a>
-        <button class="dash-switch-opt dash-switch-profile" type="button" disabled>
-          <span><strong>Sign out</strong><small>Available with account sessions</small></span>
-        </button>
-      </div>
-      </div>
-    </div>
-  </div>
   <div class="app-nav-status" aria-label="Dashboard controls">
     <div class="workspace-command-island layout-command-island" aria-label="Layout and persistence">
       <div class="layout-slot-controls" aria-label="Layout save slots">
@@ -89,6 +66,7 @@
     </div>
     <div class="workspace-command-island mode-command-island" aria-label="Interaction modes">
       <button class="layout-slot-button layout-group-button" type="button" data-layout-target="builder" aria-pressed="false" title="Select widgets or panels">Select</button>
+      <button class="panel-reset-button restore-layout-button" type="button" data-layout-target="builder" aria-label="Reset to default layout" title="Reset to default layout">Reset</button>
     </div>
   </div>
   <div class="app-nav-actions">
@@ -108,6 +86,10 @@
             <span class="background-custom-color-text">Custom</span>
             <input class="background-custom-color-input" type="color" value="#edf2f8" aria-label="Custom background color">
           </label>
+        </div>
+        <div class="background-glass-group" aria-label="Glass material">
+          <span class="background-tone-label">Material</span>
+          <button class="background-glass-toggle liquid-glass-toggle" type="button" data-liquid-glass-toggle aria-pressed="true" aria-label="Toggle liquid glass effect" title="Liquid glass effect">Glass</button>
         </div>
         <div class="background-photo-group" aria-label="Nature photo backgrounds">
           <span class="background-tone-label">Nature</span>
@@ -153,8 +135,6 @@
         </div>
       </div>
       </details>
-      <button class="panel-reset-button liquid-glass-toggle" type="button" data-liquid-glass-toggle aria-pressed="true" aria-label="Toggle liquid glass effect" title="Liquid glass effect">Glass</button>
-      <button class="panel-reset-button restore-layout-button" type="button" data-layout-target="builder" aria-label="Restore default layout" title="Restore default layout">Restore</button>
     </div>
   </div>
 </header>

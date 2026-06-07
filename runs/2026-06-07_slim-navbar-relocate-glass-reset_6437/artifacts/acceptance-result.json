@@ -1,0 +1,19 @@
+{
+  "verdict": "SHIP",
+  "task": "Slim navbar: remove user/Glass/Restore, glass toggle to background menu, add Reset, condense",
+  "passed": true,
+  "evidence": {
+    "plan_check": "passed",
+    "delegation_check": "passed",
+    "validate_handoffs": "passed",
+    "navbar_canary": "passed",
+    "electron_e2e": "16 passed",
+    "verdict_check": "passed"
+  },
+  "changed_files": [
+    "index.html",
+    "app/static/themes.css",
+    "app/static/liquid-glass-webgl.js",
+    "electron-tests/dashboard-electron.spec.js"
+  ]
+}
