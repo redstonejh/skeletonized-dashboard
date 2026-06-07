@@ -1,0 +1,13 @@
+{
+    "passed":  true,
+    "beforeLines":  5399,
+    "afterLines":  5393,
+    "lineDelta":  -6,
+    "beforeImportant":  412,
+    "afterImportant":  412,
+    "importantUnchanged":  true,
+    "introducedOrModifiedFilesOverOneMb":  [
+
+                                           ],
+    "note":  "Themes.css only groups duplicate swatch custom-property values; no !important edits were made."
+}

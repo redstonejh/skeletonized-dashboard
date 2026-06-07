@@ -1,0 +1,5 @@
+{
+    "passed":  true,
+    "perfIntent":  false,
+    "note":  "No performance scheduling, animation, or rendering behavior changes; CSS cascade refactor only."
+}

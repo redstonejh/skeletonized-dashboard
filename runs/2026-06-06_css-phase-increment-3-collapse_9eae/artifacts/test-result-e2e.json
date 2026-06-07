@@ -1,0 +1,6 @@
+{
+    "passed":  true,
+    "command":  "npm.cmd run test:e2e -- --workers=1, repeated 10 times",
+    "repeat":  "10/10",
+    "testsPerRun":  11
+}

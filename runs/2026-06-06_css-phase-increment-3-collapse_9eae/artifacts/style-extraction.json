@@ -1,0 +1,48 @@
+{
+    "passed":  true,
+    "batch":  "background-tone-option swatch custom properties",
+    "collapsedGroups":  [
+                            {
+                                "tones":  [
+                                              "cool-white",
+                                              "blue-mist"
+                                          ],
+                                "property":  "--tone-swatch-end",
+                                "value":  "#f8fbff"
+                            },
+                            {
+                                "tones":  [
+                                              "soft-grey",
+                                              "frosted-light"
+                                          ],
+                                "property":  "--tone-swatch-border",
+                                "value":  "rgba(148, 163, 184, .50)"
+                            },
+                            {
+                                "tones":  [
+                                              "charcoal",
+                                              "graphite"
+                                          ],
+                                "property":  "--tone-swatch-border",
+                                "value":  "rgba(82, 96, 118, .62)"
+                            },
+                            {
+                                "tones":  [
+                                              "deep-navy",
+                                              "muted-midnight-blue"
+                                          ],
+                                "property":  "--tone-swatch-border",
+                                "value":  "rgba(86, 103, 128, .60)"
+                            },
+                            {
+                                "tones":  [
+                                              "muted-navy",
+                                              "dark-blue-grey",
+                                              "dark-frosted"
+                                          ],
+                                "property":  "--tone-swatch-border",
+                                "value":  "rgba(86, 103, 128, .58)"
+                            }
+                        ],
+    "deferred":  "Remaining per-tone swatch values are unique or not a safe reduction target in this increment."
+}

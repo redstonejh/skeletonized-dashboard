@@ -1,0 +1,5 @@
+{
+    "passed":  true,
+    "risk":  "low",
+    "note":  "Tone option swatch custom properties compute identically; no focus, hit target, or text contrast property changes were introduced."
+}

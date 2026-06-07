@@ -1,0 +1,16 @@
+{
+  "task_type": "frontend",
+  "checklist": "frontend-ui-task",
+  "roles": ["conductor", "planner", "worker", "change_verifier", "a11y_auditor", "critic", "acceptance_gate"],
+  "parallel_roles": [],
+  "caps": { "max_agents": 7, "max_parallel": 3, "max_iters": 3 },
+  "role_justifications": {
+    "conductor": "classifies the CSS per-tone collapse run and enforces real delegation",
+    "planner": "plans conservative per-tone collapse batches and parity gates",
+    "worker": "implements safe duplicated swatch custom-property collapse",
+    "change_verifier": "verifies diff shape, line count, important count, and file size",
+    "a11y_auditor": "checks accessibility risk for background tone swatch parity",
+    "critic": "checks cascade, specificity, and computed-style drift risks",
+    "acceptance_gate": "independently validates deterministic acceptance artifacts"
+  }
+}

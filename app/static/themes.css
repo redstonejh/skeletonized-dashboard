@@ -2126,18 +2126,21 @@ body.group-select-active .panel-layout > .db-panel{
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, .30),
     0 4px 10px rgba(15, 23, 42, .10);
+}.background-tone-option[data-background-tone="cool-white"], .background-tone-option[data-background-tone="blue-mist"]{ --tone-swatch-end: #f8fbff;
+}.background-tone-option[data-background-tone="soft-grey"], .background-tone-option[data-background-tone="frosted-light"]{ --tone-swatch-border: rgba(148, 163, 184, .50);
+}.background-tone-option[data-background-tone="charcoal"], .background-tone-option[data-background-tone="graphite"]{ --tone-swatch-border: rgba(82, 96, 118, .62);
+}.background-tone-option[data-background-tone="deep-navy"], .background-tone-option[data-background-tone="muted-midnight-blue"]{ --tone-swatch-border: rgba(86, 103, 128, .60);
+}.background-tone-option[data-background-tone="muted-navy"], .background-tone-option[data-background-tone="dark-blue-grey"], .background-tone-option[data-background-tone="dark-frosted"]{ --tone-swatch-border: rgba(86, 103, 128, .58);
 }.background-tone-option[data-background-tone="warm-white"]{
   --tone-swatch-start: #f4efe8;
   --tone-swatch-end: #fbf8f3;
   --tone-swatch-border: rgba(151, 141, 128, .46);
 }.background-tone-option[data-background-tone="cool-white"]{
   --tone-swatch-start: #eef4fb;
-  --tone-swatch-end: #f8fbff;
   --tone-swatch-border: rgba(148, 163, 184, .48);
 }.background-tone-option[data-background-tone="soft-grey"]{
   --tone-swatch-start: #edf0f4;
   --tone-swatch-end: #f7f8fa;
-  --tone-swatch-border: rgba(148, 163, 184, .50);
 }.background-tone-option[data-background-tone="cool-grey"]{
   --tone-swatch-start: #d0d8e1;
   --tone-swatch-end: #e6ebf1;
@@ -2200,12 +2203,10 @@ body.group-select-active .panel-layout > .db-panel{
   --tone-swatch-border: rgba(82, 89, 96, .72);
 }.background-tone-option[data-background-tone="blue-mist"]{
   --tone-swatch-start: #eaf3fb;
-  --tone-swatch-end: #f8fbff;
   --tone-swatch-border: rgba(117, 135, 154, .48);
 }.background-tone-option[data-background-tone="frosted-light"]{
   --tone-swatch-start: #edf2f8;
   --tone-swatch-end: #f7faff;
-  --tone-swatch-border: rgba(148, 163, 184, .50);
 }.background-tone-option[data-background-tone="very-pale-grey"]{
   --tone-swatch-start: #f1f3f5;
   --tone-swatch-end: #fafbfc;
@@ -2245,7 +2246,6 @@ body.group-select-active .panel-layout > .db-panel{
 }.background-tone-option[data-background-tone="charcoal"]{
   --tone-swatch-start: #090f1c;
   --tone-swatch-end: #101827;
-  --tone-swatch-border: rgba(82, 96, 118, .62);
 }.background-tone-option[data-background-tone="soft-charcoal"]{
   --tone-swatch-start: #0f141c;
   --tone-swatch-end: #171f2a;
@@ -2253,7 +2253,6 @@ body.group-select-active .panel-layout > .db-panel{
 }.background-tone-option[data-background-tone="graphite"]{
   --tone-swatch-start: #111827;
   --tone-swatch-end: #182235;
-  --tone-swatch-border: rgba(82, 96, 118, .62);
 }.background-tone-option[data-background-tone="soft-black"]{
   --tone-swatch-start: #05070d;
   --tone-swatch-end: #0c111c;
@@ -2261,15 +2260,12 @@ body.group-select-active .panel-layout > .db-panel{
 }.background-tone-option[data-background-tone="deep-navy"]{
   --tone-swatch-start: #071225;
   --tone-swatch-end: #0d1c34;
-  --tone-swatch-border: rgba(86, 103, 128, .60);
 }.background-tone-option[data-background-tone="muted-navy"]{
   --tone-swatch-start: #0c1726;
   --tone-swatch-end: #142236;
-  --tone-swatch-border: rgba(86, 103, 128, .58);
 }.background-tone-option[data-background-tone="dark-blue-grey"]{
   --tone-swatch-start: #101927;
   --tone-swatch-end: #162436;
-  --tone-swatch-border: rgba(86, 103, 128, .58);
 }.background-tone-option[data-background-tone="deep-slate"]{
   --tone-swatch-start: #0d1621;
   --tone-swatch-end: #172434;
@@ -2301,7 +2297,6 @@ body.group-select-active .panel-layout > .db-panel{
 }.background-tone-option[data-background-tone="muted-midnight-blue"]{
   --tone-swatch-start: #061127;
   --tone-swatch-end: #0a1a36;
-  --tone-swatch-border: rgba(86, 103, 128, .60);
 }.background-tone-option[data-background-tone="cool-dark-steel"]{
   --tone-swatch-start: #101820;
   --tone-swatch-end: #1b2731;
@@ -2317,7 +2312,6 @@ body.group-select-active .panel-layout > .db-panel{
 }.background-tone-option[data-background-tone="dark-frosted"]{
   --tone-swatch-start: #0b1220;
   --tone-swatch-end: #121d2f;
-  --tone-swatch-border: rgba(86, 103, 128, .58);
 }.background-tone-option.is-selected{
   border-color: color-mix(in srgb, var(--blue) 62%, var(--glass-border));
   background: color-mix(in srgb, var(--blue) 16%, var(--glass-surface-strong));
