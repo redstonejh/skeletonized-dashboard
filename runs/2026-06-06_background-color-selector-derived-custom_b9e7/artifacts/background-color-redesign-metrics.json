@@ -1,0 +1,31 @@
+{
+    "schema_version":  1,
+    "redesign_authorization":  "User explicitly requested this UI redesign; AGENTS.md no-redesign rule satisfied.",
+    "themes_before":  {
+                          "lines":  5393,
+                          "declarations":  3987,
+                          "tone_swatch_declarations":  141,
+                          "tone_data_selectors":  59
+                      },
+    "themes_after":  {
+                         "lines":  5254,
+                         "declarations":  3876,
+                         "tone_swatch_declarations":  3,
+                         "tone_data_selectors":  0
+                     },
+    "tokens_before":  {
+                          "lines":  284,
+                          "data_background_rules":  48
+                      },
+    "tokens_after":  {
+                         "lines":  96,
+                         "data_background_rules":  0
+                     },
+    "color_model":  {
+                        "preset_count":  6,
+                        "custom_color_input":  ".background-custom-color-input",
+                        "state":  "preset ids plus {kind:\"custom\",hex} JSON",
+                        "base_property":  "--base-tone",
+                        "computed_style_parity_for_color_tones":  "not applied; visuals intentionally redesigned"
+                    }
+}

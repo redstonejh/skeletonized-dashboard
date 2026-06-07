@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "passed": true,
+  "changed_scope": [
+    "index.html background color selector markup and startup background bootstrap",
+    "app/static/tokens.css derived --base-tone color model",
+    "app/static/themes.css derived swatch/custom color control styling",
+    "app/static/modules/background-controller.js color state/persistence/undo path",
+    "electron-tests background selector and perf selector coverage",
+    "README.md and css-consolidation-plan.md docs"
+  ],
+  "photo_background_scope": "Photo option markup, photo asset paths, photo CSS, and PHOTO_BACKGROUNDS data remain in place; e2e asserts 27 photo options and photo-earth rendering.",
+  "dependency_changes": false,
+  "large_files_added": false
+}

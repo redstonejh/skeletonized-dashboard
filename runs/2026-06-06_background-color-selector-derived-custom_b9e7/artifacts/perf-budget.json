@@ -1,0 +1,28 @@
+{
+    "schema_version":  1,
+    "baseline":  "artifacts/perf-theme-baseline.json",
+    "current":  "artifacts/perf-theme-current.json",
+    "passed":  true,
+    "comparisons":  [
+                        {
+                            "object_count":  30,
+                            "baseline_duration_ms":  2733,
+                            "current_duration_ms":  808,
+                            "baseline_long_task_count":  6,
+                            "current_long_task_count":  2,
+                            "duration_not_worse":  true,
+                            "long_tasks_not_worse":  true,
+                            "final_background":  "tone-graphite"
+                        },
+                        {
+                            "object_count":  100,
+                            "baseline_duration_ms":  6218,
+                            "current_duration_ms":  1039,
+                            "baseline_long_task_count":  10,
+                            "current_long_task_count":  4,
+                            "duration_not_worse":  true,
+                            "long_tasks_not_worse":  true,
+                            "final_background":  "tone-graphite"
+                        }
+                    ]
+}

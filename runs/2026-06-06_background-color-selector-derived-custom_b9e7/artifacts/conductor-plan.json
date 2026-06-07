@@ -1,0 +1,26 @@
+{
+  "schema_version": 1,
+  "task_type": "frontend-ui-task",
+  "checklist_path": "C:/Users/redst/OneDrive/Documents/skeletonized-dashboard-main/.codex/checklists/frontend.md",
+  "roles": ["conductor", "planner", "worker", "change_verifier", "a11y_auditor", "critic", "acceptance_gate"],
+  "parallel_roles": ["visual_verifier"],
+  "caps": { "max_agents": 8, "max_parallel": 3, "max_iters": 3 },
+  "role_justifications": {
+    "conductor": "User explicitly requested MAW and a sanctioned redesign; conductor records scope and gates.",
+    "planner": "Plan protected background selector changes without photo drift.",
+    "worker": "Implement derived base-tone color selector and tests.",
+    "change_verifier": "Verify changed files stay scoped and no large/dependency files are introduced.",
+    "a11y_auditor": "Review native color input and reduced preset accessibility risks.",
+    "critic": "Review functional and scope risks.",
+    "acceptance_gate": "Verify final SHIP evidence.",
+    "visual_verifier": "Check visual sanity because this is a deliberate redesign, not byte-parity CSS refactor."
+  },
+  "redesign_authorization": "The user explicitly requested this UI redesign, satisfying AGENTS.md: do not redesign the UI unless the user explicitly asks for a redesign.",
+  "hard_gates": [
+    "Photo backgrounds untouched and still selectable/rendering.",
+    "No computed-style byte-parity gate for color tones because visual change is intended.",
+    "Functional e2e for preset, custom color, reload persistence, and undo.",
+    "Existing interaction canaries 10/10.",
+    "No dependency or Electron version changes."
+  ]
+}

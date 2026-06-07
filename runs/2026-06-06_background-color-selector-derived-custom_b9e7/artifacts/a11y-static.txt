@@ -1,0 +1,27 @@
+﻿{
+  "check": "a11y",
+  "file": "index.html",
+  "passed": false,
+  "violation_count": 3,
+  "violations": [
+    {
+      "line": 55,
+      "message": "button missing accessible label",
+      "tag": "button",
+      "type": "control_missing_label"
+    },
+    {
+      "line": 61,
+      "message": "button missing accessible label",
+      "tag": "button",
+      "type": "control_missing_label"
+    },
+    {
+      "line": 72,
+      "message": "button missing accessible label",
+      "tag": "button",
+      "type": "control_missing_label"
+    }
+  ]
+}
+

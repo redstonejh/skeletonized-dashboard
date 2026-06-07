@@ -256,7 +256,7 @@ test("electron GUI boots without server APIs and preserves core customization", 
   await expect(page.locator(".panel-color-menu-open")).toHaveCount(1);
 
   await panel.locator(".panel-title-handle").click({ force: true });
-  const input = page.locator(".panel-title-input, .panel-title-editor, input").first();
+  const input = page.locator(".panel-title-input, .panel-title-editor, input:not(.background-custom-color-input)").first();
   if (await input.count()) {
     await input.fill("Renamed Content");
     await input.press("Enter");
@@ -293,6 +293,64 @@ test("electron GUI boots without server APIs and preserves core customization", 
     "save-reload-identical",
   ]);
   expect(failed).toEqual([]);
+  await closeApp(app);
+});
+
+test("electron GUI applies derived background presets, custom color, persistence, undo, and photos", async () => {
+  const { app, page } = await launchApp();
+  await expect(page.locator(".background-photo-option")).toHaveCount(27);
+  await expect(page.locator(".background-tone-option")).toHaveCount(6);
+
+  const initialBackground = await page.locator("body").evaluate((node) => getComputedStyle(node).backgroundImage);
+  await page.locator(".background-tone-trigger").click({ force: true });
+  await page.locator('.background-tone-option[data-background-tone="tone-slate"]').click({ force: true });
+  await expect(page.locator("html")).toHaveAttribute("data-background", "tone-slate");
+  const preset = await page.locator("html").evaluate(() => ({
+    baseTone: getComputedStyle(document.documentElement).getPropertyValue("--base-tone").trim(),
+    background: getComputedStyle(document.body).backgroundImage,
+    selected: document.querySelector('.background-tone-option[data-background-tone="tone-slate"]')?.getAttribute("aria-pressed"),
+  }));
+  expect(preset.baseTone).toBe("#475569");
+  expect(preset.background).not.toBe(initialBackground);
+  expect(preset.selected).toBe("true");
+
+  await page.locator(".background-tone-trigger").click({ force: true });
+  await page.locator(".background-custom-color-input").evaluate((input) => {
+    input.value = "#336699";
+    input.dispatchEvent(new Event("input", { bubbles: true }));
+    input.dispatchEvent(new Event("change", { bubbles: true }));
+  });
+  await expect(page.locator("html")).toHaveAttribute("data-background", "custom-color");
+  const custom = await page.locator("html").evaluate(() => ({
+    baseTone: getComputedStyle(document.documentElement).getPropertyValue("--base-tone").trim(),
+    storage: localStorage.getItem("dashboard-background"),
+    customSelected: document.querySelector(".background-custom-color")?.classList.contains("is-selected"),
+    label: document.querySelector(".background-tone-trigger")?.getAttribute("aria-label") || "",
+  }));
+  expect(custom.baseTone).toBe("#336699");
+  expect(JSON.parse(custom.storage)).toEqual({ kind: "custom", hex: "#336699" });
+  expect(custom.customSelected).toBe(true);
+  expect(custom.label).toContain("#336699");
+
+  await page.locator(".layout-save-button").click();
+  await page.reload();
+  await page.waitForSelector(".dashboard-layout-grid");
+  await expect(page.locator("html")).toHaveAttribute("data-background", "custom-color");
+  await expect.poll(() => page.locator("html").evaluate(() => getComputedStyle(document.documentElement).getPropertyValue("--base-tone").trim())).toBe("#336699");
+
+  await page.locator(".background-tone-trigger").click({ force: true });
+  await page.locator('.background-tone-option[data-background-tone="tone-mist"]').click({ force: true });
+  await expect(page.locator("html")).toHaveAttribute("data-background", "tone-mist");
+  await page.locator(".panel-undo-button").click({ force: true });
+  await expect(page.locator("html")).toHaveAttribute("data-background", "custom-color");
+  await expect.poll(() => page.locator("html").evaluate(() => getComputedStyle(document.documentElement).getPropertyValue("--base-tone").trim())).toBe("#336699");
+
+  await page.locator(".background-tone-trigger").click({ force: true });
+  await page.locator('.background-photo-option[data-background-tone="photo-earth"]').click({ force: true });
+  await expect(page.locator("html")).toHaveAttribute("data-background", "photo-earth");
+  await expect(page.locator("body")).toHaveClass(/has-photo-background/);
+  await expect(page.locator(".workspace-photo-panel").first()).toBeVisible();
+  await writeInteractionScenarios(page, ["derived-background-color-selector"]);
   await closeApp(app);
 });
 

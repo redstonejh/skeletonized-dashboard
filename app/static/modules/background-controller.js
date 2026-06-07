@@ -67,32 +67,76 @@ export function initializeBackgroundController({ portalFloatingMenu, restoreFloa
     const roots = [document.documentElement, document.body];
     return roots.filter((element) => element instanceof HTMLElement);
   };
-  const backgroundToneLuminanceCache = new Map();
-  const backgroundTonePaletteCache = new Map();
-  const getBackgroundTonePalette = (tone) => {
-    if (!tone) return null;
-    if (backgroundTonePaletteCache.has(tone)) return backgroundTonePaletteCache.get(tone);
-    const option = document.querySelector(`.background-tone-option[data-background-tone="${tone}"]`);
-    if (!option) {
-      backgroundTonePaletteCache.set(tone, null);
-      return null;
-    }
-    const optionStyle = getComputedStyle(option);
-    const bg = optionStyle.getPropertyValue("--tone-swatch-start")?.trim();
-    const bgEnd = optionStyle.getPropertyValue("--tone-swatch-end")?.trim();
-    const palette = bg ? { bg, bgEnd: bgEnd || bg } : null;
-    backgroundTonePaletteCache.set(tone, palette);
-    return palette;
+  const COLOR_PRESETS = {
+    "tone-frosted": { label: "Frosted", hex: "#edf2f8" },
+    "tone-mist": { label: "Mist", hex: "#dbe7f3" },
+    "tone-warm": { label: "Warm grey", hex: "#ded8cf" },
+    "tone-slate": { label: "Slate", hex: "#475569" },
+    "tone-graphite": { label: "Graphite", hex: "#111827" },
+    "tone-midnight": { label: "Midnight", hex: "#071225" },
   };
-  const getBackgroundToneLuminance = (button) => {
-    const tone = button?.dataset?.backgroundTone || "";
-    if (!tone) return 0;
-    if (backgroundToneLuminanceCache.has(tone)) return backgroundToneLuminanceCache.get(tone);
-    const buttonStyle = getComputedStyle(button);
-    const toneColor = parseRgbFromColorValue(buttonStyle.getPropertyValue("--tone-swatch-start")) || parseRgbFromColorValue(buttonStyle.getPropertyValue("--tone-swatch-end"));
-    const computed = toneColor ? computeRelativeLuminance(toneColor) : 0;
-    backgroundToneLuminanceCache.set(tone, computed);
-    return computed;
+  const LEGACY_TONE_MIGRATIONS = {
+    "warm-white": "tone-warm",
+    "cool-white": "tone-frosted",
+    "soft-grey": "tone-frosted",
+    "cool-grey": "tone-mist",
+    "medium-cool-grey": "tone-mist",
+    "darker-soft-grey": "tone-slate",
+    "warm-grey": "tone-warm",
+    "slate": "tone-mist",
+    "slate-grey": "tone-slate",
+    "graphite-light": "tone-slate",
+    "graphite-grey": "tone-slate",
+    "light-blue-grey": "tone-frosted",
+    "muted-blue-grey": "tone-mist",
+    "blue-slate": "tone-slate",
+    "neutral-dim": "tone-warm",
+    "stone-slate": "tone-slate",
+    "stone-grey": "tone-warm",
+    "industrial-grey": "tone-slate",
+    "blue-mist": "tone-frosted",
+    "frosted-light": "tone-frosted",
+    "very-pale-grey": "tone-frosted",
+    "pale-cool-grey": "tone-frosted",
+    "pale-warm-grey": "tone-warm",
+    "medium-soft-grey": "tone-mist",
+    "medium-grey": "tone-slate",
+    "neutral-grey": "tone-slate",
+    "charcoal-grey": "tone-graphite",
+    "deep-grey": "tone-graphite",
+    "near-black-grey": "tone-graphite",
+    "black": "tone-graphite",
+    "near-black": "tone-graphite",
+    "soft-black": "tone-graphite",
+    "warm-near-black": "tone-graphite",
+    "charcoal": "tone-graphite",
+    "soft-charcoal": "tone-graphite",
+    "graphite": "tone-graphite",
+    "gunmetal": "tone-graphite",
+    "dark-grey": "tone-graphite",
+    "dark-blue-grey": "tone-midnight",
+    "deep-navy": "tone-midnight",
+    "desaturated-dark-blue": "tone-midnight",
+    "muted-navy": "tone-midnight",
+    "muted-midnight-blue": "tone-midnight",
+    "deep-slate": "tone-midnight",
+    "cool-dark-steel": "tone-graphite",
+    "dark-steel": "tone-graphite",
+    "soft-cinema": "tone-graphite",
+    "dark-frosted": "tone-midnight",
+  };
+  const normalizeHex = (value) => {
+    if (typeof value !== "string") return null;
+    const trimmed = value.trim();
+    const short = trimmed.match(/^#([0-9a-f])([0-9a-f])([0-9a-f])$/i);
+    if (short) return `#${short[1]}${short[1]}${short[2]}${short[2]}${short[3]}${short[3]}`.toLowerCase();
+    return /^#[0-9a-f]{6}$/i.test(trimmed) ? trimmed.toLowerCase() : null;
+  };
+  const stateLabel = (state) => {
+    if (!state) return COLOR_PRESETS["tone-frosted"].label;
+    if (state.kind === "custom") return `Custom ${state.hex}`;
+    if (state.kind === "photo") return state.tone.replace(/-/g, " ");
+    return COLOR_PRESETS[state.tone]?.label || COLOR_PRESETS["tone-frosted"].label;
   };
   // Adaptive material compensation was removed: objects now use one stable
   // material recipe regardless of background luminance. The fixed default
@@ -239,68 +283,88 @@ export function initializeBackgroundController({ portalFloatingMenu, restoreFloa
     document.body.classList.remove("has-photo-background");
   };
   
-  const sortBackgroundToneMenuOptionsByBrightness = () => {
-    document.querySelectorAll(".background-tone-menu").forEach((menu) => {
-      const popover = menu.querySelector(".background-tone-popover");
-      if (!popover) return;
-      const options = [...popover.querySelectorAll(".background-tone-option")];
-      if (!options.length) return;
-      const sortedOptions = options.sort((a, b) => {
-        const aLuminance = getBackgroundToneLuminance(a);
-        const bLuminance = getBackgroundToneLuminance(b);
-        if (aLuminance === bLuminance) return 0;
-        return bLuminance - aLuminance;
-      });
-      const groups = [...popover.querySelectorAll(".background-tone-group")];
-      const primaryGroup = groups[0] || (() => {
-        const fallbackGroup = document.createElement("div");
-        fallbackGroup.className = "background-tone-group";
-        popover.appendChild(fallbackGroup);
-        return fallbackGroup;
-      })();
-      const groupLabel = primaryGroup.querySelector(".background-tone-label");
-      if (groupLabel) {
-        primaryGroup.replaceChildren(groupLabel);
-      } else {
-        primaryGroup.replaceChildren();
-      }
-      sortedOptions.forEach((option) => {
-        primaryGroup.appendChild(option);
-      });
-      groups.slice(1).forEach((group) => group.remove());
+  const backgroundDefault = "tone-frosted";
+  const backgroundStorageKey = "dashboard-background";
+  const customBackgroundStorageKey = "dashboard-background-custom-color";
+  const parseBackgroundState = (value) => {
+    if (typeof value === "string" && value.trim().startsWith("{")) {
+      try {
+        const parsed = JSON.parse(value);
+        const hex = normalizeHex(parsed?.hex);
+        if (parsed?.kind === "custom" && hex) return { kind: "custom", hex };
+      } catch {}
+    }
+    if (isPhotoTone(value)) return { kind: "photo", tone: value };
+    const migrated = LEGACY_TONE_MIGRATIONS[value] || value;
+    const preset = COLOR_PRESETS[migrated] ? migrated : backgroundDefault;
+    return { kind: "preset", tone: preset, hex: COLOR_PRESETS[preset].hex };
+  };
+  const serializeBackgroundState = (state) =>
+    state?.kind === "custom"
+      ? JSON.stringify({ kind: "custom", hex: state.hex })
+      : (state?.tone || backgroundDefault);
+  const savedBackgroundState = () => {
+    try {
+      const stored = localStorage.getItem(backgroundStorageKey);
+      const state = parseBackgroundState(stored || backgroundDefault);
+      if (state.kind === "custom") return state;
+      const fallbackHex = normalizeHex(localStorage.getItem(customBackgroundStorageKey));
+      if (stored === "custom-color" && fallbackHex) return { kind: "custom", hex: fallbackHex };
+      return state;
+    } catch {
+      return parseBackgroundState(backgroundDefault);
+    }
+  };
+  const persistBackgroundState = (state) => {
+    try {
+      localStorage.setItem(backgroundStorageKey, serializeBackgroundState(state));
+      if (state.kind === "custom") localStorage.setItem(customBackgroundStorageKey, state.hex);
+    } catch {}
+  };
+  const stateKey = (state) => state?.kind === "custom" ? "custom-color" : state?.tone;
+  const backgroundHistory = [];
+  let previewBackgroundState = null;
+  let currentCommittedState = savedBackgroundState();
+  const pushBackgroundHistory = (previous, next) => {
+    if (!previous || serializeBackgroundState(previous) === serializeBackgroundState(next)) return;
+    backgroundHistory.push(previous);
+    if (backgroundHistory.length > 12) backgroundHistory.shift();
+  };
+  const syncSelectionUI = (activeState) => {
+    const activeKey = stateKey(activeState);
+    document.querySelectorAll(".background-tone-option, .background-photo-option").forEach((btn) => {
+      const sel = btn.dataset.backgroundTone === activeKey;
+      btn.classList.toggle("is-selected", sel);
+      btn.setAttribute("aria-pressed", sel.toString());
+    });
+    document.querySelectorAll(".background-custom-color").forEach((control) => {
+      control.classList.toggle("is-selected", activeState?.kind === "custom");
+    });
+    document.querySelectorAll(".background-custom-color-input").forEach((input) => {
+      const hex = activeState?.kind === "custom"
+        ? activeState.hex
+        : (previewBackgroundState?.kind === "custom" ? previewBackgroundState.hex : COLOR_PRESETS[backgroundDefault].hex);
+      input.value = hex;
+      input.style.setProperty("--base-tone", hex);
+    });
+    document.querySelectorAll(".background-tone-trigger").forEach((trigger) => {
+      trigger.setAttribute("aria-label", `Workspace background: ${stateLabel(activeState)}`);
     });
   };
-  const backgroundDefault = "frosted-light";
-  const savedBackgroundTone = () => {
-    try {
-      return localStorage.getItem("dashboard-background") || backgroundDefault;
-    } catch {
-      return backgroundDefault;
-    }
-  };
-  let previewBackgroundTone = null;
-  const applyBackgroundTone = (tone = savedBackgroundTone(), options = {}) => {
+  const applyBackgroundState = (state = savedBackgroundState(), options = {}) => {
     const themeRoots = getBackgroundThemeRoots();
-    const selectedTone = options.preview ? savedBackgroundTone() : tone;
-    const syncSelectionUI = (activeTone) => {
-      document.querySelectorAll(".background-tone-option, .background-photo-option").forEach((btn) => {
-        const sel = btn.dataset.backgroundTone === activeTone;
-        btn.classList.toggle("is-selected", sel);
-        btn.setAttribute("aria-pressed", sel.toString());
+    const selectedState = options.preview ? currentCommittedState : state;
+
+    if (state.kind === "photo") {
+      themeRoots.forEach((root) => {
+        root.dataset.background = state.tone;
+        root.style.removeProperty("--base-tone");
       });
-      document.querySelectorAll(".background-tone-trigger").forEach((trigger) => {
-        trigger.setAttribute("aria-label", `Workspace background: ${(activeTone || tone).replace(/-/g, " ")}`);
-      });
-    };
-  
-    if (isPhotoTone(tone)) {
-      themeRoots.forEach((root) => { root.dataset.background = tone; });
-      applyPhotoBackground(tone);
-      syncSelectionUI(selectedTone);
+      applyPhotoBackground(state.tone);
+      syncSelectionUI(selectedState);
       return;
     }
-  
-    // Color tone — hide backdrop during preview (cheap), destroy on commit (clean).
+
     if (photoBackdropEl) {
       if (options.preview) {
         photoBackdropEl.hidden = true;
@@ -310,39 +374,46 @@ export function initializeBackgroundController({ portalFloatingMenu, restoreFloa
         destroyPhotoBackground();
       }
     }
-  
-    const palette = getBackgroundTonePalette(tone);
-    if (palette?.bg) {
-      themeRoots.forEach((themeRoot) => {
-        themeRoot.style.setProperty("--bg", palette.bg);
-        themeRoot.style.setProperty("--bg-end", palette.bgEnd || palette.bg);
-      });
-    }
-    if (tone) {
-      themeRoots.forEach((themeRoot) => {
-        themeRoot.dataset.background = tone;
-      });
-    } else {
-      themeRoots.forEach((themeRoot) => {
-        delete themeRoot.dataset.background;
-      });
-    }
-    setBackgroundExposureCompensation(tone, palette, themeRoots);
-    syncSelectionUI(selectedTone);
+
+    const baseTone = state.kind === "custom" ? state.hex : (COLOR_PRESETS[state.tone]?.hex || COLOR_PRESETS[backgroundDefault].hex);
+    themeRoots.forEach((themeRoot) => {
+      themeRoot.dataset.background = state.kind === "custom" ? "custom-color" : state.tone;
+      themeRoot.style.setProperty("--base-tone", baseTone);
+      themeRoot.style.removeProperty("--bg");
+      themeRoot.style.removeProperty("--bg-end");
+    });
+    setBackgroundExposureCompensation(stateKey(state), { bg: baseTone, bgEnd: baseTone }, themeRoots);
+    syncSelectionUI(selectedState);
   };
-  sortBackgroundToneMenuOptionsByBrightness();
   const previewBackgroundOption = (button) => {
     const tone = button?.dataset?.backgroundTone || backgroundDefault;
     if (!tone) return;
-    previewBackgroundTone = tone;
-    applyBackgroundTone(tone, { preview: true });
+    previewBackgroundState = parseBackgroundState(tone);
+    applyBackgroundState(previewBackgroundState, { preview: true });
   };
   const revertBackgroundPreview = () => {
-    if (!previewBackgroundTone) return;
-    previewBackgroundTone = null;
-    applyBackgroundTone(savedBackgroundTone());
+    if (!previewBackgroundState) return;
+    previewBackgroundState = null;
+    applyBackgroundState(currentCommittedState);
   };
-  applyBackgroundTone(savedBackgroundTone());
+  const commitBackgroundState = (state) => {
+    const previous = currentCommittedState;
+    previewBackgroundState = null;
+    currentCommittedState = state;
+    pushBackgroundHistory(previous, state);
+    persistBackgroundState(state);
+    applyBackgroundState(state);
+  };
+  const undoBackgroundState = () => {
+    const previous = backgroundHistory.pop();
+    if (!previous) return false;
+    previewBackgroundState = null;
+    currentCommittedState = previous;
+    persistBackgroundState(previous);
+    applyBackgroundState(previous);
+    return true;
+  };
+  applyBackgroundState(currentCommittedState);
   document.querySelectorAll(".background-tone-option, .background-photo-option").forEach((button) => {
     button.addEventListener("pointerenter", () => previewBackgroundOption(button));
     button.addEventListener("focus", () => previewBackgroundOption(button));
@@ -350,17 +421,33 @@ export function initializeBackgroundController({ portalFloatingMenu, restoreFloa
       event.preventDefault();
       event.stopPropagation();
       const tone = button.dataset.backgroundTone || backgroundDefault;
-      previewBackgroundTone = null;
-      try {
-        localStorage.setItem("dashboard-background", tone);
-      } catch {}
-      applyBackgroundTone(tone);
+      commitBackgroundState(parseBackgroundState(tone));
       const toneMenu = button.closest(".background-tone-menu") ||
         originalMenuParent(button.closest(".background-tone-popover"));
       closeBackgroundToneMenu(toneMenu);
     });
   });
-  document.querySelectorAll(".background-tone-menu, .appearance-control-group.background-tone-group").forEach((container) => {
+  document.querySelectorAll(".background-custom-color-input").forEach((input) => {
+    input.addEventListener("input", () => {
+      const hex = normalizeHex(input.value);
+      if (!hex) return;
+      previewBackgroundState = { kind: "custom", hex };
+      applyBackgroundState(previewBackgroundState, { preview: true });
+    });
+    input.addEventListener("change", () => {
+      const hex = normalizeHex(input.value);
+      if (!hex) return;
+      commitBackgroundState({ kind: "custom", hex });
+    });
+    input.addEventListener("click", (event) => event.stopPropagation());
+  });
+  document.querySelectorAll(".panel-undo-button").forEach((button) => {
+    button.addEventListener("click", (event) => {
+      if (!undoBackgroundState()) return;
+      event.preventDefault();
+      event.stopImmediatePropagation();
+    });
+  });  document.querySelectorAll(".background-tone-menu, .appearance-control-group.background-tone-group").forEach((container) => {
     container.addEventListener("pointerleave", revertBackgroundPreview);
     container.addEventListener("focusout", (event) => {
       if (event.relatedTarget && container.contains(event.relatedTarget)) return;

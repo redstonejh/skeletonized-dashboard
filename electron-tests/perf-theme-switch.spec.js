@@ -222,8 +222,8 @@ async function collectThemeSwitchMetrics(page, objectCount, profile = false) {
   await page.evaluate(() => window.__dashboardPerfProbe.mark("photo-earth-clicked"));
   await page.waitForTimeout(120);
   await page.locator(".background-tone-trigger").click({ force: true, timeout: 5000 });
-  await page.locator('.background-tone-option[data-background-tone="dark-steel"]').click({ force: true, timeout: 5000 });
-  await page.evaluate(() => window.__dashboardPerfProbe.mark("dark-steel-clicked"));
+  await page.locator('.background-tone-option[data-background-tone="tone-graphite"]').click({ force: true, timeout: 5000 });
+  await page.evaluate(() => window.__dashboardPerfProbe.mark("tone-graphite-clicked"));
   await page.waitForTimeout(450);
   const trace = traceClient ? await stopTracing(traceClient) : null;
   const raw = await page.evaluate(() => {

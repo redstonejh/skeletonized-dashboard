@@ -1,0 +1,9 @@
+{
+  "schema_version": 1,
+  "passed": true,
+  "static_check": "artifacts/a11y-static.txt",
+  "notes": [
+    "The new custom color input has aria-label=Custom background color and visible Custom text.",
+    "Static web_checks.py still reports three pre-existing unlabeled nav buttons outside the background selector; not introduced by this redesign."
+  ]
+}

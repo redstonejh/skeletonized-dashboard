@@ -270,7 +270,7 @@ test("dashboard hot interactions perf baseline", async () => {
           await page.locator('.background-photo-option[data-background-tone="photo-earth"]').click({ force: true, timeout: 5000 });
           await page.waitForTimeout(120);
           await page.locator(".background-tone-trigger").click({ force: true, timeout: 5000 });
-          await page.locator('.background-tone-option[data-background-tone="dark-steel"]').click({ force: true, timeout: 5000 });
+          await page.locator('.background-tone-option[data-background-tone="tone-graphite"]').click({ force: true, timeout: 5000 });
         }));
       }
 

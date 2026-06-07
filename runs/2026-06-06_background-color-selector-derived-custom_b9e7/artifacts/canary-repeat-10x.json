@@ -1,0 +1,62 @@
+[
+    {
+        "run":  1,
+        "passed":  true,
+        "exitCode":  0,
+        "durationSeconds":  46.53
+    },
+    {
+        "run":  2,
+        "passed":  true,
+        "exitCode":  0,
+        "durationSeconds":  45.21
+    },
+    {
+        "run":  3,
+        "passed":  true,
+        "exitCode":  0,
+        "durationSeconds":  47.27
+    },
+    {
+        "run":  4,
+        "passed":  true,
+        "exitCode":  0,
+        "durationSeconds":  45.51
+    },
+    {
+        "run":  5,
+        "passed":  true,
+        "exitCode":  0,
+        "durationSeconds":  45.49
+    },
+    {
+        "run":  6,
+        "passed":  true,
+        "exitCode":  0,
+        "durationSeconds":  44.93
+    },
+    {
+        "run":  7,
+        "passed":  true,
+        "exitCode":  0,
+        "durationSeconds":  45.92
+    },
+    {
+        "run":  8,
+        "passed":  true,
+        "exitCode":  0,
+        "durationSeconds":  45.17
+    },
+    {
+        "run":  9,
+        "passed":  true,
+        "exitCode":  0,
+        "durationSeconds":  46.22
+    },
+    {
+        "run":  10,
+        "passed":  true,
+        "exitCode":  0,
+        "durationSeconds":  45.39
+    }
+]

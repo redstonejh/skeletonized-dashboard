@@ -1,0 +1,8 @@
+{
+    "schema_version":  1,
+    "photo_option_expected_count":  27,
+    "photo_css_selector_mentions_before":  6,
+    "photo_css_selector_mentions_after":  6,
+    "photo_runtime_diff_mentions":  2,
+    "e2e":  "dashboard-electron.spec.js asserts 27 photo options, photo-earth selection, has-photo-background, and visible workspace-photo-panel"
+}

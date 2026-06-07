@@ -2,7 +2,7 @@
 
 A lean, native **Electron** dashboard customization GUI: pure HTML/CSS/JS, no backend.
 
-The app provides Apple-style draggable and resizable panels and widgets with grid snapping, collision/reflow, live ghosts, edge auto-scroll, theming, photo backgrounds, glass material, per-object recolor/rename/pin/collapse/delete, layout save/load/reset, and undo.
+The app provides Apple-style draggable and resizable panels and widgets with grid snapping, collision/reflow, live ghosts, edge auto-scroll, derived color and photo backgrounds, glass material, per-object recolor/rename/pin/collapse/delete, layout save/load/reset, and undo.
 
 ## Provenance
 
@@ -83,7 +83,7 @@ Protected behavior includes:
 - panel containment behavior
 - per-object rename, recolor, pin, collapse, and delete controls
 - layout save/load/reset and undo
-- theme, photo background, and glass-material styling
+- derived custom-color backgrounds, photo backgrounds, and glass-material styling
 
 For behavior changes, update or add Playwright coverage and run:
 

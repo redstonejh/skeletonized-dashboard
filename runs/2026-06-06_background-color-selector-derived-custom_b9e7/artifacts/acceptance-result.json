@@ -1,0 +1,13 @@
+{
+  "verdict": "SHIP",
+  "passed": true,
+  "checks": {
+    "redesign_authorized": "User explicitly requested redesign; AGENTS.md no-redesign rule satisfied.",
+    "functional_e2e": "npm.cmd run test:e2e -- --workers=1 passed, 12/12 tests.",
+    "canary_repeat": "artifacts/canary-repeat-10x.json: 10/10 full e2e repeats passed.",
+    "photo_backgrounds": "artifacts/photo-background-proof.json: 27 photo options and photo-earth rendering covered.",
+    "perf_budget": "artifacts/perf-budget.json: current duration and long-task count no worse than baseline for 30 and 100 object scenes.",
+    "delegation": "artifacts/delegation-proof.json passes delegation_check.py.",
+    "color_parity": "Not applied to color tones because visuals intentionally changed by explicit redesign request."
+  }
+}
