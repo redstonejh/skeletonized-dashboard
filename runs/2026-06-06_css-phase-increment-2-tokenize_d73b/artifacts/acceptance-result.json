@@ -1,0 +1,13 @@
+{
+    "verdict":  "SHIP",
+    "passed":  true,
+    "checks":  {
+                   "computedStyleParity":  "artifacts/computed-style-parity.json passed with diffCount 0 across 533 scenarios",
+                   "oracleDeterminism":  "artifacts/computed-style-determinism.json passed 10/10",
+                   "oracleResistance":  "artifacts/css-oracle-resistance.json caught color and spacing mutations",
+                   "e2eCanaries":  "artifacts/canary-repeat-10x.json and artifacts/test-result-e2e.json passed 10/10",
+                   "delegation":  "artifacts/delegation-proof.json passed delegation_check.py",
+                   "noImportantChanges":  "artifacts/change-verification.json added/deleted !important counts are zero",
+                   "noLargeFiles":  "artifacts/large-file-check.json passed"
+               }
+}

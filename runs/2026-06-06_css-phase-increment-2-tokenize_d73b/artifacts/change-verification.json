@@ -1,0 +1,8 @@
+{
+    "passed":  true,
+    "addedImportant":  0,
+    "deletedImportant":  0,
+    "selectorSpecificityChanged":  false,
+    "tokenizedDeclarationCount":  120,
+    "note":  "Diff contains new root tokens and direct value-for-var substitutions only."
+}

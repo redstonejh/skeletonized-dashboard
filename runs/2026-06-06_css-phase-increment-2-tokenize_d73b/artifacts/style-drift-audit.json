@@ -1,0 +1,7 @@
+{
+  "passed": true,
+  "specificityChanged": false,
+  "importantChanged": false,
+  "selectorChanged": false,
+  "note": "Diff is limited to new :root tokens, direct value-for-var substitutions, artifact updates, and the consolidation-plan status line. No !important additions/removals are present."
+}

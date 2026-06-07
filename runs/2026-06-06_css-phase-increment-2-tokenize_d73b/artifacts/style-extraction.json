@@ -1,0 +1,7 @@
+{
+  "passed": true,
+  "changedCssFiles": ["app/static/tokens.css", "app/static/themes.css", "app/static/dashboard-grid.css"],
+  "tokenizationOnly": true,
+  "newTokens": ["--radius-pill", "--space-4", "--space-5", "--space-6", "--space-8"],
+  "computedStyleParityArtifact": "artifacts/computed-style-parity.json"
+}

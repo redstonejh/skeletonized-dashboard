@@ -4,9 +4,9 @@
   "appRootLabel": "workspace",
   "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) configurable-dashboard-gui-electron/1.0.0 Chrome/134.0.6998.205 Electron/35.7.5 Safari/537.36",
   "sourceHashes": {
-    "app/static/tokens.css": "e3d5e67b6f4ed86ac0827b95c4db555a1ecfaa655a59a7ab94685352951b1536",
-    "app/static/themes.css": "cc3f8129f9f1a1d0da19e734f9013214f5081df06aa9f8419740d70eab87cd6d",
-    "app/static/dashboard-grid.css": "39d3a714401ffb7763446f0ba8f539ecbd89c731f5fa43de826ec0e2dd434e46"
+    "app/static/tokens.css": "98033a36eec10578a39f5ca5297ba0f858ae35f9b3308d100bf81ef4bcf23606",
+    "app/static/themes.css": "a93f5d6a786b47f78b8e9772d5e33bf6c92b5877c2b7b2780a887546dc5841c8",
+    "app/static/dashboard-grid.css": "016c5f527aa60946d9d492254687c1c4df2caefe6632e6ad87580c19543dce6a"
   },
   "fingerprintAlgorithm": "sha256-base64url(canonical-json(per-selector sha256-base64url hashes of computed-style subset + custom vars))",
   "matrix": {
@@ -2902,5 +2902,5 @@
       "selectorCount": 53
     }
   ],
-  "hash": "4lJ_qWc9O086FT8Cpds9eDVs7XaaryN36U3WUkjHOnY"
+  "hash": "BaBr3bEuYbD3SL1FM6CV_KFFpwe2hKvImtNeAxRN_9I"
 }

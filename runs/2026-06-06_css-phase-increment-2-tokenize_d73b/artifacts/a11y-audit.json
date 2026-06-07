@@ -1,0 +1,5 @@
+{
+  "passed": true,
+  "risk": "low",
+  "note": "Spacing and radius tokens resolve to identical computed values; focus and hit-target surfaces are covered by computed-style parity and e2e canaries."
+}

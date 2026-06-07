@@ -1,0 +1,5 @@
+{
+  "passed": true,
+  "perfIntent": false,
+  "note": "No scheduling, animation, or rendering-performance changes were made. CSS variable substitution only."
+}

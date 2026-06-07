@@ -1,0 +1,10 @@
+{
+  "passed": true,
+  "diffCount": 0,
+  "comparedScenarios": 533,
+  "matrixIdentical": true,
+  "preArtifactHash": "d2b08f4be8a85f708a51cac59fdb0d297bafacca1352f41bcc5ea851529f2071",
+  "postArtifactHash": "41d6154079a190c6f9cd9826a54bf07175cb3ae88d189afce4aa7e2f857e6cd5",
+  "note": "Scenario-level computed-style hashes are compared. Artifact sourceHashes are allowed to differ after CSS source tokenization.",
+  "firstDiffs": []
+}

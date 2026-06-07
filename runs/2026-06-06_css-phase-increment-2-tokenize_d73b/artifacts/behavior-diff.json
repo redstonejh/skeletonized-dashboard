@@ -1,0 +1,6 @@
+{
+    "passed":  true,
+    "diffCount":  0,
+    "source":  "artifacts/computed-style-parity.json",
+    "note":  "Computed-style scenario hashes are identical pre/post tokenization across 533 scenarios."
+}

@@ -248,7 +248,7 @@ body.webgl-glass-on .widget-card.db-panel-custom-color{
   min-width: 0;
   align-items: center;
   justify-content: space-between;
-  gap: 8px;
+  gap: var(--space-8);
 }.widget-shell-title-zone{
   display: grid;
   min-width: 0;
@@ -349,7 +349,7 @@ body.webgl-glass-on .widget-card.db-panel-custom-color{
   height: 32px;
   translate: -50% -50%;
   border: 1.5px solid color-mix(in srgb, #f472b6 48%, var(--line));
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   background:
     linear-gradient(180deg, color-mix(in srgb, var(--glass-surface-strong) 82%, transparent), color-mix(in srgb, var(--glass-surface) 54%, transparent)),
     color-mix(in srgb, #3b0764 48%, transparent);
@@ -419,7 +419,7 @@ body.webgl-glass-on .widget-card.db-panel-custom-color{
   min-height: 34px;
   padding: 0 12px;
   border: 1.5px solid color-mix(in srgb, var(--blue) 34%, var(--line));
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   background: color-mix(in srgb, var(--glass-surface-strong) 78%, var(--blue) 10%);
   color: color-mix(in srgb, var(--ink-strong) 82%, var(--blue) 18%);
   font: inherit;
@@ -441,7 +441,7 @@ body.webgl-glass-on .widget-card.db-panel-custom-color{
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 8px;
+  gap: var(--space-8);
   margin-bottom: 7px;
   color: color-mix(in srgb, var(--ink-strong) 80%, var(--blue) 20%);
   font-size: 10px;
@@ -451,7 +451,7 @@ body.webgl-glass-on .widget-card.db-panel-custom-color{
   min-height: 22px;
   padding: 0 7px;
   border: 1px solid color-mix(in srgb, var(--blue) 28%, var(--line));
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   background: color-mix(in srgb, var(--glass-surface-strong) 72%, var(--blue) 8%);
   color: inherit;
   font: inherit;
@@ -536,7 +536,7 @@ body.webgl-glass-on .widget-card.db-panel-custom-color{
   z-index: var(--z-object-control);
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--space-8);
   flex-shrink: 0;
   transform: translateY(-50%);
 }/* Widget edit,
@@ -555,7 +555,7 @@ and ghost states */ .widget-card.widget-tools-open,
   right: var(--dashboard-tool-drawer-right, 42px);
   display: grid;
   grid-template-columns: repeat(3, 30px);
-  gap: 5px;
+  gap: var(--space-5);
   padding: 6px;
   border: 1.5px solid var(--panel-lock-border, rgba(37, 99, 235, .24));
   border-radius: 24px;
@@ -694,7 +694,7 @@ and ghost states */ .widget-card.widget-tools-open,
   text-transform: uppercase;
 }.widget-setting-field{
   display: grid;
-  gap: 5px;
+  gap: var(--space-5);
   min-width: 0;
   color: var(--text);
   font-size: .72rem;
@@ -753,7 +753,7 @@ and ghost states */ .widget-card.widget-tools-open,
   width: 7px;
   height: 7px;
   border: 1px solid color-mix(in srgb, var(--panel-accent, var(--blue)) 46%, rgba(15, 23, 42, .42));
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   background:
     linear-gradient(180deg, rgba(255, 255, 255, .48), rgba(255, 255, 255, .14)),
     color-mix(in srgb, var(--glass-surface-strong) 72%, var(--panel-accent, var(--blue)) 28%);
@@ -1050,9 +1050,9 @@ body.resize-auto-zoom-active .dashboard-expanded-footprint-ghost{
   --widget-meta-weight: 620;
   --widget-meta-tracking: 0;
   --widget-timestamp-size: .58rem;
-  --widget-metadata-gap: 6px;
+  --widget-metadata-gap: var(--space-6);
   --widget-composition-gap: calc(5px * var(--widget-density-gap));
-  --widget-composition-header-gap: 6px;
+  --widget-composition-header-gap: var(--space-6);
   --widget-composition-header-height: 14px;
   --widget-composition-stage-radius: 8px;
   --widget-composition-stage-pad: 4px;
@@ -1258,7 +1258,7 @@ body.resize-auto-zoom-active .dashboard-expanded-footprint-ghost{
   --panel-title-size: 22px;
   --panel-empty-pad-y: 34px;
   --panel-empty-pad-x: 20px;
-  --panel-empty-gap: 8px;
+  --panel-empty-gap: var(--space-8);
   --panel-empty-strong-size: 14px;
   --panel-empty-small-line-height: 1.5;
   --recessed-interior-bg: rgba(255, 255, 255, .22);
@@ -1389,7 +1389,7 @@ body.resize-auto-zoom-active .dashboard-expanded-footprint-ghost{
   height: 8px;
   min-width: 8px;
   border: 1px solid color-mix(in srgb, var(--panel-accent, #64748b) 46%, rgba(15, 23, 42, .42));
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   background:
     linear-gradient(180deg, rgba(255, 255, 255, .46), rgba(255, 255, 255, .12)),
     color-mix(in srgb, var(--glass-surface-strong) 70%, var(--panel-accent, #64748b) 24%);
@@ -1445,7 +1445,7 @@ body.resize-auto-zoom-active .dashboard-expanded-footprint-ghost{
   height: 34px;
   min-width: 34px;
   margin-right: 2px;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   background: var(--panel-header-control-bg);
   border: 1.5px solid var(--panel-header-control-border);
   color: var(--panel-header-control-fg);
@@ -1526,7 +1526,7 @@ body.resize-auto-zoom-active .dashboard-expanded-footprint-ghost{
   min-width: 26px;
   height: 22px;
   padding: 0 8px;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   background: var(--blue-soft);
   color: var(--blue);
   font-size: 12px;
@@ -1550,7 +1550,7 @@ body.resize-auto-zoom-active .dashboard-expanded-footprint-ghost{
   min-width: 34px;
   padding: 0;
   border: 1.5px solid var(--panel-lock-border);
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   background: var(--panel-lock-bg);
   color: var(--panel-lock-fg);
   box-shadow: var(--panel-control-rest-shadow);
@@ -1611,7 +1611,7 @@ body.resize-auto-zoom-active .dashboard-expanded-footprint-ghost{
   width: 7px;
   height: 7px;
   border: 1px solid color-mix(in srgb, var(--panel-accent, var(--blue)) 46%, rgba(15, 23, 42, .42));
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   background:
     linear-gradient(180deg, rgba(255, 255, 255, .48), rgba(255, 255, 255, .14)),
     color-mix(in srgb, var(--glass-surface-strong) 72%, var(--panel-accent, var(--blue)) 28%);
@@ -1935,7 +1935,7 @@ body.panel-resize-active .db-panel:not(.db-panel-dragging):not(.dashboard-active
   z-index: var(--z-object-control);
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--space-8);
   flex-shrink: 0;
 }body.layout-tools-active .db-panel:not(.db-panel-tools-open):not(:has(.panel-tools:focus-within)) .panel-tools{
   pointer-events: none;
@@ -1947,7 +1947,7 @@ body.panel-resize-active .db-panel:not(.db-panel-dragging):not(.dashboard-active
   right: var(--dashboard-tool-drawer-right, 42px);
   display: grid;
   grid-template-columns: repeat(3, 34px);
-  gap: 5px;
+  gap: var(--space-5);
   padding: 6px;
   border: 1.5px solid var(--panel-lock-border, rgba(37, 99, 235, .24));
   border-radius: 24px;
@@ -2000,7 +2000,7 @@ body.panel-resize-active .db-panel:not(.db-panel-dragging):not(.dashboard-active
   max-height: 34px;
   padding: 0;
   border: 1.5px solid var(--panel-lock-border);
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   background: var(--panel-lock-bg);
   color: var(--panel-lock-fg);
   box-shadow: var(--panel-control-rest-shadow);
@@ -2163,7 +2163,7 @@ that put the drawer on top — palette * has to declare its tier explicitly. */ 
   min-height: 0;
   padding: 0;
   border: 1.5px solid rgba(255, 255, 255, .54);
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   background: var(--swatch) !important;
   background-color: var(--swatch) !important;
   box-shadow: 0 6px 14px rgba(15, 23, 42, .20), inset 0 1px 0 rgba(255, 255, 255, .28);
@@ -2384,7 +2384,7 @@ that put the drawer on top — palette * has to declare its tier explicitly. */ 
   min-height: 30px;
   padding: 0 12px;
   border: 1.5px solid color-mix(in srgb, var(--panel-accent, var(--blue)) 42%, var(--glass-border));
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   background:
     linear-gradient(180deg, color-mix(in srgb, var(--glass-highlight) 16%, transparent), transparent),
     color-mix(in srgb, var(--bg-end, var(--bg)) 54%, var(--panel-accent, var(--blue)) 20%);
@@ -2411,7 +2411,7 @@ that put the drawer on top — palette * has to declare its tier explicitly. */ 
   min-width: 0;
   flex-direction: column;
   justify-content: center;
-  gap: 4px;
+  gap: var(--space-4);
 }.widget-runtime-state{
   --runtime-state-accent: var(--widget-content-meta);
   padding: 5px 7px 5px 10px;
@@ -2431,7 +2431,7 @@ that put the drawer on top — palette * has to declare its tier explicitly. */ 
   bottom: 5px;
   left: 4px;
   width: 2px;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   background: var(--runtime-state-accent);
   opacity: .46;
 }.widget-runtime-state[data-runtime-state="configure"]{
@@ -2464,7 +2464,7 @@ that put the drawer on top — palette * has to declare its tier explicitly. */ 
   min-width: 0;
   grid-template-columns: 44px minmax(0, 1fr);
   align-items: baseline;
-  gap: 5px;
+  gap: var(--space-5);
   color: var(--widget-content-meta);
   font-size: .52rem;
   font-weight: 620;
@@ -2507,7 +2507,7 @@ that put the drawer on top — palette * has to declare its tier explicitly. */ 
   min-width: 0;
   max-width: 100%;
   flex-wrap: nowrap;
-  gap: 5px;
+  gap: var(--space-5);
 }.widget-card > .widget-runtime-state .runtime-state-detail{
   display: inline-flex;
   min-width: 0;
@@ -2524,7 +2524,7 @@ that put the drawer on top — palette * has to declare its tier explicitly. */ 
   padding-bottom: 4px;
 }.widget-card.widget-density-tiny > .widget-runtime-state .runtime-state-details,
 .widget-card[data-grid-row-span="1"] > .widget-runtime-state .runtime-state-details{
-  gap: 4px;
+  gap: var(--space-4);
 }.widget-card.widget-density-tiny > .widget-runtime-state .runtime-state-detail,
 .widget-card[data-grid-row-span="1"] > .widget-runtime-state .runtime-state-detail{
   font-size: .49rem;
@@ -2538,7 +2538,7 @@ that put the drawer on top — palette * has to declare its tier explicitly. */ 
   min-width: 0;
   align-items: baseline;
   justify-content: space-between;
-  gap: 4px;
+  gap: var(--space-4);
 }.runtime-table-header .stat-lbl{
   overflow: hidden;
   text-overflow: ellipsis;
@@ -2619,13 +2619,13 @@ that put the drawer on top — palette * has to declare its tier explicitly. */ 
   min-height: 0;
   height: 100%;
   grid-template-rows: auto minmax(0, 1fr);
-  gap: 5px;
+  gap: var(--space-5);
 }.filter-widget-header{
   display: flex;
   min-width: 0;
   align-items: baseline;
   justify-content: space-between;
-  gap: 6px;
+  gap: var(--space-6);
 }.filter-widget-header .stat-lbl{
   overflow: hidden;
   text-overflow: ellipsis;
@@ -2645,7 +2645,7 @@ that put the drawer on top — palette * has to declare its tier explicitly. */ 
   display: grid;
   min-width: 0;
   min-height: 0;
-  gap: 4px;
+  gap: var(--space-4);
   align-content: start;
   overflow: hidden;
 }.filter-widget-control{
@@ -2670,7 +2670,7 @@ that put the drawer on top — palette * has to declare its tier explicitly. */ 
   min-width: 0;
   height: 24px;
   border: 1px solid color-mix(in srgb, var(--panel-accent-text, #ffffff) 26%, transparent);
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   background: color-mix(in srgb, var(--surface-raised, #ffffff) 14%, transparent);
   color: color-mix(in srgb, var(--panel-accent-text, #ffffff) 94%, transparent);
   box-shadow: inset 0 1px 0 color-mix(in srgb, var(--panel-accent-text, #ffffff) 16%, transparent);
@@ -2691,7 +2691,7 @@ that put the drawer on top — palette * has to declare its tier explicitly. */ 
   display: grid;
   min-width: 0;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  gap: 4px;
+  gap: var(--space-4);
 }.filter-widget-option-grid{
   display: flex;
   min-width: 0;
@@ -2702,9 +2702,9 @@ that put the drawer on top — palette * has to declare its tier explicitly. */ 
   display: inline-flex;
   min-width: 0;
   align-items: center;
-  gap: 4px;
+  gap: var(--space-4);
   border: 1px solid color-mix(in srgb, var(--panel-accent-text, #ffffff) 22%, transparent);
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   background: color-mix(in srgb, var(--surface-raised, #ffffff) 12%, transparent);
   color: color-mix(in srgb, var(--panel-accent-text, #ffffff) 88%, transparent);
   font-size: .58rem;
@@ -2733,7 +2733,7 @@ that put the drawer on top — palette * has to declare its tier explicitly. */ 
   min-height: 0;
   height: 100%;
   grid-template-rows: auto minmax(0, 1fr);
-  gap: 5px;
+  gap: var(--space-5);
   color: color-mix(in srgb, var(--panel-accent-text, #ffffff) 94%, transparent);
 }.text-widget-header{
   display: flex;
@@ -2796,14 +2796,14 @@ that put the drawer on top — palette * has to declare its tier explicitly. */ 
   height: 100%;
   grid-template-rows: auto auto minmax(0, 1fr) auto;
   align-content: center;
-  gap: 5px;
+  gap: var(--space-5);
   color: color-mix(in srgb, var(--panel-accent-text, #ffffff) 94%, transparent);
 }.region-summary-header{
   display: flex;
   min-width: 0;
   align-items: center;
   justify-content: space-between;
-  gap: 6px;
+  gap: var(--space-6);
 }.region-summary-header .stat-lbl{
   overflow: hidden;
   text-overflow: ellipsis;
@@ -2831,7 +2831,7 @@ that put the drawer on top — palette * has to declare its tier explicitly. */ 
   display: grid;
   min-width: 0;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 5px;
+  gap: var(--space-5);
 }.region-summary-metrics span{
   min-width: 0;
   padding: 5px 6px;
@@ -2858,7 +2858,7 @@ that put the drawer on top — palette * has to declare its tier explicitly. */ 
   white-space: nowrap;
 }.region-summary-density-compact{
   grid-template-rows: auto auto;
-  gap: 5px;
+  gap: var(--space-5);
 }.region-summary-density-compact .region-summary-header{
   display: none;
 }.region-summary-density-compact .region-summary-title{
@@ -2888,7 +2888,7 @@ that put the drawer on top — palette * has to declare its tier explicitly. */ 
   min-width: 0;
   min-height: 0;
   height: 100%;
-  gap: 6px;
+  gap: var(--space-6);
   color: color-mix(in srgb, var(--panel-accent-text, #ffffff) 90%, transparent);
 }.dataset-origin-header,
 .dataset-origin-entry-head,
@@ -2924,12 +2924,12 @@ that put the drawer on top — palette * has to declare its tier explicitly. */ 
 }.dataset-origin-list{
   display: grid;
   min-height: 0;
-  gap: 4px;
+  gap: var(--space-4);
   overflow: hidden;
 }.dataset-origin-entry{
   display: grid;
   min-width: 0;
-  gap: 4px;
+  gap: var(--space-4);
   padding: 6px 8px;
   border: 1px solid color-mix(in srgb, var(--panel-accent, #64748b) 22%, transparent);
   border-radius: 8px;
@@ -2946,16 +2946,16 @@ that put the drawer on top — palette * has to declare its tier explicitly. */ 
 }.dataset-origin-meta,
 .dataset-origin-fields{
   flex-wrap: wrap;
-  gap: 4px;
+  gap: var(--space-4);
 }.dataset-origin-meta span,
 .dataset-origin-fields span{
   display: inline-flex;
   min-width: 0;
   max-width: 100%;
   align-items: center;
-  gap: 4px;
+  gap: var(--space-4);
   padding: 2px 5px;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   background: color-mix(in srgb, var(--panel-accent, #64748b) 13%, transparent);
   color: color-mix(in srgb, var(--panel-accent-text, #ffffff) 72%, transparent);
   font-weight: 650;
@@ -2964,7 +2964,7 @@ that put the drawer on top — palette * has to declare its tier explicitly. */ 
   font-weight: 700;
 }.dataset-origin-density-tiny,
 .dataset-origin-density-compact{
-  gap: 6px;
+  gap: var(--space-6);
 }.dataset-origin-density-tiny .dataset-origin-fields,
 .dataset-origin-density-tiny .dataset-origin-meta,
 .dataset-origin-density-compact .dataset-origin-more{
@@ -2975,7 +2975,7 @@ that put the drawer on top — palette * has to declare its tier explicitly. */ 
   min-height: 0;
   height: 100%;
   grid-template-rows: auto minmax(0, 1fr) auto;
-  gap: 5px;
+  gap: var(--space-5);
   color: color-mix(in srgb, var(--panel-accent-text, #ffffff) 94%, transparent);
 }.data-filter-header,
 .data-filter-footer{
@@ -2983,7 +2983,7 @@ that put the drawer on top — palette * has to declare its tier explicitly. */ 
   min-width: 0;
   align-items: center;
   justify-content: space-between;
-  gap: 6px;
+  gap: var(--space-6);
 }.data-filter-header .stat-lbl,
 .data-filter-kicker,
 .data-filter-footer span{
@@ -3005,7 +3005,7 @@ that put the drawer on top — palette * has to declare its tier explicitly. */ 
   min-height: 0;
   place-items: center;
   align-content: center;
-  gap: 5px;
+  gap: var(--space-5);
   border: 1px solid color-mix(in srgb, var(--panel-accent-text, #ffffff) 19%, transparent);
   border-radius: calc(var(--radius-md) + 2px);
   background:
@@ -3029,7 +3029,7 @@ that put the drawer on top — palette * has to declare its tier explicitly. */ 
 }.data-filter-modifier{
   padding: 2px 6px;
   border: 1px solid color-mix(in srgb, var(--panel-accent-text, #ffffff) 18%, transparent);
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   background: color-mix(in srgb, var(--panel-accent, #38bdf8) 18%, transparent);
   color: color-mix(in srgb, var(--panel-accent-text, #ffffff) 78%, transparent);
   font-size: .52rem;
@@ -3052,7 +3052,7 @@ that put the drawer on top — palette * has to declare its tier explicitly. */ 
   position: relative;
   display: grid;
   grid-template-rows: auto minmax(0, 1fr) auto;
-  gap: 4px;
+  gap: var(--space-4);
   min-height: 100%;
   padding-right: var(--widget-control-space, 50px);
   color: var(--panel-accent-text, var(--text-strong));
@@ -3081,7 +3081,7 @@ that put the drawer on top — palette * has to declare its tier explicitly. */ 
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 6px;
+  gap: var(--space-6);
   min-width: 0;
 }.shift-widget-header .stat-lbl,
 .shift-widget-kicker,
@@ -3127,7 +3127,7 @@ that put the drawer on top — palette * has to declare its tier explicitly. */ 
   z-index: 1;
   min-width: 0;
   grid-template-columns: auto minmax(0, 1fr) auto;
-  gap: 5px;
+  gap: var(--space-5);
   align-items: center;
   color: var(--widget-content-meta);
   font-size: .52rem;
@@ -3147,12 +3147,12 @@ that put the drawer on top — palette * has to declare its tier explicitly. */ 
   width: 9px;
   height: 9px;
   flex: 0 0 auto;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   background: rgba(var(--shift-state-rgb), .78);
   box-shadow: 0 0 0 3px rgba(var(--shift-state-rgb), .13);
 }.shift-widget-density-tiny,
 .shift-widget-density-compact{
-  gap: 4px;
+  gap: var(--space-4);
 }.shift-widget-density-tiny .shift-widget-header,
 .shift-widget-density-tiny .shift-widget-footer,
 .shift-widget-density-compact .shift-widget-footer{
@@ -3163,14 +3163,14 @@ that put the drawer on top — palette * has to declare its tier explicitly. */ 
   min-height: 0;
   height: 100%;
   grid-template-rows: auto minmax(0, 1fr);
-  gap: 5px;
+  gap: var(--space-5);
   color: color-mix(in srgb, var(--panel-accent-text, #ffffff) 94%, transparent);
 }.meta-widget-header{
   display: flex;
   min-width: 0;
   align-items: center;
   justify-content: space-between;
-  gap: 8px;
+  gap: var(--space-8);
 }.meta-widget-header .stat-lbl,
 .meta-widget-kicker{
   min-width: 0;
@@ -3192,7 +3192,7 @@ that put the drawer on top — palette * has to declare its tier explicitly. */ 
 }.ai-operator-form{
   display: grid;
   min-width: 0;
-  gap: 5px;
+  gap: var(--space-5);
 }.ai-operator-prompt{
   width: 100%;
   min-height: 44px;
@@ -3209,11 +3209,11 @@ that put the drawer on top — palette * has to declare its tier explicitly. */ 
 }.ai-operator-actions{
   display: flex;
   min-width: 0;
-  gap: 6px;
+  gap: var(--space-6);
   flex-wrap: wrap;
 }.ai-operator-button{
   border: 1px solid color-mix(in srgb, var(--panel-accent-text, #ffffff) 20%, transparent);
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   padding: 5px 9px;
   color: color-mix(in srgb, var(--panel-accent-text, #ffffff) 84%, transparent);
   background: color-mix(in srgb, var(--surface-raised, #ffffff) 12%, transparent);
@@ -3227,7 +3227,7 @@ that put the drawer on top — palette * has to declare its tier explicitly. */ 
 }.ai-operator-result{
   display: grid;
   min-width: 0;
-  gap: 4px;
+  gap: var(--space-4);
   border: 1px solid color-mix(in srgb, var(--panel-accent-text, #ffffff) 16%, transparent);
   border-radius: 8px;
   padding: 6px 8px;
@@ -3264,14 +3264,14 @@ that put the drawer on top — palette * has to declare its tier explicitly. */ 
   min-height: 0;
   height: 100%;
   grid-template-rows: auto minmax(0, 1fr) auto;
-  gap: 5px;
+  gap: var(--space-5);
   color: color-mix(in srgb, var(--panel-accent-text, #ffffff) 94%, transparent);
 }.media-widget-header{
   display: flex;
   min-width: 0;
   align-items: center;
   justify-content: space-between;
-  gap: 6px;
+  gap: var(--space-6);
 }.media-widget-header .stat-lbl,
 .media-widget-meta,
 .media-widget-caption{
@@ -3340,7 +3340,7 @@ that put the drawer on top — palette * has to declare its tier explicitly. */ 
   height: 100%;
   align-content: center;
   justify-content: stretch;
-  gap: 4px;
+  gap: var(--space-4);
   padding: 6px 7px 6px 10px;
   border: 1px solid color-mix(in srgb, var(--panel-accent-text, #ffffff) 16%, transparent);
   border-radius: var(--widget-composition-stage-radius, 8px);
@@ -3395,7 +3395,7 @@ that put the drawer on top — palette * has to declare its tier explicitly. */ 
   min-width: 0;
   align-items: baseline;
   justify-content: space-between;
-  gap: 5px;
+  gap: var(--space-5);
 }.runtime-chart-header .stat-lbl{
   overflow: hidden;
   text-overflow: ellipsis;
@@ -3525,14 +3525,14 @@ that put the drawer on top — palette * has to declare its tier explicitly. */ 
 }.runtime-chart-density-small{
   gap: 3px;
 }.runtime-chart-widget[data-density="compact"] .runtime-chart-header{
-  gap: 4px;
+  gap: var(--space-4);
 }.runtime-chart-widget[data-density="compact"] .runtime-chart-meta{
   display: none;
 }.runtime-map-widget,
 .runtime-calendar-widget{
   display: grid;
   grid-template-rows: minmax(0, 1fr) auto;
-  gap: 5px;
+  gap: var(--space-5);
   width: 100%;
   height: 100%;
   min-height: 0;
@@ -3541,7 +3541,7 @@ that put the drawer on top — palette * has to declare its tier explicitly. */ 
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 6px;
+  gap: var(--space-6);
   min-width: 0;
 }.runtime-map-header .stat-lbl,
 .runtime-calendar-header .stat-lbl,
@@ -3567,7 +3567,7 @@ that put the drawer on top — palette * has to declare its tier explicitly. */ 
 }.runtime-map-legend,
 .runtime-calendar-list{
   display: flex;
-  gap: 4px;
+  gap: var(--space-4);
   min-width: 0;
   overflow: hidden;
 }.runtime-map-legend span,
@@ -3678,7 +3678,7 @@ that put the drawer on top — palette * has to declare its tier explicitly. */ 
   --panel-title-size: 18px;
   --panel-empty-pad-y: 14px;
   --panel-empty-pad-x: 14px;
-  --panel-empty-gap: 5px;
+  --panel-empty-gap: var(--space-5);
   --panel-empty-strong-size: 13px;
   --panel-empty-small-line-height: 1.32;
 }.db-panel:not(.db-panel-collapsed)[data-grid-row-span="4"]{

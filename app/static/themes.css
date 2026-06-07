@@ -56,7 +56,7 @@
   min-height: 52px;
   padding: 0 24px;
   border: 1.5px solid #93c5fd;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   background: linear-gradient(135deg, #2563eb, #0f4ed8);
   color: #fff;
   font-size: 18px;
@@ -162,7 +162,7 @@
   mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.38a2 2 0 0 0-.73-2.73l-.15-.09a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z'/%3E%3Ccircle cx='12' cy='12' r='3'/%3E%3C/svg%3E");
   -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.38a2 2 0 0 0-.73-2.73l-.15-.09a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z'/%3E%3Ccircle cx='12' cy='12' r='3'/%3E%3C/svg%3E");
 }.cmd-btn{
-  gap: 8px;
+  gap: var(--space-8);
   border-radius: 14px;
   box-shadow: 0 2px 10px rgba(37, 99, 235, .16);
 }.cmd-btn-danger{
@@ -280,7 +280,7 @@
   position: relative;
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: var(--space-6);
   padding: 0;
 }.layout-slot-picker{
   position: relative;
@@ -308,7 +308,7 @@
   left: 0;
   z-index: var(--z-dropdown);
   display: grid;
-  gap: 6px;
+  gap: var(--space-6);
   min-width: 138px;
   --layout-slot-menu-max-height: min(320px, calc(100vh - 140px));
   max-height: 0;
@@ -440,7 +440,7 @@
 }.stat-danger{ background: color-mix(in srgb, var(--surface) 86%, #dc2626 14%); }.stat-warn{ background: color-mix(in srgb, var(--surface) 86%, #f59e0b 14%); }.empty-state{
   display: grid;
   place-items: center;
-  gap: 5px;
+  gap: var(--space-5);
   margin: 0;
   padding: 20px 14px;
   color: var(--muted);
@@ -476,7 +476,7 @@
 }.secret-control{
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto auto;
-  gap: 6px;
+  gap: var(--space-6);
   align-items: center;
 }.secret-control input{
   width: 100%;
@@ -532,7 +532,7 @@
   bottom: 92px;
   z-index: 60;
   display: grid;
-  gap: 8px;
+  gap: var(--space-8);
   pointer-events: none;
 }.toast{
   transform: translateY(8px);
@@ -783,11 +783,11 @@ table{
 }button.dash-switch-btn{
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: var(--space-6);
   min-height: 32px;
   padding: 0 12px;
   border: 1px solid var(--line);
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   background: var(--surface);
   color: var(--ink-strong);
   font: inherit;
@@ -917,7 +917,7 @@ table{
 .table-scroll::-webkit-scrollbar-thumb{
   min-height: 36px;
   border: 2px solid #e6edf6;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   background: #8f9eb2;
 }.db-panel-body::-webkit-scrollbar-thumb:hover,
 .esc-feed::-webkit-scrollbar-thumb:hover,
@@ -943,7 +943,7 @@ body::-webkit-scrollbar-corner{
 body::-webkit-scrollbar-thumb{
   min-height: 36px;
   border: 3px solid transparent;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   background: color-mix(in srgb, var(--muted) 54%, transparent);
   background-clip: content-box;
 }html::-webkit-scrollbar-thumb:hover,
@@ -1247,7 +1247,7 @@ body::-webkit-scrollbar-thumb:hover{
   font-weight: 820;
 }.nav-status-popover dl{
   display: grid;
-  gap: 8px;
+  gap: var(--space-8);
   margin: 0;
 }.nav-status-popover dl > div{
   display: grid;
@@ -1292,7 +1292,7 @@ body::-webkit-scrollbar-thumb:hover{
   overflow-wrap: anywhere;
 }.nav-status-checklist{
   display: grid;
-  gap: 8px;
+  gap: var(--space-8);
   margin: 0;
   padding: 0;
   list-style: none;
@@ -1312,7 +1312,7 @@ body::-webkit-scrollbar-thumb:hover{
   flex: 0 0 18px;
   align-items: center;
   justify-content: center;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
 }.nav-status-check-icon::before{
   content: "";
   width: 10px;
@@ -1517,15 +1517,15 @@ but make focus unmistakable. */ .panel-tool-drawer .panel-tool-button:focus-visi
 }.app-nav:not(.settings-nav) > .app-nav-status{
   flex: 1 1 auto;
   justify-content: center;
-  gap: 8px;
+  gap: var(--space-8);
   min-width: 0;
   position: static;
 }.app-nav:not(.settings-nav) > .app-nav-actions{
   flex: 0 0 auto;
   justify-content: flex-end;
-  gap: 8px;
+  gap: var(--space-8);
 }.app-nav:not(.settings-nav) .layout-slot-controls{
-  gap: 6px;
+  gap: var(--space-6);
   padding: 4px;
   border: 1px solid var(--line-soft);
   border-radius: 16px;
@@ -1618,7 +1618,7 @@ but make focus unmistakable. */ .panel-tool-drawer .panel-tool-button:focus-visi
 }.app-nav:not(.settings-nav) .nav-status-menu.is-open .nav-status-popover{
   transform: translate(0, 0) scale(1);
 }.app-nav:not(.settings-nav) .panel-add-menu{
-  gap: 8px;
+  gap: var(--space-8);
   min-width: 142px;
   padding: 10px;
 }.app-nav:not(.settings-nav) .panel-add-action,
@@ -1944,7 +1944,7 @@ body.group-select-active .panel-layout > .db-panel{
   background: color-mix(in srgb, var(--glass-surface-strong) 88%, var(--surface-soft));
 }.section-heading{
   display: grid;
-  gap: 6px;
+  gap: var(--space-6);
   margin-bottom: 18px;
 }.section-heading h2{
   font-size: 20px;
@@ -1993,7 +1993,7 @@ body.group-select-active .panel-layout > .db-panel{
   gap: 14px;
   padding: 10px 12px 10px 16px;
   border: 1.5px solid var(--glass-border);
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
 }.settings-save-bar span{
   color: var(--muted-strong);
   font-size: 12px;
@@ -2033,7 +2033,7 @@ body.group-select-active .panel-layout > .db-panel{
 }.background-preset-grid{
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: var(--space-8);
 }.background-tone-menu{
   position: relative;
   display: inline-flex;
@@ -2055,7 +2055,7 @@ body.group-select-active .panel-layout > .db-panel{
 }.background-tone-dot{
   width: 19px;
   height: 19px;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   background: linear-gradient(135deg, var(--bg), var(--bg-end, var(--surface-soft)));
   box-shadow:
     inset 0 0 0 1px var(--glass-border),
@@ -2092,7 +2092,7 @@ body.group-select-active .panel-layout > .db-panel{
   transition-delay: 0s;
 }.background-tone-group{
   display: grid;
-  gap: 8px;
+  gap: var(--space-8);
 }.background-tone-popover .background-tone-group{
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }.background-tone-label{
@@ -2108,9 +2108,9 @@ body.group-select-active .panel-layout > .db-panel{
   --tone-swatch-border: var(--glass-border);
   min-height: 34px;
   justify-content: flex-start;
-  gap: 8px;
+  gap: var(--space-8);
   padding: 0 12px;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   font-size: 12px;
   font-weight: 760;
   line-height: 1;
@@ -2121,7 +2121,7 @@ body.group-select-active .panel-layout > .db-panel{
   height: 14px;
   min-width: 14px;
   border: 1px solid var(--tone-swatch-border);
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   background: linear-gradient(135deg, var(--tone-swatch-start), var(--tone-swatch-end));
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, .30),
@@ -2379,7 +2379,7 @@ body.group-select-active .panel-layout > .db-panel{
   inset: 1px 22px auto;
   z-index: 0;
   height: 1px;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--glass-highlight) 78%, transparent), transparent);
 }.app-nav.workspace-chrome > .app-nav-brand-group,
 .app-nav.workspace-chrome > .app-nav-status,
@@ -2406,7 +2406,7 @@ body.group-select-active .panel-layout > .db-panel{
   backdrop-filter: none;
   -webkit-backdrop-filter: none;
 }.app-nav.workspace-chrome .workspace-identity-island{
-  gap: 8px;
+  gap: var(--space-8);
 }.app-nav.workspace-chrome .dash-switcher{
   min-width: 0;
 }.app-nav.workspace-chrome button.dash-switch-hero{
@@ -2426,7 +2426,7 @@ body.group-select-active .panel-layout > .db-panel{
     0 12px 28px color-mix(in srgb, var(--blue) 10%, transparent),
     inset 0 1px 0 color-mix(in srgb, var(--glass-highlight) 72%, transparent);
 }.app-nav.workspace-chrome .layout-slot-controls{
-  gap: 5px;
+  gap: var(--space-5);
   min-height: 0;
   padding: 0;
   border: 0;
@@ -2650,7 +2650,7 @@ body.group-select-active .panel-layout > .db-panel{
 }.confirm-dialog-close,
 .confirm-dialog-btn{
   border-color: color-mix(in srgb, var(--glass-border) 62%, transparent);
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   background: color-mix(in srgb, var(--glass-surface-strong) 64%, transparent);
   box-shadow:
     inset 0 1px 0 color-mix(in srgb, var(--glass-highlight) 66%, transparent);
@@ -2719,7 +2719,7 @@ keep the workspace first. */ .app-nav.workspace-chrome{
 }.app-nav.workspace-chrome::before{
   inset: -22px 12% auto;
   height: 88px;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   background:
     radial-gradient(ellipse at 50% 30%, color-mix(in srgb, var(--blue) 13%, transparent), transparent 64%),
     linear-gradient(90deg, transparent, color-mix(in srgb, var(--glass-highlight) 28%, transparent), transparent);
@@ -2733,7 +2733,7 @@ keep the workspace first. */ .app-nav.workspace-chrome{
   right: 24%;
   bottom: 2px;
   height: 1px;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--blue) 24%, transparent), transparent);
   opacity: .64;
   pointer-events: none;
@@ -2967,7 +2967,7 @@ keep the workspace first. */ .app-nav.workspace-chrome{
   justify-content: flex-start;
 }.app-nav.workspace-chrome > .app-nav-status{
   justify-content: center;
-  gap: 8px;
+  gap: var(--space-8);
 }.app-nav.workspace-chrome > .app-nav-actions{
   justify-content: flex-end;
 }.app-nav.workspace-chrome .workspace-command-island,
@@ -2975,7 +2975,7 @@ keep the workspace first. */ .app-nav.workspace-chrome{
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
+  gap: var(--space-6);
   min-height: var(--navbar-control-height);
   padding: 0;
   border: 0;
@@ -3094,7 +3094,7 @@ keep the workspace first. */ .app-nav.workspace-chrome{
   max-height: var(--navbar-control-height);
   aspect-ratio: 1;
   padding: 0;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
 }.app-nav.workspace-chrome .composition-rocker-control{
   --rocker-illumination: var(--blue);
   box-sizing: border-box;
@@ -3142,7 +3142,7 @@ keep the workspace first. */ .app-nav.workspace-chrome{
   top: 50%;
   width: 13px;
   height: 2px;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   background: currentColor;
   transform: translate(-50%, -50%);
 }.app-nav.workspace-chrome .chrome-add-glyph::after{
@@ -3256,7 +3256,7 @@ keep the workspace first. */ .app-nav.workspace-chrome{
   transition-delay: 0s;
 }.object-add-browser{
   display: grid;
-  gap: 5px;
+  gap: var(--space-5);
   align-content: start;
   min-width: 156px;
 }.panel-add-menu.menu-scroll{
@@ -3291,7 +3291,7 @@ keep the workspace first. */ .app-nav.workspace-chrome{
   left: calc(100% + 8px);
   z-index: calc(var(--z-navbar-dropdown) + 1);
   display: none;
-  gap: 5px;
+  gap: var(--space-5);
   min-width: 172px;
   padding: 7px;
   border: 1px solid color-mix(in srgb, var(--line) 62%, rgba(255, 255, 255, .72));
@@ -3348,7 +3348,7 @@ keep the workspace first. */ .app-nav.workspace-chrome{
   color: var(--ink-strong);
 }.layout-source-group{
   display: grid;
-  gap: 5px;
+  gap: var(--space-5);
 }.layout-source-group + .layout-source-group{
   margin-top: 7px;
   padding-top: 7px;
@@ -3423,7 +3423,7 @@ keep the workspace first. */ .app-nav.workspace-chrome{
 }.widget-workbench-panel::-webkit-scrollbar-thumb,
 .widget-workbench-panel *::-webkit-scrollbar-thumb{
   border: 2px solid transparent;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   background: color-mix(in srgb, var(--ink) 22%, transparent);
   background-clip: content-box;
 }.widget-settings-schema-head{
@@ -3442,7 +3442,7 @@ keep the workspace first. */ .app-nav.workspace-chrome{
   letter-spacing: .02em;
   line-height: 1;
 }.widget-setting-field{
-  gap: 5px;
+  gap: var(--space-5);
   color: var(--muted-strong);
   font-size: 11px;
   font-weight: 720;
@@ -3567,7 +3567,7 @@ keep the workspace first. */ .app-nav.workspace-chrome{
 }.timeframe-filter-selected-row{
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--space-8);
   min-height: 28px;
   color: var(--muted-strong);
   font-size: 11px;
@@ -3825,7 +3825,7 @@ and active drags own emphasis alone. */ .widget-layout > .widget-card:has(:is(.w
 .floating-glass-menu::-webkit-scrollbar-thumb,
 .glass-menu-scroll-region::-webkit-scrollbar-thumb{
   border: 2px solid transparent;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   background: color-mix(in srgb, var(--ink) 24%, transparent);
   background-clip: content-box;
 }:is(.app-nav.workspace-chrome, .workspace-menu-overlay-layer) :is(.dash-switch-menu, .layout-slot-menu, .panel-add-menu, .nav-status-popover, .background-tone-popover).nav-menu-shell{
@@ -3913,12 +3913,12 @@ and active drags own emphasis alone. */ .widget-layout > .widget-card:has(:is(.w
   padding-right: 0;
 }.object-add-browser.glass-menu-scroll-region{
   min-width: 168px;
-  gap: 5px;
+  gap: var(--space-5);
   overflow: visible;
 }.glass-menu-section{
   position: relative;
   display: grid;
-  gap: 5px;
+  gap: var(--space-5);
 }.glass-menu-section + .glass-menu-section{
   margin-top: 8px;
   padding-top: 8px;
@@ -4017,7 +4017,7 @@ and active drags own emphasis alone. */ .widget-layout > .widget-card:has(:is(.w
   left: calc(100% + 8px);
   z-index: calc(var(--z-navbar-dropdown, 1650) + 1);
   display: grid;
-  gap: 5px;
+  gap: var(--space-5);
   min-width: 190px;
   width: max-content;
   max-height: var(--glass-submenu-max-height, min(72vh, 520px));
@@ -4315,7 +4315,7 @@ html.has-photo-background body{
   isolation: isolate;
 }/* Photo picker groups — use background-photo-group so the brightness-sort * function (which only queries .background-tone-group) leaves them intact. */ .background-photo-group{
   display: grid;
-  gap: 8px;
+  gap: var(--space-8);
 }.background-tone-popover .background-photo-group{
   grid-template-columns: repeat(2, minmax(0, 1fr));
   padding-top: 4px;
@@ -4336,9 +4336,9 @@ html.has-photo-background body{
   align-items: center;
   min-height: 34px;
   justify-content: flex-start;
-  gap: 8px;
+  gap: var(--space-8);
   padding: 0 12px;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   font-size: 12px;
   font-weight: 760;
   line-height: 1;

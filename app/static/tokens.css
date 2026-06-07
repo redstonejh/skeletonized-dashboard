@@ -61,6 +61,11 @@
   --radius-lg: 24px;
   --radius-md: 16px;
   --radius-sm: 12px;
+  --radius-pill: 999px;
+  --space-4: 4px;
+  --space-5: 5px;
+  --space-6: 6px;
+  --space-8: 8px;
   --motion-fast: .15s ease;
   --motion-grid: .18s cubic-bezier(.2, .8, .2, 1);
   --motion-popover: .18s ease;
