@@ -65,15 +65,11 @@
   const WORKING_PROFILE = "0";
   const profileKey = (layoutKey = "builder") => `${prefixes.panelProfile}${layoutKey}`;
   const getActiveProfile = (layoutKey = "builder") => {
-    try {
-      return storage.getItem(profileKey(layoutKey)) || WORKING_PROFILE;
-    } catch {
-      return WORKING_PROFILE;
-    }
+    return WORKING_PROFILE;
   };
   const setActiveProfile = (layoutKey = "builder", profile = "1") => {
     try {
-      storage.setItem(profileKey(layoutKey), String(profile || "1"));
+      storage.setItem(profileKey(layoutKey), WORKING_PROFILE);
     } catch {}
   };
   const key = {
@@ -215,6 +211,30 @@
     });
   };
 
+  const migrateActiveProfileToSingleState = (layoutKey = "builder") => {
+    let previousProfile = WORKING_PROFILE;
+    let usedLegacyLayoutSource = false;
+    try {
+      previousProfile = storage.getItem(profileKey(layoutKey)) || WORKING_PROFILE;
+    } catch {}
+    if (previousProfile === WORKING_PROFILE) {
+      try {
+        const source = parseJsonRecord(storage.getItem(key.layoutSource(layoutKey)), null);
+        const sourceSlot = source?.kind === "saved" ? (source.slot || source.id || "") : "";
+        if (/^[1-9][0-9]*$/.test(sourceSlot)) {
+          previousProfile = sourceSlot;
+          usedLegacyLayoutSource = true;
+        }
+      } catch {}
+    }
+    if (previousProfile !== WORKING_PROFILE && /^[1-9][0-9]*$/.test(previousProfile)) {
+      copyProfile(layoutKey, previousProfile, WORKING_PROFILE);
+    }
+    if (usedLegacyLayoutSource) remove(key.layoutSource(layoutKey));
+    setActiveProfile(layoutKey, WORKING_PROFILE);
+    return WORKING_PROFILE;
+  };
+
   window.dashboardLayoutPersistence = Object.freeze({
     version: PERSISTED_WORKSPACE_VERSION,
     WORKING_PROFILE,
@@ -224,6 +244,7 @@
     getActiveProfile,
     setActiveProfile,
     copyProfile,
+    migrateActiveProfileToSingleState,
     key,
     scopedPrefixes,
     storageKeys,

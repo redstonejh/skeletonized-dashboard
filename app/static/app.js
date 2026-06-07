@@ -15,7 +15,6 @@ import { initializeBackgroundController } from "./modules/background-controller.
 import { initializeNavStatusMenus } from "./modules/nav-status-menu.js";
 import { initializeOverflowTitles } from "./modules/overflow-titles.js";
 import { initializeDashboardKeywordSearch } from "./modules/dashboard-keyword-search.js";
-import { initializeDashboardSwitcher } from "./modules/dashboard-switcher.js";
 import { createAssetRuntime } from "./modules/asset-runtime.js";
 import { initializeSurfaceToolsRuntime } from "./modules/surface-tools-runtime.js";
 import { createDataAdapterRuntime } from "./modules/data-adapter-runtime.js";
@@ -121,7 +120,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const { scheduleOverflowTitles } = initializeOverflowTitles();
   const { applyDashboardKeywordSearch } = initializeDashboardKeywordSearch({ scheduleOverflowTitles });
-  initializeDashboardSwitcher({ portalFloatingMenu, restoreFloatingMenu });
   const layoutPersistence = window.dashboardLayoutPersistence;
   migrateWorkingLayoutProfiles({ layoutPersistence });
   const PERSISTED_WORKSPACE_VERSION = layoutPersistence.version;
@@ -137,7 +135,6 @@ document.addEventListener("DOMContentLoaded", () => {
   const workspaceAssetsKey = layoutPersistence.key.workspaceAssets;
   const persistedWorkspaceKey = layoutPersistence.key.persistedWorkspace;
   const layoutUndoKey = layoutPersistence.key.layoutUndo;
-  const layoutSourceKey = layoutPersistence.key.layoutSource;
   const generatedLayoutRegistryKey = layoutPersistence.key.generatedLayoutRegistry;
   const layoutStorageKeys = layoutPersistence.storageKeys;
   const clearLayoutStorage = layoutPersistence.clearScopedStorage;
@@ -3155,11 +3152,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
   initializeLayoutSourceRuntime({
-    layoutSourceKey,
-    readJsonStore,
-    writeJsonStore,
-    portalFloatingMenu,
-    restoreFloatingMenu,
     layoutPersistence,
     showToast,
     getActivePanelProfile,
@@ -3172,6 +3164,9 @@ document.addEventListener("DOMContentLoaded", () => {
     saveWidgetLayouts,
     saveWorkspaceContextState,
     savePersistedWorkspaceSnapshot,
+    syncWorkspaceVisualLod,
+    workspaceVisualLodForItem,
+    indexedCollisionEntries,
   });
   initializeGroupSelectionControls({
     getGroupMode,

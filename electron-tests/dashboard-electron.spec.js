@@ -341,6 +341,8 @@ test("electron GUI keeps slim navbar controls wired", async () => {
   await expect(page.getByText("Workspace User")).toHaveCount(0);
   await expect(page.getByText("user@example.com")).toHaveCount(0);
   await expect(page.getByRole("button", { name: "Restore default layout" })).toHaveCount(0);
+  await expect(page.locator(".layout-slot-picker, .layout-slot-trigger, .layout-slot-menu, [data-slot]")).toHaveCount(0);
+  await expect(page.getByText(/^Layout [0-9]+$/)).toHaveCount(0);
   await expect(page.locator(".background-tone-popover [data-liquid-glass-toggle]")).toHaveCount(1);
   await expect(page.locator(".app-nav-status [data-liquid-glass-toggle]")).toHaveCount(0);
   await expect(page.locator(".app-nav-actions > .appearance-command-island > [data-liquid-glass-toggle]")).toHaveCount(0);
@@ -364,19 +366,82 @@ test("electron GUI keeps slim navbar controls wired", async () => {
   await expect.poll(() => page.evaluate(() => Boolean(window.LIQUID_GLASS_WEBGL))).toBe(!beforeGlass);
   await expect.poll(() => page.evaluate(() => localStorage.getItem("dashboard-liquid-glass-webgl"))).toBe(beforeGlass ? "false" : "true");
 
-  await page.locator(".layout-save-button").click({ force: true });
-  await page.locator(".layout-load-button").click({ force: true });
-
   const firstWidget = await addTextWidget(page);
   await expect(firstWidget).toBeVisible();
-  await page.locator(".panel-undo-button").click({ force: true });
+  const savedWidgetKey = await firstWidget.evaluate((node) => node.dataset.widgetKey || "");
+  await page.locator(".workspace-tab").nth(1).click({ force: true });
+  await page.locator(".workspace-tab").nth(1).click({ button: "right" });
+  await page.locator(".workspace-tab-rename-input").fill("saved tab");
+  await page.locator(".workspace-tab-rename-input").press("Enter");
+  await page.locator(".layout-save-button").click({ force: true });
+  await firstWidget.evaluate((node) => node.remove());
+  await expect(page.locator(`.widget-layout > .widget-card[data-widget-key="${savedWidgetKey}"]`)).toHaveCount(0);
+  await page.locator(".layout-load-button").click({ force: true });
+  await page.waitForLoadState("domcontentloaded");
+  await page.waitForSelector(".dashboard-layout-grid");
+  await expect(page.locator(`.widget-layout > .widget-card[data-widget-key="${savedWidgetKey}"]`)).toHaveCount(1);
+  await expect(page.locator(".workspace-tab").nth(1)).toHaveText("saved tab");
+
+  await page.getByRole("button", { name: "Reset to default layout" }).click({ force: true });
   await expect(page.locator('.widget-layout > .widget-card[data-custom-widget="true"]')).toHaveCount(0);
 
   await addTextWidget(page);
   await expect(page.locator('.widget-layout > .widget-card[data-custom-widget="true"]')).toHaveCount(1);
-  await page.getByRole("button", { name: "Reset to default layout" }).click({ force: true });
-  await expect(page.locator('.widget-layout > .widget-card[data-custom-widget="true"]')).toHaveCount(0);
   expect(failed).toEqual([]);
+  await closeApp(app);
+});
+
+test("electron GUI migrates an active legacy layout profile into the single workspace state", async () => {
+  const { app, page } = await launchApp();
+  await page.evaluate(() => {
+    window.dashboardPersistence.setItem("dashboard-panel-profile:builder", "0");
+    window.dashboardPersistence.setItem("dashboard-layout-source:builder", JSON.stringify({
+      kind: "saved",
+      id: "7",
+      slot: "7",
+      label: "Layout 7"
+    }));
+    window.dashboardPersistence.setItem("dashboard-panel-six-grid-layout:7:builder:builder-notes", JSON.stringify({
+      order: 0,
+      span: 6,
+      gridCol: 1,
+      gridRow: 6,
+      height: null,
+      color: "#dc2626",
+      title: "Migrated Notes",
+      pinned: true,
+      collapsed: false,
+      minW: null,
+      locked: false,
+      resizable: true,
+      breakBefore: false,
+      expansionBaseline: null,
+      expansionActive: false,
+      childWidgets: []
+    }));
+  });
+  await page.reload();
+  await page.waitForSelector(".dashboard-layout-grid");
+  const migrated = await page.locator('.panel-layout > .db-panel[data-panel-key="builder-notes"]').evaluate((node) => ({
+    profile: window.dashboardPersistence.getItem("dashboard-panel-profile:builder"),
+    legacySource: window.dashboardPersistence.getItem("dashboard-layout-source:builder"),
+    workingCopy: window.dashboardPersistence.getItem("dashboard-panel-six-grid-layout:0:builder:builder-notes"),
+    gridCol: node.dataset.gridCol || "",
+    gridRow: node.dataset.gridRow || "",
+    title: node.querySelector(".db-panel-title")?.textContent?.trim() || "",
+    color: node.dataset.panelColor || "",
+    pinned: node.classList.contains("db-panel-pinned"),
+  }));
+  expect(migrated.profile).toBe("0");
+  expect(migrated.legacySource).toBeNull();
+  expect(migrated.workingCopy).toBeTruthy();
+  expect(migrated).toMatchObject({
+    gridCol: "1",
+    gridRow: "6",
+    title: "Migrated Notes",
+    color: "#dc2626",
+    pinned: true,
+  });
   await closeApp(app);
 });
 

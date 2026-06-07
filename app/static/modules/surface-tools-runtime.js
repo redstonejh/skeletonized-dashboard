@@ -28,7 +28,6 @@ export function initializeSurfaceToolsRuntime({
     ".panel-color-menu",
     ".widget-workbench-panel",
     ".panel-add-menu",
-    ".layout-slot-menu",
     ".background-tone-popover",
     ".workspace-minimap-layer",
     "[data-widget-control-surface='true']",

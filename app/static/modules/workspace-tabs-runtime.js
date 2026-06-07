@@ -53,8 +53,13 @@ export const initializeWorkspaceTabsRuntime = ({
 
   const closeMenu = ({ restoreFocus = true } = {}) => {
     const focusTarget = invokingTab;
-    menu?.remove();
+    const closingMenu = menu;
     menu = null;
+    if (closingMenu?.isConnected) {
+      try {
+        closingMenu.remove();
+      } catch {}
+    }
     editingIndex = -1;
     invokingTab = null;
     menuActionInProgress = false;
@@ -127,14 +132,14 @@ export const initializeWorkspaceTabsRuntime = ({
     });
   };
 
-  const commitRename = (index, input) => {
+  const commitRename = (index, input, { renderTabs = true } = {}) => {
     const fallback = state.tabs[index]?.label || `tab ${index + 1}`;
     state.tabs[index] = {
       ...state.tabs[index],
       label: cleanLabel(input.value, fallback),
     };
     save();
-    render();
+    if (renderTabs) render();
   };
 
   const openMenu = (index, button) => {
@@ -161,8 +166,9 @@ export const initializeWorkspaceTabsRuntime = ({
     input.addEventListener("keydown", (event) => {
       if (event.key === "Enter") {
         event.preventDefault();
-        commitRename(index, input);
+        commitRename(index, input, { renderTabs: false });
         closeMenu();
+        render();
       } else if (event.key === "Escape") {
         event.preventDefault();
         closeMenu();
@@ -172,8 +178,9 @@ export const initializeWorkspaceTabsRuntime = ({
       if (event.relatedTarget && menu?.contains(event.relatedTarget)) return;
       if (menuActionInProgress) return;
       if (editingIndex === index && menu?.isConnected) {
-        commitRename(index, input);
+        commitRename(index, input, { renderTabs: false });
         closeMenu({ restoreFocus: false });
+        render();
       }
     });
     renameGroup.append(renameLabel, input);

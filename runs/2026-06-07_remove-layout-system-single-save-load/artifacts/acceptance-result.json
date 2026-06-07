@@ -1,0 +1,48 @@
+{
+  "schema_version": 1,
+  "verdict": "SHIP",
+  "task": "remove layout system; collapse to single Save/Load",
+  "checks": [
+    {
+      "name": "origin",
+      "passed": true,
+      "evidence": "https://github.com/redstonejh/skeletonized-dashboard.git"
+    },
+    {
+      "name": "syntax",
+      "passed": true,
+      "evidence": "node --check passed for app.js, layout-persistence.js, layout-profile-migration.js, layout-source-runtime.js, workspace-tabs-runtime.js, and dashboard-electron.spec.js"
+    },
+    {
+      "name": "single_save_load",
+      "passed": true,
+      "evidence": "slim navbar e2e saves a widget and tab rename, removes the widget, Load reloads, and both restore"
+    },
+    {
+      "name": "legacy_migration",
+      "passed": true,
+      "evidence": "legacy saved slot 7 is promoted to profile 0 and consumed dashboard-layout-source:builder is removed"
+    },
+    {
+      "name": "layout_ui_removed",
+      "passed": true,
+      "evidence": "e2e asserts .layout-slot-picker, .layout-slot-trigger, .layout-slot-menu, [data-slot], and Layout N visible text are absent"
+    },
+    {
+      "name": "full_e2e",
+      "passed": true,
+      "evidence": "npm.cmd run test:e2e -- --workers=1 passed 19/19"
+    },
+    {
+      "name": "dependencies",
+      "passed": true,
+      "evidence": "no package.json or package-lock.json changes in dashboard checkout"
+    }
+  ],
+  "deferred": [
+    {
+      "item": "stale CSS/test-oracle selector references",
+      "reason": "Dead layout slot and switcher selectors remain in mixed navbar/menu CSS groups; live markup and JS routes are removed. Deferred to avoid broad visual cleanup in persistence pass."
+    }
+  ]
+}
