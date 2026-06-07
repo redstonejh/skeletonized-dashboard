@@ -30,7 +30,7 @@ export function initializeObjectAddRuntime(deps) {
     ensureWidgetTools,
     parseJsonRecord,
     bindDashboardKeywordForms,
-    refreshResolvedContextDebug,
+    refreshWidgetDisplayState,
     showToast,
     regionIdForWorkspaceItem,
     WORKSPACE_OBJECT_TYPES,
@@ -376,7 +376,7 @@ export function initializeObjectAddRuntime(deps) {
         span: 1,
         workspaceObjectType: WORKSPACE_OBJECT_TYPES.panel,
         dashboardObjectKind: "panel",
-        contextRole: "container",
+        regionRole: "container",
       };
       const order = [...layout.querySelectorAll(":scope > .db-panel")].length;
       const panel = createCustomPanel(definition);
@@ -424,7 +424,7 @@ export function initializeObjectAddRuntime(deps) {
         minW: 2,
         workspaceObjectType: WORKSPACE_OBJECT_TYPES.divider,
         dashboardObjectKind: "divider",
-        contextRole: "semantic-boundary",
+        regionRole: "boundary",
         navigationTargetType: "workspace-region",
       };
       const divider = createCustomPanel(definition);
@@ -500,7 +500,7 @@ export function initializeObjectAddRuntime(deps) {
         widgetLayer: button.dataset.widgetLayer || runtimeDefinition.layer || "presentation",
         workspaceObjectType: WORKSPACE_OBJECT_TYPES.widget,
         dashboardObjectKind: runtimeDefinition.dashboardObjectKind || runtimeDefinition.type,
-        contextRole: runtimeDefinition.contextRole || "content",
+        regionRole: runtimeDefinition.regionRole || "content",
         config: JSON.stringify(widgetConfig),
       };
       const widget = createCustomWidget(definition);
@@ -517,7 +517,7 @@ export function initializeObjectAddRuntime(deps) {
       });
       layout.__initWidget?.(widget);
       bindDashboardKeywordForms(widget);
-      refreshResolvedContextDebug(layoutKey, selected);
+      refreshWidgetDisplayState(layoutKey, selected);
       saveWidgetLayouts(layout, selected);
       showToast(`${objectName || title} added.`, "info", {
         type: "object-created",

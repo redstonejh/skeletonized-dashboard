@@ -1,0 +1,11 @@
+{
+  "verdict": "SHIP",
+  "reason": "Data-source/dataflow/engineer-mode subsystem removed from shipped app files; widgets render and persist as display objects; full hidden Electron e2e passed.",
+  "checks": {
+    "e2e": "npm.cmd run test:e2e -- --workers=1 -> 22 passed",
+    "dead_string_proof": "zero matches across app/static for removed terms",
+    "app_js_line_count_before": 3133,
+    "app_js_line_count_after": 2526,
+    "module_count_after": 67
+  }
+}

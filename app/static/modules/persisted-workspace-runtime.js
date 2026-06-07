@@ -10,7 +10,6 @@ export const initializePersistedWorkspaceRuntime = ({
   isMediaWidgetDefinition,
   setWidgetConfig,
   widgetLayerForElement,
-  workspaceContextFromElement,
   gridBoundsForItem,
   serializableExpansionBaselineState,
   expansionBaselineSnapshotForLayoutKey,
@@ -19,8 +18,6 @@ export const initializePersistedWorkspaceRuntime = ({
   workspaceObjectKey,
   undoTransientItemClasses,
   panelChildWidgets,
-  loadWorkspaceContexts,
-  loadDataSources,
   loadAssets,
   widgetRuntime,
   writeJsonStore,
@@ -45,7 +42,6 @@ export const initializePersistedWorkspaceRuntime = ({
       cols: instance.cols,
       rows: instance.rows,
       config,
-      contextOverrideId: instance.contextOverrideId || widget.dataset.contextOverrideId || null,
       color: widget.dataset.panelColor || null,
       title: widget.dataset.panelTitle || instance.config?.title || null,
       pinned: widget.classList.contains("db-panel-pinned"),
@@ -56,7 +52,6 @@ export const initializePersistedWorkspaceRuntime = ({
         rows: Number(widget.dataset.minH) || definition.minSize?.rows || 1,
       },
       workspaceObjectType: WORKSPACE_OBJECT_TYPES.widget,
-      context: workspaceContextFromElement(widget),
     };
   };
 
@@ -80,7 +75,6 @@ export const initializePersistedWorkspaceRuntime = ({
       savedHeight: panel.dataset.savedHeight ? Number(panel.dataset.savedHeight) : null,
       expansionBaseline: serializableExpansionBaselineState(expansionBaselineSnapshotForLayoutKey(activeLayoutKeyForItem(panel)), panel),
       childWidgetIds: panelChildWidgets(panel).map((widget) => widget.dataset.widgetKey).filter(Boolean),
-      context: workspaceContextFromElement(panel),
       ...workspaceObjectPersistence(panel),
     };
   };
@@ -154,8 +148,6 @@ export const initializePersistedWorkspaceRuntime = ({
           .flatMap((panel) => panelChildWidgets(panel).map((widget) => canonicalWidgetInstanceForPersistence(widget, panel)))
       : [];
     const widgets = [...rootWidgets, ...childWidgets];
-    const contexts = loadWorkspaceContexts(layoutKey, profile);
-    const dataSources = loadDataSources(layoutKey, profile);
     const assets = loadAssets(layoutKey, profile);
     const objects = [
       ...widgets.map((widget) => ({ id: widget.id, type: WORKSPACE_OBJECT_TYPES.widget, layoutDomain: widget.layoutDomain, parentId: widget.parentPanelId || null })),
@@ -171,8 +163,6 @@ export const initializePersistedWorkspaceRuntime = ({
       widgets,
       panels,
       dividers,
-      contexts,
-      dataSources,
       assets,
       assetReferences: widgets.flatMap(assetReferencesFromWidget),
     };
@@ -201,7 +191,6 @@ export const initializePersistedWorkspaceRuntime = ({
     };
     const panelIds = new Set((snapshot.panels || []).map((panel) => panel.id).filter(Boolean));
     const assetIds = new Set((snapshot.assets || []).map((asset) => asset.id).filter(Boolean));
-    const contextIds = new Set();
     const widgetTypes = knownWidgetRuntimeTypes();
     (snapshot.widgets || []).forEach((widget) => {
       addId(WORKSPACE_OBJECT_TYPES.widget, widget.id);
@@ -222,17 +211,9 @@ export const initializePersistedWorkspaceRuntime = ({
     (snapshot.panels || []).forEach((panel) => addId(WORKSPACE_OBJECT_TYPES.panel, panel.id));
     (snapshot.dividers || []).forEach((divider) => {
       addId(WORKSPACE_OBJECT_TYPES.divider, divider.id);
-      if (divider.contextScopeId && !String(divider.contextScopeId).includes(":region:")) {
-        addDiagnostic("warning", "divider-context-id-format", "Divider context id does not look like a workspace region id.", divider.id, WORKSPACE_OBJECT_TYPES.divider);
+      if (divider.workspaceRegionId && !String(divider.workspaceRegionId).includes(":region:")) {
+        addDiagnostic("warning", "divider-region-id-format", "Divider region id does not look like a workspace region id.", divider.id, WORKSPACE_OBJECT_TYPES.divider);
       }
-    });
-    (snapshot.contexts || []).forEach((context) => {
-      if (!context?.id) {
-        addDiagnostic("error", "missing-context-id", "Workspace context is missing an id.", "", "context");
-        return;
-      }
-      if (contextIds.has(context.id)) addDiagnostic("error", "duplicate-context-id", `Duplicate context id "${context.id}".`, context.id, "context");
-      contextIds.add(context.id);
     });
     (snapshot.assets || []).forEach((asset) => {
       addId("asset", asset.id);

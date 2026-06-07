@@ -15,7 +15,6 @@ export const hydrateWidgetLayout = (layout, {
   markLoadedExpansionBaseline,
   ensureWorkspaceObjectMetadata,
   workspaceObjectType,
-  applyWorkspaceContextToElement,
   applyWidgetSpan,
   applyWidgetGridPosition,
   applyPanelColor,
@@ -79,12 +78,10 @@ export const hydrateWidgetLayout = (layout, {
       workspaceObjectType: saved?.workspaceObjectType || widget.dataset.workspaceObjectType || workspaceObjectType(widget),
       dashboardObjectKind: saved?.dashboardObjectKind || widget.dataset.dashboardObjectKind || runtimeDefinition?.dashboardObjectKind,
       workspaceRegionId: saved?.workspaceRegionId,
-      contextScopeId: saved?.contextScopeId,
-      contextRole: saved?.contextRole || runtimeDefinition?.contextRole,
+      regionRole: saved?.regionRole || runtimeDefinition?.regionRole,
       navigationTargetType: saved?.navigationTargetType,
       navigationTargetId: saved?.navigationTargetId,
     });
-    if (saved?.workspaceContext) applyWorkspaceContextToElement(widget, saved.workspaceContext);
     const defaultWidgetSpan = widget.dataset.widgetType === "controls" ? 6 : 1;
     applyWidgetSpan(widget, saved?.span ?? widget.dataset.currentSpan ?? widget.dataset.defaultSpan ?? defaultWidgetSpan);
     if (saved?.gridCol && saved?.gridRow) applyWidgetGridPosition(widget, saved.gridCol, saved.gridRow, saved?.rowSpan);

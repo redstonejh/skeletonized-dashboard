@@ -3,7 +3,7 @@ export const createWidgetRuntimeControls = ({
   setWidgetConfig,
   setWidgetConfigValue,
   normalizedFilterWidgetFilters,
-  resolveWorkspaceContextForItem,
+  resolveWidgetDisplayState,
   captureRuntimeControlBaselineForWidget,
   renderWidgetRuntimeContent,
   syncWidgetContextOutputs,
@@ -39,7 +39,6 @@ export const createWidgetRuntimeControls = ({
       filters[index] = current;
       const nextConfig = { ...config, filters };
       setWidgetConfig(widget, nextConfig);
-      widget.dataset.contextFilters = JSON.stringify(normalizedFilterWidgetFilters(widget, resolveWorkspaceContextForItem(widget)));
       widget.dataset.widgetRuntimeStatus = "ready";
       return true;
     };
@@ -70,7 +69,7 @@ export const createWidgetRuntimeControls = ({
       const setTimeframeConfig = (nextConfig, options = {}) => {
         setWidgetConfig(widget, nextConfig);
         renderWidgetRuntimeContent(widget, {
-          resolvedContext: resolveWorkspaceContextForItem(widget),
+          resolvedContext: resolveWidgetDisplayState(widget),
           status: widget.dataset.widgetRuntimeStatus || "ready",
         });
         syncWidgetContextOutputs(widget);
@@ -197,7 +196,7 @@ export const createWidgetRuntimeControls = ({
           activeLabel: selectedFilter?.label || "",
         });
         renderWidgetRuntimeContent(widget, {
-          resolvedContext: resolveWorkspaceContextForItem(widget),
+          resolvedContext: resolveWidgetDisplayState(widget),
           status: "ready",
         });
         syncWidgetContextOutputs(widget);

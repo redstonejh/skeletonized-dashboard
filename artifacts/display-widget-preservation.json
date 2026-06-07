@@ -1,0 +1,9 @@
+{
+  "coverage": "electron GUI treats widgets as display objects without data-source configuration",
+  "assertions": [
+    "Added text widget renders content without removed subsystem text.",
+    "Widget dataset has no dataSource/dataAdapter/dataOrigin/workspaceContext attributes.",
+    "Save and reload preserve display content and ready status."
+  ],
+  "e2e_result": "22 passed"
+}

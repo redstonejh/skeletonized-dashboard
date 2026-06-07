@@ -2,11 +2,10 @@ export function initializeLayoutSourceRuntime(deps) {
   const {
     layoutPersistence,
     showToast,
-    refreshResolvedContextDebug,
+    refreshWidgetDisplayState,
     scheduleWorkspaceVisualLodRefresh,
     savePanelLayouts,
     saveWidgetLayouts,
-    saveWorkspaceContextState,
     savePersistedWorkspaceSnapshot,
     syncWorkspaceVisualLod,
     workspaceVisualLodForItem,
@@ -17,7 +16,7 @@ export function initializeLayoutSourceRuntime(deps) {
 
   document.querySelectorAll(".panel-layout").forEach((layout) => {
     const layoutKey = layout.dataset.layoutKey || "default";
-    refreshResolvedContextDebug(layoutKey, singleProfile);
+    refreshWidgetDisplayState(layoutKey, singleProfile);
   });
   window.addEventListener("scroll", () => scheduleWorkspaceVisualLodRefresh(), { passive: true });
   window.addEventListener("resize", () => scheduleWorkspaceVisualLodRefresh(), { passive: true });
@@ -50,7 +49,6 @@ export function initializeLayoutSourceRuntime(deps) {
     if (layout) savePanelLayouts(layout, singleProfile, { persist: true });
     const widgetLayout = document.querySelector(`.widget-layout[data-widget-layout-key="${CSS.escape(layoutKey)}"]`);
     if (widgetLayout) saveWidgetLayouts(widgetLayout, singleProfile, { persist: true });
-    saveWorkspaceContextState(layoutKey, singleProfile, { persist: true, history: false });
     savePersistedWorkspaceSnapshot(layoutKey, singleProfile);
     showToast("Workspace saved.", "info", {
       type: "layout-save-completed",

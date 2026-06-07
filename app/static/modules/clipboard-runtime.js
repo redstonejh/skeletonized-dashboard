@@ -111,9 +111,7 @@ export const createClipboardRuntime = ({
       panel.dataset.customPanel = "true";
       delete panel.dataset.panelInitialized;
       if (workspaceObjectType(panel) === WORKSPACE_OBJECT_TYPES.divider) {
-        delete panel.dataset.contextScopeId;
         delete panel.dataset.workspaceRegionId;
-        delete panel.dataset.contextInheritedFrom;
         delete panel.dataset.navigationTargetId;
       }
     });

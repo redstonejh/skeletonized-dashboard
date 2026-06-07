@@ -1,0 +1,7 @@
+{
+  "grep_scope": "app/static/**/*.{js,css,html}",
+  "terms": ["needs data source", "data substrate", "CONFIGURE", "dataSource", "dataAdapter", "dataOrigin", "WorkspaceContext", "inherited context", "engineer", "dataflow"],
+  "matches": [],
+  "deleted_modules": ["app/static/modules/data-adapter-runtime.js"],
+  "result": "pass"
+}

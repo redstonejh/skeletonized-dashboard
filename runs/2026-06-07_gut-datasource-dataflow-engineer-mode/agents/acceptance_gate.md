@@ -1,0 +1,3 @@
+# acceptance_gate
+
+See run.md and handoffs for this role's evidence.

@@ -1,8 +1,8 @@
 export const createConditionalStyleRuntime = ({
   widgetDefinitionForElement,
   widgetInstanceFromElement,
-  resolveWorkspaceContextForItem,
-  managedQueryStateForWidget,
+  resolveWidgetDisplayState,
+  widgetDisplayStateForWidget,
   applyPanelColor,
   hexToRgb,
   readableTextFor,
@@ -47,9 +47,10 @@ export const createConditionalStyleRuntime = ({
   const styleRuleEnvironmentForWidget = (widget, options = {}) => {
     const definition = options.definition || widgetDefinitionForElement(widget);
     const instance = options.instance || widgetInstanceFromElement(widget, definition);
-    const resolvedContext = options.resolvedContext || resolveWorkspaceContextForItem(widget);
-    const data = options.data || managedQueryStateForWidget(widget)?.data || null;
-    const status = options.status || widget.dataset.widgetRuntimeStatus || managedQueryStateForWidget(widget)?.status || "empty";
+    const resolvedContext = options.resolvedContext || resolveWidgetDisplayState(widget);
+    const displayState = widgetDisplayStateForWidget(widget);
+    const data = options.data || displayState?.data || null;
+    const status = options.status || widget.dataset.widgetRuntimeStatus || displayState?.status || "empty";
     const rows = Array.isArray(data?.rows) ? data.rows : [];
     const total = Number.isFinite(Number(data?.total)) ? Number(data.total) : rows.length;
     return {

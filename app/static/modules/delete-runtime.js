@@ -113,7 +113,7 @@ export const initializeDeleteRuntime = ({
       return true;
     });
     if (meaningfulConfig) return true;
-    if (widget.dataset.dataSource || widget.dataset.filterConfig || widget.dataset.searchConfig) return true;
+    if (widget.dataset.filterConfig || widget.dataset.searchConfig) return true;
     const searchValue = widget.querySelector(".search-widget-input")?.value?.trim();
     if (searchValue) return true;
     if (widget.dataset.widgetDefinition) return false;

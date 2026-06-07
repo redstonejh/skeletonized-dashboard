@@ -11,7 +11,6 @@ export const hydratePanelLayout = (layout, {
   markLoadedExpansionBaseline,
   ensureWorkspaceObjectMetadata,
   workspaceObjectType,
-  applyWorkspaceContextToElement,
   WORKSPACE_OBJECT_TYPES,
   applyPanelSpan,
   applyPanelGridPosition,
@@ -66,12 +65,10 @@ export const hydratePanelLayout = (layout, {
       workspaceObjectType: saved?.workspaceObjectType || panel.dataset.workspaceObjectType || workspaceObjectType(panel),
       dashboardObjectKind: saved?.dashboardObjectKind || panel.dataset.dashboardObjectKind,
       workspaceRegionId: saved?.workspaceRegionId,
-      contextScopeId: saved?.contextScopeId,
-      contextRole: saved?.contextRole,
+      regionRole: saved?.regionRole,
       navigationTargetType: saved?.navigationTargetType,
       navigationTargetId: saved?.navigationTargetId,
     });
-    if (saved?.workspaceContext) applyWorkspaceContextToElement(panel, saved.workspaceContext);
     panel.classList.remove("db-panel-unlocked", "db-panel-pinned");
     if (saved?.pinned) panel.classList.add("db-panel-pinned");
     panel.classList.toggle("db-panel-collapsed", saved?.collapsed ?? panel.classList.contains("db-panel-collapsed"));

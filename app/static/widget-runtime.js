@@ -7,7 +7,7 @@
     displayName: "Unsupported Widget",
     widgetType: String(type || "unsupported"),
     dashboardObjectKind: "unsupported-widget",
-    contextRole: "content",
+    regionRole: "content",
     htmlTag: "div",
     className: "stat-card widget-card widget-card-custom unsupported-widget-card",
     layer: "presentation",
@@ -432,7 +432,7 @@
       widget.dataset.widgetDisplayName = definition.displayName || definition.type;
       widget.dataset.widgetType = definition.widgetType || widget.dataset.widgetType || definition.type;
       widget.dataset.dashboardObjectKind = definition.dashboardObjectKind || widget.dataset.dashboardObjectKind || definition.type;
-      widget.dataset.contextRole = definition.contextRole || widget.dataset.contextRole || "content";
+      widget.dataset.regionRole = definition.regionRole || widget.dataset.regionRole || "content";
       widget.dataset.widgetCapabilities = JSON.stringify(definition.capabilities || {});
       widget.dataset.widgetSupportedSettings = JSON.stringify(definition.supportedSettings || []);
       widget.dataset.widgetSettingsSchema = JSON.stringify(definition.settingsSchema || { sections: [] });
@@ -549,7 +549,7 @@
         ...definition,
         workspaceObjectType: deps.WORKSPACE_OBJECT_TYPES?.widget,
         dashboardObjectKind: definition.dashboardObjectKind || runtimeDefinition.dashboardObjectKind || runtimeDefinition.type,
-        contextRole: definition.contextRole || runtimeDefinition.contextRole || "content",
+        regionRole: definition.regionRole || runtimeDefinition.regionRole || "content",
         navigationTargetType: definition.navigationTargetType,
         navigationTargetId: definition.navigationTargetId,
       });

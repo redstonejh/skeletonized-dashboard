@@ -1,0 +1,19 @@
+{
+  "classification": {
+    "remove": [
+      "createDataAdapterRuntime and app/static/modules/data-adapter-runtime.js",
+      "dataSources/workspaceContexts storage keys and history/reset snapshots",
+      "managed widget query refresh path",
+      "data-source required empty states in widget registry",
+      "workspace-context/data-source object metadata persistence"
+    ],
+    "keep_decouple": [
+      "widget visual runtime content hydration",
+      "widget/panel position, span, title, color, pinned, child-widget persistence",
+      "media asset persistence",
+      "timeframe/filter/text local display controls",
+      "workspace region/divider layout metadata"
+    ]
+  },
+  "notes": "The remaining widget runtime is display/demo content only; source/query adapter plumbing is not invoked or persisted. Region metadata was renamed to display/layout region metadata."
+}

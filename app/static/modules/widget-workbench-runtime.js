@@ -4,8 +4,8 @@ export const createWidgetWorkbenchRuntime = ({
   widgetDefinitionForElement,
   widgetSettingsSchemaForSurface,
   uniqueValues,
-  resolveWorkspaceContextForItem,
-  managedQueryStateForWidget,
+  resolveWidgetDisplayState,
+  widgetDisplayStateForWidget,
 }) => {
   const settingFieldOptionRecord = (option) => {
     if (option && typeof option === "object") {
@@ -16,9 +16,9 @@ export const createWidgetWorkbenchRuntime = ({
   };
 
   const fieldPickerOptionsForWidget = (widget, config = widgetConfigFromElement(widget)) => {
-    const resolved = resolveWorkspaceContextForItem(widget);
+    const resolved = resolveWidgetDisplayState(widget);
     const mapping = resolved.semanticMapping || {};
-    const cachedFields = managedQueryStateForWidget(widget)?.data?.schema?.fields?.map((field) => field.name) || [];
+    const cachedFields = widgetDisplayStateForWidget(widget)?.data?.schema?.fields?.map((field) => field.name) || [];
     return uniqueValues([
       ...cachedFields,
       ...Object.values(mapping).filter((value) => typeof value === "string"),
@@ -93,7 +93,7 @@ export const createWidgetWorkbenchRuntime = ({
     if (surface === "logic") {
       return `<div class="widget-settings-empty-state">
         <span>${escapeHtml(definition.displayName || "Widget")}</span>
-        <small>No working controls</small>
+        <small>No display controls</small>
       </div>`;
     }
     return `<div class="widget-settings-empty-state">
@@ -120,7 +120,7 @@ export const createWidgetWorkbenchRuntime = ({
       return "";
     }
     return `<div class="widget-settings-schema-head">
-      <span>${escapeHtml(definition.displayName || "Widget")} ${surface === "logic" ? "workbench" : "appearance"}</span>
+      <span>${escapeHtml(definition.displayName || "Widget")} ${surface === "logic" ? "settings" : "appearance"}</span>
     </div>
     ${renderableSections.length ? renderableSections.map((section) => `<fieldset class="widget-settings-section" data-widget-settings-section="${escapeHtml(section.id)}" data-widget-settings-surface="${escapeHtml(surface)}">
       <legend>${escapeHtml(section.label || "Settings")}</legend>
@@ -170,7 +170,7 @@ export const createWidgetWorkbenchRuntime = ({
     const filterTypes = runtime?.timeframeFilterTypes?.() || [];
     const weekOptions = runtime?.weekStartOptions?.() || [];
     return `<div class="widget-settings-schema-head">
-      <span>Time filter workbench</span>
+      <span>Time filter settings</span>
     </div>
     <fieldset class="widget-settings-section timeframe-workbench-section" data-widget-settings-section="timeframe-global" data-widget-settings-surface="logic">
       <legend>Calendar logic</legend>
@@ -214,9 +214,7 @@ export const createWidgetWorkbenchRuntime = ({
 
   const renderWidgetWorkbenchPanel = (widget) => {
     const definition = widgetDefinitionForElement(widget);
-    const resolvedContext = resolveWorkspaceContextForItem(widget);
     const status = widget.dataset.widgetRuntimeStatus || "empty";
-    const contextLabel = resolvedContext?.dataSourceName || resolvedContext?.dataSourceId || resolvedContext?.name || "Workspace";
     const logicMarkup = definition.type === "timeframe"
       ? renderTimeframeWorkbenchPanel(widget)
       : renderWidgetSettingsSchemaPanel(widget, "logic");

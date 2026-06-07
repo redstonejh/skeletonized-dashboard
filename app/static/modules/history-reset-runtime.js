@@ -11,8 +11,6 @@ export const initializeHistoryResetRuntime = ({
   requestWorkspaceObjectDelete,
   captureLayoutUndo,
   removeStore,
-  dataSourcesKey,
-  workspaceContextsKey,
   persistedWorkspaceKey,
   writeDraftList,
   applyWidgetSpan,
@@ -128,8 +126,6 @@ export const initializeHistoryResetRuntime = ({
       const layouts = [...document.querySelectorAll(`.panel-layout[data-layout-key="${CSS.escape(layoutKey)}"]`)];
       const widgetLayouts = [...document.querySelectorAll(`.widget-layout[data-widget-layout-key="${CSS.escape(layoutKey)}"]`)];
       captureLayoutUndo(layoutKey, profile);
-      removeStore(dataSourcesKey(layoutKey, profile));
-      removeStore(workspaceContextsKey(layoutKey, profile));
       removeStore(persistedWorkspaceKey(layoutKey, profile));
       widgetLayouts.forEach((layout) => {
         writeDraftList(layout, "hiddenWidgetsDraft", []);
@@ -146,13 +142,8 @@ export const initializeHistoryResetRuntime = ({
             delete widget.dataset.panelColor;
             delete widget.dataset.panelTitleColor;
             delete widget.dataset.panelTitle;
-            delete widget.dataset.workspaceContext;
-            delete widget.dataset.dataSourceId;
-            delete widget.dataset.semanticMapping;
-            delete widget.dataset.contextFilters;
-            delete widget.dataset.contextTimeRange;
-            delete widget.dataset.contextTags;
-            delete widget.dataset.contextName;
+            delete widget.dataset.timeframePreset;
+            delete widget.dataset.timeframeLabel;
             widget.style.removeProperty("--panel-accent");
             widget.style.removeProperty("--panel-accent-rgb");
             widget.style.removeProperty("--panel-accent-text");
@@ -182,13 +173,6 @@ export const initializeHistoryResetRuntime = ({
             delete panel.dataset.panelColor;
             delete panel.dataset.panelTitleColor;
             delete panel.dataset.panelTitle;
-            delete panel.dataset.workspaceContext;
-            delete panel.dataset.dataSourceId;
-            delete panel.dataset.semanticMapping;
-            delete panel.dataset.contextFilters;
-            delete panel.dataset.contextTimeRange;
-            delete panel.dataset.contextTags;
-            delete panel.dataset.contextName;
             panel.querySelector(":scope > .db-panel-body > .panel-internal-widget-grid")?.remove();
             updatePanelChildEmptyState(panel);
             panel.style.left = "";

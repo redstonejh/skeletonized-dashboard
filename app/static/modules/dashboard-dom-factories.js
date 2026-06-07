@@ -26,7 +26,7 @@ export const createDashboardDomFactories = ({
       ...definition,
       workspaceObjectType: objectType,
       dashboardObjectKind: definition.dashboardObjectKind || (isDivider ? "divider" : "panel"),
-      contextRole: definition.contextRole || (isDivider ? "semantic-boundary" : "container"),
+      regionRole: definition.regionRole || (isDivider ? "boundary" : "container"),
     });
     const headerMarkup = isDivider ? `
       <div class="db-panel-hd db-panel-hd-items workspace-divider-surface">

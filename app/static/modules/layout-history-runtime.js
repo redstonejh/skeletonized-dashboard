@@ -6,14 +6,12 @@ export const createLayoutHistoryRuntime = ({
   writeJsonStore,
   layoutStorageKeys,
   layoutUndoKey,
-  dataSourcesKey,
-  workspaceContextsKey,
   undoTransientItemClasses,
   endResizeAutoZoomCamera,
   cleanupWidgetRowBreaks,
   cleanupPanelRowBreaks,
   restoreGroupSelection,
-  refreshResolvedContextDebug,
+  refreshWidgetDisplayState,
   syncLayoutToolsActive,
 }) => {
   const liveLayoutUndo = new Map();
@@ -43,16 +41,12 @@ export const createLayoutHistoryRuntime = ({
           : serializeLayoutElement(item, "widgetKey")
       )),
     })),
-    dataSources: readRawStore(dataSourcesKey(layoutKey, profile), "[]"),
-    workspaceContexts: readRawStore(workspaceContextsKey(layoutKey, profile), "[]"),
     profile,
   });
 
   const liveLayoutUndoSignature = (snapshot) => JSON.stringify({
     panels: snapshot.panels,
     widgets: snapshot.widgets,
-    dataSources: snapshot.dataSources,
-    workspaceContexts: snapshot.workspaceContexts,
     profile: snapshot.profile,
   });
 
@@ -116,8 +110,6 @@ export const createLayoutHistoryRuntime = ({
     const layoutKeyForSnapshot = snapshot.panels?.[0]?.selector?.match(/data-layout-key="([^"]+)"/)?.[1] ||
       snapshot.widgets?.[0]?.selector?.match(/data-widget-layout-key="([^"]+)"/)?.[1] ||
       "builder";
-    if (snapshot.dataSources != null) writeRawStore(dataSourcesKey(layoutKeyForSnapshot, snapshot.profile), snapshot.dataSources);
-    if (snapshot.workspaceContexts != null) writeRawStore(workspaceContextsKey(layoutKeyForSnapshot, snapshot.profile), snapshot.workspaceContexts);
     snapshot.widgets?.forEach((widgetSnapshot) => {
       const layout = document.querySelector(widgetSnapshot.selector);
       if (!layout) return;
@@ -133,7 +125,7 @@ export const createLayoutHistoryRuntime = ({
       cleanupPanelRowBreaks(layout);
     });
     restoreGroupSelection();
-    refreshResolvedContextDebug(layoutKeyForSnapshot, snapshot.profile);
+    refreshWidgetDisplayState(layoutKeyForSnapshot, snapshot.profile);
     syncLayoutToolsActive();
     cleanupDashboardUndoArtifacts();
   };

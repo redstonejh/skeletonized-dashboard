@@ -6,15 +6,14 @@ export const createWidgetSettingsService = ({
   settingRawValue,
   normalizedTimeframeWidgetRange,
   normalizedFilterWidgetFilters,
-  resolveWorkspaceContextForItem,
+  resolveWidgetDisplayState,
   activeLayoutKeyForItem,
   getActivePanelProfile,
-  invalidateManagedWidgetQueryForWidget,
   saveWidgetLayouts,
-  refreshResolvedContextDebug,
+  refreshWidgetDisplayState,
   pushLiveLayoutUndo,
   setWidgetConfig,
-  managedQueryStateForWidget,
+  widgetDisplayStateForWidget,
   renderWidgetRuntimeContent,
   refreshWidgetRuntimeData,
   renderWidgetSettingsSchemaPanel,
@@ -46,21 +45,18 @@ export const createWidgetSettingsService = ({
     if (!widget?.classList?.contains("widget-card")) return;
     const definition = widgetDefinitionForElement(widget);
     if (definition.type === "timeframe") {
-      const resolvedContext = resolveWorkspaceContextForItem(widget);
+      const resolvedContext = resolveWidgetDisplayState(widget);
       const timeRange = normalizedTimeframeWidgetRange(widget, resolvedContext);
       if (timeRange) {
-        widget.dataset.contextTimeRange = JSON.stringify(timeRange);
-        widget.dataset.timeframePreset = timeRange.preset || "";
-        widget.dataset.timeframeLabel = timeRange.label || "";
+      widget.dataset.timeframePreset = timeRange.preset || "";
+      widget.dataset.timeframeLabel = timeRange.label || "";
       } else {
-        delete widget.dataset.contextTimeRange;
         delete widget.dataset.timeframePreset;
         delete widget.dataset.timeframeLabel;
       }
     }
     if (definition.type === "filter") {
-      const resolvedContext = resolveWorkspaceContextForItem(widget);
-      widget.dataset.contextFilters = JSON.stringify(normalizedFilterWidgetFilters(widget, resolvedContext));
+      normalizedFilterWidgetFilters(widget, resolveWidgetDisplayState(widget));
     }
   };
 
@@ -68,9 +64,8 @@ export const createWidgetSettingsService = ({
     const layoutKey = activeLayoutKeyForItem(widget);
     const profile = getActivePanelProfile(layoutKey);
     const layout = widget.closest(".widget-layout");
-    if (options.invalidateQuery !== false) invalidateManagedWidgetQueryForWidget(widget);
     if (layout) saveWidgetLayouts(layout, profile, { history: false });
-    refreshResolvedContextDebug(layoutKey, profile);
+    refreshWidgetDisplayState(layoutKey, profile);
     if (options.history !== false) pushLiveLayoutUndo(layoutKey, profile);
   };
 
@@ -97,14 +92,14 @@ export const createWidgetSettingsService = ({
     if (options.history !== false) captureRuntimeControlBaselineForWidget(widget);
     setWidgetConfig(widget, { ...config, [field.key]: nextValue });
     syncWidgetContextOutputs(widget);
-    const affectsQuery = Boolean(field.affectsQuery || field.affectsContext);
-    persistRuntimeControlChangeForWidget(widget, { history: options.history !== false, invalidateQuery: affectsQuery });
-    if (affectsQuery) {
-      refreshWidgetRuntimeData(widget, resolveWorkspaceContextForItem(widget), { force: true, allowFocused: true });
+    const affectsDisplay = Boolean(field.affectsQuery || field.affectsContext);
+    persistRuntimeControlChangeForWidget(widget, { history: options.history !== false, invalidateQuery: affectsDisplay });
+    if (affectsDisplay) {
+      refreshWidgetRuntimeData(widget, resolveWidgetDisplayState(widget), { force: true, allowFocused: true });
     } else {
-      const queryState = managedQueryStateForWidget(widget);
+      const queryState = widgetDisplayStateForWidget(widget);
       renderWidgetRuntimeContent(widget, {
-        resolvedContext: resolveWorkspaceContextForItem(widget),
+        resolvedContext: resolveWidgetDisplayState(widget),
         data: queryState?.data,
         status: queryState?.status || widget.dataset.widgetRuntimeStatus || "empty",
       });

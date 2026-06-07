@@ -680,7 +680,7 @@
   const chartFrame = ({ instance, definition, density, body, legend = "", data = null, resolvedContext = null }) => {
     const densityTier = normalizeDensity(instance?.density, resolveWidgetDensity(instance));
     const contextLabel = chartContextLabel(resolvedContext || {}, data);
-    const traceable = Boolean(resolvedContext?.dataSourceId || data?.sourceId || data?.metadata?.lineage);
+    const traceable = Boolean(data?.sourceId || data?.metadata?.lineage);
     return `
       <div class="runtime-chart-widget runtime-chart-density-${density} widget-density-${densityTier}" data-density="${escapeHtml(densityTier)}" data-runtime-state="ready" data-runtime-source="${escapeHtml(runtimeSource(data))}" data-runtime-traceable="${traceable ? "true" : "false"}" data-runtime-context="${escapeHtml(contextLabel)}" data-chart-type="${escapeHtml(definition.chartType)}" data-chart-category="${escapeHtml(definition.category || "general")}">
         <div class="runtime-chart-stage">${body}</div>
@@ -1255,29 +1255,27 @@
       if (text.includes("column") || text.includes("table") || text.includes("row")) return "Rows with configured display columns.";
       if (text.includes("chart") || text.includes("field") || text.includes("group") || text.includes("series") || text.includes("category")) return "Rows with the configured chart fields.";
       if (text.includes("image") || text.includes("video") || text.includes("document") || text.includes("asset") || text.includes("url")) return "A safe configured media asset reference.";
-      if (text.includes("data source") || text.includes("source")) return "A dataset from the workspace data substrate.";
-      return "Runtime data that matches this widget configuration.";
+      if (text.includes("source")) return "Display content that matches this widget configuration.";
+      return "Runtime content that matches this widget configuration.";
     })();
     const reason = options.reason || (() => {
       if (state === "loading") return "The query is still hydrating.";
-      if (state === "error") return "The runtime adapter reported a load or configuration error.";
+      if (state === "error") return "The widget reported a load or configuration error.";
       if (state === "unsupported") return "This saved object uses a widget type that is not registered.";
-      if (text.includes("no data source") || text.includes("needs data source") || text.includes("configure a data source")) return "No inherited or selected data source is available.";
       if (isConfigure || text.includes("map a ") || text.includes("configure")) return "Required fields or asset settings have not been mapped yet.";
-      if (isEmpty && (text.includes("match") || text.includes("current context"))) return "The current context, filters, or time range returned zero rows.";
+      if (isEmpty && (text.includes("match") || text.includes("current view"))) return "The current filters or time range returned zero rows.";
       if (isEmpty && (text.includes("numeric") || text.includes("coordinate") || text.includes("valid"))) return "Rows exist, but the required field values are missing or incompatible.";
       if (isEmpty) return "The query returned no usable records for this widget.";
       return "The widget is waiting for runtime input.";
     })();
     const action = options.action || (() => {
       if (state === "loading") return "Keep the widget in place while data loads.";
-      if (state === "error") return "Open settings and inspect the data source.";
+      if (state === "error") return "Open settings and inspect the widget configuration.";
       if (state === "unsupported") return "Install or restore the missing registry definition.";
-      if (text.includes("data source") || text.includes("needs data source") || text.includes("configure a data source")) return "Select a dataset, origin, or inherited context source.";
       if (text.includes("image") || text.includes("video") || text.includes("document") || text.includes("asset") || text.includes("url")) return "Open settings and provide a safe asset URL or reference.";
       if (isConfigure || text.includes("field") || text.includes("column")) return "Open settings and map the required fields.";
-      if (isEmpty && text.includes("current context")) return "Adjust filters, time range, or panel context.";
-      if (isEmpty) return "Check source records or broaden the widget scope.";
+      if (isEmpty && text.includes("current view")) return "Adjust filters or time range.";
+      if (isEmpty) return "Check the widget content or broaden the widget scope.";
       return "Configure the widget or connect an input stream.";
     })();
     return { expected, reason, action };
@@ -1502,7 +1500,7 @@
     if (hours < 24) return `${hours}h`;
     return `${Math.round(hours / 24)}d`;
   };
-  const contextScopeLabel = (context = {}) => context.dataSourceName || context.dataSourceId || context.name || "Workspace context";
+  const contextScopeLabel = (context = {}) => context.name || "Workspace";
   const chartContextLabel = (resolvedContext = {}, data = null) => {
     const parts = [];
     const filters = Array.isArray(resolvedContext?.filters) ? resolvedContext.filters.length : 0;
@@ -1595,7 +1593,7 @@
     minSize: { cols: 1, rows: 1 },
     widgetType: String(type || "unknown"),
     dashboardObjectKind: "unsupported-widget",
-    contextRole: "content",
+    regionRole: "content",
     htmlTag: "div",
     className: "stat-card widget-card widget-card-custom unsupported-widget-card",
     capabilities: {
@@ -1773,7 +1771,7 @@
     minSize: { cols: 1, rows: 1 },
     widgetType: "tracker",
     dashboardObjectKind: "stat",
-    contextRole: "content",
+    regionRole: "content",
     htmlTag: "a",
     className: "stat-card widget-card widget-card-custom",
     capabilities: {
@@ -1810,13 +1808,12 @@
     },
     getTitle: ({ instance }) => statLabelFor(instance?.config || {}),
     getMetadata: (props) => {
-      if (props.status !== "ready" || !props.resolvedContext?.dataSourceId) return [];
+      if (props.status !== "ready") return [];
       const { metricContext } = statMetricContext(props);
       return runtimeMeta(metricContext, props.data);
     },
     getDemoData: (config = {}) => demoDataResult({ widgetType: "stat", config }),
     resolveQuery: (config, resolvedContext) => {
-      if (!resolvedContext?.dataSourceId || !resolvedContext?.canQuery) return null;
       const mapping = resolvedContext.semanticMapping || {};
       const metric = ["count", "sum", "avg", "min", "max"].includes(config.metric) ? config.metric : "count";
       const valueField = config.valueField || mapping.valueField;
@@ -1837,7 +1834,6 @@
       const config = instance.config || {};
       const label = statLabelFor(config);
       const { metric, valueField, rows, total } = statMetricContext({ instance, resolvedContext, data });
-      if (!resolvedContext?.dataSourceId) return runtimeState(label, "Needs data source");
       if (metric !== "count" && !valueField) return runtimeState(label, "Map a value field");
       if (status === "loading") return runtimeState(label, "Loading");
       if (status === "error") return runtimeState(label, data?.error || "Unable to load metric");
@@ -1866,7 +1862,7 @@
     minSize: { cols: 2, rows: 1 },
     widgetType: "timeframe",
     dashboardObjectKind: "timeframe",
-    contextRole: "timeframe-control",
+    regionRole: "timeframe-control",
     htmlTag: "div",
     className: "stat-card widget-card widget-card-custom timeframe-widget-card",
     ariaLabel: "Time filter controls",
@@ -1918,7 +1914,7 @@
     minSize: { cols: 2, rows: 1 },
     widgetType: "text",
     dashboardObjectKind: "text",
-    contextRole: "annotation",
+    regionRole: "annotation",
     htmlTag: "div",
     className: "stat-card widget-card widget-card-custom text-widget-card",
     capabilities: {
@@ -1970,7 +1966,7 @@
     minSize: { cols: 2, rows: 1 },
     widgetType: "region-summary",
     dashboardObjectKind: "region-summary",
-    contextRole: "region-summary",
+    regionRole: "region-summary",
     htmlTag: "div",
     className: "stat-card widget-card widget-card-custom region-summary-widget-card",
     capabilities: {
@@ -2000,7 +1996,7 @@
       const rows = Number(instance.rows) || 2;
       const density = rows <= 1 ? "compact" : rows >= 3 || cols >= 3 ? "rich" : "standard";
       const regionLabel = summary.label || resolvedContext?.name || "Current region";
-      const source = summary.dataSourceName || resolvedContext?.dataSourceName || resolvedContext?.dataSourceId || "";
+      const source = "";
       const rowRange = summary.endRow
         ? `Rows ${summary.startRow || 1}-${summary.endRow}`
         : `Rows ${summary.startRow || 1}+`;
@@ -2025,7 +2021,7 @@
     minSize: { cols: 2, rows: 1 },
     widgetType: "image",
     dashboardObjectKind: "image",
-    contextRole: "reference",
+    regionRole: "reference",
     htmlTag: "div",
     className: "stat-card widget-card widget-card-custom media-widget-card image-widget-card",
     capabilities: {
@@ -2080,7 +2076,7 @@
     minSize: { cols: 2, rows: 1 },
     widgetType: "video",
     dashboardObjectKind: "video",
-    contextRole: "reference",
+    regionRole: "reference",
     htmlTag: "div",
     className: "stat-card widget-card widget-card-custom media-widget-card video-widget-card",
     capabilities: {
@@ -2145,7 +2141,7 @@
     minSize: { cols: 2, rows: 1 },
     widgetType: "document",
     dashboardObjectKind: "document",
-    contextRole: "reference",
+    regionRole: "reference",
     htmlTag: "div",
     className: "stat-card widget-card widget-card-custom media-widget-card document-widget-card",
     capabilities: {
@@ -2222,7 +2218,7 @@
     minSize: { cols: 2, rows: 1 },
     widgetType: "table",
     dashboardObjectKind: "table",
-    contextRole: "content",
+    regionRole: "content",
     htmlTag: "div",
     className: "stat-card widget-card widget-card-custom table-widget-card",
     capabilities: {
@@ -2271,7 +2267,6 @@
       const config = instance.config || {};
       const densityTier = normalizeDensity(density);
       const title = config.title || "Table";
-      if (!resolvedContext?.dataSourceId) return runtimeState(title, "No data source");
       if (status === "loading") return runtimeState(title, "Loading");
       if (status === "error") return runtimeState(title, data?.error || "Unable to load rows");
       const rows = data?.rows || [];
@@ -2309,7 +2304,7 @@
     minSize: { cols: 2, rows: 1 },
     widgetType: "graph",
     dashboardObjectKind: "chart",
-    contextRole: "content",
+    regionRole: "content",
     htmlTag: "div",
     className: "stat-card widget-card widget-card-custom chart-widget-card",
     capabilities: {
@@ -2390,7 +2385,6 @@
       const definition = getChartDefinition(chartType);
       const title = config.title || "Chart";
       if (!definition) return runtimeState(title, "Unsupported chart config");
-      if (!resolvedContext?.dataSourceId) return runtimeState(title, "No data source");
       const requiredMessage = chartRequiredFieldMessage(definition, config, resolvedContext);
       if (requiredMessage) return runtimeState(title, requiredMessage);
       if (status === "loading") return runtimeState(title, "Loading");
@@ -2465,7 +2459,7 @@
     minSize: { cols: 2, rows: 1 },
     widgetType: "map",
     dashboardObjectKind: "map",
-    contextRole: "content",
+    regionRole: "content",
     htmlTag: "div",
     className: "stat-card widget-card widget-card-custom map-widget-card",
     capabilities: {
@@ -2539,7 +2533,6 @@
       const latitudeField = String(config.latitudeField || mapping.latitudeField || "").trim();
       const longitudeField = String(config.longitudeField || mapping.longitudeField || "").trim();
       const locationField = String(config.locationField || mapping.locationField || "").trim();
-      if (!resolvedContext?.dataSourceId) return runtimeState(title, "Needs geospatial data");
       if ((!latitudeField || !longitudeField) && !locationField) return runtimeState(title, "Configure location fields");
       if (status === "loading") return runtimeState(title, "Loading");
       if (status === "error") return runtimeState(title, data?.error || "Unable to load map data");
@@ -2654,7 +2647,7 @@
     minSize: { cols: 2, rows: 1 },
     widgetType: "calendar",
     dashboardObjectKind: "calendar",
-    contextRole: "content",
+    regionRole: "content",
     htmlTag: "div",
     className: "stat-card widget-card widget-card-custom calendar-widget-card",
     capabilities: {
@@ -2695,7 +2688,6 @@
       const config = instance.config || {};
       const mapping = resolvedContext?.semanticMapping || {};
       const dateField = String(config.dateField || mapping.dateField || "").trim();
-      if (!resolvedContext?.dataSourceId) return runtimeState(title, "Configure a data source");
       if (!dateField) return runtimeState(title, "Configure date field");
       if (status === "loading") return runtimeState(title, "Loading");
       if (status === "error") return runtimeState(title, data?.error || "Unable to load dates");

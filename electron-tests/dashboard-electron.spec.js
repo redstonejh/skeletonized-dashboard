@@ -1287,6 +1287,50 @@ test("electron GUI commits widget runtime content and meaning across reload", as
   await closeApp(app);
 });
 
+test("electron GUI treats widgets as display objects without data-source configuration", async () => {
+  const { app, page } = await launchApp();
+  const textWidget = await addTextWidget(page);
+  const widgetKey = await textWidget.evaluate((node) => node.dataset.widgetKey || "");
+  const selector = `.widget-layout > .widget-card[data-widget-key="${widgetKey}"]`;
+
+  const setting = await applyFirstWidgetSetting(page, selector, "body", "Display object canary");
+  expect(setting.applied).toBe(true);
+  await page.waitForFunction((selector) => {
+    const widget = document.querySelector(selector);
+    return Boolean(widget?.querySelector("[data-widget-shell-content='true']")?.textContent?.includes("Display object canary"));
+  }, selector);
+  const before = await page.locator(selector).evaluate((node) => ({
+    text: node.textContent || "",
+    content: node.querySelector("[data-widget-shell-content='true']")?.textContent?.trim() || "",
+    status: node.dataset.widgetRuntimeStatus || "",
+    sourceAttrs: Object.keys(node.dataset).filter((key) => /dataSource|dataAdapter|dataOrigin|workspaceContext/i.test(key)),
+  }));
+  expect(before.content).toContain("Display object canary");
+  expect(before.status).toBe("ready");
+  expect(before.text).not.toMatch(/needs data source|data substrate|configure a data source/i);
+  expect(before.sourceAttrs).toEqual([]);
+
+  await openControlBar(page);
+  await page.locator(".layout-save-button").click();
+  await page.reload();
+  await page.waitForSelector(".dashboard-layout-grid");
+  await page.waitForFunction((selector) => {
+    const widget = document.querySelector(selector);
+    return Boolean(widget?.querySelector("[data-widget-shell-content='true']")?.textContent?.includes("Display object canary"));
+  }, selector);
+  const after = await page.locator(selector).evaluate((node) => ({
+    content: node.querySelector("[data-widget-shell-content='true']")?.textContent?.trim() || "",
+    status: node.dataset.widgetRuntimeStatus || "",
+    sourceAttrs: Object.keys(node.dataset).filter((key) => /dataSource|dataAdapter|dataOrigin|workspaceContext/i.test(key)),
+  }));
+  expect(after).toMatchObject({
+    content: before.content,
+    status: "ready",
+    sourceAttrs: [],
+  });
+  await closeApp(app);
+});
+
 test("electron GUI clears stale conditional style state on widget render", async () => {
   const { app, page } = await launchApp();
   const textWidget = await addTextWidget(page);
