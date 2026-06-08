@@ -5389,6 +5389,8 @@ body.workspace-page-swipe-dragging{
   top: var(--control-bar-top, 16px);
   left: var(--control-bar-left, 16px);
   z-index: calc(var(--z-menu-overlay, 2600) + 10);
+  display: flex;
+  flex-flow: row nowrap;
   width: max-content;
   max-width: none;
   margin: 0;
@@ -5448,6 +5450,8 @@ body.workspace-page-swipe-dragging{
 .app-nav.workspace-chrome.floating-control-bar > .app-nav-actions{
   display: flex;
   flex: 0 0 auto;
+  width: auto;
+  min-width: max-content;
   flex-wrap: nowrap;
   align-items: center;
   z-index: 1;
@@ -5458,9 +5462,15 @@ body.workspace-page-swipe-dragging{
   position: relative;
   display: inline-flex;
   flex: 0 0 auto;
+  width: auto;
+  min-width: max-content;
   flex-wrap: nowrap;
   align-items: center;
   z-index: 1;
+}
+.app-nav.workspace-chrome.floating-control-bar :is(.panel-add-picker, .background-tone-menu){
+  display: inline-flex;
+  flex: 0 0 auto;
 }
 .workspace-tab-bar{
   margin-top: -4px;
