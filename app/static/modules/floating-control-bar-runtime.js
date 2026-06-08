@@ -37,6 +37,7 @@ const interactiveSelector = [
 export const initializeFloatingControlBarRuntime = async () => {
   const bar = document.querySelector("[data-floating-control-bar]");
   const gear = document.querySelector(".control-bar-gear");
+  const minimizeControl = document.querySelector(".window-minimize-control");
   const refreshControl = document.querySelector(".window-refresh-control");
   const closeControl = document.querySelector(".window-close-control");
   if (!bar || !gear) return null;
@@ -96,6 +97,12 @@ export const initializeFloatingControlBarRuntime = async () => {
     event.preventDefault();
     event.stopPropagation();
     setOpen(!isOpen);
+  });
+
+  minimizeControl?.addEventListener("click", (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    window.dashboardWindowControls?.minimize?.();
   });
 
   refreshControl?.addEventListener("click", (event) => {

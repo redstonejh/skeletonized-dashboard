@@ -45,6 +45,9 @@ contextBridge.exposeInMainWorld("dashboardWindowControls", {
   reload() {
     return ipcRenderer.invoke("dashboard-window:reload");
   },
+  minimize() {
+    return ipcRenderer.invoke("dashboard-window:minimize");
+  },
   close() {
     return ipcRenderer.invoke("dashboard-window:close");
   }

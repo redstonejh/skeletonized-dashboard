@@ -1,0 +1,15 @@
+{
+  "verdict": "SHIP",
+  "tests_run": false,
+  "tests_skipped_reason": "User explicitly instructed: NO TESTS; manual verification only.",
+  "changes": [
+    "main.js: plain frameless BrowserWindow path, centralized native menu removal, minimize IPC",
+    "preload.js: exposed minimize control",
+    "index.html: added minimize control and reordered custom controls",
+    "app/static/modules/floating-control-bar-runtime.js: wired minimize button",
+    "app/static/themes.css: added minimize icon and corrected refresh icon mask"
+  ],
+  "risks": [
+    "Manual verification is required to confirm native chrome removal because tests and launch validation were explicitly disabled."
+  ]
+}
