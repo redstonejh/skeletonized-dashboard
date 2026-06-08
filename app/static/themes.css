@@ -3528,7 +3528,6 @@ never geometry or layout state. */ .dashboard-layout-grid .widget-card[data-lod]
 .dashboard-layout-grid .db-panel[data-lod="active"],
 .dashboard-layout-grid .widget-card[data-visual-lod="active"],
 .dashboard-layout-grid .db-panel[data-visual-lod="active"]{
-  will-change: transform;
 }.dashboard-layout-grid .widget-card[data-lod="near"]:not(:focus-within):not(.active):not(.group-selected):not(.widget-dragging):not(.dashboard-active-resize):not(.widget-tools-open),
 .dashboard-layout-grid .db-panel[data-lod="near"]:not(:focus-within):not(.active):not(.group-selected):not(.db-panel-dragging):not(.dashboard-active-resize):not(.db-panel-tools-open),
 .dashboard-layout-grid .widget-card[data-visual-lod="near"]:not(:focus-within):not(.active):not(.group-selected):not(.widget-dragging):not(.dashboard-active-resize):not(.widget-tools-open),
@@ -3537,7 +3536,6 @@ never geometry or layout state. */ .dashboard-layout-grid .widget-card[data-lod]
   backdrop-filter: blur(2px) saturate(1.02);
   -webkit-backdrop-filter: blur(2px) saturate(1.02);
   transition: var(--workspace-lod-near-transition) !important;
-  will-change: auto;
 }.dashboard-layout-grid .widget-card[data-lod="far"]:not(:focus-within):not(.active):not(.group-selected):not(.widget-dragging):not(.dashboard-active-resize):not(.widget-tools-open),
 .dashboard-layout-grid .db-panel[data-lod="far"]:not(:focus-within):not(.active):not(.group-selected):not(.db-panel-dragging):not(.dashboard-active-resize):not(.db-panel-tools-open),
 .dashboard-layout-grid .widget-card[data-visual-lod="far"]:not(:focus-within):not(.active):not(.group-selected):not(.widget-dragging):not(.dashboard-active-resize):not(.widget-tools-open),
@@ -3546,7 +3544,6 @@ never geometry or layout state. */ .dashboard-layout-grid .widget-card[data-lod]
   backdrop-filter: none !important;
   -webkit-backdrop-filter: none !important;
   transition: var(--workspace-lod-far-transition) !important;
-  will-change: auto;
 }.dashboard-layout-grid .widget-card[data-lod="far"]:not(:focus-within):not(.active):not(.group-selected):not(.widget-dragging):not(.dashboard-active-resize):not(.widget-tools-open):hover,
 .dashboard-layout-grid .db-panel[data-lod="far"]:not(:focus-within):not(.active):not(.group-selected):not(.db-panel-dragging):not(.dashboard-active-resize):not(.db-panel-tools-open):hover,
 .dashboard-layout-grid .widget-card[data-visual-lod="far"]:not(:focus-within):not(.active):not(.group-selected):not(.widget-dragging):not(.dashboard-active-resize):not(.widget-tools-open):hover,
@@ -4596,11 +4593,6 @@ knock the diffusion ::before down further,
   -webkit-backdrop-filter: blur(2px) saturate(var(--glass-photo-saturate)) !important;
 }.db-panel-body::before{
   opacity: 0.05 !important;
-}/* ── Resting state must match the drag-state material ── * * The "perfect glass" the user observed only during internal widget * drag was not caused by a unique paint rule — it was caused by * `body.panel-interaction-active .db-panel:has(.panel-internal-widget-grid > .widget-dragging)` * at dashboard-grid.css:3300 setting `will-change: auto`. At rest the * base .db-panel rule (dashboard-grid.css:2765) keeps `will-change: * transform`,
-which in Chromium promotes the panel to its own * compositing layer. backdrop-filter on .db-panel-body samples through * the parent layer using the screen's underlying backdrop image; across * the panel's compositing-layer boundary it cannot see the photo * cleanly,
-so the body's filter falls back to compositing against the * panel's own paint and reads as an opaque pale slab. Removing the * `will-change: transform` promotion at rest makes the body's * backdrop-filter see the photo background the same way it does during * the drag — the resting state visually equals the drag state. No * paint rules change; only the compositing hint is suppressed for the * photo-background path. Solid-color backgrounds keep `will-change: * transform` because there's no photo to sample through,
-so drag perf * is unaffected outside photo mode. */ .db-panel{
-  will-change: auto;
 }/* ── Drag/interaction states must not revert panel + contained widgets * to solid var(--surface) ── * * Interaction-state rules in dashboard-grid.css can force panel/widget chrome back to * opaque white the moment the user starts dragging a widget into a * panel: * * 1. body.panel-interaction-active .panel-internal-widget-grid > .widget-card…:hover/:focus-visible * — dashboard-grid.css:3341-3353,
 specificity (0,8,1) with * `background: var(--surface) !important`. Fires on the contained * widget itself during drag. * * 3. body.panel-interaction-active .db-panel…:hover/:focus-within * — dashboard-grid.css:3355-3363,
 similar high specificity with * `!important`. Fires on the panel chrome. * * Earlier photo-glass overrides only matched the resting selectors * (.panel-layout > .db-panel, .panel-internal-widget-grid > .widget-card) * so they were beaten the moment those state classes appeared. Restore * the translucent recipe for these specific drag-interaction paths * only. Match-or-beat the original specificity,
@@ -5218,7 +5210,6 @@ no card. Active * filter is indicated by a subtle underline + slightly higher * 
 }
 .workspace-page-surface{
   transition: transform 180ms ease, opacity 180ms ease;
-  will-change: opacity;
 }
 .workspace-page-surface.workspace-page-slide-out{
   opacity: .2;
