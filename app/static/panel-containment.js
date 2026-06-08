@@ -366,16 +366,10 @@
     const extractPanelChildWidgetToWorkspace = ({ widget, sourceLayout, targetLayout, panel, targetCell, fromRect }) => {
       if (!widget || !sourceLayout || !targetLayout || !panel) return null;
       const widgetKey = widget.dataset.widgetKey || "";
-      if (widgetKey) {
-        const hidden = deps.readDraftList(targetLayout, "hiddenWidgetsDraft")
-          .filter((hiddenKey) => hiddenKey !== widgetKey);
-        deps.writeDraftList(targetLayout, "hiddenWidgetsDraft", hidden);
-      }
       const clone = sanitizePanelChildWidgetClone(widget);
       delete clone.dataset.panelChildWidget;
       delete clone.dataset.parentPanelKey;
       delete clone.dataset.widgetInitialized;
-      widget.remove();
       targetLayout.appendChild(clone);
       deps.applyWidgetGridPosition(clone, targetCell?.col || 1, targetCell?.row || 1);
       const metrics = deps.createGridMetrics(targetLayout);
@@ -384,6 +378,16 @@
         metrics,
         rowLimit: deps.viewportRowFloorForLayout?.(targetLayout, metrics),
       });
+      if (!result?.bounds) {
+        clone.remove();
+        return null;
+      }
+      if (widgetKey) {
+        const hidden = deps.readDraftList(targetLayout, "hiddenWidgetsDraft")
+          .filter((hiddenKey) => hiddenKey !== widgetKey);
+        deps.writeDraftList(targetLayout, "hiddenWidgetsDraft", hidden);
+      }
+      widget.remove();
       targetLayout.__initWidget?.(clone);
       updatePanelChildEmptyState(panel);
       animateAbsorbedWidgetIntoPanel(clone, fromRect);

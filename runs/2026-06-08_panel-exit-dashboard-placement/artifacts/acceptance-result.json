@@ -1,0 +1,14 @@
+{
+  "verdict": "SHIP",
+  "tests_run": false,
+  "validation_run": false,
+  "skip_reason": "User explicitly instructed NO TESTS and no validation; manual verification by user.",
+  "changed_files": [
+    "app/static/modules/ordered-drag-runtime.js",
+    "app/static/panel-containment.js"
+  ],
+  "summary": [
+    "Panel exit now hands `extractPanelChildWidgetToWorkspace` the resolved dashboard placeholder bounds instead of a stale pointer cell.",
+    "The panel child is no longer removed until the dashboard clone has been appended and committed through `commitActiveDropSlot` with fallback placement."
+  ]
+}

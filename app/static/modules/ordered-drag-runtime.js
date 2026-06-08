@@ -795,6 +795,9 @@ export const createOrderedDragRuntime = (deps = {}) => {
                 : { bounds: boundsAtGridSlot(item, originalCell.col, originalCell.row), movedItems: 0, absorbed: false };
               if (!absorbed) onCancel?.();
             } else if (activePanelExitDrag) {
+              const exitTarget = activePanelExitDrag.placeholder?.isConnected
+                ? gridBoundsForItem(activePanelExitDrag.placeholder, activePanelExitDrag.metrics)
+                : finalCell;
               clearPanelExitPreview({ restore: false });
               restoreGridLayoutSnapshot(startSnapshot, { exclude: [item] });
               placeholder.remove();
@@ -805,7 +808,7 @@ export const createOrderedDragRuntime = (deps = {}) => {
                 targetLayout: activePanelExitDrag.layout,
                 panel: activePanelExitDrag.panel,
                 fromRect: releaseItemRect,
-                targetCell: finalCell,
+                targetCell: exitTarget,
               });
               result = extracted
                 ? { bounds: extracted.bounds, movedItems: extracted.movedItems + 1, extracted: true }
