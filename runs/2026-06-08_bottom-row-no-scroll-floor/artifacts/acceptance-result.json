@@ -1,0 +1,13 @@
+{
+  "verdict": "SHIP",
+  "tests_run": false,
+  "validation_run": false,
+  "skip_reason": "User explicitly instructed NO TESTS and no validation; manual verification by user.",
+  "changed_files": [
+    "app/static/app.js"
+  ],
+  "summary": [
+    "`viewportRowFloorForLayout` no longer adds one extra row beyond the rows that fit in the viewport.",
+    "Drag and collision continue to share the same row-floor boundary; panel expansion code was not changed."
+  ]
+}
