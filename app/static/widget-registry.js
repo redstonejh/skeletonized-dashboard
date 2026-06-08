@@ -629,10 +629,24 @@
     row,
     value: numberValue(row?.[field]),
   })).filter((entry) => entry.value != null);
+  const visualWellTone = (config = {}) => config.wellTone === "dark" ? "dark" : "white";
+  const visualWellToneField = () => ({
+    key: "wellTone",
+    label: "Well",
+    type: "select",
+    defaultValue: "white",
+    required: true,
+    surface: "visual",
+    options: [
+      { value: "white", label: "White" },
+      { value: "dark", label: "Dark grey" },
+    ],
+  });
   const chartFrame = ({ instance, definition, density, body, legend = "" }) => {
     const densityTier = normalizeDensity(instance?.density, resolveWidgetDensity(instance));
+    const wellTone = visualWellTone(instance?.config);
     return `
-      <div class="runtime-chart-widget runtime-chart-density-${density} widget-density-${densityTier}" data-density="${escapeHtml(densityTier)}" data-chart-type="${escapeHtml(definition.chartType)}" data-chart-category="${escapeHtml(definition.category || "general")}">
+      <div class="runtime-chart-widget runtime-visualization-widget runtime-chart-density-${density} widget-density-${densityTier}" data-density="${escapeHtml(densityTier)}" data-chart-type="${escapeHtml(definition.chartType)}" data-chart-category="${escapeHtml(definition.category || "general")}" data-well-tone="${escapeHtml(wellTone)}">
         <div class="runtime-chart-stage">${body}</div>
         ${legend}
       </div>`;
@@ -2000,7 +2014,7 @@
       supportsTimeRange: true,
       supportsResize: true,
     },
-    supportedSettings: ["chartType", "xField", "yField", "series", "aggregation", "color", "pin", "delete"],
+    supportedSettings: ["chartType", "xField", "yField", "series", "aggregation", "wellTone", "color", "pin", "delete"],
     settingsSchema: {
       sections: [{
         id: "chart",
@@ -2016,6 +2030,7 @@
           { key: "equationFilters", label: "Equation filters", type: "json", defaultValue: [], affectsQuery: true },
           { key: "timeBucket", label: "Time bucket", type: "json", defaultValue: null, affectsQuery: true },
           { key: "limit", label: "Limit", type: "number", defaultValue: 60, min: 1, max: 200, step: 1, affectsQuery: true },
+          visualWellToneField(),
         ],
       }],
     },
@@ -2027,6 +2042,7 @@
       sortBy: "",
       sortDirection: "asc",
       limit: 60,
+      wellTone: "white",
       display: {
         showLegend: true,
         showAxes: true,
@@ -2113,7 +2129,7 @@
       supportsTimeRange: true,
       supportsResize: true,
     },
-    supportedSettings: ["location", "layerType", "limit", "color", "pin", "duplicate", "delete"],
+    supportedSettings: ["location", "layerType", "limit", "wellTone", "color", "pin", "duplicate", "delete"],
     settingsSchema: {
       sections: [{
         id: "map",
@@ -2125,6 +2141,7 @@
           { key: "locationField", label: "Location field", type: "fieldPicker", affectsQuery: true },
           { key: "layerType", label: "Layer", type: "select", defaultValue: "points", options: ["points", "regions", "routes", "heatmap"], affectsQuery: true },
           { key: "limit", label: "Limit", type: "number", defaultValue: 250, min: 1, max: 1000, step: 1, affectsQuery: true },
+          visualWellToneField(),
         ],
       }],
     },
@@ -2135,6 +2152,7 @@
       locationField: "",
       layerType: "points",
       limit: 250,
+      wellTone: "white",
     }),
     render: ({ instance }) => {
       const config = instance.config || {};
@@ -2142,8 +2160,9 @@
       const points = mapExtractPoints(instance.data, config, {});
       const density = chartVisualDensity(instance.density || "standard");
       const labels = points.slice(0, density === "large" ? 4 : 2).map((point) => `<span>${escapeHtml(point.label)}</span>`).join("");
+      const wellTone = visualWellTone(config);
       return `
-        <div class="runtime-map-widget runtime-map-density-${escapeHtml(density)}" data-map-layer="${escapeHtml(config.layerType || "points")}">
+        <div class="runtime-map-widget runtime-visualization-widget runtime-map-density-${escapeHtml(density)}" data-map-layer="${escapeHtml(config.layerType || "points")}" data-well-tone="${escapeHtml(wellTone)}">
           <div class="widget-content-well widget-library-surface runtime-map-leaflet-surface">
             <div class="runtime-map-leaflet" role="region" aria-label="${escapeHtml(title)}"></div>
           </div>
@@ -2170,7 +2189,8 @@
             maxZoom: 19,
             opacity: 0.85,
           }).addTo(map);
-          const markerStyle = { radius: 6, fillColor: "#3b82f6", color: "#1d4ed8", weight: 1.2, opacity: 1, fillOpacity: 0.82 };
+          const colors = chartPaletteForElement(target);
+          const markerStyle = { radius: 6, fillColor: colors[0], color: colors[1], weight: 1.2, opacity: 1, fillOpacity: 0.82 };
           points.forEach((point) => {
             L.circleMarker([point.latitude, point.longitude], markerStyle)
               .bindTooltip(point.label, { sticky: false, offset: [0, -4] })

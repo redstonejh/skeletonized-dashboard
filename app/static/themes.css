@@ -1470,13 +1470,14 @@ but make focus unmistakable. */ .panel-tool-drawer .panel-tool-button:focus-visi
   border-color: var(--panel-chrome-border) !important;
   box-shadow: none !important;
   filter: none !important;
-}.widget-card.chart-widget-card.db-panel-custom-color{
-  --widget-data-primary: color-mix(in srgb, var(--panel-accent) 76%, var(--widget-surface-fg) 24%);
-  --widget-data-secondary: color-mix(in srgb, var(--panel-accent) 60%, #dbeafe 40%);
-  --widget-data-tertiary: color-mix(in srgb, var(--panel-accent) 50%, var(--widget-surface-muted) 50%);
-  --widget-data-quaternary: color-mix(in srgb, var(--panel-accent) 44%, #fca5a5 56%);
-  --widget-data-positive: color-mix(in srgb, var(--panel-accent) 46%, #86efac 54%);
-  --widget-data-quiet: color-mix(in srgb, var(--panel-accent) 40%, #c4b5fd 60%);
+}.widget-card.chart-widget-card.db-panel-custom-color,
+.widget-card.map-widget-card.db-panel-custom-color{
+  --widget-data-primary: var(--panel-accent);
+  --widget-data-secondary: color-mix(in srgb, var(--panel-accent) 72%, #ffffff 28%);
+  --widget-data-tertiary: color-mix(in srgb, var(--panel-accent) 56%, #93c5fd 44%);
+  --widget-data-quaternary: color-mix(in srgb, var(--panel-accent) 48%, #fca5a5 52%);
+  --widget-data-positive: color-mix(in srgb, var(--panel-accent) 50%, #86efac 50%);
+  --widget-data-quiet: color-mix(in srgb, var(--panel-accent) 44%, #c4b5fd 56%);
 }.widget-layout > .widget-card.db-panel-custom-color:hover .stat-val,
 .widget-layout > .widget-card.db-panel-custom-color.active .stat-val{
   color: var(--widget-surface-fg) !important;
@@ -4523,6 +4524,43 @@ so add a matching-specificity override. */ .runtime-chart-widget > .runtime-char
       rgba(255, 255, 255, 0.04)
     ),
     rgba(255, 255, 255, 0.04);
+}.runtime-visualization-widget{
+  --visual-well-surface-bg:
+    linear-gradient(180deg, rgba(255, 255, 255, .98), rgba(248, 250, 252, .96));
+  --visual-well-fg: #111827;
+  --visual-well-muted: #374151;
+  --visual-well-grid: rgba(17, 24, 39, .18);
+  --visual-well-border: color-mix(in srgb, var(--panel-accent, var(--blue)) 18%, rgba(17, 24, 39, .20));
+  --visual-well-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, .70),
+    inset 0 -12px 20px rgba(15, 23, 42, .035),
+    0 1px 2px rgba(15, 23, 42, .08);
+  --widget-library-fg: var(--visual-well-fg);
+  --widget-library-muted: var(--visual-well-muted);
+  --widget-library-grid: var(--visual-well-grid);
+  --widget-library-surface-bg: var(--visual-well-surface-bg);
+  --widget-library-surface-border: var(--visual-well-border);
+  --widget-library-surface-shadow: var(--visual-well-shadow);
+}.runtime-visualization-widget[data-well-tone="dark"]{
+  --visual-well-surface-bg:
+    linear-gradient(180deg, rgba(31, 41, 55, .98), rgba(17, 24, 39, .96));
+  --visual-well-fg: rgba(255, 255, 255, .96);
+  --visual-well-muted: rgba(255, 255, 255, .74);
+  --visual-well-grid: rgba(255, 255, 255, .22);
+  --visual-well-border: color-mix(in srgb, var(--panel-accent, var(--blue)) 24%, rgba(255, 255, 255, .22));
+  --visual-well-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, .18),
+    inset 0 -12px 20px rgba(0, 0, 0, .18),
+    0 1px 2px rgba(0, 0, 0, .14);
+}.runtime-visualization-widget > .runtime-chart-stage{
+  background: transparent;
+  border-color: transparent;
+  box-shadow: none;
+}.runtime-visualization-widget .widget-content-well.widget-library-surface{
+  background: var(--widget-library-surface-bg);
+  border-color: var(--widget-library-surface-border);
+  box-shadow: var(--widget-library-surface-shadow);
+  color: var(--widget-library-fg);
 }/* Empty-state: keep only the text-shadow polish. backdrop-filter was * the source of a fuzzy halo around the card; fill + filter are killed * in the rule above so the empty-state no longer reads as a slab. */ .db-panel-body > .panel-empty-state{
   text-shadow: var(--glass-photo-text-shadow);
 }/* ── Object-shell material override for object glass material ── * * themes.css:5171-5307 introduces a unified "object shell" system that * paints panels,

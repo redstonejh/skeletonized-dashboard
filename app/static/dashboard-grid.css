@@ -1060,13 +1060,14 @@ body.resize-auto-zoom-active .dashboard-expanded-footprint-ghost{
   color: rgba(255, 255, 255, .64);
 }.widget-card.widget-runtime-meaning{
   filter: saturate(var(--widget-runtime-condition-saturation)) opacity(var(--widget-runtime-condition-opacity));
-}.widget-card.chart-widget-card{
-  --widget-data-primary: color-mix(in srgb, var(--blue) 74%, var(--ink-strong) 26%);
-  --widget-data-secondary: color-mix(in srgb, var(--blue) 58%, #dbeafe 42%);
-  --widget-data-tertiary: color-mix(in srgb, var(--blue) 48%, #93c5fd 52%);
-  --widget-data-quaternary: color-mix(in srgb, var(--blue) 42%, #fca5a5 58%);
-  --widget-data-positive: color-mix(in srgb, var(--blue) 44%, #86efac 56%);
-  --widget-data-quiet: color-mix(in srgb, var(--blue) 36%, #c4b5fd 64%);
+}.widget-card.chart-widget-card,
+.widget-card.map-widget-card{
+  --widget-data-primary: var(--panel-accent, var(--blue));
+  --widget-data-secondary: color-mix(in srgb, var(--panel-accent, var(--blue)) 72%, #ffffff 28%);
+  --widget-data-tertiary: color-mix(in srgb, var(--panel-accent, var(--blue)) 56%, #93c5fd 44%);
+  --widget-data-quaternary: color-mix(in srgb, var(--panel-accent, var(--blue)) 48%, #fca5a5 52%);
+  --widget-data-positive: color-mix(in srgb, var(--panel-accent, var(--blue)) 50%, #86efac 50%);
+  --widget-data-quiet: color-mix(in srgb, var(--panel-accent, var(--blue)) 44%, #c4b5fd 56%);
 }.widget-shell-chart:not(.widget-shell-has-header) > .widget-shell-content,
 .widget-shell-map:not(.widget-shell-has-header) > .widget-shell-content,
 .widget-shell-calendar:not(.widget-shell-has-header) > .widget-shell-content{

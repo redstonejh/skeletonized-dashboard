@@ -22,6 +22,10 @@ Workspace tabs are kept as one live renderer state. The active tab is mounted in
 
 Visible dashboard names and text surfaces edit in place on the displayed text element. Tabs, panels, widget titles, and note bodies share the inline editing appearance instead of opening separate title inputs or boxed editors; tab tool menus close through the same outside-click, Escape, and edit-finish dismissal path.
 
+## Visualization Wells
+
+Visualization widgets use a separated color model: the widget theme accent drives data marks and the object rim, while the visualization well has a two-option white/dark-grey tone whose neutral foreground is derived for readability.
+
 ## Project Layout
 
 - `main.js` - Electron main process and window creation.
