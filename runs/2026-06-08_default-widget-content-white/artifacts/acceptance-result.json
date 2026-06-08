@@ -1,0 +1,15 @@
+{
+  "verdict": "SHIP",
+  "tests_run": false,
+  "tests_skipped_reason": "User explicitly instructed not to run e2e, canaries, or validation.",
+  "changed_scope": [
+    "default widget content text variables",
+    "default non-custom stat widget text color"
+  ],
+  "unchanged_scope": [
+    "panels",
+    "custom-colored widget overrides",
+    "dependencies"
+  ]
+}
+

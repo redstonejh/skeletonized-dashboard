@@ -1131,6 +1131,17 @@ body.resize-auto-zoom-active .dashboard-expanded-footprint-ghost{
   --widget-data-quaternary: color-mix(in srgb, var(--panel-accent, var(--blue)) 46%, var(--red-soft) 54%);
   --widget-data-positive: color-mix(in srgb, var(--panel-accent, var(--blue)) 48%, var(--green-soft) 52%);
   --widget-data-quiet: color-mix(in srgb, var(--panel-accent, var(--blue)) 40%, var(--purple-soft) 60%);
+}.widget-card:not(.db-panel-custom-color){
+  --widget-content-fg: rgba(255, 255, 255, .96);
+  --widget-content-title: rgba(255, 255, 255, .96);
+  --widget-content-muted: rgba(255, 255, 255, .72);
+  --widget-content-meta: rgba(255, 255, 255, .64);
+  --widget-content-meta-strong: rgba(255, 255, 255, .76);
+  --widget-content-meta-quiet: rgba(255, 255, 255, .54);
+}.widget-card:not(.db-panel-custom-color) :is(.stat-val, .widget-shell-title){
+  color: rgba(255, 255, 255, .96);
+}.widget-card:not(.db-panel-custom-color) :is(.stat-lbl, .stat-runtime-meta, .widget-shell-meta, .widget-shell-footer){
+  color: rgba(255, 255, 255, .64);
 }.widget-card.widget-runtime-meaning{
   filter: saturate(var(--widget-runtime-condition-saturation)) opacity(var(--widget-runtime-condition-opacity));
 }.widget-card.chart-widget-card{
