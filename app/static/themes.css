@@ -5000,7 +5000,7 @@ no card. Active * filter is indicated by a subtle underline + slightly higher * 
   width: 100% !important;
   min-height: 0 !important;
   box-sizing: border-box !important;
-  padding: 9px 14px !important;
+  padding: 6px 14px 12px !important;
   align-items: center !important;
   justify-content: center !important;
   gap: 14px !important;
