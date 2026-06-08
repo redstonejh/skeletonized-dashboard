@@ -312,6 +312,7 @@ export const createWidgetLayoutRuntime = (deps) => {
       widget.addEventListener("click", (event) => {
         if (event.target?.closest?.(".widget-tools")) return;
         if (isInteractiveWidgetSurfaceTarget(event)) return;
+        if (widget.tagName === "A") event.preventDefault();
         try {
           widget.focus?.({ preventScroll: true });
         } catch {

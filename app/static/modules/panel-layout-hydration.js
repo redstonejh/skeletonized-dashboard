@@ -88,7 +88,11 @@ export const hydratePanelLayout = (layout, {
       panel.dataset.panelTitle = saved.title;
       titleEl.textContent = saved.title;
     }
-    restorePanelChildWidgets(panel, saved?.childWidgets || []);
+    const savedChildWidgets = Array.isArray(saved?.childWidgets) ? saved.childWidgets : null;
+    const hasInlineChildWidgets = Boolean(panel.querySelector(":scope > .db-panel-body .panel-internal-widget-grid > .widget-card"));
+    if (savedChildWidgets?.length || !hasInlineChildWidgets) {
+      restorePanelChildWidgets(panel, savedChildWidgets || []);
+    }
   });
 
   panels

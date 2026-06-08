@@ -1521,7 +1521,10 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!layout) return null;
     const host = gridHostForLayout(layout) || layout;
     const resolvedMetrics = metrics || createGridMetrics(layout);
-    const height = Number(host?.clientHeight) || Number(layout?.clientHeight) || 0;
+    const panelBody = isPanelInternalWidgetLayout(layout)
+      ? layout.closest(".db-panel-body")
+      : null;
+    const height = Number(panelBody?.clientHeight) || Number(host?.clientHeight) || Number(layout?.clientHeight) || 0;
     const rowHeight = Math.max(1, Number(resolvedMetrics?.rowHeight) || DASHBOARD_GRID_ROW_HEIGHT);
     const gap = Math.max(0, Number(resolvedMetrics?.gap) || 0);
     const rows = Math.floor((height + gap) / (rowHeight + gap));
@@ -1967,6 +1970,10 @@ document.addEventListener("DOMContentLoaded", () => {
       layoutKey: options?.widget?.dataset?.widgetLayoutKey || options?.widget?.dataset?.layoutKey,
       profile: options?.layout?.dataset?.layoutProfile || null,
     });
+    const internalGrid = result.closest?.(".panel-internal-widget-grid");
+    if (internalGrid) initWidgetLayout(internalGrid);
+    if (panelLayout) savePanelLayouts(panelLayout);
+    window.dashboardWorkspacePagesRuntime?.persistActivePage?.();
     return result;
   };
 
@@ -1978,6 +1985,10 @@ document.addEventListener("DOMContentLoaded", () => {
     refreshPanelContainedWidgetRuntime(result.widget, {
       layoutKey: options?.targetLayout?.dataset?.widgetLayoutKey || options?.targetLayout?.dataset?.layoutKey,
     });
+    if (targetLayout) initWidgetLayout(targetLayout);
+    const sourcePanelLayout = options?.panel?.closest?.(".panel-layout");
+    if (sourcePanelLayout) savePanelLayouts(sourcePanelLayout);
+    window.dashboardWorkspacePagesRuntime?.persistActivePage?.();
     return result;
   };
 
@@ -2507,8 +2518,8 @@ document.addEventListener("DOMContentLoaded", () => {
   bindDashboardKeywordForms();
 
   const refreshMountedWorkspacePage = () => {
-    document.querySelectorAll(".widget-layout").forEach(initWidgetLayout);
     initPanelLayouts();
+    document.querySelectorAll(".widget-layout").forEach(initWidgetLayout);
     bindDashboardKeywordForms();
     syncWorkspaceRegions();
     syncDefaultDashboardGrid("builder");

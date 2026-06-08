@@ -328,6 +328,9 @@ body.webgl-glass-on .widget-card.db-panel-custom-color{
 }.widget-card.widget-conditional-style[data-conditional-rim-state="error"]{
   border-color: color-mix(in srgb, #dc2626 48%, var(--line));
   box-shadow: var(--workspace-lod-shadow, var(--shadow-soft)), inset 0 1px 0 rgba(255, 255, 255, .12);
+}.widget-layout > .widget-card:focus,
+.panel-internal-widget-grid > .widget-card:focus{
+  outline: 0;
 }.widget-card.widget-conditional-style[style*="--conditional-background-tint"]{
   background: color-mix(in srgb, var(--surface) 84%, var(--conditional-accent-resolved) 16%);
 }.widget-card[data-conditional-visibility="muted"]{
@@ -783,6 +786,8 @@ and ghost states */ .widget-card.widget-tools-open,
   grid-template-columns: repeat(6, minmax(0, 1fr));
   grid-auto-rows: var(--dashboard-grid-row-height);
   gap: var(--panel-internal-grid-gap);
+  flex: 1 1 auto;
+  align-self: stretch;
   width: 100%;
   min-height: 100%;
   padding: var(--panel-internal-grid-inset-block) var(--panel-internal-grid-inset-inline);

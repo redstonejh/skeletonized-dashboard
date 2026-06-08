@@ -713,6 +713,188 @@ test("electron GUI wires tabs to isolated lazy-loaded workspace pages", async ()
   await closeApp(app);
 });
 
+test("electron GUI keeps widget clicks local and free of orange focus artifacts", async () => {
+  const { app, page } = await launchApp();
+  const navigationEvents = [];
+  page.on("framenavigated", (frame) => {
+    if (frame === page.mainFrame()) navigationEvents.push(frame.url());
+  });
+  await page.evaluate(() => {
+    window.__widgetClickBeforeUnloadCount = 0;
+    window.addEventListener("beforeunload", () => {
+      window.__widgetClickBeforeUnloadCount += 1;
+    });
+  });
+
+  const newWidget = await addWidget(page, { kind: "stat", category: "data" });
+  await newWidget.evaluate((node) => {
+    node.dataset.gridCol = "5";
+    node.style.gridColumn = "5 / span 1";
+  });
+  const rightEdgeWidget = page.locator('.widget-layout > .widget-card[data-custom-widget="true"]').last();
+  const beforeUrl = page.url();
+  await rightEdgeWidget.click({ force: true });
+  await expect.poll(() => page.evaluate(() => window.__widgetClickBeforeUnloadCount || 0)).toBe(0);
+  expect(page.url()).toBe(beforeUrl);
+
+  const clickState = await rightEdgeWidget.evaluate((node) => {
+    const styles = getComputedStyle(node);
+    const orangeOutlineNodes = [...document.querySelectorAll("*")].filter((entry) => {
+      const computed = getComputedStyle(entry);
+      return /rgb\(229,\s*151,\s*0\)|rgb\(245,\s*158,\s*11\)|rgb\(249,\s*115,\s*22\)/.test(computed.outlineColor) &&
+        computed.outlineStyle !== "none" &&
+        computed.outlineWidth !== "0px";
+    }).map((entry) => ({
+      tag: entry.tagName,
+      className: entry.className?.toString?.() || "",
+      outline: getComputedStyle(entry).outline,
+    }));
+    return {
+      tagName: node.tagName,
+      href: node.getAttribute("href") || "",
+      outlineStyle: styles.outlineStyle,
+      outlineWidth: styles.outlineWidth,
+      outlineColor: styles.outlineColor,
+      orangeOutlineNodes,
+      canvasCount: document.querySelectorAll("canvas").length,
+    };
+  });
+  expect(clickState.tagName).toBe("A");
+  expect(clickState.outlineStyle === "none" || clickState.outlineWidth === "0px").toBe(true);
+  expect(clickState.orangeOutlineNodes).toEqual([]);
+  expect(clickState.canvasCount).toBeGreaterThanOrEqual(1);
+  expect(navigationEvents.filter((url) => url !== beforeUrl)).toEqual([]);
+  await writeInteractionScenarios(page, ["widget-click-no-reload-no-orange-artifacts"], clickState);
+  await closeApp(app);
+});
+
+test("electron GUI keeps panel-contained widgets movable and mounted across tab switches", async () => {
+  const { app, page } = await launchApp();
+  const widgetSelector = '.widget-layout:not(.panel-internal-widget-grid) > .widget-card[data-widget-key="widget-1"]';
+  const panelSelector = '.panel-layout > .db-panel[data-panel-key="builder-content"]';
+  const panelChildSelector = `${panelSelector} .panel-internal-widget-grid > .widget-card[data-widget-key="widget-1"]`;
+  await page.locator(panelSelector).evaluate((panel) => {
+    panel.dataset.savedHeight = "360";
+    panel.dataset.gridRowSpan = "5";
+    panel.style.height = "360px";
+    panel.style.gridRowEnd = "span 5";
+  });
+  const widget = await openTools(page, widgetSelector);
+  const moveBox = await widget.locator(".panel-move-handle").boundingBox();
+  expect(moveBox).toBeTruthy();
+  const target = await page.locator(panelSelector).evaluate((panel) => {
+    const headerRect = panel.querySelector(":scope > .db-panel-hd")?.getBoundingClientRect();
+    const bodyRect = panel.querySelector(":scope > .db-panel-body")?.getBoundingClientRect();
+    return {
+      x: Math.round(bodyRect.left + Math.min(Math.max(bodyRect.width * 0.52, 56), Math.max(56, bodyRect.width - 56))),
+      y: Math.round(Math.max(bodyRect.top + 46, headerRect.bottom + 34)),
+    };
+  });
+  await dispatchPointerDragUntilMove(page, moveBox.x + moveBox.width / 2, moveBox.y + moveBox.height / 2, target.x, target.y, 80);
+  await page.waitForFunction((selector) => document.querySelector(selector)?.classList.contains("panel-container-drag-active"), panelSelector);
+  await finishPointerDrag(page, target.x, target.y);
+  await page.waitForFunction(({ panelChildSelector, widgetSelector }) => (
+    Boolean(document.querySelector(panelChildSelector)) &&
+    !document.querySelector(widgetSelector)
+  ), { panelChildSelector, widgetSelector });
+
+  const childBeforeMove = await page.locator(panelChildSelector).evaluate((node) => ({
+    col: Number(node.dataset.gridCol) || 0,
+    row: Number(node.dataset.gridRow) || 0,
+  }));
+  const childDragPlan = await page.locator(panelChildSelector).evaluate((node) => {
+    const body = node.closest(".db-panel-body");
+    const bodyRect = body.getBoundingClientRect();
+    const itemRect = node.getBoundingClientRect();
+    return {
+      startX: Math.round(itemRect.left + Math.min(itemRect.width - 8, Math.max(8, itemRect.width * 0.45))),
+      startY: Math.round(itemRect.top + Math.min(itemRect.height - 8, Math.max(8, itemRect.height * 0.45))),
+      endX: Math.round(Math.min(bodyRect.right - 42, itemRect.left + itemRect.width / 2 + 180)),
+      endY: Math.round(Math.min(bodyRect.bottom - 42, itemRect.top + itemRect.height / 2 + 210)),
+    };
+  });
+  await dispatchPointerDragUntilMove(
+    page,
+    childDragPlan.startX,
+    childDragPlan.startY,
+    childDragPlan.endX,
+    childDragPlan.endY,
+    90
+  );
+  await page.waitForFunction(() => Boolean(document.querySelector(".widget-dragging")));
+  const livePanelDrag = await page.locator(".widget-dragging").evaluate((node) => {
+    const rect = node.getBoundingClientRect();
+    return {
+      key: node.dataset.widgetKey || "",
+      left: Math.round(rect.left),
+      top: Math.round(rect.top),
+    };
+  });
+  expect(livePanelDrag.key).toBe("widget-1");
+  await finishPointerDrag(page, childDragPlan.endX, childDragPlan.endY);
+  await page.waitForFunction(() => !document.querySelector(".widget-dragging, .widget-placeholder"));
+  const childAfterMove = await page.locator(panelChildSelector).evaluate((node) => ({
+    col: Number(node.dataset.gridCol) || 0,
+    row: Number(node.dataset.gridRow) || 0,
+  }));
+  expect(childAfterMove.col).toBeGreaterThan(0);
+  expect(childAfterMove.row).toBeGreaterThan(0);
+  const storedBeforeSwitch = await page.evaluate((key) => {
+    window.dashboardWorkspacePagesRuntime?.persistActivePage?.();
+    const page = window.dashboardWorkspacePagesRuntime?.pageForTab?.("tab-1");
+    return {
+      hasChildInPanelHtml: Boolean(page?.panelHtml?.includes(key)),
+      panelHtmlLength: page?.panelHtml?.length || 0,
+    };
+  }, 'data-widget-key="widget-1"');
+  expect(storedBeforeSwitch.hasChildInPanelHtml).toBe(true);
+
+  await page.locator(".workspace-tab:not(.workspace-tab-add)").nth(1).click({ force: true });
+  await expect.poll(() => page.evaluate(() => window.dashboardWorkspacePagesRuntime?.activeTabId?.())).toBe("tab-2");
+  await page.waitForFunction(() => {
+    const grid = document.querySelector(".dashboard-layout-grid");
+    return !grid?.classList.contains("workspace-page-slide-out") &&
+      !grid?.classList.contains("workspace-page-slide-in");
+  });
+  await expect(page.locator(panelChildSelector)).toHaveCount(0);
+  await page.locator(".workspace-tab:not(.workspace-tab-add)").nth(0).click({ force: true });
+  await expect.poll(() => page.evaluate(() => window.dashboardWorkspacePagesRuntime?.activeTabId?.())).toBe("tab-1");
+  await expect(page.locator(panelChildSelector)).toBeVisible();
+  const childAfterTabRoundTrip = await page.locator(panelChildSelector).evaluate((node) => ({
+    col: Number(node.dataset.gridCol) || 0,
+    row: Number(node.dataset.gridRow) || 0,
+    parentPanelKey: node.dataset.parentPanelKey || "",
+  }));
+  expect(childAfterTabRoundTrip).toEqual({ ...childAfterMove, parentPanelKey: "builder-content" });
+  await writeInteractionScenarios(page, ["panel-contained-widget-move-tab-roundtrip"], { target, livePanelDrag, childBeforeMove, childAfterMove });
+  await closeApp(app);
+});
+
+test("electron GUI recolors widgets through the right-click customization drawer", async () => {
+  const { app, page } = await launchApp();
+  const widget = await addTextWidget(page);
+  await widget.click({ button: "right" });
+  const drawer = page.locator(".workspace-menu-overlay-layer > .panel-tool-drawer.dashboard-tool-drawer-open").last();
+  await expect(drawer).toBeVisible();
+  await drawer.locator(".panel-color-toggle").click({ force: true });
+  const swatch = page.locator('.panel-color-menu-open .panel-color-swatch[data-color="#dc2626"]').first();
+  await swatch.click({ force: true });
+  await expect.poll(() => widget.evaluate((node) => node.dataset.panelColor || "")).toBe("#dc2626");
+  const coloredAccent = await widget.evaluate((node) => getComputedStyle(node).getPropertyValue("--panel-accent").trim());
+  expect(coloredAccent).toBe("#dc2626");
+
+  await openControlBar(page);
+  await page.locator(".layout-save-button").click({ force: true });
+  await page.reload();
+  await page.waitForSelector(".dashboard-layout-grid");
+  const persistedWidget = page.locator('.widget-layout > .widget-card[data-custom-widget="true"]').last();
+  await expect.poll(() => persistedWidget.evaluate((node) => node.dataset.panelColor || "")).toBe("#dc2626");
+  const persistedAccent = await persistedWidget.evaluate((node) => getComputedStyle(node).getPropertyValue("--panel-accent").trim());
+  expect(persistedAccent).toBe("#dc2626");
+  await writeInteractionScenarios(page, ["right-click-widget-recolor-persists"], { coloredAccent, persistedAccent });
+  await closeApp(app);
+});
+
 test("electron GUI applies derived background presets, custom color, persistence, undo, and photos", async () => {
   const { app, page } = await launchApp();
   const failedImageRequests = [];
