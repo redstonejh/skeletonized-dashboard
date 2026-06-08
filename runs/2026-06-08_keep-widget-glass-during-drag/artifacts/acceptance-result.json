@@ -1,0 +1,8 @@
+{
+  "verdict": "SHIP",
+  "summary": "Removed the forced white background reset from non-dragged widget interaction states so neighboring widgets keep their glass material during drag/collision.",
+  "tests": {
+    "status": "skipped",
+    "reason": "User explicitly instructed not to run tests, canaries, or validation."
+  }
+}

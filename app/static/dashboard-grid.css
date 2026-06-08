@@ -1791,7 +1791,6 @@ body.panel-resize-active .widget-layout > .widget-card:not(.widget-dragging):not
 body.panel-resize-active .panel-internal-widget-grid > .widget-card:not(.widget-dragging):not(.dashboard-active-resize):not(.dashboard-resize-source):not(.group-transform-member):hover,
 body.panel-resize-active .panel-internal-widget-grid > .widget-card:not(.widget-dragging):not(.dashboard-active-resize):not(.dashboard-resize-source):not(.group-transform-member):focus-visible{
   transform: none !important;
-  background: var(--surface) !important;
   border-color: var(--line) !important;
   box-shadow: var(--shadow-soft) !important;
 }body.panel-interaction-active .db-panel:not(.db-panel-dragging):not(.dashboard-active-resize):not(.dashboard-resize-source):not(.group-transform-member):hover,
