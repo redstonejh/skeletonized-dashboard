@@ -124,7 +124,7 @@ export const createOrderedDragRuntime = (deps = {}) => {
       row: Number(item.dataset.gridRow) || 1,
     };
     let lastMoveEvent = event;
-    let committedBottomRow = Infinity;
+    let committedPageBottomRow = Infinity;
 
     const snapshotCommittedBottom = (snapshot, fallback = Infinity) => {
       if (!snapshot?.size) return fallback;
@@ -137,7 +137,25 @@ export const createOrderedDragRuntime = (deps = {}) => {
       return bottom;
     };
 
-    const clampCellToCommittedRows = (cell, rowSpan = null, maxBottom = committedBottomRow) => {
+    const snapshotCommittedPageBottom = (targetLayout, fallback = Infinity, metrics = null) => {
+      if (!targetLayout) return fallback;
+      const resolvedMetrics = metrics || createGridMetrics(targetLayout);
+      const host = gridHostForLayout(targetLayout) || targetLayout;
+      const height = Math.max(
+        Number(targetLayout?.scrollHeight) || 0,
+        Number(targetLayout?.clientHeight) || 0,
+        Number(resolvedMetrics?.rect?.height) || 0,
+        Number(host?.scrollHeight) || 0,
+        Number(host?.clientHeight) || 0
+      );
+      const rowHeight = Math.max(1, Number(resolvedMetrics?.rowHeight) || DASHBOARD_GRID_ROW_HEIGHT);
+      const gap = Math.max(0, Number(resolvedMetrics?.gap) || 0);
+      const rows = Math.floor((height + gap) / (rowHeight + gap));
+      const fallbackRows = Number.isFinite(fallback) ? Math.max(1, Math.round(fallback)) : fallback;
+      return Number.isFinite(rows) && rows > 0 ? Math.max(fallbackRows, rows) : fallbackRows;
+    };
+
+    const clampCellToCommittedRows = (cell, rowSpan = null, maxBottom = committedPageBottomRow) => {
       if (!cell || !Number.isFinite(maxBottom)) return cell;
       const safeRowSpan = Math.max(1, Math.round(Number(rowSpan) || gridItemRowSpan(placeholder || item) || 1));
       const maxRow = Math.max(1, Math.round(maxBottom) - safeRowSpan + 1);
@@ -181,7 +199,7 @@ export const createOrderedDragRuntime = (deps = {}) => {
       item.dataset.lod = "active";
       rect = item.getBoundingClientRect();
       startSnapshot = snapshotGridLayout(layout);
-      committedBottomRow = snapshotCommittedBottom(startSnapshot);
+      committedPageBottomRow = snapshotCommittedPageBottom(layout, snapshotCommittedBottom(startSnapshot));
       const groupItems = groupTransformItems(item)
         .filter((groupItem) => groupItem === item || !groupItem.classList.contains("db-panel-pinned"));
       if (item.classList.contains("group-selected") && groupItems.length > 1) {
@@ -194,7 +212,7 @@ export const createOrderedDragRuntime = (deps = {}) => {
         offsetX = startX - groupLive.groupRect.left;
         offsetY = startY - groupLive.groupRect.top;
         targetCell = { col: groupBox.col, row: groupBox.row };
-        committedBottomRow = snapshotCommittedBottom(startSnapshot, groupBox.bottom);
+        committedPageBottomRow = snapshotCommittedPageBottom(layout, snapshotCommittedBottom(startSnapshot, groupBox.bottom));
         document.body.classList.add("group-transform-active");
         groupItems.forEach((groupItem) => groupItem.classList.add("group-transform-member"));
       } else {
@@ -445,7 +463,7 @@ export const createOrderedDragRuntime = (deps = {}) => {
         snapshot,
         metrics: createGridMetrics(internalGrid),
         reflowItems: reflowItemsForLayout(internalGrid, panelPlaceholder),
-        committedBottomRow: snapshotCommittedBottom(snapshot),
+        committedPageBottomRow: snapshotCommittedPageBottom(internalGrid, snapshotCommittedBottom(snapshot)),
         targetCell: null,
         entryZone: options.zone || "body",
         entryTransitionPlayed: false,
@@ -487,7 +505,7 @@ export const createOrderedDragRuntime = (deps = {}) => {
       const nextCell = clampCellToCommittedRows(
         gridCellFromDragPointer(state.layout, state.placeholder, previewPoint.clientX, previewPoint.clientY, offsetX, offsetY, metrics, rect),
         gridItemRowSpan(state.placeholder),
-        state.committedBottomRow
+        state.committedPageBottomRow
       );
       const shouldPlayEntryTransition = (state.entryZone === "header" || state.entryZone === "header-tolerance") && !state.entryTransitionPlayed;
       if (state.targetCell && state.targetCell.col === nextCell.col && state.targetCell.row === nextCell.row && !shouldPlayEntryTransition) return true;
@@ -533,7 +551,7 @@ export const createOrderedDragRuntime = (deps = {}) => {
         snapshot,
         metrics: createGridMetrics(workspaceExitLayout),
         reflowItems: reflowItemsForLayout(workspaceExitLayout, workspacePlaceholder),
-        committedBottomRow: snapshotCommittedBottom(snapshot),
+        committedPageBottomRow: snapshotCommittedPageBottom(workspaceExitLayout, snapshotCommittedBottom(snapshot)),
         targetCell: null,
         exitTransitionPlayed: false,
       };
@@ -556,7 +574,7 @@ export const createOrderedDragRuntime = (deps = {}) => {
       const nextCell = clampCellToCommittedRows(
         gridCellFromDragPointer(state.layout, state.placeholder, moveEvent.clientX, moveEvent.clientY, offsetX, offsetY, metrics, rect),
         gridItemRowSpan(state.placeholder),
-        state.committedBottomRow
+        state.committedPageBottomRow
       );
       const shouldPlayExitTransition = !state.exitTransitionPlayed;
       if (state.targetCell && state.targetCell.col === nextCell.col && state.targetCell.row === nextCell.row) return true;

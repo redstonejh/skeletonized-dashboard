@@ -1760,6 +1760,76 @@ test("electron GUI keeps drag cursor aligned and prevents drag-created vertical 
 
   const workspaceAlignment = await liveDragAlignment('.panel-layout > .db-panel[data-panel-key="builder-notes"]', -180, 140);
 
+  const freeSpaceSelector = '.widget-layout:not(.panel-internal-widget-grid) > .widget-card[data-widget-key="widget-1"]';
+  await openTools(page, freeSpaceSelector);
+  const freeSpacePlan = await page.evaluate((selector) => {
+    const node = document.querySelector(selector);
+    const layout = node?.closest(".widget-layout");
+    const host = layout?.closest(".dashboard-layout-grid") || layout;
+    if (!node || !layout || !host) return null;
+    const computed = getComputedStyle(layout);
+    const rowHeight = parseFloat(computed.getPropertyValue("--dashboard-grid-row-height")) || 81;
+    const gap = parseFloat(computed.rowGap || computed.gap || "16") || 16;
+    const rowStep = rowHeight + gap;
+    const items = [...layout.querySelectorAll(":scope > .widget-card:not(.widget-dragging):not(.widget-placeholder)")];
+    const occupiedBottom = items.reduce((bottom, item) => {
+      const row = Math.max(1, Math.round(Number(item.dataset.gridRow) || 1));
+      const span = Math.max(1, Math.round(Number(item.dataset.gridRowSpan) || 1));
+      return Math.max(bottom, row + span - 1);
+    }, 1);
+    const rowSpan = Math.max(1, Math.round(Number(node.dataset.gridRowSpan) || 1));
+    const currentRow = Math.max(1, Math.round(Number(node.dataset.gridRow) || 1));
+    const targetRow = occupiedBottom + 1;
+    const requiredRows = targetRow + rowSpan - 1;
+    const requiredHeight = (requiredRows * rowHeight) + (Math.max(0, requiredRows - 1) * gap);
+    layout.style.minHeight = `${Math.ceil(requiredHeight)}px`;
+    layout.style.height = `${Math.ceil(requiredHeight)}px`;
+    host.style.minHeight = `${Math.ceil(requiredHeight)}px`;
+    host.style.height = `${Math.ceil(requiredHeight)}px`;
+    const rect = host.getBoundingClientRect();
+    const itemRect = node.getBoundingClientRect();
+    const handleRect = node.querySelector(".panel-move-handle")?.getBoundingClientRect();
+    const pointerOffsetX = handleRect
+      ? (handleRect.left + (handleRect.width / 2)) - itemRect.left
+      : Math.min(itemRect.width - 8, Math.max(8, itemRect.width * 0.45));
+    const pointerOffsetY = handleRect
+      ? (handleRect.top + (handleRect.height / 2)) - itemRect.top
+      : Math.min(38, Math.max(14, itemRect.height * 0.25));
+    return {
+      currentRow,
+      targetRow,
+      occupiedBottom,
+      beforeScrollHeight: document.documentElement.scrollHeight,
+      startX: Math.round(itemRect.left + pointerOffsetX),
+      startY: Math.round(itemRect.top + pointerOffsetY),
+      endX: Math.round(rect.left + Math.min(rect.width - 32, Math.max(32, itemRect.width * 0.5))),
+      endY: Math.round(rect.top + ((targetRow - 1) * rowStep) + pointerOffsetY),
+    };
+  }, freeSpaceSelector);
+  expect(freeSpacePlan).toBeTruthy();
+  expect(freeSpacePlan.targetRow).toBeGreaterThan(freeSpacePlan.occupiedBottom);
+  await dispatchPointerDrag(
+    page,
+    freeSpacePlan.startX,
+    freeSpacePlan.startY,
+    freeSpacePlan.endX,
+    freeSpacePlan.endY,
+    80
+  );
+  await page.waitForFunction(() => !document.querySelector(".db-panel-dragging, .widget-dragging, .db-panel-placeholder, .widget-placeholder"));
+  const freeSpaceCommit = await page.evaluate((selector) => {
+    const node = document.querySelector(selector);
+    return {
+      row: Number(node?.dataset.gridRow) || 0,
+      scrollHeight: document.documentElement.scrollHeight,
+    };
+  }, freeSpaceSelector);
+  expect(freeSpaceCommit.row).toBe(freeSpacePlan.targetRow);
+  expect(freeSpaceCommit.scrollHeight).toBeLessThanOrEqual(freeSpacePlan.beforeScrollHeight + 2);
+  await page.reload();
+  await page.waitForLoadState("domcontentloaded");
+  await page.waitForSelector(".dashboard-layout-grid");
+
   const widgetSelector = '.widget-layout:not(.panel-internal-widget-grid) > .widget-card[data-widget-key="widget-1"]';
   const panelSelector = '.panel-layout > .db-panel[data-panel-key="builder-content"]';
   const panelChildSelector = `${panelSelector} .panel-internal-widget-grid > .widget-card[data-widget-key="widget-1"]`;

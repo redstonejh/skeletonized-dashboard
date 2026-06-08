@@ -1,0 +1,23 @@
+{
+  "syntax_checks": [
+    {
+      "command": "node --check app/static/modules/ordered-drag-runtime.js",
+      "passed": true
+    },
+    {
+      "command": "node --check electron-tests/dashboard-electron.spec.js",
+      "passed": true
+    }
+  ],
+  "focused_e2e": {
+    "command": "npm.cmd run test:e2e -- --workers=1 --reporter=line -g \"drag cursor aligned\"",
+    "passed": true,
+    "result": "1 passed"
+  },
+  "full_e2e": {
+    "command": "npm.cmd run test:e2e -- --workers=1 --reporter=line",
+    "passed": true,
+    "result": "24 passed"
+  }
+}
+

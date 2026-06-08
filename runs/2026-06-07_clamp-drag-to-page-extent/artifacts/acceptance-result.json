@@ -1,0 +1,15 @@
+{
+  "verdict": "SHIP",
+  "checks": {
+    "drag_can_drop_into_empty_lower_space": true,
+    "drag_cannot_create_scroll": true,
+    "panel_expansion_still_grows_page": true,
+    "full_e2e": true,
+    "delegation_proof": true
+  },
+  "evidence": {
+    "focused_e2e": "npm.cmd run test:e2e -- --workers=1 --reporter=line -g \"drag cursor aligned\" passed",
+    "full_e2e": "npm.cmd run test:e2e -- --workers=1 --reporter=line passed 24/24"
+  }
+}
+
