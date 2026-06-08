@@ -252,38 +252,26 @@
     { value: "block", label: "Block output" },
   ];
 
-  const TIMEFRAME_FILTER_TYPES = [
-    { id: "today", label: "Today" },
-    { id: "yesterday", label: "Yesterday" },
+  const TIMEFRAME_OPTIONS = Object.freeze([
+    { id: "today", label: "Today", buttonLabel: "Today", defaultFilterId: "time-today" },
+    { id: "yesterday", label: "Yesterday", buttonLabel: "Yesterday", defaultFilterId: "time-yesterday" },
     { id: "this_week", label: "This week" },
     { id: "last_week", label: "Last week" },
     { id: "this_month", label: "This month" },
     { id: "last_month", label: "Last month" },
-    { id: "custom_fixed", label: "Custom fixed range" },
-    { id: "custom_repeating", label: "Custom repeating interval" },
-  ];
-  const LEGACY_TIMEFRAME_PRESETS = [
-    { id: "last_7_days", label: "Last 7 days" },
-    { id: "last_14_days", label: "Last 14 days" },
-    { id: "last_30_days", label: "Last 30 days" },
-    { id: "last_60_days", label: "Last 60 days" },
-    { id: "last_180_days", label: "Last 180 days" },
-    { id: "last_365_days", label: "Last 365 days" },
+    { id: "last_7_days", label: "Last 7 days", buttonLabel: "1w", defaultFilterId: "time-last-7-days" },
+    { id: "last_14_days", label: "Last 14 days", buttonLabel: "2w", defaultFilterId: "time-last-14-days" },
+    { id: "last_30_days", label: "Last 30 days", buttonLabel: "1m", defaultFilterId: "time-last-30-days" },
+    { id: "last_60_days", label: "Last 60 days", buttonLabel: "2m", defaultFilterId: "time-last-60-days" },
+    { id: "last_180_days", label: "Last 180 days", buttonLabel: "6m", defaultFilterId: "time-last-180-days" },
+    { id: "last_365_days", label: "Last 365 days", buttonLabel: "1yr", defaultFilterId: "time-last-365-days" },
     { id: "month_to_date", label: "Month to date" },
     { id: "year_to_date", label: "Year to date" },
+    { id: "custom_fixed", label: "Custom fixed range" },
+    { id: "custom_repeating", label: "Custom repeating interval" },
     { id: "custom", label: "Custom range" },
-  ];
-  const TIMEFRAME_PRESETS = [...TIMEFRAME_FILTER_TYPES, ...LEGACY_TIMEFRAME_PRESETS];
-  const DEFAULT_TIMEFRAME_FILTERS = [
-    { id: "time-today", label: "Today", type: "today" },
-    { id: "time-yesterday", label: "Yesterday", type: "yesterday" },
-    { id: "time-last-7-days", label: "1w", type: "last_7_days" },
-    { id: "time-last-14-days", label: "2w", type: "last_14_days" },
-    { id: "time-last-30-days", label: "1m", type: "last_30_days" },
-    { id: "time-last-60-days", label: "2m", type: "last_60_days" },
-    { id: "time-last-180-days", label: "6m", type: "last_180_days" },
-    { id: "time-last-365-days", label: "1yr", type: "last_365_days" },
-  ];
+  ]);
+  const TIMEFRAME_DEFAULT_OPTIONS = TIMEFRAME_OPTIONS.filter((option) => option.defaultFilterId);
   const WEEKDAY_OPTIONS = [
     { value: 0, label: "Sunday" },
     { value: 1, label: "Monday" },
@@ -324,8 +312,8 @@
     return next;
   };
   const daysBetween = (start, end) => Math.round((localDateFrom(end) - localDateFrom(start)) / 86400000);
-  const timeframePresetById = (id) => TIMEFRAME_PRESETS.find((preset) => preset.id === id) || null;
-  const timeframeFilterTypeById = (id) => TIMEFRAME_FILTER_TYPES.find((type) => type.id === id) || timeframePresetById(id) || null;
+  const timeframePresetById = (id) => TIMEFRAME_OPTIONS.find((preset) => preset.id === id) || null;
+  const timeframeFilterTypeById = (id) => timeframePresetById(id) || null;
   const normalizeWeekStartDay = (value) => {
     const numeric = Number(value);
     if (!Number.isFinite(numeric)) return 0;
@@ -380,7 +368,11 @@
     }
     const configured = Array.isArray(config.presets) && config.presets.length
       ? config.presets.map(legacyPresetToFilter)
-      : DEFAULT_TIMEFRAME_FILTERS.map((filter, index) => normalizeTimeframeFilter(filter, index));
+      : TIMEFRAME_DEFAULT_OPTIONS.map((option, index) => normalizeTimeframeFilter({
+        id: option.defaultFilterId,
+        label: option.buttonLabel || option.label,
+        type: option.id,
+      }, index));
     return configured.filter((filter) => filter.id && filter.type);
   };
   const selectedTimeframeFilterId = (config = {}, filters = normalizeTimeframeFilters(config)) => {
@@ -1534,6 +1526,8 @@
       rows,
       config,
       data: overrides.data && typeof overrides.data === "object" ? overrides.data : { rows: [] },
+      displayState: overrides.displayState || null,
+      timeRange: overrides.displayState?.timeRange || null,
       layer: normalizeWidgetLayer(overrides.layer, resolvedDefinition.layer || "presentation"),
       density,
       availableSize: overrides.availableSize || null,
@@ -1658,9 +1652,9 @@
       const filters = normalizeTimeframeFilters(config);
       const selectedFilterId = selectedTimeframeFilterId(config, filters);
 
-      const displayFilters = filters.length ? filters : TIMEFRAME_PRESETS.slice(0, 4).map((preset) => ({
+      const displayFilters = filters.length ? filters : TIMEFRAME_DEFAULT_OPTIONS.map((preset) => ({
         id: preset.id,
-        label: preset.label,
+        label: preset.buttonLabel || preset.label,
       }));
 
       const buttons = displayFilters.map((filter, index) => {
@@ -2446,7 +2440,8 @@
     normalizeTimeframeFilters,
     mountTimeframeFlatpickr,
     destroyTimeframeFlatpickr,
-    timeframeFilterTypes: () => TIMEFRAME_FILTER_TYPES.map((type) => ({ ...type })),
+    timeframeFilterTypes: () => TIMEFRAME_OPTIONS.map((type) => ({ ...type })),
+    timeframeOptions: () => TIMEFRAME_OPTIONS.map((option) => ({ ...option })),
     weekStartOptions: () => WEEKDAY_OPTIONS.map((option) => ({ ...option })),
     densityTiers: () => [...DENSITY_TIERS],
     listWidgetDefinitions: () => [...definitions.values()].map((definition) => ({

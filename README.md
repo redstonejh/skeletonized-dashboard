@@ -28,6 +28,7 @@ Visible dashboard names and text surfaces edit in place on the displayed text el
 Widgets with an imported/rendered visual well use a separated color model: the widget theme accent drives data marks/accent content and the object rim, while the shared well surface has a two-option white/dark-grey tone whose neutral foreground is derived for readability.
 Well-backed widgets expose those well tones first in the shared color menu, followed by the normal theme accent palette.
 Interacting inside a well is treated as inner-content interaction, so it does not trigger the parent widget hover/press lift; well surfaces use the shared rim sizing across widget types.
+The timeframe control writes one client-side page-level active range; visualization widgets receive that shared range through the common widget display state and scope their data through the shared render path.
 
 ## Project Layout
 

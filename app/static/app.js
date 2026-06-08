@@ -309,6 +309,37 @@ document.addEventListener("DOMContentLoaded", () => {
     item?.dataset?.widgetLayoutKey ||
     "builder"
   );
+  const pageTimeframeState = new Map();
+  const pageTimeframeSubscribers = new Set();
+  const cloneTimeRange = (timeRange = null) => (
+    timeRange && typeof timeRange === "object"
+      ? {
+        field: timeRange.field || undefined,
+        start: timeRange.start || undefined,
+        end: timeRange.end || undefined,
+        preset: timeRange.preset || "",
+        filterId: timeRange.filterId || "",
+        label: timeRange.label || "",
+      }
+      : null
+  );
+  const pageTimeRangeForLayout = (layoutKey = "builder") => cloneTimeRange(pageTimeframeState.get(layoutKey) || null);
+  const notifyPageTimeframeSubscribers = (layoutKey, timeRange) => {
+    pageTimeframeSubscribers.forEach((subscriber) => {
+      try {
+        subscriber({ layoutKey, timeRange: cloneTimeRange(timeRange) });
+      } catch {}
+    });
+  };
+  const setPageTimeRange = (layoutKey, timeRange) => {
+    const nextRange = cloneTimeRange(timeRange);
+    if (nextRange?.start || nextRange?.end) {
+      pageTimeframeState.set(layoutKey, nextRange);
+    } else {
+      pageTimeframeState.delete(layoutKey);
+    }
+    notifyPageTimeframeSubscribers(layoutKey, pageTimeRangeForLayout(layoutKey));
+  };
   const regionIdForWorkspaceItem = (item) => {
     const layoutKey = activeLayoutKeyForItem(item);
     return item?.dataset?.workspaceRegionId || workspaceRootRegionId(layoutKey);
@@ -320,28 +351,57 @@ document.addEventListener("DOMContentLoaded", () => {
     layoutKey: options.layoutKey || activeLayoutKeyForItem(item),
     profile: options.profile || getActivePanelProfile(options.layoutKey || activeLayoutKeyForItem(item)),
     regionId: regionIdForWorkspaceItem(item),
-    timeRange: null,
+    timeRange: pageTimeRangeForLayout(options.layoutKey || activeLayoutKeyForItem(item)),
     visualSettings: {},
   });
   const normalizedFilterWidgetFilters = () => [];
   const normalizedTimeframeWidgetRange = (widget, displayState = {}) => {
     if (!widget || widget.hidden || widget.dataset.widgetDefinition !== "timeframe") return null;
     const config = parseJsonRecord(widget.dataset.widgetConfig, {}) || {};
-    const resolved = window.dashboardWidgetRuntime?.resolveTimeRangeConfig?.(config, displayState);
+    const resolved = window.dashboardWidgetRuntime?.resolveTimeRangeConfig?.(config, displayState?.now || null);
     if (!resolved?.start && !resolved?.end) return null;
     return resolved;
   };
-  const widgetDisplayStateForWidget = () => null;
+  const publishTimeframeSelection = (widget) => {
+    if (!widget || widget.hidden || widget.dataset.widgetDefinition !== "timeframe") return null;
+    const layoutKey = activeLayoutKeyForItem(widget);
+    const timeRange = normalizedTimeframeWidgetRange(widget, resolveWidgetDisplayState(widget, { layoutKey }));
+    setPageTimeRange(layoutKey, timeRange);
+    return timeRange;
+  };
+  const syncPageTimeframeState = (layoutKey = "builder") => {
+    const escapedLayoutKey = CSS.escape(layoutKey);
+    const timeframeWidget = document.querySelector([
+      `.widget-layout[data-widget-layout-key="${escapedLayoutKey}"] > .widget-card[data-widget-definition="timeframe"]:not([hidden])`,
+      `.panel-layout[data-layout-key="${escapedLayoutKey}"] .panel-internal-widget-grid > .widget-card[data-widget-definition="timeframe"]:not([hidden])`,
+    ].join(", "));
+    if (!timeframeWidget) {
+      setPageTimeRange(layoutKey, null);
+      return null;
+    }
+    return publishTimeframeSelection(timeframeWidget);
+  };
+  const widgetDisplayStateForWidget = (widget) => resolveWidgetDisplayState(widget);
   const refreshWidgetDisplayState = (layoutKey = "default", profile = getActivePanelProfile(layoutKey)) => {
     const panelLayout = document.querySelector(`.panel-layout[data-layout-key="${CSS.escape(layoutKey)}"]`);
     const widgetLayout = document.querySelector(`.widget-layout[data-widget-layout-key="${CSS.escape(layoutKey)}"]`);
     if (panelLayout) syncWorkspaceRegions(panelLayout);
     if (widgetLayout) syncWorkspaceRegions(widgetLayout);
+    syncPageTimeframeState(layoutKey);
     [
       ...document.querySelectorAll(`.widget-layout[data-widget-layout-key="${CSS.escape(layoutKey)}"] > .widget-card`),
       ...document.querySelectorAll(`.panel-layout[data-layout-key="${CSS.escape(layoutKey)}"] .panel-internal-widget-grid > .widget-card`),
     ].forEach((item) => renderWidgetRuntimeContent(item));
     refreshWorkspaceMiniMaps(layoutKey);
+  };
+  window.dashboardTimeframeRuntime = {
+    activeRange: (layoutKey = "builder") => pageTimeRangeForLayout(layoutKey),
+    publish: publishTimeframeSelection,
+    subscribe: (subscriber) => {
+      if (typeof subscriber !== "function") return () => {};
+      pageTimeframeSubscribers.add(subscriber);
+      return () => pageTimeframeSubscribers.delete(subscriber);
+    },
   };
   const syncWorkspaceRegions = (layout) => {
     if (!layout) return;
@@ -807,6 +867,7 @@ document.addEventListener("DOMContentLoaded", () => {
   widgetRuntimeController = window.dashboardWidgetRuntimeController.createRuntime({
     escapeHtml,
     parseJsonRecord,
+    resolveWidgetDisplayState,
     isPanelInternalGridItem,
     isWidgetGridItem,
     gridGapForLayout,
@@ -997,6 +1058,7 @@ document.addEventListener("DOMContentLoaded", () => {
     syncWidgetContextOutputs,
     ensureWidgetWorkbenchPanel,
     persistRuntimeControlChangeForWidget,
+    publishTimeframeSelection,
   });
   const createCustomWidget = (definition) => widgetRuntimeController.createCustomWidget(definition);
 
@@ -2580,7 +2642,7 @@ document.addEventListener("DOMContentLoaded", () => {
     initPanelLayouts();
     document.querySelectorAll(".widget-layout").forEach(initWidgetLayout);
     bindDashboardKeywordForms();
-    syncWorkspaceRegions();
+    refreshWidgetDisplayState("builder");
     scheduleRestoredLayoutReconciliation("builder");
     scheduleWorkspaceVisualLodRefresh();
   };
@@ -2592,6 +2654,7 @@ document.addEventListener("DOMContentLoaded", () => {
     onPageAttached: () => scheduleRestoredLayoutReconciliation("builder"),
   });
   scheduleRestoredLayoutReconciliation("builder");
+  refreshWidgetDisplayState("builder");
 
   ({
     copySelectedWorkspaceObjects,

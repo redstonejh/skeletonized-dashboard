@@ -8,6 +8,7 @@ export const createWidgetRuntimeControls = ({
   syncWidgetContextOutputs,
   ensureWidgetWorkbenchPanel,
   persistRuntimeControlChangeForWidget,
+  publishTimeframeSelection,
 }) => {
   const bindWidgetRuntimeControls = (widget) => {
     if (!widget || widget.dataset.widgetRuntimeControlsBound === "true") return;
@@ -70,6 +71,7 @@ export const createWidgetRuntimeControls = ({
         setWidgetConfig(widget, nextConfig);
         renderWidgetRuntimeContent(widget);
         syncWidgetContextOutputs(widget);
+        publishTimeframeSelection?.(widget);
         if (widget.classList.contains("widget-workbench-open") && options.refreshWorkbench !== false) {
           ensureWidgetWorkbenchPanel(widget);
         }
@@ -192,6 +194,7 @@ export const createWidgetRuntimeControls = ({
         });
         renderWidgetRuntimeContent(widget);
         syncWidgetContextOutputs(widget);
+        publishTimeframeSelection?.(widget);
         event.__widgetRuntimeHandledBy = widget;
         persistRuntimeControlChange({ history: true });
         return;

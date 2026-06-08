@@ -127,6 +127,36 @@
         parentPanelId: widget?.dataset?.parentPanelKey || null,
       }, availableSize, definition) || "standard"
     );
+    const rowDateValue = (row, field = "") => {
+      const fields = field
+        ? [field]
+        : ["date", "time", "timestamp", "createdAt", "created_at", "updatedAt", "updated_at"];
+      for (const key of fields) {
+        const raw = row?.[key];
+        if (raw == null || raw === "") continue;
+        const timestamp = raw instanceof Date ? raw.getTime() : Date.parse(String(raw));
+        if (Number.isFinite(timestamp)) return timestamp;
+      }
+      return null;
+    };
+    const scopedDataForTimeRange = (data, timeRange, definition) => {
+      const rows = Array.isArray(data?.rows) ? data.rows : [];
+      if (!definition?.capabilities?.supportsTimeRange || (!timeRange?.start && !timeRange?.end) || !rows.length) {
+        return data && typeof data === "object" ? data : { rows };
+      }
+      const start = timeRange.start ? Date.parse(`${timeRange.start}T00:00:00`) : Number.NEGATIVE_INFINITY;
+      const end = timeRange.end ? Date.parse(`${timeRange.end}T23:59:59.999`) : Number.POSITIVE_INFINITY;
+      if (!Number.isFinite(start) && !Number.isFinite(end)) return data;
+      const field = String(timeRange.field || "").trim();
+      return {
+        ...(data && typeof data === "object" ? data : {}),
+        rows: rows.filter((row) => {
+          const timestamp = rowDateValue(row, field);
+          return timestamp == null || (timestamp >= start && timestamp <= end);
+        }),
+        timeRange,
+      };
+    };
     const instanceFromElement = (widget, definition = definitionForElement(widget)) => registry?.createWidgetInstance?.(definition, {
       availableSize: availableSizeForDensity(widget),
       density: resolveDensityForElement(widget, definition),
@@ -139,6 +169,7 @@
       rows: Number(widget?.dataset?.gridRowSpan) || definition.defaultSize?.rows || 1,
       layer: layerForElement(widget, definition),
       config: configFromElement(widget, definition),
+      displayState: deps.resolveWidgetDisplayState?.(widget),
       contextOverrideId: widget?.dataset?.contextOverrideId || null,
     }) || {
       id: widget?.dataset?.widgetKey || "",
@@ -148,6 +179,7 @@
       cols: Number(widget?.dataset?.currentSpan || widget?.dataset?.defaultSpan) || definition.defaultSize?.cols || 1,
       rows: Number(widget?.dataset?.gridRowSpan) || definition.defaultSize?.rows || 1,
       config: configFromElement(widget, definition),
+      displayState: deps.resolveWidgetDisplayState?.(widget),
       density: resolveDensityForElement(widget, definition),
       availableSize: availableSizeForDensity(widget),
       parentPanelId: widget?.dataset?.parentPanelKey || null,
@@ -247,6 +279,7 @@
       if (!widget?.classList?.contains("widget-card")) return;
       const definition = definitionForElement(widget);
       const instance = instanceFromElement(widget, definition);
+      const displayState = deps.resolveWidgetDisplayState?.(widget) || instance.displayState || null;
       applyDensityMetadata(widget, instance.density || "standard");
       const mediaState = deps.mediaWidgetAssetState?.(widget, instance.config, definition) || { persistedConfig: instance.config, renderConfig: instance.config };
       const persistedConfig = deps.isMediaWidgetDefinition?.(definition) ? mediaState.persistedConfig : instance.config;
@@ -254,6 +287,12 @@
       let renderInstance = deps.isMediaWidgetDefinition?.(definition)
         ? { ...instance, config: mediaState.renderConfig }
         : instance;
+      renderInstance = {
+        ...renderInstance,
+        displayState,
+        timeRange: displayState?.timeRange || null,
+        data: scopedDataForTimeRange(options.data || renderInstance.data || { rows: [] }, displayState?.timeRange, definition),
+      };
       if (deps.isSignalConsumerWidget?.(widget, definition)) {
         const signalState = deps.signalStateForWidget?.(widget) || {};
         renderInstance = {
@@ -267,6 +306,7 @@
             _signalSourceLabels: signalState.sourceLabels || [],
             _signalLinkIds: signalState.linkIds || [],
             _signalActiveLinkId: signalState.activeLinkId || "",
+            _timeRange: renderInstance.timeRange || null,
           },
         };
         deps.applySignalConsumerState?.(widget, signalState, renderInstance.config);
@@ -276,13 +316,13 @@
       const html = registry?.renderWidget?.(definition, {
         instance: renderInstance,
         definition,
-        data: options.data,
+        data: renderInstance.data,
       }) || definition.render({ instance: renderInstance, definition });
       widget.dataset.widgetShell = definition.shell === false ? "legacy" : "shared";
       setRuntimeContent(widget, html);
       mountWidgetBodyRenderer(widget, {
         definition,
-        instance: { ...renderInstance, data: options.data || renderInstance.data || { rows: [] } },
+        instance: renderInstance,
       });
       deps.applyStyleRulesForWidget?.(widget, {
         definition,
