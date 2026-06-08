@@ -40,9 +40,9 @@
   }
 
   const MAX_OBJECTS = 32;
-  // Workspace objects: top-level widgets and panels. Widgets nested
-  // inside a panel's internal grid and anything inside the navbar are
-  // filtered out in collectObjects().
+  // Workspace objects: widgets and panels. Navbar chrome is filtered out in
+  // collectObjects(); panel-internal widgets use the same glass path as
+  // dashboard widgets.
   const OBJECT_SELECTOR = ".db-panel, .widget-card";
 
   const VERT_SRC = `
@@ -461,9 +461,6 @@
       if (node.classList.contains("dragging")) continue;
       // Navbar is intentionally excluded from the refraction layer.
       if (node.closest(".app-nav")) continue;
-      // Skip widgets nested inside a panel — the panel already covers
-      // them and we don't want refraction stacking.
-      if (node.classList.contains("widget-card") && node.closest(".db-panel")) continue;
       const r = node.getBoundingClientRect();
       if (r.width <= 4 || r.height <= 4) continue;
       if (r.right < 0 || r.bottom < 0 || r.left > vw || r.top > vh) continue;

@@ -1,0 +1,11 @@
+{
+  "verdict": "SHIP",
+  "tests_run": false,
+  "tests_skipped_reason": "User explicitly instructed: NO TESTS; manual verification only.",
+  "changes": [
+    "app/static/liquid-glass-webgl.js: panel-internal widgets are no longer filtered out of WebGL object collection"
+  ],
+  "risks": [
+    "Manual visual verification is required because tests and launch validation were explicitly disabled."
+  ]
+}
