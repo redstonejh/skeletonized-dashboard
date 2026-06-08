@@ -31,6 +31,8 @@ export function initializeSurfaceToolsRuntime({
     ".background-tone-popover",
     ".workspace-minimap-layer",
     "[data-widget-control-surface='true']",
+    ".widget-content-well",
+    ".widget-library-surface",
     "button",
     "a",
     "input",
@@ -52,7 +54,7 @@ export function initializeSurfaceToolsRuntime({
   const isWorkspaceObjectInteractiveSurfaceTarget = (event) => {
     return Boolean(
       event?.target?.closest?.(
-        `${surfaceResponseControlSelector}, .media-widget-stage`,
+        surfaceResponseControlSelector,
       ),
     );
   };

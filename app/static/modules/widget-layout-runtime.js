@@ -300,7 +300,7 @@ export const createWidgetLayoutRuntime = (deps) => {
       });
       const isInteractiveWidgetSurfaceTarget = (event) => {
         const interactiveTarget = event.target?.closest?.(
-          `${surfaceResponseControlSelector}, .media-widget-stage, [contenteditable='true']`,
+          `${surfaceResponseControlSelector}, [contenteditable='true']`,
         );
         return interactiveTarget && interactiveTarget !== widget && widget.contains(interactiveTarget);
       };
