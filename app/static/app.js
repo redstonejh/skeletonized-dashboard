@@ -1279,6 +1279,11 @@ document.addEventListener("DOMContentLoaded", () => {
         return Math.max(bottom, bounds.bottom);
       }, 0);
       placeMissing(panels, Math.max(3, widgetBottom + 1));
+      if (collisionReflowRuntime && options.reconcile !== false) {
+        const rect = gridRectForLayout(widgetLayout);
+        if (!Number.isFinite(rect.width) || rect.width <= 0) return;
+        reconcileRestoredGridLayout(widgetLayout, createGridMetrics(widgetLayout));
+      }
       return;
     }
 
@@ -1324,6 +1329,34 @@ document.addEventListener("DOMContentLoaded", () => {
       return Math.max(bottom, bounds.bottom);
     }, 0);
     placeForcedItems(panels, panelRuntime.applyPanelGridPosition, Math.max(3, widgetBottom + 1));
+  };
+
+  const restoredLayoutReconciliationFrames = new Map();
+  const scheduleRestoredLayoutReconciliation = (layoutKey = "builder") => {
+    if (restoredLayoutReconciliationFrames.has(layoutKey)) return;
+    let attempts = 0;
+    const run = () => {
+      const widgetLayout = document.querySelector(`.widget-layout[data-widget-layout-key="${CSS.escape(layoutKey)}"]`);
+      const panelLayout = document.querySelector(`.panel-layout[data-layout-key="${CSS.escape(layoutKey)}"]`);
+      const host = widgetLayout?.closest(".dashboard-layout-grid");
+      if (!widgetLayout || !panelLayout || !host) {
+        restoredLayoutReconciliationFrames.delete(layoutKey);
+        return;
+      }
+      const rect = gridRectForLayout(widgetLayout);
+      const measurable = Number.isFinite(rect.width) && rect.width > 0;
+      if (!measurable && attempts < 12) {
+        attempts += 1;
+        restoredLayoutReconciliationFrames.set(layoutKey, window.requestAnimationFrame(run));
+        return;
+      }
+      restoredLayoutReconciliationFrames.delete(layoutKey);
+      if (!measurable) return;
+      syncDefaultDashboardGrid(layoutKey);
+      syncWorkspaceRegions(widgetLayout);
+      scheduleWorkspaceVisualLodRefresh(host);
+    };
+    restoredLayoutReconciliationFrames.set(layoutKey, window.requestAnimationFrame(run));
   };
 
   const normalizeGridLayout = (layout, priorityItem = null) => {
@@ -1631,6 +1664,21 @@ document.addEventListener("DOMContentLoaded", () => {
   const resolveSparseGridLayoutForActiveItems = (layout, activeItems = [], options = {}) => (
     collisionReflowRuntime.resolveSparseGridLayoutForActiveItems(layout, activeItems, options)
   );
+
+  const reconcileRestoredGridLayout = (layout, metrics = null) => {
+    const items = globalGridItems(layout, { includePlaceholders: false });
+    if (!items.length) return new Map();
+    const resolvedMetrics = metrics || createGridMetrics(layout);
+    const rowLimit = Math.max(
+      240,
+      ...items.map((item) => gridBoundsForItem(item, resolvedMetrics).bottom + 80)
+    );
+    return resolveSparseGridLayoutForActiveItems(layout, items, {
+      afterOnly: true,
+      metrics: resolvedMetrics,
+      rowLimit,
+    });
+  };
 
   const resolveActiveDropSlot = (layout, item, preferredTarget) => (
     collisionReflowRuntime.resolveActiveDropSlot(layout, item, preferredTarget)
@@ -2533,7 +2581,7 @@ document.addEventListener("DOMContentLoaded", () => {
     document.querySelectorAll(".widget-layout").forEach(initWidgetLayout);
     bindDashboardKeywordForms();
     syncWorkspaceRegions();
-    syncDefaultDashboardGrid("builder");
+    scheduleRestoredLayoutReconciliation("builder");
     scheduleWorkspaceVisualLodRefresh();
   };
   workspacePagesRuntime = initializeWorkspacePagesRuntime({
@@ -2541,7 +2589,9 @@ document.addEventListener("DOMContentLoaded", () => {
     readJsonStore,
     writeJsonStore,
     onPageMounted: refreshMountedWorkspacePage,
+    onPageAttached: () => scheduleRestoredLayoutReconciliation("builder"),
   });
+  scheduleRestoredLayoutReconciliation("builder");
 
   ({
     copySelectedWorkspaceObjects,

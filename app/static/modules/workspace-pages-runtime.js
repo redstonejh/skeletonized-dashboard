@@ -28,6 +28,7 @@ export const initializeWorkspacePagesRuntime = ({
   writeJsonStore,
   storageKey = STORAGE_KEY,
   onPageMounted,
+  onPageAttached,
 } = {}) => {
   const grid = document.querySelector(".dashboard-layout-grid[data-dashboard-layout-key='builder'], .dashboard-layout-grid");
   const widgetLayout = () => document.querySelector(".widget-layout[data-widget-layout-key='builder'], .widget-layout");
@@ -175,6 +176,7 @@ export const initializeWorkspacePagesRuntime = ({
       onPageMounted?.({ tabId });
       page.needsHydration = false;
     }
+    onPageAttached?.({ tabId });
   };
 
   const switchToPage = (tabId) => {
