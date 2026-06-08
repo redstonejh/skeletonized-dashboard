@@ -1,0 +1,6 @@
+{
+  "verdict": "SHIP",
+  "tests_run": false,
+  "tests_skipped_reason": "User explicitly instructed NO TESTS and manual verification.",
+  "summary": "Extended the shared viewport row floor by one measured row unit using row height plus gap, without hardcoded pixels."
+}
