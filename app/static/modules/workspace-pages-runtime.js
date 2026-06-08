@@ -22,6 +22,15 @@ const moveChildren = (from, to) => {
   while (from.firstChild) to.appendChild(from.firstChild);
 };
 
+const transitionDirection = (value, fallback = 1) => {
+  const direction = Number(value);
+  if (direction > 0) return 1;
+  if (direction < 0) return -1;
+  return fallback >= 0 ? 1 : -1;
+};
+
+const swipeDirectionFromDelta = (deltaX) => transitionDirection(-Number(deltaX), 1);
+
 export const initializeWorkspacePagesRuntime = ({
   tabsRuntime,
   readJsonStore,
@@ -201,13 +210,14 @@ export const initializeWorkspacePagesRuntime = ({
   const reducedMotion = () => window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
   const activatePage = ({ nextTab, direction = 1, instant = false } = {}) => {
     const nextTabId = nextTab?.id;
+    const transitionSign = transitionDirection(direction);
     if (!nextTabId || nextTabId === activeTabId || (switching && !instant)) return;
     if (instant || reducedMotion()) {
       switchToPage(nextTabId);
       switching = false;
       return;
     }
-    animateToPage(nextTabId, direction);
+    animateToPage(nextTabId, transitionSign);
   };
 
   const workspaceSwipeBlockSelector = [
@@ -255,10 +265,11 @@ export const initializeWorkspacePagesRuntime = ({
   const createSwipePreview = (tabId, direction) => {
     const page = ensurePage(tabId);
     if (!page) return null;
+    const transitionSign = transitionDirection(direction);
     const preview = document.createElement("div");
     preview.className = "dashboard-layout-grid workspace-page-swipe-preview";
     preview.setAttribute("aria-hidden", "true");
-    preview.dataset.swipeDirection = String(direction);
+    preview.dataset.swipeDirection = String(transitionSign);
     const widgets = document.createElement("div");
     widgets.className = "stat-band widget-layout";
     widgets.dataset.widgetLayoutKey = "builder";
@@ -288,7 +299,8 @@ export const initializeWorkspacePagesRuntime = ({
 
   const setSwipeOffset = (offset, state = swipeState) => {
     if (!state) return;
-    const { width, direction, preview } = state;
+    const { width, preview } = state;
+    const direction = transitionDirection(state.direction);
     const activeX = offset;
     const previewX = (direction > 0 ? width : -width) + offset;
     grid.style.transform = `translateX(${activeX}px)`;
@@ -299,7 +311,8 @@ export const initializeWorkspacePagesRuntime = ({
   const finishSwipe = ({ commit }) => {
     if (!swipeState) return;
     const state = swipeState;
-    const targetX = commit ? -state.direction * state.width : 0;
+    const direction = transitionDirection(state.direction);
+    const targetX = commit ? -direction * state.width : 0;
     document.body.classList.remove("workspace-page-swipe-dragging");
     grid.style.transition = "transform 220ms cubic-bezier(.19, 1, .22, 1)";
     if (state.preview) {
@@ -308,7 +321,11 @@ export const initializeWorkspacePagesRuntime = ({
     setSwipeOffset(targetX, state);
     const cleanup = () => {
       if (commit) {
-        tabsRuntime.activateTab(state.targetIndex, { source: "swipe", instant: true });
+        tabsRuntime.activateTab(state.targetIndex, {
+          source: "swipe",
+          instant: true,
+          direction: transitionDirection(state.direction),
+        });
       }
       clearSwipeStyles(state);
       switching = false;
@@ -319,11 +336,12 @@ export const initializeWorkspacePagesRuntime = ({
 
   const animateToPage = (nextTabId, direction) => {
     if (!nextTabId || switching) return;
+    const transitionSign = transitionDirection(direction);
     const width = Math.max(1, grid.getBoundingClientRect().width || window.innerWidth || 1);
     const state = {
       width,
-      direction,
-      preview: createSwipePreview(nextTabId, direction),
+      direction: transitionSign,
+      preview: createSwipePreview(nextTabId, transitionSign),
     };
     swipeState = state;
     switching = true;
@@ -334,7 +352,7 @@ export const initializeWorkspacePagesRuntime = ({
       if (state.preview) {
         state.preview.style.transition = "transform 220ms cubic-bezier(.19, 1, .22, 1)";
       }
-      setSwipeOffset(-direction * width, state);
+      setSwipeOffset(-transitionSign * width, state);
     });
     window.setTimeout(() => {
       switchToPage(nextTabId);
@@ -368,7 +386,7 @@ export const initializeWorkspacePagesRuntime = ({
     };
 
     const startLockedSwipe = (moveEvent, dx) => {
-      const direction = dx < 0 ? 1 : -1;
+      const direction = swipeDirectionFromDelta(dx);
       const targetIndex = startIndex + direction;
       if (targetIndex < 0 || targetIndex >= startState.tabs.length) {
         const width = Math.max(1, grid.getBoundingClientRect().width || window.innerWidth || 1);

@@ -48,6 +48,13 @@ const normalizeState = (value) => {
   return { tabs, activeIndex };
 };
 
+const transitionDirectionForIndexes = (nextIndex, previousIndex, fallback = 1) => {
+  const delta = Number(nextIndex) - Number(previousIndex);
+  if (delta > 0) return 1;
+  if (delta < 0) return -1;
+  return fallback >= 0 ? 1 : -1;
+};
+
 export const initializeWorkspaceTabsRuntime = ({
   readJsonStore,
   writeJsonStore,
@@ -104,7 +111,7 @@ export const initializeWorkspaceTabsRuntime = ({
         nextIndex: state.activeIndex,
         previousTab,
         nextTab,
-        direction: direction || (state.activeIndex > previousIndex ? 1 : -1),
+        direction: direction || transitionDirectionForIndexes(state.activeIndex, previousIndex),
         state: normalizeState(state),
       });
     }
@@ -155,7 +162,7 @@ export const initializeWorkspaceTabsRuntime = ({
       nextIndex: index,
       previousTab,
       nextTab,
-      direction: index > previousIndex ? 1 : -1,
+      direction: options.direction || transitionDirectionForIndexes(index, previousIndex),
       source: options.source || "tab",
       instant: Boolean(options.instant),
       state: normalizeState(state),
@@ -180,7 +187,7 @@ export const initializeWorkspaceTabsRuntime = ({
       nextIndex: state.activeIndex,
       previousTab: state.tabs[previousIndex] || null,
       nextTab: tab,
-      direction: 1,
+      direction: transitionDirectionForIndexes(state.activeIndex, previousIndex),
       state: normalizeState(state),
     });
     render();
