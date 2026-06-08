@@ -245,7 +245,6 @@
   const ANIMATION_COOLDOWN_FRAMES = 1;
   let resizeObserver = null;
   let mutationObserver = null;
-  let scrollHandler = null;
   let resizeHandler = null;
 
   const compileShader = (type, src) => {
@@ -433,7 +432,7 @@
       );
     });
 
-    const key = `${bgStart}|${bgEnd}|${w}x${h}|${window.scrollY}|${imageKeys.join("|")}|${waitingForImage ? "pending" : "ready"}`;
+    const key = `${bgStart}|${bgEnd}|${w}x${h}|${imageKeys.join("|")}|${waitingForImage ? "pending" : "ready"}`;
     if (key === lastTextureKey) return;
     lastTextureKey = key;
     backdropReady = true;
@@ -654,10 +653,6 @@
         attributeFilter: ["style", "class"],
       });
     }
-    if (!scrollHandler) {
-      scrollHandler = () => markDirty();
-      window.addEventListener("scroll", scrollHandler, { passive: true });
-    }
     if (!resizeHandler) {
       resizeHandler = () => { syncSize(); markDirty(); };
       window.addEventListener("resize", resizeHandler);
@@ -673,8 +668,8 @@
     rasterizeBackdropTexture();
     attachObservers();
     // Continuous loop during drag/resize is overkill; we redraw on
-    // mutation + scroll. The first frame may need to wait for the
-    // texture; markDirty schedules it.
+    // mutation, resize, and animation cooldown. The first frame may
+    // need to wait for the texture; markDirty schedules it.
     markDirty();
   };
 
