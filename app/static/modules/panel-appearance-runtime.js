@@ -1,3 +1,5 @@
+import { clampViewportCoord, clampViewportTop, objectMenuAnchorRect, stableElementRect } from "./object-menu-positioning.js";
+
 export const hexToRgb = (hex) => {
   const clean = String(hex || "").replace("#", "").trim();
   if (!/^[0-9a-f]{6}$/i.test(clean)) return null;
@@ -108,38 +110,12 @@ export const applyPanelTitleColor = (panel, color) => {
   }
 };
 
-const rectSnapshot = (rect) => ({
-  left: rect.left,
-  right: rect.right,
-  top: rect.top,
-  bottom: rect.bottom,
-  width: rect.width,
-  height: rect.height,
-});
-
 const panelColorMenuAnchorRect = (anchor) => {
-  if (!anchor?.isConnected) return null;
-  const rect = anchor.getBoundingClientRect();
-  if (
-    !Number.isFinite(rect.left) ||
-    !Number.isFinite(rect.top) ||
-    rect.width <= 0 ||
-    rect.height <= 0
-  ) return null;
-  return rectSnapshot(rect);
+  return stableElementRect(anchor);
 };
 
 const panelColorMenuOwnerAnchorRect = (owner) => {
-  const rect = panelColorMenuAnchorRect(owner);
-  if (!rect) return null;
-  return {
-    ...rect,
-    left: rect.right,
-    top: rect.top,
-    bottom: rect.top,
-    width: 0,
-    height: 0,
-  };
+  return objectMenuAnchorRect(owner);
 };
 
 const positionPanelColorMenuAtRect = (rect, menu, anchor = null) => {
@@ -149,12 +125,12 @@ const positionPanelColorMenuAtRect = (rect, menu, anchor = null) => {
   const width = menu.offsetWidth || 248;
   const height = menu.offsetHeight || menu.getBoundingClientRect().height || 0;
   const gutter = 12;
-  const left = Math.max(gutter, Math.min(window.innerWidth - width - gutter, rect.right - width + 2));
+  const left = clampViewportCoord(rect.right - width + 2, width, gutter);
   const belowTop = rect.bottom + 12;
   const aboveTop = rect.top - height - 12;
   const top = belowTop + height > window.innerHeight - gutter && aboveTop >= gutter
-    ? aboveTop
-    : Math.max(gutter, Math.min(window.innerHeight - height - gutter, belowTop));
+    ? clampViewportTop(aboveTop, height, gutter)
+    : clampViewportTop(belowTop, height, gutter);
   menu.style.left = `${left}px`;
   menu.style.top = `${top}px`;
   return true;

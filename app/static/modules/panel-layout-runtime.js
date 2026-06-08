@@ -175,10 +175,12 @@ export const createPanelLayoutRuntime = ({
           if (!canOpenDashboardTools(panel)) return;
           panelToolSession.clearToolsCloseTimer();
           portalDashboardToolDrawer(panelToolDrawer, settingsButton || panel);
-          if (pointerCoords) {
-            positionDashboardToolDrawerAtPointer(panel, panelToolDrawer, pointerCoords.clientX, pointerCoords.clientY);
-          } else {
-            positionDashboardToolDrawer(panel, settingsButton, panelToolDrawer);
+          const positioned = pointerCoords
+            ? positionDashboardToolDrawerAtPointer(panel, panelToolDrawer, pointerCoords.clientX, pointerCoords.clientY)
+            : positionDashboardToolDrawer(panel, settingsButton, panelToolDrawer);
+          if (!positioned) {
+            restoreDashboardToolDrawer(panelToolDrawer);
+            return;
           }
           panel.classList.add("db-panel-tools-open");
           settingsButton?.setAttribute("aria-expanded", "true");

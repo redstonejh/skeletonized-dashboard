@@ -143,22 +143,6 @@ export const createWidgetLayoutRuntime = (deps) => {
       const deleteButton = widget.querySelector(".panel-delete-handle");
       const colorMenu = buildPanelColorMenu(widget, layout, colorToggle);
       const workbenchPanel = ensureWidgetWorkbenchPanel(widget);
-      const syncOpenWidgetToolPosition = () => {
-        if (!widget.classList.contains("widget-tools-open") && !widget.classList.contains("widget-workbench-open")) return;
-        if (isDashboardInteractionActive()) return;
-        positionDashboardToolDrawer(widget, settings, drawer);
-        const drawerTop = drawer?.style?.getPropertyValue("--dashboard-tool-drawer-top");
-        const drawerRight = drawer?.style?.getPropertyValue("--dashboard-tool-drawer-right");
-        if (drawerTop) tools?.style?.setProperty("--dashboard-tool-drawer-top", drawerTop);
-        if (drawerRight) tools?.style?.setProperty("--dashboard-tool-drawer-right", drawerRight);
-      };
-      if (!widget.__widgetToolPositionObserver) {
-        widget.__widgetToolPositionObserver = new MutationObserver(syncOpenWidgetToolPosition);
-        widget.__widgetToolPositionObserver.observe(widget, {
-          attributes: true,
-          attributeFilter: ["style", "data-grid-col", "data-grid-row", "data-current-span", "data-grid-row-span"],
-        });
-      }
       const widgetToolSession = createWidgetToolSession();
       let dragging = false;
       let releaseToolLeaveCloseResume = null;
@@ -186,15 +170,13 @@ export const createWidgetLayoutRuntime = (deps) => {
         if (!canOpenDashboardTools(widget)) return;
         widgetToolSession.clearCloseTimer();
         portalDashboardToolDrawer(drawer, settings || widget);
-        if (pointerCoords) {
-          positionDashboardToolDrawerAtPointer(widget, drawer, pointerCoords.clientX, pointerCoords.clientY);
-        } else {
-          positionDashboardToolDrawer(widget, settings, drawer);
+        const positioned = pointerCoords
+          ? positionDashboardToolDrawerAtPointer(widget, drawer, pointerCoords.clientX, pointerCoords.clientY)
+          : positionDashboardToolDrawer(widget, settings, drawer);
+        if (!positioned) {
+          restoreDashboardToolDrawer(drawer);
+          return;
         }
-        const _openToolsTop = drawer?.style?.getPropertyValue("--dashboard-tool-drawer-top");
-        const _openToolsRight = drawer?.style?.getPropertyValue("--dashboard-tool-drawer-right");
-        if (_openToolsTop) tools?.style?.setProperty("--dashboard-tool-drawer-top", _openToolsTop);
-        if (_openToolsRight) tools?.style?.setProperty("--dashboard-tool-drawer-right", _openToolsRight);
         setWidgetLinkNavigationSuspended(widget, true);
         widget.classList.add("widget-tools-open");
         settings?.setAttribute("aria-expanded", "true");
