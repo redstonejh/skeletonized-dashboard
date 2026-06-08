@@ -1,5 +1,5 @@
 const STORAGE_KEY = "dashboard-floating-control-bar";
-const DEFAULT_POSITION = Object.freeze({ left: 166, top: 14 });
+const DEFAULT_POSITION = Object.freeze({ left: 14, top: 58 });
 
 const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
 
@@ -51,9 +51,11 @@ export const initializeFloatingControlBarRuntime = async () => {
     const rect = bar.getBoundingClientRect();
     const width = rect.width || 420;
     const height = rect.height || 58;
+    const controlsRect = document.querySelector(".window-control-cluster")?.getBoundingClientRect();
+    const minTop = Math.max(8, Math.round((controlsRect?.bottom || 44) + 10));
     return {
       left: clamp(next.left, 8, Math.max(8, window.innerWidth - width - 8)),
-      top: clamp(next.top, 8, Math.max(8, window.innerHeight - height - 8)),
+      top: clamp(Math.max(next.top, minTop), minTop, Math.max(minTop, window.innerHeight - height - 8)),
     };
   };
 
@@ -64,8 +66,8 @@ export const initializeFloatingControlBarRuntime = async () => {
     const gearCenterY = gearRect.top + (gearRect.height / 2);
     bar.style.setProperty("--control-bar-left", `${position.left}px`);
     bar.style.setProperty("--control-bar-top", `${position.top}px`);
-    bar.style.setProperty("--control-bar-collapsed-x", `${Math.round(gearCenterX - position.left - 22)}px`);
-    bar.style.setProperty("--control-bar-collapsed-y", `${Math.round(gearCenterY - position.top - 22)}px`);
+    bar.style.setProperty("--control-bar-collapsed-x", `${Math.round(gearCenterX - position.left - 18)}px`);
+    bar.style.setProperty("--control-bar-collapsed-y", `${Math.round(gearCenterY - position.top - 18)}px`);
     panelGlass?.refresh?.();
   };
 

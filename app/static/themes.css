@@ -5529,16 +5529,16 @@ no card. Active * filter is indicated by a subtle underline + slightly higher * 
   position: fixed;
   inset: 0 0 auto 0;
   z-index: calc(var(--z-menu-overlay, 2600) + 5);
-  height: 42px;
+  height: 38px;
   -webkit-app-region: drag;
 }
 .window-control-cluster{
   position: fixed;
-  inset: 14px auto auto 14px;
+  inset: 12px auto auto 14px;
   z-index: calc(var(--z-menu-overlay, 2600) + 20);
   display: inline-flex;
   align-items: center;
-  gap: 9px;
+  gap: 7px;
   -webkit-app-region: no-drag;
 }
 .window-glass-control{
@@ -5546,8 +5546,8 @@ no card. Active * filter is indicated by a subtle underline + slightly higher * 
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 42px;
-  height: 42px;
+  width: 34px;
+  height: 34px;
   border: 1px solid color-mix(in srgb, var(--glass-border) 72%, transparent);
   border-radius: 50%;
   background:
@@ -5558,9 +5558,9 @@ no card. Active * filter is indicated by a subtle underline + slightly higher * 
     color-mix(in srgb, var(--glass-surface-strong) 84%, rgba(71, 85, 105, .34));
   color: rgba(255, 255, 255, .96);
   box-shadow:
-    0 12px 28px rgba(15, 23, 42, .18),
+    0 9px 20px rgba(15, 23, 42, .16),
     inset 0 1px 0 color-mix(in srgb, var(--glass-highlight) 76%, transparent),
-    inset 0 -10px 20px rgba(15, 23, 42, .08);
+    inset 0 -8px 16px rgba(15, 23, 42, .08);
   backdrop-filter: blur(20px) saturate(1.14);
   -webkit-backdrop-filter: blur(20px) saturate(1.14);
   cursor: pointer;
@@ -5574,31 +5574,31 @@ no card. Active * filter is indicated by a subtle underline + slightly higher * 
   content: "";
   display: block;
   flex: 0 0 auto;
-  width: 18px;
-  height: 18px;
+  width: 15px;
+  height: 15px;
   background: currentColor;
 }
 .control-bar-gear::before{
-  width: 19px;
-  height: 19px;
+  width: 16px;
+  height: 16px;
   mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.38a2 2 0 0 0-.73-2.73l-.15-.09a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z'/%3E%3Ccircle cx='12' cy='12' r='3'/%3E%3C/svg%3E") center / contain no-repeat;
   -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.38a2 2 0 0 0-.73-2.73l-.15-.09a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z'/%3E%3Ccircle cx='12' cy='12' r='3'/%3E%3C/svg%3E") center / contain no-repeat;
 }
 .window-minimize-control::before{
-  width: 17px;
-  height: 17px;
-  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 18h12'/%3E%3C/svg%3E") center / contain no-repeat;
-  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 18h12'/%3E%3C/svg%3E") center / contain no-repeat;
+  width: 15px;
+  height: 15px;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 12h12'/%3E%3C/svg%3E") center / contain no-repeat;
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 12h12'/%3E%3C/svg%3E") center / contain no-repeat;
 }
 .window-close-control::before{
-  width: 17px;
-  height: 17px;
+  width: 15px;
+  height: 15px;
   mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.6' stroke-linecap='round'%3E%3Cpath d='M5 5l14 14M19 5L5 19'/%3E%3C/svg%3E") center / contain no-repeat;
   -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.6' stroke-linecap='round'%3E%3Cpath d='M5 5l14 14M19 5L5 19'/%3E%3C/svg%3E") center / contain no-repeat;
 }
 .window-refresh-control::before{
-  width: 19px;
-  height: 19px;
+  width: 16px;
+  height: 16px;
   mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.35' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 11a8 8 0 0 0-14.2-4.9L4 8'/%3E%3Cpath d='M4 4v4h4'/%3E%3Cpath d='M4 13a8 8 0 0 0 14.2 4.9L20 16'/%3E%3Cpath d='M20 20v-4h-4'/%3E%3C/svg%3E") center / contain no-repeat;
   -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.35' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 11a8 8 0 0 0-14.2-4.9L4 8'/%3E%3Cpath d='M4 4v4h4'/%3E%3Cpath d='M4 13a8 8 0 0 0 14.2 4.9L20 16'/%3E%3Cpath d='M20 20v-4h-4'/%3E%3C/svg%3E") center / contain no-repeat;
 }
@@ -5613,10 +5613,18 @@ no card. Active * filter is indicated by a subtle underline + slightly higher * 
       rgba(255, 255, 255, .14)),
     color-mix(in srgb, var(--glass-surface-strong) 92%, rgba(100, 116, 139, .38));
   box-shadow:
-    0 16px 34px rgba(15, 23, 42, .22),
+    0 7px 16px rgba(15, 23, 42, .18),
     inset 0 1px 0 color-mix(in srgb, var(--glass-highlight) 88%, transparent),
-    inset 0 -10px 20px rgba(15, 23, 42, .10);
-  transform: translateY(-1px);
+    inset 0 7px 16px rgba(15, 23, 42, .08),
+    inset 0 -4px 12px rgba(255, 255, 255, .04);
+  transform: translateY(1px) scale(.985);
+}
+.window-glass-control:active{
+  transform: translateY(2px) scale(.97);
+  box-shadow:
+    0 4px 10px rgba(15, 23, 42, .16),
+    inset 0 8px 18px rgba(15, 23, 42, .12),
+    inset 0 1px 0 color-mix(in srgb, var(--glass-highlight) 52%, transparent);
 }
 .window-glass-control:focus-visible{
   outline: 2px solid rgba(255, 255, 255, .58);
@@ -5642,7 +5650,7 @@ no card. Active * filter is indicated by a subtle underline + slightly higher * 
   transform:
     translate(var(--control-bar-collapsed-x, 0), var(--control-bar-collapsed-y, 0))
     scale(.16);
-  transform-origin: 22px 22px;
+  transform-origin: 18px 18px;
   visibility: hidden;
   pointer-events: none;
   transition:

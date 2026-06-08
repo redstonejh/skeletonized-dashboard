@@ -1,0 +1,12 @@
+{
+  "verdict": "SHIP",
+  "tests_run": false,
+  "tests_skipped_reason": "User explicitly instructed: NO TESTS; manual verification only.",
+  "changes": [
+    "app/static/themes.css: smaller controls, centered minimize icon, press-in hover/active behavior",
+    "app/static/modules/floating-control-bar-runtime.js: settings bar defaults and clamps below the window controls"
+  ],
+  "risks": [
+    "Manual visual verification is required because tests and launch validation were explicitly disabled."
+  ]
+}
