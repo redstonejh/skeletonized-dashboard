@@ -4923,9 +4923,13 @@ or fill — the empty body reads as blank glass. */ .db-panel-body > .panel-empt
 }/* ── Timeframe task-bar control redesign ────────────────────────────── * * Replace pill buttons with plain stat-style text labels. * * Source markup (widget-registry.js:1879): * <button class="timeframe-filter-btn" data-filter-id="...">label</button> * * Strip the pill shell entirely (background, border, padding, radius, * box-shadow) and re-style as inline text — same family as the stat * widget number / workspace-object title: white,
 bold,
 no card. Active * filter is indicated by a subtle underline + slightly higher * brightness. Hover brightens text only. */ .timeframe-widget-card .widget-shell-content{
-  display: flex !important;
+  display: grid !important;
+  height: 100% !important;
+  min-height: 0 !important;
   align-items: center !important;
   justify-content: center !important;
+  align-content: center !important;
+  justify-items: stretch !important;
   overflow: visible !important;
 }.timeframe-filter-btn{
   appearance: none !important;
@@ -4982,17 +4986,15 @@ no card. Active * filter is indicated by a subtle underline + slightly higher * 
   text-decoration-color: rgba(255, 255, 255, 1.0) !important;
 }/* Tighten the bar layout so the labels read as one row of text */ .timeframe-widget-card .timeframe-body{
   display: flex !important;
+  width: 100% !important;
+  height: 100% !important;
+  min-height: 0 !important;
   align-items: center !important;
-  align-content: center !important;
-  min-height: 100% !important;
+  align-content: stretch !important;
+  justify-content: center !important;
   gap: 14px !important;
   flex-wrap: nowrap !important;
-  overflow-x: auto !important;
-  overflow-y: visible !important;
-  scrollbar-width: none !important;
-  -ms-overflow-style: none;
-}.timeframe-widget-card .timeframe-body::-webkit-scrollbar{
-  display: none !important;
+  overflow: visible !important;
 }
 
 /* User-requested slim navbar redesign: the bar now hugs its controls and
