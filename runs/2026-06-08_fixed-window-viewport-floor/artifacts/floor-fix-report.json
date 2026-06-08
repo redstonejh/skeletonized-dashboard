@@ -1,0 +1,22 @@
+{
+  "root_cause": "viewportRowFloorForLayout previously measured gridHostForLayout(layout).clientHeight. The grid host auto-expands with content and panel expansion, so the floor tracked content height instead of the fixed visible viewport.",
+  "fix": {
+    "workspace_floor": "window.innerHeight minus the dashboard grid host top offset and fixed page bottom padding, divided by row height plus gap",
+    "panel_internal_floor": "panel body visible bounding rect height divided by row height plus gap",
+    "shared_enforcement": "the same computed floor is used by direct drag placement and collision displacement through the existing ordered-drag-runtime/collision-reflow path"
+  },
+  "excluded_measurements": [
+    "grid host clientHeight",
+    "layout clientHeight",
+    "scrollHeight",
+    "occupied content bottom row"
+  ],
+  "coverage": [
+    "floor remains constant when a panel expands",
+    "free placement works within the fixed floor",
+    "dragging below the floor does not increase scrollHeight",
+    "collision ratchet cannot push objects below the floor",
+    "panel expansion still grows the page and scroll-to-panel still works",
+    "panel-internal widgets clamp to the panel body's visible area"
+  ]
+}

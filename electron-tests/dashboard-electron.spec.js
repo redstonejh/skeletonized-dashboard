@@ -1338,7 +1338,23 @@ test("electron GUI keeps drag and resize handlers active", async () => {
   expect(box).toBeTruthy();
   const moveStartX = box.x + box.width / 2;
   const moveStartY = box.y + box.height / 2;
-  await dispatchPointerDrag(page, moveStartX, moveStartY, box.x - 320, box.y + 220);
+  const moveTarget = await movePanel.evaluate((node, { moveStartX, moveStartY }) => {
+    const layout = node.closest(".panel-layout");
+    const host = layout?.closest(".dashboard-layout-grid") || layout;
+    const hostRect = host?.getBoundingClientRect();
+    const itemRect = node.getBoundingClientRect();
+    const computed = host ? getComputedStyle(host) : null;
+    const rowHeight = parseFloat(computed?.getPropertyValue("--dashboard-grid-row-height")) || 81;
+    const gap = parseFloat(computed?.rowGap || computed?.gap || "18") || 18;
+    const columnWidth = hostRect ? ((hostRect.width - (gap * 5)) / 6) : itemRect.width;
+    const targetCol = 1;
+    const targetRow = Math.max(1, Math.round(Number(node.dataset.gridRow) || 1));
+    return {
+      x: Math.round((hostRect?.left || itemRect.left) + ((targetCol - 1) * (columnWidth + gap)) + (moveStartX - itemRect.left)),
+      y: Math.round((hostRect?.top || itemRect.top) + ((targetRow - 1) * (rowHeight + gap)) + (moveStartY - itemRect.top)),
+    };
+  }, { moveStartX, moveStartY });
+  await dispatchPointerDrag(page, moveStartX, moveStartY, moveTarget.x, moveTarget.y);
   await page.waitForFunction(
     ({ selector, previous }) => {
       const node = document.querySelector(selector);
@@ -1963,16 +1979,60 @@ test("electron GUI keeps drag cursor aligned and prevents drag-created vertical 
 
   const workspaceAlignment = await liveDragAlignment('.panel-layout > .db-panel[data-panel-key="builder-notes"]', -180, 140);
 
+  const fixedFloorProbe = await page.evaluate(() => {
+    const layout = document.querySelector(".panel-layout");
+    const panel = layout?.querySelector(':scope > .db-panel[data-panel-key="builder-content"]');
+    if (!layout || !panel) return null;
+    const floorRowsFor = () => {
+      const anchor = layout.closest(".dashboard-layout-grid") || layout;
+      const computed = getComputedStyle(layout);
+      const anchorComputed = getComputedStyle(anchor);
+      const rowHeight = parseFloat(computed.getPropertyValue("--dashboard-grid-row-height")) || 81;
+      const gap = parseFloat(anchorComputed.rowGap || anchorComputed.gap || computed.rowGap || computed.gap || "16") || 16;
+      const rowStep = rowHeight + gap;
+      const top = Math.max(0, anchor.getBoundingClientRect().top || 0);
+      const pageShell = anchor.closest(".page");
+      const pageBottomInset = pageShell ? (parseFloat(getComputedStyle(pageShell).paddingBottom || "0") || 0) : 0;
+      const visibleHeight = Math.max(0, window.innerHeight - top - pageBottomInset);
+      return Math.max(1, Math.floor((visibleHeight + gap) / rowStep));
+    };
+    const before = floorRowsFor();
+    const original = {
+      className: panel.className,
+      rowSpan: panel.dataset.gridRowSpan || "",
+      savedHeight: panel.dataset.savedHeight || "",
+      height: panel.style.height || "",
+      gridRowEnd: panel.style.gridRowEnd || "",
+    };
+    panel.classList.remove("db-panel-collapsed");
+    panel.dataset.savedHeight = "460";
+    panel.dataset.gridRowSpan = "6";
+    panel.style.height = "460px";
+    panel.style.gridRowEnd = "span 6";
+    const afterExpansion = floorRowsFor();
+    panel.className = original.className;
+    panel.dataset.gridRowSpan = original.rowSpan;
+    panel.dataset.savedHeight = original.savedHeight;
+    panel.style.height = original.height;
+    panel.style.gridRowEnd = original.gridRowEnd;
+    const afterRestore = floorRowsFor();
+    return { before, afterExpansion, afterRestore };
+  });
+  expect(fixedFloorProbe).toBeTruthy();
+  expect(fixedFloorProbe.afterExpansion).toBe(fixedFloorProbe.before);
+  expect(fixedFloorProbe.afterRestore).toBe(fixedFloorProbe.before);
+
   const freeSpaceSelector = '.widget-layout:not(.panel-internal-widget-grid) > .widget-card[data-widget-key="widget-1"]';
   await openTools(page, freeSpaceSelector);
   const freeSpacePlan = await page.evaluate((selector) => {
     const node = document.querySelector(selector);
     const layout = node?.closest(".widget-layout");
-    const host = layout?.closest(".dashboard-layout-grid") || layout;
-    if (!node || !layout || !host) return null;
+    if (!node || !layout) return null;
+    const anchor = layout.closest(".dashboard-layout-grid") || layout;
     const computed = getComputedStyle(layout);
+    const anchorComputed = getComputedStyle(anchor);
     const rowHeight = parseFloat(computed.getPropertyValue("--dashboard-grid-row-height")) || 81;
-    const gap = parseFloat(computed.rowGap || computed.gap || "16") || 16;
+    const gap = parseFloat(anchorComputed.rowGap || anchorComputed.gap || computed.rowGap || computed.gap || "16") || 16;
     const rowStep = rowHeight + gap;
     const items = [...layout.querySelectorAll(":scope > .widget-card:not(.widget-dragging):not(.widget-placeholder)")];
     const occupiedBottom = items.reduce((bottom, item) => {
@@ -1982,8 +2042,11 @@ test("electron GUI keeps drag cursor aligned and prevents drag-created vertical 
     }, 1);
     const rowSpan = Math.max(1, Math.round(Number(node.dataset.gridRowSpan) || 1));
     const currentRow = Math.max(1, Math.round(Number(node.dataset.gridRow) || 1));
-    const rect = host.getBoundingClientRect();
-    const visibleHeight = host.clientHeight || layout.clientHeight || 0;
+    const rect = layout.getBoundingClientRect();
+    const anchorRect = anchor.getBoundingClientRect();
+    const pageShell = anchor.closest(".page");
+    const pageBottomInset = pageShell ? (parseFloat(getComputedStyle(pageShell).paddingBottom || "0") || 0) : 0;
+    const visibleHeight = Math.max(0, window.innerHeight - Math.max(0, anchorRect.top || 0) - pageBottomInset);
     const viewportRows = Math.max(1, Math.floor((visibleHeight + gap) / rowStep));
     const targetRow = Math.max(1, viewportRows - rowSpan + 1);
     const itemRect = node.getBoundingClientRect();
@@ -2004,7 +2067,7 @@ test("electron GUI keeps drag cursor aligned and prevents drag-created vertical 
       startX: Math.round(itemRect.left + pointerOffsetX),
       startY: Math.round(itemRect.top + pointerOffsetY),
       endX: Math.round(rect.left + Math.min(rect.width - 32, Math.max(32, itemRect.width * 0.5))),
-      endY: Math.round(rect.top + ((targetRow - 1) * rowStep) + pointerOffsetY),
+      endY: Math.round(anchorRect.top + ((targetRow - 1) * rowStep) + pointerOffsetY),
     };
   }, freeSpaceSelector);
   expect(freeSpacePlan).toBeTruthy();
@@ -2037,10 +2100,15 @@ test("electron GUI keeps drag cursor aligned and prevents drag-created vertical 
     const host = layout?.closest(".dashboard-layout-grid") || layout;
     if (!layout || !active || !target || !host) return null;
     const computed = getComputedStyle(layout);
+    const hostComputed = getComputedStyle(host);
     const rowHeight = parseFloat(computed.getPropertyValue("--dashboard-grid-row-height")) || 81;
-    const gap = parseFloat(computed.rowGap || computed.gap || "16") || 16;
+    const gap = parseFloat(hostComputed.rowGap || hostComputed.gap || computed.rowGap || computed.gap || "16") || 16;
     const rowStep = rowHeight + gap;
-    const viewportRows = Math.max(1, Math.floor(((host.clientHeight || layout.clientHeight || 0) + gap) / rowStep));
+    const anchor = layout.closest(".dashboard-layout-grid") || layout;
+    const pageShell = anchor.closest(".page");
+    const pageBottomInset = pageShell ? (parseFloat(getComputedStyle(pageShell).paddingBottom || "0") || 0) : 0;
+    const visibleHeight = Math.max(0, window.innerHeight - Math.max(0, anchor.getBoundingClientRect().top || 0) - pageBottomInset);
+    const viewportRows = Math.max(1, Math.floor((visibleHeight + gap) / rowStep));
     const spanFor = (node) => {
       const rect = node.getBoundingClientRect();
       return Math.max(1, Math.round(((rect.height + gap) / rowStep) || Number(node.dataset.gridRowSpan) || 1));
@@ -2129,8 +2197,19 @@ test("electron GUI keeps drag cursor aligned and prevents drag-created vertical 
   await page.locator(panelSelector).evaluate((panel) => {
     panel.dataset.savedHeight = "320";
     panel.dataset.gridRowSpan = "4";
+    panel.dataset.gridCol = "1";
+    panel.dataset.gridRow = "3";
+    panel.style.gridColumnStart = "1";
+    panel.style.gridRowStart = "3";
     panel.style.height = "320px";
     panel.style.gridRowEnd = "span 4";
+  });
+  await page.locator(widgetSelector).evaluate((widget) => {
+    widget.dataset.gridCol = "5";
+    widget.dataset.gridRow = "1";
+    widget.style.gridColumnStart = "5";
+    widget.style.gridRowStart = "1";
+    widget.style.gridArea = "1 / 5 / span 1 / span 1";
   });
   const widget = await openTools(page, widgetSelector);
   const moveBox = await widget.locator(".panel-move-handle").boundingBox();
@@ -2226,9 +2305,13 @@ test("electron GUI keeps drag cursor aligned and prevents drag-created vertical 
         const layout = node?.closest(".panel-layout");
         const host = layout?.closest(".dashboard-layout-grid") || layout;
         const computed = layout ? getComputedStyle(layout) : null;
+        const hostComputed = host ? getComputedStyle(host) : null;
         const rowHeight = parseFloat(computed?.getPropertyValue("--dashboard-grid-row-height")) || 81;
-        const gap = parseFloat(computed?.rowGap || computed?.gap || "16") || 16;
-        const visibleHeight = host?.clientHeight || layout?.clientHeight || 0;
+        const gap = parseFloat(hostComputed?.rowGap || hostComputed?.gap || computed?.rowGap || computed?.gap || "16") || 16;
+        const anchor = layout?.closest(".dashboard-layout-grid") || layout;
+        const pageShell = anchor?.closest(".page");
+        const pageBottomInset = pageShell ? (parseFloat(getComputedStyle(pageShell).paddingBottom || "0") || 0) : 0;
+        const visibleHeight = anchor ? Math.max(0, window.innerHeight - Math.max(0, anchor.getBoundingClientRect().top || 0) - pageBottomInset) : 0;
         const rows = Math.max(1, Math.floor((visibleHeight + gap) / (rowHeight + gap)));
         const span = Math.max(1, Math.round(Number(node?.dataset.gridRowSpan) || 1));
         return Math.max(1, rows - span + 1);

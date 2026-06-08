@@ -1,0 +1,18 @@
+{
+  "verdict": "SHIP",
+  "checks": {
+    "discovery_guard": "passed",
+    "delegation_proof": "passed",
+    "js_syntax": "passed",
+    "focused_drag_floor_canary": "passed",
+    "focused_drag_handlers_canary": "passed",
+    "focused_navbar_canary": "passed after earlier full-run flake isolation",
+    "e2e": "27 passed",
+    "handoff_validation": "passed",
+    "verdict_check": "passed"
+  },
+  "files_changed": [
+    "app/static/app.js",
+    "electron-tests/dashboard-electron.spec.js"
+  ]
+}
