@@ -1,0 +1,11 @@
+{
+  "verdict": "SHIP",
+  "tests_run": false,
+  "validation_run": false,
+  "reason": "User standing rule for this run explicitly forbids tests and validation. Implementation is scoped to preserving widget color state through the shared panel containment clone path.",
+  "changed_files": [
+    "app/static/app.js",
+    "app/static/modules/panel-runtime-setup.js",
+    "app/static/panel-containment.js"
+  ]
+}

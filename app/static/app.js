@@ -2373,6 +2373,7 @@ document.addEventListener("DOMContentLoaded", () => {
     groupItemLayoutKey,
     applyWidgetSpan: widgetRuntimeController.applySpan,
     applyWidgetGridPosition: widgetRuntimeController.applyGridPosition,
+    applyPanelColor,
     gridCellFromPoint,
     initWidgetLayout,
     readDraftList,

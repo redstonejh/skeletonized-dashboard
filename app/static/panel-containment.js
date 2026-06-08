@@ -144,6 +144,14 @@
       clone.querySelector(".panel-settings-toggle")?.setAttribute("aria-expanded", "false");
       clone.querySelector(".panel-color-toggle")?.setAttribute("aria-expanded", "false");
       clone.querySelectorAll(".panel-color-menu-open").forEach((menu) => menu.classList.remove("panel-color-menu-open"));
+      if (typeof deps.applyPanelColor === "function") {
+        if (widget.dataset.panelColorCleared === "true") {
+          deps.applyPanelColor(clone, null);
+        } else if (widget.dataset.panelColor) {
+          deps.applyPanelColor(clone, widget.dataset.panelColor);
+          if (widget.dataset.panelColorUser === "true") clone.dataset.panelColorUser = "true";
+        }
+      }
       return clone;
     };
 
