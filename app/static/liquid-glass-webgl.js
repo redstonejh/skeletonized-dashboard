@@ -469,10 +469,6 @@
     const out = [];
     const vw = window.innerWidth;
     const vh = window.innerHeight;
-    const isPaintedAt = (node, x, y) => {
-      const hit = document.elementFromPoint(x, y);
-      return Boolean(hit && (hit === node || node.contains(hit)));
-    };
     const visibleClipRect = (node, rect) => {
       let left = Math.max(rect.left, 0);
       let top = Math.max(rect.top, 0);
@@ -498,14 +494,7 @@
       if (style.display === "none" || style.visibility === "hidden" || style.visibility === "collapse" || Number(style.opacity) <= 0.01) return false;
       const clip = visibleClipRect(node, rect);
       if (!clip || clip.width <= 4 || clip.height <= 4) return false;
-      const points = [
-        [clip.left + clip.width * 0.5, clip.top + clip.height * 0.5],
-        [clip.left + Math.min(8, clip.width * 0.35), clip.top + Math.min(8, clip.height * 0.35)],
-        [clip.right - Math.min(8, clip.width * 0.35), clip.top + Math.min(8, clip.height * 0.35)],
-        [clip.left + Math.min(8, clip.width * 0.35), clip.bottom - Math.min(8, clip.height * 0.35)],
-        [clip.right - Math.min(8, clip.width * 0.35), clip.bottom - Math.min(8, clip.height * 0.35)],
-      ];
-      return points.some(([x, y]) => isPaintedAt(node, x, y));
+      return true;
     };
     for (const node of nodes) {
       if (node.classList.contains("dragging")) continue;
