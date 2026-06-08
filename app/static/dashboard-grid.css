@@ -280,9 +280,9 @@ body.webgl-glass-on .widget-card.db-panel-custom-color{
   min-height: 0;
   align-content: stretch;
 }.widget-shell-stat .widget-shell-content{
-  align-content: end;
+  align-content: start;
 }.widget-shell-stat .stat-val{
-  align-self: end;
+  align-self: start;
 }.widget-shell-content > :is(.widget-empty-placeholder, .runtime-table-widget, .runtime-chart-widget, .runtime-map-widget, .runtime-calendar-widget, .timeframe-body, .search-widget-content, .filter-widget-content, .text-widget-content, .media-widget, .meta-widget, .dataset-origin-widget, .data-filter-widget, .shift-widget, .region-summary-widget){
   min-height: 0;
 }.widget-default-visual{

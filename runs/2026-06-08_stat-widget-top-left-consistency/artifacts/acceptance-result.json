@@ -1,0 +1,8 @@
+{
+  "verdict": "SHIP",
+  "summary": "Stat widget number alignment now uses the shared top-aligned stat shell rule, so dashboard and panel-contained stat widgets match.",
+  "tests": {
+    "status": "skipped",
+    "reason": "User explicitly instructed not to run tests, canaries, or validation."
+  }
+}
