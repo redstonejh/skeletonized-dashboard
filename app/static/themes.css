@@ -4477,7 +4477,7 @@ only the header shows,
 so this is purely * a filter on whatever is behind the panel. */ .db-panel.db-panel-custom-color{
   backdrop-filter: blur(var(--glass-photo-blur)) saturate(var(--glass-photo-saturate));
   -webkit-backdrop-filter: blur(var(--glass-photo-blur)) saturate(var(--glass-photo-saturate));
-}/* The actual "opaque white/blue slab" inside an open panel body: * .widget-content-well / .widget-library-surface (dashboard-grid.css:2515) * paint `background: var(--widget-library-surface-bg)` which is * `linear-gradient(rgba(255,255,255,.94) + tiny panel-accent, rgba(248,250,252,.92) + tiny panel-accent)` * — effectively opaque white tinted faintly blue. The runtime stages * (.text-widget-editor, .text-widget-preview, .runtime-chart-stage, * .runtime-table-scroll, etc.) at dashboard-grid.css:6181 paint * `var(--widget-content-stage-bg)` which inherits the same recessed * interior values. Both layers sit INSIDE .widget-card,
+}/* The actual "opaque white/blue slab" inside an open panel body: * .widget-content-well / .widget-library-surface (dashboard-grid.css:2515) * paint `background: var(--widget-library-surface-bg)` which is * `linear-gradient(rgba(255,255,255,.94) + tiny panel-accent, rgba(248,250,252,.92) + tiny panel-accent)` * — effectively opaque white tinted faintly blue. The runtime stages * (.text-widget-preview, .runtime-chart-stage, * .runtime-table-scroll, etc.) at dashboard-grid.css:6181 paint * `var(--widget-content-stage-bg)` which inherits the same recessed * interior values. Both layers sit INSIDE .widget-card,
 so they cover * the panel-body translucent fill and any photo bleed-through. * * --widget-library-surface-bg is defined on .widget-card itself,
 so * overriding it on body doesn't propagate (widget-card redefines for * its subtree). Retarget the paint selectors directly instead. Both * base rules have specificity (0,1,0); these (0,2,1) overrides win * without !important. */ .widget-content-well,
 .widget-library-surface{
@@ -4497,7 +4497,6 @@ so * overriding it on body doesn't propagate (widget-card redefines for * its su
     inset 0 -1px 0 rgba(255, 255, 255, 0.06);
 }.runtime-table-scroll,
 .runtime-chart-stage,
-.text-widget-editor,
 .text-widget-preview,
 .media-widget-stage,
 .ai-assistant-panel,
@@ -5272,6 +5271,10 @@ no card. Active * filter is indicated by a subtle underline + slightly higher * 
   background: transparent;
   color: transparent;
   -webkit-text-fill-color: transparent;
+}.workspace-tab-label.inline-text-editing::selection{
+  background: color-mix(in srgb, currentColor 22%, transparent);
+  color: currentColor;
+  -webkit-text-fill-color: currentColor;
 }
 .workspace-tab::after{
   content: none;

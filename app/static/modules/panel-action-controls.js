@@ -1,3 +1,5 @@
+import { beginInlineTextEdit } from "./inline-text-editing.js";
+
 export const bindPanelActionControls = ({
   panel,
   layout,
@@ -135,46 +137,23 @@ export const bindPanelActionControls = ({
     const titleEl = panel.querySelector(".db-panel-title");
     if (!titleEl) return;
     const originalTitle = panel.dataset.panelTitle || titleEl.textContent.trim();
-    panel.classList.add("db-panel-title-editing");
-    titleEl.contentEditable = "true";
-    titleEl.spellcheck = false;
-    titleEl.focus();
-    window.getSelection?.()?.selectAllChildren(titleEl);
-
-    const finishEdit = (commit) => {
-      titleEl.removeEventListener("blur", onBlur);
-      titleEl.removeEventListener("keydown", onKeydown);
-      titleEl.contentEditable = "false";
-      panel.classList.remove("db-panel-title-editing");
-      if (!commit) {
-        titleEl.textContent = originalTitle;
-        return;
-      }
-      const cleanTitle = titleEl.textContent.trim().replace(/\s+/g, " ").slice(0, 36);
-      if (cleanTitle) {
-        panel.dataset.panelTitle = cleanTitle;
-        titleEl.textContent = cleanTitle;
-      } else {
-        delete panel.dataset.panelTitle;
-        titleEl.textContent = panel.dataset.defaultTitle || originalTitle;
-      }
-      savePanelLayouts(layout);
-    };
-
-    const onBlur = () => finishEdit(true);
-    const onKeydown = (keyEvent) => {
-      keyEvent.stopPropagation();
-      if (keyEvent.key === "Enter") {
-        keyEvent.preventDefault();
-        finishEdit(true);
-      } else if (keyEvent.key === "Escape") {
-        keyEvent.preventDefault();
-        finishEdit(false);
-      }
-    };
-
-    titleEl.addEventListener("blur", onBlur);
-    titleEl.addEventListener("keydown", onKeydown);
+    beginInlineTextEdit({
+      element: titleEl,
+      owner: panel,
+      ownerEditingClass: "db-panel-title-editing",
+      originalText: originalTitle,
+      onCommit: (value) => {
+        const cleanTitle = value.trim().replace(/\s+/g, " ").slice(0, 36);
+        if (cleanTitle) {
+          panel.dataset.panelTitle = cleanTitle;
+          titleEl.textContent = cleanTitle;
+        } else {
+          delete panel.dataset.panelTitle;
+          titleEl.textContent = panel.dataset.defaultTitle || originalTitle;
+        }
+        savePanelLayouts(layout);
+      },
+    });
   });
 
   deleteButton?.addEventListener("click", (event) => {

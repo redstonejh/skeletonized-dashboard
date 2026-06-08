@@ -1,3 +1,5 @@
+import { beginInlineTextEdit } from "./inline-text-editing.js";
+
 export const bindWidgetActionControls = ({
   widget,
   layout,
@@ -34,31 +36,18 @@ export const bindWidgetActionControls = ({
     const label = widget.querySelector(".stat-lbl");
     if (!label) return;
     const original = label.textContent.trim();
-    label.contentEditable = "true";
-    label.focus();
-    window.getSelection?.()?.selectAllChildren(label);
-    const finish = (commit) => {
-      label.contentEditable = "false";
-      label.removeEventListener("blur", onBlur);
-      label.removeEventListener("keydown", onKeydown);
-      const clean = commit ? label.textContent.trim().replace(/\s+/g, " ").slice(0, 36) : original;
-      label.textContent = clean || original;
-      widget.dataset.panelTitle = label.textContent;
-      saveWidgetLayouts(layout);
-    };
-    const onBlur = () => finish(true);
-    const onKeydown = (keyEvent) => {
-      keyEvent.stopPropagation();
-      if (keyEvent.key === "Enter") {
-        keyEvent.preventDefault();
-        finish(true);
-      } else if (keyEvent.key === "Escape") {
-        keyEvent.preventDefault();
-        finish(false);
-      }
-    };
-    label.addEventListener("blur", onBlur);
-    label.addEventListener("keydown", onKeydown);
+    beginInlineTextEdit({
+      element: label,
+      owner: widget,
+      ownerEditingClass: "widget-title-editing",
+      originalText: original,
+      onCommit: (value) => {
+        const clean = value.trim().replace(/\s+/g, " ").slice(0, 36);
+        label.textContent = clean || original;
+        widget.dataset.panelTitle = label.textContent;
+        saveWidgetLayouts(layout);
+      },
+    });
   });
 
   deleteButton?.addEventListener("click", (event) => {

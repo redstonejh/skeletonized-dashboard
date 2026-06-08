@@ -314,11 +314,10 @@ test("electron GUI boots without server APIs and preserves core customization", 
   await expect(page.locator(".panel-color-menu-open")).toHaveCount(0);
 
   await panel.locator(".panel-title-handle").click({ force: true });
-  const input = page.locator(".panel-title-input, .panel-title-editor, input:not(.background-custom-color-input)").first();
-  if (await input.count()) {
-    await input.fill("Renamed Content");
-    await input.press("Enter");
-  }
+  const panelTitleEditor = panel.locator('.db-panel-title[data-inline-text-editing="true"]');
+  await expect(panelTitleEditor).toBeVisible();
+  await panelTitleEditor.fill("Renamed Content");
+  await panelTitleEditor.press("Enter");
 
   await panel.locator(".panel-pin-toggle").click({ force: true });
   await expect(panel.locator(".panel-pin-toggle")).toHaveAttribute("aria-pressed", "true");
@@ -623,19 +622,22 @@ test("electron GUI renders glass text tabs with active scaling and persisted edi
   expect(secondBoxAfter.width).toBeGreaterThan(secondBoxBefore.width);
 
   await page.locator(".workspace-tab").nth(1).click({ button: "right" });
-  await expect(page.locator(".workspace-tab-menu")).toBeVisible();
-  await expect(page.locator('.workspace-tab-menu .panel-color-swatch[data-color="#ffffff"]')).toBeVisible();
-  await page.locator(".workspace-tab-rename-input").fill("planning");
-  await page.locator(".workspace-tab-rename-input").press("Enter");
+  await expect(page.locator(".workspace-tab-tools")).toBeVisible();
+  await expect(page.locator('.workspace-tab-tools .panel-color-swatch[data-color="#ffffff"]')).toBeVisible();
+  await page.locator(".workspace-tab-tools .panel-title-handle").click();
+  const tabLabelEditor = page.locator(".workspace-tab").nth(1).locator('.workspace-tab-label[data-inline-text-editing="true"]');
+  await expect(tabLabelEditor).toBeVisible();
+  await tabLabelEditor.fill("planning");
+  await tabLabelEditor.press("Enter");
   await expect(page.locator(".workspace-tab").nth(1)).toHaveText("planning");
-  await expect(page.locator(".workspace-tab-menu")).toHaveCount(0);
+  await expect(page.locator(".workspace-tab-tools")).toHaveCount(0);
   await page.locator(".workspace-tab").nth(1).click({ button: "right" });
-  await page.locator('.workspace-tab-menu .panel-color-swatch[data-color="#dc2626"]').click();
+  await page.locator('.workspace-tab-tools .panel-color-swatch[data-color="#dc2626"]').click();
   await expect.poll(() => page.locator(".workspace-tab").nth(1).evaluate((node) => getComputedStyle(node).getPropertyValue("--tab-accent").trim())).toBe("#dc2626");
-  await expect(page.locator(".workspace-tab-menu")).toBeVisible();
-  await expect(page.locator('.workspace-tab-menu .panel-color-swatch[data-color="#dc2626"]')).toHaveAttribute("aria-checked", "true");
+  await expect(page.locator(".workspace-tab-tools")).toBeVisible();
+  await expect(page.locator('.workspace-tab-tools .panel-color-swatch[data-color="#dc2626"]')).toHaveAttribute("aria-checked", "true");
   await page.keyboard.press("Escape");
-  await expect(page.locator(".workspace-tab-menu")).toHaveCount(0);
+  await expect(page.locator(".workspace-tab-tools")).toHaveCount(0);
 
   await page.reload();
   await page.waitForSelector(".dashboard-layout-grid");

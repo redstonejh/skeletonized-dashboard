@@ -2,6 +2,7 @@ import {
   panelToolButtonsMarkup,
   positionPanelColorMenu,
 } from "./panel-appearance-runtime.js";
+import { beginInlineTextEdit } from "./inline-text-editing.js";
 
 const STORAGE_KEY = "dashboard-workspace-tabs:builder";
 
@@ -352,30 +353,16 @@ export const initializeWorkspaceTabsRuntime = ({
       const label = tabButton?.querySelector(".workspace-tab-label");
       if (!label) return;
       const original = label.textContent.trim();
-      label.contentEditable = "true";
-      label.spellcheck = false;
-      label.focus();
-      window.getSelection?.()?.selectAllChildren(label);
-      const finish = (commit) => {
-        label.contentEditable = "false";
-        label.removeEventListener("blur", onBlur);
-        label.removeEventListener("keydown", onKeydown);
-        const nextText = commit ? label.textContent : original;
-        commitRename(liveIndex, nextText, { renderTabs: true });
-      };
-      const onBlur = () => finish(true);
-      const onKeydown = (keyEvent) => {
-        keyEvent.stopPropagation();
-        if (keyEvent.key === "Enter") {
-          keyEvent.preventDefault();
-          finish(true);
-        } else if (keyEvent.key === "Escape") {
-          keyEvent.preventDefault();
-          finish(false);
-        }
-      };
-      label.addEventListener("blur", onBlur);
-      label.addEventListener("keydown", onKeydown);
+      beginInlineTextEdit({
+        element: label,
+        owner: tabButton,
+        ownerEditingClass: "workspace-tab-title-editing",
+        originalText: original,
+        onCommit: (nextText) => {
+          commitRename(liveIndex, nextText, { renderTabs: true });
+        },
+        onFinish: () => closeMenu({ restoreFocus: false }),
+      });
     };
     const beginHorizontalMove = (event) => {
       event.preventDefault();
@@ -429,11 +416,13 @@ export const initializeWorkspaceTabsRuntime = ({
 
   document.addEventListener("pointerdown", (event) => {
     if (!menu) return;
-    if (menu.contains(event.target) || colorMenu?.contains(event.target) || root.contains(event.target)) return;
+    if (menu.contains(event.target) || colorMenu?.contains(event.target)) return;
     closeMenu();
   }, true);
   document.addEventListener("keydown", (event) => {
-    if (event.key === "Escape") closeMenu();
+    if (event.key !== "Escape") return;
+    const editingInlineText = document.activeElement?.dataset?.inlineTextEditing === "true";
+    closeMenu({ restoreFocus: !editingInlineText });
   }, true);
   document.addEventListener("keydown", (event) => {
     if (event.defaultPrevented) return;

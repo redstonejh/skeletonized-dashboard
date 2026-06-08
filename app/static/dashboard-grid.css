@@ -447,16 +447,27 @@ body.webgl-glass-on .widget-card.db-panel-custom-color{
 }.widget-card.db-panel-custom-color:hover .stat-val,
 .widget-card.db-panel-custom-color:hover .stat-lbl{
   color: var(--panel-accent-text);
-}.widget-card .stat-lbl[contenteditable="true"]{
-  display: inline-block;
-  outline: 2px solid currentColor;
-  outline-offset: 3px;
-  border-radius: 6px;
-  background: color-mix(in srgb, currentColor 12%, transparent);
+}.inline-text-editing,
+[contenteditable="true"].inline-text-editing{
   cursor: text;
+  outline: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
   text-overflow: clip;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: .16em;
+  caret-color: currentColor;
   user-select: text;
   -webkit-user-select: text;
+}.inline-text-editing:focus,
+.inline-text-editing:focus-visible{
+  outline: 0;
+}.inline-text-editing::selection{
+  background: color-mix(in srgb, currentColor 22%, transparent);
+  color: currentColor;
+  -webkit-text-fill-color: currentColor;
 }.widget-tools{
   --widget-control-bg: var(--panel-header-control-bg, rgba(71, 85, 105, .12));
   --widget-control-hover-bg: rgba(71, 85, 105, .20);
@@ -1441,15 +1452,8 @@ body.resize-auto-zoom-active .dashboard-expanded-footprint-ghost{
   text-overflow: ellipsis;
   white-space: nowrap;
   flex: 1 1 auto;
-}.db-panel-title[contenteditable="true"]{
-  cursor: text;
-  outline: 2px solid currentColor;
-  outline-offset: 4px;
-  border-radius: 6px;
-  background: color-mix(in srgb, currentColor 12%, transparent);
+}.db-panel-title.inline-text-editing{
   text-overflow: clip;
-  user-select: text;
-  -webkit-user-select: text;
 }.db-panel-hd-items{
   --panel-header-control-bg: rgba(248, 250, 252, .14);
   --panel-header-control-fg: rgba(248, 250, 252, .86);
@@ -2620,29 +2624,33 @@ that put the drawer on top — palette * has to declare its tier explicitly. */ 
   box-sizing: border-box;
   width: 100%;
   min-width: 0;
-  border: 1px solid color-mix(in srgb, var(--panel-accent-text, #ffffff) 22%, transparent);
-  border-radius: calc(var(--radius-md) + 2px);
-  background:
-    linear-gradient(180deg, color-mix(in srgb, var(--surface-raised, #ffffff) 16%, transparent), color-mix(in srgb, var(--surface-raised, #ffffff) 9%, transparent));
+  border: 0;
+  border-radius: 0;
+  background: transparent;
   color: color-mix(in srgb, var(--panel-accent-text, #ffffff) 94%, transparent);
-  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--panel-accent-text, #ffffff) 16%, transparent);
+  box-shadow: none;
   font: inherit;
 }.text-widget-editor{
   min-height: 0;
   height: 100%;
-  resize: none;
   padding: 8px 10px;
   font-size: .8rem;
   font-weight: 650;
   line-height: 1.45;
   outline: 0;
-}.text-widget-editor::placeholder{
+  overflow: auto;
+  white-space: pre-wrap;
+  user-select: text;
+  -webkit-user-select: text;
+}.text-widget-editor:empty::before{
+  content: attr(data-placeholder);
   color: color-mix(in srgb, var(--panel-accent-text, #ffffff) 58%, transparent);
+  pointer-events: none;
 }.text-widget-editor:focus{
-  border-color: color-mix(in srgb, var(--panel-accent-text, #ffffff) 54%, var(--panel-accent, #38bdf8) 46%);
-  box-shadow:
-    inset 0 1px 0 color-mix(in srgb, var(--panel-accent-text, #ffffff) 18%, transparent),
-    0 0 0 3px color-mix(in srgb, var(--panel-accent, #38bdf8) 20%, transparent);
+  outline: 0;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: .16em;
 }.text-widget-preview{
   display: -webkit-box;
   min-height: 0;

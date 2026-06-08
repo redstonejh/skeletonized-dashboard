@@ -1670,7 +1670,7 @@
     render: ({ instance }) => {
       const config = instance.config || {};
       const body = String(config.body || "");
-      const displayBody = body || config.placeholder || "Note";
+      const placeholder = String(config.placeholder || "Note");
       const cols = Number(instance.cols) || 2;
       const rows = Number(instance.rows) || 2;
       const density = rows <= 1
@@ -1680,9 +1680,7 @@
           : "medium";
       return `
         <div class="text-widget-content text-widget-density-${density}">
-          ${density === "small"
-            ? `<div class="text-widget-preview" aria-label="${escapeHtml(config.title || "Note")}">${escapeHtml(displayBody)}</div>`
-            : `<textarea class="text-widget-editor" aria-label="${escapeHtml(config.title || "Note")}" spellcheck="true" placeholder="${escapeHtml(config.placeholder || "Note")}">${escapeHtml(displayBody)}</textarea>`}
+          <div class="text-widget-editor inline-text-editing-surface" role="textbox" aria-multiline="true" contenteditable="true" spellcheck="true" aria-label="${escapeHtml(config.title || "Note")}" data-placeholder="${escapeHtml(placeholder)}">${escapeHtml(body)}</div>
         </div>`;
     },
   });

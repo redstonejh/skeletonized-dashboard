@@ -67,7 +67,13 @@ const WIDGET_APPEARANCE_SETTING_KEYS = new Set([
   "title",
 ]);
 
-export const widgetSettingsFields = (definition) => (definition?.settingsSchema?.sections || []).flatMap((section) => section.fields || []);
+const INLINE_TEXT_SETTING_KEYS = new Set(["label", "title"]);
+
+const isInlineTextSetting = (field = {}) => INLINE_TEXT_SETTING_KEYS.has(String(field.key || ""));
+
+export const widgetSettingsFields = (definition) => (
+  definition?.settingsSchema?.sections || []
+).flatMap((section) => section.fields || []).filter((field) => !isInlineTextSetting(field));
 
 export const widgetSettingSurface = (field = {}) => {
   if (field.surface === "appearance" || field.surface === "visual") return "appearance";
@@ -81,10 +87,12 @@ export const widgetSettingSurface = (field = {}) => {
 
 export const widgetSettingsSchemaForSurface = (definition, surface = "all") => {
   const schema = definition?.settingsSchema || { sections: [] };
-  if (!surface || surface === "all") return schema;
   const sections = (schema.sections || []).map((section) => ({
     ...section,
-    fields: (section.fields || []).filter((field) => widgetSettingSurface(field) === surface),
+    fields: (section.fields || []).filter((field) => (
+      !isInlineTextSetting(field)
+      && (!surface || surface === "all" || widgetSettingSurface(field) === surface)
+    )),
   })).filter((section) => section.fields.length);
   return { ...schema, sections };
 };

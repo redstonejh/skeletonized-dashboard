@@ -48,7 +48,10 @@ export const createWidgetRuntimeControls = ({
         captureRuntimeControlBaselineForWidget(widget);
         widget.__textWidgetEditBaselineCaptured = true;
       }
-      setWidgetConfigValue(widget, "body", editor.value);
+      const nextBody = "value" in editor
+        ? editor.value
+        : (editor.innerText ?? editor.textContent ?? "");
+      setWidgetConfigValue(widget, "body", nextBody);
       if (eventType === "change" || eventType === "focusout") {
         widget.__textWidgetEditBaselineCaptured = false;
       }

@@ -18,6 +18,10 @@ Persistence is handled by the Electron preload bridge, not by a server.
 
 Workspace tabs are kept as one live renderer state. The active tab is mounted in the single dashboard grid, inactive tabs are parked as detached DOM nodes in memory, and the combined tab/page store is written through the existing persistence bridge on a debounce and before unload.
 
+## Text Editing
+
+Visible dashboard names and text surfaces edit in place on the displayed text element. Tabs, panels, widget titles, and note bodies share the inline editing appearance instead of opening separate title inputs or boxed editors; tab tool menus close through the same outside-click, Escape, and edit-finish dismissal path.
+
 ## Project Layout
 
 - `main.js` - Electron main process and window creation.
