@@ -1094,7 +1094,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const host = gridHostForLayout(layout);
     const selector = host !== layout
       ? ".widget-layout > .widget-card:not([hidden]), .widget-layout > .widget-placeholder, .panel-layout > .db-panel:not([hidden]), .panel-layout > .db-panel-placeholder"
-      : layout.classList.contains("widget-layout")
+      : (layout.classList.contains("widget-layout") || isPanelInternalWidgetLayout(layout))
         ? ":scope > .widget-card:not([hidden]), :scope > .widget-placeholder"
         : ":scope > .db-panel:not([hidden]), :scope > .db-panel-placeholder";
     return [...host.querySelectorAll(selector)]
@@ -1882,7 +1882,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const reflowItemsForLayout = (layout, excludeItem = null) => {
     const host = gridHostForLayout(layout);
-    const selector = ".widget-layout > .widget-card, .widget-layout > .widget-placeholder, .panel-layout > .db-panel, .panel-layout > .db-panel-placeholder";
+    const selector = ".widget-layout > .widget-card, .widget-layout > .widget-placeholder, .panel-internal-widget-grid > .widget-card, .panel-internal-widget-grid > .widget-placeholder, .panel-layout > .db-panel, .panel-layout > .db-panel-placeholder";
     return [...host.querySelectorAll(selector)]
       .filter((item) => item !== excludeItem && (host === layout || !isPanelInternalGridItem(item)) && !item.classList.contains("widget-dragging") && !item.classList.contains("db-panel-dragging"));
   };

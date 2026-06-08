@@ -3,7 +3,7 @@ export const createOrderedGridItemsRuntime = ({
   isPanelInternalGridItem,
 }) => {
   const orderedGridSelectorForLayout = (layout, includePlaceholders = false) => {
-    if (layout.classList.contains("widget-layout")) {
+    if (layout.classList.contains("widget-layout") || layout.classList.contains("panel-internal-widget-grid")) {
       return includePlaceholders
         ? ":scope > .widget-card:not([hidden]), :scope > .widget-placeholder"
         : ":scope > .widget-card:not([hidden])";

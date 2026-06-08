@@ -1,0 +1,15 @@
+{
+  "verdict": "SHIP",
+  "tests_run": false,
+  "tests_skipped_reason": "User explicitly instructed not to run e2e, canaries, or validation.",
+  "changed_scope": [
+    "panel-internal grid ordered item selection",
+    "panel-internal grid reflow item selection"
+  ],
+  "unchanged_scope": [
+    "dashboard collision algorithm",
+    "animation subsystem",
+    "dependencies"
+  ]
+}
+
