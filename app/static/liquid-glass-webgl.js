@@ -238,11 +238,11 @@
   let debugMode = 0;
   let debugObjectIndex = -1;
   let pendingFrame = false;
-  // One cooldown frame after the last running animation completes,
-  // so the canvas captures the resting bounding boxes once the FLIP /
-  // height transition has fully released.
-  let animationCooldownFrames = 0;
-  const ANIMATION_COOLDOWN_FRAMES = 1;
+  // Keep live geometry tracking active briefly after movement input stops,
+  // so scroll, FLIP, page-slide, and collapse transitions all settle through
+  // the same per-frame getBoundingClientRect() path.
+  let liveTrackingUntil = 0;
+  const LIVE_TRACKING_COOLDOWN_MS = 120;
   let resizeObserver = null;
   let mutationObserver = null;
   let scrollHandler = null;
@@ -469,6 +469,18 @@
     }
   };
 
+  const extendLiveTracking = () => {
+    liveTrackingUntil = Math.max(liveTrackingUntil, performance.now() + LIVE_TRACKING_COOLDOWN_MS);
+  };
+
+  const shouldLiveTrack = () => {
+    if (isAnimatingGlassTarget()) {
+      extendLiveTracking();
+      return true;
+    }
+    return performance.now() <= liveTrackingUntil;
+  };
+
   const resolveRadiusLength = (value, size) => {
     const text = String(value || "").trim();
     if (!text) return 0;
@@ -614,19 +626,12 @@
     gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
     gl.drawArrays(gl.TRIANGLES, 0, 6);
 
-    // Live-tracking loop: while any glass-target element is animating
-    // (panel collapse height transition, FLIP collision displacement),
-    // re-draw every frame so the refraction follows the live
-    // getBoundingClientRect() (which already reflects transforms and
-    // transitioned CSS values). One cooldown frame after animations
-    // settle catches the resting state. Otherwise pendingFrame stays
-    // false and we revert to dirty-only mode driven by markDirty().
-    if (isAnimatingGlassTarget()) {
-      animationCooldownFrames = ANIMATION_COOLDOWN_FRAMES;
-      pendingFrame = true;
-      rafHandle = requestAnimationFrame(draw);
-    } else if (animationCooldownFrames > 0) {
-      animationCooldownFrames -= 1;
+    // Live-tracking loop: while glass targets are moving (scroll, panel
+    // collapse height transition, FLIP collision displacement, page slide),
+    // re-draw every frame so refraction follows live getBoundingClientRect().
+    // A short cooldown after motion stops captures the resting state before
+    // returning to dirty-only mode driven by markDirty().
+    if (shouldLiveTrack()) {
       pendingFrame = true;
       rafHandle = requestAnimationFrame(draw);
     }
@@ -655,7 +660,10 @@
       });
     }
     if (!scrollHandler) {
-      scrollHandler = () => markDirty();
+      scrollHandler = () => {
+        extendLiveTracking();
+        markDirty();
+      };
       window.addEventListener("scroll", scrollHandler, { passive: true });
     }
     if (!resizeHandler) {
@@ -672,9 +680,7 @@
     syncSize();
     rasterizeBackdropTexture();
     attachObservers();
-    // Continuous loop during drag/resize is overkill; we redraw on
-    // mutation + scroll. The first frame may need to wait for the
-    // texture; markDirty schedules it.
+    // The first frame may need to wait for the texture; markDirty schedules it.
     markDirty();
   };
 
