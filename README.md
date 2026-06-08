@@ -22,10 +22,10 @@ Workspace tabs are kept as one live renderer state. The active tab is mounted in
 
 Visible dashboard names and text surfaces edit in place on the displayed text element. Tabs, panels, widget titles, and note bodies share the inline editing appearance instead of opening separate title inputs or boxed editors; tab tool menus close through the same outside-click, Escape, and edit-finish dismissal path.
 
-## Visualization Wells
+## Widget Wells
 
-Visualization widgets use a separated color model: the widget theme accent drives data marks and the object rim, while the visualization well has a two-option white/dark-grey tone whose neutral foreground is derived for readability.
-Visualization widgets expose those well tones first in the shared color menu, followed by the normal theme accent palette.
+Widgets with an imported/rendered visual well use a separated color model: the widget theme accent drives data marks/accent content and the object rim, while the shared well surface has a two-option white/dark-grey tone whose neutral foreground is derived for readability.
+Well-backed widgets expose those well tones first in the shared color menu, followed by the normal theme accent palette.
 
 ## Project Layout
 

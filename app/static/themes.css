@@ -4524,39 +4524,47 @@ so add a matching-specificity override. */ .runtime-chart-widget > .runtime-char
       rgba(255, 255, 255, 0.04)
     ),
     rgba(255, 255, 255, 0.04);
-}.runtime-visualization-widget{
-  --visual-well-surface-bg:
+}.runtime-well-widget{
+  --shared-well-surface-bg:
     linear-gradient(180deg, rgba(255, 255, 255, .98), rgba(248, 250, 252, .96));
-  --visual-well-fg: #111827;
-  --visual-well-muted: #374151;
-  --visual-well-grid: rgba(17, 24, 39, .18);
-  --visual-well-border: color-mix(in srgb, var(--panel-accent, var(--blue)) 18%, rgba(17, 24, 39, .20));
-  --visual-well-shadow:
+  --shared-well-fg: #111827;
+  --shared-well-muted: #374151;
+  --shared-well-meta: rgba(55, 65, 81, .82);
+  --shared-well-grid: rgba(17, 24, 39, .18);
+  --shared-well-border: color-mix(in srgb, var(--panel-accent, var(--blue)) 18%, rgba(17, 24, 39, .20));
+  --shared-well-shadow:
     inset 0 1px 0 rgba(255, 255, 255, .70),
     inset 0 -12px 20px rgba(15, 23, 42, .035),
     0 1px 2px rgba(15, 23, 42, .08);
-  --widget-library-fg: var(--visual-well-fg);
-  --widget-library-muted: var(--visual-well-muted);
-  --widget-library-grid: var(--visual-well-grid);
-  --widget-library-surface-bg: var(--visual-well-surface-bg);
-  --widget-library-surface-border: var(--visual-well-border);
-  --widget-library-surface-shadow: var(--visual-well-shadow);
-}.runtime-visualization-widget[data-well-tone="dark"]{
-  --visual-well-surface-bg:
+  --widget-library-fg: var(--shared-well-fg);
+  --widget-library-muted: var(--shared-well-muted);
+  --widget-library-grid: var(--shared-well-grid);
+  --widget-library-surface-bg: var(--shared-well-surface-bg);
+  --widget-library-surface-border: var(--shared-well-border);
+  --widget-library-surface-shadow: var(--shared-well-shadow);
+}.runtime-well-widget[data-well-tone="dark"]{
+  --shared-well-surface-bg:
     linear-gradient(180deg, rgba(31, 41, 55, .98), rgba(17, 24, 39, .96));
-  --visual-well-fg: rgba(255, 255, 255, .96);
-  --visual-well-muted: rgba(255, 255, 255, .74);
-  --visual-well-grid: rgba(255, 255, 255, .22);
-  --visual-well-border: color-mix(in srgb, var(--panel-accent, var(--blue)) 24%, rgba(255, 255, 255, .22));
-  --visual-well-shadow:
+  --shared-well-fg: rgba(255, 255, 255, .96);
+  --shared-well-muted: rgba(255, 255, 255, .74);
+  --shared-well-meta: rgba(255, 255, 255, .66);
+  --shared-well-grid: rgba(255, 255, 255, .22);
+  --shared-well-border: color-mix(in srgb, var(--panel-accent, var(--blue)) 24%, rgba(255, 255, 255, .22));
+  --shared-well-shadow:
     inset 0 1px 0 rgba(255, 255, 255, .18),
     inset 0 -12px 20px rgba(0, 0, 0, .18),
     0 1px 2px rgba(0, 0, 0, .14);
-}.runtime-visualization-widget > .runtime-chart-stage{
+}.runtime-well-widget > :has(.widget-content-well.widget-library-surface){
   background: transparent;
   border-color: transparent;
   box-shadow: none;
-}.runtime-visualization-widget .widget-content-well.widget-library-surface{
+}.runtime-well-widget .widget-content-well.widget-library-surface{
+  --widget-content-fg: var(--shared-well-fg);
+  --widget-content-title: var(--shared-well-fg);
+  --widget-content-muted: var(--shared-well-muted);
+  --widget-content-meta: var(--shared-well-meta);
+  --widget-content-meta-strong: var(--shared-well-fg);
+  --widget-content-meta-quiet: var(--shared-well-meta);
   background: var(--widget-library-surface-bg);
   border-color: var(--widget-library-surface-border);
   box-shadow: var(--widget-library-surface-shadow);

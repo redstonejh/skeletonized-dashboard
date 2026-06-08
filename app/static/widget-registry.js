@@ -645,6 +645,16 @@
     VISUAL_WELL_TONES.some((tone) => tone.value === value) ? value : "white"
   );
   const visualWellTone = (config = {}) => normalizeVisualWellTone(config.wellTone);
+  const wellToneAttribute = (config = {}) => `data-well-tone="${escapeHtml(visualWellTone(config))}"`;
+  const withWellToneSetting = (settings = []) => (
+    settings.includes("wellTone")
+      ? settings
+      : settings.flatMap((setting) => setting === "color" ? ["wellTone", setting] : [setting])
+  );
+  const withWellToneFields = (fields = []) => (
+    fields.some((field) => field?.key === "wellTone") ? fields : [...fields, visualWellToneField()]
+  );
+  const withWellToneDefault = (config = {}) => ({ ...config, wellTone: "white" });
   const visualWellToneField = () => ({
     key: "wellTone",
     label: "Well",
@@ -656,9 +666,8 @@
   });
   const chartFrame = ({ instance, definition, density, body, legend = "" }) => {
     const densityTier = normalizeDensity(instance?.density, resolveWidgetDensity(instance));
-    const wellTone = visualWellTone(instance?.config);
     return `
-      <div class="runtime-chart-widget runtime-visualization-widget runtime-chart-density-${density} widget-density-${densityTier}" data-density="${escapeHtml(densityTier)}" data-chart-type="${escapeHtml(definition.chartType)}" data-chart-category="${escapeHtml(definition.category || "general")}" data-well-tone="${escapeHtml(wellTone)}">
+      <div class="runtime-chart-widget runtime-visualization-widget runtime-well-widget runtime-chart-density-${density} widget-density-${densityTier}" data-density="${escapeHtml(densityTier)}" data-chart-type="${escapeHtml(definition.chartType)}" data-chart-category="${escapeHtml(definition.category || "general")}" ${wellToneAttribute(instance?.config)}>
         <div class="runtime-chart-stage">${body}</div>
         ${legend}
       </div>`;
@@ -1077,11 +1086,12 @@
     loadMonaco()
       .then((monaco) => {
         if (disposed || !target.isConnected) return;
+        const wellTone = target.closest("[data-well-tone]")?.dataset?.wellTone === "dark" ? "dark" : "white";
         editor = monaco.editor.create(target, {
           value: content,
           language,
           readOnly: true,
-          theme: "vs",
+          theme: wellTone === "dark" ? "vs-dark" : "vs",
           minimap: { enabled: false },
           scrollBeyondLastLine: false,
           automaticLayout: false,
@@ -1204,11 +1214,11 @@
       </div>`;
   };
 
-  const defaultMediaVisual = (kind, title, caption = "") => {
+  const defaultMediaVisual = (kind, title, caption = "", config = {}) => {
     const normalized = String(kind || "media").replace(/[^a-z0-9_-]+/gi, "-").toLowerCase() || "media";
     return `
-      <div class="media-widget media-widget-${escapeHtml(normalized)}-wrap" data-media-kind="${escapeHtml(normalized)}" data-media-status="default">
-        <figure class="media-widget-stage media-widget-default-stage media-widget-default-${escapeHtml(normalized)}" aria-label="${escapeHtml(title || normalized)}">
+      <div class="media-widget runtime-well-widget media-widget-${escapeHtml(normalized)}-wrap" data-media-kind="${escapeHtml(normalized)}" data-media-status="default" ${wellToneAttribute(config)}>
+        <figure class="widget-content-well widget-library-surface media-widget-stage media-widget-default-stage media-widget-default-${escapeHtml(normalized)}" aria-label="${escapeHtml(title || normalized)}">
           <span class="media-default-mark media-default-mark-${escapeHtml(normalized)}"></span>
         </figure>
         ${mediaCaptionMarkup(caption)}
@@ -1780,32 +1790,32 @@
       writesContext: false,
       supportsResize: true,
     },
-    supportedSettings: ["source", "fit", "caption", "color", "pin", "duplicate", "delete"],
+    supportedSettings: withWellToneSetting(["source", "fit", "caption", "color", "pin", "duplicate", "delete"]),
     settingsSchema: {
       sections: [{
         id: "image",
         label: "Image",
-        fields: [
+        fields: withWellToneFields([
           { key: "title", label: "Title", type: "text", defaultValue: "Image" },
           { key: "src", label: "Source URL", type: "text", defaultValue: "" },
           { key: "alt", label: "Alt text", type: "text", defaultValue: "" },
           { key: "fit", label: "Fit", type: "select", defaultValue: "contain", options: ["contain", "cover", "fill", "center"] },
           { key: "caption", label: "Caption", type: "text", defaultValue: "" },
-        ],
+        ]),
       }],
     },
-    getDefaultConfig: () => ({ title: "Image", assetId: "", alt: "", fit: "contain", caption: "" }),
+    getDefaultConfig: () => withWellToneDefault({ title: "Image", assetId: "", alt: "", fit: "contain", caption: "" }),
     render: ({ instance }) => {
       const config = instance.config || {};
       const title = mediaTitle(config, "Image");
       const src = safeMediaUrl(config.src, "image");
       const caption = String(config.caption || "").trim();
-      if (config.assetMissing || !String(config.src || "").trim() || src == null) return defaultMediaVisual("image", title, caption);
+      if (config.assetMissing || !String(config.src || "").trim() || src == null) return defaultMediaVisual("image", title, caption, config);
       const fit = safeMediaFit(config.fit);
       const alt = String(config.alt || caption || title || "Image").trim();
       return `
-        <div class="media-widget media-widget-image-wrap media-fit-${escapeHtml(fit)}" data-media-kind="image" data-media-status="ready">
-          <figure class="media-widget-stage image-widget-stage">
+        <div class="media-widget runtime-well-widget media-widget-image-wrap media-fit-${escapeHtml(fit)}" data-media-kind="image" data-media-status="ready" ${wellToneAttribute(config)}>
+          <figure class="widget-content-well widget-library-surface media-widget-stage image-widget-stage">
             <img class="media-widget-image" src="${escapeHtml(src)}" alt="${escapeHtml(alt)}" loading="lazy" draggable="false">
           </figure>
           ${mediaCaptionMarkup(caption)}
@@ -1830,45 +1840,45 @@
       writesContext: false,
       supportsResize: true,
     },
-    supportedSettings: ["source", "caption", "color", "pin", "duplicate", "delete"],
+    supportedSettings: withWellToneSetting(["source", "caption", "color", "pin", "duplicate", "delete"]),
     settingsSchema: {
       sections: [{
         id: "video",
         label: "Video",
-        fields: [
+        fields: withWellToneFields([
           { key: "title", label: "Title", type: "text", defaultValue: "Video" },
           { key: "src", label: "Source URL", type: "text", defaultValue: "" },
           { key: "embedType", label: "Embed", type: "select", defaultValue: "url", options: ["url", "youtube", "vimeo"] },
           { key: "autoplay", label: "Autoplay", type: "toggle", defaultValue: false },
           { key: "muted", label: "Muted", type: "toggle", defaultValue: true },
           { key: "caption", label: "Caption", type: "text", defaultValue: "" },
-        ],
+        ]),
       }],
     },
-    getDefaultConfig: () => ({ title: "Video", assetId: "", embedType: "url", autoplay: false, muted: true, caption: "" }),
+    getDefaultConfig: () => withWellToneDefault({ title: "Video", assetId: "", embedType: "url", autoplay: false, muted: true, caption: "" }),
     render: ({ instance }) => {
       const config = instance.config || {};
       const title = mediaTitle(config, "Video");
       const caption = String(config.caption || "").trim();
       const embedType = String(config.embedType || "url").toLowerCase();
-      if (config.assetMissing || !String(config.src || "").trim()) return defaultMediaVisual("video", title, caption);
+      if (config.assetMissing || !String(config.src || "").trim()) return defaultMediaVisual("video", title, caption, config);
       let stage = "";
       if (embedType === "youtube") {
         const embed = youtubeEmbedUrl(config.src);
-        if (!embed) return defaultMediaVisual("video", title, caption);
+        if (!embed) return defaultMediaVisual("video", title, caption, config);
         stage = `<iframe class="media-widget-frame media-widget-video-frame" src="${escapeHtml(embed)}" title="${escapeHtml(title)}" loading="lazy" sandbox="allow-scripts allow-same-origin allow-presentation" allow="encrypted-media; picture-in-picture" allowfullscreen></iframe>`;
       } else if (embedType === "vimeo") {
         const embed = vimeoEmbedUrl(config.src);
-        if (!embed) return defaultMediaVisual("video", title, caption);
+        if (!embed) return defaultMediaVisual("video", title, caption, config);
         stage = `<iframe class="media-widget-frame media-widget-video-frame" src="${escapeHtml(embed)}" title="${escapeHtml(title)}" loading="lazy" sandbox="allow-scripts allow-same-origin allow-presentation" allow="encrypted-media; picture-in-picture" allowfullscreen></iframe>`;
       } else {
         const src = safeMediaUrl(config.src, "video");
-        if (src == null) return defaultMediaVisual("video", title, caption);
+        if (src == null) return defaultMediaVisual("video", title, caption, config);
         stage = `<video class="media-widget-video" src="${escapeHtml(src)}" controls preload="metadata"${config.autoplay ? " autoplay" : ""}${config.muted !== false ? " muted" : ""} playsinline></video>`;
       }
       return `
-        <div class="media-widget media-widget-video-wrap" data-media-kind="video" data-media-status="ready">
-          <div class="media-widget-stage video-widget-stage">${stage}</div>
+        <div class="media-widget runtime-well-widget media-widget-video-wrap" data-media-kind="video" data-media-status="ready" ${wellToneAttribute(config)}>
+          <div class="widget-content-well widget-library-surface media-widget-stage video-widget-stage">${stage}</div>
           ${mediaCaptionMarkup(caption)}
         </div>`;
     },
@@ -1891,22 +1901,22 @@
       writesContext: false,
       supportsResize: true,
     },
-    supportedSettings: ["source", "page", "caption", "color", "pin", "duplicate", "delete"],
+    supportedSettings: withWellToneSetting(["source", "page", "caption", "color", "pin", "duplicate", "delete"]),
     settingsSchema: {
       sections: [{
         id: "document",
         label: "Document",
-        fields: [
+        fields: withWellToneFields([
           { key: "title", label: "Title", type: "text", defaultValue: "Document" },
           { key: "src", label: "Source URL", type: "text", defaultValue: "" },
           { key: "documentType", label: "Type", type: "select", defaultValue: "unknown", options: ["unknown", "pdf", "text", "markdown", "html"] },
           { key: "currentPage", label: "Page", type: "number", defaultValue: 1, min: 1, max: 999, step: 1 },
           { key: "content", label: "Text content", type: "textarea", defaultValue: "" },
           { key: "caption", label: "Caption", type: "text", defaultValue: "" },
-        ],
+        ]),
       }],
     },
-    getDefaultConfig: () => ({ title: "Document", assetId: "", documentType: "unknown", currentPage: 1, caption: "", content: "" }),
+    getDefaultConfig: () => withWellToneDefault({ title: "Document", assetId: "", documentType: "unknown", currentPage: 1, caption: "", content: "" }),
     render: ({ instance }) => {
       const config = instance.config || {};
       const title = mediaTitle(config, "Document");
@@ -1915,24 +1925,24 @@
       const kind = documentPreviewKind(config);
       if (content && (kind === "text" || kind === "markdown" || kind === "unknown")) {
         return `
-          <div class="media-widget document-widget document-widget-text-mode" data-media-kind="document" data-document-type="${escapeHtml(kind)}" data-media-status="ready">
+          <div class="media-widget runtime-well-widget document-widget document-widget-text-mode" data-media-kind="document" data-document-type="${escapeHtml(kind)}" data-media-status="ready" ${wellToneAttribute(config)}>
             <div class="widget-content-well widget-library-surface runtime-monaco-library-surface">
               <div class="runtime-monaco-editor" data-editor-language="${escapeHtml(kind)}" role="region" aria-label="${escapeHtml(title)}"></div>
             </div>
             ${mediaCaptionMarkup(caption)}
           </div>`;
       }
-      if (config.assetMissing || !String(config.src || "").trim()) return defaultMediaVisual("document", title, caption);
+      if (config.assetMissing || !String(config.src || "").trim()) return defaultMediaVisual("document", title, caption, config);
       const src = safeMediaUrl(config.src, "document");
-      if (src == null) return defaultMediaVisual("document", title, caption);
+      if (src == null) return defaultMediaVisual("document", title, caption, config);
       const page = Math.max(1, Number(config.currentPage) || 1);
       const frameSrc = kind === "pdf" && !String(src).startsWith("data:")
         ? `${src}#page=${page}`
         : src;
       const previewLabel = kind === "pdf" ? `Page ${page}` : kind === "html" ? "Sandboxed preview" : "Document preview";
       return `
-        <div class="media-widget document-widget" data-media-kind="document" data-document-type="${escapeHtml(kind)}" data-media-status="ready">
-          <div class="media-widget-stage document-widget-stage">
+        <div class="media-widget runtime-well-widget document-widget" data-media-kind="document" data-document-type="${escapeHtml(kind)}" data-media-status="ready" ${wellToneAttribute(config)}>
+          <div class="widget-content-well widget-library-surface media-widget-stage document-widget-stage">
             <iframe class="media-widget-frame document-widget-frame" src="${escapeHtml(frameSrc)}" title="${escapeHtml(title)}" loading="lazy" sandbox=""></iframe>
           </div>
           ${mediaCaptionMarkup(caption)}
@@ -1965,12 +1975,12 @@
       supportsTimeRange: true,
       supportsResize: true,
     },
-    supportedSettings: ["columns", "limit", "color", "pin", "delete"],
+    supportedSettings: withWellToneSetting(["columns", "limit", "color", "pin", "delete"]),
     settingsSchema: {
       sections: [{
         id: "table",
         label: "Rows",
-        fields: [
+        fields: withWellToneFields([
           { key: "title", label: "Title", type: "text", defaultValue: "Table" },
           { key: "columns", label: "Columns", type: "textarea", valueType: "array", placeholder: "name, amount, category", affectsQuery: true },
           { key: "calculatedFields", label: "Calculated fields", type: "json", defaultValue: [], affectsQuery: true },
@@ -1978,10 +1988,10 @@
           { key: "limit", label: "Limit", type: "number", defaultValue: 50, min: 1, max: 200, step: 1, affectsQuery: true },
           { key: "sortBy", label: "Sort field", type: "fieldPicker", affectsQuery: true },
           { key: "sortDirection", label: "Sort direction", type: "select", defaultValue: "asc", options: ["asc", "desc"], affectsQuery: true },
-        ],
+        ]),
       }],
     },
-    getDefaultConfig: () => ({ title: "Table", columns: [], limit: 50, sortBy: "", sortDirection: "asc" }),
+    getDefaultConfig: () => withWellToneDefault({ title: "Table", columns: [], limit: 50, sortBy: "", sortDirection: "asc" }),
     mountBodyRenderer: mountTableBodyRenderer,
     render: ({ instance, density = instance.density || "standard" }) => {
       const config = instance.config || {};
@@ -1999,7 +2009,7 @@
           ? "rich"
           : "comfortable";
       return `
-        <div class="runtime-table-widget runtime-table-density-${tableDensity} widget-density-${densityTier}" data-density="${escapeHtml(densityTier)}" data-visible-columns="${visibleFields.length}">
+        <div class="runtime-table-widget runtime-well-widget runtime-table-density-${tableDensity} widget-density-${densityTier}" data-density="${escapeHtml(densityTier)}" data-visible-columns="${visibleFields.length}" ${wellToneAttribute(config)}>
           <div class="widget-content-well widget-library-surface runtime-table-library-surface">
             <div class="runtime-table-tanstack" data-table-renderer="tanstack" role="region" aria-label="${escapeHtml(title)}"></div>
           </div>
@@ -2026,12 +2036,12 @@
       supportsTimeRange: true,
       supportsResize: true,
     },
-    supportedSettings: ["chartType", "xField", "yField", "series", "aggregation", "wellTone", "color", "pin", "delete"],
+    supportedSettings: withWellToneSetting(["chartType", "xField", "yField", "series", "aggregation", "color", "pin", "delete"]),
     settingsSchema: {
       sections: [{
         id: "chart",
         label: "Chart",
-        fields: [
+        fields: withWellToneFields([
           { key: "title", label: "Title", type: "text", defaultValue: "Chart" },
           { key: "chartType", label: "Type", type: "select", defaultValue: "bar", options: ["bar", "line", "area", "pie", "donut", "scatter", "histogram", "heatmap", "gauge", "sparkline"], affectsQuery: true },
           { key: "xField", label: "X field", type: "fieldPicker", affectsQuery: true },
@@ -2042,11 +2052,10 @@
           { key: "equationFilters", label: "Equation filters", type: "json", defaultValue: [], affectsQuery: true },
           { key: "timeBucket", label: "Time bucket", type: "json", defaultValue: null, affectsQuery: true },
           { key: "limit", label: "Limit", type: "number", defaultValue: 60, min: 1, max: 200, step: 1, affectsQuery: true },
-          visualWellToneField(),
-        ],
+        ]),
       }],
     },
-    getDefaultConfig: () => ({
+    getDefaultConfig: () => withWellToneDefault({
       title: "Chart",
       chartType: "bar",
       aggregation: "count",
@@ -2054,7 +2063,6 @@
       sortBy: "",
       sortDirection: "asc",
       limit: 60,
-      wellTone: "white",
       display: {
         showLegend: true,
         showAxes: true,
@@ -2141,30 +2149,28 @@
       supportsTimeRange: true,
       supportsResize: true,
     },
-    supportedSettings: ["location", "layerType", "limit", "wellTone", "color", "pin", "duplicate", "delete"],
+    supportedSettings: withWellToneSetting(["location", "layerType", "limit", "color", "pin", "duplicate", "delete"]),
     settingsSchema: {
       sections: [{
         id: "map",
         label: "Geospatial",
-        fields: [
+        fields: withWellToneFields([
           { key: "title", label: "Title", type: "text", defaultValue: "Map" },
           { key: "latitudeField", label: "Latitude field", type: "fieldPicker", affectsQuery: true },
           { key: "longitudeField", label: "Longitude field", type: "fieldPicker", affectsQuery: true },
           { key: "locationField", label: "Location field", type: "fieldPicker", affectsQuery: true },
           { key: "layerType", label: "Layer", type: "select", defaultValue: "points", options: ["points", "regions", "routes", "heatmap"], affectsQuery: true },
           { key: "limit", label: "Limit", type: "number", defaultValue: 250, min: 1, max: 1000, step: 1, affectsQuery: true },
-          visualWellToneField(),
-        ],
+        ]),
       }],
     },
-    getDefaultConfig: () => ({
+    getDefaultConfig: () => withWellToneDefault({
       title: "Map",
       latitudeField: "",
       longitudeField: "",
       locationField: "",
       layerType: "points",
       limit: 250,
-      wellTone: "white",
     }),
     render: ({ instance }) => {
       const config = instance.config || {};
@@ -2172,9 +2178,8 @@
       const points = mapExtractPoints(instance.data, config, {});
       const density = chartVisualDensity(instance.density || "standard");
       const labels = points.slice(0, density === "large" ? 4 : 2).map((point) => `<span>${escapeHtml(point.label)}</span>`).join("");
-      const wellTone = visualWellTone(config);
       return `
-        <div class="runtime-map-widget runtime-visualization-widget runtime-map-density-${escapeHtml(density)}" data-map-layer="${escapeHtml(config.layerType || "points")}" data-well-tone="${escapeHtml(wellTone)}">
+        <div class="runtime-map-widget runtime-visualization-widget runtime-well-widget runtime-map-density-${escapeHtml(density)}" data-map-layer="${escapeHtml(config.layerType || "points")}" ${wellToneAttribute(config)}>
           <div class="widget-content-well widget-library-surface runtime-map-leaflet-surface">
             <div class="runtime-map-leaflet" role="region" aria-label="${escapeHtml(title)}"></div>
           </div>
@@ -2308,27 +2313,27 @@
       supportsTimeRange: true,
       supportsResize: true,
     },
-    supportedSettings: ["dateField", "labelField", "color", "pin", "delete"],
+    supportedSettings: withWellToneSetting(["dateField", "labelField", "color", "pin", "delete"]),
     settingsSchema: {
       sections: [{
         id: "calendar",
         label: "Calendar",
-        fields: [
+        fields: withWellToneFields([
           { key: "title", label: "Title", type: "text", defaultValue: "Calendar" },
           { key: "dateField", label: "Date field", type: "fieldPicker", affectsQuery: true },
           { key: "labelField", label: "Label field", type: "fieldPicker", affectsQuery: true },
           { key: "limit", label: "Limit", type: "number", defaultValue: 12, min: 1, max: 100, step: 1, affectsQuery: true },
-        ],
+        ]),
       }],
     },
-    getDefaultConfig: () => ({ title: "Calendar", dateField: "", labelField: "", limit: 12 }),
+    getDefaultConfig: () => withWellToneDefault({ title: "Calendar", dateField: "", labelField: "", limit: 12 }),
     render: ({ instance }) => {
       const title = instance.config.title || "Calendar";
       const config = instance.config || {};
       const monthName = config.title || "Calendar";
       const initialDate = new Date().toISOString().split("T")[0];
       return `
-        <div class="runtime-calendar-widget">
+        <div class="runtime-calendar-widget runtime-well-widget" ${wellToneAttribute(config)}>
           <div class="widget-content-well widget-library-surface runtime-calendar-fullcalendar-surface">
             <div class="runtime-calendar-fullcalendar" data-calendar-initial="${escapeHtml(initialDate)}" role="region" aria-label="${escapeHtml(monthName)}">${staticCalendarMonthMarkup(new Date(initialDate))}</div>
           </div>

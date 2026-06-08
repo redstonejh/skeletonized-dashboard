@@ -3367,15 +3367,15 @@ that put the drawer on top — palette * has to declare its tier explicitly. */ 
   min-height: 0;
   overflow: hidden;
   padding: 0;
-  --fc-border-color: rgba(0, 0, 0, 0.08);
+  --fc-border-color: var(--widget-library-grid);
   --fc-page-bg-color: transparent;
-  --fc-neutral-bg-color: rgba(0, 0, 0, 0.04);
-  --fc-neutral-text-color: #4b5563;
-  --fc-today-bg-color: rgba(59, 130, 246, 0.07);
-  --fc-event-bg-color: #3b82f6;
-  --fc-event-border-color: #2563eb;
+  --fc-neutral-bg-color: color-mix(in srgb, var(--widget-library-fg) 5%, transparent);
+  --fc-neutral-text-color: var(--widget-library-muted);
+  --fc-today-bg-color: color-mix(in srgb, var(--widget-data-primary) 14%, transparent);
+  --fc-event-bg-color: var(--widget-data-primary);
+  --fc-event-border-color: var(--panel-accent, var(--blue));
   --fc-event-text-color: #ffffff;
-  --fc-list-event-hover-bg-color: rgba(0, 0, 0, 0.04);
+  --fc-list-event-hover-bg-color: color-mix(in srgb, var(--widget-library-fg) 5%, transparent);
 }.runtime-calendar-fullcalendar-surface > .runtime-calendar-fullcalendar{
   display: block;
   width: 100%;
@@ -3390,10 +3390,10 @@ that put the drawer on top — palette * has to declare its tier explicitly. */ 
   min-height: 0;
 }.runtime-calendar-fullcalendar-surface .fc-col-header-cell-cushion,
 .runtime-calendar-fullcalendar-surface .fc-daygrid-day-number{
-  color: #1f2937;
+  color: var(--widget-library-fg);
   text-decoration: none;
 }.runtime-calendar-fullcalendar-surface .fc-col-header-cell-cushion{
-  color: #4b5563;
+  color: var(--widget-library-muted);
   font-size: 0.64rem;
   font-weight: 600;
   padding: 3px 4px;
