@@ -82,6 +82,8 @@ export const hydrateWidgetLayout = (layout, {
   const savedByWidget = new Map();
   widgets.forEach((widget, index) => {
     const key = widget.dataset.widgetKey || `widget-${index}`;
+    const snapshotColor = widget.dataset.panelColor || null;
+    const snapshotColorCleared = widget.dataset.panelColorCleared === "true";
     widget.dataset.defaultOrder = String(index);
     widget.dataset.defaultTitle = widget.querySelector(".stat-lbl")?.textContent?.trim() || "Widget";
     let saved = null;
@@ -114,10 +116,10 @@ export const hydrateWidgetLayout = (layout, {
     if (saved?.minH) widget.dataset.minH = String(saved.minH);
     if (saved?.locked) widget.dataset.locked = "true";
     if (saved?.resizable === false) widget.dataset.resizable = "false";
-    if (saved?.colorCleared) {
+    if (saved?.colorCleared || (!saved && snapshotColorCleared)) {
       applyPanelColor(widget, null);
     } else {
-      applyPanelColor(widget, saved?.color || widget.dataset.panelColor || widget.querySelector(".panel-color-toggle")?.dataset.defaultTheme);
+      applyPanelColor(widget, saved?.color || snapshotColor || widget.querySelector(".panel-color-toggle")?.dataset.defaultTheme);
       if (saved?.colorUser) {
         widget.dataset.panelColorUser = "true";
       }

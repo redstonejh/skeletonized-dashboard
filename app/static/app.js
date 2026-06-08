@@ -2723,7 +2723,6 @@ document.addEventListener("DOMContentLoaded", () => {
     saveWidgetLayouts,
     syncDefaultDashboardGrid,
     syncPanelMinimumWidth,
-    panelThemePresets,
     createCustomPanel,
     createCustomWidget,
     panelAddTarget,

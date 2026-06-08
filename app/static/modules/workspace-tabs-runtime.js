@@ -5,16 +5,23 @@ import {
 import { beginInlineTextEdit } from "./inline-text-editing.js";
 
 const STORAGE_KEY = "dashboard-workspace-tabs:builder";
+const DEFAULT_TAB_COLOR = "#edf2f8";
+const LEGACY_TAB_DEFAULT_COLORS = new Set(["#dbe7f3", "#ded8cf"]);
 
 const DEFAULT_TABS = Object.freeze([
-  { id: "tab-1", label: "tab 1", color: "#edf2f8" },
-  { id: "tab-2", label: "tab 2", color: "#dbe7f3" },
-  { id: "tab-3", label: "tab 3", color: "#ded8cf" },
+  { id: "tab-1", label: "tab 1", color: DEFAULT_TAB_COLOR },
+  { id: "tab-2", label: "tab 2", color: DEFAULT_TAB_COLOR },
+  { id: "tab-3", label: "tab 3", color: DEFAULT_TAB_COLOR },
 ]);
 
-const cleanHex = (value, fallback = "#edf2f8") => {
+const cleanHex = (value, fallback = DEFAULT_TAB_COLOR) => {
   const text = String(value || "").trim();
   return /^#[0-9a-f]{6}$/i.test(text) ? text.toLowerCase() : fallback;
+};
+
+const normalizeTabColor = (value, fallback = DEFAULT_TAB_COLOR) => {
+  const color = cleanHex(value, fallback);
+  return LEGACY_TAB_DEFAULT_COLORS.has(color) ? DEFAULT_TAB_COLOR : color;
 };
 
 const cleanLabel = (value, fallback) => {
@@ -22,8 +29,7 @@ const cleanLabel = (value, fallback) => {
   return (text || fallback).slice(0, 32);
 };
 
-const defaultTabColorForIndex = (index) =>
-  DEFAULT_TABS[index % DEFAULT_TABS.length]?.color || DEFAULT_TABS[0].color;
+const defaultTabColor = () => DEFAULT_TAB_COLOR;
 
 const tabSwatchDisplayColor = (color) => color === "#ffffff" ? "#d1d5db" : color;
 
@@ -32,7 +38,7 @@ const normalizeState = (value) => {
   const tabs = sourceTabs.map((tab, index) => ({
     id: String(tab?.id || DEFAULT_TABS[index]?.id || `tab-${index + 1}`).replace(/[^a-z0-9_-]/gi, "") || `tab-${index + 1}`,
     label: cleanLabel(tab?.label, DEFAULT_TABS[index]?.label || `tab ${index + 1}`),
-    color: cleanHex(tab?.color, DEFAULT_TABS[index]?.color || "#edf2f8"),
+    color: normalizeTabColor(tab?.color, DEFAULT_TAB_COLOR),
   }));
   while (tabs.length < 1) {
     const fallback = DEFAULT_TABS[tabs.length];
@@ -161,7 +167,7 @@ export const initializeWorkspaceTabsRuntime = ({
     const tab = {
       id: `tab-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`,
       label: `tab ${nextNumber}`,
-      color: defaultTabColorForIndex(nextNumber - 1),
+      color: defaultTabColor(),
     };
     const previousIndex = state.activeIndex;
     state = { tabs: [...state.tabs, tab], activeIndex: state.tabs.length };
@@ -298,7 +304,7 @@ export const initializeWorkspaceTabsRuntime = ({
     const refreshColorMenuSelection = () => {
       const liveIndex = Number(menu?.dataset.tabIndex) || 0;
       const tab = state.tabs[liveIndex];
-      const defaultColor = defaultTabColorForIndex(liveIndex);
+      const defaultColor = defaultTabColor();
       colorMenu?.querySelectorAll(".panel-color-swatch").forEach((swatch) => {
         if (swatch.dataset.colorAction === "clear") {
           swatch.dataset.color = defaultColor;
@@ -338,7 +344,7 @@ export const initializeWorkspaceTabsRuntime = ({
           event.preventDefault();
           event.stopPropagation();
           const liveIndex = Number(menu?.dataset.tabIndex) || 0;
-          const nextColor = cleanHex(color, defaultTabColorForIndex(liveIndex));
+          const nextColor = cleanHex(color, defaultTabColor());
           if (state.tabs[liveIndex]?.color !== nextColor) {
             pushUndo();
             state.tabs[liveIndex] = { ...state.tabs[liveIndex], color: nextColor };
@@ -354,7 +360,7 @@ export const initializeWorkspaceTabsRuntime = ({
       };
       const liveIndex = Number(menu?.dataset.tabIndex) || 0;
       addSwatch({
-        color: defaultTabColorForIndex(liveIndex),
+        color: defaultTabColor(),
         label: "Default color",
         action: "clear",
       });

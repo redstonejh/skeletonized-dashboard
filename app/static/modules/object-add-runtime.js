@@ -11,7 +11,6 @@ export function initializeObjectAddRuntime(deps) {
     saveWidgetLayouts,
     syncDefaultDashboardGrid,
     syncPanelMinimumWidth,
-    panelThemePresets,
     createCustomPanel,
     createCustomWidget,
     panelAddTarget,
@@ -359,22 +358,13 @@ export function initializeObjectAddRuntime(deps) {
       savePanelLayouts(layout, selected);
       syncDefaultDashboardGrid(layoutKey);
       layout.querySelectorAll(":scope > .db-panel").forEach(syncPanelMinimumWidth);
-      const used = new Set(
-        [...layout.querySelectorAll(":scope > .db-panel")]
-          .map((panel) => panel.dataset.panelColor || panel.querySelector(".panel-color-toggle")?.dataset.defaultTheme)
-          .filter(Boolean)
-          .map((color) => color.toLowerCase())
-      );
       const customCount = layout.querySelectorAll(':scope > .db-panel[data-custom-panel="true"]').length;
-      const nextColor =
-        panelThemePresets.find((color) => !used.has(color.toLowerCase())) ||
-        panelThemePresets[customCount % panelThemePresets.length];
       const key = `custom-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`;
       const title = `Panel ${customCount + 1}`;
       const definition = {
         key,
         title,
-        color: nextColor,
+        color: "",
         span: 1,
         workspaceObjectType: WORKSPACE_OBJECT_TYPES.panel,
         dashboardObjectKind: "panel",
@@ -386,8 +376,8 @@ export function initializeObjectAddRuntime(deps) {
       panel.classList.add("db-panel-collapsed");
       panel.dataset.gridRowSpan = "1";
       applyPanelSpan(panel, 1);
-      applyPanelColor(panel, nextColor);
-      applyPanelTitleColor(panel, "#ffffff");
+      applyPanelColor(panel, null);
+      applyPanelTitleColor(panel, "");
       const target = panelAddTarget(layout, panel);
       applyPanelGridPosition(panel, target.col, target.row);
       animatePanelReflow(layout, () => {
@@ -421,7 +411,7 @@ export function initializeObjectAddRuntime(deps) {
       const definition = {
         key,
         title: `Divider ${customCount + 1}`,
-        color: "#64748b",
+        color: "",
         span: 6,
         minW: 2,
         workspaceObjectType: WORKSPACE_OBJECT_TYPES.divider,
@@ -438,8 +428,8 @@ export function initializeObjectAddRuntime(deps) {
       divider.classList.add("db-panel-collapsed", "dashboard-divider-placeholder");
       divider.dataset.gridRowSpan = "1";
       applyPanelSpan(divider, 6);
-      applyPanelColor(divider, definition.color);
-      applyPanelTitleColor(divider, "#ffffff");
+      applyPanelColor(divider, null);
+      applyPanelTitleColor(divider, "");
       const target = panelAddTarget(layout, divider);
       applyPanelGridPosition(divider, target.col, target.row);
       animatePanelReflow(layout, () => {
@@ -468,21 +458,9 @@ export function initializeObjectAddRuntime(deps) {
       if (!layout) return;
       const selected = getActivePanelProfile(layoutKey);
       saveWidgetLayouts(layout, selected);
-      const used = new Set(
-        [...layout.querySelectorAll(":scope > .widget-card")]
-          .map((widget) => widget.dataset.panelColor || widget.querySelector(".panel-color-toggle")?.dataset.defaultTheme)
-          .filter(Boolean)
-          .map((color) => color.toLowerCase())
-      );
       const key = `widget-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`;
       const runtimeDefinition = widgetDefinitionFor(kind);
       const customCount = layout.querySelectorAll(':scope > .widget-card[data-custom-widget="true"]').length;
-      const nextColor = runtimeDefinition.type === "dataset-origin"
-        ? "#64748b"
-        : (
-          panelThemePresets.find((color) => !used.has(color.toLowerCase())) ||
-          panelThemePresets[customCount % panelThemePresets.length]
-        );
       const runtimeDefaults = typeof runtimeDefinition.getDefaultConfig === "function" ? runtimeDefinition.getDefaultConfig() : {};
       const runtimeConfigOverrides = parseJsonRecord(button.dataset.widgetConfig, {});
       const objectName = button.dataset.objectDisplayName || (kind === "graph" ? "Graph" : (runtimeDefinition.displayName || "Widget"));
@@ -492,7 +470,7 @@ export function initializeObjectAddRuntime(deps) {
         key,
         title,
         value: widgetConfig.value,
-        color: nextColor,
+        color: "",
         span: runtimeDefinition.defaultSize?.cols || 1,
         rowSpan: runtimeDefinition.defaultSize?.rows || 1,
         minW: runtimeDefinition.minSize?.cols || 1,
@@ -506,10 +484,10 @@ export function initializeObjectAddRuntime(deps) {
         config: JSON.stringify(widgetConfig),
       };
       const widget = createCustomWidget(definition);
-      ensureWidgetTools(widget, nextColor);
+      ensureWidgetTools(widget, "");
       applyWidgetSpan(widget, definition.span);
-      applyPanelColor(widget, nextColor);
-      applyPanelTitleColor(widget, "#ffffff");
+      applyPanelColor(widget, null);
+      applyPanelTitleColor(widget, "");
       const target = visibleRegionInsertionTarget(layout, widget);
       if (target) applyWidgetGridPosition(widget, target.col, target.row, definition.rowSpan);
       animateWidgetReflow(layout, () => {
