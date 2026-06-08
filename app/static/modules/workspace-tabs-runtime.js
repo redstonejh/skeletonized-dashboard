@@ -143,7 +143,7 @@ export const initializeWorkspaceTabsRuntime = ({
     menu.style.top = `${top}px`;
   };
 
-  const activateTab = (index) => {
+  const activateTab = (index, options = {}) => {
     if (index === state.activeIndex) return;
     const previousIndex = state.activeIndex;
     const previousTab = state.tabs[previousIndex] || null;
@@ -156,6 +156,8 @@ export const initializeWorkspaceTabsRuntime = ({
       previousTab,
       nextTab,
       direction: index > previousIndex ? 1 : -1,
+      source: options.source || "tab",
+      instant: Boolean(options.instant),
       state: normalizeState(state),
     });
     render();

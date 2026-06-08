@@ -43,6 +43,7 @@ export const initializeWorkspacePagesRuntime = ({
   let skipBeforeUnloadPersist = false;
   let persistTimer = null;
   let suppressPersistenceObserver = false;
+  let swipeState = null;
 
   grid.classList.add("workspace-page-surface");
 
@@ -198,30 +199,254 @@ export const initializeWorkspacePagesRuntime = ({
   };
 
   const reducedMotion = () => window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
-  const activatePage = ({ nextTab, direction = 1 } = {}) => {
+  const activatePage = ({ nextTab, direction = 1, instant = false } = {}) => {
     const nextTabId = nextTab?.id;
-    if (!nextTabId || nextTabId === activeTabId || switching) return;
-    const finish = () => {
+    if (!nextTabId || nextTabId === activeTabId || (switching && !instant)) return;
+    if (instant || reducedMotion()) {
       switchToPage(nextTabId);
-      const enterX = direction >= 0 ? 28 : -28;
-      grid.style.setProperty("--workspace-page-enter-x", `${enterX}px`);
-      grid.classList.remove("workspace-page-slide-out");
-      grid.classList.add("workspace-page-slide-in");
-      window.requestAnimationFrame(() => {
-        grid.classList.remove("workspace-page-slide-in");
-        switching = false;
-      });
-    };
-    if (reducedMotion()) {
-      switchToPage(nextTabId);
+      switching = false;
       return;
     }
-    switching = true;
-    const exitX = direction >= 0 ? -28 : 28;
-    grid.style.setProperty("--workspace-page-exit-x", `${exitX}px`);
-    grid.classList.add("workspace-page-slide-out");
-    window.setTimeout(finish, 130);
+    animateToPage(nextTabId, direction);
   };
+
+  const workspaceSwipeBlockSelector = [
+    ".widget-card",
+    ".db-panel",
+    ".workspace-divider",
+    ".app-nav",
+    ".workspace-tab-bar",
+    ".workspace-menu-overlay-layer",
+    ".panel-tools",
+    ".widget-tools",
+    ".panel-color-menu",
+    ".panel-add-menu",
+    ".background-tone-popover",
+    ".window-control-cluster",
+    "button",
+    "a",
+    "input",
+    "select",
+    "textarea",
+    "[contenteditable='true']",
+    "[role='textbox']",
+  ].join(", ");
+
+  const isBareWorkspacePointer = (event) => {
+    if (!event || event.button !== 0 || event.ctrlKey || event.metaKey || event.altKey || event.shiftKey) return false;
+    if (switching || swipeState) return false;
+    if (event.target?.closest?.(workspaceSwipeBlockSelector)) return false;
+    return Boolean(grid.contains(event.target) || event.target === document.body || event.target?.closest?.(".page"));
+  };
+
+  const cloneFragmentChildren = (fragment) => {
+    const shell = document.createDocumentFragment();
+    fragment?.childNodes?.forEach((node) => shell.appendChild(node.cloneNode(true)));
+    return shell;
+  };
+
+  const createSwipePreview = (tabId, direction) => {
+    const page = ensurePage(tabId);
+    if (!page) return null;
+    const preview = document.createElement("div");
+    preview.className = "dashboard-layout-grid workspace-page-swipe-preview";
+    preview.setAttribute("aria-hidden", "true");
+    preview.dataset.swipeDirection = String(direction);
+    const widgets = document.createElement("div");
+    widgets.className = "stat-band widget-layout";
+    widgets.dataset.widgetLayoutKey = "builder";
+    widgets.appendChild(cloneFragmentChildren(page.widgets));
+    const panels = document.createElement("div");
+    panels.className = "panel-layout";
+    panels.dataset.layoutKey = "builder";
+    panels.appendChild(cloneFragmentChildren(page.panels));
+    preview.append(widgets, panels);
+    const rect = grid.getBoundingClientRect();
+    preview.style.left = `${rect.left}px`;
+    preview.style.top = `${rect.top}px`;
+    preview.style.width = `${rect.width}px`;
+    preview.style.minHeight = `${Math.max(rect.height, grid.scrollHeight || 0)}px`;
+    document.body.appendChild(preview);
+    return preview;
+  };
+
+  const clearSwipeStyles = (state = swipeState) => {
+    grid.classList.remove("workspace-page-swipe-active");
+    grid.style.removeProperty("transform");
+    grid.style.removeProperty("transition");
+    state?.preview?.remove();
+    document.body.classList.remove("workspace-page-swipe-dragging");
+    if (swipeState === state) swipeState = null;
+  };
+
+  const setSwipeOffset = (offset, state = swipeState) => {
+    if (!state) return;
+    const { width, direction, preview } = state;
+    const activeX = offset;
+    const previewX = (direction > 0 ? width : -width) + offset;
+    grid.style.transform = `translateX(${activeX}px)`;
+    if (preview) preview.style.transform = `translateX(${previewX}px)`;
+    window.LiquidGlassWebGL?.markDirty?.();
+  };
+
+  const finishSwipe = ({ commit }) => {
+    if (!swipeState) return;
+    const state = swipeState;
+    const targetX = commit ? -state.direction * state.width : 0;
+    document.body.classList.remove("workspace-page-swipe-dragging");
+    grid.style.transition = "transform 220ms cubic-bezier(.19, 1, .22, 1)";
+    if (state.preview) {
+      state.preview.style.transition = "transform 220ms cubic-bezier(.19, 1, .22, 1)";
+    }
+    setSwipeOffset(targetX, state);
+    const cleanup = () => {
+      if (commit) {
+        tabsRuntime.activateTab(state.targetIndex, { source: "swipe", instant: true });
+      }
+      clearSwipeStyles(state);
+      switching = false;
+      window.LiquidGlassWebGL?.markDirty?.();
+    };
+    window.setTimeout(cleanup, 230);
+  };
+
+  const animateToPage = (nextTabId, direction) => {
+    if (!nextTabId || switching) return;
+    const width = Math.max(1, grid.getBoundingClientRect().width || window.innerWidth || 1);
+    const state = {
+      width,
+      direction,
+      preview: createSwipePreview(nextTabId, direction),
+    };
+    swipeState = state;
+    switching = true;
+    grid.classList.add("workspace-page-swipe-active");
+    setSwipeOffset(0, state);
+    window.requestAnimationFrame(() => {
+      grid.style.transition = "transform 220ms cubic-bezier(.19, 1, .22, 1)";
+      if (state.preview) {
+        state.preview.style.transition = "transform 220ms cubic-bezier(.19, 1, .22, 1)";
+      }
+      setSwipeOffset(-direction * width, state);
+    });
+    window.setTimeout(() => {
+      switchToPage(nextTabId);
+      clearSwipeStyles(state);
+      switching = false;
+      window.LiquidGlassWebGL?.markDirty?.();
+    }, 240);
+  };
+
+  const beginWorkspaceSwipe = (event) => {
+    if (!isBareWorkspacePointer(event)) return;
+    const startState = tabsRuntime.getState();
+    const startIndex = startState.activeIndex;
+    const startX = event.clientX;
+    const startY = event.clientY;
+    const startTime = performance.now();
+    const pointerId = event.pointerId;
+    let locked = false;
+    let canceled = false;
+
+    const cleanupListeners = () => {
+      window.removeEventListener("pointermove", onPointerMove, true);
+      window.removeEventListener("pointerup", onPointerUp, true);
+      window.removeEventListener("pointercancel", onPointerCancel, true);
+    };
+
+    const cancelPending = () => {
+      canceled = true;
+      cleanupListeners();
+    };
+
+    const startLockedSwipe = (moveEvent, dx) => {
+      const direction = dx < 0 ? 1 : -1;
+      const targetIndex = startIndex + direction;
+      if (targetIndex < 0 || targetIndex >= startState.tabs.length) {
+        const width = Math.max(1, grid.getBoundingClientRect().width || window.innerWidth || 1);
+        swipeState = {
+          pointerId,
+          startX,
+          startTime,
+          width,
+          direction,
+          targetIndex: startIndex,
+          preview: null,
+          edge: true,
+        };
+      } else {
+        const width = Math.max(1, grid.getBoundingClientRect().width || window.innerWidth || 1);
+        swipeState = {
+          pointerId,
+          startX,
+          startTime,
+          width,
+          direction,
+          targetIndex,
+          preview: createSwipePreview(startState.tabs[targetIndex]?.id, direction),
+          edge: false,
+        };
+      }
+      locked = true;
+      switching = true;
+      document.body.classList.add("workspace-page-swipe-dragging");
+      grid.classList.add("workspace-page-swipe-active");
+      try {
+        grid.setPointerCapture?.(pointerId);
+      } catch {}
+      window.getSelection?.()?.removeAllRanges?.();
+      moveEvent.preventDefault();
+      moveEvent.stopPropagation();
+    };
+
+    function onPointerMove(moveEvent) {
+      if (canceled || moveEvent.pointerId !== pointerId) return;
+      const dx = moveEvent.clientX - startX;
+      const dy = moveEvent.clientY - startY;
+      if (!locked) {
+        if (Math.abs(dx) < 8 && Math.abs(dy) < 8) return;
+        if (Math.abs(dy) >= Math.abs(dx)) {
+          cancelPending();
+          return;
+        }
+        startLockedSwipe(moveEvent, dx);
+      }
+      if (!swipeState) return;
+      const rawOffset = moveEvent.clientX - startX;
+      const directionalOffset = swipeState.direction > 0 ? Math.min(0, rawOffset) : Math.max(0, rawOffset);
+      const offset = swipeState.edge ? directionalOffset * 0.28 : directionalOffset;
+      setSwipeOffset(offset);
+      moveEvent.preventDefault();
+      moveEvent.stopPropagation();
+    }
+
+    function onPointerUp(upEvent) {
+      if (upEvent.pointerId !== pointerId) return;
+      cleanupListeners();
+      if (!locked || !swipeState) return;
+      const dx = upEvent.clientX - startX;
+      const elapsed = Math.max(1, performance.now() - startTime);
+      const velocity = dx / elapsed;
+      const progress = Math.min(1, Math.abs(dx) / swipeState.width);
+      const directionMatches = swipeState.direction > 0 ? dx < 0 : dx > 0;
+      const commit = !swipeState.edge && directionMatches && (progress > 0.32 || Math.abs(velocity) > 0.55);
+      finishSwipe({ commit });
+      upEvent.preventDefault();
+      upEvent.stopPropagation();
+    }
+
+    function onPointerCancel(cancelEvent) {
+      if (cancelEvent.pointerId !== pointerId) return;
+      cleanupListeners();
+      if (swipeState) finishSwipe({ commit: false });
+    }
+
+    window.addEventListener("pointermove", onPointerMove, true);
+    window.addEventListener("pointerup", onPointerUp, true);
+    window.addEventListener("pointercancel", onPointerCancel, true);
+  };
+
+  document.addEventListener("pointerdown", beginWorkspaceSwipe, true);
 
   const reconcileTabs = () => {
     const state = tabsRuntime.getState();

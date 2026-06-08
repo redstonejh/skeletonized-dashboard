@@ -5172,16 +5172,25 @@ no card. Active * filter is indicated by a subtle underline + slightly higher * 
 .workspace-page-surface{
   transition: transform 180ms ease, opacity 180ms ease;
 }
-.workspace-page-surface.workspace-page-slide-out{
-  opacity: .2;
-  will-change: transform, opacity;
-  transform: translateX(var(--workspace-page-exit-x, -28px));
-  pointer-events: none;
+.workspace-page-surface.workspace-page-swipe-active{
+  cursor: grabbing;
+  user-select: none;
+  will-change: transform;
 }
-.workspace-page-surface.workspace-page-slide-in{
-  opacity: .2;
-  will-change: transform, opacity;
-  transform: translateX(var(--workspace-page-enter-x, 28px));
+body.workspace-page-swipe-dragging .workspace-page-surface.workspace-page-swipe-active{
+  transition: none !important;
+}
+.workspace-page-swipe-preview{
+  position: fixed;
+  z-index: 1;
+  margin: 0;
+  pointer-events: none;
+  transition: none;
+  user-select: none;
+  will-change: transform;
+}
+body.workspace-page-swipe-dragging{
+  user-select: none;
 }
 @media (prefers-reduced-motion: reduce){
   .workspace-page-surface{
