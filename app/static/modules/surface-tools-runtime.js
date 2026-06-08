@@ -94,7 +94,9 @@ export function initializeSurfaceToolsRuntime({
     !item.classList?.contains("db-panel-pinned"));
   const isSurfaceMoveCursorTarget = (event, target) => {
     if (!event || !target || !canSurfaceObjectMove(target)) return false;
-    if (target.classList.contains("db-panel") && event.target?.closest?.(".panel-internal-widget-grid > .widget-card")) return false;
+    if (target.classList.contains("db-panel")) {
+      return Boolean(event.target?.closest?.(".db-panel-hd"));
+    }
     const controlTarget = event.target?.closest?.(surfaceResponseControlSelector);
     return !(controlTarget && controlTarget !== target);
   };

@@ -1480,8 +1480,7 @@ body.resize-auto-zoom-active .dashboard-expanded-footprint-ghost{
 .db-panel-pinned .panel-resize-handle{
   opacity: .42;
   cursor: not-allowed;
-}.widget-card[data-dashboard-cursor="move"],
-.db-panel[data-dashboard-cursor="move"]{
+}.widget-card[data-dashboard-cursor="move"]{
   cursor: grab;
 }.widget-card[data-dashboard-cursor="move"] :where(:not(:is(button, button *, a, a *, input, input *, select, select *, textarea, textarea *, [contenteditable="true"], [contenteditable="true"] *))),
 .db-panel[data-dashboard-cursor="move"] > .db-panel-hd,
