@@ -369,7 +369,12 @@
       widget.remove();
       targetLayout.appendChild(clone);
       deps.applyWidgetGridPosition(clone, targetCell?.col || 1, targetCell?.row || 1);
-      const result = deps.commitActiveDropSlot(targetLayout, clone, targetCell || deps.gridBoundsForItem(clone));
+      const metrics = deps.createGridMetrics(targetLayout);
+      const result = deps.commitActiveDropSlot(targetLayout, clone, targetCell || deps.gridBoundsForItem(clone, metrics), {
+        fallbackToNearestOpenSlot: true,
+        metrics,
+        rowLimit: deps.viewportRowFloorForLayout?.(targetLayout, metrics),
+      });
       targetLayout.__initWidget?.(clone);
       updatePanelChildEmptyState(panel);
       animateAbsorbedWidgetIntoPanel(clone, fromRect);

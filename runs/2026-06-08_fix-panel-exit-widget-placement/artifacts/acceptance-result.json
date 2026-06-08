@@ -1,0 +1,13 @@
+{
+  "verdict": "SHIP",
+  "tests_run": false,
+  "tests_skipped_reason": "User explicitly instructed: NO TESTS; manual verification only.",
+  "changes": [
+    "app/static/panel-containment.js: panel-exit extraction commits with dashboard metrics, row floor, and nearest-open fallback",
+    "app/static/collision-reflow.js: commitActiveDropSlot supports opt-in nearest-open fallback when exact target reflow rejects",
+    "app/static/modules/panel-runtime-setup.js and app/static/app.js: pass viewportRowFloorForLayout into panel containment"
+  ],
+  "risks": [
+    "Manual verification is required because tests and launch validation were explicitly disabled."
+  ]
+}

@@ -363,26 +363,28 @@
 
     const commitActiveDropSlot = (layout, item, preferredTarget, options = {}) => {
       const localVacancy = options.localVacancy || null;
+      const metrics = options.metrics || null;
       const rowLimit = Number.isFinite(options.rowLimit) && options.rowLimit > 0
         ? options.rowLimit
-        : viewportRowFloorForLayout(layout);
-      const originalActiveBounds = gridBoundsForItem(item);
+        : viewportRowFloorForLayout(layout, metrics);
+      const fallbackToNearestOpenSlot = Boolean(options.fallbackToNearestOpenSlot);
+      const originalActiveBounds = gridBoundsForItem(item, metrics);
       const target = preferredTarget || gridBoundsForItem(item);
-      let activeBounds = clampBoundsToRowFloor(boundsAtGridSlot(item, target.col, target.row), rowLimit);
-      if (!boundsWithinRowFloor(activeBounds, rowLimit)) activeBounds = nearestSparseSlotAtOrAfter(item, activeBounds, [], rowLimit) || originalActiveBounds;
+      let activeBounds = clampBoundsToRowFloor(boundsAtGridSlot(item, target.col, target.row, metrics), rowLimit);
+      if (!boundsWithinRowFloor(activeBounds, rowLimit)) activeBounds = nearestSparseSlotAtOrAfter(item, activeBounds, [], rowLimit, metrics) || originalActiveBounds;
       const items = globalGridItems(layout, { includePlaceholders: false, exclude: [item] });
       const pinned = items
         .filter((other) => other.classList.contains("db-panel-pinned"))
-        .map((other) => ({ item: other, bounds: gridBoundsForItem(other) }));
+        .map((other) => ({ item: other, bounds: gridBoundsForItem(other, metrics) }));
 
       if (!canPlaceWithinFloor(activeBounds, pinned, rowLimit)) {
-        activeBounds = nearestSparseSlotAtOrAfter(item, activeBounds, pinned, rowLimit) || originalActiveBounds;
+        activeBounds = nearestSparseSlotAtOrAfter(item, activeBounds, pinned, rowLimit, metrics) || originalActiveBounds;
         applyGridItemPosition(item, activeBounds.col, activeBounds.row);
         return { bounds: activeBounds, movedItems: 0 };
       }
 
       const movableItems = items.filter((other) => !other.classList.contains("db-panel-pinned"));
-      const targetCollides = movableItems.some((other) => geometry.gridBoundsOverlap(activeBounds, gridBoundsForItem(other)));
+      const targetCollides = movableItems.some((other) => geometry.gridBoundsOverlap(activeBounds, gridBoundsForItem(other, metrics)));
       if (!targetCollides) {
         applyGridItemPosition(item, activeBounds.col, activeBounds.row);
         return { bounds: activeBounds, movedItems: 0 };
@@ -395,17 +397,18 @@
       let rejected = false;
       visualGridOrder(movableItems).forEach((other) => {
         if (rejected) return;
-        const current = gridBoundsForItem(other);
+        const current = gridBoundsForItem(other, metrics);
         const reserved = items
           .filter((item) => item !== other)
-          .map((item) => ({ item, bounds: gridBoundsForItem(item) }));
+          .map((item) => ({ item, bounds: gridBoundsForItem(item, metrics) }));
         const next = canPlaceWithinFloor(current, occupied, rowLimit)
           ? current
           : nearestLocalDisplacementSlot(other, current, occupied, {
             localVacancy,
             reserved,
             rowLimit,
-            fallback: nearestSparseSlotAtOrAfter(other, current, occupied, rowLimit),
+            metrics,
+            fallback: nearestSparseSlotAtOrAfter(other, current, occupied, rowLimit, metrics),
           });
         if (!next) {
           rejected = true;
@@ -418,11 +421,29 @@
       });
       if (rejected) {
         movedOriginals.forEach((bounds, movedItem) => applyGridItemPosition(movedItem, bounds.col, bounds.row));
+        if (fallbackToNearestOpenSlot) {
+          const occupiedByOthers = items.map((other) => ({ item: other, bounds: gridBoundsForItem(other, metrics) }));
+          const fallbackBounds = nearestSparseSlotAtOrAfter(item, activeBounds, occupiedByOthers, rowLimit, metrics) ||
+            nearestSparseSlot(item, activeBounds, occupiedByOthers, rowLimit, metrics);
+          if (fallbackBounds) {
+            applyGridItemPosition(item, fallbackBounds.col, fallbackBounds.row);
+            return { bounds: fallbackBounds, movedItems: 0, fallback: true };
+          }
+        }
         applyGridItemPosition(item, originalActiveBounds.col, originalActiveBounds.row);
         return { bounds: originalActiveBounds, movedItems: 0 };
       }
       if (Number.isFinite(rowLimit) && occupied.some((entry) => !boundsWithinRowFloor(entry.bounds, rowLimit))) {
         movedOriginals.forEach((bounds, movedItem) => applyGridItemPosition(movedItem, bounds.col, bounds.row));
+        if (fallbackToNearestOpenSlot) {
+          const occupiedByOthers = items.map((other) => ({ item: other, bounds: gridBoundsForItem(other, metrics) }));
+          const fallbackBounds = nearestSparseSlotAtOrAfter(item, activeBounds, occupiedByOthers, rowLimit, metrics) ||
+            nearestSparseSlot(item, activeBounds, occupiedByOthers, rowLimit, metrics);
+          if (fallbackBounds) {
+            applyGridItemPosition(item, fallbackBounds.col, fallbackBounds.row);
+            return { bounds: fallbackBounds, movedItems: 0, fallback: true };
+          }
+        }
         applyGridItemPosition(item, originalActiveBounds.col, originalActiveBounds.row);
         return { bounds: originalActiveBounds, movedItems: 0 };
       }

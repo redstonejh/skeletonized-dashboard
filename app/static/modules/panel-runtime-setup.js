@@ -28,6 +28,7 @@ export const initializePanelRuntimes = ({
   regionIdForWorkspaceItem,
   emitWorkspaceEvent,
   commitActiveDropSlot,
+  viewportRowFloorForLayout,
   cleanupWidgetRowBreaks,
 }) => {
   const panelRuntime = dashboardPanelRuntime.createRuntime({
@@ -71,6 +72,7 @@ export const initializePanelRuntimes = ({
     regionIdForWorkspaceItem,
     emitWorkspaceEvent,
     commitActiveDropSlot,
+    viewportRowFloorForLayout,
     cleanupWidgetRowBreaks,
   });
 

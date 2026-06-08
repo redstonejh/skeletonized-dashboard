@@ -2381,6 +2381,7 @@ document.addEventListener("DOMContentLoaded", () => {
     regionIdForWorkspaceItem,
     emitWorkspaceEvent,
     commitActiveDropSlot,
+    viewportRowFloorForLayout,
     cleanupWidgetRowBreaks,
   }));
 
