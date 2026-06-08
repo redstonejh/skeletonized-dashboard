@@ -82,9 +82,11 @@
       // +4.0 epsilon prevents division blow-up at the edge and gives
       // a smooth blend across the rect's interior.
       vec2 w = 1.0 / (distToEdge + vec2(4.0));
-      vec2 dir = vec2(sign(p.x) * w.x, sign(p.y) * w.y);
+      vec2 axis = p / max(halfSize, vec2(1.0));
+      vec2 dir = axis * w;
       float l = length(dir);
-      return l > 0.0001 ? dir / l : vec2(0.0);
+      float edgeGain = min(length(axis), 1.0);
+      return l > 0.0001 ? (dir / l) * edgeGain : vec2(0.0);
     }
 
     // Texture is pre-rasterized in JS at canvas-backing size with
