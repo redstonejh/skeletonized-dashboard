@@ -117,24 +117,35 @@ const rectSnapshot = (rect) => ({
   height: rect.height,
 });
 
-const panelColorMenuAnchorRect = (colorToggle, menu) => {
-  const anchor = colorToggle || menu?.__panelColorAnchor;
-  if (anchor?.isConnected) {
-    const rect = anchor.getBoundingClientRect();
-    if (Number.isFinite(rect.left) && Number.isFinite(rect.top)) {
-      const snapshot = rectSnapshot(rect);
-      menu.__panelColorAnchor = anchor;
-      menu.__panelColorAnchorRect = snapshot;
-      return snapshot;
-    }
-  }
-  return menu?.__panelColorAnchorRect || null;
+const panelColorMenuAnchorRect = (anchor) => {
+  if (!anchor?.isConnected) return null;
+  const rect = anchor.getBoundingClientRect();
+  if (
+    !Number.isFinite(rect.left) ||
+    !Number.isFinite(rect.top) ||
+    rect.width <= 0 ||
+    rect.height <= 0
+  ) return null;
+  return rectSnapshot(rect);
 };
 
-export const positionPanelColorMenu = (colorToggle, menu) => {
-  if (!menu) return false;
-  const rect = panelColorMenuAnchorRect(colorToggle, menu);
-  if (!rect) return false;
+const panelColorMenuOwnerAnchorRect = (owner) => {
+  const rect = panelColorMenuAnchorRect(owner);
+  if (!rect) return null;
+  return {
+    ...rect,
+    left: rect.right,
+    top: rect.top,
+    bottom: rect.top,
+    width: 0,
+    height: 0,
+  };
+};
+
+const positionPanelColorMenuAtRect = (rect, menu, anchor = null) => {
+  if (!menu || !rect) return false;
+  if (anchor) menu.__panelColorAnchor = anchor;
+  menu.__panelColorAnchorRect = rect;
   const width = menu.offsetWidth || 248;
   const height = menu.offsetHeight || menu.getBoundingClientRect().height || 0;
   const gutter = 12;
@@ -147,6 +158,11 @@ export const positionPanelColorMenu = (colorToggle, menu) => {
   menu.style.left = `${left}px`;
   menu.style.top = `${top}px`;
   return true;
+};
+
+export const positionPanelColorMenu = (anchor, menu) => {
+  const rect = panelColorMenuAnchorRect(anchor);
+  return positionPanelColorMenuAtRect(rect, menu, anchor);
 };
 
 export const createPanelColorMenuFactory = ({
@@ -192,19 +208,19 @@ export const createPanelColorMenuFactory = ({
   const buildPanelColorMenu = (panel, layout, colorToggle) => {
     if (!colorToggle) return null;
     if (panel.__panelColorMenu) {
-      panel.__panelColorMenu.__panelColorAnchor = colorToggle;
       colorToggle.__panelColorMenu = panel.__panelColorMenu;
       colorToggle.__refreshPanelColorMenu = panel.__panelColorMenu.__refreshPanelColorMenu;
+      panel.__panelColorMenu.__updatePanelColorTrigger?.(colorToggle);
       return panel.__panelColorMenu;
     }
     const menu = document.createElement("div");
     menu.className = "panel-color-menu";
     menu.setAttribute("role", "menu");
     let anchorToggle = colorToggle;
-    const updateAnchor = (nextAnchor = anchorToggle) => {
-      if (!nextAnchor) return;
-      anchorToggle = nextAnchor;
-      menu.__panelColorAnchor = anchorToggle;
+    menu.__panelColorAnchor = panel;
+    const updateTrigger = (nextTrigger = anchorToggle) => {
+      if (!nextTrigger) return;
+      anchorToggle = nextTrigger;
       anchorToggle.__panelColorMenu = menu;
       anchorToggle.__refreshPanelColorMenu = refreshSwatchSelection;
     };
@@ -232,12 +248,21 @@ export const createPanelColorMenuFactory = ({
         });
       }
     };
-    const openMenu = (nextAnchor = anchorToggle) => {
-      updateAnchor(nextAnchor);
+    const keepMenuOpen = () => {
       refreshSwatchSelection();
-      positionPanelColorMenu(anchorToggle, menu);
       menu.classList.add("panel-color-menu-open");
       anchorToggle?.setAttribute("aria-expanded", "true");
+    };
+    const openMenu = (nextTrigger = anchorToggle) => {
+      updateTrigger(nextTrigger);
+      refreshSwatchSelection();
+      if (!positionPanelColorMenuAtRect(panelColorMenuOwnerAnchorRect(panel), menu, panel)) {
+        closeMenu();
+        return false;
+      }
+      menu.classList.add("panel-color-menu-open");
+      anchorToggle?.setAttribute("aria-expanded", "true");
+      return true;
     };
     const closeMenu = () => {
       menu.classList.remove("panel-color-menu-open");
@@ -246,10 +271,7 @@ export const createPanelColorMenuFactory = ({
     menu.__refreshPanelColorMenu = refreshSwatchSelection;
     menu.__openPanelColorMenu = openMenu;
     menu.__closePanelColorMenu = closeMenu;
-    menu.__positionPanelColorMenu = (nextAnchor = anchorToggle) => {
-      updateAnchor(nextAnchor);
-      return positionPanelColorMenu(anchorToggle, menu);
-    };
+    menu.__updatePanelColorTrigger = updateTrigger;
 
     const addGroup = (label, colors, onSelect, colorGroup) => {
       const group = document.createElement("div");
@@ -303,7 +325,7 @@ export const createPanelColorMenuFactory = ({
           } else {
             savePanelLayouts(layout);
           }
-          openMenu(anchorToggle);
+          keepMenuOpen();
         });
         swatches.appendChild(swatch);
       });
@@ -335,11 +357,10 @@ export const createPanelColorMenuFactory = ({
           event.preventDefault();
           event.stopPropagation();
           const wellTone = normalizeWellTone(tone.value);
-          positionPanelColorMenu(anchorToggle, menu);
           setWidgetConfig(panel, { ...widgetConfigFromElement(panel), wellTone });
           renderWidgetRuntimeContent(panel);
           saveOwnerLayout();
-          openMenu(anchorToggle);
+          keepMenuOpen();
         });
         swatches.appendChild(swatch);
       });
@@ -353,7 +374,7 @@ export const createPanelColorMenuFactory = ({
     menu.addEventListener("keydown", (event) => event.stopPropagation());
     menuOverlayLayer().appendChild(menu);
     panel.__panelColorMenu = menu;
-    updateAnchor(colorToggle);
+    updateTrigger(colorToggle);
     refreshSwatchSelection();
     return menu;
   };

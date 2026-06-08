@@ -373,12 +373,6 @@ export const createWidgetLayoutRuntime = (deps) => {
         if (isDashboardInteractionActive()) return;
         closeTools();
       });
-      window.addEventListener("resize", () => {
-        if (colorMenu?.classList.contains("panel-color-menu-open")) colorMenu.__positionPanelColorMenu?.(colorToggle);
-      });
-      window.addEventListener("scroll", () => {
-        if (colorMenu?.classList.contains("panel-color-menu-open")) colorMenu.__positionPanelColorMenu?.(colorToggle);
-      }, true);
       document.addEventListener("pointerdown", (event) => {
         if (!colorMenu?.classList.contains("panel-color-menu-open")) return;
         if (widget.contains(event.target) || colorMenu.contains(event.target)) return;

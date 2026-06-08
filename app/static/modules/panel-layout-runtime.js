@@ -256,13 +256,6 @@ export const createPanelLayoutRuntime = ({
           }
         });
 
-        window.addEventListener("resize", () => {
-          if (colorMenu?.classList.contains("panel-color-menu-open")) colorMenu.__positionPanelColorMenu?.(colorToggle);
-        });
-        window.addEventListener("scroll", () => {
-          if (colorMenu?.classList.contains("panel-color-menu-open")) colorMenu.__positionPanelColorMenu?.(colorToggle);
-        }, true);
-
         bindPanelActionControls({
           panel,
           layout,
