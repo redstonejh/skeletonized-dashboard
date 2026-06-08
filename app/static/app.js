@@ -106,7 +106,6 @@ document.addEventListener("DOMContentLoaded", () => {
   const {
     portalDashboardToolDrawer,
     restoreDashboardToolDrawer,
-    positionDashboardToolDrawer,
   } = createDashboardToolDrawerRuntime({
     portalFloatingMenu,
     restoreFloatingMenu,
@@ -2404,7 +2403,6 @@ document.addEventListener("DOMContentLoaded", () => {
     buildPanelColorMenu,
     ensureWidgetWorkbenchPanel,
     isDashboardInteractionActive,
-    positionDashboardToolDrawer,
     canOpenDashboardTools,
     portalDashboardToolDrawer,
     setWidgetLinkNavigationSuspended,
@@ -2530,7 +2528,6 @@ document.addEventListener("DOMContentLoaded", () => {
       buildPanelColorMenu,
       canOpenDashboardTools,
       portalDashboardToolDrawer,
-      positionDashboardToolDrawer,
       syncLayoutToolsActive,
       restoreDashboardToolDrawer,
       surfaceResponseControlSelector,

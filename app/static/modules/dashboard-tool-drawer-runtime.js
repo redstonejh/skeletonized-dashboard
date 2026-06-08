@@ -22,15 +22,29 @@ export const createDashboardToolDrawerRuntime = ({
   portalFloatingMenu,
   restoreFloatingMenu,
 }) => {
-  const portalDashboardToolDrawer = (drawer, trigger) => {
-    if (!drawer || !trigger) return;
+  const portalDashboardToolDrawer = (item, drawer) => {
+    if (!item || !drawer) return false;
     const drawerStyles = window.getComputedStyle(drawer);
     dashboardToolDrawerVars.forEach((name) => {
       const value = drawerStyles.getPropertyValue(name);
       if (value) drawer.style.setProperty(name, value);
     });
-    portalFloatingMenu(drawer, trigger, { skipPosition: true });
-    drawer.classList.add("dashboard-tool-drawer-portaled", "dashboard-tool-drawer-open");
+    if (!portalFloatingMenu(drawer, item, { skipPosition: true })) return false;
+    drawer.classList.add("dashboard-tool-drawer-portaled");
+    const positioned = positionObjectMenuSurface(item, drawer, {
+      gutter: 8,
+      gap: 8,
+      cssVars: {
+        left: "--dashboard-tool-drawer-fixed-left",
+        top: "--dashboard-tool-drawer-fixed-top",
+      },
+    });
+    if (!positioned) {
+      restoreDashboardToolDrawer(drawer);
+      return false;
+    }
+    drawer.classList.add("dashboard-tool-drawer-open");
+    return true;
   };
 
   const restoreDashboardToolDrawer = (drawer) => {
@@ -42,20 +56,8 @@ export const createDashboardToolDrawerRuntime = ({
     restoreFloatingMenu(drawer);
   };
 
-  const positionDashboardToolDrawer = (item, drawer) => {
-    return positionObjectMenuSurface(item, drawer, {
-      gutter: 8,
-      gap: 8,
-      cssVars: {
-        left: "--dashboard-tool-drawer-fixed-left",
-        top: "--dashboard-tool-drawer-fixed-top",
-      },
-    });
-  };
-
   return {
     portalDashboardToolDrawer,
     restoreDashboardToolDrawer,
-    positionDashboardToolDrawer,
   };
 };

@@ -36,7 +36,6 @@ export const createPanelLayoutRuntime = ({
   buildPanelColorMenu,
   canOpenDashboardTools,
   portalDashboardToolDrawer,
-  positionDashboardToolDrawer,
   syncLayoutToolsActive,
   restoreDashboardToolDrawer,
   surfaceResponseControlSelector,
@@ -173,12 +172,7 @@ export const createPanelLayoutRuntime = ({
           if (performance.now() < panelToolSession.getSuppressToolOpenUntil()) return;
           if (!canOpenDashboardTools(panel)) return;
           panelToolSession.clearToolsCloseTimer();
-          portalDashboardToolDrawer(panelToolDrawer, settingsButton || panel);
-          const positioned = positionDashboardToolDrawer(panel, panelToolDrawer);
-          if (!positioned) {
-            restoreDashboardToolDrawer(panelToolDrawer);
-            return;
-          }
+          if (!portalDashboardToolDrawer(panel, panelToolDrawer)) return;
           panel.classList.add("db-panel-tools-open");
           settingsButton?.setAttribute("aria-expanded", "true");
           syncLayoutToolsActive();

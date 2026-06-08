@@ -38,7 +38,6 @@ export const createWidgetLayoutRuntime = (deps) => {
     buildPanelColorMenu,
     ensureWidgetWorkbenchPanel,
     isDashboardInteractionActive,
-    positionDashboardToolDrawer,
     canOpenDashboardTools,
     portalDashboardToolDrawer,
     setWidgetLinkNavigationSuspended,
@@ -169,12 +168,7 @@ export const createWidgetLayoutRuntime = (deps) => {
         if (performance.now() < widgetToolSession.getSuppressToolOpenUntil()) return;
         if (!canOpenDashboardTools(widget)) return;
         widgetToolSession.clearCloseTimer();
-        portalDashboardToolDrawer(drawer, settings || widget);
-        const positioned = positionDashboardToolDrawer(widget, drawer);
-        if (!positioned) {
-          restoreDashboardToolDrawer(drawer);
-          return;
-        }
+        if (!portalDashboardToolDrawer(widget, drawer)) return;
         setWidgetLinkNavigationSuspended(widget, true);
         widget.classList.add("widget-tools-open");
         settings?.setAttribute("aria-expanded", "true");
