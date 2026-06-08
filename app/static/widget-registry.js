@@ -584,11 +584,11 @@
     });
   };
   const widgetDataRows = (data) => Array.isArray(data?.rows) ? data.rows : [];
-  const DEFAULT_TABLE_ROWS = [
-    { item: "Pipeline", status: "Ready", value: "$24k" },
-    { item: "Tickets", status: "Open", value: "8" },
-    { item: "Review", status: "Queued", value: "3" },
-  ];
+  const dataSchemaFields = (data) => (
+    Array.isArray(data?.schema?.fields)
+      ? data.schema.fields.map((field) => typeof field === "string" ? field : field?.key || field?.name).filter(Boolean)
+      : []
+  );
   const aggregateValues = (values, aggregation) => {
     const numeric = values.map(numberValue).filter((value) => value != null);
     if (aggregation === "count") return values.length;
@@ -954,12 +954,11 @@
     if (!target) return null;
     const config = instance?.config || {};
     const rows = widgetDataRows(instance?.data);
-    const renderRows = rows.length ? rows : DEFAULT_TABLE_ROWS;
     const configuredColumns = tableConfiguredColumns(config);
-    const schemaFields = Object.keys(renderRows[0] || {});
+    const schemaFields = rows.length ? Object.keys(rows[0] || {}) : dataSchemaFields(instance?.data);
     const allFields = unique(configuredColumns.length ? configuredColumns : schemaFields.length ? schemaFields : [""]);
     const visibleFields = allFields.slice(0, tableVisibleColumnCount(instance.cols));
-    const visibleRows = renderRows.slice(0, tableVisibleRowCount(instance.rows, config.limit));
+    const visibleRows = rows.slice(0, tableVisibleRowCount(instance.rows, config.limit));
     let disposed = false;
     loadTanstackTable()
       .then((TableCore) => {
@@ -1426,14 +1425,58 @@
     const config = instance?.config || {};
     const metric = ["count", "sum", "avg", "min", "max"].includes(config.metric) ? config.metric : "count";
     const valueField = config.valueField || "";
-    const rows = [];
-    const total = Number.isFinite(Number(config.value)) ? Number(config.value) : 0;
+    const rows = widgetDataRows(instance?.data);
+    const rawValues = rows.map((row) => (metric === "count" ? 1 : row?.[valueField] ?? row?.value));
+    const aggregate = aggregateValues(rawValues, metric);
+    const fallback = Number.isFinite(Number(config.value)) ? Number(config.value) : 0;
+    const total = aggregate == null ? fallback : aggregate;
     return {
       metric,
       valueField,
       rows,
       total,
       metricContext: metric === "count" ? `${total} records` : `${metric} ${valueField || "value"}`,
+    };
+  };
+
+  const queryFieldsForDefinition = (definition, config = {}) => (
+    (definition?.settingsSchema?.sections || []).flatMap((section) => (
+      (section?.fields || [])
+        .filter((field) => field?.affectsQuery)
+        .map((field) => ({
+          key: field.key,
+          label: field.label || field.key,
+          type: field.type || "text",
+          valueType: field.valueType || "",
+          value: config[field.key],
+        }))
+    ))
+  );
+
+  const dataRequestForWidget = (definition, instance = {}) => {
+    const resolvedDefinition = typeof definition === "string" ? getWidgetDefinition(definition) : definition;
+    const config = instance.config || {};
+    const queryFields = queryFieldsForDefinition(resolvedDefinition, config);
+    const fieldValues = queryFields
+      .map((field) => field.value)
+      .flatMap((value) => Array.isArray(value) ? value : [value])
+      .map((value) => String(value || "").trim())
+      .filter(Boolean);
+    return {
+      widgetId: instance.id || "",
+      type: resolvedDefinition.type,
+      category: resolvedDefinition.category,
+      subcategory: resolvedDefinition.subcategory || "",
+      capabilities: { ...(resolvedDefinition.capabilities || {}) },
+      config: { ...config },
+      queryFields,
+      fields: unique(fieldValues),
+      timeRange: instance.timeRange || instance.displayState?.timeRange || null,
+      expectsRows: Boolean(
+        resolvedDefinition.capabilities?.supportsFilters ||
+        resolvedDefinition.capabilities?.supportsTimeRange ||
+        queryFields.length
+      ),
     };
   };
 
@@ -1610,9 +1653,8 @@
     },
     renderContent: ({ instance }) => {
       const config = instance.config || {};
-      const label = statLabelFor(config);
-      const value = config.value ?? "";
-      return `<span class="stat-val">${escapeHtml(formatMetricValue(value === "" ? 0 : value, config.format))}</span>`;
+      const { total } = statMetricContext({ instance });
+      return `<span class="stat-val">${escapeHtml(formatMetricValue(total, config.format))}</span>`;
     },
   });
 
@@ -1746,7 +1788,8 @@
     },
     getDefaultConfig: () => ({ title: "Region Summary" }),
     render: ({ instance }) => {
-      const summary = window.dashboardSpatialRuntime?.regionSummaryForWidget?.(instance.id) || {};
+      const dataRows = widgetDataRows(instance?.data);
+      const summary = instance?.data?.summary || dataRows[0] || window.dashboardSpatialRuntime?.regionSummaryForWidget?.(instance.id) || {};
       const cols = Number(instance.cols) || 2;
       const rows = Number(instance.rows) || 2;
       const density = rows <= 1 ? "compact" : rows >= 3 || cols >= 3 ? "rich" : "standard";
@@ -1993,8 +2036,7 @@
       const title = config.title || "Table";
       const configuredColumns = tableConfiguredColumns(config);
       const dataRows = widgetDataRows(instance.data);
-      const renderRows = dataRows.length ? dataRows : DEFAULT_TABLE_ROWS;
-      const schemaFields = Object.keys(renderRows[0] || {});
+      const schemaFields = dataRows.length ? Object.keys(dataRows[0] || {}) : dataSchemaFields(instance.data);
       const allFields = unique(configuredColumns.length ? configuredColumns : schemaFields.length ? schemaFields : [""]);
       const visibleFields = allFields.slice(0, tableVisibleColumnCount(instance.cols));
       const tableDensity = Number(instance.rows) <= 2 || Number(instance.cols) <= 2
@@ -2434,6 +2476,7 @@
     getWidgetDefinition,
     createWidgetInstance,
     renderWidget,
+    dataRequestForWidget,
     resolveWidgetDensity,
     resolveTimeRangeConfig,
     resolveTimeframeFilter,
@@ -2466,6 +2509,7 @@
         showHeader: Boolean(definition.shell?.showHeader),
       },
     })),
+    dataRequestForInstance: (definitionOrType, instance = {}) => dataRequestForWidget(definitionOrType, instance),
     parseConfig,
   };
   window.dashboardChartRuntime = {

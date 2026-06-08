@@ -28,6 +28,7 @@
   const createRuntime = (deps = {}) => {
     const registry = window.dashboardWidgetRuntime || null;
     const bodyRendererCleanups = new WeakMap();
+    const widgetDataStore = new Map();
     const escapeHtml = deps.escapeHtml || ((value) => String(value ?? ""));
     const parseJsonRecord = deps.parseJsonRecord || ((value, fallback = {}) => {
       if (!value) return fallback;
@@ -94,6 +95,32 @@
         ...(value && !current.value ? { value } : {}),
         ...current,
       };
+    };
+    const normalizeWidgetData = (data) => {
+      if (Array.isArray(data)) return { rows: data };
+      if (data && typeof data === "object") {
+        return {
+          ...data,
+          rows: Array.isArray(data.rows) ? data.rows : [],
+        };
+      }
+      return { rows: [] };
+    };
+    const widgetDataKeys = (widget, definition = definitionForElement(widget)) => uniqueValues([
+      widget?.dataset?.widgetKey,
+      widget?.dataset?.contextOverrideId,
+      definition?.type ? `type:${definition.type}` : "",
+      "*",
+    ]);
+    const storedDataForWidget = (widget, definition = definitionForElement(widget)) => {
+      const key = widgetDataKeys(widget, definition).find((candidate) => widgetDataStore.has(candidate));
+      return key ? widgetDataStore.get(key) : null;
+    };
+    const dataForWidget = (widget, definition = definitionForElement(widget), instance = null, explicitData = null) => {
+      if (explicitData != null) return normalizeWidgetData(explicitData);
+      const stored = storedDataForWidget(widget, definition);
+      if (stored != null) return normalizeWidgetData(stored);
+      return normalizeWidgetData(instance?.data || { rows: [] });
     };
     const setConfigValue = (widget, key, value) => {
       if (!widget || !key) return;
@@ -291,7 +318,7 @@
         ...renderInstance,
         displayState,
         timeRange: displayState?.timeRange || null,
-        data: scopedDataForTimeRange(options.data || renderInstance.data || { rows: [] }, displayState?.timeRange, definition),
+        data: scopedDataForTimeRange(dataForWidget(widget, definition, renderInstance, options.data), displayState?.timeRange, definition),
       };
       if (deps.isSignalConsumerWidget?.(widget, definition)) {
         const signalState = deps.signalStateForWidget?.(widget) || {};
@@ -329,6 +356,50 @@
         instance: renderInstance,
       });
     };
+    const refreshWidgetData = (widget) => {
+      if (!widget?.classList?.contains("widget-card")) return;
+      renderRuntimeContent(widget);
+    };
+    const refreshAllWidgetData = () => {
+      document.querySelectorAll(".widget-card").forEach(refreshWidgetData);
+    };
+    const setWidgetData = (key, data, options = {}) => {
+      const normalizedKey = String(key || "").trim();
+      if (!normalizedKey) return false;
+      widgetDataStore.set(normalizedKey, normalizeWidgetData(data));
+      if (options.refresh !== false) refreshAllWidgetData();
+      return true;
+    };
+    const clearWidgetData = (key = "", options = {}) => {
+      const normalizedKey = String(key || "").trim();
+      if (normalizedKey) {
+        widgetDataStore.delete(normalizedKey);
+      } else {
+        widgetDataStore.clear();
+      }
+      if (options.refresh !== false) refreshAllWidgetData();
+    };
+    const ingestWidgetData = (payload = {}, options = {}) => {
+      if (!payload || typeof payload !== "object") return false;
+      const entries = [];
+      if (payload.default !== undefined) entries.push(["*", payload.default]);
+      Object.entries(payload.types || {}).forEach(([type, data]) => entries.push([`type:${type}`, data]));
+      Object.entries(payload.widgets || payload.widgetData || {}).forEach(([key, data]) => entries.push([key, data]));
+      entries.forEach(([key, data]) => widgetDataStore.set(String(key), normalizeWidgetData(data)));
+      if (options.refresh !== false) refreshAllWidgetData();
+      return true;
+    };
+    const queryForWidget = (widget) => {
+      if (!widget?.classList?.contains("widget-card")) return null;
+      const definition = definitionForElement(widget);
+      const instance = instanceFromElement(widget, definition);
+      return registry?.dataRequestForWidget?.(definition, instance) ||
+        registry?.dataRequestForInstance?.(definition, instance) ||
+        null;
+    };
+    const queryAllWidgets = () => [...document.querySelectorAll(".widget-card")]
+      .map(queryForWidget)
+      .filter(Boolean);
     const hydrateRuntime = (widget, saved = null) => {
       if (!widget?.classList?.contains("widget-card")) return null;
       if (saved?.runtimeType) widget.dataset.widgetRuntimeType = saved.runtimeType;
@@ -464,6 +535,17 @@
       return widget;
     };
 
+    window.dashboardWidgetDataRuntime = Object.freeze({
+      ingest: ingestWidgetData,
+      setWidgetData,
+      clearWidgetData,
+      refreshWidget: refreshWidgetData,
+      refreshAll: refreshAllWidgetData,
+      dataForWidget,
+      queryForWidget,
+      queryAllWidgets,
+    });
+
     return Object.freeze({
       registry,
       definitionFor,
@@ -486,6 +568,14 @@
       cleanupWidgetBodyRenderer,
       renderRuntimeContent,
       hydrateRuntime,
+      dataForWidget,
+      setWidgetData,
+      clearWidgetData,
+      ingestWidgetData,
+      refreshWidgetData,
+      refreshAllWidgetData,
+      queryForWidget,
+      queryAllWidgets,
       ensureTools,
       syncRenderedHeightToFootprint,
       applySpan,
