@@ -18,20 +18,13 @@ export const createWidgetToolSession = () => {
   let suppressToolOpenUntil = 0;
   let suppressWidgetClickUntil = 0;
   let suppressSettingsClickUntil = 0;
-  let ignoreToolLeaveCloseUntilPointerActivity = false;
-  let toolsOpenedByApproach = false;
 
   return Object.freeze({
     clearCloseTimer: closeTimer.clear,
     getSuppressSettingsClickUntil: () => suppressSettingsClickUntil,
     getSuppressToolOpenUntil: () => suppressToolOpenUntil,
     getSuppressWidgetClickUntil: () => suppressWidgetClickUntil,
-    getToolsOpenedByApproach: () => toolsOpenedByApproach,
-    isIgnoringToolLeaveCloseUntilPointerActivity: () => ignoreToolLeaveCloseUntilPointerActivity,
     setCloseTimer: closeTimer.set,
-    setIgnoreToolLeaveCloseUntilPointerActivity(value) {
-      ignoreToolLeaveCloseUntilPointerActivity = Boolean(value);
-    },
     setSuppressSettingsClickUntil(value) {
       suppressSettingsClickUntil = Number(value) || 0;
     },
@@ -41,19 +34,14 @@ export const createWidgetToolSession = () => {
     setSuppressWidgetClickUntil(value) {
       suppressWidgetClickUntil = Number(value) || 0;
     },
-    setToolsOpenedByApproach(value) {
-      toolsOpenedByApproach = Boolean(value);
-    },
   });
 };
 
 export const createPanelToolSession = () => {
   const toolsCloseTimer = createTimerSlot();
-  let ignoreToolLeaveCloseUntilPointerActivity = false;
   let movedDuringPointer = false;
   let suppressToolOpenUntil = 0;
   let suppressHeaderToggleUntil = 0;
-  let toolsOpenedByApproach = false;
   let toolPointerCapture = false;
 
   const setMovedDuringPointer = (value) => {
@@ -68,34 +56,19 @@ export const createPanelToolSession = () => {
     suppressHeaderToggleUntil = Number(value) || 0;
   };
   const getSuppressHeaderToggleUntil = () => suppressHeaderToggleUntil;
-  const setToolsOpenedByApproach = (value) => {
-    toolsOpenedByApproach = Boolean(value);
-  };
-  const getToolsOpenedByApproach = () => toolsOpenedByApproach;
-  const setIgnoreToolLeaveCloseUntilPointerActivity = (value) => {
-    ignoreToolLeaveCloseUntilPointerActivity = Boolean(value);
-  };
-  const isIgnoringToolLeaveCloseUntilPointerActivity = () => ignoreToolLeaveCloseUntilPointerActivity;
   const setToolPointerCapture = (value) => {
     toolPointerCapture = Boolean(value);
   };
-  const isToolPointerCaptured = () => toolPointerCapture;
 
   return Object.freeze({
     clearToolsCloseTimer: toolsCloseTimer.clear,
     getMovedDuringPointer,
     getSuppressHeaderToggleUntil,
     getSuppressToolOpenUntil,
-    getToolsOpenedByApproach,
-    isIgnoringToolLeaveCloseUntilPointerActivity,
-    isToolPointerCaptured,
-    setIgnoreToolLeaveCloseUntilPointerActivity,
     setMovedDuringPointer,
     setSuppressHeaderToggleUntil,
     setSuppressToolOpenUntil,
     setToolPointerCapture,
-    setToolsOpenedByApproach,
-    setToolsCloseTimer: toolsCloseTimer.set,
   });
 };
 

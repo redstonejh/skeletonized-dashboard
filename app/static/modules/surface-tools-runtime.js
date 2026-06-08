@@ -204,7 +204,7 @@ export function initializeSurfaceToolsRuntime({
   document.addEventListener("keydown", (event) => {
     if (event.key !== "Escape") return;
     if (!document.querySelector(".widget-tools-open, .widget-workbench-open, .db-panel-tools-open")) return;
-    if (event.target?.closest?.(".panel-tool-drawer, .widget-workbench-panel, .panel-color-menu")) return;
+    if (event.target?.closest?.(".widget-workbench-panel, .panel-color-menu")) return;
     closeInactiveDashboardTools();
   }, true);
   return {

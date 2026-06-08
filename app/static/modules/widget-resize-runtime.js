@@ -3,16 +3,11 @@ export const bindWidgetResizeRuntime = ({
   layout,
   layoutKey,
   resizeHandle,
-  settings,
-  drawer,
   DASHBOARD_GRID_COLUMNS,
-  isDashboardToolInteractionTarget,
   groupTransformItems,
   runGroupResize,
   saveSharedGridLayouts,
-  openTools,
   closeTools,
-  armToolLeaveCloseResume,
   closeInactiveDashboardTools,
   createGridMetrics,
   isPanelInternalWidgetLayout,
@@ -53,32 +48,23 @@ export const bindWidgetResizeRuntime = ({
 }) => {
   const beginWidgetResize = (event, resizeEdge = "right") => {
     if (widget.classList.contains("db-panel-pinned") || widget.dataset.locked === "true" || widget.dataset.resizable === "false") return;
-    const restoreToolsAfterResize = widget.classList.contains("widget-tools-open") ||
-      settings?.getAttribute("aria-expanded") === "true" ||
-      drawer?.matches(":hover") ||
-      isDashboardToolInteractionTarget(event);
     clearCloseTimer();
     if (widget.classList.contains("group-selected") && groupTransformItems(widget).length > 1) {
-      openTools();
+      closeTools();
       const handled = runGroupResize({
         layout,
         source: widget,
         event,
         onCommit: () => saveSharedGridLayouts(layout),
         onEnd: () => {
-          if (restoreToolsAfterResize) {
-            armToolLeaveCloseResume();
-            openTools();
-          } else {
-            closeTools();
-          }
+          closeTools();
         },
       });
       if (handled) return;
     }
     event.preventDefault();
     event.stopPropagation();
-    if (restoreToolsAfterResize) openTools();
+    closeTools();
     setSuppressWidgetClickUntil(Number.POSITIVE_INFINITY);
     document.body.classList.add("panel-interaction-active");
     document.body.classList.add("panel-resize-active");
@@ -253,12 +239,7 @@ export const bindWidgetResizeRuntime = ({
         resizePreview.remove();
         clearLiveResizeSurface(widget, liveResizePreview);
         setSuppressWidgetClickUntil(performance.now() + 360);
-        if (restoreToolsAfterResize) {
-          armToolLeaveCloseResume();
-          openTools();
-        } else {
-          closeTools();
-        }
+        closeTools();
       },
     });
   };

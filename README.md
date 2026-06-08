@@ -23,6 +23,10 @@ After a workspace page is mounted or restored, the combined widget/panel grid is
 
 Visible dashboard names and text surfaces edit in place on the displayed text element. Tabs, panels, widget titles, and note bodies share the inline editing appearance instead of opening separate title inputs or boxed editors; tab tool menus close through the same outside-click, Escape, and edit-finish dismissal path.
 
+## Object Customization
+
+Panel and widget customization drawers open from right-click at the cursor position. The drawer is positioned once, clamped to the viewport, and remains fixed there until an outside click, Escape, or an action closes it.
+
 ## Widget Wells
 
 Widgets with an imported/rendered visual well use a separated color model: the widget theme accent drives data marks/accent content and the object rim, while the shared well surface has a two-option white/dark-grey tone whose neutral foreground is derived for readability.

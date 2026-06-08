@@ -48,6 +48,7 @@ export const bindWidgetActionControls = ({
         saveWidgetLayouts(layout);
       },
     });
+    closeTools();
   });
 
   deleteButton?.addEventListener("click", (event) => {

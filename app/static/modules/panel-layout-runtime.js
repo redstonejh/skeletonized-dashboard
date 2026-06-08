@@ -32,7 +32,6 @@ export const createPanelLayoutRuntime = ({
   ensurePanelInternalWidgetGrid,
   initWidgetLayout,
   syncOpenPanelHeightToInternalGrid,
-  isDashboardInteractionActive,
   buildPanelColorMenu,
   canOpenDashboardTools,
   portalDashboardToolDrawer,
@@ -148,39 +147,17 @@ export const createPanelLayoutRuntime = ({
         const colorMenu = buildPanelColorMenu(panel, layout, colorToggle);
         pinButton?.setAttribute("aria-pressed", panel.classList.contains("db-panel-pinned").toString());
         const panelToolSession = createPanelToolSession();
-        let releasePanelToolLeaveCloseResume = null;
-        const releasePanelToolLeaveClose = (event = null) => {
-          const closeRestoredTools = (event?.type === "pointerdown" || event?.type === "pointermove") &&
-            !panelTools?.contains(event.target) &&
-            !panelToolDrawer?.contains(event.target) &&
-            !colorMenu?.contains(event.target);
-          panelToolSession.setIgnoreToolLeaveCloseUntilPointerActivity(false);
-          if (!releasePanelToolLeaveCloseResume) return;
-          document.removeEventListener("pointermove", releasePanelToolLeaveCloseResume, true);
-          document.removeEventListener("pointerdown", releasePanelToolLeaveCloseResume, true);
-          releasePanelToolLeaveCloseResume = null;
-          if (closeRestoredTools) closePanelTools();
-        };
-        const armPanelToolLeaveCloseResume = () => {
-          releasePanelToolLeaveClose();
-          panelToolSession.setIgnoreToolLeaveCloseUntilPointerActivity(true);
-          releasePanelToolLeaveCloseResume = releasePanelToolLeaveClose;
-          document.addEventListener("pointermove", releasePanelToolLeaveCloseResume, { capture: true, once: true });
-          document.addEventListener("pointerdown", releasePanelToolLeaveCloseResume, { capture: true, once: true });
-        };
         const openPanelTools = (pointerCoords = null) => {
           if (performance.now() < panelToolSession.getSuppressToolOpenUntil()) return;
           if (!canOpenDashboardTools(panel)) return;
           panelToolSession.clearToolsCloseTimer();
-          if (!portalDashboardToolDrawer(panel, panelToolDrawer)) return;
+          if (!portalDashboardToolDrawer(panel, panelToolDrawer, pointerCoords)) return;
           panel.classList.add("db-panel-tools-open");
           settingsButton?.setAttribute("aria-expanded", "true");
           syncLayoutToolsActive();
         };
 
         const closePanelTools = () => {
-          releasePanelToolLeaveClose();
-          panelToolSession.setToolsOpenedByApproach(false);
           if (panelTools?.contains(document.activeElement)) document.activeElement?.blur?.();
           panel.classList.remove("db-panel-tools-open");
           settingsButton?.setAttribute("aria-expanded", "false");
@@ -189,40 +166,8 @@ export const createPanelLayoutRuntime = ({
           syncLayoutToolsActive();
         };
 
-        const scheduleClosePanelTools = () => {
-          panelToolSession.clearToolsCloseTimer();
-          if (isDashboardInteractionActive() || panelToolSession.isToolPointerCaptured() || panelToolSession.isIgnoringToolLeaveCloseUntilPointerActivity()) return;
-          panelToolSession.setToolsCloseTimer(window.setTimeout(() => {
-            if (isDashboardInteractionActive()) return;
-            if (panelToolSession.isToolPointerCaptured()) return;
-            if (panelToolSession.isIgnoringToolLeaveCloseUntilPointerActivity()) return;
-            const activeElement = document.activeElement;
-            const stillUsingTools =
-              settingsButton?.matches(":hover") ||
-              panelToolDrawer?.matches(":hover") ||
-              colorMenu?.matches(":hover") ||
-              panelToolDrawer?.contains(activeElement) ||
-              (panelTools?.contains(activeElement) && activeElement !== colorToggle);
-            if (!stillUsingTools) closePanelTools();
-          }, 300));
-        };
-        const resumePanelToolHoverClose = () => {
-          releasePanelToolLeaveClose();
-          if (panel.classList.contains("db-panel-tools-open")) panelToolSession.clearToolsCloseTimer();
-        };
-
         panelTools?.addEventListener("click", (event) => event.stopPropagation());
         panelTools?.addEventListener("keydown", (event) => event.stopPropagation());
-        panelTools?.addEventListener("mouseleave", scheduleClosePanelTools);
-        panelTools?.addEventListener("focusout", scheduleClosePanelTools);
-        settingsButton?.addEventListener("mouseleave", scheduleClosePanelTools);
-        panelToolDrawer?.addEventListener("mouseenter", resumePanelToolHoverClose);
-        panelToolDrawer?.addEventListener("mouseleave", scheduleClosePanelTools);
-        colorMenu?.addEventListener("mouseenter", resumePanelToolHoverClose);
-        colorMenu?.addEventListener("mouseleave", () => {
-          if (isDashboardInteractionActive()) return;
-          if (!panelToolSession.isToolPointerCaptured()) closePanelTools();
-        });
         const isInteractivePanelSurfaceTarget = (event) => {
           if (event?.target?.closest?.(".panel-internal-widget-grid > .widget-card")) return true;
           const interactiveTarget = event?.target?.closest?.(`${surfaceResponseControlSelector}, [contenteditable='true']`);
@@ -233,8 +178,6 @@ export const createPanelLayoutRuntime = ({
           event.preventDefault();
           event.stopPropagation();
           panelToolSession.setSuppressHeaderToggleUntil(0);
-          releasePanelToolLeaveClose();
-          panelToolSession.setToolsOpenedByApproach(false);
         });
 
         colorToggle?.addEventListener("click", (event) => {
@@ -283,7 +226,6 @@ export const createPanelLayoutRuntime = ({
           WORKSPACE_OBJECT_TYPES,
           regionIdForWorkspaceItem,
           isInteractivePanelSurfaceTarget,
-          releasePanelToolLeaveClose,
           canOpenDashboardTools,
           closeInactiveDashboardTools,
           openPanelTools,
@@ -294,10 +236,7 @@ export const createPanelLayoutRuntime = ({
           layout,
           layoutKey,
           moveHandle,
-          settingsButton,
-          panelToolDrawer,
           isWorkspaceSurfaceDragStart,
-          isDashboardToolInteractionTarget,
           runOrderedDrag,
           cleanupPanelRowBreaks,
           saveSharedGridLayouts,
@@ -306,9 +245,7 @@ export const createPanelLayoutRuntime = ({
           WORKSPACE_OBJECT_TYPES,
           regionIdForWorkspaceItem,
           isInteractivePanelSurfaceTarget,
-          openPanelTools,
           closePanelTools,
-          armPanelToolLeaveCloseResume,
           clearToolsCloseTimer: panelToolSession.clearToolsCloseTimer,
           setToolPointerCapture: panelToolSession.setToolPointerCapture,
           setMovedDuringPointer: panelToolSession.setMovedDuringPointer,
@@ -319,17 +256,12 @@ export const createPanelLayoutRuntime = ({
           layout,
           layoutKey,
           resizeHandle,
-          settingsButton,
-          panelToolDrawer,
           DASHBOARD_GRID_COLUMNS,
           DASHBOARD_GRID_ROW_HEIGHT,
-          isDashboardToolInteractionTarget,
           groupTransformItems,
           runGroupResize,
           saveSharedGridLayouts,
-          openPanelTools,
           closePanelTools,
-          armPanelToolLeaveCloseResume,
           closeInactiveDashboardTools,
           createGridMetrics,
           gridItemRowSpan,

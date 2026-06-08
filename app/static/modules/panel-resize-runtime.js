@@ -3,17 +3,12 @@ export const bindPanelResizeRuntime = ({
   layout,
   layoutKey,
   resizeHandle,
-  settingsButton,
-  panelToolDrawer,
   DASHBOARD_GRID_COLUMNS,
   DASHBOARD_GRID_ROW_HEIGHT,
-  isDashboardToolInteractionTarget,
   groupTransformItems,
   runGroupResize,
   saveSharedGridLayouts,
-  openPanelTools,
   closePanelTools,
-  armPanelToolLeaveCloseResume,
   closeInactiveDashboardTools,
   createGridMetrics,
   gridItemRowSpan,
@@ -59,14 +54,10 @@ export const bindPanelResizeRuntime = ({
 }) => {
   const beginPanelResize = (event, resizeEdge = "right") => {
     if (panel.classList.contains("db-panel-pinned") || panel.dataset.locked === "true" || panel.dataset.resizable === "false") return;
-    const restoreToolsAfterResize = panel.classList.contains("db-panel-tools-open") ||
-      settingsButton?.getAttribute("aria-expanded") === "true" ||
-      panelToolDrawer?.matches(":hover") ||
-      isDashboardToolInteractionTarget(event);
     clearToolsCloseTimer();
     if (panel.classList.contains("group-selected") && groupTransformItems(panel).length > 1) {
       setToolPointerCapture(true);
-      openPanelTools();
+      closePanelTools();
       const handled = runGroupResize({
         layout,
         source: panel,
@@ -74,12 +65,7 @@ export const bindPanelResizeRuntime = ({
         onCommit: () => saveSharedGridLayouts(layout),
         onEnd: () => {
           setToolPointerCapture(false);
-          if (restoreToolsAfterResize) {
-            armPanelToolLeaveCloseResume();
-            openPanelTools();
-          } else {
-            closePanelTools();
-          }
+          closePanelTools();
         },
       });
       if (handled) return;
@@ -88,7 +74,7 @@ export const bindPanelResizeRuntime = ({
     event.preventDefault();
     event.stopPropagation();
     setToolPointerCapture(true);
-    openPanelTools();
+    closePanelTools();
     document.body.classList.add("panel-interaction-active");
     document.body.classList.add("panel-resize-active");
     panel.classList.add("dashboard-active-resize");
@@ -282,12 +268,7 @@ export const bindPanelResizeRuntime = ({
         resizePreview.remove();
         expandedFootprintGhost?.remove();
         clearLiveResizeSurface(panel, liveResizePreview);
-        if (restoreToolsAfterResize) {
-          armPanelToolLeaveCloseResume();
-          openPanelTools();
-        } else {
-          closePanelTools();
-        }
+        closePanelTools();
       },
     });
   };

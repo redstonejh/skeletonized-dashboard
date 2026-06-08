@@ -34,7 +34,6 @@ export const bindPanelActionControls = ({
   WORKSPACE_OBJECT_TYPES,
   regionIdForWorkspaceItem,
   isInteractivePanelSurfaceTarget,
-  releasePanelToolLeaveClose,
   canOpenDashboardTools,
   closeInactiveDashboardTools,
   openPanelTools,
@@ -154,6 +153,7 @@ export const bindPanelActionControls = ({
         savePanelLayouts(layout);
       },
     });
+    closePanelTools();
   });
 
   deleteButton?.addEventListener("click", (event) => {
@@ -242,7 +242,6 @@ export const bindPanelActionControls = ({
     if (event.target?.closest?.(".panel-tools") || isInteractivePanelSurfaceTarget(event)) return;
     event.preventDefault();
     event.stopPropagation();
-    releasePanelToolLeaveClose();
     if (!canOpenDashboardTools(panel)) return;
     closeInactiveDashboardTools(panel);
     openPanelTools({ clientX: event.clientX, clientY: event.clientY });

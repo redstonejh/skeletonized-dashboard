@@ -3,10 +3,7 @@ export const bindPanelMoveRuntime = ({
   layout,
   layoutKey,
   moveHandle,
-  settingsButton,
-  panelToolDrawer,
   isWorkspaceSurfaceDragStart,
-  isDashboardToolInteractionTarget,
   runOrderedDrag,
   cleanupPanelRowBreaks,
   saveSharedGridLayouts,
@@ -15,9 +12,7 @@ export const bindPanelMoveRuntime = ({
   WORKSPACE_OBJECT_TYPES,
   regionIdForWorkspaceItem,
   isInteractivePanelSurfaceTarget,
-  openPanelTools,
   closePanelTools,
-  armPanelToolLeaveCloseResume,
   clearToolsCloseTimer,
   setToolPointerCapture,
   setMovedDuringPointer,
@@ -27,13 +22,9 @@ export const bindPanelMoveRuntime = ({
     if (panel.classList.contains("db-panel-pinned")) return;
     const surfaceShortcut = Boolean(options.surfaceShortcut);
     if (surfaceShortcut && !isWorkspaceSurfaceDragStart(event, panel)) return;
-    const restoreToolsAfterDrag = panel.classList.contains("db-panel-tools-open") ||
-      settingsButton?.getAttribute("aria-expanded") === "true" ||
-      panelToolDrawer?.matches(":hover") ||
-      isDashboardToolInteractionTarget(event);
     clearToolsCloseTimer();
     setToolPointerCapture(true);
-    if (!surfaceShortcut) openPanelTools();
+    if (!surfaceShortcut) closePanelTools();
     runOrderedDrag({
       layout,
       item: panel,
@@ -61,12 +52,7 @@ export const bindPanelMoveRuntime = ({
       },
       onEnd: (didDrag) => {
         setToolPointerCapture(false);
-        if (restoreToolsAfterDrag) {
-          armPanelToolLeaveCloseResume();
-          openPanelTools();
-        } else {
-          closePanelTools();
-        }
+        closePanelTools();
         setMovedDuringPointer(didDrag);
         requestAnimationFrame(() => {
           setMovedDuringPointer(false);

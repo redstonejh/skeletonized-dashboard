@@ -144,39 +144,17 @@ export const createWidgetLayoutRuntime = (deps) => {
       const workbenchPanel = ensureWidgetWorkbenchPanel(widget);
       const widgetToolSession = createWidgetToolSession();
       let dragging = false;
-      let releaseToolLeaveCloseResume = null;
-      const releaseToolLeaveClose = (event = null) => {
-        const closeRestoredTools = (event?.type === "pointerdown" || event?.type === "pointermove") &&
-          !tools?.contains(event.target) &&
-          !drawer?.contains(event.target) &&
-          !colorMenu?.contains(event.target);
-        widgetToolSession.setIgnoreToolLeaveCloseUntilPointerActivity(false);
-        if (!releaseToolLeaveCloseResume) return;
-        document.removeEventListener("pointermove", releaseToolLeaveCloseResume, true);
-        document.removeEventListener("pointerdown", releaseToolLeaveCloseResume, true);
-        releaseToolLeaveCloseResume = null;
-        if (closeRestoredTools) closeTools();
-      };
-      const armToolLeaveCloseResume = () => {
-        releaseToolLeaveClose();
-        widgetToolSession.setIgnoreToolLeaveCloseUntilPointerActivity(true);
-        releaseToolLeaveCloseResume = releaseToolLeaveClose;
-        document.addEventListener("pointermove", releaseToolLeaveCloseResume, { capture: true, once: true });
-        document.addEventListener("pointerdown", releaseToolLeaveCloseResume, { capture: true, once: true });
-      };
       const openTools = (pointerCoords = null) => {
         if (performance.now() < widgetToolSession.getSuppressToolOpenUntil()) return;
         if (!canOpenDashboardTools(widget)) return;
         widgetToolSession.clearCloseTimer();
-        if (!portalDashboardToolDrawer(widget, drawer)) return;
+        if (!portalDashboardToolDrawer(widget, drawer, pointerCoords)) return;
         setWidgetLinkNavigationSuspended(widget, true);
         widget.classList.add("widget-tools-open");
         settings?.setAttribute("aria-expanded", "true");
         syncLayoutToolsActive();
       };
       const closeTools = () => {
-        releaseToolLeaveClose();
-        widgetToolSession.setToolsOpenedByApproach(false);
         if (tools?.contains(document.activeElement)) document.activeElement?.blur?.();
         widget.classList.remove("widget-tools-open");
         widget.classList.remove("widget-workbench-open");
@@ -234,33 +212,12 @@ export const createWidgetLayoutRuntime = (deps) => {
         syncLayoutToolsActive();
       };
       const toggleAppearanceSettings = (pointerCoords = null) => {
-        releaseToolLeaveClose();
         closeWorkbench();
         if (!canOpenDashboardTools(widget)) return;
-        widgetToolSession.setToolsOpenedByApproach(false);
         widgetToolSession.setSuppressToolOpenUntil(0);
         closeInactiveDashboardTools(widget);
         openTools(pointerCoords);
         colorMenu?.__closePanelColorMenu?.();
-      };
-      const scheduleClose = () => {
-        widgetToolSession.clearCloseTimer();
-        if (isDashboardInteractionActive() || widgetToolSession.isIgnoringToolLeaveCloseUntilPointerActivity()) return;
-        widgetToolSession.setCloseTimer(window.setTimeout(() => {
-          if (isDashboardInteractionActive()) return;
-          if (widgetToolSession.isIgnoringToolLeaveCloseUntilPointerActivity()) return;
-          const activeElement = document.activeElement;
-          if (
-            !tools?.matches(":hover") &&
-            !drawer?.matches(":hover") &&
-            !drawer?.contains(activeElement) &&
-            !colorMenu?.matches(":hover")
-          ) closeTools();
-        }, 260));
-      };
-      const resumeToolHoverClose = () => {
-        releaseToolLeaveClose();
-        if (widget.classList.contains("widget-tools-open")) widgetToolSession.clearCloseTimer();
       };
       tools?.addEventListener("click", (event) => {
         event.preventDefault();
@@ -299,8 +256,6 @@ export const createWidgetLayoutRuntime = (deps) => {
         event.stopPropagation();
         toggleAppearanceSettings({ clientX: event.clientX, clientY: event.clientY });
       };
-      tools?.addEventListener("mouseenter", resumeToolHoverClose);
-      tools?.addEventListener("mouseleave", scheduleClose);
       workbenchPanel?.addEventListener("click", (event) => {
         event.stopPropagation();
       });
@@ -346,11 +301,6 @@ export const createWidgetLayoutRuntime = (deps) => {
           colorMenu?.__closePanelColorMenu?.();
         }
       });
-      colorMenu?.addEventListener("mouseenter", resumeToolHoverClose);
-      colorMenu?.addEventListener("mouseleave", () => {
-        if (isDashboardInteractionActive()) return;
-        closeTools();
-      });
       document.addEventListener("pointerdown", (event) => {
         if (!colorMenu?.classList.contains("panel-color-menu-open")) return;
         if (widget.contains(event.target) || colorMenu.contains(event.target)) return;
@@ -381,20 +331,15 @@ export const createWidgetLayoutRuntime = (deps) => {
         layout,
         layoutKey,
         moveHandle,
-        settings,
-        drawer,
         isPanelInternalGridItem,
         isWorkspaceSurfaceDragStart,
-        isDashboardToolInteractionTarget,
         setWidgetLinkNavigationSuspended,
         runOrderedDrag,
         cleanupWidgetRowBreaks,
         saveSharedGridLayouts,
         emitWorkspaceEvent,
         regionIdForWorkspaceItem,
-        openTools,
         closeTools,
-        armToolLeaveCloseResume,
         isInteractiveWidgetSurfaceTarget,
         clearToolCloseTimer: widgetToolSession.clearCloseTimer,
         setDragging: (value) => {
@@ -408,16 +353,11 @@ export const createWidgetLayoutRuntime = (deps) => {
         layout,
         layoutKey,
         resizeHandle,
-        settings,
-        drawer,
         DASHBOARD_GRID_COLUMNS,
-        isDashboardToolInteractionTarget,
         groupTransformItems,
         runGroupResize,
         saveSharedGridLayouts,
-        openTools,
         closeTools,
-        armToolLeaveCloseResume,
         closeInactiveDashboardTools,
         createGridMetrics,
         isPanelInternalWidgetLayout,

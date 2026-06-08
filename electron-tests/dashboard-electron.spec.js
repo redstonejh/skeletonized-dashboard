@@ -556,10 +556,21 @@ test("electron GUI opens customization drawers only from right click", async () 
   await panelHeader.click({ force: true });
   await expect(panelHeader).toHaveAttribute("aria-expanded", "true");
 
+  const panelClickPoint = await panel.evaluate((node) => {
+    const rect = node.getBoundingClientRect();
+    return { x: rect.left + 48, y: rect.top + 96 };
+  });
   await panel.click({ button: "right", force: true, position: { x: 48, y: 96 } });
   await expect(panel).toHaveClass(/db-panel-tools-open/);
-  await expect(page.locator(".workspace-menu-overlay-layer > .panel-tool-drawer.dashboard-tool-drawer-open")).toBeVisible();
-  const panelPin = page.locator(".workspace-menu-overlay-layer > .panel-tool-drawer.dashboard-tool-drawer-open .panel-pin-toggle");
+  const panelDrawer = page.locator(".workspace-menu-overlay-layer > .panel-tool-drawer.dashboard-tool-drawer-open");
+  await expect(panelDrawer).toBeVisible();
+  const panelDrawerRect = await panelDrawer.evaluate((node) => {
+    const rect = node.getBoundingClientRect();
+    return { left: rect.left, top: rect.top };
+  });
+  expect(Math.abs(panelDrawerRect.left - panelClickPoint.x)).toBeLessThanOrEqual(2);
+  expect(Math.abs(panelDrawerRect.top - panelClickPoint.y)).toBeLessThanOrEqual(2);
+  const panelPin = panelDrawer.locator(".panel-pin-toggle");
   const panelWasPinned = await panel.evaluate((node) => node.classList.contains("db-panel-pinned"));
   await panelPin.click({ force: true });
   await expect.poll(() => panel.evaluate((node) => node.classList.contains("db-panel-pinned"))).toBe(!panelWasPinned);
@@ -579,10 +590,21 @@ test("electron GUI opens customization drawers only from right click", async () 
   const widgetHoverPoint = await page.evaluate(() => window.__rightClickOnlyWidgetHoverPoint);
   await page.mouse.move(widgetHoverPoint.x, widgetHoverPoint.y);
   await expect(widget).not.toHaveClass(/widget-tools-open/);
+  const widgetClickPoint = await widget.evaluate((node) => {
+    const rect = node.getBoundingClientRect();
+    return { x: rect.left + 40, y: rect.top + 40 };
+  });
   await widget.click({ button: "right", force: true, position: { x: 40, y: 40 } });
   await expect(widget).toHaveClass(/widget-tools-open/);
-  await expect(page.locator(".workspace-menu-overlay-layer > .panel-tool-drawer.dashboard-tool-drawer-open")).toBeVisible();
-  const widgetPin = page.locator(".workspace-menu-overlay-layer > .panel-tool-drawer.dashboard-tool-drawer-open .panel-pin-toggle");
+  const widgetDrawer = page.locator(".workspace-menu-overlay-layer > .panel-tool-drawer.dashboard-tool-drawer-open");
+  await expect(widgetDrawer).toBeVisible();
+  const widgetDrawerRect = await widgetDrawer.evaluate((node) => {
+    const rect = node.getBoundingClientRect();
+    return { left: rect.left, top: rect.top };
+  });
+  expect(Math.abs(widgetDrawerRect.left - widgetClickPoint.x)).toBeLessThanOrEqual(2);
+  expect(Math.abs(widgetDrawerRect.top - widgetClickPoint.y)).toBeLessThanOrEqual(2);
+  const widgetPin = widgetDrawer.locator(".panel-pin-toggle");
   const widgetWasPinned = await widget.evaluate((node) => node.classList.contains("db-panel-pinned"));
   await widgetPin.click({ force: true });
   await expect.poll(() => widget.evaluate((node) => node.classList.contains("db-panel-pinned"))).toBe(!widgetWasPinned);

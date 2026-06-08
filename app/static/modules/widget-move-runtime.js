@@ -3,20 +3,15 @@ export const bindWidgetMoveRuntime = ({
   layout,
   layoutKey,
   moveHandle,
-  settings,
-  drawer,
   isPanelInternalGridItem,
   isWorkspaceSurfaceDragStart,
-  isDashboardToolInteractionTarget,
   setWidgetLinkNavigationSuspended,
   runOrderedDrag,
   cleanupWidgetRowBreaks,
   saveSharedGridLayouts,
   emitWorkspaceEvent,
   regionIdForWorkspaceItem,
-  openTools,
   closeTools,
-  armToolLeaveCloseResume,
   isInteractiveWidgetSurfaceTarget,
   clearToolCloseTimer,
   setDragging,
@@ -26,15 +21,11 @@ export const bindWidgetMoveRuntime = ({
     if (event.button !== 0 || (widget.classList.contains("db-panel-pinned") && !isPanelInternalGridItem(widget))) return;
     const surfaceShortcut = Boolean(options.surfaceShortcut);
     if (surfaceShortcut && !isWorkspaceSurfaceDragStart(event, widget)) return;
-    const restoreToolsAfterDrag = widget.classList.contains("widget-tools-open") ||
-      settings?.getAttribute("aria-expanded") === "true" ||
-      drawer?.matches(":hover") ||
-      isDashboardToolInteractionTarget(event);
     clearToolCloseTimer();
     if (surfaceShortcut) {
       setWidgetLinkNavigationSuspended(widget, true);
     } else {
-      openTools();
+      closeTools();
     }
     runOrderedDrag({
       layout,
@@ -65,12 +56,7 @@ export const bindWidgetMoveRuntime = ({
       onEnd: (didDrag) => {
         setDragging(false);
         if (didDrag) setSuppressWidgetClickUntil(performance.now() + 360);
-        if (restoreToolsAfterDrag) {
-          armToolLeaveCloseResume();
-          openTools();
-        } else {
-          closeTools();
-        }
+        closeTools();
       },
       onStart: () => {
         setDragging(true);

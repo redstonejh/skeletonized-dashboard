@@ -2524,7 +2524,6 @@ document.addEventListener("DOMContentLoaded", () => {
       ensurePanelInternalWidgetGrid,
       initWidgetLayout,
       syncOpenPanelHeightToInternalGrid,
-      isDashboardInteractionActive,
       buildPanelColorMenu,
       canOpenDashboardTools,
       portalDashboardToolDrawer,
