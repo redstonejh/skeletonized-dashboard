@@ -4921,6 +4921,7 @@ no card. Active * filter is indicated by a subtle underline + slightly higher * 
   -webkit-appearance: none !important;
   display: inline-flex !important;
   align-items: center !important;
+  justify-content: center !important;
   height: auto !important;
   min-height: 0 !important;
   padding: 4px 8px !important;
@@ -4971,6 +4972,8 @@ no card. Active * filter is indicated by a subtle underline + slightly higher * 
   color: rgba(255, 255, 255, 1.0) !important;
   text-decoration-color: rgba(255, 255, 255, 1.0) !important;
 }/* Tighten the bar layout so the labels read as one row of text */ .timeframe-widget-card .timeframe-body{
+  align-items: center !important;
+  align-content: center !important;
   gap: 14px !important;
   flex-wrap: nowrap !important;
   overflow-x: auto !important;
