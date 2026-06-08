@@ -236,7 +236,14 @@ export const initializeWorkspacePagesRuntime = ({
     if (!event || event.button !== 0 || event.ctrlKey || event.metaKey || event.altKey || event.shiftKey) return false;
     if (switching || swipeState) return false;
     if (event.target?.closest?.(workspaceSwipeBlockSelector)) return false;
-    return Boolean(grid.contains(event.target) || event.target === document.body || event.target?.closest?.(".page"));
+    const x = Number(event.clientX);
+    const y = Number(event.clientY);
+    return Number.isFinite(x) &&
+      Number.isFinite(y) &&
+      x >= 0 &&
+      y >= 0 &&
+      x <= window.innerWidth &&
+      y <= window.innerHeight;
   };
 
   const cloneFragmentChildren = (fragment) => {
@@ -339,6 +346,7 @@ export const initializeWorkspacePagesRuntime = ({
 
   const beginWorkspaceSwipe = (event) => {
     if (!isBareWorkspacePointer(event)) return;
+    window.getSelection?.()?.removeAllRanges?.();
     const startState = tabsRuntime.getState();
     const startIndex = startState.activeIndex;
     const startX = event.clientX;

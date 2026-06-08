@@ -5172,6 +5172,16 @@ no card. Active * filter is indicated by a subtle underline + slightly higher * 
 .workspace-page-surface{
   transition: transform 180ms ease, opacity 180ms ease;
 }
+.page,
+.dashboard-layout-grid,
+.workspace-page-surface{
+  -webkit-user-select: none;
+  user-select: none;
+}
+.page :is(input, textarea, select, [contenteditable="true"], [role="textbox"], [data-inline-text-editing="true"]){
+  -webkit-user-select: text;
+  user-select: text;
+}
 .workspace-page-surface.workspace-page-swipe-active{
   cursor: grabbing;
   user-select: none;
