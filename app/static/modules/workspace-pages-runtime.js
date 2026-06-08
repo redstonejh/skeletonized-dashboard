@@ -94,7 +94,8 @@ export const initializeWorkspacePagesRuntime = ({
       node.removeAttribute?.("aria-selected");
     });
     clone.querySelectorAll(".panel-color-menu-open").forEach((menu) => menu.classList.remove("panel-color-menu-open"));
-    clone.querySelectorAll("[aria-expanded='true']").forEach((node) => node.setAttribute("aria-expanded", "false"));
+    clone.querySelectorAll(".panel-settings-toggle[aria-expanded='true'], .panel-color-toggle[aria-expanded='true'], .workspace-tab-menu-button[aria-expanded='true']")
+      .forEach((node) => node.setAttribute("aria-expanded", "false"));
     return clone.innerHTML;
   };
 

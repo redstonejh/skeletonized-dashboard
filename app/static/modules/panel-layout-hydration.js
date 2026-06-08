@@ -57,6 +57,8 @@ export const hydratePanelLayout = (layout, {
     const key = panel.dataset.panelKey || `panel-${index}`;
     const titleEl = panel.querySelector(".db-panel-title");
     const defaultTheme = panel.querySelector(".panel-color-toggle")?.dataset.defaultTheme;
+    const snapshotColor = panel.dataset.panelColor || null;
+    const snapshotColorCleared = panel.dataset.panelColorCleared === "true";
     panel.dataset.defaultOrder = String(index);
     if (titleEl) panel.dataset.defaultTitle = titleEl.textContent.trim();
     let saved = null;
@@ -89,10 +91,10 @@ export const hydratePanelLayout = (layout, {
     applyPanelSpan(panel, saved?.span ?? panel.dataset.currentSpan ?? panel.dataset.defaultSpan ?? 6);
     if (saved?.gridCol && saved?.gridRow) applyPanelGridPosition(panel, saved.gridCol, saved.gridRow);
     if (saved?.height) applyPanelHeight(panel, saved.height);
-    if (saved?.colorCleared) {
+    if (saved?.colorCleared || (!saved && snapshotColorCleared)) {
       applyPanelColor(panel, null);
     } else {
-      applyPanelColor(panel, saved?.color || defaultTheme);
+      applyPanelColor(panel, saved?.color || snapshotColor || defaultTheme);
       if (saved?.colorUser) panel.dataset.panelColorUser = "true";
     }
     applyPanelTitleColor(panel, "");

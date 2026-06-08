@@ -159,6 +159,10 @@
     const serializePanelChildWidgets = (panel) => panelChildWidgets(panel).map((widget) => ({
       key: widget.dataset.widgetKey || "",
       html: sanitizePanelChildWidgetClone(widget).outerHTML,
+      gridCol: Number(widget.dataset.gridCol) || null,
+      gridRow: Number(widget.dataset.gridRow) || null,
+      span: Number(widget.dataset.currentSpan) || Number(widget.dataset.defaultSpan) || null,
+      rowSpan: Number(widget.dataset.gridRowSpan) || null,
     }));
 
     const updatePanelChildEmptyState = (panel) => {
@@ -205,6 +209,13 @@
         delete widget.dataset.widgetInitialized;
         widget.classList.remove(...deps.undoTransientItemClasses);
         grid.appendChild(widget);
+        if (definition?.rowSpan) {
+          widget.dataset.gridRowSpan = String(Math.max(1, Math.round(Number(definition.rowSpan) || 1)));
+        }
+        if (definition?.span) deps.applyWidgetSpan(widget, definition.span);
+        if (definition?.gridCol && definition?.gridRow) {
+          deps.applyWidgetGridPosition(widget, definition.gridCol, definition.gridRow, definition.rowSpan);
+        }
       });
       updatePanelChildEmptyState(panel);
       syncOpenPanelHeightToInternalGrid(panel, { reflow: false });
