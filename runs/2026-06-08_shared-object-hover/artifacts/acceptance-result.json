@@ -1,6 +1,0 @@
-{
-  "verdict": "SHIP",
-  "tests_run": false,
-  "tests_skipped_reason": "User explicitly instructed NO TESTS and manual verification.",
-  "summary": "Added one shared surface-response hover treatment for panels and widgets, with subtle raise and shine and no panel hover edge strip."
-}
