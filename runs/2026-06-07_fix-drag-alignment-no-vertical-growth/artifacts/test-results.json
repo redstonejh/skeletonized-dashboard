@@ -1,0 +1,41 @@
+{
+  "schema_version": 1,
+  "commands": [
+    {
+      "command": "node --check app/static/modules/ordered-drag-runtime.js",
+      "result": "pass"
+    },
+    {
+      "command": "node --check electron-tests/dashboard-electron.spec.js",
+      "result": "pass"
+    },
+    {
+      "command": "npx.cmd playwright test electron-tests/dashboard-electron.spec.js -g \"drag cursor aligned\" --workers=1",
+      "env": {
+        "MAW_HEADLESS": "1"
+      },
+      "result": "pass",
+      "summary": "1 passed"
+    },
+    {
+      "command": "npm.cmd run test:e2e -- --workers=1 --reporter=line",
+      "env": {
+        "MAW_HEADLESS": "1"
+      },
+      "result": "pass",
+      "summary": "23 passed (6.5m)"
+    }
+  ],
+  "new_canaries": [
+    {
+      "name": "electron GUI keeps drag cursor aligned and prevents drag-created vertical growth",
+      "assertions": [
+        "dashboard panel drag visual offset stays within 5px of the initial grab offset",
+        "panel-contained widget drag visual offset stays within 5px of the initial grab offset",
+        "document scrollHeight does not increase after dragging a panel downward",
+        "dashboard grid height does not increase after dragging a panel downward"
+      ]
+    }
+  ]
+}
+

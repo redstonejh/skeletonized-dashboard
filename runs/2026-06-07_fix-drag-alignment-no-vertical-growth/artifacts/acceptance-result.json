@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "verdict": "SHIP",
+  "summary": "Drag ghosts now track the cursor for dashboard and panel-contained drags, and drag previews are clamped so dragging downward cannot grow the page.",
+  "checks": {
+    "discovery_guard": "pass",
+    "delegation_proof": "pass",
+    "syntax": "pass",
+    "focused_drag_alignment_canary": "pass",
+    "full_e2e": "pass",
+    "no_dependency_changes": "pass",
+    "no_edge_auto_scroll_reintroduced": "pass"
+  },
+  "full_e2e": {
+    "command": "npm.cmd run test:e2e -- --workers=1 --reporter=line",
+    "result": "23 passed (6.5m)"
+  }
+}
+

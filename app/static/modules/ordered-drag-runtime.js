@@ -92,6 +92,7 @@ export const createOrderedDragRuntime = (deps = {}) => {
     let expandedFootprintGhost = null;
     let dragMetrics = null;
     let reflowItems = null;
+    let dragVisualOrigin = { left: 0, top: 0 };
     const panelEntryIntent = {
       lastX: startX,
       lastY: startY,
@@ -123,6 +124,46 @@ export const createOrderedDragRuntime = (deps = {}) => {
       row: Number(item.dataset.gridRow) || 1,
     };
     let lastMoveEvent = event;
+    let committedBottomRow = Infinity;
+
+    const snapshotCommittedBottom = (snapshot, fallback = Infinity) => {
+      if (!snapshot?.size) return fallback;
+      let bottom = 1;
+      snapshot.forEach((state) => {
+        const row = Math.max(1, Math.round(Number(state?.gridRow) || 1));
+        const rowSpan = Math.max(1, Math.round(Number(state?.gridRowSpan) || 1));
+        bottom = Math.max(bottom, row + rowSpan - 1);
+      });
+      return bottom;
+    };
+
+    const clampCellToCommittedRows = (cell, rowSpan = null, maxBottom = committedBottomRow) => {
+      if (!cell || !Number.isFinite(maxBottom)) return cell;
+      const safeRowSpan = Math.max(1, Math.round(Number(rowSpan) || gridItemRowSpan(placeholder || item) || 1));
+      const maxRow = Math.max(1, Math.round(maxBottom) - safeRowSpan + 1);
+      return {
+        ...cell,
+        row: Math.max(1, Math.min(maxRow, Math.round(Number(cell.row) || 1))),
+      };
+    };
+
+    const setDragVisualPosition = (left, top) => {
+      item.style.left = `${Math.round(left - dragVisualOrigin.left)}px`;
+      item.style.top = `${Math.round(top - dragVisualOrigin.top)}px`;
+    };
+
+    const calibrateDragVisualOrigin = (expectedRect) => {
+      const actualRect = item.getBoundingClientRect();
+      const offsetLeft = actualRect.left - expectedRect.left;
+      const offsetTop = actualRect.top - expectedRect.top;
+      dragVisualOrigin = {
+        left: Math.abs(offsetLeft) > 12 ? offsetLeft : 0,
+        top: Math.abs(offsetTop) > 12 ? offsetTop : 0,
+      };
+      if (dragVisualOrigin.left || dragVisualOrigin.top) {
+        setDragVisualPosition(expectedRect.left, expectedRect.top);
+      }
+    };
 
     const startDrag = (sourceEvent = null) => {
       if (dragging) return;
@@ -140,6 +181,7 @@ export const createOrderedDragRuntime = (deps = {}) => {
       item.dataset.lod = "active";
       rect = item.getBoundingClientRect();
       startSnapshot = snapshotGridLayout(layout);
+      committedBottomRow = snapshotCommittedBottom(startSnapshot);
       const groupItems = groupTransformItems(item)
         .filter((groupItem) => groupItem === item || !groupItem.classList.contains("db-panel-pinned"));
       if (item.classList.contains("group-selected") && groupItems.length > 1) {
@@ -152,6 +194,7 @@ export const createOrderedDragRuntime = (deps = {}) => {
         offsetX = startX - groupLive.groupRect.left;
         offsetY = startY - groupLive.groupRect.top;
         targetCell = { col: groupBox.col, row: groupBox.row };
+        committedBottomRow = snapshotCommittedBottom(startSnapshot, groupBox.bottom);
         document.body.classList.add("group-transform-active");
         groupItems.forEach((groupItem) => groupItem.classList.add("group-transform-member"));
       } else {
@@ -170,8 +213,9 @@ export const createOrderedDragRuntime = (deps = {}) => {
         item.classList.add(draggingClass);
         item.style.width = `${rect.width}px`;
         if (item.classList.contains("db-panel")) item.style.height = `${rect.height}px`;
-        item.style.left = `${Math.round(rect.left)}px`;
-        item.style.top = `${Math.round(rect.top)}px`;
+        dragVisualOrigin = { left: 0, top: 0 };
+        setDragVisualPosition(rect.left, rect.top);
+        calibrateDragVisualOrigin(rect);
         expandedFootprintGhost = createExpandedFootprintGhost(item, layout, rect);
         offsetX = startX - rect.left;
         offsetY = startY - rect.top;
@@ -401,6 +445,7 @@ export const createOrderedDragRuntime = (deps = {}) => {
         snapshot,
         metrics: createGridMetrics(internalGrid),
         reflowItems: reflowItemsForLayout(internalGrid, panelPlaceholder),
+        committedBottomRow: snapshotCommittedBottom(snapshot),
         targetCell: null,
         entryZone: options.zone || "body",
         entryTransitionPlayed: false,
@@ -439,7 +484,11 @@ export const createOrderedDragRuntime = (deps = {}) => {
       const previewPoint = candidate.zone === "body-tolerance" || candidate.zone === "header" || candidate.zone === "header-tolerance"
         ? clampPointToPanelBodyRect(candidate.panel, moveEvent.clientX, moveEvent.clientY, startSnapshot)
         : { clientX: moveEvent.clientX, clientY: moveEvent.clientY };
-      const nextCell = gridCellFromDragPointer(state.layout, state.placeholder, previewPoint.clientX, previewPoint.clientY, offsetX, offsetY, metrics, rect);
+      const nextCell = clampCellToCommittedRows(
+        gridCellFromDragPointer(state.layout, state.placeholder, previewPoint.clientX, previewPoint.clientY, offsetX, offsetY, metrics, rect),
+        gridItemRowSpan(state.placeholder),
+        state.committedBottomRow
+      );
       const shouldPlayEntryTransition = (state.entryZone === "header" || state.entryZone === "header-tolerance") && !state.entryTransitionPlayed;
       if (state.targetCell && state.targetCell.col === nextCell.col && state.targetCell.row === nextCell.row && !shouldPlayEntryTransition) return true;
       state.targetCell = nextCell;
@@ -484,6 +533,7 @@ export const createOrderedDragRuntime = (deps = {}) => {
         snapshot,
         metrics: createGridMetrics(workspaceExitLayout),
         reflowItems: reflowItemsForLayout(workspaceExitLayout, workspacePlaceholder),
+        committedBottomRow: snapshotCommittedBottom(snapshot),
         targetCell: null,
         exitTransitionPlayed: false,
       };
@@ -503,7 +553,11 @@ export const createOrderedDragRuntime = (deps = {}) => {
       const state = enterWorkspaceExitPreview();
       if (!state) return false;
       const metrics = refreshGridMetricsRect(state.metrics);
-      const nextCell = gridCellFromDragPointer(state.layout, state.placeholder, moveEvent.clientX, moveEvent.clientY, offsetX, offsetY, metrics, rect);
+      const nextCell = clampCellToCommittedRows(
+        gridCellFromDragPointer(state.layout, state.placeholder, moveEvent.clientX, moveEvent.clientY, offsetX, offsetY, metrics, rect),
+        gridItemRowSpan(state.placeholder),
+        state.committedBottomRow
+      );
       const shouldPlayExitTransition = !state.exitTransitionPlayed;
       if (state.targetCell && state.targetCell.col === nextCell.col && state.targetCell.row === nextCell.row) return true;
       state.targetCell = nextCell;
@@ -522,9 +576,10 @@ export const createOrderedDragRuntime = (deps = {}) => {
     const movePreview = (clientX, clientY, metrics = null, options = {}) => {
       if (!placeholder) return;
       const previewItem = groupDrag ? placeholder : item;
-      const nextCell = options.preservePointerOffset
+      const rawCell = options.preservePointerOffset
         ? gridCellFromDragPointer(layout, previewItem, clientX, clientY, offsetX, offsetY, metrics, rect)
         : gridCellFromPoint(layout, previewItem, clientX, clientY, metrics);
+      const nextCell = clampCellToCommittedRows(rawCell, groupDrag ? groupDrag.groupBox.bottom - groupDrag.groupBox.row + 1 : gridItemRowSpan(previewItem));
       if (targetCell && targetCell.col === nextCell.col && targetCell.row === nextCell.row) return;
       targetCell = nextCell;
       const expandedPanelDrag = !groupDrag && workspaceObjectCapabilities(item).hasExpandedFootprint && !item.classList.contains("db-panel-collapsed");
@@ -579,8 +634,7 @@ export const createOrderedDragRuntime = (deps = {}) => {
       if (groupDrag && groupLive) {
         groupLive.update(nextLeft, nextTop);
       } else {
-        item.style.left = `${Math.round(nextLeft)}px`;
-        item.style.top = `${Math.round(nextTop)}px`;
+        setDragVisualPosition(nextLeft, nextTop);
       }
       if (!groupDrag && expandedFootprintGhost) {
         updateExpandedFootprintGhost(expandedFootprintGhost, item, layout, {

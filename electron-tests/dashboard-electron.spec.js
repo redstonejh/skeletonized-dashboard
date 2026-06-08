@@ -1652,6 +1652,129 @@ test("electron GUI keeps ordered drag commit, ghost, collision, and no interacti
   await closeApp(app);
 });
 
+test("electron GUI keeps drag cursor aligned and prevents drag-created vertical growth", async () => {
+  const { app, page } = await launchApp();
+  const tolerance = 5;
+  const liveDragAlignment = async (selector, deltaX, deltaY, steps = 48, options = {}) => {
+    const item = options.openTools === false ? page.locator(selector).first() : await openTools(page, selector);
+    await expect(item).toBeVisible();
+    const handle = item.locator(".panel-move-handle");
+    const itemBox = await item.boundingBox();
+    expect(itemBox).toBeTruthy();
+    const handleBox = await handle.isVisible({ timeout: 250 }).catch(() => false)
+      ? await handle.boundingBox()
+      : null;
+    const startX = handleBox ? handleBox.x + handleBox.width / 2 : itemBox.x + Math.min(itemBox.width - 8, Math.max(8, itemBox.width * 0.45));
+    const startY = handleBox ? handleBox.y + handleBox.height / 2 : itemBox.y + Math.min(itemBox.height - 8, Math.max(8, itemBox.height * 0.45));
+    const expectedOffset = {
+      x: Math.round(startX - itemBox.x),
+      y: Math.round(startY - itemBox.y),
+    };
+    const endX = startX + deltaX;
+    const endY = startY + deltaY;
+    await dispatchPointerDragUntilMove(page, startX, startY, endX, endY, steps);
+    await page.waitForFunction(() => Boolean(document.querySelector(".db-panel-dragging, .widget-dragging")));
+    const live = await page.evaluate(({ endX, endY }) => {
+      const node = document.querySelector(".db-panel-dragging, .widget-dragging");
+      const rect = node?.getBoundingClientRect();
+      const grid = document.querySelector(".dashboard-layout-grid");
+      return {
+        offsetX: Math.round(endX - rect.left),
+        offsetY: Math.round(endY - rect.top),
+        rectTop: Math.round(rect.top),
+        styleTop: node?.style?.top || "",
+        gridWillChange: grid ? getComputedStyle(grid).willChange : "",
+      };
+    }, { endX, endY });
+    expect(Math.abs(live.offsetX - expectedOffset.x)).toBeLessThanOrEqual(tolerance);
+    expect(Math.abs(live.offsetY - expectedOffset.y)).toBeLessThanOrEqual(tolerance);
+    await finishPointerDrag(page, endX, endY, "pointercancel");
+    await page.waitForFunction(() => !document.querySelector(".db-panel-dragging, .widget-dragging, .db-panel-placeholder, .widget-placeholder"), null, { timeout: 5000 })
+      .catch(async () => {
+        await page.keyboard.press("Escape");
+        await page.waitForFunction(() => !document.querySelector(".db-panel-dragging, .widget-dragging, .db-panel-placeholder, .widget-placeholder"), null, { timeout: 5000 });
+      });
+    return { expectedOffset, live };
+  };
+
+  const workspaceAlignment = await liveDragAlignment('.panel-layout > .db-panel[data-panel-key="builder-notes"]', -180, 140);
+
+  const widgetSelector = '.widget-layout:not(.panel-internal-widget-grid) > .widget-card[data-widget-key="widget-1"]';
+  const panelSelector = '.panel-layout > .db-panel[data-panel-key="builder-content"]';
+  const panelChildSelector = `${panelSelector} .panel-internal-widget-grid > .widget-card[data-widget-key="widget-1"]`;
+  await page.locator(panelSelector).evaluate((panel) => {
+    panel.dataset.savedHeight = "320";
+    panel.dataset.gridRowSpan = "4";
+    panel.style.height = "320px";
+    panel.style.gridRowEnd = "span 4";
+  });
+  const widget = await openTools(page, widgetSelector);
+  const moveBox = await widget.locator(".panel-move-handle").boundingBox();
+  expect(moveBox).toBeTruthy();
+  const target = await page.locator(panelSelector).evaluate((panel) => {
+    const headerRect = panel.querySelector(":scope > .db-panel-hd")?.getBoundingClientRect();
+    const bodyRect = panel.querySelector(":scope > .db-panel-body")?.getBoundingClientRect();
+    return {
+      x: Math.round(bodyRect.left + Math.min(Math.max(bodyRect.width * 0.5, 48), Math.max(48, bodyRect.width - 48))),
+      y: Math.round(Math.max(bodyRect.top + 32, headerRect.bottom + 24)),
+    };
+  });
+  await dispatchPointerDragUntilMove(
+    page,
+    moveBox.x + moveBox.width / 2,
+    moveBox.y + moveBox.height / 2,
+    target.x,
+    target.y,
+    80
+  );
+  await page.waitForFunction((panelSelector) => {
+    const panel = document.querySelector(panelSelector);
+    return Boolean(panel?.classList.contains("panel-container-drag-active"));
+  }, panelSelector);
+  await finishPointerDrag(page, target.x, target.y);
+  await page.waitForFunction(({ panelChildSelector, widgetSelector }) => (
+    Boolean(document.querySelector(panelChildSelector)) &&
+    !document.querySelector(widgetSelector)
+  ), { panelChildSelector, widgetSelector });
+  const panelAlignment = await liveDragAlignment(panelChildSelector, 110, 70, 48, { openTools: false });
+
+  const growthSelector = '.panel-layout > .db-panel[data-panel-key="builder-notes"]';
+  const growthItem = await openTools(page, growthSelector);
+  const growthHandle = growthItem.locator(".panel-move-handle");
+  const growthBox = await growthHandle.boundingBox();
+  expect(growthBox).toBeTruthy();
+  const beforeGrowth = await page.evaluate((selector) => {
+    const node = document.querySelector(selector);
+    return {
+      scrollHeight: document.documentElement.scrollHeight,
+      gridHeight: document.querySelector(".dashboard-layout-grid")?.getBoundingClientRect().height || 0,
+      row: node?.dataset.gridRow || "",
+    };
+  }, growthSelector);
+  const growthStartX = growthBox.x + growthBox.width / 2;
+  const growthStartY = growthBox.y + growthBox.height / 2;
+  await dispatchPointerDrag(page, growthStartX, growthStartY, growthStartX, growthStartY + 900, 80);
+  await page.waitForFunction(() => !document.querySelector(".db-panel-dragging, .widget-dragging, .db-panel-placeholder, .widget-placeholder"));
+  const afterGrowth = await page.evaluate((selector) => {
+    const node = document.querySelector(selector);
+    return {
+      scrollHeight: document.documentElement.scrollHeight,
+      gridHeight: document.querySelector(".dashboard-layout-grid")?.getBoundingClientRect().height || 0,
+      row: node?.dataset.gridRow || "",
+    };
+  }, growthSelector);
+  expect(afterGrowth.scrollHeight).toBeLessThanOrEqual(beforeGrowth.scrollHeight + 2);
+  expect(afterGrowth.gridHeight).toBeLessThanOrEqual(beforeGrowth.gridHeight + 2);
+
+  await writeInteractionScenarios(page, ["drag-cursor-alignment-no-vertical-growth"], {
+    workspaceAlignment,
+    panelAlignment,
+    beforeGrowth,
+    afterGrowth,
+  });
+  await closeApp(app);
+});
+
 test("electron GUI absorbs a workspace widget through the panel body zone", async () => {
   const { app, page } = await launchApp();
   const widgetSelector = '.widget-layout:not(.panel-internal-widget-grid) > .widget-card[data-widget-key="widget-1"]';

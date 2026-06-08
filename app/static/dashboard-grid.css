@@ -842,7 +842,10 @@ and ghost states */ .widget-card.widget-tools-open,
   z-index: var(--z-drag-ghost);
   pointer-events: none;
   opacity: .94;
-  transform: rotate(.12deg) scale(1.006);
+  filter: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  transform: rotate(.12deg) scale(1.006) !important;
   box-shadow: 0 26px 58px rgba(15, 23, 42, .24), 0 0 0 1px rgba(37, 99, 235, .18);
 }.dashboard-live-resize{
   position: fixed !important;
@@ -1703,6 +1706,11 @@ body.panel-interaction-active .db-panel:active{
 }body.panel-interaction-active .db-panel:has(.panel-internal-widget-grid > .widget-dragging){
   transform: none !important;
   will-change: auto;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}body.panel-interaction-active .db-panel:has(.panel-internal-widget-grid > .widget-dragging) > .db-panel-body{
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
 }body.panel-interaction-active .widget-card:not(.widget-dragging):not(.dashboard-active-resize):not(.dashboard-resize-source):not(.group-transform-member),
 body.panel-interaction-active .db-panel:not(.db-panel-dragging):not(.dashboard-active-resize):not(.dashboard-resize-source):not(.group-transform-member),
 body.panel-resize-active .widget-card:not(.widget-dragging):not(.dashboard-active-resize):not(.dashboard-resize-source):not(.group-transform-member),

@@ -1,0 +1,48 @@
+{
+  "schema_version": 1,
+  "suspected_commits_reviewed": [
+    {
+      "commit": "2e2d25e",
+      "summary": "Floating WebGL-glass control bar behind top-left gear; tabs reclaim vacated space"
+    },
+    {
+      "commit": "dabee5e",
+      "summary": "Wire tabs to horizontal lazy-loaded pages with click-to-swipe"
+    }
+  ],
+  "root_causes": [
+    {
+      "context": "dashboard/page drag",
+      "cause": "The tab paging commit left `.workspace-page-surface` with permanent `will-change: transform, opacity`; Chromium treated it as a fixed-position containing block for drag ghosts at rest.",
+      "before": {
+        "item_style_top": "483px",
+        "item_rect_top": 888,
+        "grid_top": 108,
+        "grid_will_change": "transform, opacity"
+      },
+      "fix": "Keep `will-change: transform` only on active slide-in/slide-out page states; resting pages use `will-change: opacity`."
+    },
+    {
+      "context": "panel-contained widget drag",
+      "cause": "A fixed-position widget dragged from inside `.db-panel` resolved against the panel compositing context rather than the viewport.",
+      "before": {
+        "item_style_top": "434px",
+        "item_rect_top": 808.802,
+        "computed_offset_y": -345.122,
+        "panel_body_backdrop_filter": "blur(18px) saturate(1.25)"
+      },
+      "fix": "Calibrate the active drag visual origin after the drag class is applied and subtract that origin from subsequent fixed `left/top` writes. The pointer-to-grid math remains in viewport coordinates."
+    },
+    {
+      "context": "drag-created vertical growth",
+      "cause": "Drag preview target rows could move past the committed bottom row, allowing the layout surface to expand from a drag.",
+      "fix": "Snapshot the committed bottom row at drag start and clamp preview/drop cells so drag cannot extend the committed grid extent."
+    }
+  ],
+  "intentional_non_changes": [
+    "No edge-auto-scroll code was reintroduced.",
+    "No collision/reflow scheduling or committed drop semantics were changed.",
+    "No Electron dependency or runtime dependency changed."
+  ]
+}
+
