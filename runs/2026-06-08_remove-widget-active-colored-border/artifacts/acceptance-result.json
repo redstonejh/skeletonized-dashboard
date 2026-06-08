@@ -1,0 +1,8 @@
+{
+  "verdict": "SHIP",
+  "summary": "Removed the remaining widget-only blue hover/active edge from the legacy `.stat-card` rules while leaving panels unchanged.",
+  "tests": {
+    "status": "skipped",
+    "reason": "User explicitly instructed not to run tests, canaries, or validation."
+  }
+}

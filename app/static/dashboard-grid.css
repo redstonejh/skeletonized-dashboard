@@ -986,18 +986,16 @@ body.resize-auto-zoom-active .dashboard-expanded-footprint-ghost{
 .stat-card:focus-visible,
 .stat-card.active{
   background: #f7faff;
-  border-color: #8fb4f4;
+  border-color: var(--line);
 }.stat-card:hover,
 .stat-card:focus-visible{
   box-shadow: 0 8px 18px rgba(15, 23, 42, .09), 0 1px 0 rgba(255, 255, 255, .52) inset;
   transform: translateY(-1.5px);
 }.stat-card.active{
-  border-color: var(--blue);
-  outline: 3px solid color-mix(in srgb, var(--blue) 78%, white);
-  outline-offset: 0;
+  border-color: var(--line);
+  outline: 0;
   box-shadow:
     0 16px 34px rgba(15, 23, 42, .18),
-    0 10px 24px rgba(37, 99, 235, .16),
     var(--shadow-soft);
 }.widget-layout > .widget-card.widget-tools-open,
 .widget-layout > .widget-card.widget-tools-open:hover,
@@ -1031,8 +1029,8 @@ body.resize-auto-zoom-active .dashboard-expanded-footprint-ghost{
 .panel-layout > .db-panel:has(.panel-internal-widget-grid > .widget-card:is(:hover, .surface-response-active))::before{
   opacity: 0 !important;
 }.widget-layout > .stat-card.active:hover{
-  border-color: #2563eb;
-  outline-color: #2563eb;
+  border-color: var(--line);
+  outline-color: transparent;
   box-shadow:
     0 12px 26px rgba(15, 23, 42, .14),
     0 1px 0 rgba(255, 255, 255, .50) inset;
