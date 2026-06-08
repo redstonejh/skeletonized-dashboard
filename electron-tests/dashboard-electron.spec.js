@@ -590,7 +590,7 @@ test("electron GUI opens customization drawers only from right click", async () 
   await closeApp(app);
 });
 
-test("electron GUI renders glass text tabs with active scaling and persisted edits", async () => {
+test("electron GUI renders plain text tabs with active scaling and persisted edits", async () => {
   const { app, page } = await launchApp();
   await expect(page.locator(".workspace-tab-bar")).toBeVisible();
   await expect(page.locator(".workspace-tab:not(.workspace-tab-add)")).toHaveCount(3);
@@ -598,20 +598,26 @@ test("electron GUI renders glass text tabs with active scaling and persisted edi
   await page.locator(".workspace-tab").nth(0).click();
   await expect(page.locator(".workspace-tab").nth(0)).toHaveAttribute("aria-pressed", "true");
 
-  const glassStyle = await page.locator(".workspace-tab").first().evaluate((node) => {
+  const tabStyle = await page.locator(".workspace-tab").first().evaluate((node) => {
     const button = getComputedStyle(node);
     const label = getComputedStyle(node.querySelector(".workspace-tab-label"));
     return {
       buttonBackground: button.backgroundColor,
+      buttonBackgroundImage: button.backgroundImage,
+      beforeContent: getComputedStyle(node, "::before").content,
       backgroundClip: label.backgroundClip || label.webkitBackgroundClip || "",
       textFill: label.webkitTextFillColor || label.color,
+      labelColor: label.color,
       backgroundImage: label.backgroundImage,
     };
   });
-  expect(glassStyle.buttonBackground).toBe("rgba(0, 0, 0, 0)");
-  expect(glassStyle.backgroundClip).toContain("text");
-  expect(glassStyle.textFill).toMatch(/rgba?\(0,\s*0,\s*0,\s*0\)|transparent/i);
-  expect(glassStyle.backgroundImage).not.toBe("none");
+  expect(tabStyle.buttonBackground).toBe("rgba(0, 0, 0, 0)");
+  expect(tabStyle.buttonBackgroundImage).toBe("none");
+  expect(tabStyle.beforeContent).toBe("none");
+  expect(tabStyle.backgroundClip).not.toContain("text");
+  expect(tabStyle.textFill).toBe(tabStyle.labelColor);
+  expect(tabStyle.textFill).not.toMatch(/rgba?\(0,\s*0,\s*0,\s*0\)|transparent/i);
+  expect(tabStyle.backgroundImage).toBe("none");
 
   const secondBoxBefore = await page.locator(".workspace-tab").nth(1).boundingBox();
   expect(secondBoxBefore).toBeTruthy();

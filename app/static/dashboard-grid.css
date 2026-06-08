@@ -36,8 +36,7 @@ body.webgl-glass-on .panel-layout > .db-panel,
 body.webgl-glass-on .panel-layout > .widget-card,
 body.webgl-glass-on .db-panel.db-panel-tools-open,
 body.webgl-glass-on .window-glass-control,
-body.webgl-glass-on .app-nav.workspace-chrome.floating-control-bar,
-body.webgl-glass-on .workspace-tab{
+body.webgl-glass-on .app-nav.workspace-chrome.floating-control-bar{
   background: transparent !important;
   background-image: none !important;
   background-color: transparent !important;

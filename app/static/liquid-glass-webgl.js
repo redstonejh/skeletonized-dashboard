@@ -18,15 +18,14 @@
  */
 (() => {
   const MAX_OBJECTS = 32;
-  // One glass target set for workspace objects and nav chrome. Panel-internal
-  // widgets, tabs, window controls, and the floating control bar all use this
-  // same full-viewport shader path.
+  // One glass target set for workspace objects and glass chrome. Panel-internal
+  // widgets, window controls, and the floating control bar all use this same
+  // full-viewport shader path.
   const OBJECT_SELECTOR = [
     ".db-panel",
     ".widget-card",
     ".window-glass-control",
     ".app-nav.workspace-chrome.floating-control-bar",
-    ".workspace-tab",
   ].join(", ");
 
   const VERT_SRC = `
@@ -510,8 +509,7 @@
       node.dataset.panelKey ||
       node.dataset.widgetKey ||
       (node.classList.contains("window-glass-control") ? "window-control" : "") ||
-      (node.matches(".app-nav.workspace-chrome.floating-control-bar") ? "floating-control-bar" : "") ||
-      (node.classList.contains("workspace-tab") ? "workspace-tab" : "")
+      (node.matches(".app-nav.workspace-chrome.floating-control-bar") ? "floating-control-bar" : "")
     );
     for (const node of nodes) {
       if (node.classList.contains("dragging")) continue;
