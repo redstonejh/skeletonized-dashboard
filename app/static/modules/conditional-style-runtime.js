@@ -19,56 +19,26 @@ export const createConditionalStyleRuntime = ({
     }, source);
   };
 
-  const numericMetricValueForWidget = ({ config = {}, data = {}, resolvedContext = {} } = {}) => {
-    const rows = Array.isArray(data?.rows) ? data.rows : [];
-    const total = Number.isFinite(Number(data?.total)) ? Number(data.total) : rows.length;
+  const numericMetricValueForWidget = ({ config = {} } = {}) => {
+    const total = Number.isFinite(Number(config.value)) ? Number(config.value) : 0;
     const metric = ["count", "sum", "avg", "min", "max"].includes(config.metric) ? config.metric : "count";
     if (metric === "count") return total;
-    const mapping = resolvedContext?.semanticMapping || data?.semanticMapping || {};
-    const valueField = config.valueField || mapping.valueField;
-    if (!valueField) return undefined;
-    const values = rows.map((row) => {
-      const raw = row?.[valueField];
-      if (typeof raw === "number") return Number.isFinite(raw) ? raw : null;
-      if (typeof raw === "string" && raw.trim()) {
-        const parsed = Number(raw.replace(/[$,%\s,]/g, ""));
-        return Number.isFinite(parsed) ? parsed : null;
-      }
-      return null;
-    }).filter((value) => value != null);
-    if (!values.length) return undefined;
-    if (metric === "sum") return values.reduce((sum, value) => sum + value, 0);
-    if (metric === "avg") return values.reduce((sum, value) => sum + value, 0) / values.length;
-    if (metric === "min") return Math.min(...values);
-    if (metric === "max") return Math.max(...values);
+    const value = Number(config.value);
+    if (!Number.isFinite(value)) return undefined;
+    if (metric === "sum" || metric === "avg" || metric === "min" || metric === "max") return value;
     return total;
   };
 
   const styleRuleEnvironmentForWidget = (widget, options = {}) => {
     const definition = options.definition || widgetDefinitionForElement(widget);
     const instance = options.instance || widgetInstanceFromElement(widget, definition);
-    const resolvedContext = options.resolvedContext || resolveWidgetDisplayState(widget);
-    const displayState = widgetDisplayStateForWidget(widget);
-    const data = options.data || displayState?.data || null;
-    const status = options.status || widget.dataset.widgetRuntimeStatus || displayState?.status || "empty";
-    const rows = Array.isArray(data?.rows) ? data.rows : [];
-    const total = Number.isFinite(Number(data?.total)) ? Number(data.total) : rows.length;
     return {
       widget,
       definition,
       instance,
       config: instance?.config || {},
-      context: resolvedContext || {},
-      resolvedContext: resolvedContext || {},
-      data: {
-        ...(data || {}),
-        rows,
-        total,
-      },
-      rows,
-      status,
       metric: {
-        value: numericMetricValueForWidget({ config: instance?.config || {}, data: data || {}, resolvedContext: resolvedContext || {} }),
+        value: numericMetricValueForWidget({ config: instance?.config || {} }),
       },
       constants: {},
     };
@@ -84,7 +54,7 @@ export const createConditionalStyleRuntime = ({
     }
     if (typeof operand !== "string") return operand;
     const trimmed = operand.trim();
-    const pathLike = /^(metric|data|rows|status|config|context|resolvedContext|widget|instance|definition)\b/.test(trimmed);
+    const pathLike = /^(metric|config|widget|instance|definition)\b/.test(trimmed);
     return pathLike ? styleRulePathValue(environment, trimmed) : operand;
   };
 

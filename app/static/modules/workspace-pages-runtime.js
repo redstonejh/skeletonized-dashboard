@@ -42,7 +42,7 @@ export const initializeWorkspacePagesRuntime = ({
       } catch {}
     });
   };
-  const cleanRuntimeState = (root) => {
+  const cleanTransientMarkup = (root) => {
     const clone = root?.cloneNode?.(true);
     if (!clone) return "";
     const nodes = [clone, ...clone.querySelectorAll("*")];
@@ -66,8 +66,8 @@ export const initializeWorkspacePagesRuntime = ({
     return clone.innerHTML;
   };
   const serializeCurrentPage = () => ({
-    widgetHtml: (restorePortaledToolDrawers(), cleanRuntimeState(widgetLayout())),
-    panelHtml: cleanRuntimeState(panelLayout()),
+    widgetHtml: (restorePortaledToolDrawers(), cleanTransientMarkup(widgetLayout())),
+    panelHtml: cleanTransientMarkup(panelLayout()),
   });
   const ensurePage = (tabId, page = null) => {
     if (!tabId) return;

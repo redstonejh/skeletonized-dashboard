@@ -45,7 +45,6 @@ import {
 import { createDashboardAssetApi } from "./modules/dashboard-asset-api.js";
 import { createWidgetWorkbenchRuntime } from "./modules/widget-workbench-runtime.js";
 import { createWidgetRuntimeControls } from "./modules/widget-runtime-controls.js";
-import { createWidgetRuntimeData } from "./modules/widget-runtime-data.js";
 import { createWidgetSettingsService } from "./modules/widget-settings-service.js";
 import { createLayoutSnapshotRuntime } from "./modules/layout-snapshot-runtime.js";
 import { bindWidgetActionControls } from "./modules/widget-action-controls.js";
@@ -343,7 +342,7 @@ document.addEventListener("DOMContentLoaded", () => {
     [
       ...document.querySelectorAll(`.widget-layout[data-widget-layout-key="${CSS.escape(layoutKey)}"] > .widget-card`),
       ...document.querySelectorAll(`.panel-layout[data-layout-key="${CSS.escape(layoutKey)}"] .panel-internal-widget-grid > .widget-card`),
-    ].forEach((item) => void refreshWidgetRuntimeData(item, resolveWidgetDisplayState(item, { layoutKey, profile })));
+    ].forEach((item) => renderWidgetRuntimeContent(item));
     refreshWorkspaceMiniMaps(layoutKey);
   };
   const syncWorkspaceRegions = (layout) => {
@@ -923,10 +922,7 @@ document.addEventListener("DOMContentLoaded", () => {
       : ".widget-card[data-widget-definition='shift']";
     document.querySelectorAll(selector).forEach((widget) => {
       if (!isSignalConsumerWidget(widget)) return;
-      renderWidgetRuntimeContent(widget, {
-        resolvedContext: resolveWidgetDisplayState(widget),
-        status: widget.dataset.widgetRuntimeStatus || "ready",
-      });
+      renderWidgetRuntimeContent(widget);
     });
   };
   const { renderWidgetRuntimeContent, setWidgetRuntimeContent, widgetInstanceFromElement } = createWidgetContentRuntime({ widgetRuntimeController });
@@ -944,19 +940,6 @@ document.addEventListener("DOMContentLoaded", () => {
     resolveWidgetDisplayState,
     widgetDisplayStateForWidget,
   });
-  const { refreshWidgetRuntimeData } = createWidgetRuntimeData({
-    widgetDefinitionForElement,
-    widgetInstanceFromElement,
-    renderWidgetRuntimeContent,
-  });
-
-  window.dashboardWidgetRuntimeMeaning = {
-    derive: (options = {}) => widgetRuntimeController.deriveRuntimeMeaning(options),
-    apply: (widget, options = {}) => widgetRuntimeController.applyRuntimeMeaning(
-      typeof widget === "string" ? document.querySelector(widget) : widget,
-      options
-    ),
-  };
   const hydrateWidgetRuntime = (widget, saved = null) => widgetRuntimeController.hydrateRuntime(widget, saved);
   const {
     syncWidgetContextOutputs,
@@ -980,7 +963,6 @@ document.addEventListener("DOMContentLoaded", () => {
     setWidgetConfig,
     widgetDisplayStateForWidget,
     renderWidgetRuntimeContent,
-    refreshWidgetRuntimeData,
     renderWidgetSettingsSchemaPanel,
     renderWidgetWorkbenchPanel,
   });
@@ -1972,9 +1954,8 @@ document.addEventListener("DOMContentLoaded", () => {
     if (panelLayout) syncWorkspaceRegions(panelLayout);
     if (layout) syncWorkspaceRegions(layout);
     const layoutKey = options.layoutKey || activeLayoutKeyForItem(widget);
-    const resolved = resolveWidgetDisplayState(widget, { layoutKey, profile: options.profile || getActivePanelProfile(layoutKey) });
     syncWidgetContextOutputs(widget);
-    void refreshWidgetRuntimeData(widget, resolved, { force: true });
+    renderWidgetRuntimeContent(widget);
   };
 
   const absorbWidgetIntoPanel = (options) => {

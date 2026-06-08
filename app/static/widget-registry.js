@@ -137,10 +137,6 @@
       ? data.schema.fields.map((field) => field?.name || field).filter(Boolean)
       : []
   );
-  const displayMappingFor = (resolvedContext = {}, data = null) => ({
-    ...(data?.semanticMapping || {}),
-    ...(resolvedContext?.semanticMapping || {}),
-  });
   const tableConfiguredColumns = (config) => Array.isArray(config?.columns)
     ? config.columns.map((field) => String(field || "").trim()).filter(Boolean)
     : [];
@@ -156,29 +152,21 @@
     const configuredLimit = Number.isFinite(Number(limit)) ? Math.max(1, Number(limit)) : 50;
     return Math.min(configuredLimit, rowCapacity);
   };
-  const filterFieldForType = (filter, resolvedContext) => {
-    const mapping = resolvedContext?.semanticMapping || {};
+  const filterFieldForType = (filter) => {
     const explicit = String(filter?.field || "").trim();
     if (explicit) return explicit;
-    if (filter?.type === "number-range") return mapping.valueField || "";
-    if (filter?.type === "date-range") return mapping.dateField || "";
-    if (filter?.type === "boolean") return mapping.statusField || mapping.categoryField || "";
-    if (filter?.type === "dropdown" || filter?.type === "multi-select") return mapping.categoryField || mapping.statusField || mapping.ownerField || mapping.labelField || "";
-    return mapping.labelField || mapping.categoryField || mapping.statusField || "";
+    return "";
   };
-  const filterControlsFromConfig = (config, resolvedContext, data) => {
+  const filterControlsFromConfig = (config) => {
     const configured = Array.isArray(config?.filters) && config.filters.length
       ? config.filters
       : [{ id: "search", type: "text", label: "Search", operator: "contains", value: "" }];
-    const rows = Array.isArray(data?.rows) ? data.rows : [];
     return configured.map((filter, index) => {
       const type = filter.type || "text";
-      const field = filterFieldForType(filter, resolvedContext);
+      const field = filterFieldForType(filter);
       const options = Array.isArray(filter.options) && filter.options.length
         ? filter.options
-        : field
-          ? unique(rows.map((row) => row?.[field]).filter((value) => value != null).map((value) => String(value))).slice(0, 8)
-          : [];
+        : [];
       return {
         id: filter.id || `filter-${index + 1}`,
         type,
@@ -444,7 +432,7 @@
     const end = shiftedDate(start, seedLengthDays - 1);
     return { start: dateOnly(start), end: dateOnly(end) };
   };
-  const resolveTimeframeFilter = (filter, config = {}, resolvedContext = {}, now = null) => {
+  const resolveTimeframeFilter = (filter, config = {}, now = null) => {
     const normalized = normalizeTimeframeFilter(filter);
     const today = now ? localDateFrom(now) : localToday();
     const weekStartDay = normalized.weekStartDay ?? config.weekStartDay ?? 0;
@@ -471,7 +459,7 @@
     if (normalized.type === "month_to_date") range = { start: dateOnly(new Date(today.getFullYear(), today.getMonth(), 1)), end: dateOnly(today) };
     if (normalized.type === "year_to_date") range = { start: dateOnly(new Date(today.getFullYear(), 0, 1)), end: dateOnly(today) };
     if (!range?.start && !range?.end) return null;
-    const field = String(config.field || resolvedContext?.semanticMapping?.dateField || "").trim();
+    const field = String(config.field || "").trim();
     return {
       field: field || undefined,
       start: range.start || undefined,
@@ -483,13 +471,13 @@
         : normalized.label || timeframeLabel(range, "Time range"),
     };
   };
-  const resolveTimeRangeConfig = (config = {}, resolvedContext = {}, now = null) => {
+  const resolveTimeRangeConfig = (config = {}, now = null) => {
     const filters = normalizeTimeframeFilters(config);
     const selectedFilter = filters.find((filter) => filter.id === selectedTimeframeFilterId(config, filters));
-    if (selectedFilter) return resolveTimeframeFilter(selectedFilter, config, resolvedContext, now);
+    if (selectedFilter) return resolveTimeframeFilter(selectedFilter, config, now);
     const preset = String(config.selectedPreset || config.preset || "").trim();
     const explicit = config.timeRange && typeof config.timeRange === "object" ? config.timeRange : null;
-    const field = String(config.field || explicit?.field || resolvedContext?.semanticMapping?.dateField || "").trim();
+    const field = String(config.field || explicit?.field || "").trim();
     const today = now ? localDateFrom(now) : localToday();
     let start = "";
     let end = "";
@@ -574,16 +562,13 @@
     return chartVisualDensity(tier);
   };
 
-  const chartSemantic = (resolvedContext, data = null) => displayMappingFor(resolvedContext, data);
-  const chartField = (config, resolvedContext, key, fallbacks = []) => {
+  const chartField = (config, key) => {
     const explicit = String(config?.[key] || "").trim();
-    if (explicit) return explicit;
-    const mapping = chartSemantic(resolvedContext);
-    return fallbacks.map((field) => mapping[field]).find(Boolean) || "";
+    return explicit;
   };
-  const chartValueField = (config, resolvedContext) => chartField(config, resolvedContext, "yField", ["valueField"]);
-  const chartXField = (config, resolvedContext) => chartField(config, resolvedContext, "xField", ["dateField", "categoryField", "labelField"]);
-  const chartSeriesField = (config, resolvedContext) => chartField(config, resolvedContext, "seriesField", ["categoryField", "statusField", "ownerField"]);
+  const chartValueField = (config) => chartField(config, "yField");
+  const chartXField = (config) => chartField(config, "xField");
+  const chartSeriesField = (config) => chartField(config, "seriesField");
   const chartConfiguredAggregation = (config) => CHART_AGGREGATIONS.includes(config?.aggregation) ? config.aggregation : "count";
   const chartDisplayConfig = (config) => ({
     showLegend: config?.display?.showLegend !== false,
@@ -606,7 +591,7 @@
       return av > bv ? direction : -direction;
     });
   };
-  const chartRequiredFieldMessage = (definition, config, resolvedContext) => {
+  const chartRequiredFieldMessage = (definition, config) => {
     const supportedAggregations = Array.isArray(definition.supportedAggregations) && definition.supportedAggregations.length
       ? definition.supportedAggregations
       : CHART_AGGREGATIONS;
@@ -615,9 +600,9 @@
     const needsX = definition.requiredFields.includes("xField");
     const needsY = definition.requiredFields.includes("yField") || (definition.valueRequiredForAggregation !== false && aggregation !== "count");
     const needsSeries = definition.requiredFields.includes("seriesField");
-    if (needsX && !chartXField(config, resolvedContext)) return "Missing x field";
-    if (needsY && !chartValueField(config, resolvedContext)) return "Missing y field";
-    if (needsSeries && !chartSeriesField(config, resolvedContext)) return "Missing series field";
+    if (needsX && !chartXField(config)) return "Missing x field";
+    if (needsY && !chartValueField(config)) return "Missing y field";
+    if (needsSeries && !chartSeriesField(config)) return "Missing series field";
     return "";
   };
   const aggregateValues = (values, aggregation) => {
@@ -630,10 +615,10 @@
     if (aggregation === "max") return Math.max(...numeric);
     return values.length;
   };
-  const groupedChartData = (rows, config, resolvedContext, options = {}) => {
-    const xField = chartXField(config, resolvedContext);
-    const yField = chartValueField(config, resolvedContext);
-    const seriesField = options.series ? chartSeriesField(config, resolvedContext) : "";
+  const groupedChartData = (rows, config, options = {}) => {
+    const xField = chartXField(config);
+    const yField = chartValueField(config);
+    const seriesField = options.series ? chartSeriesField(config) : "";
     const aggregation = chartConfiguredAggregation(config);
     const groups = new Map();
     rows.forEach((row, index) => {
@@ -652,29 +637,24 @@
     row,
     value: numberValue(row?.[field]),
   })).filter((entry) => entry.value != null);
-  const chartFrame = ({ instance, definition, density, body, legend = "", data = null, resolvedContext = null }) => {
+  const chartFrame = ({ instance, definition, density, body, legend = "" }) => {
     const densityTier = normalizeDensity(instance?.density, resolveWidgetDensity(instance));
-    const contextLabel = chartContextLabel(resolvedContext || {}, data);
-    const traceable = Boolean(data?.sourceId || data?.metadata?.lineage);
     return `
-      <div class="runtime-chart-widget runtime-chart-density-${density} widget-density-${densityTier}" data-density="${escapeHtml(densityTier)}" data-runtime-state="ready" data-runtime-source="${escapeHtml(runtimeSource(data))}" data-runtime-traceable="${traceable ? "true" : "false"}" data-runtime-context="${escapeHtml(contextLabel)}" data-chart-type="${escapeHtml(definition.chartType)}" data-chart-category="${escapeHtml(definition.category || "general")}">
+      <div class="runtime-chart-widget runtime-chart-density-${density} widget-density-${densityTier}" data-density="${escapeHtml(densityTier)}" data-chart-type="${escapeHtml(definition.chartType)}" data-chart-category="${escapeHtml(definition.category || "general")}">
         <div class="runtime-chart-stage">${body}</div>
         ${legend}
       </div>`;
   };
-  const renderEchartsChartFrame = ({ instance, definition, rows, resolvedContext, data }) => {
+  const renderEchartsChartFrame = ({ instance, definition }) => {
     const config = instance.config || {};
     const density = chartDensityFor(instance);
     const title = config.title || definition.displayName || "Chart";
-    const points = groupedChartData(rows, config, resolvedContext, { series: ["grouped-bar", "stacked-bar"].includes(definition.chartType) });
     return chartFrame({
       instance,
       definition,
       density,
       body: `<div class="widget-content-well widget-library-surface runtime-chart-library-surface"><div class="runtime-chart-echarts" data-chart-renderer="echarts" data-chart-type="${escapeHtml(definition.chartType)}" role="img" aria-label="${escapeHtml(title)}"></div></div>`,
       legend: "",
-      data,
-      resolvedContext,
     });
   };
   const chartCssValue = (element, name, fallback) => {
@@ -736,11 +716,11 @@
     }
     return echartsLoadPromise;
   };
-  const chartSeriesData = (rows, config, resolvedContext, options = {}) => {
-    const xField = chartXField(config, resolvedContext);
-    const yField = chartValueField(config, resolvedContext);
-    const seriesField = options.series ? chartSeriesField(config, resolvedContext) : "";
-    const groups = groupedChartData(rows, config, resolvedContext, { series: Boolean(seriesField) });
+  const chartSeriesData = (rows, config, options = {}) => {
+    const xField = chartXField(config);
+    const yField = chartValueField(config);
+    const seriesField = options.series ? chartSeriesField(config) : "";
+    const groups = groupedChartData(rows, config, { series: Boolean(seriesField) });
     const categories = unique(groups.map((point) => point.x));
     const seriesNames = unique(groups.map((point) => point.series));
     return {
@@ -755,7 +735,7 @@
       })),
     };
   };
-  const chartEchartsOption = ({ instance, definition, rows, resolvedContext, data, element }) => {
+  const chartEchartsOption = ({ instance, definition, rows, element }) => {
     const config = instance.config || {};
     const chartType = definition.chartType;
     const colors = chartPaletteForElement(element);
@@ -772,7 +752,7 @@
     };
     if (["bar", "horizontal-bar", "grouped-bar", "stacked-bar", "lollipop"].includes(chartType)) {
       const usesSeries = ["grouped-bar", "stacked-bar"].includes(chartType);
-      const model = chartSeriesData(rows, config, resolvedContext, { series: usesSeries });
+      const model = chartSeriesData(rows, config, { series: usesSeries });
       const horizontal = chartType === "horizontal-bar";
       return {
         ...base,
@@ -792,7 +772,7 @@
     }
     if (["line", "multi-line", "area", "stacked-area", "sparkline"].includes(chartType)) {
       const usesSeries = ["multi-line", "stacked-area"].includes(chartType);
-      const model = chartSeriesData(rows, config, resolvedContext, { series: usesSeries });
+      const model = chartSeriesData(rows, config, { series: usesSeries });
       return {
         ...base,
         tooltip: { trigger: "axis", confine: true },
@@ -812,7 +792,7 @@
       };
     }
     if (["pie", "donut"].includes(chartType)) {
-      const points = groupedChartData(rows, config, resolvedContext).filter((point) => point.value > 0).slice(0, chartLimit(config, 8));
+      const points = groupedChartData(rows, config).filter((point) => point.value > 0).slice(0, chartLimit(config, 8));
       return {
         ...base,
         legend: display.showLegend ? { bottom: 0, textStyle: { color: axis.text, fontSize: 10 } } : undefined,
@@ -826,9 +806,9 @@
       };
     }
     if (["scatter", "bubble"].includes(chartType)) {
-      const xField = chartXField(config, resolvedContext);
-      const yField = chartValueField(config, resolvedContext);
-      const sizeField = chartField(config, resolvedContext, "sizeField", ["valueField"]);
+      const xField = chartXField(config);
+      const yField = chartValueField(config);
+      const sizeField = chartField(config, "sizeField");
       const points = rows.map((row) => ({
         x: numberValue(row?.[xField]),
         y: numberValue(row?.[yField]),
@@ -846,7 +826,7 @@
       };
     }
     if (["histogram", "box-plot"].includes(chartType)) {
-      const values = numericRowsFor(rows, chartValueField(config, resolvedContext)).map((entry) => entry.value);
+      const values = numericRowsFor(rows, chartValueField(config)).map((entry) => entry.value);
       const min = Math.min(...values);
       const max = Math.max(...values, min + 1);
       const binCount = chartDensityFor(instance) === "large" ? 8 : 6;
@@ -864,9 +844,9 @@
       };
     }
     if (chartType === "heatmap") {
-      const xField = chartXField(config, resolvedContext);
-      const yField = chartSeriesField(config, resolvedContext);
-      const valueField = chartValueField(config, resolvedContext);
+      const xField = chartXField(config);
+      const yField = chartSeriesField(config);
+      const valueField = chartValueField(config);
       const xValues = unique(rows.map((row) => chartEscapeLabel(row?.[xField]))).slice(0, 8);
       const yValues = unique(rows.map((row) => chartEscapeLabel(row?.[yField]))).slice(0, 6);
       const cells = [];
@@ -885,7 +865,7 @@
       };
     }
     if (["gauge", "radial-progress", "progress-bar"].includes(chartType)) {
-      const values = numericRowsFor(rows, chartValueField(config, resolvedContext)).map((entry) => entry.value);
+      const values = numericRowsFor(rows, chartValueField(config)).map((entry) => entry.value);
       const value = aggregateValues(values, chartConfiguredAggregation(config)) || 0;
       const max = Number(config.max) || Math.max(value, ...values, 100);
       if (chartType === "progress-bar") {
@@ -915,7 +895,7 @@
       };
     }
     if (chartType === "kpi-trend") {
-      const values = numericRowsFor(rows, chartValueField(config, resolvedContext)).map((entry) => entry.value).slice(0, chartLimit(config, 60));
+      const values = numericRowsFor(rows, chartValueField(config)).map((entry) => entry.value).slice(0, chartLimit(config, 60));
       return {
         ...base,
         grid: { left: 8, right: 8, top: 18, bottom: 8 },
@@ -950,13 +930,13 @@
     return tanstackTableLoadPromise;
   };
 
-  const mountTableBodyRenderer = ({ contentRoot, instance, resolvedContext, data, status }) => {
+  const mountTableBodyRenderer = ({ contentRoot, instance }) => {
     const target = contentRoot?.querySelector?.(".runtime-table-tanstack");
-    if (!target || status !== "ready") return null;
+    if (!target) return null;
     const config = instance?.config || {};
-    const rows = Array.isArray(data?.rows) ? data.rows : [];
+    const rows = [];
     const configuredColumns = tableConfiguredColumns(config);
-    const schemaFields = displaySchemaFields(data).length ? displaySchemaFields(data) : Object.keys(rows[0] || {});
+    const schemaFields = Object.keys(rows[0] || {});
     const allFields = unique(configuredColumns.length ? configuredColumns : schemaFields);
     const visibleFields = allFields.slice(0, tableVisibleColumnCount(instance.cols));
     const visibleRows = rows.slice(0, tableVisibleRowCount(instance.rows, config.limit));
@@ -1027,7 +1007,7 @@
       })
       .catch((error) => {
         if (disposed || !target.isConnected) return;
-        target.innerHTML = widgetPlaceholder("Table unavailable");
+        target.innerHTML = widgetHint("Table unavailable");
       });
     return () => {
       disposed = true;
@@ -1103,7 +1083,7 @@
       })
       .catch((error) => {
         if (disposed || !target.isConnected) return;
-        target.innerHTML = widgetPlaceholder("Editor unavailable");
+        target.innerHTML = widgetHint("Editor unavailable");
       });
     return () => {
       disposed = true;
@@ -1113,9 +1093,9 @@
     };
   };
 
-  const mountChartBodyRenderer = ({ contentRoot, instance, definition, resolvedContext, data, status }) => {
+  const mountChartBodyRenderer = ({ contentRoot, instance, definition }) => {
     const target = contentRoot?.querySelector?.(".runtime-chart-echarts");
-    if (!target || status !== "ready") return null;
+    if (!target) return null;
     const config = instance?.config || {};
     const chartDefinition = getChartDefinition(config.chartType || "bar") || definition;
     let disposed = false;
@@ -1124,16 +1104,16 @@
     loadEcharts()
       .then((echarts) => {
         if (disposed || !target.isConnected) return;
-        const rows = Array.isArray(data?.rows) ? data.rows : [];
+        const rows = [];
         chart = echarts.init(target, null, { renderer: "svg" });
-        chart.setOption(chartEchartsOption({ instance, definition: chartDefinition, rows, resolvedContext, data, element: target }), true);
+        chart.setOption(chartEchartsOption({ instance, definition: chartDefinition, rows, element: target }), true);
         resizeObserver = new ResizeObserver(() => chart?.resize());
         resizeObserver.observe(target);
         requestAnimationFrame(() => chart?.resize());
       })
       .catch((error) => {
         if (disposed || !target.isConnected) return;
-        target.innerHTML = widgetPlaceholder("Chart unavailable");
+        target.innerHTML = widgetHint("Chart unavailable");
       });
     return () => {
       disposed = true;
@@ -1199,10 +1179,10 @@
     valueRequiredForAggregation: !["bar", "horizontal-bar", "grouped-bar", "stacked-bar", "lollipop", "pie", "donut", "heatmap"].includes(chartType),
   }));
 
-  const widgetPlaceholder = (label = "") => {
+  const widgetHint = (label = "") => {
     const text = String(label || "").trim();
     return text
-      ? `<span class="widget-empty-placeholder" role="status">${escapeHtml(text)}</span>`
+      ? `<span class="widget-inline-placeholder" role="status">${escapeHtml(text)}</span>`
       : "";
   };
 
@@ -1213,8 +1193,6 @@
     if (options.stale) parts.push("stale");
     return parts.join(" / ");
   };
-
-  const runtimeSource = (data = null) => data?.demo ? "demo" : "runtime";
 
   const safeMediaUrl = (value, kind = "generic") => {
     const raw = String(value || "").trim();
@@ -1265,13 +1243,6 @@
     }
     return "";
   };
-  const widgetShellStateFromMarkup = (html = "", status = "empty") => {
-    const text = String(html || "");
-    const match = text.match(/data-runtime-state=["']([^"']+)["']/i);
-    if (match?.[1]) return match[1];
-    if (status === "ready") return "ready";
-    return status || "empty";
-  };
   const renderWidgetShell = (definition, props = {}, content = "") => {
     const instance = props.instance || {};
     const shellConfig = definition.shell && typeof definition.shell === "object" ? definition.shell : {};
@@ -1280,11 +1251,9 @@
     const metadata = widgetShellMetadata(definition, instance, props);
     const footer = widgetShellFooter(definition, instance, props);
     const hideHeaderDensities = new Set(Array.isArray(shellConfig.hideHeaderDensities) ? shellConfig.hideHeaderDensities : []);
-    const contentState = widgetShellStateFromMarkup(content, props.status || "empty");
     const showHeader = false;
     const titleClass = ["widget-shell-title", shellConfig.titleClass].filter(Boolean).join(" ");
     const metadataClass = ["widget-shell-meta", shellConfig.metadataClass].filter(Boolean).join(" ");
-    const state = contentState;
     const className = [
       "widget-shell",
       `widget-shell-${escapeHtml(definition.type || "widget")}`,
@@ -1294,7 +1263,7 @@
       shellConfig.mode === "content" ? "widget-shell-content-owned" : "widget-shell-compat",
     ].filter(Boolean).join(" ");
     return `
-      <section class="${className}" data-widget-shell="true" data-shell-version="1" data-shell-density="${escapeHtml(density)}" data-shell-runtime-state="${escapeHtml(state)}">
+      <section class="${className}" data-widget-shell="true" data-shell-version="1" data-shell-density="${escapeHtml(density)}">
         ${showHeader ? `<header class="widget-shell-header">
           <div class="widget-shell-title-zone">
             <span class="${escapeHtml(titleClass)}">${escapeHtml(title)}</span>
@@ -1302,7 +1271,7 @@
           </div>
         </header>` : ""}
         <div class="widget-shell-content" data-widget-shell-content="true">
-          ${content || widgetPlaceholder()}
+          ${content || widgetHint()}
         </div>
         ${footer ? `<footer class="widget-shell-footer">${footer}</footer>` : ""}
       </section>`;
@@ -1392,16 +1361,6 @@
     if (hours < 24) return `${hours}h`;
     return `${Math.round(hours / 24)}d`;
   };
-  const contextScopeLabel = (context = {}) => context.name || "Workspace";
-  const chartContextLabel = (resolvedContext = {}, data = null) => {
-    const parts = [];
-    const filters = Array.isArray(resolvedContext?.filters) ? resolvedContext.filters.length : 0;
-    const time = timeRangeDisplay(resolvedContext?.timeRange);
-    if (filters) parts.push(`${filters} filter${filters === 1 ? "" : "s"}`);
-    if (time) parts.push(time);
-    if (data?.metadata?.scenarioId || resolvedContext?.scenarioId) parts.push("scenario");
-    return parts.join(" / ");
-  };
   const timeRangeDisplay = (timeRange) => {
     if (!timeRange) return "";
     if (timeRange.label) return timeRange.label;
@@ -1410,73 +1369,6 @@
     if (timeRange.end) return `Until ${timeRange.end}`;
     return "";
   };
-  const cloneJson = (value) => JSON.parse(JSON.stringify(value));
-  const DEMO_SEMANTIC_MAPPING = {
-    dateField: "date",
-    valueField: "value",
-    labelField: "label",
-    categoryField: "category",
-    statusField: "state",
-    ownerField: "owner",
-    locationField: "location",
-    latitudeField: "latitude",
-    longitudeField: "longitude",
-  };
-  const DEMO_SCHEMA_FIELDS = [
-    { name: "date", type: "date" },
-    { name: "label", type: "string" },
-    { name: "category", type: "string" },
-    { name: "state", type: "string" },
-    { name: "owner", type: "string" },
-    { name: "location", type: "string" },
-    { name: "latitude", type: "number" },
-    { name: "longitude", type: "number" },
-    { name: "value", type: "number" },
-    { name: "comparison", type: "number" },
-    { name: "progress", type: "number" },
-    { name: "flag", type: "boolean" },
-  ];
-  const DEMO_ROWS = [
-    { date: "2026-05-01", label: "Alpha", category: "North", state: "normal", owner: "Avery", location: "Point A", latitude: 37.71, longitude: -122.39, value: 42, comparison: 36, progress: 0.61, flag: true },
-    { date: "2026-05-02", label: "Beta", category: "North", state: "positive", owner: "Blair", location: "Point B", latitude: 37.77, longitude: -122.43, value: 55, comparison: 41, progress: 0.74, flag: true },
-    { date: "2026-05-03", label: "Gamma", category: "East", state: "warning", owner: "Casey", location: "Point C", latitude: 37.8, longitude: -122.36, value: 28, comparison: 46, progress: 0.38, flag: false },
-    { date: "2026-05-04", label: "Delta", category: "West", state: "negative", owner: "Devon", location: "Point D", latitude: 37.69, longitude: -122.48, value: 19, comparison: 31, progress: 0.22, flag: false },
-    { date: "2026-05-05", label: "Epsilon", category: "South", state: "stale", owner: "Emery", location: "Point E", latitude: 37.63, longitude: -122.42, value: 34, comparison: 33, progress: 0.47, flag: true },
-    { date: "2026-05-06", label: "Zeta", category: "East", state: "normal", owner: "Finley", location: "Point F", latitude: 37.74, longitude: -122.31, value: 63, comparison: 52, progress: 0.81, flag: true },
-    { date: "2026-05-07", label: "Eta", category: "West", state: "positive", owner: "Gray", location: "Point G", latitude: 37.83, longitude: -122.45, value: 71, comparison: 59, progress: 0.88, flag: true },
-    { date: "2026-05-08", label: "Theta", category: "South", state: "warning", owner: "Harper", location: "Point H", latitude: 37.67, longitude: -122.34, value: 25, comparison: 29, progress: 0.33, flag: false },
-    { date: "2026-05-09", label: "Iota", category: "North", state: "normal", owner: "Indigo", location: "Point I", latitude: 37.9, longitude: -122.4, value: 48, comparison: 43, progress: 0.66, flag: true },
-    { date: "2026-05-10", label: "Kappa", category: "East", state: "negative", owner: "Jules", location: "Point J", latitude: 37.58, longitude: -122.29, value: 16, comparison: 24, progress: 0.19, flag: false },
-    { date: "2026-05-11", label: "Lambda", category: "South", state: "positive", owner: "Kai", location: "Point K", latitude: 37.72, longitude: -122.51, value: 84, comparison: 67, progress: 0.94, flag: true },
-    { date: "2026-05-12", label: "Mu", category: "West", state: "stale", owner: "Lane", location: "Point L", latitude: 37.87, longitude: -122.33, value: 39, comparison: 44, progress: 0.52, flag: false },
-    { date: "2026-05-13", label: "Nu", category: "North", state: "warning", owner: "Morgan", location: "Point M", latitude: 37.6, longitude: -122.45, value: 31, comparison: 35, progress: 0.41, flag: false },
-    { date: "2026-05-14", label: "Xi", category: "East", state: "normal", owner: "Nico", location: "Point N", latitude: 37.78, longitude: -122.27, value: 58, comparison: 53, progress: 0.73, flag: true },
-    { date: "2026-05-15", label: "Omicron", category: "West", state: "positive", owner: "Oak", location: "Point O", latitude: 37.65, longitude: -122.37, value: 76, comparison: 62, progress: 0.9, flag: true },
-    { date: "2026-05-16", label: "Pi", category: "South", state: "negative", owner: "Parker", location: "Point P", latitude: 37.84, longitude: -122.5, value: 22, comparison: 27, progress: 0.29, flag: false },
-    { date: "2026-05-17", label: "Rho", category: "North", state: "normal", owner: "Quinn", location: "Point Q", latitude: 37.7, longitude: -122.25, value: 47, comparison: 45, progress: 0.59, flag: true },
-    { date: "2026-05-18", label: "Sigma", category: "East", state: "warning", owner: "Reese", location: "Point R", latitude: 37.92, longitude: -122.47, value: 36, comparison: 39, progress: 0.44, flag: false },
-    { date: "2026-05-19", label: "Tau", category: "West", state: "positive", owner: "Sage", location: "Point S", latitude: 37.61, longitude: -122.32, value: 69, comparison: 54, progress: 0.82, flag: true },
-    { date: "2026-05-20", label: "Upsilon", category: "South", state: "stale", owner: "Tatum", location: "Point T", latitude: 37.75, longitude: -122.55, value: 33, comparison: 37, progress: 0.49, flag: false },
-    { date: "2026-05-21", label: "Phi", category: "North", state: "normal", owner: "Uma", location: "Point U", latitude: 37.88, longitude: -122.38, value: 52, comparison: 47, progress: 0.67, flag: true },
-    { date: "2026-05-22", label: "Chi", category: "East", state: "negative", owner: "Vale", location: "Point V", latitude: 37.66, longitude: -122.28, value: 18, comparison: 26, progress: 0.24, flag: false },
-    { date: "2026-05-23", label: "Psi", category: "West", state: "warning", owner: "Winter", location: "Point W", latitude: 37.81, longitude: -122.53, value: 29, comparison: 34, progress: 0.36, flag: false },
-    { date: "2026-05-24", label: "Omega", category: "South", state: "positive", owner: "Yael", location: "Point X", latitude: 37.57, longitude: -122.4, value: 88, comparison: 72, progress: 0.97, flag: true },
-  ];
-  const demoDataResult = (overrides = {}) => {
-    const runtime = window.dashboardDemoDataRuntime;
-    if (runtime?.widgetDemoData) {
-      return runtime.widgetDemoData(overrides.widgetType || "stat", overrides.config || {}, overrides);
-    }
-    return {
-      name: "Demo data",
-      sourceId: "__demo-widget-source",
-      sourceName: "Demo data",
-      semanticMapping: { ...DEMO_SEMANTIC_MAPPING, ...(overrides.semanticMapping || {}) },
-      schema: { fields: cloneJson(overrides.schemaFields || DEMO_SCHEMA_FIELDS) },
-      rows: cloneJson(overrides.rows || DEMO_ROWS),
-    };
-  };
-
   const unsupportedDefinition = (type = "unknown") => ({
     type: "unsupported",
     displayName: "Unsupported Widget",
@@ -1497,16 +1389,15 @@
     },
     supportedSettings: ["title", "color", "pin", "delete"],
     getDefaultConfig: () => ({ title: `Unsupported: ${type || "unknown"}` }),
-    render: ({ instance }) => widgetPlaceholder(`Unsupported widget: ${instance.type || type || "unknown"}`),
+    render: ({ instance }) => widgetHint(`Unsupported widget: ${instance.type || type || "unknown"}`),
   });
 
-  const statMetricContext = ({ instance, resolvedContext, data } = {}) => {
+  const statMetricContext = ({ instance } = {}) => {
     const config = instance?.config || {};
     const metric = ["count", "sum", "avg", "min", "max"].includes(config.metric) ? config.metric : "count";
-    const mapping = resolvedContext?.semanticMapping || data?.semanticMapping || {};
-    const valueField = config.valueField || mapping.valueField;
-    const rows = Array.isArray(data?.rows) ? data.rows : [];
-    const total = Number.isFinite(Number(data?.total)) ? Number(data.total) : rows.length;
+    const valueField = config.valueField || "";
+    const rows = [];
+    const total = Number.isFinite(Number(config.value)) ? Number(config.value) : 0;
     return {
       metric,
       valueField,
@@ -1560,13 +1451,12 @@
       getMetadata: typeof definition.getMetadata === "function" ? definition.getMetadata : null,
       getFooter: typeof definition.getFooter === "function" ? definition.getFooter : null,
       densityRules: definition.densityRules || definition.densityBehavior || {},
-      getDemoData: typeof definition.getDemoData === "function" ? definition.getDemoData : null,
       mountBodyRenderer: typeof definition.mountBodyRenderer === "function" ? definition.mountBodyRenderer : null,
       unmountBodyRenderer: typeof definition.unmountBodyRenderer === "function" ? definition.unmountBodyRenderer : null,
       renderContent: typeof definition.renderContent === "function" ? definition.renderContent : null,
       render: typeof definition.render === "function"
         ? definition.render
-        : () => widgetPlaceholder(),
+        : () => widgetHint(),
     };
   };
 
@@ -1617,14 +1507,12 @@
     const resolvedDefinition = typeof definition === "string" ? getWidgetDefinition(definition) : definition;
     const instance = props.instance || createWidgetInstance(resolvedDefinition, {});
     const density = normalizeDensity(props.density || instance.density, resolveWidgetDensity(instance, instance.availableSize || {}, resolvedDefinition));
-    const status = props.status || "empty";
     try {
       const renderProps = {
         ...props,
         density,
         instance: { ...instance, density },
         definition: resolvedDefinition,
-        status,
       };
       const content = typeof resolvedDefinition.renderContent === "function"
         ? resolvedDefinition.renderContent(renderProps)
@@ -1633,10 +1521,10 @@
         ? content
         : renderWidgetShell(resolvedDefinition, renderProps, content);
     } catch (error) {
-      const fallback = widgetPlaceholder("Unable to render widget");
+      const fallback = widgetHint("Unable to render widget");
       return resolvedDefinition.shell === false
         ? fallback
-        : renderWidgetShell(resolvedDefinition, { ...props, density, instance: { ...instance, density }, definition: resolvedDefinition, status: "error" }, fallback);
+        : renderWidgetShell(resolvedDefinition, { ...props, density, instance: { ...instance, density }, definition: resolvedDefinition }, fallback);
     }
   };
 
@@ -1683,30 +1571,14 @@
     },
     getTitle: ({ instance }) => statLabelFor(instance?.config || {}),
     getMetadata: (props) => {
-      if (props.status !== "ready") return [];
       const { metricContext } = statMetricContext(props);
-      return runtimeMeta(metricContext, props.data);
+      return metricContext ? [metricContext] : [];
     },
-    getDemoData: (config = {}) => demoDataResult({ widgetType: "stat", config }),
-    renderContent: ({ instance, resolvedContext, data, status }) => {
+    renderContent: ({ instance }) => {
       const config = instance.config || {};
       const label = statLabelFor(config);
-      const { metric, valueField, rows, total } = statMetricContext({ instance, resolvedContext, data });
-      if (metric !== "count" && !valueField) return widgetPlaceholder("Add value field");
-      if (status === "loading") return widgetPlaceholder("Loading");
-      if (status === "error") return widgetPlaceholder("Metric unavailable");
-      if (!rows.length && total <= 0) return widgetPlaceholder("Empty");
-      const numericValues = valueField
-        ? rows.map((row) => numberValue(row?.[valueField])).filter((value) => value != null)
-        : [];
-      let value = total;
-      if (metric !== "count") {
-        if (!numericValues.length) return widgetPlaceholder("Empty");
-        if (metric === "sum") value = numericValues.reduce((sum, current) => sum + current, 0);
-        if (metric === "avg") value = numericValues.reduce((sum, current) => sum + current, 0) / numericValues.length;
-        if (metric === "min") value = Math.min(...numericValues);
-        if (metric === "max") value = Math.max(...numericValues);
-      }
+      const value = config.value ?? "";
+      if (value === "") return widgetHint("Add value");
       return `<span class="stat-val">${escapeHtml(formatMetricValue(value, config.format))}</span>`;
     },
   });
@@ -1839,18 +1711,18 @@
       }],
     },
     getDefaultConfig: () => ({ title: "Region Summary" }),
-    render: ({ instance, resolvedContext }) => {
+    render: ({ instance }) => {
       const summary = window.dashboardSpatialRuntime?.regionSummaryForWidget?.(instance.id) || {};
       const cols = Number(instance.cols) || 2;
       const rows = Number(instance.rows) || 2;
       const density = rows <= 1 ? "compact" : rows >= 3 || cols >= 3 ? "rich" : "standard";
-      const regionLabel = summary.label || resolvedContext?.name || "Current region";
+      const regionLabel = summary.label || "Current region";
       const source = "";
       const rowRange = summary.endRow
         ? `Rows ${summary.startRow || 1}-${summary.endRow}`
         : `Rows ${summary.startRow || 1}+`;
       return `
-        <div class="region-summary-widget region-summary-density-${density}" data-region-id="${escapeHtml(summary.id || resolvedContext?.regionId || "")}">
+        <div class="region-summary-widget region-summary-density-${density}" data-region-id="${escapeHtml(summary.id || "")}">
           <strong class="region-summary-title">${escapeHtml(regionLabel)}</strong>
           <div class="region-summary-metrics" aria-label="Region object counts">
             <span><b>${Number(summary.widgets) || 0}</b> Widgets</span>
@@ -1898,9 +1770,9 @@
       const title = mediaTitle(config, "Image");
       const src = safeMediaUrl(config.src, "image");
       const caption = String(config.caption || "").trim();
-      if (config.assetMissing) return widgetPlaceholder("Image unavailable");
-      if (!String(config.src || "").trim()) return widgetPlaceholder("Add image");
-      if (src == null) return widgetPlaceholder("Image unavailable");
+      if (config.assetMissing) return widgetHint("Image unavailable");
+      if (!String(config.src || "").trim()) return widgetHint("Add image");
+      if (src == null) return widgetHint("Image unavailable");
       const fit = safeMediaFit(config.fit);
       const alt = String(config.alt || caption || title || "Image").trim();
       return `
@@ -1951,20 +1823,20 @@
       const title = mediaTitle(config, "Video");
       const caption = String(config.caption || "").trim();
       const embedType = String(config.embedType || "url").toLowerCase();
-      if (config.assetMissing) return widgetPlaceholder("Video unavailable");
-      if (!String(config.src || "").trim()) return widgetPlaceholder("Add video");
+      if (config.assetMissing) return widgetHint("Video unavailable");
+      if (!String(config.src || "").trim()) return widgetHint("Add video");
       let stage = "";
       if (embedType === "youtube") {
         const embed = youtubeEmbedUrl(config.src);
-        if (!embed) return widgetPlaceholder("Video unavailable");
+        if (!embed) return widgetHint("Video unavailable");
         stage = `<iframe class="media-widget-frame media-widget-video-frame" src="${escapeHtml(embed)}" title="${escapeHtml(title)}" loading="lazy" sandbox="allow-scripts allow-same-origin allow-presentation" allow="encrypted-media; picture-in-picture" allowfullscreen></iframe>`;
       } else if (embedType === "vimeo") {
         const embed = vimeoEmbedUrl(config.src);
-        if (!embed) return widgetPlaceholder("Video unavailable");
+        if (!embed) return widgetHint("Video unavailable");
         stage = `<iframe class="media-widget-frame media-widget-video-frame" src="${escapeHtml(embed)}" title="${escapeHtml(title)}" loading="lazy" sandbox="allow-scripts allow-same-origin allow-presentation" allow="encrypted-media; picture-in-picture" allowfullscreen></iframe>`;
       } else {
         const src = safeMediaUrl(config.src, "video");
-        if (src == null) return widgetPlaceholder("Video unavailable");
+        if (src == null) return widgetHint("Video unavailable");
         stage = `<video class="media-widget-video" src="${escapeHtml(src)}" controls preload="metadata"${config.autoplay ? " autoplay" : ""}${config.muted !== false ? " muted" : ""} playsinline></video>`;
       }
       return `
@@ -2023,10 +1895,10 @@
             ${mediaCaptionMarkup(caption)}
           </div>`;
       }
-      if (config.assetMissing) return widgetPlaceholder("Document unavailable");
-      if (!String(config.src || "").trim()) return widgetPlaceholder("Add document");
+      if (config.assetMissing) return widgetHint("Document unavailable");
+      if (!String(config.src || "").trim()) return widgetHint("Add document");
       const src = safeMediaUrl(config.src, "document");
-      if (src == null) return widgetPlaceholder("Document unavailable");
+      if (src == null) return widgetHint("Document unavailable");
       const page = Math.max(1, Number(config.currentPage) || 1);
       const frameSrc = kind === "pdf" && !String(src).startsWith("data:")
         ? `${src}#page=${page}`
@@ -2084,30 +1956,22 @@
       }],
     },
     getDefaultConfig: () => ({ title: "Table", columns: [], limit: 50, sortBy: "", sortDirection: "asc" }),
-    getDemoData: (config = {}) => demoDataResult({ widgetType: "table", config }),
     mountBodyRenderer: mountTableBodyRenderer,
-    render: ({ instance, resolvedContext, data, status, density = instance.density || "standard" }) => {
+    render: ({ instance, density = instance.density || "standard" }) => {
       const config = instance.config || {};
       const densityTier = normalizeDensity(density);
       const title = config.title || "Table";
-      if (status === "loading") return widgetPlaceholder("Loading");
-      if (status === "error") return widgetPlaceholder("Rows unavailable");
-      const displayData = Array.isArray(data?.rows) && data.rows.length ? data : demoDataResult({ widgetType: "table", config });
-      const rows = displayData?.rows || [];
       const configuredColumns = tableConfiguredColumns(config);
-      const schemaFields = displaySchemaFields(displayData).length ? displaySchemaFields(displayData) : Object.keys(rows[0] || {});
-      const allFields = unique(configuredColumns.length ? configuredColumns : schemaFields);
-      if (!allFields.length || !rows.length) return widgetPlaceholder("Empty");
+      const allFields = unique(configuredColumns);
+      if (!allFields.length) return widgetHint("Add columns");
       const visibleFields = allFields.slice(0, tableVisibleColumnCount(instance.cols));
-      const visibleRows = rows.slice(0, tableVisibleRowCount(instance.rows, config.limit));
       const tableDensity = Number(instance.rows) <= 2 || Number(instance.cols) <= 2
         ? "compact"
         : Number(instance.rows) >= 4 || Number(instance.cols) >= 4 || densityTier === "rich"
           ? "rich"
           : "comfortable";
-      const total = Number.isFinite(Number(displayData?.total)) ? Number(displayData.total) : rows.length;
       return `
-        <div class="runtime-table-widget runtime-table-density-${tableDensity} widget-density-${densityTier}" data-density="${escapeHtml(densityTier)}" data-runtime-state="ready" data-runtime-source="${escapeHtml(runtimeSource(displayData))}" data-visible-rows="${visibleRows.length}" data-visible-columns="${visibleFields.length}">
+        <div class="runtime-table-widget runtime-table-density-${tableDensity} widget-density-${densityTier}" data-density="${escapeHtml(densityTier)}" data-visible-columns="${visibleFields.length}">
           <div class="widget-content-well widget-library-surface runtime-table-library-surface">
             <div class="runtime-table-tanstack" data-table-renderer="tanstack" role="region" aria-label="${escapeHtml(title)}"></div>
           </div>
@@ -2168,36 +2032,20 @@
         showLabels: true,
       },
     }),
-    getDemoData: (config = {}) => demoDataResult({
-      widgetType: "chart",
-      config,
-      semanticMapping: ["scatter", "bubble"].includes(config.chartType)
-        ? { dateField: "comparison", valueField: "value" }
-        : {},
-    }),
     mountBodyRenderer: mountChartBodyRenderer,
-    render: ({ instance, resolvedContext, data, status }) => {
+    render: ({ instance }) => {
       const config = instance.config || {};
       const chartType = config.chartType || "bar";
       const definition = getChartDefinition(chartType);
       const title = config.title || "Chart";
-      if (!definition) return widgetPlaceholder("Chart unavailable");
-      const displayData = Array.isArray(data?.rows) && data.rows.length ? data : demoDataResult({ widgetType: "chart", config });
-      const renderContext = { ...(resolvedContext || {}), semanticMapping: displayMappingFor(resolvedContext, displayData) };
-      const requiredMessage = chartRequiredFieldMessage(definition, config, renderContext);
-      if (requiredMessage) return widgetPlaceholder("Add chart fields");
-      if (status === "loading") return widgetPlaceholder("Loading");
-      if (status === "error") return widgetPlaceholder("Chart unavailable");
-      const rows = Array.isArray(displayData?.rows) ? displayData.rows : [];
-      if (!rows.length) return widgetPlaceholder("Empty");
+      if (!definition) return widgetHint("Chart unavailable");
+      const requiredMessage = chartRequiredFieldMessage(definition, config);
+      if (requiredMessage) return widgetHint("Add chart fields");
       return definition.render({
         instance,
         definition,
-        resolvedContext: renderContext,
-        data: displayData,
-        rows,
+        rows: [],
         display: chartDisplayConfig(config),
-        status,
       });
     },
   });
@@ -2290,38 +2138,25 @@
       layerType: "points",
       limit: 250,
     }),
-    getDemoData: (config = {}) => demoDataResult({ widgetType: "map", config }),
-    render: ({ instance, resolvedContext, data, status }) => {
+    render: ({ instance }) => {
       const config = instance.config || {};
       const title = config.title || "Map";
-      const displayData = Array.isArray(data?.rows) && data.rows.length ? data : demoDataResult({ widgetType: "map", config });
-      const mapping = displayMappingFor(resolvedContext, displayData);
-      const latitudeField = String(config.latitudeField || mapping.latitudeField || "").trim();
-      const longitudeField = String(config.longitudeField || mapping.longitudeField || "").trim();
-      const locationField = String(config.locationField || mapping.locationField || "").trim();
-      if ((!latitudeField || !longitudeField) && !locationField) return widgetPlaceholder("Add location fields");
-      if (status === "loading") return widgetPlaceholder("Loading");
-      if (status === "error") return widgetPlaceholder("Map unavailable");
-      const rows = Array.isArray(displayData?.rows) ? displayData.rows : [];
-      if (!rows.length) return widgetPlaceholder("Empty");
-      const points = mapExtractPoints(displayData, config, mapping);
-      if (!points.length) return widgetPlaceholder("Empty");
+      const points = [];
       const density = chartVisualDensity(instance.density || "standard");
       const labels = points.slice(0, density === "large" ? 4 : 2).map((point) => `<span>${escapeHtml(point.label)}</span>`).join("");
       return `
-        <div class="runtime-map-widget runtime-map-density-${escapeHtml(density)}" data-runtime-state="ready" data-runtime-source="${escapeHtml(runtimeSource(displayData))}" data-map-layer="${escapeHtml(config.layerType || "points")}" data-map-demo="${displayData?.demo ? "true" : "false"}">
+        <div class="runtime-map-widget runtime-map-density-${escapeHtml(density)}" data-map-layer="${escapeHtml(config.layerType || "points")}">
           <div class="widget-content-well widget-library-surface runtime-map-leaflet-surface">
             <div class="runtime-map-leaflet" role="region" aria-label="${escapeHtml(title)}"></div>
           </div>
           <div class="runtime-map-legend">${labels}</div>
         </div>`;
     },
-    mountBodyRenderer: ({ contentRoot, instance, resolvedContext, data, status }) => {
+    mountBodyRenderer: ({ contentRoot, instance }) => {
       const target = contentRoot?.querySelector?.(".runtime-map-leaflet");
-      if (!target || status !== "ready") return null;
+      if (!target) return null;
       const config = instance?.config || {};
-      const mapping = resolvedContext?.semanticMapping || {};
-      const points = mapExtractPoints(data, config, mapping);
+      const points = [];
       if (!points.length) return null;
       let disposed = false;
       let map = null;
@@ -2358,7 +2193,7 @@
         })
         .catch((error) => {
           if (disposed || !target.isConnected) return;
-          target.innerHTML = widgetPlaceholder("Map unavailable");
+          target.innerHTML = widgetHint("Map unavailable");
         });
       return () => {
         disposed = true;
@@ -2435,39 +2270,25 @@
       }],
     },
     getDefaultConfig: () => ({ title: "Calendar", dateField: "", labelField: "", limit: 12 }),
-    getDemoData: (config = {}) => demoDataResult({ widgetType: "calendar", config }),
-    render: ({ instance, resolvedContext, data, status }) => {
+    render: ({ instance }) => {
       const title = instance.config.title || "Calendar";
       const config = instance.config || {};
-      const displayData = Array.isArray(data?.rows) && data.rows.length ? data : demoDataResult({ widgetType: "calendar", config });
-      const mapping = displayMappingFor(resolvedContext, displayData);
-      const dateField = String(config.dateField || mapping.dateField || "").trim();
-      if (!dateField) return widgetPlaceholder("Add date field");
-      if (status === "loading") return widgetPlaceholder("Loading");
-      if (status === "error") return widgetPlaceholder("Calendar unavailable");
-      const rows = Array.isArray(displayData?.rows) ? displayData.rows : [];
-      if (!rows.length) return widgetPlaceholder("Empty");
-      const events = calendarExtractEvents(displayData, config, mapping);
-      if (!events.length) return widgetPlaceholder("Empty");
-      const first = events[0].date;
-      const monthName = first.toLocaleDateString(undefined, { month: "short", year: "numeric" });
-      const initialDate = first.toISOString().split("T")[0];
+      const dateField = String(config.dateField || "").trim();
+      if (!dateField) return widgetHint("Add date field");
+      const monthName = config.title || "Calendar";
+      const initialDate = new Date().toISOString().split("T")[0];
       return `
-        <div class="runtime-calendar-widget" data-runtime-state="ready" data-runtime-source="${escapeHtml(runtimeSource(displayData))}" data-calendar-demo="${displayData?.demo ? "true" : "false"}">
+        <div class="runtime-calendar-widget">
           <div class="widget-content-well widget-library-surface runtime-calendar-fullcalendar-surface">
             <div class="runtime-calendar-fullcalendar" data-calendar-initial="${escapeHtml(initialDate)}" role="region" aria-label="${escapeHtml(monthName)}"></div>
           </div>
-          <div class="runtime-calendar-list">
-            ${events.slice(0, 3).map((event) => `<span><b>${escapeHtml(String(event.date.getDate()))}</b>${escapeHtml(event.label)}</span>`).join("")}
-          </div>
         </div>`;
     },
-    mountBodyRenderer: ({ contentRoot, instance, resolvedContext, data, status }) => {
+    mountBodyRenderer: ({ contentRoot, instance }) => {
       const target = contentRoot?.querySelector?.(".runtime-calendar-fullcalendar");
-      if (!target || status !== "ready") return null;
+      if (!target) return null;
       const config = instance?.config || {};
-      const mapping = resolvedContext?.semanticMapping || {};
-      const events = calendarExtractEvents(data, config, mapping);
+      const events = [];
       if (!events.length) return null;
       const initialDate = target.dataset.calendarInitial || events[0].date.toISOString().split("T")[0];
       const fcEvents = events.map((event) => ({
@@ -2501,7 +2322,7 @@
         })
         .catch((error) => {
           if (disposed || !target.isConnected) return;
-          target.innerHTML = widgetPlaceholder("Calendar unavailable");
+          target.innerHTML = widgetHint("Calendar unavailable");
         });
       return () => {
         disposed = true;
@@ -2595,7 +2416,6 @@
         mode: definition.shell?.mode || "compat",
         showHeader: Boolean(definition.shell?.showHeader),
       },
-      hasDemoData: typeof definition.getDemoData === "function",
     })),
     parseConfig,
   };

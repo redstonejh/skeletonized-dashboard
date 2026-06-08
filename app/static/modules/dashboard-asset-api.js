@@ -14,7 +14,6 @@ export const createDashboardAssetApi = ({
   widgetConfigFromElement,
   setWidgetConfig,
   renderWidgetRuntimeContent,
-  resolveWidgetDisplayState,
   persistRuntimeControlChangeForWidget,
   assetSourceRef,
 }) => ({
@@ -46,7 +45,7 @@ export const createDashboardAssetApi = ({
     const nextConfig = { ...config, assetId: assetIdValue || "" };
     delete nextConfig.src;
     setWidgetConfig(node, nextConfig);
-    renderWidgetRuntimeContent(node, { resolvedContext: resolveWidgetDisplayState(node), status: node.dataset.widgetRuntimeStatus || "empty" });
+    renderWidgetRuntimeContent(node);
     persistRuntimeControlChangeForWidget(node, { history: options.history !== false, invalidateQuery: false });
     return true;
   },

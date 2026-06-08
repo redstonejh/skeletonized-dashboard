@@ -15,7 +15,6 @@ export const createWidgetSettingsService = ({
   setWidgetConfig,
   widgetDisplayStateForWidget,
   renderWidgetRuntimeContent,
-  refreshWidgetRuntimeData,
   renderWidgetSettingsSchemaPanel,
   renderWidgetWorkbenchPanel,
 }) => {
@@ -45,8 +44,8 @@ export const createWidgetSettingsService = ({
     if (!widget?.classList?.contains("widget-card")) return;
     const definition = widgetDefinitionForElement(widget);
     if (definition.type === "timeframe") {
-      const resolvedContext = resolveWidgetDisplayState(widget);
-      const timeRange = normalizedTimeframeWidgetRange(widget, resolvedContext);
+      const displayState = resolveWidgetDisplayState(widget);
+      const timeRange = normalizedTimeframeWidgetRange(widget, displayState);
       if (timeRange) {
       widget.dataset.timeframePreset = timeRange.preset || "";
       widget.dataset.timeframeLabel = timeRange.label || "";
@@ -94,16 +93,7 @@ export const createWidgetSettingsService = ({
     syncWidgetContextOutputs(widget);
     const affectsDisplay = Boolean(field.affectsQuery || field.affectsContext);
     persistRuntimeControlChangeForWidget(widget, { history: options.history !== false, invalidateQuery: affectsDisplay });
-    if (affectsDisplay) {
-      refreshWidgetRuntimeData(widget, resolveWidgetDisplayState(widget), { force: true, allowFocused: true });
-    } else {
-      const queryState = widgetDisplayStateForWidget(widget);
-      renderWidgetRuntimeContent(widget, {
-        resolvedContext: resolveWidgetDisplayState(widget),
-        data: queryState?.data,
-        status: queryState?.status || widget.dataset.widgetRuntimeStatus || "empty",
-      });
-    }
+    renderWidgetRuntimeContent(widget);
     return true;
   };
 

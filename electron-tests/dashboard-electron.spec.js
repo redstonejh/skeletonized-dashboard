@@ -195,17 +195,14 @@ async function widgetRenderSnapshot(page, selector) {
   return page.locator(selector).evaluate((node) => {
     const shell = node.querySelector("[data-widget-shell]");
     const content = node.querySelector("[data-widget-shell-content='true']");
+    const removedStatusKey = ["widget", "Runtime", "Status"].join("");
+    const removedModelAttr = (key) => key === removedStatusKey || /^runtime(Condition|Urgency|Freshness|Activity|Confidence|Meaning)/.test(key);
     return {
       key: node.dataset.widgetKey || "",
-      status: node.dataset.widgetRuntimeStatus || "",
-      condition: node.dataset.runtimeCondition || "",
-      urgency: node.dataset.runtimeUrgency || "",
-      freshness: node.dataset.runtimeFreshness || "",
-      activity: node.dataset.runtimeActivity || "",
-      confidence: node.dataset.runtimeConfidence || "",
       density: node.dataset.widgetDensity || node.dataset.density || "",
       shell: node.dataset.widgetShell || "",
-      shellState: shell?.getAttribute("data-shell-runtime-state") || "",
+      modelAttrs: Object.keys(node.dataset).filter(removedModelAttr),
+      shellModelAttrs: shell ? [...shell.attributes].map((attr) => attr.name).filter((name) => /runtime/i.test(name)) : [],
       content: content?.textContent?.trim() || "",
       tools: node.querySelectorAll(":scope > .widget-tools").length,
       resizeHandles: node.querySelectorAll(":scope > .widget-tools .panel-resize-handle").length,
@@ -1324,28 +1321,21 @@ test("electron GUI restores widget tools through init", async () => {
   await closeApp(app);
 });
 
-test("electron GUI commits widget runtime content and meaning across reload", async () => {
+test("electron GUI commits widget content across reload without runtime data model", async () => {
   const { app, page } = await launchApp();
   const selector = '.widget-layout > .widget-card[data-widget-key="widget-1"]';
   await page.waitForFunction((selector) => {
     const widget = document.querySelector(selector);
     const content = widget?.querySelector("[data-widget-shell-content='true']");
-    return Boolean(
-      widget?.dataset.widgetRuntimeStatus === "ready" &&
-      widget?.dataset.runtimeCondition &&
-      content?.textContent?.trim()
-    );
+    return Boolean(content?.textContent?.trim());
   }, selector);
   const before = await page.locator(selector).evaluate((node) => ({
     key: node.dataset.widgetKey || "",
-    status: node.dataset.widgetRuntimeStatus || "",
-    condition: node.dataset.runtimeCondition || "",
-    urgency: node.dataset.runtimeUrgency || "",
-    shellState: node.querySelector("[data-widget-shell]")?.getAttribute("data-shell-runtime-state") || "",
+    modelAttrs: Object.keys(node.dataset).filter((key) => key === ["widget", "Runtime", "Status"].join("") || /^runtime(Condition|Urgency|Freshness|Activity|Confidence|Meaning)/.test(key)),
     content: node.querySelector("[data-widget-shell-content='true']")?.textContent?.trim() || "",
   }));
   expect(before.content.length).toBeGreaterThan(0);
-  expect(before.condition.length).toBeGreaterThan(0);
+  expect(before.modelAttrs).toEqual([]);
   await openControlBar(page);
   await page.locator(".layout-save-button").click();
   await page.reload();
@@ -1353,22 +1343,15 @@ test("electron GUI commits widget runtime content and meaning across reload", as
   await page.waitForFunction((selector) => {
     const widget = document.querySelector(selector);
     const content = widget?.querySelector("[data-widget-shell-content='true']");
-    return Boolean(
-      widget?.dataset.widgetRuntimeStatus === "ready" &&
-      widget?.dataset.runtimeCondition &&
-      content?.textContent?.trim()
-    );
+    return Boolean(content?.textContent?.trim());
   }, selector);
   const after = await page.locator(selector).evaluate((node) => ({
     key: node.dataset.widgetKey || "",
-    status: node.dataset.widgetRuntimeStatus || "",
-    condition: node.dataset.runtimeCondition || "",
-    urgency: node.dataset.runtimeUrgency || "",
-    shellState: node.querySelector("[data-widget-shell]")?.getAttribute("data-shell-runtime-state") || "",
+    modelAttrs: Object.keys(node.dataset).filter((key) => key === ["widget", "Runtime", "Status"].join("") || /^runtime(Condition|Urgency|Freshness|Activity|Confidence|Meaning)/.test(key)),
     content: node.querySelector("[data-widget-shell-content='true']")?.textContent?.trim() || "",
   }));
   expect(after).toEqual(before);
-  await writeInteractionScenarios(page, ["widget-runtime-content-meaning"], { before, after });
+  await writeInteractionScenarios(page, ["widget-content-no-runtime-model"], { before, after });
   await closeApp(app);
 });
 
@@ -1387,11 +1370,11 @@ test("electron GUI treats widgets as display objects without data-source configu
   const before = await page.locator(selector).evaluate((node) => ({
     text: node.textContent || "",
     content: node.querySelector("[data-widget-shell-content='true']")?.textContent?.trim() || "",
-    status: node.dataset.widgetRuntimeStatus || "",
+    modelAttrs: Object.keys(node.dataset).filter((key) => key === ["widget", "Runtime", "Status"].join("") || /^runtime(Condition|Urgency|Freshness|Activity|Confidence|Meaning)/.test(key)),
     sourceAttrs: Object.keys(node.dataset).filter((key) => /dataSource|dataAdapter|dataOrigin|workspaceContext/i.test(key)),
   }));
   expect(before.content).toContain("Display object canary");
-  expect(before.status).toBe("ready");
+  expect(before.modelAttrs).toEqual([]);
   expect(before.text).not.toMatch(/needs data source|data substrate|configure a data source/i);
   expect(before.sourceAttrs).toEqual([]);
 
@@ -1410,24 +1393,22 @@ test("electron GUI treats widgets as display objects without data-source configu
     const widgetSelector = `.widget-layout > .widget-card[data-widget-key="${key}"]`;
     await page.waitForFunction((widgetSelector) => {
       const node = document.querySelector(widgetSelector);
-      return Boolean(node?.dataset.widgetRuntimeStatus === "ready" && node.querySelector("[data-widget-shell-content='true'], .widget-empty-placeholder, .runtime-table-widget, .runtime-chart-widget, .runtime-map-widget, .runtime-calendar-widget"));
+      return Boolean(node?.querySelector("[data-widget-shell-content='true'], .widget-inline-placeholder, .runtime-table-widget, .runtime-chart-widget, .runtime-map-widget, .runtime-calendar-widget"));
     }, widgetSelector);
     const state = await page.locator(widgetSelector).evaluate((node) => ({
       kind: node.dataset.widgetDefinition || "",
       text: node.textContent || "",
-      status: node.dataset.widgetRuntimeStatus || "",
+      modelAttrs: Object.keys(node.dataset).filter((key) => key === ["widget", "Runtime", "Status"].join("") || /^runtime(Condition|Urgency|Freshness|Activity|Confidence|Meaning)/.test(key)),
       width: node.getBoundingClientRect().width,
       height: node.getBoundingClientRect().height,
-      placeholderCount: node.querySelectorAll(".widget-empty-placeholder").length,
-      cardCount: node.querySelectorAll([".widget-" + "runtime-state", ".runtime-" + "state-details", ".runtime-" + "state-detail"].join(", ")).length,
+      placeholderCount: node.querySelectorAll(".widget-inline-placeholder").length,
       sourceAttrs: Object.keys(node.dataset).filter((key) => /dataSource|dataAdapter|dataOrigin|workspaceContext/i.test(key)),
     }));
     expect(state.kind).toBe(entry.expectedDefinition || entry.kind);
-    expect(state.status).toBe("ready");
+    expect(state.modelAttrs).toEqual([]);
     expect(state.width).toBeGreaterThan(60);
     expect(state.height).toBeGreaterThan(40);
     expect(state.text).not.toMatch(/needs data source|data substrate|configure a data source|required fields|connect an input stream|expected|why|next|broaden/i);
-    expect(state.cardCount).toBe(0);
     expect(state.placeholderCount).toBeLessThanOrEqual(1);
     expect(state.sourceAttrs).toEqual([]);
     added.push({ ...entry, key, expectedDefinition: entry.expectedDefinition || entry.kind });
@@ -1443,12 +1424,12 @@ test("electron GUI treats widgets as display objects without data-source configu
   }, selector);
   const after = await page.locator(selector).evaluate((node) => ({
     content: node.querySelector("[data-widget-shell-content='true']")?.textContent?.trim() || "",
-    status: node.dataset.widgetRuntimeStatus || "",
+    modelAttrs: Object.keys(node.dataset).filter((key) => key === ["widget", "Runtime", "Status"].join("") || /^runtime(Condition|Urgency|Freshness|Activity|Confidence|Meaning)/.test(key)),
     sourceAttrs: Object.keys(node.dataset).filter((key) => /dataSource|dataAdapter|dataOrigin|workspaceContext/i.test(key)),
   }));
   expect(after).toMatchObject({
     content: before.content,
-    status: "ready",
+    modelAttrs: [],
     sourceAttrs: [],
   });
   for (const entry of added) {
@@ -1457,14 +1438,12 @@ test("electron GUI treats widgets as display objects without data-source configu
     const state = await page.locator(widgetSelector).evaluate((node) => ({
       kind: node.dataset.widgetDefinition || "",
       text: node.textContent || "",
-      status: node.dataset.widgetRuntimeStatus || "",
-      cardCount: node.querySelectorAll([".widget-" + "runtime-state", ".runtime-" + "state-details", ".runtime-" + "state-detail"].join(", ")).length,
+      modelAttrs: Object.keys(node.dataset).filter((key) => key === ["widget", "Runtime", "Status"].join("") || /^runtime(Condition|Urgency|Freshness|Activity|Confidence|Meaning)/.test(key)),
       sourceAttrs: Object.keys(node.dataset).filter((key) => /dataSource|dataAdapter|dataOrigin|workspaceContext/i.test(key)),
     }));
     expect(state.kind).toBe(entry.expectedDefinition);
-    expect(state.status).toBe("ready");
+    expect(state.modelAttrs).toEqual([]);
     expect(state.text).not.toMatch(/needs data source|data substrate|configure a data source|required fields|connect an input stream|expected|why|next|broaden/i);
-    expect(state.cardCount).toBe(0);
     expect(state.sourceAttrs).toEqual([]);
   }
   await closeApp(app);
@@ -1544,7 +1523,7 @@ test("electron GUI clears stale conditional style state on widget render", async
   await closeApp(app);
 });
 
-test("electron GUI keeps widget runtime content, tools, and resize ready after render and reload", async () => {
+test("electron GUI keeps widget content, tools, and resize ready after render and reload", async () => {
   const { app, page } = await launchApp();
   const textWidget = await addTextWidget(page);
   const widgetKey = await textWidget.evaluate((node) => node.dataset.widgetKey || "");
@@ -1557,9 +1536,8 @@ test("electron GUI keeps widget runtime content, tools, and resize ready after r
     return Boolean(widget?.querySelector("[data-widget-shell-content='true']")?.textContent?.includes("Runtime content canary"));
   }, selector);
   const before = await widgetRenderSnapshot(page, selector);
-  expect(before.status.length).toBeGreaterThan(0);
-  expect(before.condition.length).toBeGreaterThan(0);
-  expect(before.shellState.length).toBeGreaterThan(0);
+  expect(before.modelAttrs).toEqual([]);
+  expect(before.shellModelAttrs).toEqual([]);
   expect(before.content).toContain("Runtime content canary");
   expect(before.tools).toBe(1);
   expect(before.resizeHandles).toBe(1);
@@ -1575,11 +1553,9 @@ test("electron GUI keeps widget runtime content, tools, and resize ready after r
   const afterReload = await widgetRenderSnapshot(page, selector);
   expect(afterReload).toMatchObject({
     key: before.key,
-    status: before.status,
-    condition: before.condition,
-    urgency: before.urgency,
     shell: before.shell,
-    shellState: before.shellState,
+    modelAttrs: [],
+    shellModelAttrs: [],
     content: before.content,
     tools: 1,
     resizeHandles: 1,
@@ -2187,3 +2163,5 @@ test("ordered grid item runtime preserves query semantics", async () => {
   });
   await closeApp(app);
 });
+
+

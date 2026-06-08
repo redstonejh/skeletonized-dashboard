@@ -3,7 +3,6 @@ export const createWidgetRuntimeControls = ({
   setWidgetConfig,
   setWidgetConfigValue,
   normalizedFilterWidgetFilters,
-  resolveWidgetDisplayState,
   captureRuntimeControlBaselineForWidget,
   renderWidgetRuntimeContent,
   syncWidgetContextOutputs,
@@ -39,7 +38,6 @@ export const createWidgetRuntimeControls = ({
       filters[index] = current;
       const nextConfig = { ...config, filters };
       setWidgetConfig(widget, nextConfig);
-      widget.dataset.widgetRuntimeStatus = "ready";
       return true;
     };
 
@@ -51,7 +49,6 @@ export const createWidgetRuntimeControls = ({
         widget.__textWidgetEditBaselineCaptured = true;
       }
       setWidgetConfigValue(widget, "body", editor.value);
-      widget.dataset.widgetRuntimeStatus = "ready";
       if (eventType === "change" || eventType === "focusout") {
         widget.__textWidgetEditBaselineCaptured = false;
       }
@@ -68,12 +65,8 @@ export const createWidgetRuntimeControls = ({
       const normalizedFilters = (config) => runtime?.normalizeTimeframeFilters?.(config) || [];
       const setTimeframeConfig = (nextConfig, options = {}) => {
         setWidgetConfig(widget, nextConfig);
-        renderWidgetRuntimeContent(widget, {
-          resolvedContext: resolveWidgetDisplayState(widget),
-          status: widget.dataset.widgetRuntimeStatus || "ready",
-        });
+        renderWidgetRuntimeContent(widget);
         syncWidgetContextOutputs(widget);
-        widget.dataset.widgetRuntimeStatus = "ready";
         if (widget.classList.contains("widget-workbench-open") && options.refreshWorkbench !== false) {
           ensureWidgetWorkbenchPanel(widget);
         }
@@ -159,7 +152,6 @@ export const createWidgetRuntimeControls = ({
           ...widgetConfigFromElement(widget),
           query: searchInput.value,
         });
-        widget.dataset.widgetRuntimeStatus = "ready";
         persistRuntimeControlChange({ history: false });
         return;
       }
@@ -195,12 +187,8 @@ export const createWidgetRuntimeControls = ({
           selectedPreset: selectedFilter?.type || "",
           activeLabel: selectedFilter?.label || "",
         });
-        renderWidgetRuntimeContent(widget, {
-          resolvedContext: resolveWidgetDisplayState(widget),
-          status: "ready",
-        });
+        renderWidgetRuntimeContent(widget);
         syncWidgetContextOutputs(widget);
-        widget.dataset.widgetRuntimeStatus = "ready";
         event.__widgetRuntimeHandledBy = widget;
         persistRuntimeControlChange({ history: true });
         return;

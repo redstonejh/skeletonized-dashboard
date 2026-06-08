@@ -16,12 +16,7 @@ export const createWidgetWorkbenchRuntime = ({
   };
 
   const fieldPickerOptionsForWidget = (widget, config = widgetConfigFromElement(widget)) => {
-    const resolved = resolveWidgetDisplayState(widget);
-    const mapping = resolved.semanticMapping || {};
-    const cachedFields = widgetDisplayStateForWidget(widget)?.data?.schema?.fields?.map((field) => field.name) || [];
     return uniqueValues([
-      ...cachedFields,
-      ...Object.values(mapping).filter((value) => typeof value === "string"),
       ...(Array.isArray(config.columns) ? config.columns : []),
       config.valueField,
       config.xField,
@@ -214,7 +209,6 @@ export const createWidgetWorkbenchRuntime = ({
 
   const renderWidgetWorkbenchPanel = (widget) => {
     const definition = widgetDefinitionForElement(widget);
-    const status = widget.dataset.widgetRuntimeStatus || "empty";
     const logicMarkup = definition.type === "timeframe"
       ? renderTimeframeWorkbenchPanel(widget)
       : renderWidgetSettingsSchemaPanel(widget, "logic");
