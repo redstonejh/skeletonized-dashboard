@@ -1,0 +1,6 @@
+{
+  "verdict": "SHIP",
+  "tests_run": false,
+  "tests_skipped_reason": "User explicitly instructed NO TESTS and manual verification.",
+  "summary": "Removed the root stable scrollbar gutter and hid the root scrollbar rail/thumb so no visible right-side reserve strip is painted."
+}
