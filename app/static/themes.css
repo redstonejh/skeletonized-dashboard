@@ -5585,6 +5585,10 @@ no card. Active * filter is indicated by a subtle underline + slightly higher * 
 }
 .panel-layout > .db-panel,
 .workspace-divider.db-panel{
+  --panel-content-surface: transparent !important;
+  --panel-content-diffusion: none !important;
+  --recessed-interior-bg: transparent !important;
+  --recessed-interior-diffusion: none !important;
   --panel-content-rim: transparent !important;
   --panel-content-shadow: none !important;
   --recessed-interior-border: transparent !important;
@@ -5600,10 +5604,15 @@ no card. Active * filter is indicated by a subtle underline + slightly higher * 
   border-bottom: 0 !important;
   border-left: 0 !important;
   border-color: transparent !important;
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
   outline: 0 !important;
   outline-offset: 0 !important;
   box-shadow: none !important;
 }
+.panel-layout > .db-panel > .db-panel-body::before,
+.workspace-divider.db-panel > .db-panel-body::before,
 .panel-layout > .db-panel > .db-panel-body::after,
 .workspace-divider.db-panel > .db-panel-body::after{
   content: none !important;
