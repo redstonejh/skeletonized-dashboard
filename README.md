@@ -25,6 +25,7 @@ Visible dashboard names and text surfaces edit in place on the displayed text el
 ## Visualization Wells
 
 Visualization widgets use a separated color model: the widget theme accent drives data marks and the object rim, while the visualization well has a two-option white/dark-grey tone whose neutral foreground is derived for readability.
+Visualization widgets expose those well tones first in the shared color menu, followed by the normal theme accent palette.
 
 ## Project Layout
 

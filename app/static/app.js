@@ -81,7 +81,6 @@ import {
   hexToRgb,
   panelThemePresets,
   panelToolButtonsMarkup,
-  positionPanelColorMenu,
   readableTextFor,
   syncPanelThemeVars,
 } from "./modules/panel-appearance-runtime.js";
@@ -2214,6 +2213,9 @@ document.addEventListener("DOMContentLoaded", () => {
     saveWidgetLayouts,
     savePanelLayouts,
     menuOverlayLayer,
+    widgetConfigFromElement,
+    setWidgetConfig,
+    renderWidgetRuntimeContent,
   });
 
   ({
@@ -2303,7 +2305,6 @@ document.addEventListener("DOMContentLoaded", () => {
     restoreDashboardToolDrawer,
     closeInactiveDashboardTools,
     portalFloatingMenu,
-    positionPanelColorMenu,
     syncPanelThemeVars,
     applyWidgetSettingsSchemaChange,
     groupPeers,
@@ -2428,7 +2429,6 @@ document.addEventListener("DOMContentLoaded", () => {
       surfaceResponseControlSelector,
       closeInactiveDashboardTools,
       syncPanelThemeVars,
-      positionPanelColorMenu,
       groupPeers,
       groupItemLayout,
       savePanelLayouts,

@@ -108,9 +108,33 @@ export const applyPanelTitleColor = (panel, color) => {
   }
 };
 
+const rectSnapshot = (rect) => ({
+  left: rect.left,
+  right: rect.right,
+  top: rect.top,
+  bottom: rect.bottom,
+  width: rect.width,
+  height: rect.height,
+});
+
+const panelColorMenuAnchorRect = (colorToggle, menu) => {
+  const anchor = colorToggle || menu?.__panelColorAnchor;
+  if (anchor?.isConnected) {
+    const rect = anchor.getBoundingClientRect();
+    if (Number.isFinite(rect.left) && Number.isFinite(rect.top)) {
+      const snapshot = rectSnapshot(rect);
+      menu.__panelColorAnchor = anchor;
+      menu.__panelColorAnchorRect = snapshot;
+      return snapshot;
+    }
+  }
+  return menu?.__panelColorAnchorRect || null;
+};
+
 export const positionPanelColorMenu = (colorToggle, menu) => {
-  if (!colorToggle || !menu) return;
-  const rect = colorToggle.getBoundingClientRect();
+  if (!menu) return false;
+  const rect = panelColorMenuAnchorRect(colorToggle, menu);
+  if (!rect) return false;
   const width = menu.offsetWidth || 248;
   const height = menu.offsetHeight || menu.getBoundingClientRect().height || 0;
   const gutter = 12;
@@ -122,6 +146,7 @@ export const positionPanelColorMenu = (colorToggle, menu) => {
     : Math.max(gutter, Math.min(window.innerHeight - height - gutter, belowTop));
   menu.style.left = `${left}px`;
   menu.style.top = `${top}px`;
+  return true;
 };
 
 export const createPanelColorMenuFactory = ({
@@ -131,32 +156,100 @@ export const createPanelColorMenuFactory = ({
   saveWidgetLayouts,
   savePanelLayouts,
   menuOverlayLayer,
+  widgetConfigFromElement,
+  setWidgetConfig,
+  renderWidgetRuntimeContent,
 }) => {
+  const cleanColor = (color) => {
+    const value = String(color || "").replace("#", "").toLowerCase();
+    return value ? `#${value}` : "";
+  };
+  const swatchDisplayColor = (color) => {
+    const normalized = cleanColor(color);
+    if (!normalized) return "rgba(255, 255, 255, .16)";
+    if (normalized === "#ffffff") return "#d1d5db";
+    return normalized;
+  };
+  const parseSupportedSettings = (panel) => {
+    try {
+      const settings = JSON.parse(panel?.dataset?.widgetSupportedSettings || "[]");
+      return Array.isArray(settings) ? settings : [];
+    } catch {
+      return [];
+    }
+  };
+  const supportsWellTone = (panel) => (
+    panel?.classList?.contains("widget-card") &&
+    parseSupportedSettings(panel).includes("wellTone") &&
+    typeof widgetConfigFromElement === "function" &&
+    typeof setWidgetConfig === "function" &&
+    typeof renderWidgetRuntimeContent === "function"
+  );
+  const visualizationWellToneRuntime = () => window.dashboardVisualizationWellToneRuntime || null;
+  const wellToneOptions = () => visualizationWellToneRuntime()?.tones?.() || [];
+  const normalizeWellTone = (tone) => visualizationWellToneRuntime()?.normalize?.(tone) || "white";
+
   const buildPanelColorMenu = (panel, layout, colorToggle) => {
     if (!colorToggle) return null;
-    if (colorToggle.__panelColorMenu) return colorToggle.__panelColorMenu;
+    if (panel.__panelColorMenu) {
+      panel.__panelColorMenu.__panelColorAnchor = colorToggle;
+      colorToggle.__panelColorMenu = panel.__panelColorMenu;
+      colorToggle.__refreshPanelColorMenu = panel.__panelColorMenu.__refreshPanelColorMenu;
+      return panel.__panelColorMenu;
+    }
     const menu = document.createElement("div");
     menu.className = "panel-color-menu";
     menu.setAttribute("role", "menu");
-    const cleanColor = (color) => {
-      const value = String(color || "").replace("#", "").toLowerCase();
-      return value ? `#${value}` : "";
+    let anchorToggle = colorToggle;
+    const updateAnchor = (nextAnchor = anchorToggle) => {
+      if (!nextAnchor) return;
+      anchorToggle = nextAnchor;
+      menu.__panelColorAnchor = anchorToggle;
+      anchorToggle.__panelColorMenu = menu;
+      anchorToggle.__refreshPanelColorMenu = refreshSwatchSelection;
     };
-    const swatchDisplayColor = (color) => {
-      const normalized = cleanColor(color);
-      if (!normalized) return "rgba(255, 255, 255, .16)";
-      if (normalized === "#ffffff") return "#d1d5db";
-      return normalized;
+    const saveOwnerLayout = () => {
+      if (typeof panel.__saveWidgetLayout === "function") {
+        panel.__saveWidgetLayout();
+      } else {
+        savePanelLayouts(layout);
+      }
     };
     const refreshSwatchSelection = () => {
       const activeTheme = panel.dataset.panelColor ? cleanColor(panel.dataset.panelColor) : "";
       menu.querySelectorAll(".panel-color-swatch").forEach((swatch) => {
+        if (swatch.dataset.colorGroup !== "theme") return;
         const selected = cleanColor(swatch.dataset.color) === activeTheme;
         swatch.classList.toggle("is-selected", selected);
         swatch.setAttribute("aria-pressed", selected.toString());
       });
+      if (supportsWellTone(panel)) {
+        const activeTone = normalizeWellTone(widgetConfigFromElement(panel)?.wellTone);
+        menu.querySelectorAll(".panel-color-swatch[data-well-tone]").forEach((swatch) => {
+          const selected = normalizeWellTone(swatch.dataset.wellTone) === activeTone;
+          swatch.classList.toggle("is-selected", selected);
+          swatch.setAttribute("aria-pressed", selected.toString());
+        });
+      }
     };
-    colorToggle.__refreshPanelColorMenu = refreshSwatchSelection;
+    const openMenu = (nextAnchor = anchorToggle) => {
+      updateAnchor(nextAnchor);
+      refreshSwatchSelection();
+      positionPanelColorMenu(anchorToggle, menu);
+      menu.classList.add("panel-color-menu-open");
+      anchorToggle?.setAttribute("aria-expanded", "true");
+    };
+    const closeMenu = () => {
+      menu.classList.remove("panel-color-menu-open");
+      anchorToggle?.setAttribute("aria-expanded", "false");
+    };
+    menu.__refreshPanelColorMenu = refreshSwatchSelection;
+    menu.__openPanelColorMenu = openMenu;
+    menu.__closePanelColorMenu = closeMenu;
+    menu.__positionPanelColorMenu = (nextAnchor = anchorToggle) => {
+      updateAnchor(nextAnchor);
+      return positionPanelColorMenu(anchorToggle, menu);
+    };
 
     const addGroup = (label, colors, onSelect, colorGroup) => {
       const group = document.createElement("div");
@@ -210,10 +303,7 @@ export const createPanelColorMenuFactory = ({
           } else {
             savePanelLayouts(layout);
           }
-          refreshSwatchSelection();
-          colorToggle.setAttribute("aria-expanded", "true");
-          positionPanelColorMenu(colorToggle, menu);
-          menu.classList.add("panel-color-menu-open");
+          openMenu(anchorToggle);
         });
         swatches.appendChild(swatch);
       });
@@ -221,11 +311,50 @@ export const createPanelColorMenuFactory = ({
       menu.appendChild(group);
     };
 
+    const addWellToneGroup = () => {
+      const tones = wellToneOptions();
+      if (!supportsWellTone(panel) || !tones.length) return;
+      const group = document.createElement("div");
+      group.className = "panel-color-group";
+      const groupLabel = document.createElement("span");
+      groupLabel.className = "panel-color-label";
+      groupLabel.textContent = "Well tone";
+      const swatches = document.createElement("div");
+      swatches.className = "panel-color-swatches";
+      tones.forEach((tone) => {
+        const swatch = document.createElement("button");
+        swatch.className = "panel-color-swatch";
+        swatch.type = "button";
+        swatch.title = tone.label;
+        swatch.dataset.colorGroup = "well-tone";
+        swatch.dataset.wellTone = tone.value;
+        swatch.setAttribute("aria-label", tone.label);
+        swatch.setAttribute("aria-pressed", "false");
+        swatch.style.setProperty("--swatch", tone.swatch || swatchDisplayColor(null));
+        swatch.addEventListener("click", (event) => {
+          event.preventDefault();
+          event.stopPropagation();
+          const wellTone = normalizeWellTone(tone.value);
+          positionPanelColorMenu(anchorToggle, menu);
+          setWidgetConfig(panel, { ...widgetConfigFromElement(panel), wellTone });
+          renderWidgetRuntimeContent(panel);
+          saveOwnerLayout();
+          openMenu(anchorToggle);
+        });
+        swatches.appendChild(swatch);
+      });
+      group.append(groupLabel, swatches);
+      menu.appendChild(group);
+    };
+
+    addWellToneGroup();
     addGroup("Theme color", [null, ...panelThemePresets], (color) => applyPanelColor(panel, color), "theme");
     menu.addEventListener("click", (event) => event.stopPropagation());
     menu.addEventListener("keydown", (event) => event.stopPropagation());
     menuOverlayLayer().appendChild(menu);
-    colorToggle.__panelColorMenu = menu;
+    panel.__panelColorMenu = menu;
+    updateAnchor(colorToggle);
+    refreshSwatchSelection();
     return menu;
   };
 

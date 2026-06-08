@@ -43,7 +43,6 @@ export const createPanelLayoutRuntime = ({
   surfaceResponseControlSelector,
   closeInactiveDashboardTools,
   syncPanelThemeVars,
-  positionPanelColorMenu,
   groupPeers,
   groupItemLayout,
   savePanelLayouts,
@@ -192,8 +191,7 @@ export const createPanelLayoutRuntime = ({
           if (panelTools?.contains(document.activeElement)) document.activeElement?.blur?.();
           panel.classList.remove("db-panel-tools-open");
           settingsButton?.setAttribute("aria-expanded", "false");
-          colorToggle?.setAttribute("aria-expanded", "false");
-          colorMenu?.classList.remove("panel-color-menu-open");
+          colorMenu?.__closePanelColorMenu?.();
           restoreDashboardToolDrawer(panelToolDrawer);
           syncLayoutToolsActive();
         };
@@ -252,18 +250,17 @@ export const createPanelLayoutRuntime = ({
           panelToolSession.setSuppressHeaderToggleUntil(0);
           const nextOpen = !colorMenu?.classList.contains("panel-color-menu-open");
           if (nextOpen) {
-            colorToggle.__refreshPanelColorMenu?.();
-            positionPanelColorMenu(colorToggle, colorMenu);
+            colorMenu?.__openPanelColorMenu?.(colorToggle);
+          } else {
+            colorMenu?.__closePanelColorMenu?.();
           }
-          colorMenu?.classList.toggle("panel-color-menu-open", nextOpen);
-          colorToggle.setAttribute("aria-expanded", nextOpen.toString());
         });
 
         window.addEventListener("resize", () => {
-          if (colorMenu?.classList.contains("panel-color-menu-open")) positionPanelColorMenu(colorToggle, colorMenu);
+          if (colorMenu?.classList.contains("panel-color-menu-open")) colorMenu.__positionPanelColorMenu?.(colorToggle);
         });
         window.addEventListener("scroll", () => {
-          if (colorMenu?.classList.contains("panel-color-menu-open")) positionPanelColorMenu(colorToggle, colorMenu);
+          if (colorMenu?.classList.contains("panel-color-menu-open")) colorMenu.__positionPanelColorMenu?.(colorToggle);
         }, true);
 
         bindPanelActionControls({

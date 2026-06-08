@@ -629,7 +629,22 @@
     row,
     value: numberValue(row?.[field]),
   })).filter((entry) => entry.value != null);
-  const visualWellTone = (config = {}) => config.wellTone === "dark" ? "dark" : "white";
+  const VISUAL_WELL_TONES = Object.freeze([
+    {
+      value: "white",
+      label: "Near-white",
+      swatch: "linear-gradient(180deg, rgba(255, 255, 255, .98), rgba(248, 250, 252, .96))",
+    },
+    {
+      value: "dark",
+      label: "Dark grey",
+      swatch: "linear-gradient(180deg, rgba(31, 41, 55, .98), rgba(17, 24, 39, .96))",
+    },
+  ]);
+  const normalizeVisualWellTone = (value) => (
+    VISUAL_WELL_TONES.some((tone) => tone.value === value) ? value : "white"
+  );
+  const visualWellTone = (config = {}) => normalizeVisualWellTone(config.wellTone);
   const visualWellToneField = () => ({
     key: "wellTone",
     label: "Well",
@@ -637,10 +652,7 @@
     defaultValue: "white",
     required: true,
     surface: "visual",
-    options: [
-      { value: "white", label: "White" },
-      { value: "dark", label: "Dark grey" },
-    ],
+    options: VISUAL_WELL_TONES.map(({ value, label }) => ({ value, label })),
   });
   const chartFrame = ({ instance, definition, density, body, legend = "" }) => {
     const densityTier = normalizeDensity(instance?.density, resolveWidgetDensity(instance));
@@ -2460,5 +2472,9 @@
     registerChartDefinition,
     getChartDefinition,
     listChartDefinitions,
+  };
+  window.dashboardVisualizationWellToneRuntime = {
+    normalize: normalizeVisualWellTone,
+    tones: () => VISUAL_WELL_TONES.map((tone) => ({ ...tone })),
   };
 })();

@@ -47,7 +47,6 @@ export const createWidgetLayoutRuntime = (deps) => {
     restoreDashboardToolDrawer,
     closeInactiveDashboardTools,
     portalFloatingMenu,
-    positionPanelColorMenu,
     syncPanelThemeVars,
     applyWidgetSettingsSchemaChange,
     groupPeers,
@@ -210,8 +209,7 @@ export const createWidgetLayoutRuntime = (deps) => {
         settings?.setAttribute("aria-expanded", "false");
         if (workbenchPanel) restoreFloatingMenu(workbenchPanel);
         workbenchPanel?.setAttribute("hidden", "");
-        colorMenu?.classList.remove("panel-color-menu-open");
-        colorToggle?.setAttribute("aria-expanded", "false");
+        colorMenu?.__closePanelColorMenu?.();
         restoreDashboardToolDrawer(drawer);
         setWidgetLinkNavigationSuspended(widget, false);
         syncLayoutToolsActive();
@@ -229,8 +227,7 @@ export const createWidgetLayoutRuntime = (deps) => {
         widgetToolSession.clearCloseTimer();
         widget.classList.remove("widget-tools-open");
         settings?.setAttribute("aria-expanded", "false");
-        colorMenu?.classList.remove("panel-color-menu-open");
-        colorToggle?.setAttribute("aria-expanded", "false");
+        colorMenu?.__closePanelColorMenu?.();
         setWidgetLinkNavigationSuspended(widget, true);
         widget.classList.add("widget-workbench-open");
         const panel = ensureWidgetWorkbenchPanel(widget);
@@ -276,8 +273,7 @@ export const createWidgetLayoutRuntime = (deps) => {
         widgetToolSession.setSuppressToolOpenUntil(0);
         closeInactiveDashboardTools(widget);
         openTools(pointerCoords);
-        colorMenu?.classList.remove("panel-color-menu-open");
-        colorToggle?.setAttribute("aria-expanded", "false");
+        colorMenu?.__closePanelColorMenu?.();
       };
       const scheduleClose = () => {
         widgetToolSession.clearCloseTimer();
@@ -367,17 +363,22 @@ export const createWidgetLayoutRuntime = (deps) => {
         event.stopPropagation();
         const nextOpen = !colorMenu?.classList.contains("panel-color-menu-open");
         if (nextOpen) {
-          colorToggle.__refreshPanelColorMenu?.();
-          positionPanelColorMenu(colorToggle, colorMenu);
+          colorMenu?.__openPanelColorMenu?.(colorToggle);
+        } else {
+          colorMenu?.__closePanelColorMenu?.();
         }
-        colorMenu?.classList.toggle("panel-color-menu-open", nextOpen);
-        colorToggle.setAttribute("aria-expanded", nextOpen.toString());
       });
       colorMenu?.addEventListener("mouseenter", resumeToolHoverClose);
       colorMenu?.addEventListener("mouseleave", () => {
         if (isDashboardInteractionActive()) return;
         closeTools();
       });
+      window.addEventListener("resize", () => {
+        if (colorMenu?.classList.contains("panel-color-menu-open")) colorMenu.__positionPanelColorMenu?.(colorToggle);
+      });
+      window.addEventListener("scroll", () => {
+        if (colorMenu?.classList.contains("panel-color-menu-open")) colorMenu.__positionPanelColorMenu?.(colorToggle);
+      }, true);
       document.addEventListener("pointerdown", (event) => {
         if (!colorMenu?.classList.contains("panel-color-menu-open")) return;
         if (widget.contains(event.target) || colorMenu.contains(event.target)) return;
