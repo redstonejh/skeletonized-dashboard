@@ -559,13 +559,13 @@ body.webgl-glass-on .widget-card.db-panel-custom-color{
   --widget-control-active-bg: rgba(71, 85, 105, .28);
   --widget-drawer-bg:
     linear-gradient(180deg, color-mix(in srgb, var(--glass-surface-strong) 96%, var(--surface-raised)), color-mix(in srgb, var(--glass-surface-strong) 92%, var(--surface-soft))),
-    color-mix(in srgb, var(--surface-raised) 92%, var(--panel-accent, var(--blue)) 8%);
+    color-mix(in srgb, var(--surface-raised) 92%, var(--panel-accent, #f8fafc) 8%);
   --panel-lock-bg: var(--widget-control-bg);
   --panel-lock-fg: var(--panel-header-control-fg, var(--muted-strong));
   --panel-lock-border: var(--panel-header-control-border, rgba(71, 85, 105, .26));
   --panel-lock-glow: var(--panel-header-control-glow, rgba(71, 85, 105, .18));
-  --panel-drawer-bg: color-mix(in srgb, var(--surface-raised) 92%, var(--panel-accent, var(--blue)) 8%);
-  --panel-drawer-border: color-mix(in srgb, var(--panel-accent, var(--blue)) 46%, var(--line));
+  --panel-drawer-bg: color-mix(in srgb, var(--surface-raised) 92%, var(--panel-accent, #f8fafc) 8%);
+  --panel-drawer-border: color-mix(in srgb, var(--panel-accent, #f8fafc) 46%, var(--line));
   --panel-control-hover-border: currentColor;
   --panel-control-rest-shadow: 0 6px 14px var(--panel-lock-glow), inset 0 1px 0 rgba(255, 255, 255, .16);
   --panel-control-hover-shadow: 0 10px 20px var(--panel-lock-glow), 0 0 12px var(--panel-lock-glow), inset 0 1px 0 var(--panel-hover-inset);
@@ -1544,18 +1544,18 @@ body.resize-auto-zoom-active .dashboard-expanded-footprint-ghost{
   user-select: text;
   -webkit-user-select: text;
 }.db-panel-hd-items{
-  --panel-header-control-bg: #bfdbfe;
-  --panel-header-control-fg: #1e40af;
-  --panel-header-control-border: #93c5fd;
-  --panel-header-control-glow: rgba(37, 99, 235, .22);
-  background: #dbeafe;
-  border-bottom-color: #93c5fd;
+  --panel-header-control-bg: rgba(248, 250, 252, .14);
+  --panel-header-control-fg: rgba(248, 250, 252, .86);
+  --panel-header-control-border: rgba(248, 250, 252, .28);
+  --panel-header-control-glow: rgba(15, 23, 42, .18);
+  background: rgba(255, 255, 255, .03);
+  border-bottom-color: rgba(248, 250, 252, .16);
 }.db-panel-hd-items .db-panel-title{
-  color: #1e40af;
+  color: rgba(248, 250, 252, .90);
 }.db-panel-hd-items::before{
-  background: var(--blue);
-  border-color: rgba(37, 99, 235, .34);
-  box-shadow: 0 4px 12px rgba(37, 99, 235, .22);
+  background: var(--panel-header-control-bg);
+  border-color: var(--panel-header-control-border);
+  box-shadow: 0 4px 12px var(--panel-header-control-glow);
 }.db-panel-hd-items::after,
 .db-panel-custom-color > .db-panel-hd::after{
   border-color: rgba(255, 255, 255, .92);
@@ -1567,16 +1567,16 @@ body.resize-auto-zoom-active .dashboard-expanded-footprint-ghost{
   height: 22px;
   padding: 0 8px;
   border-radius: var(--radius-pill);
-  background: var(--blue-soft);
-  color: var(--blue);
+  background: rgba(248, 250, 252, .12);
+  color: rgba(248, 250, 252, .82);
   font-size: 12px;
   font-weight: 720;
   flex-shrink: 0;
 }.panel-lock-toggle{
-  --panel-lock-bg: rgba(37, 99, 235, .12);
-  --panel-lock-fg: var(--blue);
-  --panel-lock-border: rgba(37, 99, 235, .26);
-  --panel-lock-glow: rgba(37, 99, 235, .18);
+  --panel-lock-bg: rgba(248, 250, 252, .12);
+  --panel-lock-fg: rgba(248, 250, 252, .86);
+  --panel-lock-border: rgba(248, 250, 252, .26);
+  --panel-lock-glow: rgba(15, 23, 42, .18);
   --panel-control-hover-border: currentColor;
   --panel-control-rest-shadow: 0 8px 18px var(--panel-lock-glow), inset 0 1px 0 rgba(255, 255, 255, .18);
   --panel-control-hover-shadow: 0 6px 14px color-mix(in srgb, var(--panel-lock-glow) 74%, transparent), inset 0 1px 0 var(--panel-hover-inset), inset 0 -1px 0 color-mix(in srgb, var(--panel-lock-fg) 12%, transparent);
@@ -1961,11 +1961,11 @@ body.panel-resize-active .db-panel:not(.db-panel-dragging):not(.dashboard-active
   pointer-events: auto;
   background: rgba(255, 255, 255, .12);
 }.panel-tools{
-  --panel-lock-bg: rgba(37, 99, 235, .12);
-  --panel-lock-fg: var(--blue);
-  --panel-lock-border: rgba(37, 99, 235, .26);
-  --panel-lock-glow: rgba(37, 99, 235, .18);
-  --panel-drawer-bg: rgba(37, 99, 235, .18);
+  --panel-lock-bg: rgba(248, 250, 252, .12);
+  --panel-lock-fg: rgba(248, 250, 252, .86);
+  --panel-lock-border: rgba(248, 250, 252, .26);
+  --panel-lock-glow: rgba(15, 23, 42, .18);
+  --panel-drawer-bg: rgba(248, 250, 252, .12);
   --panel-drawer-border: color-mix(in srgb, var(--panel-lock-fg) 42%, var(--line));
   --panel-control-hover-border: currentColor;
   --panel-control-rest-shadow: 0 8px 18px var(--panel-lock-glow), inset 0 1px 0 rgba(255, 255, 255, .18);

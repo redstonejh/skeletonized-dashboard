@@ -313,7 +313,7 @@
       deps.syncWidgetContextOutputs?.(widget);
       return definition;
     };
-    const ensureTools = (widget, theme = "#2563eb") => {
+    const ensureTools = (widget, theme = "") => {
       if (widget.querySelector(".widget-tools")) return;
       widget.insertAdjacentHTML("beforeend", `
         <div class="widget-tools" aria-label="Widget tools">

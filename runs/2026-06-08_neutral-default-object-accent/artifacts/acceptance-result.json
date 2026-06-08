@@ -1,0 +1,10 @@
+{
+  "verdict": "SHIP",
+  "tests_run": false,
+  "tests_skipped_reason": "User explicitly required no e2e, canary, or validation commands for this run.",
+  "summary": [
+    "Removed blue default color seeding from object tool markup and serialization.",
+    "Changed no-custom object title/control/icon fallbacks to neutral light glass values.",
+    "Kept explicit blue palette selection intact."
+  ]
+}

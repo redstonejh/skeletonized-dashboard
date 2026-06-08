@@ -3961,23 +3961,23 @@ and active drags own emphasis alone. */ .widget-layout > .widget-card:has(:is(.w
   isolation: isolate;
   --object-shell-surface: rgba(255, 255, 255, var(--surface-glass-alpha, 0.68));
   --object-shell-wash: linear-gradient(90deg,
-    rgba(var(--panel-accent-rgb, 37, 99, 235), var(--object-shell-accent-wash-primary)),
-    rgba(var(--panel-accent-rgb, 37, 99, 235), var(--object-shell-accent-wash-secondary))
+    rgba(var(--panel-accent-rgb, 248, 250, 252), var(--object-shell-accent-wash-primary)),
+    rgba(var(--panel-accent-rgb, 248, 250, 252), var(--object-shell-accent-wash-secondary))
   );
   --object-shell-bg: var(--object-shell-wash), var(--object-shell-surface);
   --object-shell-hover-bg: var(--object-shell-wash), var(--object-shell-surface);
-  --object-shell-rim: color-mix(in srgb, var(--glass-border) 86%, var(--panel-accent, var(--blue)) calc(5% * var(--surface-saturation-compensation)));
-  --object-shell-rim-hover: color-mix(in srgb, var(--glass-border) 78%, var(--panel-accent, var(--blue)) calc(8% * var(--surface-saturation-compensation)));
-  --object-shell-rim-active: color-mix(in srgb, var(--glass-border) 68%, var(--panel-accent, var(--blue)) calc(12% * var(--surface-saturation-compensation)));
+  --object-shell-rim: color-mix(in srgb, var(--glass-border) 86%, var(--panel-accent, #f8fafc) calc(5% * var(--surface-saturation-compensation)));
+  --object-shell-rim-hover: color-mix(in srgb, var(--glass-border) 78%, var(--panel-accent, #f8fafc) calc(8% * var(--surface-saturation-compensation)));
+  --object-shell-rim-active: color-mix(in srgb, var(--glass-border) 68%, var(--panel-accent, #f8fafc) calc(12% * var(--surface-saturation-compensation)));
   --object-shell-inner-line: color-mix(in srgb, var(--glass-border) 42%, transparent);
   --object-shell-shadow: 0 2px 10px rgba(15, 23, 42, calc(.06 * var(--surface-white-mix-compensation))),
     inset 0 1px 0 rgba(255, 255, 255, calc(.10 * var(--surface-white-mix-compensation)));
   --object-shell-hover-shadow: 0 10px 24px rgba(15, 23, 42, calc(.10 * var(--surface-white-mix-compensation))),
     inset 0 1px 0 rgba(255, 255, 255, calc(.12 * var(--surface-white-mix-compensation)));
-  --object-control-bg: color-mix(in srgb, var(--surface-raised) 66%, var(--panel-accent, var(--blue)) 34%);
-  --object-control-border: color-mix(in srgb, var(--glass-border) 72%, var(--panel-accent, var(--blue)) 14%);
-  --object-control-hover-border: color-mix(in srgb, var(--glass-border) 58%, var(--panel-accent, var(--blue)) 18%);
-  --object-control-glow: color-mix(in srgb, var(--panel-accent, var(--blue)) calc(14% * var(--surface-saturation-compensation)), transparent);
+  --object-control-bg: color-mix(in srgb, var(--surface-raised) 66%, var(--panel-accent, #f8fafc) 34%);
+  --object-control-border: color-mix(in srgb, var(--glass-border) 72%, var(--panel-accent, #f8fafc) 14%);
+  --object-control-hover-border: color-mix(in srgb, var(--glass-border) 58%, var(--panel-accent, #f8fafc) 18%);
+  --object-control-glow: color-mix(in srgb, var(--panel-accent, #f8fafc) calc(14% * var(--surface-saturation-compensation)), transparent);
   --panel-material-rim: var(--object-shell-rim);
   --panel-material-rim-hover: var(--object-shell-rim-hover);
   --panel-material-rim-active: var(--object-shell-rim-active);
@@ -4085,8 +4085,8 @@ and active drags own emphasis alone. */ .widget-layout > .widget-card:has(:is(.w
 .widget-layout > .widget-card.db-panel-custom-color,
 .panel-internal-widget-grid > .widget-card.db-panel-custom-color{
   --object-shell-wash: linear-gradient(90deg,
-    rgba(var(--panel-accent-rgb, 37, 99, 235), var(--object-shell-accent-wash-primary)),
-    rgba(var(--panel-accent-rgb, 37, 99, 235), var(--object-shell-accent-wash-secondary))
+    rgba(var(--panel-accent-rgb, 248, 250, 252), var(--object-shell-accent-wash-primary)),
+    rgba(var(--panel-accent-rgb, 248, 250, 252), var(--object-shell-accent-wash-secondary))
   );
   --object-shell-rim: color-mix(in srgb, var(--glass-border) 86%, var(--panel-accent) calc(5% * var(--surface-saturation-compensation)));
   --object-shell-rim-hover: color-mix(in srgb, var(--glass-border) 78%, var(--panel-accent) calc(8% * var(--surface-saturation-compensation)));

@@ -780,7 +780,7 @@ document.addEventListener("DOMContentLoaded", () => {
       .map((panel) => ({
         key: panel.dataset.panelKey,
         title: panel.dataset.panelTitle || panel.querySelector(".db-panel-title")?.textContent?.trim() || "Panel",
-        color: panel.dataset.panelColor || panel.querySelector(".panel-color-toggle")?.dataset.defaultTheme || "#2563eb",
+        color: panel.dataset.panelColor || panel.querySelector(".panel-color-toggle")?.dataset.defaultTheme || "",
         span: Number(panel.dataset.defaultSpan) || 4,
         gridCol: Number(panel.dataset.gridCol) || null,
         gridRow: Number(panel.dataset.gridRow) || null,
@@ -2184,7 +2184,7 @@ document.addEventListener("DOMContentLoaded", () => {
         key: widget.dataset.widgetKey,
         title: widget.dataset.panelTitle || widget.querySelector(".stat-lbl")?.textContent?.trim() || "Widget",
         value: widget.querySelector(".stat-val")?.textContent?.trim() || "0",
-        color: widget.dataset.panelColor || widget.querySelector(".panel-color-toggle")?.dataset.defaultTheme || "#2563eb",
+        color: widget.dataset.panelColor || widget.querySelector(".panel-color-toggle")?.dataset.defaultTheme || "",
         span: Number(widget.dataset.currentSpan) || 3,
         gridCol: Number(widget.dataset.gridCol) || null,
         gridRow: Number(widget.dataset.gridRow) || null,
