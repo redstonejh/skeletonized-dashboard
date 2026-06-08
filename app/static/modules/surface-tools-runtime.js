@@ -58,14 +58,19 @@ export function initializeSurfaceToolsRuntime({
       ),
     );
   };
-  const cursorForResizeEdge = (edge) => {
-    switch (edge) {
-      case "left":
-      case "right":
-        return "resize-x";
-      case "top":
-      case "bottom":
-        return "resize-y";
+  const resizeCornerFromPointer = (event, item, edge, threshold = 10) => {
+    if (!event || !item || !edge) return "";
+    const rect = item.getBoundingClientRect();
+    if (!rect?.width || !rect?.height) return "";
+    const atTop = event.clientY <= rect.top + threshold;
+    const atBottom = event.clientY >= rect.bottom - threshold;
+    if (!atTop && !atBottom) return "";
+    if (edge === "left") return atTop ? "top-left" : "bottom-left";
+    if (edge === "right") return atTop ? "top-right" : "bottom-right";
+    return "";
+  };
+  const cursorForResizeCorner = (corner) => {
+    switch (corner) {
       case "top-left":
       case "bottom-right":
         return "resize-nwse";
@@ -120,8 +125,9 @@ export function initializeSurfaceToolsRuntime({
     const resizeEdge = resizeEligibleTarget && typeof resizeEdgeFromPointer === "function"
       ? resizeEdgeFromPointer(event, target)
       : null;
-    const cursor = cursorForResizeEdge(resizeEdge) ||
-      (surfaceResponseTargetFromEvent(event) && canSurfaceObjectMove(target) ? "move" : "");
+    const resizeCursor = cursorForResizeCorner(resizeCornerFromPointer(event, target, resizeEdge));
+    const moveCursor = !resizeEdge && surfaceResponseTargetFromEvent(event) && canSurfaceObjectMove(target) ? "move" : "";
+    const cursor = resizeCursor || moveCursor;
     if (!cursor) {
       clearSurfaceCursor(target);
       return;

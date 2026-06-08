@@ -1531,12 +1531,6 @@ body.resize-auto-zoom-active .dashboard-expanded-footprint-ghost{
 .widget-card.widget-dragging[data-dashboard-cursor],
 .db-panel.db-panel-dragging[data-dashboard-cursor]{
   cursor: grabbing !important;
-}.widget-card[data-dashboard-cursor="resize-x"],
-.db-panel[data-dashboard-cursor="resize-x"]{
-  cursor: ew-resize;
-}.widget-card[data-dashboard-cursor="resize-y"],
-.db-panel[data-dashboard-cursor="resize-y"]{
-  cursor: ns-resize;
 }.widget-card[data-dashboard-cursor="resize-nwse"],
 .db-panel[data-dashboard-cursor="resize-nwse"]{
   cursor: nwse-resize;
