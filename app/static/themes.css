@@ -5415,69 +5415,19 @@ no card. Active * filter is indicated by a subtle underline + slightly higher * 
   --tab-shadow-blur: 7px;
   opacity: 1;
 }
-.workspace-tab-menu{
+.workspace-tab-tools{
   position: fixed;
   z-index: var(--z-navbar-dropdown);
-  display: grid;
-  gap: 14px;
-  min-width: 272px;
-  padding: 14px;
 }
-.workspace-tab-menu-group{
-  display: grid;
-  gap: 9px;
-  margin: 0;
-}
-.workspace-tab-menu-actions{
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 8px;
-}
-.workspace-tab-menu-action{
-  width: auto;
-  min-width: 0;
-  min-height: 34px;
-  padding: 0 12px;
-  border-radius: 12px;
-  color: var(--panel-lock-fg, rgba(248, 250, 252, .92));
-  font-size: 12px;
-  font-weight: 760;
-}
-.workspace-tab-menu-action:disabled{
-  cursor: default;
-  opacity: .42;
-  transform: none !important;
-}
-.workspace-tab-delete-action{
-  width: 100%;
-}
-.workspace-tab-menu .panel-color-group{
-  display: grid;
-  gap: 10px;
-  padding-top: 14px;
-  border-top: 1px solid color-mix(in srgb, var(--glass-border) 64%, transparent);
-}
-.workspace-tab-menu .panel-color-label{
-  display: block;
-  margin: 0;
-  line-height: 1.2;
-}
-.workspace-tab-rename-input{
-  box-sizing: border-box;
-  width: 100%;
-  height: 36px;
-  border: 1.5px solid var(--glass-border);
-  border-radius: 11px;
-  background: color-mix(in srgb, var(--glass-surface-strong) 82%, var(--surface-soft));
-  color: var(--ink-strong);
-  font: inherit;
-  font-size: 13px;
-  font-weight: 720;
-  padding: 0 10px;
-}
-.workspace-tab-rename-input:focus-visible{
-  outline: 2px solid rgba(255, 255, 255, .48);
-  outline-offset: 2px;
+.workspace-tab-tools .panel-tool-drawer{
+  position: static;
+  top: auto;
+  right: auto;
+  grid-template-columns: repeat(4, 34px);
+  visibility: visible;
+  opacity: 1;
+  pointer-events: auto;
+  transform: translate(0, -6px) scale(1);
 }
 @media (prefers-reduced-motion: reduce){
   .workspace-tab,

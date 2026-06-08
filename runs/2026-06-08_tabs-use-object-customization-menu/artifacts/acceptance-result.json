@@ -1,0 +1,10 @@
+{
+  "verdict": "SHIP",
+  "tests_run": false,
+  "validation_run": false,
+  "reason": "User standing rule for this run explicitly forbids tests and validation. Implementation is scoped to replacing the one-off tab customization menu with the shared object drawer component.",
+  "changed_files": [
+    "app/static/modules/workspace-tabs-runtime.js",
+    "app/static/themes.css"
+  ]
+}

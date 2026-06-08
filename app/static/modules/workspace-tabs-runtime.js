@@ -1,3 +1,8 @@
+import {
+  panelToolButtonsMarkup,
+  positionPanelColorMenu,
+} from "./panel-appearance-runtime.js";
+
 const STORAGE_KEY = "dashboard-workspace-tabs:builder";
 
 const DEFAULT_TABS = Object.freeze([
@@ -44,9 +49,8 @@ export const initializeWorkspaceTabsRuntime = ({
 
   let state = normalizeState(readJsonStore(storageKey, null));
   let menu = null;
-  let editingIndex = -1;
+  let colorMenu = null;
   let invokingTab = null;
-  let menuActionInProgress = false;
   let activationHandler = typeof onActivate === "function" ? onActivate : null;
   let createHandler = typeof onCreateTab === "function" ? onCreateTab : null;
   let mutationHandler = null;
@@ -91,15 +95,20 @@ export const initializeWorkspaceTabsRuntime = ({
   const closeMenu = ({ restoreFocus = true } = {}) => {
     const focusTarget = invokingTab;
     const closingMenu = menu;
+    const closingColorMenu = colorMenu;
     menu = null;
+    colorMenu = null;
     if (closingMenu?.isConnected) {
       try {
         closingMenu.remove();
       } catch {}
     }
-    editingIndex = -1;
+    if (closingColorMenu?.isConnected) {
+      try {
+        closingColorMenu.remove();
+      } catch {}
+    }
     invokingTab = null;
-    menuActionInProgress = false;
     if (restoreFocus) focusTarget?.focus?.({ preventScroll: true });
   };
 
@@ -233,12 +242,17 @@ export const initializeWorkspaceTabsRuntime = ({
     });
   };
 
-  const commitRename = (index, input, { renderTabs = true } = {}) => {
+  const commitRename = (index, value, { renderTabs = true } = {}) => {
     pushUndo();
     const fallback = state.tabs[index]?.label || `tab ${index + 1}`;
+    const nextLabel = cleanLabel(value, fallback);
+    if (nextLabel === state.tabs[index]?.label) {
+      undoStack.pop();
+      return;
+    }
     state.tabs[index] = {
       ...state.tabs[index],
-      label: cleanLabel(input.value, fallback),
+      label: nextLabel,
     };
     save();
     notifyMutation("rename");
@@ -247,143 +261,167 @@ export const initializeWorkspaceTabsRuntime = ({
 
   const openMenu = (index, button) => {
     closeMenu({ restoreFocus: false });
-    editingIndex = index;
     invokingTab = button;
-    const tab = state.tabs[index];
     menu = document.createElement("div");
-    menu.className = "workspace-tab-menu panel-color-menu panel-color-menu-open";
+    menu.className = "panel-tools workspace-tab-tools";
     menu.setAttribute("role", "menu");
     menu.dataset.tabIndex = String(index);
-
-    const moveGroup = document.createElement("div");
-    moveGroup.className = "workspace-tab-menu-group workspace-tab-move-group";
-    const moveLabel = document.createElement("span");
-    moveLabel.className = "panel-color-label";
-    moveLabel.textContent = "Move";
-    const moveControls = document.createElement("div");
-    moveControls.className = "workspace-tab-menu-actions";
-    const leftButton = document.createElement("button");
-    leftButton.type = "button";
-    leftButton.className = "panel-tool-button workspace-tab-menu-action workspace-tab-move-left";
-    leftButton.setAttribute("aria-label", "Move tab left");
-    leftButton.disabled = index <= 0;
-    leftButton.textContent = "Left";
-    const rightButton = document.createElement("button");
-    rightButton.type = "button";
-    rightButton.className = "panel-tool-button workspace-tab-menu-action workspace-tab-move-right";
-    rightButton.setAttribute("aria-label", "Move tab right");
-    rightButton.disabled = index >= state.tabs.length - 1;
-    rightButton.textContent = "Right";
-    leftButton.addEventListener("click", (event) => {
-      event.preventDefault();
-      event.stopPropagation();
-      moveTab(index, -1);
-      closeMenu({ restoreFocus: false });
-    });
-    rightButton.addEventListener("click", (event) => {
-      event.preventDefault();
-      event.stopPropagation();
-      moveTab(index, 1);
-      closeMenu({ restoreFocus: false });
-    });
-    moveControls.append(leftButton, rightButton);
-    moveGroup.append(moveLabel, moveControls);
-
-    const renameGroup = document.createElement("div");
-    renameGroup.className = "workspace-tab-menu-group";
-    const renameLabel = document.createElement("label");
-    renameLabel.className = "panel-color-label";
-    renameLabel.textContent = "Text";
-    const input = document.createElement("input");
-    input.className = "workspace-tab-rename-input";
-    input.type = "text";
-    input.maxLength = 32;
-    input.value = tab.label;
-    input.setAttribute("aria-label", "Rename tab");
-    input.addEventListener("keydown", (event) => {
-      if (event.key === "Enter") {
-        event.preventDefault();
-        commitRename(index, input, { renderTabs: false });
-        closeMenu();
-        render();
-      } else if (event.key === "Escape") {
-        event.preventDefault();
-        closeMenu();
-      }
-    });
-    input.addEventListener("blur", (event) => {
-      if (event.relatedTarget && menu?.contains(event.relatedTarget)) return;
-      if (menuActionInProgress) return;
-      if (editingIndex === index && menu?.isConnected) {
-        commitRename(index, input, { renderTabs: false });
-        closeMenu({ restoreFocus: false });
-        render();
-      }
-    });
-    renameGroup.append(renameLabel, input);
-
-    const colorGroup = document.createElement("div");
-    colorGroup.className = "panel-color-group";
-    const colorLabel = document.createElement("span");
-    colorLabel.className = "panel-color-label";
-    colorLabel.textContent = "Tab color";
-    const swatches = document.createElement("div");
-    swatches.className = "panel-color-swatches";
-    panelThemePresets.forEach((color) => {
-      const swatch = document.createElement("button");
-      swatch.type = "button";
-      swatch.className = "panel-color-swatch";
-      swatch.dataset.color = color;
-      swatch.style.setProperty("--swatch", color);
-      swatch.setAttribute("role", "menuitemradio");
-      swatch.setAttribute("aria-label", `Set tab color ${color}`);
-      swatch.setAttribute("aria-checked", String(cleanHex(color) === tab.color));
-      swatch.addEventListener("click", (event) => {
-        event.preventDefault();
-        event.stopPropagation();
-        pushUndo();
-        const nextColor = cleanHex(color);
-        state.tabs[index] = { ...state.tabs[index], color: nextColor };
-        save();
-        notifyMutation("color");
-        render();
-        invokingTab = root.querySelector(`[data-tab-index="${index}"]`);
-        menu?.querySelectorAll(".panel-color-swatch").forEach((item) => {
-          item.setAttribute("aria-checked", String(cleanHex(item.dataset.color) === nextColor));
-        });
-        menuActionInProgress = false;
+    menu.innerHTML = `
+      <div class="panel-tool-drawer dashboard-tool-drawer-open workspace-tab-tool-drawer" aria-label="Tab tools">
+        ${panelToolButtonsMarkup(state.tabs[index]?.color || "", true, { includeResize: false, includePin: false })}
+      </div>`;
+    const drawer = menu.querySelector(".panel-tool-drawer");
+    const moveHandle = menu.querySelector(".panel-move-handle");
+    const colorToggle = menu.querySelector(".panel-color-toggle");
+    const titleButton = menu.querySelector(".panel-title-handle");
+    const deleteButton = menu.querySelector(".panel-delete-handle");
+    colorToggle?.setAttribute("aria-label", "Tab colors");
+    colorToggle?.setAttribute("title", "Tab colors");
+    titleButton?.setAttribute("aria-label", "Rename tab");
+    titleButton?.setAttribute("title", "Rename tab");
+    deleteButton?.setAttribute("aria-label", "Delete tab");
+    deleteButton?.setAttribute("title", "Delete tab");
+    const refreshColorMenuSelection = () => {
+      const tab = state.tabs[Number(menu?.dataset.tabIndex) || 0];
+      colorMenu?.querySelectorAll(".panel-color-swatch").forEach((swatch) => {
+        const selected = cleanHex(swatch.dataset.color) === tab?.color;
+        swatch.classList.toggle("is-selected", selected);
+        swatch.setAttribute("aria-pressed", String(selected));
       });
-      swatches.appendChild(swatch);
-    });
-    colorGroup.append(colorLabel, swatches);
-    const deleteGroup = document.createElement("div");
-    deleteGroup.className = "workspace-tab-menu-group workspace-tab-delete-group";
-    const deleteButton = document.createElement("button");
-    deleteButton.type = "button";
-    deleteButton.className = "panel-tool-button workspace-tab-menu-action workspace-tab-delete-action";
-    deleteButton.textContent = "Delete";
-    deleteButton.disabled = state.tabs.length <= 1;
-    deleteButton.setAttribute("aria-label", "Delete tab");
-    deleteButton.addEventListener("click", (event) => {
+    };
+    const openColorMenu = () => {
+      if (colorMenu?.isConnected) {
+        colorMenu.classList.toggle("panel-color-menu-open");
+        positionPanelColorMenu(colorToggle, colorMenu);
+        return;
+      }
+      colorMenu = document.createElement("div");
+      colorMenu.className = "panel-color-menu panel-color-menu-open";
+      colorMenu.setAttribute("role", "menu");
+      const group = document.createElement("div");
+      group.className = "panel-color-group";
+      const label = document.createElement("span");
+      label.className = "panel-color-label";
+      label.textContent = "Theme color";
+      const swatches = document.createElement("div");
+      swatches.className = "panel-color-swatches";
+      panelThemePresets.forEach((color) => {
+        const swatch = document.createElement("button");
+        swatch.className = "panel-color-swatch";
+        swatch.type = "button";
+        swatch.dataset.color = color;
+        swatch.style.setProperty("--swatch", color === "#ffffff" ? "#d1d5db" : color);
+        swatch.setAttribute("aria-label", color);
+        swatch.addEventListener("click", (event) => {
+          event.preventDefault();
+          event.stopPropagation();
+          const liveIndex = Number(menu?.dataset.tabIndex) || 0;
+          const nextColor = cleanHex(color);
+          if (state.tabs[liveIndex]?.color !== nextColor) {
+            pushUndo();
+            state.tabs[liveIndex] = { ...state.tabs[liveIndex], color: nextColor };
+            save();
+            notifyMutation("color");
+            root.querySelector(`[data-tab-index="${liveIndex}"]`)?.style.setProperty("--tab-accent", nextColor);
+          }
+          refreshColorMenuSelection();
+          colorToggle?.setAttribute("aria-expanded", "true");
+          positionPanelColorMenu(colorToggle, colorMenu);
+        });
+        swatches.appendChild(swatch);
+      });
+      group.append(label, swatches);
+      colorMenu.appendChild(group);
+      colorMenu.addEventListener("click", (event) => event.stopPropagation());
+      colorMenu.addEventListener("keydown", (event) => event.stopPropagation());
+      document.body.appendChild(colorMenu);
+      refreshColorMenuSelection();
+      positionPanelColorMenu(colorToggle, colorMenu);
+    };
+    const beginTitleEdit = () => {
+      const liveIndex = Number(menu?.dataset.tabIndex) || 0;
+      const tabButton = root.querySelector(`[data-tab-index="${liveIndex}"]`);
+      const label = tabButton?.querySelector(".workspace-tab-label");
+      if (!label) return;
+      const original = label.textContent.trim();
+      label.contentEditable = "true";
+      label.spellcheck = false;
+      label.focus();
+      window.getSelection?.()?.selectAllChildren(label);
+      const finish = (commit) => {
+        label.contentEditable = "false";
+        label.removeEventListener("blur", onBlur);
+        label.removeEventListener("keydown", onKeydown);
+        const nextText = commit ? label.textContent : original;
+        commitRename(liveIndex, nextText, { renderTabs: true });
+      };
+      const onBlur = () => finish(true);
+      const onKeydown = (keyEvent) => {
+        keyEvent.stopPropagation();
+        if (keyEvent.key === "Enter") {
+          keyEvent.preventDefault();
+          finish(true);
+        } else if (keyEvent.key === "Escape") {
+          keyEvent.preventDefault();
+          finish(false);
+        }
+      };
+      label.addEventListener("blur", onBlur);
+      label.addEventListener("keydown", onKeydown);
+    };
+    const beginHorizontalMove = (event) => {
       event.preventDefault();
       event.stopPropagation();
-      deleteTab(index);
+      let liveIndex = Number(menu?.dataset.tabIndex) || index;
+      const pointerId = event.pointerId;
+      moveHandle?.setPointerCapture?.(pointerId);
+      const onPointerMove = (moveEvent) => {
+        const buttons = [...root.querySelectorAll(".workspace-tab")];
+        const targetIndex = buttons.findIndex((tabButton) => {
+          const rect = tabButton.getBoundingClientRect();
+          return moveEvent.clientX >= rect.left && moveEvent.clientX <= rect.right;
+        });
+        if (targetIndex < 0 || targetIndex === liveIndex) return;
+        moveTab(liveIndex, targetIndex - liveIndex);
+        liveIndex = targetIndex;
+        menu.dataset.tabIndex = String(liveIndex);
+        invokingTab = root.querySelector(`[data-tab-index="${liveIndex}"]`);
+        positionMenu(invokingTab);
+      };
+      const onPointerUp = () => {
+        moveHandle?.releasePointerCapture?.(pointerId);
+        window.removeEventListener("pointermove", onPointerMove, true);
+        window.removeEventListener("pointerup", onPointerUp, true);
+      };
+      window.addEventListener("pointermove", onPointerMove, true);
+      window.addEventListener("pointerup", onPointerUp, true);
+    };
+    moveHandle?.addEventListener("pointerdown", beginHorizontalMove);
+    colorToggle?.addEventListener("click", (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      openColorMenu();
+    });
+    titleButton?.addEventListener("click", (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      beginTitleEdit();
+    });
+    deleteButton?.addEventListener("click", (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      deleteTab(Number(menu?.dataset.tabIndex) || 0);
       closeMenu({ restoreFocus: false });
     });
-    deleteGroup.appendChild(deleteButton);
-    menu.append(moveGroup, colorGroup, renameGroup, deleteGroup);
-    menu.addEventListener("pointerdown", (event) => {
-      menuActionInProgress = !event.target?.closest?.(".workspace-tab-rename-input");
-      if (menuActionInProgress) event.preventDefault();
-    });
+    if (state.tabs.length <= 1) deleteButton?.setAttribute("disabled", "");
+    drawer?.addEventListener("click", (event) => event.stopPropagation());
     document.body.appendChild(menu);
     positionMenu(button);
-    requestAnimationFrame(() => input.select());
   };
 
   document.addEventListener("pointerdown", (event) => {
     if (!menu) return;
-    if (menu.contains(event.target) || root.contains(event.target)) return;
+    if (menu.contains(event.target) || colorMenu?.contains(event.target) || root.contains(event.target)) return;
     closeMenu();
   }, true);
   document.addEventListener("keydown", (event) => {
