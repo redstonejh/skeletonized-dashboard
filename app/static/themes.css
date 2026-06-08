@@ -5753,20 +5753,31 @@ no card. Active * filter is indicated by a subtle underline + slightly higher * 
   outline: 0 !important;
 }
 
-/* Widgets use glass without a painted rim. Keep this after custom-color and
-   runtime-state material rules so no theme accent can reappear as an outline. */
+/* Widgets use glass without any painted perimeter. Keep this after custom-color
+   and runtime-state material rules so no theme accent can reappear as a border,
+   outline, box-shadow ring, or pseudo-element edge. */
+.widget-card,
 .widget-layout > .widget-card,
 .widget-layout > .widget-card:hover,
 .widget-layout > .widget-card:focus,
 .widget-layout > .widget-card:focus-visible,
 .widget-layout > .widget-card.active,
+.widget-layout > .widget-card.group-selected,
+.widget-layout > .widget-card.widget-dragging,
+.widget-layout > .widget-card.dashboard-active-resize,
+.widget-layout > .widget-card.dashboard-live-resize,
+.widget-layout > .widget-card.dashboard-group-live-member,
 .widget-layout > .widget-card.widget-tools-open,
 .widget-layout > .widget-card.widget-tools-open:hover,
 .widget-layout > .widget-card.widget-tools-open:focus-visible,
+.widget-layout > .widget-card.widget-conditional-style,
+.widget-layout > .widget-card.widget-conditional-style:hover,
+.widget-layout > .widget-card.widget-conditional-style:focus-visible,
 .widget-layout > .widget-card.db-panel-custom-color,
 .widget-layout > .widget-card.db-panel-custom-color:hover,
 .widget-layout > .widget-card.db-panel-custom-color:focus-visible,
 .widget-layout > .widget-card.db-panel-custom-color.active,
+.widget-layout > .widget-card.db-panel-custom-color.group-selected,
 .widget-layout > .widget-card.db-panel-custom-color.widget-runtime-meaning,
 .widget-layout > .widget-card.db-panel-custom-color.widget-tools-open,
 .widget-layout > .widget-card.db-panel-custom-color.widget-tools-open:hover,
@@ -5776,17 +5787,36 @@ no card. Active * filter is indicated by a subtle underline + slightly higher * 
 .panel-internal-widget-grid > .widget-card:focus,
 .panel-internal-widget-grid > .widget-card:focus-visible,
 .panel-internal-widget-grid > .widget-card.active,
+.panel-internal-widget-grid > .widget-card.group-selected,
+.panel-internal-widget-grid > .widget-card.widget-dragging,
+.panel-internal-widget-grid > .widget-card.dashboard-active-resize,
+.panel-internal-widget-grid > .widget-card.dashboard-live-resize,
+.panel-internal-widget-grid > .widget-card.dashboard-group-live-member,
 .panel-internal-widget-grid > .widget-card.widget-tools-open,
 .panel-internal-widget-grid > .widget-card.widget-tools-open:hover,
 .panel-internal-widget-grid > .widget-card.widget-tools-open:focus-visible,
+.panel-internal-widget-grid > .widget-card.widget-conditional-style,
+.panel-internal-widget-grid > .widget-card.widget-conditional-style:hover,
+.panel-internal-widget-grid > .widget-card.widget-conditional-style:focus-visible,
 .panel-internal-widget-grid > .widget-card.db-panel-custom-color,
 .panel-internal-widget-grid > .widget-card.db-panel-custom-color:hover,
 .panel-internal-widget-grid > .widget-card.db-panel-custom-color:focus-visible,
 .panel-internal-widget-grid > .widget-card.db-panel-custom-color.active,
+.panel-internal-widget-grid > .widget-card.db-panel-custom-color.group-selected,
 .panel-internal-widget-grid > .widget-card.db-panel-custom-color.widget-runtime-meaning,
 .panel-internal-widget-grid > .widget-card.db-panel-custom-color.widget-tools-open,
 .panel-internal-widget-grid > .widget-card.db-panel-custom-color.widget-tools-open:hover,
 .panel-internal-widget-grid > .widget-card.db-panel-custom-color.widget-tools-open:focus-visible{
+  border-width: 0 !important;
   border-color: transparent !important;
   outline: 0 !important;
+  outline-offset: 0 !important;
+  box-shadow: none !important;
+}
+.widget-layout > .widget-card:not(.db-panel-pinned)::after,
+.panel-internal-widget-grid > .widget-card:not(.db-panel-pinned)::after{
+  content: none !important;
+  box-shadow: none !important;
+  filter: none !important;
+  background: none !important;
 }
