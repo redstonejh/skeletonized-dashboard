@@ -31,8 +31,30 @@ export const hydrateWidgetLayout = (layout, {
   const internalLayout = isPanelInternalWidgetLayout(layout);
   const layoutKey = internalLayout ? gridItemLayoutKey(layout) : (layout.dataset.widgetLayoutKey || "default");
   const profile = getActivePanelProfile(layoutKey);
+  const snapshotHydration = layout.closest(".dashboard-layout-grid")?.dataset.workspacePageSnapshotHydrating === "true";
+  const reconcilePanelContainedWidgets = () => {
+    if (internalLayout) return;
+    const host = layout.closest(".dashboard-layout-grid");
+    if (!host) return;
+    const containedByKey = new Map();
+    host.querySelectorAll(".panel-internal-widget-grid > .widget-card[data-widget-key]").forEach((widget) => {
+      const key = widget.dataset.widgetKey;
+      if (!key) return;
+      if (containedByKey.has(key)) {
+        widget.remove();
+        return;
+      }
+      containedByKey.set(key, widget);
+    });
+    containedByKey.forEach((widget, key) => {
+      layout.querySelectorAll(`:scope > .widget-card[data-widget-key="${CSS.escape(key)}"]`)
+        .forEach((duplicate) => {
+          if (duplicate !== widget) duplicate.remove();
+        });
+    });
+  };
   let customDefinitions = [];
-  if (!internalLayout) {
+  if (!internalLayout && !snapshotHydration) {
     try {
       customDefinitions = readJsonStore(customWidgetsKey(layoutKey, profile), []);
     } catch {
@@ -43,7 +65,7 @@ export const hydrateWidgetLayout = (layout, {
     .filter((definition) => definition?.key && !layout.querySelector(`:scope > .widget-card[data-widget-key="${CSS.escape(definition.key)}"]`))
     .forEach((definition) => layout.appendChild(createCustomWidget(definition)));
   let hiddenWidgets = [];
-  if (!internalLayout) {
+  if (!internalLayout && !snapshotHydration) {
     try {
       hiddenWidgets = parseJsonRecord(readRawStore(hiddenWidgetsKey(layoutKey, profile), "[]"), []);
     } catch {
@@ -55,6 +77,7 @@ export const hydrateWidgetLayout = (layout, {
     const widget = layout.querySelector(`:scope > .widget-card[data-widget-key="${CSS.escape(key)}"]`);
     if (widget) widget.hidden = true;
   });
+  reconcilePanelContainedWidgets();
   const widgets = [...layout.querySelectorAll(":scope > .widget-card")];
   const savedByWidget = new Map();
   widgets.forEach((widget, index) => {
@@ -62,7 +85,7 @@ export const hydrateWidgetLayout = (layout, {
     widget.dataset.defaultOrder = String(index);
     widget.dataset.defaultTitle = widget.querySelector(".stat-lbl")?.textContent?.trim() || "Widget";
     let saved = null;
-    if (!internalLayout) {
+    if (!internalLayout && !snapshotHydration) {
       try {
         saved = readJsonStore(widgetStorageKey(layoutKey, key, profile), null);
       } catch {}

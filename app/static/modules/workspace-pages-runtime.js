@@ -175,7 +175,12 @@ export const initializeWorkspacePagesRuntime = ({
     grid.dataset.activeWorkspacePage = tabId;
     activeTabId = tabId;
     if (page.needsHydration) {
-      onPageMounted?.({ tabId });
+      grid.dataset.workspacePageSnapshotHydrating = "true";
+      try {
+        onPageMounted?.({ tabId });
+      } finally {
+        delete grid.dataset.workspacePageSnapshotHydrating;
+      }
       page.needsHydration = false;
     }
     onPageAttached?.({ tabId });

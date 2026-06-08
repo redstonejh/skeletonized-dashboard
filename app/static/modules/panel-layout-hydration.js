@@ -26,20 +26,25 @@ export const hydratePanelLayout = (layout, {
 }) => {
   const layoutKey = layout.dataset.layoutKey || "default";
   const layoutProfile = getActivePanelProfile(layoutKey);
+  const snapshotHydration = layout.closest(".dashboard-layout-grid")?.dataset.workspacePageSnapshotHydrating === "true";
   let customPanelDefinitions = [];
-  try {
-    customPanelDefinitions = readJsonStore(customPanelsKey(layoutKey, layoutProfile), []);
-  } catch {
-    customPanelDefinitions = [];
+  if (!snapshotHydration) {
+    try {
+      customPanelDefinitions = readJsonStore(customPanelsKey(layoutKey, layoutProfile), []);
+    } catch {
+      customPanelDefinitions = [];
+    }
   }
   customPanelDefinitions
     .filter((definition) => definition?.key && !layout.querySelector(`:scope > .db-panel[data-panel-key="${CSS.escape(definition.key)}"]`))
     .forEach((definition) => layout.appendChild(createCustomPanel(definition)));
   let hiddenPanels = [];
-  try {
-    hiddenPanels = parseJsonRecord(readRawStore(hiddenPanelsKey(layoutKey, layoutProfile), "[]"), []);
-  } catch {
-    hiddenPanels = [];
+  if (!snapshotHydration) {
+    try {
+      hiddenPanels = parseJsonRecord(readRawStore(hiddenPanelsKey(layoutKey, layoutProfile), "[]"), []);
+    } catch {
+      hiddenPanels = [];
+    }
   }
   writeDraftList(layout, "hiddenPanelsDraft", hiddenPanels);
   hiddenPanels.forEach((key) => {
@@ -55,9 +60,11 @@ export const hydratePanelLayout = (layout, {
     panel.dataset.defaultOrder = String(index);
     if (titleEl) panel.dataset.defaultTitle = titleEl.textContent.trim();
     let saved = null;
-    try {
-      saved = readJsonStore(panelStorageKey(layoutKey, key, layoutProfile), null);
-    } catch {}
+    if (!snapshotHydration) {
+      try {
+        saved = readJsonStore(panelStorageKey(layoutKey, key, layoutProfile), null);
+      } catch {}
+    }
     savedByPanel.set(panel, saved);
     markLoadedExpansionBaseline(panel, saved?.expansionBaseline);
     panel.__loadedExpansionActive = Boolean(saved?.expansionActive);
@@ -79,7 +86,7 @@ export const hydratePanelLayout = (layout, {
     if (saved?.minW) panel.dataset.minW = String(saved.minW);
     if (saved?.locked) panel.dataset.locked = "true";
     if (saved?.resizable === false) panel.dataset.resizable = "false";
-    applyPanelSpan(panel, saved?.span ?? panel.dataset.defaultSpan ?? 6);
+    applyPanelSpan(panel, saved?.span ?? panel.dataset.currentSpan ?? panel.dataset.defaultSpan ?? 6);
     if (saved?.gridCol && saved?.gridRow) applyPanelGridPosition(panel, saved.gridCol, saved.gridRow);
     if (saved?.height) applyPanelHeight(panel, saved.height);
     if (saved?.colorCleared) {
