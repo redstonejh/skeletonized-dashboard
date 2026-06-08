@@ -95,10 +95,23 @@ export const initializeFloatingControlBarRuntime = async () => {
     window.dashboardWindowControls?.minimize?.();
   });
 
+  const reloadSavedWorkspace = () => {
+    if (typeof window.dashboardLayoutSourceRuntime?.load === "function") {
+      window.dashboardLayoutSourceRuntime.load("builder");
+      return;
+    }
+    window.dashboardWorkspacePagesRuntime?.skipNextBeforeUnloadPersist?.();
+    if (typeof window.dashboardWindowControls?.reload === "function") {
+      window.dashboardWindowControls.reload();
+      return;
+    }
+    window.location.reload();
+  };
+
   refreshControl?.addEventListener("click", (event) => {
     event.preventDefault();
     event.stopPropagation();
-    window.dashboardWindowControls?.reload?.() || window.location.reload();
+    reloadSavedWorkspace();
   });
 
   closeControl?.addEventListener("click", (event) => {
