@@ -17,7 +17,7 @@ no layout participation. */ .workspace-photo-backdrop{
   background-size: cover;
   background-position: center center;
   background-repeat: no-repeat;
-}/* ── Liquid-glass WebGL overlay (prototype, feature-flagged) ────────── * * Stack order when body.webgl-glass-on is active: * 1. .workspace-photo-backdrop (z:-1) — raw photo * 2. .liquid-glass-webgl-canvas (z: 0) — shader output * 3. main.page (z: 1) — workspace shells,
+}/* ── Liquid-glass WebGL overlay ────────────────────────────────────── * * Stack order when body.webgl-glass-on is active: * 1. page or .workspace-photo-backdrop backdrop — live workspace background * 2. .liquid-glass-webgl-canvas (z: 0) — shader output * 3. main.page (z: 1) — workspace shells,
 text,
 controls * 4. menus / tool drawers (z: var(--z-menu-overlay, 2600)+) * * Canvas sits at z:0 (not negative) so its visibility doesn't depend on * any ancestor's stacking-context behavior. main.page is explicitly * promoted above it under the webgl-glass-on body class. Pointer-events * disabled — DOM owns all interaction. */ .liquid-glass-webgl-canvas{
   position: fixed;
@@ -31,7 +31,7 @@ controls * 4. menus / tool drawers (z: var(--z-menu-overlay, 2600)+) * * Canvas 
   position: relative;
   z-index: 1;
 }/* When the WebGL overlay is active,
-strip the CSS glass body so the * shader-refracted background is visible. Border + rim shadow stay * (the WebGL output already contributes its own rim, but the CSS rim * helps anti-alias the boundary against the canvas edge). Custom-color * panels also drop their tinted fill. CSS glass remains the fallback * whenever this body class is absent. Navbar (.app-nav) is intentionally * excluded — its frosted CSS material is preserved. */ body.webgl-glass-on .widget-layout > .widget-card,
+strip the CSS glass body so the * shader-refracted live backdrop is visible. Border + rim shadow stay * (the WebGL output already contributes its own rim, but the CSS rim * helps anti-alias the boundary against the canvas edge). Custom-color * panels also drop their tinted fill. CSS glass remains the fallback * only when WebGL is unavailable. Navbar (.app-nav) is intentionally * excluded — its frosted CSS material is preserved. */ body.webgl-glass-on .widget-layout > .widget-card,
 body.webgl-glass-on .panel-layout > .db-panel,
 body.webgl-glass-on .panel-layout > .widget-card,
 body.webgl-glass-on .db-panel.db-panel-tools-open{

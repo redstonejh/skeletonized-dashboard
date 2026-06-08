@@ -1,6 +1,6 @@
 /* ── Liquid-glass WebGL overlay (prototype) ─────────────────────────────
  *
- * Single full-viewport WebGL canvas that refracts the photo background
+ * Single full-viewport WebGL canvas that refracts the live workspace backdrop
  * behind workspace objects (widgets + panels). DOM remains source of
  * truth — pointer-events: none, no interaction in WebGL.
  *
@@ -13,14 +13,10 @@
  *   - inner-rim glow via smoothstep on signed distance
  *
  * Liquid-glass WebGL is always enabled by default.
- *   LiquidGlassWebGL.enable()          // refreshes the photo-gated renderer
+ *   LiquidGlassWebGL.enable()          // refreshes the renderer
  *   LiquidGlassWebGL.disable()         // no-op; kept for legacy callers
- *
- * Activates only when body.has-photo-background. */
+ */
 (() => {
-  window.LIQUID_GLASS_WEBGL = true;
-  try { localStorage.removeItem("dashboard-liquid-glass-webgl"); } catch {}
-
   const MAX_OBJECTS = 32;
   // Workspace objects: widgets and panels. Navbar chrome is filtered out in
   // collectObjects(); panel-internal widgets use the same glass path as
@@ -225,12 +221,11 @@
   let uniforms = null;
   let vbo = null;
   let bgTexture = null;
-  let bgImage = null;
-  let bgImageSrc = "";
-  let bgImageReady = false;
+  let backdropReady = false;
   let offscreen = null;
   let offscreenCtx = null;
   let lastTextureKey = "";
+  const backdropImageCache = new Map();
 
   let rafHandle = null;
   let active = false;
@@ -244,7 +239,6 @@
   const ANIMATION_COOLDOWN_FRAMES = 1;
   let resizeObserver = null;
   let mutationObserver = null;
-  let bodyClassObserver = null;
   let scrollHandler = null;
   let resizeHandler = null;
 
@@ -333,48 +327,57 @@
     return canvas;
   };
 
-  const currentPhotoUrl = () => {
-    const panel = document.querySelector(".workspace-photo-panel");
-    if (!panel) return "";
-    const cs = panel.style.backgroundImage || getComputedStyle(panel).backgroundImage || "";
-    const m = cs.match(/url\(["']?([^"')]+)["']?\)/);
+  const cssUrl = (value = "") => {
+    const m = String(value).match(/url\(["']?([^"')]+)["']?\)/);
     return m ? m[1] : "";
   };
 
-  const loadBackgroundImage = () => {
-    const url = currentPhotoUrl();
-    if (!url || url === bgImageSrc) return;
-    bgImageSrc = url;
-    bgImageReady = false;
+  const imageForUrl = (url) => {
+    if (!url) return null;
+    const cached = backdropImageCache.get(url);
+    if (cached) return cached;
     const img = new Image();
     img.crossOrigin = "anonymous";
+    const record = { img, ready: false };
     img.onload = () => {
-      bgImage = img;
-      bgImageReady = true;
+      record.ready = true;
       lastTextureKey = "";
-      rasterizeBackgroundTexture();
+      rasterizeBackdropTexture();
       markDirty();
     };
     img.onerror = () => {
-      console.warn("[liquid-glass-webgl] photo load failed:", url);
+      console.warn("[liquid-glass-webgl] backdrop image load failed:", url);
     };
+    backdropImageCache.set(url, record);
     img.src = url;
+    return record;
   };
 
-  // Pre-rasterize the photo at canvas-backing resolution with
-  // background-size: cover; background-position: center math baked in.
-  // Uploaded as the WebGL texture so the shader can sample 1:1 — no
-  // UV transform, no minification moiré, no clamp seams.
-  const rasterizeBackgroundTexture = () => {
-    if (!bgImageReady || !canvas || !gl || !bgImage) return;
+  const drawCoverImage = (ctx, img, x, y, w, h) => {
+    const iw = img.naturalWidth || img.width || 1;
+    const ih = img.naturalHeight || img.height || 1;
+    const imgAspect = iw / ih;
+    const boxAspect = w / h;
+    let dw, dh, dx, dy;
+    if (imgAspect > boxAspect) {
+      dh = h;
+      dw = h * imgAspect;
+      dx = x + ((w - dw) * 0.5);
+      dy = y;
+    } else {
+      dw = w;
+      dh = w / imgAspect;
+      dx = x;
+      dy = y + ((h - dh) * 0.5);
+    }
+    ctx.drawImage(img, dx, dy, dw, dh);
+  };
+
+  const rasterizeBackdropTexture = () => {
+    if (!canvas || !gl) return;
     const w = canvas.width;
     const h = canvas.height;
     if (w <= 0 || h <= 0) return;
-    const iw = bgImage.naturalWidth || bgImage.width || 1;
-    const ih = bgImage.naturalHeight || bgImage.height || 1;
-    const key = `${bgImageSrc}|${w}x${h}|${iw}x${ih}`;
-    if (key === lastTextureKey) return;
-    lastTextureKey = key;
 
     if (!offscreen) {
       offscreen = document.createElement("canvas");
@@ -383,24 +386,51 @@
     if (offscreen.width !== w) offscreen.width = w;
     if (offscreen.height !== h) offscreen.height = h;
 
-    const imgAspect = iw / ih;
-    const canvasAspect = w / h;
-    let dw, dh, dx, dy;
-    if (imgAspect > canvasAspect) {
-      dh = h;
-      dw = h * imgAspect;
-      dx = (w - dw) * 0.5;
-      dy = 0;
-    } else {
-      dw = w;
-      dh = w / imgAspect;
-      dx = 0;
-      dy = (h - dh) * 0.5;
-    }
+    const rootStyle = getComputedStyle(document.documentElement);
+    const bodyStyle = getComputedStyle(document.body);
+    const bgStart = rootStyle.getPropertyValue("--bg").trim() ||
+      bodyStyle.backgroundColor ||
+      "#1f2937";
+    const bgEnd = rootStyle.getPropertyValue("--bg-end").trim() || bgStart;
+    const panels = [...document.querySelectorAll(".workspace-photo-panel")]
+      .filter((panel) => !panel.hidden && getComputedStyle(panel).display !== "none");
+    const imageKeys = [];
+    let waitingForImage = false;
+
     offscreenCtx.clearRect(0, 0, w, h);
     offscreenCtx.imageSmoothingEnabled = true;
     offscreenCtx.imageSmoothingQuality = "high";
-    offscreenCtx.drawImage(bgImage, dx, dy, dw, dh);
+    const gradient = offscreenCtx.createLinearGradient(0, 0, 0, h);
+    gradient.addColorStop(0, bgStart);
+    gradient.addColorStop(1, bgEnd);
+    offscreenCtx.fillStyle = gradient;
+    offscreenCtx.fillRect(0, 0, w, h);
+
+    panels.forEach((panel) => {
+      const rect = panel.getBoundingClientRect();
+      if (rect.width <= 0 || rect.height <= 0 || rect.right <= 0 || rect.bottom <= 0 || rect.left >= window.innerWidth || rect.top >= window.innerHeight) return;
+      const url = cssUrl(panel.style.backgroundImage || getComputedStyle(panel).backgroundImage || "");
+      if (!url) return;
+      const record = imageForUrl(url);
+      imageKeys.push(`${url}:${Math.round(rect.left)},${Math.round(rect.top)},${Math.round(rect.width)},${Math.round(rect.height)}`);
+      if (!record?.ready) {
+        waitingForImage = true;
+        return;
+      }
+      drawCoverImage(
+        offscreenCtx,
+        record.img,
+        rect.left * (w / window.innerWidth),
+        rect.top * (h / window.innerHeight),
+        rect.width * (w / window.innerWidth),
+        rect.height * (h / window.innerHeight),
+      );
+    });
+
+    const key = `${bgStart}|${bgEnd}|${w}x${h}|${window.scrollY}|${imageKeys.join("|")}|${waitingForImage ? "pending" : "ready"}`;
+    if (key === lastTextureKey) return;
+    lastTextureKey = key;
+    backdropReady = true;
 
     gl.bindTexture(gl.TEXTURE_2D, bgTexture);
     // Flip Y so canvas top-row maps to v_uv.y=1 (shader uses y-up UVs).
@@ -409,7 +439,7 @@
       gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, offscreen);
     } catch (err) {
       console.warn("[liquid-glass-webgl] texImage2D failed:", err);
-      bgImageReady = false;
+      backdropReady = false;
     }
     gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
   };
@@ -439,6 +469,44 @@
     const out = [];
     const vw = window.innerWidth;
     const vh = window.innerHeight;
+    const isPaintedAt = (node, x, y) => {
+      const hit = document.elementFromPoint(x, y);
+      return Boolean(hit && (hit === node || node.contains(hit)));
+    };
+    const visibleClipRect = (node, rect) => {
+      let left = Math.max(rect.left, 0);
+      let top = Math.max(rect.top, 0);
+      let right = Math.min(rect.right, vw);
+      let bottom = Math.min(rect.bottom, vh);
+      for (let parent = node.parentElement; parent; parent = parent.parentElement) {
+        const style = getComputedStyle(parent);
+        if (style.display === "none" || style.visibility === "hidden" || style.visibility === "collapse" || Number(style.opacity) <= 0.01) return null;
+        const clips = /(hidden|clip|auto|scroll)/.test(`${style.overflow} ${style.overflowX} ${style.overflowY}`);
+        if (!clips) continue;
+        const pr = parent.getBoundingClientRect();
+        left = Math.max(left, pr.left);
+        top = Math.max(top, pr.top);
+        right = Math.min(right, pr.right);
+        bottom = Math.min(bottom, pr.bottom);
+        if (right - left <= 1 || bottom - top <= 1) return null;
+      }
+      return { left, top, right, bottom, width: right - left, height: bottom - top };
+    };
+    const isVisibleGlassTarget = (node, rect) => {
+      if (!node.isConnected) return false;
+      const style = getComputedStyle(node);
+      if (style.display === "none" || style.visibility === "hidden" || style.visibility === "collapse" || Number(style.opacity) <= 0.01) return false;
+      const clip = visibleClipRect(node, rect);
+      if (!clip || clip.width <= 4 || clip.height <= 4) return false;
+      const points = [
+        [clip.left + clip.width * 0.5, clip.top + clip.height * 0.5],
+        [clip.left + Math.min(8, clip.width * 0.35), clip.top + Math.min(8, clip.height * 0.35)],
+        [clip.right - Math.min(8, clip.width * 0.35), clip.top + Math.min(8, clip.height * 0.35)],
+        [clip.left + Math.min(8, clip.width * 0.35), clip.bottom - Math.min(8, clip.height * 0.35)],
+        [clip.right - Math.min(8, clip.width * 0.35), clip.bottom - Math.min(8, clip.height * 0.35)],
+      ];
+      return points.some(([x, y]) => isPaintedAt(node, x, y));
+    };
     for (const node of nodes) {
       if (node.classList.contains("dragging")) continue;
       // Navbar is intentionally excluded from the refraction layer.
@@ -446,8 +514,17 @@
       const r = node.getBoundingClientRect();
       if (r.width <= 4 || r.height <= 4) continue;
       if (r.right < 0 || r.bottom < 0 || r.left > vw || r.top > vh) continue;
+      if (!isVisibleGlassTarget(node, r)) continue;
       const radius = parseFloat(getComputedStyle(node).borderRadius) || 14;
-      out.push({ x: r.left, y: r.top, w: r.width, h: r.height, radius });
+      out.push({
+        x: r.left,
+        y: r.top,
+        w: r.width,
+        h: r.height,
+        radius,
+        key: node.dataset.panelKey || node.dataset.widgetKey || "",
+        type: node.classList.contains("db-panel") ? "panel" : "widget",
+      });
       if (out.length >= MAX_OBJECTS) break;
     }
     return out;
@@ -465,14 +542,16 @@
     if (canvas.height !== h) { canvas.height = h; resized = true; }
     canvas.style.width = `${window.innerWidth}px`;
     canvas.style.height = `${window.innerHeight}px`;
-    if (resized) rasterizeBackgroundTexture();
+    if (resized) rasterizeBackdropTexture();
   };
 
   const draw = () => {
     pendingFrame = false;
-    if (!active || !gl || !canvas || !bgImageReady) return;
+    if (!active || !gl || !canvas) return;
 
     syncSize();
+    rasterizeBackdropTexture();
+    if (!backdropReady) return;
     gl.viewport(0, 0, canvas.width, canvas.height);
     gl.clearColor(0, 0, 0, 0);
     gl.clear(gl.COLOR_BUFFER_BIT);
@@ -551,12 +630,6 @@
     return Boolean(canvas);
   };
 
-  const tickContinuous = () => {
-    if (!active) return;
-    draw();
-    rafHandle = requestAnimationFrame(tickContinuous);
-  };
-
   const attachObservers = () => {
     if (!resizeObserver) {
       resizeObserver = new ResizeObserver(() => markDirty());
@@ -582,33 +655,13 @@
     }
   };
 
-  const detachObservers = () => {
-    resizeObserver?.disconnect();
-    resizeObserver = null;
-    mutationObserver?.disconnect();
-    mutationObserver = null;
-    if (scrollHandler) {
-      window.removeEventListener("scroll", scrollHandler);
-      scrollHandler = null;
-    }
-    if (resizeHandler) {
-      window.removeEventListener("resize", resizeHandler);
-      resizeHandler = null;
-    }
-    if (rafHandle) {
-      cancelAnimationFrame(rafHandle);
-      rafHandle = null;
-    }
-  };
-
   const enable = () => {
     if (active) return;
-    if (!document.body.classList.contains("has-photo-background")) return;
     if (!ensureCanvas()) return;
     active = true;
     document.body.classList.add("webgl-glass-on");
-    loadBackgroundImage();
     syncSize();
+    rasterizeBackdropTexture();
     attachObservers();
     // Continuous loop during drag/resize is overkill; we redraw on
     // mutation + scroll. The first frame may need to wait for the
@@ -616,33 +669,13 @@
     markDirty();
   };
 
-  const disable = () => {
-    if (!active) return;
-    active = false;
-    document.body.classList.remove("webgl-glass-on");
-    detachObservers();
-    if (gl && canvas) {
-      gl.clearColor(0, 0, 0, 0);
-      gl.clear(gl.COLOR_BUFFER_BIT);
+  const reconcile = () => {
+    if (!active) enable();
+    else {
+      lastTextureKey = "";
+      rasterizeBackdropTexture();
+      markDirty();
     }
-  };
-
-  const reconcileWithBodyClass = () => {
-    window.LIQUID_GLASS_WEBGL = true;
-    const hasPhoto = document.body.classList.contains("has-photo-background");
-    if (hasPhoto) {
-      // Photo backdrop may have just been created — reload texture.
-      if (active) loadBackgroundImage();
-      else enable();
-    } else if (active) {
-      disable();
-    }
-  };
-
-  const watchBodyClass = () => {
-    if (bodyClassObserver) return;
-    bodyClassObserver = new MutationObserver(reconcileWithBodyClass);
-    bodyClassObserver.observe(document.body, { attributes: true, attributeFilter: ["class"] });
   };
 
   const logDiagnostics = () => {
@@ -657,13 +690,10 @@
     /* eslint-disable no-console */
     console.group("[LiquidGlassWebGL] diagnostics");
     console.log("active:", active, "debug mode:", debugMode, "debug object:", debugObjectIndex < 0 ? "all" : debugObjectIndex);
-    console.log("body has-photo-background:", document.body.classList.contains("has-photo-background"));
     console.log("body webgl-glass-on:", document.body.classList.contains("webgl-glass-on"));
-    console.log("flag (LIQUID_GLASS_WEBGL):", window.LIQUID_GLASS_WEBGL);
     console.log("devicePixelRatio:", window.devicePixelRatio, "(capped at 1.5)");
     console.log("canvas:", canvasInfo);
-    console.log("bg image:", { src: bgImageSrc, ready: bgImageReady,
-      natural: bgImage ? `${bgImage.naturalWidth}x${bgImage.naturalHeight}` : null });
+    console.log("backdrop ready:", backdropReady, "cached images:", backdropImageCache.size);
     console.log("offscreen texture:", offscreen ? `${offscreen.width}x${offscreen.height}` : "none");
     console.log("collected objects:", rects.length, "(max " + MAX_OBJECTS + ")");
     if (rects.length) {
@@ -812,12 +842,10 @@
 
   window.LiquidGlassWebGL = {
     enable: () => {
-      window.LIQUID_GLASS_WEBGL = true;
-      reconcileWithBodyClass();
+      reconcile();
     },
     disable: () => {
-      window.LIQUID_GLASS_WEBGL = true;
-      reconcileWithBodyClass();
+      reconcile();
     },
     // debug(0|false) = off, debug(1|true) = mask overlay, debug(2) = UV displacement field
     debug: (mode = 1) => {
@@ -837,6 +865,8 @@
       markDirty();
     },
     diagnostics: logDiagnostics,
+    visibleObjects: () => collectObjects().map((rect) => ({ ...rect })),
+    visibleObjectCount: () => collectObjects().length,
     markDirty,
     setWorkspacePageTransform,
     releaseWorkspacePageTransform,
@@ -846,11 +876,9 @@
 
   if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", () => {
-      watchBodyClass();
-      reconcileWithBodyClass();
+      reconcile();
     });
   } else {
-    watchBodyClass();
-    reconcileWithBodyClass();
+    reconcile();
   }
 })();

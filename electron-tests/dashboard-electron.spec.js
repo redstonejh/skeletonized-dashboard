@@ -391,7 +391,6 @@ test("electron GUI keeps slim navbar controls wired", async () => {
   await expect(page.locator(".layout-slot-picker, .layout-slot-trigger, .layout-slot-menu, [data-slot]")).toHaveCount(0);
   await expect(page.getByText(/^Layout [0-9]+$/)).toHaveCount(0);
   await openControlBar(page);
-  await expect(page.locator("[data-liquid-glass-toggle]")).toHaveCount(0);
 
   const modeButtons = await page.locator(".mode-command-island > button").evaluateAll((buttons) =>
     buttons.map((button) => button.textContent?.trim())
@@ -403,7 +402,6 @@ test("electron GUI keeps slim navbar controls wired", async () => {
   await page.locator(".layout-group-button").click({ force: true });
   await expect(page.locator(".layout-group-button")).toHaveAttribute("aria-pressed", "false");
 
-  await expect(page.getByRole("button", { name: "Toggle liquid glass effect" })).toHaveCount(0);
   await page.locator(".control-bar-gear").click({ force: true });
   await expect(page.locator("[data-floating-control-bar]")).not.toBeVisible();
 
@@ -425,18 +423,11 @@ test("electron GUI keeps slim navbar controls wired", async () => {
 
   await addTextWidget(page);
   await expect(page.locator('.widget-layout > .widget-card[data-custom-widget="true"]')).toHaveCount(1);
-  await page.evaluate(() => localStorage.setItem("dashboard-liquid-glass-webgl", "false"));
   await page.reload();
   await page.waitForSelector(".dashboard-layout-grid");
-  await expect(page.locator("[data-liquid-glass-toggle]")).toHaveCount(0);
-  await openControlBar(page);
-  await page.locator(".background-tone-trigger").click({ force: true });
-  await page.locator('.background-photo-option[data-background-tone="photo-earth"]').click({ force: true });
-  await expect(page.locator("body")).toHaveClass(/has-photo-background/);
-  await expect.poll(() => page.evaluate(() => Boolean(window.LIQUID_GLASS_WEBGL))).toBe(true);
   await page.waitForFunction(() => Boolean(window.LiquidGlassWebGL?.isActive?.()));
   await expect(page.locator(".liquid-glass-webgl-canvas")).toBeVisible();
-  await expect.poll(() => page.evaluate(() => localStorage.getItem("dashboard-liquid-glass-webgl"))).toBe(null);
+  await expect.poll(() => page.evaluate(() => window.LiquidGlassWebGL?.visibleObjectCount?.() || 0)).toBeGreaterThan(0);
   expect(failed).toEqual([]);
   await closeApp(app);
 });
@@ -714,11 +705,6 @@ test("electron GUI wires tabs to isolated live workspace pages", async () => {
 
 test("electron GUI moves the WebGL glass canvas with tab slide transforms", async () => {
   const { app, page } = await launchApp();
-  await openControlBar(page);
-  await page.locator(".background-tone-trigger").click({ force: true });
-  await page.locator('.background-photo-option[data-background-tone="photo-earth"]').click({ force: true });
-  await expect(page.locator("html")).toHaveAttribute("data-background", "photo-earth");
-  await expect(page.locator("body")).toHaveClass(/has-photo-background/);
   await page.waitForFunction(() => Boolean(window.LiquidGlassWebGL?.isActive?.()));
   await expect(page.locator(".liquid-glass-webgl-canvas")).toBeVisible();
 
@@ -909,6 +895,18 @@ test("electron GUI keeps panel-contained widgets movable and mounted across tab 
     parentPanelKey: node.dataset.parentPanelKey || "",
   }));
   expect(childAfterTabRoundTrip).toEqual({ ...childAfterMove, parentPanelKey: "builder-content" });
+  await page.waitForFunction(() => Boolean(window.LiquidGlassWebGL?.isActive?.()));
+  await expect.poll(() => page.evaluate(() =>
+    window.LiquidGlassWebGL?.visibleObjects?.().some((item) => item.type === "widget" && item.key === "widget-1")
+  )).toBe(true);
+  await page.locator(panelSelector).evaluate((panel) => {
+    panel.classList.add("db-panel-collapsed");
+    panel.querySelector(":scope > .db-panel-hd")?.setAttribute("aria-expanded", "false");
+    window.LiquidGlassWebGL?.markDirty?.();
+  });
+  await expect.poll(() => page.evaluate(() =>
+    window.LiquidGlassWebGL?.visibleObjects?.().some((item) => item.type === "widget" && item.key === "widget-1")
+  )).toBe(false);
   await writeInteractionScenarios(page, ["panel-contained-widget-move-tab-roundtrip"], { target, livePanelDrag, childBeforeMove, childAfterMove });
   await closeApp(app);
 });
