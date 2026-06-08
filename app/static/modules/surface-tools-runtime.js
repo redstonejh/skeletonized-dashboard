@@ -74,6 +74,7 @@ export function initializeSurfaceToolsRuntime({
     const target = event.target?.closest?.(surfaceResponseSelector);
     if (!target || !target.isConnected) return null;
     if (target.classList.contains("widget-card") && event.target !== target) return null;
+    if (target.classList.contains("db-panel") && event.target?.closest?.(".panel-internal-widget-grid > .widget-card")) return null;
     const controlTarget = event.target?.closest?.(surfaceResponseControlSelector);
     if (controlTarget && controlTarget !== target) return null;
     if (
