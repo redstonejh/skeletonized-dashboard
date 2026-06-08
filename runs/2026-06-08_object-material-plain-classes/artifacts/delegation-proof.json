@@ -1,0 +1,25 @@
+{
+  "delegation_capability": {
+    "available": true,
+    "primitive": "multi_agent_v1.spawn_agent"
+  },
+  "selected_roles": [
+    "conductor",
+    "planner",
+    "critic"
+  ],
+  "roles": {
+    "conductor": {
+      "agent_id": "019ea542-78dd-75a2-852f-db0cb092ea26",
+      "prompt_path": ".codex/agents/conductor.md"
+    },
+    "planner": {
+      "agent_id": "019ea542-94dc-7900-ad8d-95199a1f488c",
+      "prompt_path": ".codex/agents/planner.md"
+    },
+    "critic": {
+      "agent_id": "019ea542-aa1f-7b13-8ff6-74d2a2e7e25e",
+      "prompt_path": ".codex/agents/critic.md"
+    }
+  }
+}

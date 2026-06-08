@@ -1,0 +1,16 @@
+{
+  "verdict": "SHIP",
+  "checks": {
+    "tautology_selectors": {
+      "before": 226,
+      "after": 0
+    },
+    "themes_css_lines": {
+      "before": 5696,
+      "after": 5654
+    },
+    "focused_material_test": "passed",
+    "e2e": "24 passed",
+    "delegation_proof": "passed"
+  }
+}

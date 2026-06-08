@@ -4150,7 +4150,7 @@ and active drags own emphasis alone. */ .widget-layout > .widget-card:has(:is(.w
   background: var(--object-shell-bg) !important;
   border-color: var(--object-shell-rim) !important;
   box-shadow: var(--object-shell-shadow) !important;
-}/* ── Photo / image background system ─────────────────────────────── */ /* Suppress the color gradient when a photo backdrop is active. * body gets isolation: isolate so z-index: -1 on the backdrop renders * above body's background but below all body content. */ html.has-photo-background,
+}/* ── Photo / image background system ─────────────────────────────── */ /* Suppress the color gradient when a photo background is active. * body gets isolation: isolate so z-index: -1 on the backdrop renders * above body's background but below all body content. */ html.has-photo-background,
 html.has-photo-background body{
   background: none !important;
   background-color: #080808 !important;
@@ -4216,14 +4216,14 @@ html.has-photo-background body{
   box-shadow:
     0 12px 26px color-mix(in srgb, var(--blue) 16%, transparent),
     inset 0 1px 0 var(--glass-highlight);
-}/* ── Liquid-glass material over photo backgrounds ───────────────────── * * Default theme paints .db-panel with var(--surface) (#ffffff) and * .db-panel-hd / .widget-card with var(--surface-soft) (#f2f6fb),
-both * fully opaque. Over a photo backdrop those slabs cover the image,
+}/* ── Liquid-glass material over object glass material ───────────────────── * * Default theme paints .db-panel with var(--surface) (#ffffff) and * .db-panel-hd / .widget-card with var(--surface-soft) (#f2f6fb),
+both * fully opaque. Over a photo background those slabs cover the image,
 so * earlier tweaks to .db-panel-body (already rgba .22) had nothing * translucent above them to reveal — the white visible inside an open * panel was the .db-panel itself,
 not .db-panel-body. This layer swaps * the chrome of panels,
 headers,
 widgets,
 objects,
-and dividers for one * shared translucent recipe: low base alpha + backdrop blur/saturate + * diagonal sheen + inset rim highlights. Inner panel widgets skip * backdrop-filter to avoid double-blur inside .db-panel-body's already * isolated glass. */ body:is(.has-photo-background, :not(.has-photo-background)){
+and dividers for one * shared translucent recipe: low base alpha + backdrop blur/saturate + * diagonal sheen + inset rim highlights. Inner panel widgets skip * backdrop-filter to avoid double-blur inside .db-panel-body's already * isolated glass. */ :root{
   --glass-photo-base-alpha: 0.12;
   --glass-photo-base-alpha-strong: 0.20;
   /* Object blur sits intentionally LOW. Each step up smears photo detail
@@ -4311,8 +4311,8 @@ and dividers for one * shared translucent recipe: low base alpha + backdrop blur
     inset -1px 0 0 rgba(255, 255, 255, 0.22),
     inset 0 -1px 0 rgba(255, 255, 255, 0.10),
     inset 0 -12px 16px -12px rgba(0, 0, 0, 0.18);
-}body:is(.has-photo-background, :not(.has-photo-background)) .panel-layout > .db-panel,
-body:is(.has-photo-background, :not(.has-photo-background)) .db-panel.db-panel-tools-open{
+}.panel-layout > .db-panel,
+.db-panel.db-panel-tools-open{
   background:
     linear-gradient(150deg,
       rgba(255, 255, 255, 0.10) 0%,
@@ -4330,12 +4330,12 @@ body:is(.has-photo-background, :not(.has-photo-background)) .db-panel.db-panel-t
     inset 1px 0 0 rgba(255, 255, 255, var(--glass-photo-side-highlight-alpha)),
     inset -1px 0 0 rgba(255, 255, 255, var(--glass-photo-side-highlight-alpha)),
     inset 0 -1px 0 rgba(255, 255, 255, 0.10);
-}body:is(.has-photo-background, :not(.has-photo-background)) .db-panel:hover,
-body:is(.has-photo-background, :not(.has-photo-background)) .db-panel:focus-within,
-body:is(.has-photo-background, :not(.has-photo-background)) .db-panel.db-panel-collapsed:hover,
-body:is(.has-photo-background, :not(.has-photo-background)) .db-panel.db-panel-collapsed:focus-within,
-body:is(.has-photo-background, :not(.has-photo-background)) .db-panel.db-panel-tools-open:hover,
-body:is(.has-photo-background, :not(.has-photo-background)) .db-panel.db-panel-tools-open:focus-within{
+}.db-panel:hover,
+.db-panel:focus-within,
+.db-panel.db-panel-collapsed:hover,
+.db-panel.db-panel-collapsed:focus-within,
+.db-panel.db-panel-tools-open:hover,
+.db-panel.db-panel-tools-open:focus-within{
   background:
     linear-gradient(150deg,
       rgba(255, 255, 255, 0.14) 0%,
@@ -4345,7 +4345,7 @@ body:is(.has-photo-background, :not(.has-photo-background)) .db-panel.db-panel-t
     ),
     rgba(255, 255, 255, 0.06);
   border-color: rgba(255, 255, 255, calc(var(--glass-photo-rim-alpha) + 0.12));
-}body:is(.has-photo-background, :not(.has-photo-background)) .db-panel-hd{
+}.db-panel-hd{
   background:
     linear-gradient(180deg,
       rgba(255, 255, 255, 0.14) 0%,
@@ -4355,7 +4355,7 @@ body:is(.has-photo-background, :not(.has-photo-background)) .db-panel.db-panel-t
   border-bottom-color: rgba(255, 255, 255, 0.30);
   backdrop-filter: blur(var(--glass-photo-blur)) saturate(var(--glass-photo-saturate));
   -webkit-backdrop-filter: blur(var(--glass-photo-blur)) saturate(var(--glass-photo-saturate));
-}body:is(.has-photo-background, :not(.has-photo-background)) .db-panel-body{
+}.db-panel-body{
   background: transparent;
   border-top-color: rgba(255, 255, 255, 0.24);
   /* Override the base 18px blur from dashboard-grid.css:4070 — it stacks
@@ -4372,9 +4372,9 @@ body:is(.has-photo-background, :not(.has-photo-background)) .db-panel.db-panel-t
 }/* The single biggest contributor to "open panel still foggy": the body's * own diffusion ::before paints var(--panel-content-diffusion),
 a * corner-fading white gradient peaking at rgba(255,255,255,.45),
 at * opacity:.55 (dashboard-grid.css:4090). At ~.25 alpha across the * top-left it dominates everything painted below. Knock its opacity * down so it remains a faint sheen,
-not a fog. */ body:is(.has-photo-background, :not(.has-photo-background)) .db-panel-body::before{
+not a fog. */ .db-panel-body::before{
   opacity: 0.10;
-}body:is(.has-photo-background, :not(.has-photo-background)) .db-panel-body > .panel-empty-state{
+}.db-panel-body > .panel-empty-state{
   /* elementsFromPoint diagnostic at the panel body center showed this
    * card is the topmost painter in every post-drop phase — its 6%+10%
    * white fill is the "white slab" the user sees over light photos.
@@ -4386,7 +4386,7 @@ not a fog. */ body:is(.has-photo-background, :not(.has-photo-background)) .db-pa
   box-shadow: none !important;
   backdrop-filter: none !important;
   -webkit-backdrop-filter: none !important;
-}body:is(.has-photo-background, :not(.has-photo-background)) .widget-layout > .widget-card{
+}.widget-layout > .widget-card{
   background:
     linear-gradient(150deg,
       rgba(255, 255, 255, var(--glass-photo-sheen-alpha)) 0%,
@@ -4404,8 +4404,8 @@ not a fog. */ body:is(.has-photo-background, :not(.has-photo-background)) .db-pa
     inset 1px 0 0 rgba(255, 255, 255, var(--glass-photo-side-highlight-alpha)),
     inset -1px 0 0 rgba(255, 255, 255, var(--glass-photo-side-highlight-alpha)),
     inset 0 -1px 0 rgba(255, 255, 255, 0.10);
-}body:is(.has-photo-background, :not(.has-photo-background)) .widget-layout > .widget-card:hover,
-body:is(.has-photo-background, :not(.has-photo-background)) .widget-layout > .widget-card:focus-visible{
+}.widget-layout > .widget-card:hover,
+.widget-layout > .widget-card:focus-visible{
   background:
     linear-gradient(150deg,
       rgba(255, 255, 255, calc(var(--glass-photo-sheen-alpha) + 0.06)) 0%,
@@ -4415,7 +4415,7 @@ body:is(.has-photo-background, :not(.has-photo-background)) .widget-layout > .wi
     ),
     rgba(255, 255, 255, var(--glass-photo-base-alpha-strong));
   border-color: rgba(255, 255, 255, calc(var(--glass-photo-rim-alpha) + 0.12));
-}body:is(.has-photo-background, :not(.has-photo-background)) .panel-internal-widget-grid > .widget-card{
+}.panel-internal-widget-grid > .widget-card{
   background:
     linear-gradient(150deg,
       rgba(255, 255, 255, 0.18) 0%,
@@ -4430,9 +4430,9 @@ body:is(.has-photo-background, :not(.has-photo-background)) .widget-layout > .wi
     inset 0 1px 0 rgba(255, 255, 255, 0.34),
     inset 1px 0 0 rgba(255, 255, 255, 0.14),
     inset -1px 0 0 rgba(255, 255, 255, 0.14);
-}body:is(.has-photo-background, :not(.has-photo-background)) .workspace-divider.db-panel,
-body:is(.has-photo-background, :not(.has-photo-background)) .workspace-divider.db-panel:hover,
-body:is(.has-photo-background, :not(.has-photo-background)) .workspace-divider.db-panel:focus-within{
+}.workspace-divider.db-panel,
+.workspace-divider.db-panel:hover,
+.workspace-divider.db-panel:focus-within{
   /* Lower base alpha so the 3px blur doesn't crush the photo behind
    * the divider strip into a flat band. The directional sheen + rim
    * highlights still give the divider visible shape. */
@@ -4451,7 +4451,7 @@ body:is(.has-photo-background, :not(.has-photo-background)) .workspace-divider.d
     inset 0 -1px 0 rgba(255, 255, 255, 0.08),
     inset 1px 0 0 rgba(255, 255, 255, 0.12),
     inset -1px 0 0 rgba(255, 255, 255, 0.12);
-}/* The little dot/node inside the divider also paints a tinted * near-opaque mix from dashboard-grid.css:2894-2906. Make it a glass * bead instead so the divider strip doesn't have a single solid mark * sitting in the middle of an otherwise translucent surface. */ body:is(.has-photo-background, :not(.has-photo-background)) .workspace-divider .workspace-divider-node{
+}/* The little dot/node inside the divider also paints a tinted * near-opaque mix from dashboard-grid.css:2894-2906. Make it a glass * bead instead so the divider strip doesn't have a single solid mark * sitting in the middle of an otherwise translucent surface. */ .workspace-divider .workspace-divider-node{
   background:
     linear-gradient(180deg, rgba(255, 255, 255, 0.30), rgba(255, 255, 255, 0.06)),
     rgba(255, 255, 255, 0.10);
@@ -4464,7 +4464,7 @@ divider titles,
 and object labels. Open panel title,
 * collapsed panel title,
 and divider title all share `.db-panel-title`,
-body.has-photo-background .workspace-divider .db-panel-title{
+.workspace-divider .db-panel-title{
   font-size: var(--workspace-object-title-size) !important;
   font-weight: var(--workspace-object-title-weight) !important;
   line-height: var(--workspace-object-title-line-height) !important;
@@ -4473,7 +4473,7 @@ body.has-photo-background .workspace-divider .db-panel-title{
   font-variant-numeric: var(--workspace-object-title-numeric) !important;
   /* No text-shadow — matches the stat-val source of truth exactly. */
   text-shadow: none !important;
-}/* Custom-color panels override .db-panel-title color at higher * specificity in the default theme — re-enforce the shared color here * so Content / Notes / Menu titles use the workspace-object color * rather than the panel-accent-text. */ body.has-photo-background .db-panel.db-panel-custom-color > .db-panel-hd .db-panel-title{
+}/* Custom-color panels override .db-panel-title color at higher * specificity in the default theme — re-enforce the shared color here * so Content / Notes / Menu titles use the workspace-object color * rather than the panel-accent-text. */ .db-panel.db-panel-custom-color > .db-panel-hd .db-panel-title{
   color: var(--workspace-object-title-color) !important;
 }/* Secondary labels stay secondary — no inheritance,
 no change. The * existing rules for .stat-lbl,
@@ -4486,28 +4486,28 @@ and custom-color objects goes through * `background: var(--panel-chrome-bg),
 var(--panel-chrome-surface) !important` * (themes.css lines 1352, 1358, 1836, 1849, 1857, 1885, 4693). The chrome-bg * gradient is already translucent lavender,
 but the second layer * `--panel-chrome-surface` defaults to `var(--surface)` = solid #ffffff,
 so * the !important rule paints lavender-on-white — the slab visible in the * screenshot. Earlier non-!important overrides on .panel-internal-widget-grid * > .widget-card and .db-panel-hd could not beat that !important. Swapping * the inherited value of --panel-chrome-surface to transparent makes the * existing !important rules resolve to translucent lavender over nothing,
-* so the photo bleeds through without changing any of the paint rules. */ body.has-photo-background .db-panel-custom-color,
-body.has-photo-background .widget-card.db-panel-custom-color{
+* so the photo bleeds through without changing any of the paint rules. */ .db-panel-custom-color,
+.widget-card.db-panel-custom-color{
   --panel-chrome-surface: transparent !important;
 }/* Custom-color panel headers (Notes/Menu) — the chrome rule at * themes.css:1352 paints `background: var(--panel-chrome-bg),
 * var(--panel-chrome-surface) !important;` (lavender gradient over what * is now transparent from the var swap above). That paint is * translucent but flat — it does not saturate or blur the photo * underneath,
 so it reads as foggy lavender. The !important is on * background/border-color/box-shadow only,
 NOT on backdrop-filter,
-so * adding a higher-specificity backdrop-filter declaration applies and * turns the header into stained-glass that matches the stat widgets. */ body:is(.has-photo-background, :not(.has-photo-background)) .db-panel.db-panel-custom-color > .db-panel-hd,
-body:is(.has-photo-background, :not(.has-photo-background)) .db-panel.db-panel-custom-color > .db-panel-hd:hover,
-body:is(.has-photo-background, :not(.has-photo-background)) .db-panel.db-panel-custom-color > .db-panel-hd:focus-visible{
+so * adding a higher-specificity backdrop-filter declaration applies and * turns the header into stained-glass that matches the stat widgets. */ .db-panel.db-panel-custom-color > .db-panel-hd,
+.db-panel.db-panel-custom-color > .db-panel-hd:hover,
+.db-panel.db-panel-custom-color > .db-panel-hd:focus-visible{
   backdrop-filter: blur(var(--glass-photo-blur)) saturate(var(--glass-photo-saturate));
   -webkit-backdrop-filter: blur(var(--glass-photo-blur)) saturate(var(--glass-photo-saturate));
 }/* Custom-color panel container: when collapsed,
 only the header shows,
 * but when expanded the panel base sits behind body+header. Giving it * its own backdrop-filter ensures the photo behind the whole panel is * saturated/blurred coherently regardless of state. The base .db-panel * paint is already brought near-transparent above,
-so this is purely * a filter on whatever is behind the panel. */ body:is(.has-photo-background, :not(.has-photo-background)) .db-panel.db-panel-custom-color{
+so this is purely * a filter on whatever is behind the panel. */ .db-panel.db-panel-custom-color{
   backdrop-filter: blur(var(--glass-photo-blur)) saturate(var(--glass-photo-saturate));
   -webkit-backdrop-filter: blur(var(--glass-photo-blur)) saturate(var(--glass-photo-saturate));
 }/* The actual "opaque white/blue slab" inside an open panel body: * .widget-content-well / .widget-library-surface (dashboard-grid.css:2515) * paint `background: var(--widget-library-surface-bg)` which is * `linear-gradient(rgba(255,255,255,.94) + tiny panel-accent, rgba(248,250,252,.92) + tiny panel-accent)` * — effectively opaque white tinted faintly blue. The runtime stages * (.text-widget-editor, .text-widget-preview, .runtime-chart-stage, * .runtime-table-scroll, etc.) at dashboard-grid.css:6181 paint * `var(--widget-content-stage-bg)` which inherits the same recessed * interior values. Both layers sit INSIDE .widget-card,
 so they cover * the panel-body translucent fill and any photo bleed-through. * * --widget-library-surface-bg is defined on .widget-card itself,
-so * overriding it on body doesn't propagate (widget-card redefines for * its subtree). Retarget the paint selectors directly instead. Both * base rules have specificity (0,1,0); these (0,2,1) overrides win * without !important. */ body:is(.has-photo-background, :not(.has-photo-background)) .widget-content-well,
-body:is(.has-photo-background, :not(.has-photo-background)) .widget-library-surface{
+so * overriding it on body doesn't propagate (widget-card redefines for * its subtree). Retarget the paint selectors directly instead. Both * base rules have specificity (0,1,0); these (0,2,1) overrides win * without !important. */ .widget-content-well,
+.widget-library-surface{
   /* Interior fill values preserved from round 3 (user marked content
    * wells acceptable). Only the rim is tightened: lower border alpha
    * and a thinner top highlight so the well reads as a clean glass
@@ -4522,17 +4522,17 @@ body:is(.has-photo-background, :not(.has-photo-background)) .widget-library-surf
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.20),
     inset 0 -1px 0 rgba(255, 255, 255, 0.06);
-}body:is(.has-photo-background, :not(.has-photo-background)) .runtime-table-scroll,
-body:is(.has-photo-background, :not(.has-photo-background)) .runtime-chart-stage,
-body:is(.has-photo-background, :not(.has-photo-background)) .text-widget-editor,
-body:is(.has-photo-background, :not(.has-photo-background)) .text-widget-preview,
-body:is(.has-photo-background, :not(.has-photo-background)) .media-widget-stage,
-body:is(.has-photo-background, :not(.has-photo-background)) .ai-assistant-panel,
-body:is(.has-photo-background, :not(.has-photo-background)) .data-filter-core,
-body:is(.has-photo-background, :not(.has-photo-background)) .shift-widget-core,
-body:is(.has-photo-background, :not(.has-photo-background)) .dataset-origin-entry,
-body:is(.has-photo-background, :not(.has-photo-background)) .activity-feed-item,
-body:is(.has-photo-background, :not(.has-photo-background)) .meta-widget-facts span{
+}.runtime-table-scroll,
+.runtime-chart-stage,
+.text-widget-editor,
+.text-widget-preview,
+.media-widget-stage,
+.ai-assistant-panel,
+.data-filter-core,
+.shift-widget-core,
+.dataset-origin-entry,
+.activity-feed-item,
+.meta-widget-facts span{
   background:
     linear-gradient(180deg,
       rgba(255, 255, 255, 0.10),
@@ -4544,16 +4544,16 @@ body:is(.has-photo-background, :not(.has-photo-background)) .meta-widget-facts s
     inset 0 1px 0 rgba(255, 255, 255, 0.28),
     inset 0 -1px 0 rgba(255, 255, 255, 0.08);
 }/* .runtime-chart-widget > .runtime-chart-stage at dashboard-grid.css:5884 * and :6215 has a child-combinator specificity (0,1,1) that beats the * flat list above,
-so add a matching-specificity override. */ body:is(.has-photo-background, :not(.has-photo-background)) .runtime-chart-widget > .runtime-chart-stage{
+so add a matching-specificity override. */ .runtime-chart-widget > .runtime-chart-stage{
   background:
     linear-gradient(180deg,
       rgba(255, 255, 255, 0.10),
       rgba(255, 255, 255, 0.04)
     ),
     rgba(255, 255, 255, 0.04);
-}/* Empty-state: keep only the text-shadow polish. backdrop-filter was * the source of a fuzzy halo around the card; fill + filter are killed * in the rule above so the empty-state no longer reads as a slab. */ body.has-photo-background .db-panel-body > .panel-empty-state{
+}/* Empty-state: keep only the text-shadow polish. backdrop-filter was * the source of a fuzzy halo around the card; fill + filter are killed * in the rule above so the empty-state no longer reads as a slab. */ .db-panel-body > .panel-empty-state{
   text-shadow: var(--glass-photo-text-shadow);
-}/* ── Object-shell material override for photo backgrounds ── * * themes.css:5171-5307 introduces a unified "object shell" system that * paints panels,
+}/* ── Object-shell material override for object glass material ── * * themes.css:5171-5307 introduces a unified "object shell" system that * paints panels,
 panel headers,
 workspace widgets,
 panel-contained * widgets,
@@ -4562,16 +4562,9 @@ and custom-color variants with `!important` on * `background`,
 `border-color`,
 `box-shadow`,
 and `backdrop-filter`. * --object-shell-surface resolves to rgba(255,255,255,~0.64),
-so every * surface lands at ~64% white — too opaque for photo-glass even on top * of body.has-photo-background. Every prior photo-bg override here was * at (0,2,1)-(0,3,1) without !important and lost to those shell rules. * * This block re-skins those exact selectors with the photo-glass * recipe (translucent base + small backdrop blur + sheen rim shadows) * and uses !important to match the shell's !important. The shell * system itself is unchanged — it stays the resting material for solid * color backgrounds. Custom-color accent wash is preserved through * --panel-chrome-bg / --object-shell-wash,
-just composited over a * transparent surface instead of 64% white. */ body:is(.has-photo-background, :not(.has-photo-background)) .db-panel{
-  background:
-    linear-gradient(150deg,
-      rgba(255, 255, 255, 0.10) 0%,
-      rgba(255, 255, 255, 0.03) 30%,
-      rgba(255, 255, 255, 0) 58%,
-      rgba(255, 255, 255, 0.04) 100%
-    ),
-    rgba(255, 255, 255, 0.04) !important;
+so every * surface lands at ~64% white — too opaque for photo-glass even on top * of body. Every prior photo-bg override here was * at (0,2,1)-(0,3,1) without !important and lost to those shell rules. * * This block re-skins those exact selectors with the photo-glass * recipe (translucent base + small backdrop blur + sheen rim shadows) * and uses !important to match the shell's !important. The shell * system itself is unchanged — it stays the resting material for solid * color backgrounds. Custom-color accent wash is preserved through * --panel-chrome-bg / --object-shell-wash,
+just composited over a * transparent surface instead of 64% white. */ .db-panel{
+  background: rgba(255, 255, 255, 0.03) !important;
   border-color: rgba(255, 255, 255, var(--glass-photo-rim-alpha)) !important;
   box-shadow:
     0 18px 42px rgba(0, 0, 0, var(--glass-photo-drop-shadow-alpha)),
@@ -4581,8 +4574,8 @@ just composited over a * transparent surface instead of 64% white. */ body:is(.h
     inset 0 -1px 0 rgba(255, 255, 255, 0.10) !important;
   backdrop-filter: blur(var(--glass-photo-blur)) saturate(var(--glass-photo-saturate));
   -webkit-backdrop-filter: blur(var(--glass-photo-blur)) saturate(var(--glass-photo-saturate));
-}body:is(.has-photo-background, :not(.has-photo-background)) .db-panel:hover,
-body:is(.has-photo-background, :not(.has-photo-background)) .db-panel:focus-within{
+}.db-panel:hover,
+.db-panel:focus-within{
   background:
     linear-gradient(150deg,
       rgba(255, 255, 255, 0.14) 0%,
@@ -4591,7 +4584,7 @@ body:is(.has-photo-background, :not(.has-photo-background)) .db-panel:focus-with
       rgba(255, 255, 255, 0.06) 100%
     ),
     rgba(255, 255, 255, 0.06) !important;
-}body:is(.has-photo-background, :not(.has-photo-background)) .db-panel > .db-panel-hd{
+}.db-panel > .db-panel-hd{
   background:
     linear-gradient(180deg,
       rgba(255, 255, 255, 0.14) 0%,
@@ -4602,8 +4595,8 @@ body:is(.has-photo-background, :not(.has-photo-background)) .db-panel:focus-with
   box-shadow: none !important;
   backdrop-filter: blur(var(--glass-photo-blur)) saturate(var(--glass-photo-saturate)) !important;
   -webkit-backdrop-filter: blur(var(--glass-photo-blur)) saturate(var(--glass-photo-saturate)) !important;
-}body:is(.has-photo-background, :not(.has-photo-background)) .db-panel > .db-panel-hd:hover,
-body:is(.has-photo-background, :not(.has-photo-background)) .db-panel > .db-panel-hd:focus-visible{
+}.db-panel > .db-panel-hd:hover,
+.db-panel > .db-panel-hd:focus-visible{
   background:
     linear-gradient(180deg,
       rgba(255, 255, 255, 0.18) 0%,
@@ -4611,16 +4604,9 @@ body:is(.has-photo-background, :not(.has-photo-background)) .db-panel > .db-pane
     ),
     rgba(255, 255, 255, 0.04) !important;
   border-color: rgba(255, 255, 255, 0.36) !important;
-}body:is(.has-photo-background, :not(.has-photo-background)) .widget-layout > .widget-card,
-body:is(.has-photo-background, :not(.has-photo-background)) .panel-internal-widget-grid > .widget-card{
-  background:
-    linear-gradient(150deg,
-      rgba(255, 255, 255, var(--glass-photo-sheen-alpha)) 0%,
-      rgba(255, 255, 255, 0.05) 30%,
-      rgba(255, 255, 255, 0) 58%,
-      rgba(255, 255, 255, 0.06) 100%
-    ),
-    rgba(255, 255, 255, var(--glass-photo-base-alpha)) !important;
+}.widget-layout > .widget-card,
+.panel-internal-widget-grid > .widget-card{
+  background: rgba(255, 255, 255, 0.04) !important;
   border-color: rgba(255, 255, 255, var(--glass-photo-rim-alpha)) !important;
   box-shadow:
     0 14px 30px rgba(0, 0, 0, calc(var(--glass-photo-drop-shadow-alpha) - 0.04)),
@@ -4630,10 +4616,13 @@ body:is(.has-photo-background, :not(.has-photo-background)) .panel-internal-widg
     inset 0 -1px 0 rgba(255, 255, 255, 0.10) !important;
   backdrop-filter: blur(var(--glass-photo-blur)) saturate(var(--glass-photo-saturate)) !important;
   -webkit-backdrop-filter: blur(var(--glass-photo-blur)) saturate(var(--glass-photo-saturate)) !important;
-}body:is(.has-photo-background, :not(.has-photo-background)) .widget-layout > .widget-card:hover,
-body:is(.has-photo-background, :not(.has-photo-background)) .widget-layout > .widget-card:focus-visible,
-body:is(.has-photo-background, :not(.has-photo-background)) .panel-internal-widget-grid > .widget-card:hover,
-body:is(.has-photo-background, :not(.has-photo-background)) .panel-internal-widget-grid > .widget-card:focus-visible{
+}.widget-layout > .widget-card.db-panel-custom-color,
+.panel-internal-widget-grid > .widget-card.db-panel-custom-color{
+  background: rgba(255, 255, 255, 0.04) !important;
+}.widget-layout > .widget-card:hover,
+.widget-layout > .widget-card:focus-visible,
+.panel-internal-widget-grid > .widget-card:hover,
+.panel-internal-widget-grid > .widget-card:focus-visible{
   background:
     linear-gradient(150deg,
       rgba(255, 255, 255, calc(var(--glass-photo-sheen-alpha) + 0.06)) 0%,
@@ -4643,46 +4632,39 @@ body:is(.has-photo-background, :not(.has-photo-background)) .panel-internal-widg
     ),
     rgba(255, 255, 255, var(--glass-photo-base-alpha-strong)) !important;
   border-color: rgba(255, 255, 255, calc(var(--glass-photo-rim-alpha) + 0.12)) !important;
-}/* Custom-color WIDGETS and objects — keep the accent wash; these are * the colored objects (the contained "409", workspace stat tiles, * objects). Drop only the opaque white surface backing. */ body:is(.has-photo-background, :not(.has-photo-background)) .widget-layout > .widget-card.db-panel-custom-color,
-body:is(.has-photo-background, :not(.has-photo-background)) .panel-internal-widget-grid > .widget-card.db-panel-custom-color{
+}/* Custom-color WIDGETS and objects — keep the accent wash; these are * the colored objects (the contained "409", workspace stat tiles, * objects). Drop only the opaque white surface backing. */ .widget-layout > .widget-card.db-panel-custom-color,
+.panel-internal-widget-grid > .widget-card.db-panel-custom-color{
   background:
     var(--object-shell-wash),
     rgba(255, 255, 255, 0.04) !important;
 }/* Drop-flash root cause: themes.css:5374-5384 paints `background: * var(--object-shell-bg) !important` on custom-color widgets with the * extra `.widget-runtime-meaning` OR `.widget-tools-open` class. Those * classes are permanent on stat / runtime widgets and stick to the * dragged widget through the drop transition,
-so the rule's (0,5,1) * specificity beat the round-8 photo-glass override at (0,4,1) and * slammed the widget to ~0.64-alpha shell white. Match-and-beat with * the same selector list at (0,6,1)/(0,7,1) so widgets never flash to * the opaque shell either while drag tools are open or once they're * runtime-active. */ body:is(.has-photo-background, :not(.has-photo-background)) .widget-layout > .widget-card.db-panel-custom-color.widget-runtime-meaning,
-body:is(.has-photo-background, :not(.has-photo-background)) .panel-internal-widget-grid > .widget-card.db-panel-custom-color.widget-runtime-meaning,
-body:is(.has-photo-background, :not(.has-photo-background)) .widget-layout > .widget-card.db-panel-custom-color.widget-tools-open,
-body:is(.has-photo-background, :not(.has-photo-background)) .widget-layout > .widget-card.db-panel-custom-color.widget-tools-open:hover,
-body:is(.has-photo-background, :not(.has-photo-background)) .widget-layout > .widget-card.db-panel-custom-color.widget-tools-open:focus-visible,
-body:is(.has-photo-background, :not(.has-photo-background)) .panel-internal-widget-grid > .widget-card.db-panel-custom-color.widget-tools-open,
-body:is(.has-photo-background, :not(.has-photo-background)) .panel-internal-widget-grid > .widget-card.db-panel-custom-color.widget-tools-open:hover,
-body:is(.has-photo-background, :not(.has-photo-background)) .panel-internal-widget-grid > .widget-card.db-panel-custom-color.widget-tools-open:focus-visible{
+so the rule's (0,5,1) * specificity beat the round-8 photo-glass override at (0,4,1) and * slammed the widget to ~0.64-alpha shell white. Match-and-beat with * the same selector list at (0,6,1)/(0,7,1) so widgets never flash to * the opaque shell either while drag tools are open or once they're * runtime-active. */ .widget-layout > .widget-card.db-panel-custom-color.widget-runtime-meaning,
+.panel-internal-widget-grid > .widget-card.db-panel-custom-color.widget-runtime-meaning,
+.widget-layout > .widget-card.db-panel-custom-color.widget-tools-open,
+.widget-layout > .widget-card.db-panel-custom-color.widget-tools-open:hover,
+.widget-layout > .widget-card.db-panel-custom-color.widget-tools-open:focus-visible,
+.panel-internal-widget-grid > .widget-card.db-panel-custom-color.widget-tools-open,
+.panel-internal-widget-grid > .widget-card.db-panel-custom-color.widget-tools-open:hover,
+.panel-internal-widget-grid > .widget-card.db-panel-custom-color.widget-tools-open:focus-visible{
   background:
     var(--object-shell-wash),
     rgba(255, 255, 255, 0.04) !important;
-}/* Custom-color panel HEADER — keep the accent wash too so the header * stays more colored than the body. */ body:is(.has-photo-background, :not(.has-photo-background)) .db-panel.db-panel-custom-color > .db-panel-hd{
+}/* Custom-color panel HEADER — keep the accent wash too so the header * stays more colored than the body. */ .db-panel.db-panel-custom-color > .db-panel-hd{
   background:
     var(--object-shell-wash),
     rgba(255, 255, 255, 0.04) !important;
-}/* Custom-color panel CONTAINER — drop the accent wash entirely so the * body's backdrop-filter samples a near-clear surface and shows photo * detail without the lavender/blue wash bleeding through. The header * paint above provides the colored strip; the body interior now reads * as clean recessed glass. Matches what the user calls the "perfect" * material seen during internal widget drag. */ body:is(.has-photo-background, :not(.has-photo-background)) .db-panel.db-panel-custom-color{
-  background:
-    linear-gradient(150deg,
-      rgba(255, 255, 255, 0.08) 0%,
-      rgba(255, 255, 255, 0.02) 30%,
-      rgba(255, 255, 255, 0) 58%,
-      rgba(255, 255, 255, 0.03) 100%
-    ),
-    rgba(255, 255, 255, 0.03) !important;
+}/* Custom-color panel CONTAINER — drop the accent wash entirely so the * body's backdrop-filter samples a near-clear surface and shows photo * detail without the lavender/blue wash bleeding through. The header * paint above provides the colored strip; the body interior now reads * as clean recessed glass. Matches what the user calls the "perfect" * material seen during internal widget drag. */ .db-panel.db-panel-custom-color{
+  background: rgba(255, 255, 255, 0.03) !important;
 }/* Open panel body: keep it the calmest surface in the system. Drop the * lavender-tinted --panel-content-surface that custom-color panels * still set on the body,
 knock the diffusion ::before down further,
-* and use a tiny backdrop blur so photo detail stays legible. */ body:is(.has-photo-background, :not(.has-photo-background)) .db-panel-body{
+* and use a tiny backdrop blur so photo detail stays legible. */ .db-panel-body{
   background: transparent !important;
   backdrop-filter: blur(2px) saturate(var(--glass-photo-saturate)) !important;
   -webkit-backdrop-filter: blur(2px) saturate(var(--glass-photo-saturate)) !important;
-}body:is(.has-photo-background, :not(.has-photo-background)) .db-panel-body::before{
+}.db-panel-body::before{
   opacity: 0.05 !important;
 }/* Drop-state safety: the panel briefly gets .panel-child-hover-active * when a dragged widget hovers in and the panel base rule at * dashboard-grid.css:2854 paints `background: var(--surface)` (#ffffff) * with specificity (0,4,0). Without !important on the photo-bg side,
-* the original photo-glass override at (0,6,1) won at rest but lost * to the shell system's !important. Force the photo-glass material on * this transient state with !important so the drop never flashes * white. Custom-color variant gets the same treatment so the lavender * panel + custom-color drop doesn't briefly slam to surface. */ body:is(.has-photo-background, :not(.has-photo-background)) .panel-layout > .db-panel.panel-child-hover-active:not(.db-panel-tools-open):not(.db-panel-collapsed){
+* the original photo-glass override at (0,6,1) won at rest but lost * to the shell system's !important. Force the photo-glass material on * this transient state with !important so the drop never flashes * white. Custom-color variant gets the same treatment so the lavender * panel + custom-color drop doesn't briefly slam to surface. */ .panel-layout > .db-panel.panel-child-hover-active:not(.db-panel-tools-open):not(.db-panel-collapsed){
   background:
     linear-gradient(150deg,
       rgba(255, 255, 255, 0.10) 0%,
@@ -4692,19 +4674,12 @@ knock the diffusion ::before down further,
     ),
     rgba(255, 255, 255, 0.04) !important;
   border-color: rgba(255, 255, 255, var(--glass-photo-rim-alpha)) !important;
-}body:is(.has-photo-background, :not(.has-photo-background)) .panel-layout > .db-panel.db-panel-custom-color.panel-child-hover-active:not(.db-panel-tools-open):not(.db-panel-collapsed){
-  background:
-    linear-gradient(150deg,
-      rgba(255, 255, 255, 0.08) 0%,
-      rgba(255, 255, 255, 0.02) 30%,
-      rgba(255, 255, 255, 0) 58%,
-      rgba(255, 255, 255, 0.03) 100%
-    ),
-    rgba(255, 255, 255, 0.03) !important;
+}.panel-layout > .db-panel.db-panel-custom-color.panel-child-hover-active:not(.db-panel-tools-open):not(.db-panel-collapsed){
+  background: rgba(255, 255, 255, 0.03) !important;
 }/* ── Resting state must match the drag-state material ── * * The "perfect glass" the user observed only during internal widget * drag was not caused by a unique paint rule — it was caused by * `body.panel-interaction-active .db-panel:has(.panel-internal-widget-grid > .widget-dragging)` * at dashboard-grid.css:3300 setting `will-change: auto`. At rest the * base .db-panel rule (dashboard-grid.css:2765) keeps `will-change: * transform`,
 which in Chromium promotes the panel to its own * compositing layer. backdrop-filter on .db-panel-body samples through * the parent layer using the screen's underlying backdrop image; across * the panel's compositing-layer boundary it cannot see the photo * cleanly,
-so the body's filter falls back to compositing against the * panel's own paint and reads as an opaque pale slab. Removing the * `will-change: transform` promotion at rest makes the body's * backdrop-filter see the photo backdrop the same way it does during * the drag — the resting state visually equals the drag state. No * paint rules change; only the compositing hint is suppressed for the * photo-background path. Solid-color backgrounds keep `will-change: * transform` because there's no photo to sample through,
-so drag perf * is unaffected outside photo mode. */ body.has-photo-background .db-panel{
+so the body's filter falls back to compositing against the * panel's own paint and reads as an opaque pale slab. Removing the * `will-change: transform` promotion at rest makes the body's * backdrop-filter see the photo background the same way it does during * the drag — the resting state visually equals the drag state. No * paint rules change; only the compositing hint is suppressed for the * photo-background path. Solid-color backgrounds keep `will-change: * transform` because there's no photo to sample through,
+so drag perf * is unaffected outside photo mode. */ .db-panel{
   will-change: auto;
 }/* ── Drag/interaction states must not revert panel + contained widgets * to solid var(--surface) ── * * Three rules in dashboard-grid.css force panel/widget chrome back to * opaque white the moment the user starts dragging a widget into a * panel: * * 1. .db-panel.panel-child-hover-active:not(.db-panel-tools-open):not(.db-panel-collapsed) * — dashboard-grid.css:2854,
 specificity (0,4,0),
@@ -4714,7 +4689,7 @@ specificity (0,8,1) with * `background: var(--surface) !important`. Fires on the
 similar high specificity with * `!important`. Fires on the panel chrome. * * Earlier photo-glass overrides only matched the resting selectors * (.panel-layout > .db-panel, .panel-internal-widget-grid > .widget-card) * so they were beaten the moment those state classes appeared. Restore * the translucent recipe for these specific drag-interaction paths * only. Match-or-beat the original specificity,
 add !important only * where the rule being overridden already uses it. transform: none,
 * pointer-events,
-and border/box-shadow drag affordances are NOT * touched — only the slab `background` is replaced. */ /* (1) Panel ring while a child widget hovers/drags inside it. */ body:is(.has-photo-background, :not(.has-photo-background)) .panel-layout > .db-panel.panel-child-hover-active:not(.db-panel-tools-open):not(.db-panel-collapsed){
+and border/box-shadow drag affordances are NOT * touched — only the slab `background` is replaced. */ /* (1) Panel ring while a child widget hovers/drags inside it. */ .panel-layout > .db-panel.panel-child-hover-active:not(.db-panel-tools-open):not(.db-panel-collapsed){
   background:
     linear-gradient(150deg,
       rgba(255, 255, 255, 0.10) 0%,
@@ -4725,10 +4700,10 @@ and border/box-shadow drag affordances are NOT * touched — only the slab `back
     rgba(255, 255, 255, 0.04);
   border-color: rgba(255, 255, 255, var(--glass-photo-rim-alpha));
 }/* (2) Contained widgets during drag/resize interaction. Original rule * uses !important,
-so this override must too. Selector specificity is * matched and lifted by the leading `body.has-photo-background` so the * !important origin and specificity tie-break in our favor. */ body:is(.has-photo-background, :not(.has-photo-background)).panel-interaction-active .panel-internal-widget-grid > .widget-card:not(.widget-dragging):not(.dashboard-active-resize):not(.dashboard-resize-source):not(.group-transform-member):hover,
-body:is(.has-photo-background, :not(.has-photo-background)).panel-interaction-active .panel-internal-widget-grid > .widget-card:not(.widget-dragging):not(.dashboard-active-resize):not(.dashboard-resize-source):not(.group-transform-member):focus-visible,
-body:is(.has-photo-background, :not(.has-photo-background)).panel-resize-active .panel-internal-widget-grid > .widget-card:not(.widget-dragging):not(.dashboard-active-resize):not(.dashboard-resize-source):not(.group-transform-member):hover,
-body:is(.has-photo-background, :not(.has-photo-background)).panel-resize-active .panel-internal-widget-grid > .widget-card:not(.widget-dragging):not(.dashboard-active-resize):not(.dashboard-resize-source):not(.group-transform-member):focus-visible{
+so this override must too. Selector specificity is * matched and lifted by the leading `body` so the * !important origin and specificity tie-break in our favor. */ .panel-interaction-active .panel-internal-widget-grid > .widget-card:not(.widget-dragging):not(.dashboard-active-resize):not(.dashboard-resize-source):not(.group-transform-member):hover,
+.panel-interaction-active .panel-internal-widget-grid > .widget-card:not(.widget-dragging):not(.dashboard-active-resize):not(.dashboard-resize-source):not(.group-transform-member):focus-visible,
+.panel-resize-active .panel-internal-widget-grid > .widget-card:not(.widget-dragging):not(.dashboard-active-resize):not(.dashboard-resize-source):not(.group-transform-member):hover,
+.panel-resize-active .panel-internal-widget-grid > .widget-card:not(.widget-dragging):not(.dashboard-active-resize):not(.dashboard-resize-source):not(.group-transform-member):focus-visible{
   background:
     linear-gradient(150deg,
       rgba(255, 255, 255, 0.18) 0%,
@@ -4743,10 +4718,10 @@ body:is(.has-photo-background, :not(.has-photo-background)).panel-resize-active 
     inset 0 1px 0 rgba(255, 255, 255, 0.34),
     inset 1px 0 0 rgba(255, 255, 255, 0.14),
     inset -1px 0 0 rgba(255, 255, 255, 0.14) !important;
-}/* (3) Panel ring during the broader panel-interaction-active state. */ body:is(.has-photo-background, :not(.has-photo-background)).panel-interaction-active .panel-layout > .db-panel:not(.db-panel-dragging):not(.dashboard-active-resize):not(.dashboard-resize-source):not(.group-transform-member):hover,
-body:is(.has-photo-background, :not(.has-photo-background)).panel-interaction-active .panel-layout > .db-panel:not(.db-panel-dragging):not(.dashboard-active-resize):not(.dashboard-resize-source):not(.group-transform-member):focus-within,
-body:is(.has-photo-background, :not(.has-photo-background)).panel-resize-active .panel-layout > .db-panel:not(.db-panel-dragging):not(.dashboard-active-resize):not(.dashboard-resize-source):not(.group-transform-member):hover,
-body:is(.has-photo-background, :not(.has-photo-background)).panel-resize-active .panel-layout > .db-panel:not(.db-panel-dragging):not(.dashboard-active-resize):not(.dashboard-resize-source):not(.group-transform-member):focus-within{
+}/* (3) Panel ring during the broader panel-interaction-active state. */ .panel-interaction-active .panel-layout > .db-panel:not(.db-panel-dragging):not(.dashboard-active-resize):not(.dashboard-resize-source):not(.group-transform-member):hover,
+.panel-interaction-active .panel-layout > .db-panel:not(.db-panel-dragging):not(.dashboard-active-resize):not(.dashboard-resize-source):not(.group-transform-member):focus-within,
+.panel-resize-active .panel-layout > .db-panel:not(.db-panel-dragging):not(.dashboard-active-resize):not(.dashboard-resize-source):not(.group-transform-member):hover,
+.panel-resize-active .panel-layout > .db-panel:not(.db-panel-dragging):not(.dashboard-active-resize):not(.dashboard-resize-source):not(.group-transform-member):focus-within{
   background:
     linear-gradient(150deg,
       rgba(255, 255, 255, 0.10) 0%,
@@ -4768,9 +4743,9 @@ body:is(.has-photo-background, :not(.has-photo-background)).panel-resize-active 
  *     box-shadow: var(--shadow-card) !important;
  *     transform: none !important;
  *   }* * Selector specificity (0, 9, 0) with !important. Earlier * panel-child-hover-active overrides at (0, 7, 1) lose the cascade. * The :has() parent selector triggers regardless of whether * panel-child-hover-active is on the panel — so even my diagnostic * (which captured panel-child-hover-active correctly) didn't surface * a paint diff,
-because the same paint computed in both states only * because my synthetic widget wasn't actually receiving :hover at * the moment of capture in the way the user's real cursor was. * * Match the full selector list at higher specificity and pin * everything to the rest paint. Same treatment for the sibling rule * at themes.css:4718 for custom-color panels. The same rule block at * 4710-4711 also targets panels with active tools (button/input/etc * :hover or :focus-within) — covered by the same override. */ body:is(.has-photo-background, :not(.has-photo-background)) .panel-layout > .db-panel:has(.panel-internal-widget-grid > .widget-card:is(:hover, .surface-response-active)):not(.db-panel-dragging):not(.dashboard-active-resize):not(.db-panel-tools-open):not(.db-panel-collapsed),
-body:is(.has-photo-background, :not(.has-photo-background)) .panel-layout > .db-panel:has(:is(.panel-tools, .panel-tool-drawer, button, input, select, textarea, [contenteditable="true"]):hover):not(.db-panel-dragging):not(.dashboard-active-resize),
-body:is(.has-photo-background, :not(.has-photo-background)) .panel-layout > .db-panel:has(:is(.panel-tools, .panel-tool-drawer, input, select, textarea, [contenteditable="true"]):focus-within):not(.db-panel-dragging):not(.dashboard-active-resize){
+because the same paint computed in both states only * because my synthetic widget wasn't actually receiving :hover at * the moment of capture in the way the user's real cursor was. * * Match the full selector list at higher specificity and pin * everything to the rest paint. Same treatment for the sibling rule * at themes.css:4718 for custom-color panels. The same rule block at * 4710-4711 also targets panels with active tools (button/input/etc * :hover or :focus-within) — covered by the same override. */ .panel-layout > .db-panel:has(.panel-internal-widget-grid > .widget-card:is(:hover, .surface-response-active)):not(.db-panel-dragging):not(.dashboard-active-resize):not(.db-panel-tools-open):not(.db-panel-collapsed),
+.panel-layout > .db-panel:has(:is(.panel-tools, .panel-tool-drawer, button, input, select, textarea, [contenteditable="true"]):hover):not(.db-panel-dragging):not(.dashboard-active-resize),
+.panel-layout > .db-panel:has(:is(.panel-tools, .panel-tool-drawer, input, select, textarea, [contenteditable="true"]):focus-within):not(.db-panel-dragging):not(.dashboard-active-resize){
   background:
     linear-gradient(150deg,
       rgba(255, 255, 255, 0.10) 0%,
@@ -4787,17 +4762,10 @@ body:is(.has-photo-background, :not(.has-photo-background)) .panel-layout > .db-
     inset -1px 0 0 rgba(255, 255, 255, var(--glass-photo-side-highlight-alpha)),
     inset 0 -1px 0 rgba(255, 255, 255, 0.10) !important;
   transform: none;
-}/* Custom-color panel variant of the :has() trap — calmer base because * the colored header carries the accent; body stays clean glass. */ body:is(.has-photo-background, :not(.has-photo-background)) .panel-layout > .db-panel.db-panel-custom-color:has(.panel-internal-widget-grid > .widget-card:is(:hover, .surface-response-active)):not(.db-panel-dragging):not(.dashboard-active-resize):not(.db-panel-tools-open):not(.db-panel-collapsed),
-body:is(.has-photo-background, :not(.has-photo-background)) .panel-layout > .db-panel.db-panel-custom-color:has(:is(.panel-tools, .panel-tool-drawer, button, input, select, textarea, [contenteditable="true"]):hover):not(.db-panel-dragging):not(.dashboard-active-resize),
-body:is(.has-photo-background, :not(.has-photo-background)) .panel-layout > .db-panel.db-panel-custom-color:has(:is(.panel-tools, .panel-tool-drawer, input, select, textarea, [contenteditable="true"]):focus-within):not(.db-panel-dragging):not(.dashboard-active-resize){
-  background:
-    linear-gradient(150deg,
-      rgba(255, 255, 255, 0.08) 0%,
-      rgba(255, 255, 255, 0.02) 30%,
-      rgba(255, 255, 255, 0) 58%,
-      rgba(255, 255, 255, 0.03) 100%
-    ),
-    rgba(255, 255, 255, 0.03) !important;
+}/* Custom-color panel variant of the :has() trap — calmer base because * the colored header carries the accent; body stays clean glass. */ .panel-layout > .db-panel.db-panel-custom-color:has(.panel-internal-widget-grid > .widget-card:is(:hover, .surface-response-active)):not(.db-panel-dragging):not(.dashboard-active-resize):not(.db-panel-tools-open):not(.db-panel-collapsed),
+.panel-layout > .db-panel.db-panel-custom-color:has(:is(.panel-tools, .panel-tool-drawer, button, input, select, textarea, [contenteditable="true"]):hover):not(.db-panel-dragging):not(.dashboard-active-resize),
+.panel-layout > .db-panel.db-panel-custom-color:has(:is(.panel-tools, .panel-tool-drawer, input, select, textarea, [contenteditable="true"]):focus-within):not(.db-panel-dragging):not(.dashboard-active-resize){
+  background: rgba(255, 255, 255, 0.03) !important;
   border-color: rgba(255, 255, 255, var(--glass-photo-rim-alpha)) !important;
   box-shadow:
     0 18px 42px rgba(0, 0, 0, var(--glass-photo-drop-shadow-alpha)),
@@ -4810,36 +4778,29 @@ body:is(.has-photo-background, :not(.has-photo-background)) .panel-layout > .db-
 header goes * pastel,
 leaving the panel restores glass. Widgets do not exhibit this * because the widget shell-hover rules paint translucent shells over * a fairly substantive base (.16 alpha). The PANEL is brought to * ~.03 alpha by round-9,
 so: * * (a) The surface-zone-wash ::before that activates on hover via * `.surface-response-active` paints rgba(255,255,255, .07) wash * with `mix-blend-mode: screen` and opacity .45 over the panel * (dashboard-grid.css:2769-2786). Over bright photo regions * (foam, sand, marble) screen-blend pushes the area near pure * white. Over the .03-alpha translucent panel,
-the wash dominates. * Widgets at .16 alpha mask this; panels at .03 do not. * * (b) The shell hover rules (themes.css:1357 custom-color header * hover; 5270 generic header hover; 5309 custom-color panel hover) * repaint with var(--object-shell-hover-bg) — wash + opaque shell * surface. Higher-specificity overrides below force the rest-state * calm paint on hover/focus too. Brings panel + header hover in * line with the visual behavior the user accepts on widgets. */ /* (a) Kill the screen-blend brighten on panel + divider .surface-response-active::before */ body:is(.has-photo-background, :not(.has-photo-background)) .panel-layout > .db-panel.surface-response-active:not(.workspace-divider):not(.panel-child-hover-active)::before,
-body:is(.has-photo-background, :not(.has-photo-background)) .workspace-divider.db-panel.surface-response-active::before{
+the wash dominates. * Widgets at .16 alpha mask this; panels at .03 do not. * * (b) The shell hover rules (themes.css:1357 custom-color header * hover; 5270 generic header hover; 5309 custom-color panel hover) * repaint with var(--object-shell-hover-bg) — wash + opaque shell * surface. Higher-specificity overrides below force the rest-state * calm paint on hover/focus too. Brings panel + header hover in * line with the visual behavior the user accepts on widgets. */ /* (a) Kill the screen-blend brighten on panel + divider .surface-response-active::before */ .panel-layout > .db-panel.surface-response-active:not(.workspace-divider):not(.panel-child-hover-active)::before,
+.workspace-divider.db-panel.surface-response-active::before{
   opacity: 0 !important;
-}/* (b1) Panel hover/focus on custom-color: paint same calm glass as rest */ body:is(.has-photo-background, :not(.has-photo-background)) .db-panel.db-panel-custom-color:hover,
-body:is(.has-photo-background, :not(.has-photo-background)) .db-panel.db-panel-custom-color:focus-within,
-body:is(.has-photo-background, :not(.has-photo-background)) .db-panel.db-panel-custom-color.db-panel-collapsed:hover,
-body:is(.has-photo-background, :not(.has-photo-background)) .db-panel.db-panel-custom-color.db-panel-collapsed:focus-within,
-body:is(.has-photo-background, :not(.has-photo-background)) .db-panel.db-panel-custom-color.db-panel-tools-open:hover,
-body:is(.has-photo-background, :not(.has-photo-background)) .db-panel.db-panel-custom-color.db-panel-tools-open:focus-within{
-  background:
-    linear-gradient(150deg,
-      rgba(255, 255, 255, 0.08) 0%,
-      rgba(255, 255, 255, 0.02) 30%,
-      rgba(255, 255, 255, 0) 58%,
-      rgba(255, 255, 255, 0.03) 100%
-    ),
-    rgba(255, 255, 255, 0.03) !important;
+}/* (b1) Panel hover/focus on custom-color: paint same calm glass as rest */ .db-panel.db-panel-custom-color:hover,
+.db-panel.db-panel-custom-color:focus-within,
+.db-panel.db-panel-custom-color.db-panel-collapsed:hover,
+.db-panel.db-panel-custom-color.db-panel-collapsed:focus-within,
+.db-panel.db-panel-custom-color.db-panel-tools-open:hover,
+.db-panel.db-panel-custom-color.db-panel-tools-open:focus-within{
+  background: rgba(255, 255, 255, 0.03) !important;
 }/* (b2) Custom-color panel header hover/focus: same painted wash as rest * (themes.css:6010),
-preventing the chrome-hover-bg switch at 1357. */ body:is(.has-photo-background, :not(.has-photo-background)) .db-panel.db-panel-custom-color > .db-panel-hd:hover,
-body:is(.has-photo-background, :not(.has-photo-background)) .db-panel.db-panel-custom-color > .db-panel-hd:focus-visible,
-body:is(.has-photo-background, :not(.has-photo-background)) .db-panel.db-panel-custom-color > .db-panel-hd:active{
+preventing the chrome-hover-bg switch at 1357. */ .db-panel.db-panel-custom-color > .db-panel-hd:hover,
+.db-panel.db-panel-custom-color > .db-panel-hd:focus-visible,
+.db-panel.db-panel-custom-color > .db-panel-hd:active{
   background:
     var(--object-shell-wash),
     rgba(255, 255, 255, 0.04) !important;
   border-color: rgba(255, 255, 255, 0.30) !important;
   box-shadow: none !important;
 }/* (b3) Generic (non-custom-color) panel header hover/focus: keep glass * paint identical to rest,
-blocking shell rule at themes.css:5270. */ body:is(.has-photo-background, :not(.has-photo-background)) .db-panel > .db-panel-hd:hover,
-body:is(.has-photo-background, :not(.has-photo-background)) .db-panel > .db-panel-hd:focus-visible,
-body:is(.has-photo-background, :not(.has-photo-background)) .db-panel > .db-panel-hd:active{
+blocking shell rule at themes.css:5270. */ .db-panel > .db-panel-hd:hover,
+.db-panel > .db-panel-hd:focus-visible,
+.db-panel > .db-panel-hd:active{
   background:
     linear-gradient(180deg,
       rgba(255, 255, 255, 0.14) 0%,
@@ -4847,12 +4808,12 @@ body:is(.has-photo-background, :not(.has-photo-background)) .db-panel > .db-pane
     ),
     rgba(255, 255, 255, 0.03) !important;
   border-color: rgba(255, 255, 255, 0.30) !important;
-}/* (b4) Generic panel hover/focus: stop the shell rule at themes.css:5267 * from painting var(--object-shell-surface) (~.64 white) on hover. */ body:is(.has-photo-background, :not(.has-photo-background)) .db-panel:hover,
-body:is(.has-photo-background, :not(.has-photo-background)) .db-panel:focus-within,
-body:is(.has-photo-background, :not(.has-photo-background)) .db-panel.db-panel-collapsed:hover,
-body:is(.has-photo-background, :not(.has-photo-background)) .db-panel.db-panel-collapsed:focus-within,
-body:is(.has-photo-background, :not(.has-photo-background)) .db-panel.db-panel-tools-open:hover,
-body:is(.has-photo-background, :not(.has-photo-background)) .db-panel.db-panel-tools-open:focus-within{
+}/* (b4) Generic panel hover/focus: stop the shell rule at themes.css:5267 * from painting var(--object-shell-surface) (~.64 white) on hover. */ .db-panel:hover,
+.db-panel:focus-within,
+.db-panel.db-panel-collapsed:hover,
+.db-panel.db-panel-collapsed:focus-within,
+.db-panel.db-panel-tools-open:hover,
+.db-panel.db-panel-tools-open:focus-within{
   background:
     linear-gradient(150deg,
       rgba(255, 255, 255, 0.10) 0%,
@@ -4861,8 +4822,8 @@ body:is(.has-photo-background, :not(.has-photo-background)) .db-panel.db-panel-t
       rgba(255, 255, 255, 0.04) 100%
     ),
     rgba(255, 255, 255, 0.04) !important;
-}/* (b5) Divider hover/focus matched to widget glass family. Round-1 has * this at lower specificity; lift to !important so the shell * hover rule on .db-panel:hover/focus-within (themes.css:5267) * cannot beat it for a divider that is also a .db-panel. */ body:is(.has-photo-background, :not(.has-photo-background)) .workspace-divider.db-panel:hover,
-body:is(.has-photo-background, :not(.has-photo-background)) .workspace-divider.db-panel:focus-within{
+}/* (b5) Divider hover/focus matched to widget glass family. Round-1 has * this at lower specificity; lift to !important so the shell * hover rule on .db-panel:hover/focus-within (themes.css:5267) * cannot beat it for a divider that is also a .db-panel. */ .workspace-divider.db-panel:hover,
+.workspace-divider.db-panel:focus-within{
   background:
     linear-gradient(180deg,
       rgba(255, 255, 255, 0.14),
@@ -4877,21 +4838,21 @@ and the box-shadow swaps to a heavier drop-shadow * with bright inset highlights
 border-color !important,
 box-shadow * • themes.css:1247 same for collapsed * • themes.css:5251 .db-panel:hover/.db-panel-collapsed:hover/etc * — border-color !important,
 box-shadow !important * • themes.css:5270 .db-panel > .db-panel-hd:hover etc * — border-color !important * * The diagnostic confirmed this: on header-hover,
-panel computed * transform = matrix(1,0,0,1,0,-1) (translateY(-1px)) * border = 1px solid oklab(...) (different from rest) * box-shadow = different heavy stack (drop+inset highlights) * * Pin all of them to the rest values under photo-bg so panels and * dividers visually do not respond to hover at all. Widgets keep * their existing hover behavior (you've accepted it). */ body:is(.has-photo-background, :not(.has-photo-background)) .db-panel:hover,
-body:is(.has-photo-background, :not(.has-photo-background)) .db-panel:focus-within,
-body:is(.has-photo-background, :not(.has-photo-background)) .db-panel:active,
-body:is(.has-photo-background, :not(.has-photo-background)) .db-panel.db-panel-collapsed:hover,
-body:is(.has-photo-background, :not(.has-photo-background)) .db-panel.db-panel-collapsed:focus-within,
-body:is(.has-photo-background, :not(.has-photo-background)) .db-panel.db-panel-tools-open:hover,
-body:is(.has-photo-background, :not(.has-photo-background)) .db-panel.db-panel-tools-open:focus-within,
-body:is(.has-photo-background, :not(.has-photo-background)) .db-panel.db-panel-custom-color:hover,
-body:is(.has-photo-background, :not(.has-photo-background)) .db-panel.db-panel-custom-color:focus-within,
-body:is(.has-photo-background, :not(.has-photo-background)) .db-panel.db-panel-custom-color.db-panel-collapsed:hover,
-body:is(.has-photo-background, :not(.has-photo-background)) .db-panel.db-panel-custom-color.db-panel-collapsed:focus-within,
-body:is(.has-photo-background, :not(.has-photo-background)) .db-panel.db-panel-custom-color.db-panel-tools-open:hover,
-body:is(.has-photo-background, :not(.has-photo-background)) .db-panel.db-panel-custom-color.db-panel-tools-open:focus-within,
-body:is(.has-photo-background, :not(.has-photo-background)) .workspace-divider.db-panel:hover,
-body:is(.has-photo-background, :not(.has-photo-background)) .workspace-divider.db-panel:focus-within{
+panel computed * transform = matrix(1,0,0,1,0,-1) (translateY(-1px)) * border = 1px solid oklab(...) (different from rest) * box-shadow = different heavy stack (drop+inset highlights) * * Pin all of them to the rest values under photo-bg so panels and * dividers visually do not respond to hover at all. Widgets keep * their existing hover behavior (you've accepted it). */ .db-panel:hover,
+.db-panel:focus-within,
+.db-panel:active,
+.db-panel.db-panel-collapsed:hover,
+.db-panel.db-panel-collapsed:focus-within,
+.db-panel.db-panel-tools-open:hover,
+.db-panel.db-panel-tools-open:focus-within,
+.db-panel.db-panel-custom-color:hover,
+.db-panel.db-panel-custom-color:focus-within,
+.db-panel.db-panel-custom-color.db-panel-collapsed:hover,
+.db-panel.db-panel-custom-color.db-panel-collapsed:focus-within,
+.db-panel.db-panel-custom-color.db-panel-tools-open:hover,
+.db-panel.db-panel-custom-color.db-panel-tools-open:focus-within,
+.workspace-divider.db-panel:hover,
+.workspace-divider.db-panel:focus-within{
   /* Widget hover formula applied to panels/dividers/objects: subtle
    * rim brighten + slightly stronger inset highlights, no transform,
    * no opaque flash. Same response language as widget hover. */
@@ -4909,55 +4870,55 @@ keep only the icon ───────── * * .db-panel-hd::before is the 3
 no border,
 no shadow blob. Make * ::before fully invisible (background, border, box-shadow all none),
 * and let the existing ::after arrow mask render alone. * * The ::after icon paints var(--panel-header-control-fg) through the * SVG mask. Under photo-bg the icon is forced to white for legibility * regardless of theme,
-and a soft drop-shadow on the mask gives the * white arrow enough contrast against bright photo regions. */ body:is(.has-photo-background, :not(.has-photo-background)) .db-panel > .db-panel-hd::before,
-body:is(.has-photo-background, :not(.has-photo-background)) .db-panel.db-panel-custom-color > .db-panel-hd::before{
+and a soft drop-shadow on the mask gives the * white arrow enough contrast against bright photo regions. */ .db-panel > .db-panel-hd::before,
+.db-panel.db-panel-custom-color > .db-panel-hd::before{
   background: transparent !important;
   background-color: transparent !important;
   border: 0 !important;
   border-color: transparent !important;
   box-shadow: none !important;
-}/* Icon-only chevron: white arrow with subtle drop-shadow for legibility. */ body:is(.has-photo-background, :not(.has-photo-background)) .db-panel > .db-panel-hd::after,
-body:is(.has-photo-background, :not(.has-photo-background)) .db-panel.db-panel-custom-color > .db-panel-hd::after{
+}/* Icon-only chevron: white arrow with subtle drop-shadow for legibility. */ .db-panel > .db-panel-hd::after,
+.db-panel.db-panel-custom-color > .db-panel-hd::after{
   background: #ffffff !important;
   filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.45)) drop-shadow(0 0 1px rgba(0, 0, 0, 0.3)) !important;
-}/* Hover/focus: the icon brightens very slightly. No button reveal. */ body:is(.has-photo-background, :not(.has-photo-background)) .db-panel > .db-panel-hd:hover::before,
-body:is(.has-photo-background, :not(.has-photo-background)) .db-panel > .db-panel-hd:focus-visible::before,
-body:is(.has-photo-background, :not(.has-photo-background)) .db-panel.db-panel-custom-color > .db-panel-hd:hover::before,
-body:is(.has-photo-background, :not(.has-photo-background)) .db-panel.db-panel-custom-color > .db-panel-hd:focus-visible::before{
+}/* Hover/focus: the icon brightens very slightly. No button reveal. */ .db-panel > .db-panel-hd:hover::before,
+.db-panel > .db-panel-hd:focus-visible::before,
+.db-panel.db-panel-custom-color > .db-panel-hd:hover::before,
+.db-panel.db-panel-custom-color > .db-panel-hd:focus-visible::before{
   background: transparent !important;
   border: 0 !important;
   box-shadow: none !important;
   transform: none;
-}body.has-photo-background .db-panel > .db-panel-hd:hover::after,
-body.has-photo-background .db-panel > .db-panel-hd:focus-visible::after,
-body.has-photo-background .db-panel.db-panel-custom-color > .db-panel-hd:hover::after,
-body.has-photo-background .db-panel.db-panel-custom-color > .db-panel-hd:focus-visible::after{
+}.db-panel > .db-panel-hd:hover::after,
+.db-panel > .db-panel-hd:focus-visible::after,
+.db-panel.db-panel-custom-color > .db-panel-hd:hover::after,
+.db-panel.db-panel-custom-color > .db-panel-hd:focus-visible::after{
   filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.55)) drop-shadow(0 0 2px rgba(0, 0, 0, 0.35)) !important;
 }/* ── Flat-glass shadows on panel/divider at rest AND hover ───── * * Earlier rounds painted a heavy `0 18px 42px rgba(0,0,0, 0.26)` outer * drop shadow on panels both at rest and on hover. That's the "legacy * big shadow" the user wants gone. Replace with INSET rim highlights * only,
-no outer drop. Result: flat glass that floats on the photo * without a halo. */ body:is(.has-photo-background, :not(.has-photo-background)) .panel-layout > .db-panel,
-body:is(.has-photo-background, :not(.has-photo-background)) .db-panel.db-panel-tools-open,
-body:is(.has-photo-background, :not(.has-photo-background)) .panel-layout > .db-panel.db-panel-custom-color,
-body:is(.has-photo-background, :not(.has-photo-background)) .workspace-divider.db-panel{
+no outer drop. Result: flat glass that floats on the photo * without a halo. */ .panel-layout > .db-panel,
+.db-panel.db-panel-tools-open,
+.panel-layout > .db-panel.db-panel-custom-color,
+.workspace-divider.db-panel{
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, var(--glass-photo-rim-highlight-alpha)),
     inset 1px 0 0 rgba(255, 255, 255, var(--glass-photo-side-highlight-alpha)),
     inset -1px 0 0 rgba(255, 255, 255, var(--glass-photo-side-highlight-alpha)),
     inset 0 -1px 0 rgba(255, 255, 255, 0.10) !important;
-}/* Same flat-shadow stack for ALL hover/focus states on those objects. * Slightly brighter inset top + side rim (matching widget hover * formula: subtle rim bump, no outer drop, no transform). */ body:is(.has-photo-background, :not(.has-photo-background)) .db-panel:hover,
-body:is(.has-photo-background, :not(.has-photo-background)) .db-panel:focus-within,
-body:is(.has-photo-background, :not(.has-photo-background)) .db-panel:active,
-body:is(.has-photo-background, :not(.has-photo-background)) .db-panel.db-panel-collapsed:hover,
-body:is(.has-photo-background, :not(.has-photo-background)) .db-panel.db-panel-collapsed:focus-within,
-body:is(.has-photo-background, :not(.has-photo-background)) .db-panel.db-panel-tools-open:hover,
-body:is(.has-photo-background, :not(.has-photo-background)) .db-panel.db-panel-tools-open:focus-within,
-body:is(.has-photo-background, :not(.has-photo-background)) .db-panel.db-panel-custom-color:hover,
-body:is(.has-photo-background, :not(.has-photo-background)) .db-panel.db-panel-custom-color:focus-within,
-body:is(.has-photo-background, :not(.has-photo-background)) .db-panel.db-panel-custom-color.db-panel-collapsed:hover,
-body:is(.has-photo-background, :not(.has-photo-background)) .db-panel.db-panel-custom-color.db-panel-collapsed:focus-within,
-body:is(.has-photo-background, :not(.has-photo-background)) .db-panel.db-panel-custom-color.db-panel-tools-open:hover,
-body:is(.has-photo-background, :not(.has-photo-background)) .db-panel.db-panel-custom-color.db-panel-tools-open:focus-within,
-body:is(.has-photo-background, :not(.has-photo-background)) .workspace-divider.db-panel:hover,
-body:is(.has-photo-background, :not(.has-photo-background)) .workspace-divider.db-panel:focus-within{
+}/* Same flat-shadow stack for ALL hover/focus states on those objects. * Slightly brighter inset top + side rim (matching widget hover * formula: subtle rim bump, no outer drop, no transform). */ .db-panel:hover,
+.db-panel:focus-within,
+.db-panel:active,
+.db-panel.db-panel-collapsed:hover,
+.db-panel.db-panel-collapsed:focus-within,
+.db-panel.db-panel-tools-open:hover,
+.db-panel.db-panel-tools-open:focus-within,
+.db-panel.db-panel-custom-color:hover,
+.db-panel.db-panel-custom-color:focus-within,
+.db-panel.db-panel-custom-color.db-panel-collapsed:hover,
+.db-panel.db-panel-custom-color.db-panel-collapsed:focus-within,
+.db-panel.db-panel-custom-color.db-panel-tools-open:hover,
+.db-panel.db-panel-custom-color.db-panel-tools-open:focus-within,
+.workspace-divider.db-panel:hover,
+.workspace-divider.db-panel:focus-within{
   transform: none;
   border-color: rgba(255, 255, 255, calc(var(--glass-photo-rim-alpha) + 0.10)) !important;
   box-shadow:
@@ -4965,39 +4926,39 @@ body:is(.has-photo-background, :not(.has-photo-background)) .workspace-divider.d
     inset 1px 0 0 rgba(255, 255, 255, calc(var(--glass-photo-side-highlight-alpha) + 0.06)),
     inset -1px 0 0 rgba(255, 255, 255, calc(var(--glass-photo-side-highlight-alpha) + 0.06)),
     inset 0 -1px 0 rgba(255, 255, 255, 0.14) !important;
-}/* Header hover/focus: also flat — no shadow under the header strip. */ body:is(.has-photo-background, :not(.has-photo-background)) .db-panel > .db-panel-hd:hover,
-body:is(.has-photo-background, :not(.has-photo-background)) .db-panel > .db-panel-hd:focus-visible,
-body:is(.has-photo-background, :not(.has-photo-background)) .db-panel > .db-panel-hd:active,
-body:is(.has-photo-background, :not(.has-photo-background)) .db-panel.db-panel-custom-color > .db-panel-hd:hover,
-body:is(.has-photo-background, :not(.has-photo-background)) .db-panel.db-panel-custom-color > .db-panel-hd:focus-visible,
-body:is(.has-photo-background, :not(.has-photo-background)) .db-panel.db-panel-custom-color > .db-panel-hd:active{
+}/* Header hover/focus: also flat — no shadow under the header strip. */ .db-panel > .db-panel-hd:hover,
+.db-panel > .db-panel-hd:focus-visible,
+.db-panel > .db-panel-hd:active,
+.db-panel.db-panel-custom-color > .db-panel-hd:hover,
+.db-panel.db-panel-custom-color > .db-panel-hd:focus-visible,
+.db-panel.db-panel-custom-color > .db-panel-hd:active{
   box-shadow: none !important;
   transform: none;
-}/* The contained-widget-hover :has() trap rules from earlier this round * still paint a `0 18px 42px` drop shadow in their box-shadow. Drop * that outer shadow so the contained-widget-hover state stays flat * too. Keeps the inset rim highlights from those rules. */ body:is(.has-photo-background, :not(.has-photo-background)) .panel-layout > .db-panel:has(.panel-internal-widget-grid > .widget-card:is(:hover, .surface-response-active)):not(.db-panel-dragging):not(.dashboard-active-resize):not(.db-panel-tools-open):not(.db-panel-collapsed),
-body:is(.has-photo-background, :not(.has-photo-background)) .panel-layout > .db-panel:has(:is(.panel-tools, .panel-tool-drawer, button, input, select, textarea, [contenteditable="true"]):hover):not(.db-panel-dragging):not(.dashboard-active-resize),
-body:is(.has-photo-background, :not(.has-photo-background)) .panel-layout > .db-panel:has(:is(.panel-tools, .panel-tool-drawer, input, select, textarea, [contenteditable="true"]):focus-within):not(.db-panel-dragging):not(.dashboard-active-resize),
-body:is(.has-photo-background, :not(.has-photo-background)) .panel-layout > .db-panel.db-panel-custom-color:has(.panel-internal-widget-grid > .widget-card:is(:hover, .surface-response-active)):not(.db-panel-dragging):not(.dashboard-active-resize):not(.db-panel-tools-open):not(.db-panel-collapsed),
-body:is(.has-photo-background, :not(.has-photo-background)) .panel-layout > .db-panel.db-panel-custom-color:has(:is(.panel-tools, .panel-tool-drawer, button, input, select, textarea, [contenteditable="true"]):hover):not(.db-panel-dragging):not(.dashboard-active-resize),
-body:is(.has-photo-background, :not(.has-photo-background)) .panel-layout > .db-panel.db-panel-custom-color:has(:is(.panel-tools, .panel-tool-drawer, input, select, textarea, [contenteditable="true"]):focus-within):not(.db-panel-dragging):not(.dashboard-active-resize){
+}/* The contained-widget-hover :has() trap rules from earlier this round * still paint a `0 18px 42px` drop shadow in their box-shadow. Drop * that outer shadow so the contained-widget-hover state stays flat * too. Keeps the inset rim highlights from those rules. */ .panel-layout > .db-panel:has(.panel-internal-widget-grid > .widget-card:is(:hover, .surface-response-active)):not(.db-panel-dragging):not(.dashboard-active-resize):not(.db-panel-tools-open):not(.db-panel-collapsed),
+.panel-layout > .db-panel:has(:is(.panel-tools, .panel-tool-drawer, button, input, select, textarea, [contenteditable="true"]):hover):not(.db-panel-dragging):not(.dashboard-active-resize),
+.panel-layout > .db-panel:has(:is(.panel-tools, .panel-tool-drawer, input, select, textarea, [contenteditable="true"]):focus-within):not(.db-panel-dragging):not(.dashboard-active-resize),
+.panel-layout > .db-panel.db-panel-custom-color:has(.panel-internal-widget-grid > .widget-card:is(:hover, .surface-response-active)):not(.db-panel-dragging):not(.dashboard-active-resize):not(.db-panel-tools-open):not(.db-panel-collapsed),
+.panel-layout > .db-panel.db-panel-custom-color:has(:is(.panel-tools, .panel-tool-drawer, button, input, select, textarea, [contenteditable="true"]):hover):not(.db-panel-dragging):not(.dashboard-active-resize),
+.panel-layout > .db-panel.db-panel-custom-color:has(:is(.panel-tools, .panel-tool-drawer, input, select, textarea, [contenteditable="true"]):focus-within):not(.db-panel-dragging):not(.dashboard-active-resize){
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, var(--glass-photo-rim-highlight-alpha)),
     inset 1px 0 0 rgba(255, 255, 255, var(--glass-photo-side-highlight-alpha)),
     inset -1px 0 0 rgba(255, 255, 255, var(--glass-photo-side-highlight-alpha)),
     inset 0 -1px 0 rgba(255, 255, 255, 0.10) !important;
-}/* Panel header hover/focus: rim and shadow stay at rest values too. * (Background was pinned above.) */ body:is(.has-photo-background, :not(.has-photo-background)) .db-panel > .db-panel-hd:hover,
-body:is(.has-photo-background, :not(.has-photo-background)) .db-panel > .db-panel-hd:focus-visible,
-body:is(.has-photo-background, :not(.has-photo-background)) .db-panel > .db-panel-hd:active,
-body:is(.has-photo-background, :not(.has-photo-background)) .db-panel.db-panel-custom-color > .db-panel-hd:hover,
-body:is(.has-photo-background, :not(.has-photo-background)) .db-panel.db-panel-custom-color > .db-panel-hd:focus-visible,
-body:is(.has-photo-background, :not(.has-photo-background)) .db-panel.db-panel-custom-color > .db-panel-hd:active{
+}/* Panel header hover/focus: rim and shadow stay at rest values too. * (Background was pinned above.) */ .db-panel > .db-panel-hd:hover,
+.db-panel > .db-panel-hd:focus-visible,
+.db-panel > .db-panel-hd:active,
+.db-panel.db-panel-custom-color > .db-panel-hd:hover,
+.db-panel.db-panel-custom-color > .db-panel-hd:focus-visible,
+.db-panel.db-panel-custom-color > .db-panel-hd:active{
   border-color: rgba(255, 255, 255, 0.30) !important;
   box-shadow: none !important;
   transform: none;
 }/* ── Widget-placed-inside-panel: pin panel material to rest ── * * When the cursor is over a contained widget,
 JS adds * `.panel-child-hover-active` to the panel (app.js:11724). The base * rules (dashboard-grid.css:2854 and themes.css:1256 / 5280) then * change border,
 box-shadow,
-and background. Round-7 covered the * background; this extends to all visual properties so the panel * looks completely identical whether or not the cursor is over a * contained child. The user's symptom — "panel turns white when * placing a widget inside" — matches this state if the cursor remains * over the dropped widget through the drop transition. */ body:is(.has-photo-background, :not(.has-photo-background)) .panel-layout > .db-panel.panel-child-hover-active:not(.db-panel-tools-open):not(.db-panel-collapsed),
-body:is(.has-photo-background, :not(.has-photo-background)) .panel-layout > .db-panel.db-panel-custom-color.panel-child-hover-active:not(.db-panel-tools-open):not(.db-panel-collapsed){
+and background. Round-7 covered the * background; this extends to all visual properties so the panel * looks completely identical whether or not the cursor is over a * contained child. The user's symptom — "panel turns white when * placing a widget inside" — matches this state if the cursor remains * over the dropped widget through the drop transition. */ .panel-layout > .db-panel.panel-child-hover-active:not(.db-panel-tools-open):not(.db-panel-collapsed),
+.panel-layout > .db-panel.db-panel-custom-color.panel-child-hover-active:not(.db-panel-tools-open):not(.db-panel-collapsed){
   transform: none;
   border-color: rgba(255, 255, 255, var(--glass-photo-rim-alpha)) !important;
   box-shadow:
@@ -5007,14 +4968,14 @@ body:is(.has-photo-background, :not(.has-photo-background)) .panel-layout > .db-
     inset -1px 0 0 rgba(255, 255, 255, var(--glass-photo-side-highlight-alpha)),
     inset 0 -1px 0 rgba(255, 255, 255, 0.10) !important;
 }/* ── Active drag-into-panel state ── * * During the drop pipeline the body gets `.panel-interaction-active` * and `.panel-container-drag-active` is on the receiving panel * (app.js:9745). Combined with :hover and :focus-within propagation * from the dragging widget,
-the shell hover rules fire on the panel * and trigger the "white slab" the user reports during placement. * Pin everything for those states too — no white flash during drop. */ body.has-photo-background.panel-interaction-active .panel-layout > .db-panel,
-body.has-photo-background.panel-interaction-active .panel-layout > .db-panel:hover,
-body.has-photo-background.panel-interaction-active .panel-layout > .db-panel:focus-within,
-body.has-photo-background.panel-interaction-active .panel-layout > .db-panel.db-panel-custom-color,
-body.has-photo-background.panel-interaction-active .panel-layout > .db-panel.db-panel-custom-color:hover,
-body.has-photo-background.panel-interaction-active .panel-layout > .db-panel.db-panel-custom-color:focus-within{
+the shell hover rules fire on the panel * and trigger the "white slab" the user reports during placement. * Pin everything for those states too — no white flash during drop. */ body.panel-interaction-active .panel-layout > .db-panel,
+body.panel-interaction-active .panel-layout > .db-panel:hover,
+body.panel-interaction-active .panel-layout > .db-panel:focus-within,
+body.panel-interaction-active .panel-layout > .db-panel.db-panel-custom-color,
+body.panel-interaction-active .panel-layout > .db-panel.db-panel-custom-color:hover,
+body.panel-interaction-active .panel-layout > .db-panel.db-panel-custom-color:focus-within{
   transform: none;
-}body:is(.has-photo-background, :not(.has-photo-background)) .panel-layout > .db-panel.panel-container-drag-active{
+}.panel-layout > .db-panel.panel-container-drag-active{
   /* Keep the rest paint regardless of mid-drag state */
   background:
     linear-gradient(150deg,
@@ -5026,55 +4987,48 @@ body.has-photo-background.panel-interaction-active .panel-layout > .db-panel.db-
     rgba(255, 255, 255, 0.04) !important;
   border-color: rgba(255, 255, 255, var(--glass-photo-rim-alpha)) !important;
   transform: none;
-}body:is(.has-photo-background, :not(.has-photo-background)) .panel-layout > .db-panel.db-panel-custom-color.panel-container-drag-active{
-  background:
-    linear-gradient(150deg,
-      rgba(255, 255, 255, 0.08) 0%,
-      rgba(255, 255, 255, 0.02) 30%,
-      rgba(255, 255, 255, 0) 58%,
-      rgba(255, 255, 255, 0.03) 100%
-    ),
-    rgba(255, 255, 255, 0.03) !important;
+}.panel-layout > .db-panel.db-panel-custom-color.panel-container-drag-active{
+  background: rgba(255, 255, 255, 0.03) !important;
 }/* ── Shared liquid-glass edge applied to all glass objects ───────────── * * Replaces the flat 1px border + flat inset rim on widgets,
 panels,
 * panel headers,
 dividers,
-and objects with the shared edge stack * defined at the top of this section. Border itself reduced to a * hairline alpha; the optical edge is carried by the box-shadow * layers (outer separation + top/left bright rim + soft inner glow * + bottom curl). Hover swaps to the brighter -hover variant. * * Higher specificity than the rest paints and the shell-system * hover rules so the edge stack wins regardless of state. */ body:is(.has-photo-background, :not(.has-photo-background)) .widget-layout > .widget-card,
-body:is(.has-photo-background, :not(.has-photo-background)) .panel-internal-widget-grid > .widget-card,
-body:is(.has-photo-background, :not(.has-photo-background)) .panel-layout > .db-panel,
-body:is(.has-photo-background, :not(.has-photo-background)) .db-panel.db-panel-tools-open,
-body:is(.has-photo-background, :not(.has-photo-background)) .panel-layout > .db-panel.db-panel-custom-color,
-body:is(.has-photo-background, :not(.has-photo-background)) .workspace-divider.db-panel{
+and objects with the shared edge stack * defined at the top of this section. Border itself reduced to a * hairline alpha; the optical edge is carried by the box-shadow * layers (outer separation + top/left bright rim + soft inner glow * + bottom curl). Hover swaps to the brighter -hover variant. * * Higher specificity than the rest paints and the shell-system * hover rules so the edge stack wins regardless of state. */ .widget-layout > .widget-card,
+.panel-internal-widget-grid > .widget-card,
+.panel-layout > .db-panel,
+.db-panel.db-panel-tools-open,
+.panel-layout > .db-panel.db-panel-custom-color,
+.workspace-divider.db-panel{
   border-color: rgba(255, 255, 255, var(--glass-edge-border-alpha)) !important;
   box-shadow: var(--glass-edge-stack) !important;
 }/* Panel header: same edge family but ONLY a top hairline + soft top * glow + bottom hairline. Headers are strips,
 not full panels,
 so * vertical curl doesnt apply. No outer separation either,
-because the * header sits flush with the panel. */ body:is(.has-photo-background, :not(.has-photo-background)) .db-panel > .db-panel-hd,
-body:is(.has-photo-background, :not(.has-photo-background)) .db-panel.db-panel-custom-color > .db-panel-hd{
+because the * header sits flush with the panel. */ .db-panel > .db-panel-hd,
+.db-panel.db-panel-custom-color > .db-panel-hd{
   border-bottom-color: rgba(255, 255, 255, calc(var(--glass-edge-border-alpha) + 0.06)) !important;
   box-shadow:
     var(--glass-edge-top-line),
     var(--glass-edge-top-glow),
     inset 0 -1px 0 rgba(255, 255, 255, 0.10) !important;
-}/* Hover/focus: brighter rim across all object types. Same selectors as * the rest set above plus :hover/:focus-within/:focus-visible. */ body:is(.has-photo-background, :not(.has-photo-background)) .widget-layout > .widget-card:hover,
-body:is(.has-photo-background, :not(.has-photo-background)) .widget-layout > .widget-card:focus-visible,
-body:is(.has-photo-background, :not(.has-photo-background)) .panel-internal-widget-grid > .widget-card:hover,
-body:is(.has-photo-background, :not(.has-photo-background)) .panel-internal-widget-grid > .widget-card:focus-visible,
-body:is(.has-photo-background, :not(.has-photo-background)) .db-panel:hover,
-body:is(.has-photo-background, :not(.has-photo-background)) .db-panel:focus-within,
-body:is(.has-photo-background, :not(.has-photo-background)) .db-panel.db-panel-collapsed:hover,
-body:is(.has-photo-background, :not(.has-photo-background)) .db-panel.db-panel-collapsed:focus-within,
-body:is(.has-photo-background, :not(.has-photo-background)) .db-panel.db-panel-tools-open:hover,
-body:is(.has-photo-background, :not(.has-photo-background)) .db-panel.db-panel-tools-open:focus-within,
-body:is(.has-photo-background, :not(.has-photo-background)) .db-panel.db-panel-custom-color:hover,
-body:is(.has-photo-background, :not(.has-photo-background)) .db-panel.db-panel-custom-color:focus-within,
-body:is(.has-photo-background, :not(.has-photo-background)) .db-panel.db-panel-custom-color.db-panel-collapsed:hover,
-body:is(.has-photo-background, :not(.has-photo-background)) .db-panel.db-panel-custom-color.db-panel-collapsed:focus-within,
-body:is(.has-photo-background, :not(.has-photo-background)) .db-panel.db-panel-custom-color.db-panel-tools-open:hover,
-body:is(.has-photo-background, :not(.has-photo-background)) .db-panel.db-panel-custom-color.db-panel-tools-open:focus-within,
-body:is(.has-photo-background, :not(.has-photo-background)) .workspace-divider.db-panel:hover,
-body:is(.has-photo-background, :not(.has-photo-background)) .workspace-divider.db-panel:focus-within{
+}/* Hover/focus: brighter rim across all object types. Same selectors as * the rest set above plus :hover/:focus-within/:focus-visible. */ .widget-layout > .widget-card:hover,
+.widget-layout > .widget-card:focus-visible,
+.panel-internal-widget-grid > .widget-card:hover,
+.panel-internal-widget-grid > .widget-card:focus-visible,
+.db-panel:hover,
+.db-panel:focus-within,
+.db-panel.db-panel-collapsed:hover,
+.db-panel.db-panel-collapsed:focus-within,
+.db-panel.db-panel-tools-open:hover,
+.db-panel.db-panel-tools-open:focus-within,
+.db-panel.db-panel-custom-color:hover,
+.db-panel.db-panel-custom-color:focus-within,
+.db-panel.db-panel-custom-color.db-panel-collapsed:hover,
+.db-panel.db-panel-custom-color.db-panel-collapsed:focus-within,
+.db-panel.db-panel-custom-color.db-panel-tools-open:hover,
+.db-panel.db-panel-custom-color.db-panel-tools-open:focus-within,
+.workspace-divider.db-panel:hover,
+.workspace-divider.db-panel:focus-within{
   border-color: rgba(255, 255, 255, calc(var(--glass-edge-border-alpha) + 0.10)) !important;
   box-shadow: var(--glass-edge-stack-hover) !important;
   /* No !important on transform: specificity (0,3,1) still beats the
@@ -5084,53 +5038,57 @@ body:is(.has-photo-background, :not(.has-photo-background)) .workspace-divider.d
    * displaced panels/dividers snapped because !important author CSS
    * beats animation origin per cascade. */
   transform: none;
-}/* Panel header on hover: only top-line and top-glow brighten. */ body:is(.has-photo-background, :not(.has-photo-background)) .db-panel > .db-panel-hd:hover,
-body:is(.has-photo-background, :not(.has-photo-background)) .db-panel > .db-panel-hd:focus-visible,
-body:is(.has-photo-background, :not(.has-photo-background)) .db-panel.db-panel-custom-color > .db-panel-hd:hover,
-body:is(.has-photo-background, :not(.has-photo-background)) .db-panel.db-panel-custom-color > .db-panel-hd:focus-visible{
+}/* Panel header on hover: only top-line and top-glow brighten. */ .db-panel > .db-panel-hd:hover,
+.db-panel > .db-panel-hd:focus-visible,
+.db-panel.db-panel-custom-color > .db-panel-hd:hover,
+.db-panel.db-panel-custom-color > .db-panel-hd:focus-visible{
   border-bottom-color: rgba(255, 255, 255, calc(var(--glass-edge-border-alpha) + 0.14)) !important;
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.72),
     inset 0 8px 12px -7px rgba(255, 255, 255, 0.40),
     inset 0 -1px 0 rgba(255, 255, 255, 0.14) !important;
   transform: none;
-}/* Contained-widget :has() hover trap from earlier round: keep its * background pin but switch the box-shadow to the shared edge stack * so the parent panel uses the same rim system. */ body:is(.has-photo-background, :not(.has-photo-background)) .panel-layout > .db-panel:has(.panel-internal-widget-grid > .widget-card:is(:hover, .surface-response-active)):not(.db-panel-dragging):not(.dashboard-active-resize):not(.db-panel-tools-open):not(.db-panel-collapsed),
-body:is(.has-photo-background, :not(.has-photo-background)) .panel-layout > .db-panel:has(:is(.panel-tools, .panel-tool-drawer, button, input, select, textarea, [contenteditable="true"]):hover):not(.db-panel-dragging):not(.dashboard-active-resize),
-body:is(.has-photo-background, :not(.has-photo-background)) .panel-layout > .db-panel:has(:is(.panel-tools, .panel-tool-drawer, input, select, textarea, [contenteditable="true"]):focus-within):not(.db-panel-dragging):not(.dashboard-active-resize),
-body:is(.has-photo-background, :not(.has-photo-background)) .panel-layout > .db-panel.db-panel-custom-color:has(.panel-internal-widget-grid > .widget-card:is(:hover, .surface-response-active)):not(.db-panel-dragging):not(.dashboard-active-resize):not(.db-panel-tools-open):not(.db-panel-collapsed),
-body:is(.has-photo-background, :not(.has-photo-background)) .panel-layout > .db-panel.db-panel-custom-color:has(:is(.panel-tools, .panel-tool-drawer, button, input, select, textarea, [contenteditable="true"]):hover):not(.db-panel-dragging):not(.dashboard-active-resize),
-body:is(.has-photo-background, :not(.has-photo-background)) .panel-layout > .db-panel.db-panel-custom-color:has(:is(.panel-tools, .panel-tool-drawer, input, select, textarea, [contenteditable="true"]):focus-within):not(.db-panel-dragging):not(.dashboard-active-resize){
+}/* Contained-widget :has() hover trap from earlier round: keep its * background pin but switch the box-shadow to the shared edge stack * so the parent panel uses the same rim system. */ .panel-layout > .db-panel:has(.panel-internal-widget-grid > .widget-card:is(:hover, .surface-response-active)):not(.db-panel-dragging):not(.dashboard-active-resize):not(.db-panel-tools-open):not(.db-panel-collapsed),
+.panel-layout > .db-panel:has(:is(.panel-tools, .panel-tool-drawer, button, input, select, textarea, [contenteditable="true"]):hover):not(.db-panel-dragging):not(.dashboard-active-resize),
+.panel-layout > .db-panel:has(:is(.panel-tools, .panel-tool-drawer, input, select, textarea, [contenteditable="true"]):focus-within):not(.db-panel-dragging):not(.dashboard-active-resize),
+.panel-layout > .db-panel.db-panel-custom-color:has(.panel-internal-widget-grid > .widget-card:is(:hover, .surface-response-active)):not(.db-panel-dragging):not(.dashboard-active-resize):not(.db-panel-tools-open):not(.db-panel-collapsed),
+.panel-layout > .db-panel.db-panel-custom-color:has(:is(.panel-tools, .panel-tool-drawer, button, input, select, textarea, [contenteditable="true"]):hover):not(.db-panel-dragging):not(.dashboard-active-resize),
+.panel-layout > .db-panel.db-panel-custom-color:has(:is(.panel-tools, .panel-tool-drawer, input, select, textarea, [contenteditable="true"]):focus-within):not(.db-panel-dragging):not(.dashboard-active-resize){
   border-color: rgba(255, 255, 255, var(--glass-edge-border-alpha)) !important;
   box-shadow: var(--glass-edge-stack) !important;
-}/* Edge stack must beat the shell rules at themes.css:5374-5384 that * carry box-shadow !important for widgets with both .db-panel-custom-color * AND .widget-runtime-meaning / .widget-tools-open. Match the same * three-class selector list at (0, 5, 1) specificity. */ body:is(.has-photo-background, :not(.has-photo-background)) .widget-layout > .widget-card.db-panel-custom-color,
-body:is(.has-photo-background, :not(.has-photo-background)) .widget-layout > .widget-card.db-panel-custom-color.widget-runtime-meaning,
-body:is(.has-photo-background, :not(.has-photo-background)) .widget-layout > .widget-card.db-panel-custom-color.widget-tools-open,
-body:is(.has-photo-background, :not(.has-photo-background)) .widget-layout > .widget-card.db-panel-custom-color.widget-tools-open:hover,
-body:is(.has-photo-background, :not(.has-photo-background)) .widget-layout > .widget-card.db-panel-custom-color.widget-tools-open:focus-visible,
-body:is(.has-photo-background, :not(.has-photo-background)) .panel-internal-widget-grid > .widget-card.db-panel-custom-color,
-body:is(.has-photo-background, :not(.has-photo-background)) .panel-internal-widget-grid > .widget-card.db-panel-custom-color.widget-runtime-meaning,
-body:is(.has-photo-background, :not(.has-photo-background)) .panel-internal-widget-grid > .widget-card.db-panel-custom-color.widget-tools-open,
-body:is(.has-photo-background, :not(.has-photo-background)) .panel-internal-widget-grid > .widget-card.db-panel-custom-color.widget-tools-open:hover,
-body:is(.has-photo-background, :not(.has-photo-background)) .panel-internal-widget-grid > .widget-card.db-panel-custom-color.widget-tools-open:focus-visible{
+}/* Edge stack must beat the shell rules at themes.css:5374-5384 that * carry box-shadow !important for widgets with both .db-panel-custom-color * AND .widget-runtime-meaning / .widget-tools-open. Match the same * three-class selector list at (0, 5, 1) specificity. */ .widget-layout > .widget-card.db-panel-custom-color,
+.widget-layout > .widget-card.db-panel-custom-color.widget-runtime-meaning,
+.widget-layout > .widget-card.db-panel-custom-color.widget-tools-open,
+.widget-layout > .widget-card.db-panel-custom-color.widget-tools-open:hover,
+.widget-layout > .widget-card.db-panel-custom-color.widget-tools-open:focus-visible,
+.panel-internal-widget-grid > .widget-card.db-panel-custom-color,
+.panel-internal-widget-grid > .widget-card.db-panel-custom-color.widget-runtime-meaning,
+.panel-internal-widget-grid > .widget-card.db-panel-custom-color.widget-tools-open,
+.panel-internal-widget-grid > .widget-card.db-panel-custom-color.widget-tools-open:hover,
+.panel-internal-widget-grid > .widget-card.db-panel-custom-color.widget-tools-open:focus-visible{
+  background: rgba(255, 255, 255, 0.04) !important;
+  background-image: none !important;
   border-color: rgba(255, 255, 255, var(--glass-edge-border-alpha)) !important;
   box-shadow: var(--glass-edge-stack) !important;
-}body:is(.has-photo-background, :not(.has-photo-background)) .widget-layout > .widget-card.db-panel-custom-color:hover,
-body:is(.has-photo-background, :not(.has-photo-background)) .widget-layout > .widget-card.db-panel-custom-color:focus-visible,
-body:is(.has-photo-background, :not(.has-photo-background)) .widget-layout > .widget-card.db-panel-custom-color.active,
-body:is(.has-photo-background, :not(.has-photo-background)) .panel-internal-widget-grid > .widget-card.db-panel-custom-color:hover,
-body:is(.has-photo-background, :not(.has-photo-background)) .panel-internal-widget-grid > .widget-card.db-panel-custom-color:focus-visible{
+}.widget-layout > .widget-card.db-panel-custom-color:hover,
+.widget-layout > .widget-card.db-panel-custom-color:focus-visible,
+.widget-layout > .widget-card.db-panel-custom-color.active,
+.panel-internal-widget-grid > .widget-card.db-panel-custom-color:hover,
+.panel-internal-widget-grid > .widget-card.db-panel-custom-color:focus-visible{
+  background: rgba(255, 255, 255, 0.04) !important;
+  background-image: none !important;
   border-color: rgba(255, 255, 255, calc(var(--glass-edge-border-alpha) + 0.10)) !important;
   box-shadow: var(--glass-edge-stack-hover) !important;
   transform: none;
-}body:is(.has-photo-background, :not(.has-photo-background)) .widget-layout > .widget-card,
-body:is(.has-photo-background, :not(.has-photo-background)) .panel-internal-widget-grid > .widget-card,
-body:is(.has-photo-background, :not(.has-photo-background)) .panel-layout > .db-panel,
-body:is(.has-photo-background, :not(.has-photo-background)) .db-panel.db-panel-tools-open,
-body:is(.has-photo-background, :not(.has-photo-background)) .panel-layout > .db-panel.db-panel-custom-color,
-body:is(.has-photo-background, :not(.has-photo-background)) .workspace-divider.db-panel{
+}.widget-layout > .widget-card,
+.panel-internal-widget-grid > .widget-card,
+.panel-layout > .db-panel,
+.db-panel.db-panel-tools-open,
+.panel-layout > .db-panel.db-panel-custom-color,
+.workspace-divider.db-panel{
   backdrop-filter: none !important;
   -webkit-backdrop-filter: none !important;
-}body:is(.has-photo-background, :not(.has-photo-background)) .workspace-divider.db-panel{
+}.workspace-divider.db-panel{
   background: rgba(255, 255, 255, 0.04) !important;
   background-image: none !important;
 }/* ── Empty-panel helper UI removal ──────────────────────────────────── * * Hide the "Empty panel / Drop widgets here / Add widgets" content * inside .panel-empty-state on open empty panels. The container * itself stays in the DOM so panel-containment.js can still toggle * its hidden attribute when widgets are added/removed (the drop * pipeline targets .db-panel-body, not the empty-state element). * No border,

@@ -1,0 +1,1200 @@
+{
+    "beforeTautologyCount":  226,
+    "afterTautologyCount":  0,
+    "hasPhotoBackgroundMatches":  [
+                                      {
+                                          "line":  4153,
+                                          "text":  "}/* -- Photo / image background system ------------------------------- */ /* Suppress the color gradient when a photo background is active. * body gets isolation: isolate so z-index: -1 on the backdrop renders * above body\u0027s background but below all body content. */ html.has-photo-background,"
+                                      },
+                                      {
+                                          "line":  4154,
+                                          "text":  "html.has-photo-background body{"
+                                      },
+                                      {
+                                          "line":  4158,
+                                          "text":  "}body.has-photo-background{"
+                                      }
+                                  ],
+    "plainMaterialSelectorSample":  [
+                                        {
+                                            "line":  432,
+                                            "selector":  ".db-panel,"
+                                        },
+                                        {
+                                            "line":  434,
+                                            "selector":  ".widget-layout \u003e .widget-card,"
+                                        },
+                                        {
+                                            "line":  435,
+                                            "selector":  ".panel-internal-widget-grid \u003e .widget-card{"
+                                        },
+                                        {
+                                            "line":  959,
+                                            "selector":  ".db-panel.db-panel-custom-color:focus-within{"
+                                        },
+                                        {
+                                            "line":  967,
+                                            "selector":  ".db-panel.db-panel-custom-color.db-panel-collapsed:focus-within{"
+                                        },
+                                        {
+                                            "line":  988,
+                                            "selector":  ".db-panel.db-panel-custom-color \u003e .db-panel-hd:focus-visible{"
+                                        },
+                                        {
+                                            "line":  998,
+                                            "selector":  ".db-panel.db-panel-custom-color \u003e .db-panel-hd .db-panel-count{"
+                                        },
+                                        {
+                                            "line":  1007,
+                                            "selector":  ".db-panel.db-panel-custom-color .panel-settings-toggle,"
+                                        },
+                                        {
+                                            "line":  1008,
+                                            "selector":  ".db-panel.db-panel-custom-color .panel-tool-button{"
+                                        },
+                                        {
+                                            "line":  1058,
+                                            "selector":  ".db-panel.db-panel-custom-color \u003e .db-panel-hd:focus-visible{"
+                                        },
+                                        {
+                                            "line":  1067,
+                                            "selector":  ".db-panel.db-panel-custom-color \u003e .db-panel-hd .db-panel-count{"
+                                        },
+                                        {
+                                            "line":  1078,
+                                            "selector":  ".db-panel.db-panel-custom-color .panel-pin-toggle,"
+                                        },
+                                        {
+                                            "line":  1079,
+                                            "selector":  ".db-panel.db-panel-custom-color .panel-settings-toggle,"
+                                        },
+                                        {
+                                            "line":  1080,
+                                            "selector":  ".db-panel.db-panel-custom-color .panel-tool-button,"
+                                        },
+                                        {
+                                            "line":  1094,
+                                            "selector":  ".db-panel.db-panel-custom-color .panel-pin-toggle:hover,"
+                                        },
+                                        {
+                                            "line":  1095,
+                                            "selector":  ".db-panel.db-panel-custom-color .panel-settings-toggle:hover,"
+                                        },
+                                        {
+                                            "line":  1096,
+                                            "selector":  ".db-panel.db-panel-custom-color .panel-tool-button:hover,"
+                                        },
+                                        {
+                                            "line":  1099,
+                                            "selector":  ".db-panel.db-panel-custom-color .panel-lock-toggle:focus-visible,"
+                                        },
+                                        {
+                                            "line":  1100,
+                                            "selector":  ".db-panel.db-panel-custom-color .panel-pin-toggle:focus-visible,"
+                                        },
+                                        {
+                                            "line":  1101,
+                                            "selector":  ".db-panel.db-panel-custom-color .panel-settings-toggle:focus-visible,"
+                                        },
+                                        {
+                                            "line":  1102,
+                                            "selector":  ".db-panel.db-panel-custom-color .panel-tool-button:focus-visible,"
+                                        },
+                                        {
+                                            "line":  1105,
+                                            "selector":  ".db-panel.db-panel-custom-color .panel-lock-toggle:active,"
+                                        },
+                                        {
+                                            "line":  1106,
+                                            "selector":  ".db-panel.db-panel-custom-color .panel-pin-toggle:active,"
+                                        },
+                                        {
+                                            "line":  1107,
+                                            "selector":  ".db-panel.db-panel-custom-color .panel-settings-toggle:active,"
+                                        },
+                                        {
+                                            "line":  1108,
+                                            "selector":  ".db-panel.db-panel-custom-color .panel-tool-button:active,"
+                                        },
+                                        {
+                                            "line":  1111,
+                                            "selector":  ".db-panel.db-panel-custom-color.db-panel-tools-open .panel-settings-toggle,"
+                                        },
+                                        {
+                                            "line":  1119,
+                                            "selector":  ".db-panel.db-panel-custom-color .panel-pin-toggle:hover,"
+                                        },
+                                        {
+                                            "line":  1120,
+                                            "selector":  ".db-panel.db-panel-custom-color .panel-settings-toggle:hover,"
+                                        },
+                                        {
+                                            "line":  1121,
+                                            "selector":  ".db-panel.db-panel-custom-color .panel-tool-button:hover,"
+                                        },
+                                        {
+                                            "line":  1126,
+                                            "selector":  ".db-panel.db-panel-custom-color .panel-pin-toggle:focus-visible,"
+                                        },
+                                        {
+                                            "line":  1127,
+                                            "selector":  ".db-panel.db-panel-custom-color .panel-settings-toggle:focus-visible,"
+                                        },
+                                        {
+                                            "line":  1128,
+                                            "selector":  ".db-panel.db-panel-custom-color .panel-tool-button:focus-visible,"
+                                        },
+                                        {
+                                            "line":  1133,
+                                            "selector":  ".db-panel.db-panel-custom-color .panel-pin-toggle:active,"
+                                        },
+                                        {
+                                            "line":  1134,
+                                            "selector":  ".db-panel.db-panel-custom-color .panel-settings-toggle:active,"
+                                        },
+                                        {
+                                            "line":  1135,
+                                            "selector":  ".db-panel.db-panel-custom-color .panel-tool-button:active,"
+                                        },
+                                        {
+                                            "line":  1138,
+                                            "selector":  ".db-panel.db-panel-custom-color.db-panel-tools-open .panel-settings-toggle,"
+                                        },
+                                        {
+                                            "line":  1362,
+                                            "selector":  ".db-panel.db-panel-custom-color .panel-settings-toggle:focus-visible{"
+                                        },
+                                        {
+                                            "line":  1369,
+                                            "selector":  ".widget-layout \u003e .widget-card.db-panel-custom-color,"
+                                        },
+                                        {
+                                            "line":  1370,
+                                            "selector":  ".panel-internal-widget-grid \u003e .widget-card.db-panel-custom-color,"
+                                        },
+                                        {
+                                            "line":  1371,
+                                            "selector":  ".widget-layout \u003e .widget-card.db-panel-custom-color.stat-danger,"
+                                        },
+                                        {
+                                            "line":  1372,
+                                            "selector":  ".panel-internal-widget-grid \u003e .widget-card.db-panel-custom-color.stat-danger,"
+                                        },
+                                        {
+                                            "line":  1373,
+                                            "selector":  ".widget-layout \u003e .widget-card.db-panel-custom-color.stat-warn,"
+                                        },
+                                        {
+                                            "line":  1374,
+                                            "selector":  ".panel-internal-widget-grid \u003e .widget-card.db-panel-custom-color.stat-warn,"
+                                        },
+                                        {
+                                            "line":  1375,
+                                            "selector":  ".widget-layout \u003e .widget-card.db-panel-custom-color.stat-purple,"
+                                        },
+                                        {
+                                            "line":  1376,
+                                            "selector":  ".panel-internal-widget-grid \u003e .widget-card.db-panel-custom-color.stat-purple{"
+                                        },
+                                        {
+                                            "line":  1439,
+                                            "selector":  ".widget-layout \u003e .widget-card.db-panel-custom-color:focus-visible,"
+                                        },
+                                        {
+                                            "line":  1440,
+                                            "selector":  ".widget-layout \u003e .widget-card.db-panel-custom-color.active{"
+                                        },
+                                        {
+                                            "line":  1454,
+                                            "selector":  ".widget-layout \u003e .widget-card.db-panel-custom-color.widget-tools-open:hover,"
+                                        },
+                                        {
+                                            "line":  1455,
+                                            "selector":  ".widget-layout \u003e .widget-card.db-panel-custom-color.widget-tools-open:focus-visible{"
+                                        },
+                                        {
+                                            "line":  1458,
+                                            "selector":  ".widget-layout \u003e .widget-card.db-panel-custom-color[data-panel-color=\"#ffffff\"],"
+                                        },
+                                        {
+                                            "line":  1459,
+                                            "selector":  ".panel-internal-widget-grid \u003e .widget-card.db-panel-custom-color[data-panel-color=\"#ffffff\"]{"
+                                        },
+                                        {
+                                            "line":  1468,
+                                            "selector":  ".panel-internal-widget-grid \u003e .widget-card.db-panel-custom-color.widget-runtime-meaning{"
+                                        },
+                                        {
+                                            "line":  1481,
+                                            "selector":  ".widget-layout \u003e .widget-card.db-panel-custom-color.active .stat-val{"
+                                        },
+                                        {
+                                            "line":  1486,
+                                            "selector":  ".widget-layout \u003e .widget-card.db-panel-custom-color:hover .stat-lbl,"
+                                        },
+                                        {
+                                            "line":  1487,
+                                            "selector":  ".widget-layout \u003e .widget-card.db-panel-custom-color.active .stat-lbl{"
+                                        },
+                                        {
+                                            "line":  1490,
+                                            "selector":  ".widget-layout \u003e .widget-card.db-panel-custom-color:hover .stat-runtime-meta,"
+                                        },
+                                        {
+                                            "line":  1491,
+                                            "selector":  ".widget-layout \u003e .widget-card.db-panel-custom-color.active .stat-runtime-meta{"
+                                        },
+                                        {
+                                            "line":  1660,
+                                            "selector":  ".panel-layout \u003e .db-panel.group-selected{"
+                                        },
+                                        {
+                                            "line":  1668,
+                                            "selector":  ".widget-layout \u003e .widget-card.db-panel-custom-color.active.group-selected{"
+                                        },
+                                        {
+                                            "line":  1790,
+                                            "selector":  ".db-panel-tools-open .panel-settings-toggle,"
+                                        },
+                                        {
+                                            "line":  1813,
+                                            "selector":  ".db-panel.db-panel-tools-open \u003e .db-panel-hd:focus-visible{"
+                                        },
+                                        {
+                                            "line":  1817,
+                                            "selector":  ".db-panel.db-panel-tools-open:focus-within,"
+                                        },
+                                        {
+                                            "line":  1818,
+                                            "selector":  ".db-panel.db-panel-custom-color.db-panel-tools-open:hover,"
+                                        },
+                                        {
+                                            "line":  1819,
+                                            "selector":  ".db-panel.db-panel-custom-color.db-panel-tools-open:focus-within{"
+                                        },
+                                        {
+                                            "line":  3603,
+                                            "selector":  ".widget-layout \u003e .widget-card:has(:is(.widget-tools, .panel-tool-drawer, [data-widget-control-surface=\"true\"], input, select, textarea, [contenteditable=\"true\"]):focus-within),"
+                                        },
+                                        {
+                                            "line":  3604,
+                                            "selector":  ".panel-internal-widget-grid \u003e .widget-card:has(:is(.widget-tools, .panel-tool-drawer, [data-widget-control-surface=\"true\"], button, input, select, textarea, [contenteditable=\"true\"]):hover),"
+                                        },
+                                        {
+                                            "line":  3605,
+                                            "selector":  ".panel-internal-widget-grid \u003e .widget-card:has(:is(.widget-tools, .panel-tool-drawer, [data-widget-control-surface=\"true\"], input, select, textarea, [contenteditable=\"true\"]):focus-within){"
+                                        },
+                                        {
+                                            "line":  3610,
+                                            "selector":  ".widget-layout \u003e .widget-card.db-panel-custom-color:has(:is(.widget-tools, .panel-tool-drawer, [data-widget-control-surface=\"true\"], input, select, textarea, [contenteditable=\"true\"]):focus-within),"
+                                        },
+                                        {
+                                            "line":  3611,
+                                            "selector":  ".panel-internal-widget-grid \u003e .widget-card.db-panel-custom-color:has(:is(.widget-tools, .panel-tool-drawer, [data-widget-control-surface=\"true\"], button, input, select, textarea, [contenteditable=\"true\"]):hover),"
+                                        },
+                                        {
+                                            "line":  3612,
+                                            "selector":  ".panel-internal-widget-grid \u003e .widget-card.db-panel-custom-color:has(:is(.widget-tools, .panel-tool-drawer, [data-widget-control-surface=\"true\"], input, select, textarea, [contenteditable=\"true\"]):focus-within){"
+                                        },
+                                        {
+                                            "line":  3618,
+                                            "selector":  ".widget-layout \u003e .widget-card:has(:is(.widget-tools, .panel-tool-drawer, [data-widget-control-surface=\"true\"], input, select, textarea, [contenteditable=\"true\"]):focus-within)::before,"
+                                        },
+                                        {
+                                            "line":  3619,
+                                            "selector":  ".panel-internal-widget-grid \u003e .widget-card:has(:is(.widget-tools, .panel-tool-drawer, [data-widget-control-surface=\"true\"], button, input, select, textarea, [contenteditable=\"true\"]):hover)::before,"
+                                        },
+                                        {
+                                            "line":  3620,
+                                            "selector":  ".panel-internal-widget-grid \u003e .widget-card:has(:is(.widget-tools, .panel-tool-drawer, [data-widget-control-surface=\"true\"], input, select, textarea, [contenteditable=\"true\"]):focus-within)::before,"
+                                        },
+                                        {
+                                            "line":  3621,
+                                            "selector":  ".panel-layout \u003e .db-panel:has(.panel-internal-widget-grid \u003e .widget-card:is(:hover, .surface-response-active))::before,"
+                                        },
+                                        {
+                                            "line":  3622,
+                                            "selector":  ".panel-layout \u003e .db-panel:has(:is(.panel-tools, .panel-tool-drawer, button, input, select, textarea, [contenteditable=\"true\"]):hover)::before,"
+                                        },
+                                        {
+                                            "line":  3623,
+                                            "selector":  ".panel-layout \u003e .db-panel:has(:is(.panel-tools, .panel-tool-drawer, input, select, textarea, [contenteditable=\"true\"]):focus-within)::before{"
+                                        },
+                                        {
+                                            "line":  3626,
+                                            "selector":  ".panel-layout \u003e .db-panel:has(:is(.panel-tools, .panel-tool-drawer, button, input, select, textarea, [contenteditable=\"true\"]):hover):not(.db-panel-dragging):not(.dashboard-active-resize),"
+                                        },
+                                        {
+                                            "line":  3627,
+                                            "selector":  ".panel-layout \u003e .db-panel:has(:is(.panel-tools, .panel-tool-drawer, input, select, textarea, [contenteditable=\"true\"]):focus-within):not(.db-panel-dragging):not(.dashboard-active-resize){"
+                                        },
+                                        {
+                                            "line":  3633,
+                                            "selector":  ".panel-layout \u003e .db-panel.db-panel-custom-color:has(:is(.panel-tools, .panel-tool-drawer, button, input, select, textarea, [contenteditable=\"true\"]):hover):not(.db-panel-dragging):not(.dashboard-active-resize),"
+                                        },
+                                        {
+                                            "line":  3634,
+                                            "selector":  ".panel-layout \u003e .db-panel.db-panel-custom-color:has(:is(.panel-tools, .panel-tool-drawer, input, select, textarea, [contenteditable=\"true\"]):focus-within):not(.db-panel-dragging):not(.dashboard-active-resize){"
+                                        },
+                                        {
+                                            "line":  3930,
+                                            "selector":  ".db-panel \u003e .db-panel-hd,"
+                                        },
+                                        {
+                                            "line":  3931,
+                                            "selector":  ".widget-layout \u003e .widget-card,"
+                                        },
+                                        {
+                                            "line":  3932,
+                                            "selector":  ".panel-internal-widget-grid \u003e .widget-card{"
+                                        },
+                                        {
+                                            "line":  3992,
+                                            "selector":  ".widget-layout \u003e .widget-card:not(.db-panel-pinned)::after,"
+                                        },
+                                        {
+                                            "line":  3993,
+                                            "selector":  ".panel-internal-widget-grid \u003e .widget-card:not(.db-panel-pinned)::after{"
+                                        },
+                                        {
+                                            "line":  4025,
+                                            "selector":  ".widget-layout \u003e .widget-card \u003e :where(*),"
+                                        },
+                                        {
+                                            "line":  4026,
+                                            "selector":  ".panel-internal-widget-grid \u003e .widget-card \u003e :where(*){"
+                                        },
+                                        {
+                                            "line":  4030,
+                                            "selector":  ".widget-layout \u003e .widget-card,"
+                                        },
+                                        {
+                                            "line":  4031,
+                                            "selector":  ".panel-internal-widget-grid \u003e .widget-card{"
+                                        },
+                                        {
+                                            "line":  4047,
+                                            "selector":  ".db-panel:focus-within,"
+                                        },
+                                        {
+                                            "line":  4048,
+                                            "selector":  ".db-panel.db-panel-collapsed:hover,"
+                                        },
+                                        {
+                                            "line":  4049,
+                                            "selector":  ".db-panel.db-panel-collapsed:focus-within,"
+                                        },
+                                        {
+                                            "line":  4050,
+                                            "selector":  ".db-panel.db-panel-tools-open:hover,"
+                                        },
+                                        {
+                                            "line":  4051,
+                                            "selector":  ".db-panel.db-panel-tools-open:focus-within,"
+                                        },
+                                        {
+                                            "line":  4052,
+                                            "selector":  ".widget-layout \u003e .widget-card:hover,"
+                                        },
+                                        {
+                                            "line":  4053,
+                                            "selector":  ".widget-layout \u003e .widget-card:focus-visible,"
+                                        },
+                                        {
+                                            "line":  4054,
+                                            "selector":  ".panel-internal-widget-grid \u003e .widget-card:hover,"
+                                        },
+                                        {
+                                            "line":  4055,
+                                            "selector":  ".panel-internal-widget-grid \u003e .widget-card:focus-visible{"
+                                        },
+                                        {
+                                            "line":  4059,
+                                            "selector":  ".db-panel:focus-within{"
+                                        },
+                                        {
+                                            "line":  4062,
+                                            "selector":  ".db-panel \u003e .db-panel-hd:focus-visible,"
+                                        },
+                                        {
+                                            "line":  4063,
+                                            "selector":  ".widget-layout \u003e .widget-card:hover,"
+                                        },
+                                        {
+                                            "line":  4064,
+                                            "selector":  ".widget-layout \u003e .widget-card:focus-visible,"
+                                        },
+                                        {
+                                            "line":  4065,
+                                            "selector":  ".panel-internal-widget-grid \u003e .widget-card:hover,"
+                                        },
+                                        {
+                                            "line":  4066,
+                                            "selector":  ".panel-internal-widget-grid \u003e .widget-card:focus-visible{"
+                                        },
+                                        {
+                                            "line":  4073,
+                                            "selector":  ".db-panel.db-panel-custom-color \u003e .db-panel-hd,"
+                                        },
+                                        {
+                                            "line":  4074,
+                                            "selector":  ".widget-layout \u003e .widget-card.db-panel-custom-color,"
+                                        },
+                                        {
+                                            "line":  4075,
+                                            "selector":  ".panel-internal-widget-grid \u003e .widget-card.db-panel-custom-color{"
+                                        },
+                                        {
+                                            "line":  4094,
+                                            "selector":  ".db-panel.db-panel-custom-color:focus-within,"
+                                        },
+                                        {
+                                            "line":  4095,
+                                            "selector":  ".db-panel.db-panel-custom-color.db-panel-collapsed:hover,"
+                                        },
+                                        {
+                                            "line":  4096,
+                                            "selector":  ".db-panel.db-panel-custom-color.db-panel-collapsed:focus-within,"
+                                        },
+                                        {
+                                            "line":  4097,
+                                            "selector":  ".widget-layout \u003e .widget-card.db-panel-custom-color:hover,"
+                                        },
+                                        {
+                                            "line":  4098,
+                                            "selector":  ".widget-layout \u003e .widget-card.db-panel-custom-color:focus-visible,"
+                                        },
+                                        {
+                                            "line":  4099,
+                                            "selector":  ".widget-layout \u003e .widget-card.db-panel-custom-color.active,"
+                                        },
+                                        {
+                                            "line":  4100,
+                                            "selector":  ".panel-internal-widget-grid \u003e .widget-card.db-panel-custom-color:hover,"
+                                        },
+                                        {
+                                            "line":  4101,
+                                            "selector":  ".panel-internal-widget-grid \u003e .widget-card.db-panel-custom-color:focus-visible{"
+                                        },
+                                        {
+                                            "line":  4106,
+                                            "selector":  ".panel-internal-widget-grid \u003e .widget-card.db-panel-custom-color.active{"
+                                        },
+                                        {
+                                            "line":  4111,
+                                            "selector":  ".db-panel \u003e .db-panel-hd .db-panel-count,"
+                                        },
+                                        {
+                                            "line":  4112,
+                                            "selector":  ".db-panel .panel-lock-toggle,"
+                                        },
+                                        {
+                                            "line":  4113,
+                                            "selector":  ".db-panel .panel-pin-toggle,"
+                                        },
+                                        {
+                                            "line":  4114,
+                                            "selector":  ".db-panel .panel-settings-toggle,"
+                                        },
+                                        {
+                                            "line":  4115,
+                                            "selector":  ".db-panel .panel-tool-button,"
+                                        },
+                                        {
+                                            "line":  4122,
+                                            "selector":  ".db-panel \u003e .db-panel-hd:focus-visible::before,"
+                                        },
+                                        {
+                                            "line":  4123,
+                                            "selector":  ".db-panel .panel-lock-toggle:hover,"
+                                        },
+                                        {
+                                            "line":  4124,
+                                            "selector":  ".db-panel .panel-pin-toggle:hover,"
+                                        },
+                                        {
+                                            "line":  4125,
+                                            "selector":  ".db-panel .panel-settings-toggle:hover,"
+                                        },
+                                        {
+                                            "line":  4126,
+                                            "selector":  ".db-panel .panel-tool-button:hover,"
+                                        },
+                                        {
+                                            "line":  4129,
+                                            "selector":  ".db-panel .panel-lock-toggle:focus-visible,"
+                                        },
+                                        {
+                                            "line":  4130,
+                                            "selector":  ".db-panel .panel-pin-toggle:focus-visible,"
+                                        },
+                                        {
+                                            "line":  4131,
+                                            "selector":  ".db-panel .panel-settings-toggle:focus-visible,"
+                                        },
+                                        {
+                                            "line":  4132,
+                                            "selector":  ".db-panel .panel-tool-button:focus-visible,"
+                                        },
+                                        {
+                                            "line":  4137,
+                                            "selector":  ".db-panel.db-panel-custom-color \u003e .db-panel-hd .db-panel-count,"
+                                        },
+                                        {
+                                            "line":  4138,
+                                            "selector":  ".db-panel-custom-color \u003e .db-panel-hd::before,"
+                                        },
+                                        {
+                                            "line":  4139,
+                                            "selector":  ".db-panel-custom-color \u003e .db-panel-hd .db-panel-count{"
+                                        },
+                                        {
+                                            "line":  4144,
+                                            "selector":  ".panel-internal-widget-grid \u003e .widget-card.db-panel-custom-color.widget-runtime-meaning,"
+                                        },
+                                        {
+                                            "line":  4145,
+                                            "selector":  ".widget-layout \u003e .widget-card.db-panel-custom-color.widget-tools-open,"
+                                        },
+                                        {
+                                            "line":  4146,
+                                            "selector":  ".widget-layout \u003e .widget-card.db-panel-custom-color.widget-tools-open:hover,"
+                                        },
+                                        {
+                                            "line":  4147,
+                                            "selector":  ".widget-layout \u003e .widget-card.db-panel-custom-color.widget-tools-open:focus-visible{"
+                                        },
+                                        {
+                                            "line":  4315,
+                                            "selector":  ".db-panel.db-panel-tools-open{"
+                                        },
+                                        {
+                                            "line":  4334,
+                                            "selector":  ".db-panel:focus-within,"
+                                        },
+                                        {
+                                            "line":  4335,
+                                            "selector":  ".db-panel.db-panel-collapsed:hover,"
+                                        },
+                                        {
+                                            "line":  4336,
+                                            "selector":  ".db-panel.db-panel-collapsed:focus-within,"
+                                        },
+                                        {
+                                            "line":  4337,
+                                            "selector":  ".db-panel.db-panel-tools-open:hover,"
+                                        },
+                                        {
+                                            "line":  4338,
+                                            "selector":  ".db-panel.db-panel-tools-open:focus-within{"
+                                        },
+                                        {
+                                            "line":  4408,
+                                            "selector":  ".widget-layout \u003e .widget-card:focus-visible{"
+                                        },
+                                        {
+                                            "line":  4434,
+                                            "selector":  ".workspace-divider.db-panel:hover,"
+                                        },
+                                        {
+                                            "line":  4435,
+                                            "selector":  ".workspace-divider.db-panel:focus-within{"
+                                        },
+                                        {
+                                            "line":  4467,
+                                            "selector":  ".workspace-divider .db-panel-title{"
+                                        },
+                                        {
+                                            "line":  4497,
+                                            "selector":  ".db-panel.db-panel-custom-color \u003e .db-panel-hd:hover,"
+                                        },
+                                        {
+                                            "line":  4498,
+                                            "selector":  ".db-panel.db-panel-custom-color \u003e .db-panel-hd:focus-visible{"
+                                        },
+                                        {
+                                            "line":  4510,
+                                            "selector":  ".widget-library-surface{"
+                                        },
+                                        {
+                                            "line":  4526,
+                                            "selector":  ".runtime-chart-stage,"
+                                        },
+                                        {
+                                            "line":  4527,
+                                            "selector":  ".text-widget-editor,"
+                                        },
+                                        {
+                                            "line":  4528,
+                                            "selector":  ".text-widget-preview,"
+                                        },
+                                        {
+                                            "line":  4529,
+                                            "selector":  ".media-widget-stage,"
+                                        },
+                                        {
+                                            "line":  4585,
+                                            "selector":  ".db-panel:focus-within{"
+                                        },
+                                        {
+                                            "line":  4606,
+                                            "selector":  ".db-panel \u003e .db-panel-hd:focus-visible{"
+                                        },
+                                        {
+                                            "line":  4615,
+                                            "selector":  ".panel-internal-widget-grid \u003e .widget-card{"
+                                        },
+                                        {
+                                            "line":  4634,
+                                            "selector":  ".widget-layout \u003e .widget-card:focus-visible,"
+                                        },
+                                        {
+                                            "line":  4635,
+                                            "selector":  ".panel-internal-widget-grid \u003e .widget-card:hover,"
+                                        },
+                                        {
+                                            "line":  4636,
+                                            "selector":  ".panel-internal-widget-grid \u003e .widget-card:focus-visible{"
+                                        },
+                                        {
+                                            "line":  4647,
+                                            "selector":  ".panel-internal-widget-grid \u003e .widget-card.db-panel-custom-color{"
+                                        },
+                                        {
+                                            "line":  4653,
+                                            "selector":  ".panel-internal-widget-grid \u003e .widget-card.db-panel-custom-color.widget-runtime-meaning,"
+                                        },
+                                        {
+                                            "line":  4654,
+                                            "selector":  ".widget-layout \u003e .widget-card.db-panel-custom-color.widget-tools-open,"
+                                        },
+                                        {
+                                            "line":  4655,
+                                            "selector":  ".widget-layout \u003e .widget-card.db-panel-custom-color.widget-tools-open:hover,"
+                                        },
+                                        {
+                                            "line":  4656,
+                                            "selector":  ".widget-layout \u003e .widget-card.db-panel-custom-color.widget-tools-open:focus-visible,"
+                                        },
+                                        {
+                                            "line":  4657,
+                                            "selector":  ".panel-internal-widget-grid \u003e .widget-card.db-panel-custom-color.widget-tools-open,"
+                                        },
+                                        {
+                                            "line":  4658,
+                                            "selector":  ".panel-internal-widget-grid \u003e .widget-card.db-panel-custom-color.widget-tools-open:hover,"
+                                        },
+                                        {
+                                            "line":  4659,
+                                            "selector":  ".panel-internal-widget-grid \u003e .widget-card.db-panel-custom-color.widget-tools-open:focus-visible{"
+                                        },
+                                        {
+                                            "line":  4772,
+                                            "selector":  ".panel-layout \u003e .db-panel:has(:is(.panel-tools, .panel-tool-drawer, button, input, select, textarea, [contenteditable=\"true\"]):hover):not(.db-panel-dragging):not(.dashboard-active-resize),"
+                                        },
+                                        {
+                                            "line":  4773,
+                                            "selector":  ".panel-layout \u003e .db-panel:has(:is(.panel-tools, .panel-tool-drawer, input, select, textarea, [contenteditable=\"true\"]):focus-within):not(.db-panel-dragging):not(.dashboard-active-resize){"
+                                        },
+                                        {
+                                            "line":  4791,
+                                            "selector":  ".panel-layout \u003e .db-panel.db-panel-custom-color:has(:is(.panel-tools, .panel-tool-drawer, button, input, select, textarea, [contenteditable=\"true\"]):hover):not(.db-panel-dragging):not(.dashboard-active-resize),"
+                                        },
+                                        {
+                                            "line":  4792,
+                                            "selector":  ".panel-layout \u003e .db-panel.db-panel-custom-color:has(:is(.panel-tools, .panel-tool-drawer, input, select, textarea, [contenteditable=\"true\"]):focus-within):not(.db-panel-dragging):not(.dashboard-active-resize){"
+                                        },
+                                        {
+                                            "line":  4814,
+                                            "selector":  ".workspace-divider.db-panel.surface-response-active::before{"
+                                        },
+                                        {
+                                            "line":  4817,
+                                            "selector":  ".db-panel.db-panel-custom-color:focus-within,"
+                                        },
+                                        {
+                                            "line":  4818,
+                                            "selector":  ".db-panel.db-panel-custom-color.db-panel-collapsed:hover,"
+                                        },
+                                        {
+                                            "line":  4819,
+                                            "selector":  ".db-panel.db-panel-custom-color.db-panel-collapsed:focus-within,"
+                                        },
+                                        {
+                                            "line":  4820,
+                                            "selector":  ".db-panel.db-panel-custom-color.db-panel-tools-open:hover,"
+                                        },
+                                        {
+                                            "line":  4821,
+                                            "selector":  ".db-panel.db-panel-custom-color.db-panel-tools-open:focus-within{"
+                                        },
+                                        {
+                                            "line":  4832,
+                                            "selector":  ".db-panel.db-panel-custom-color \u003e .db-panel-hd:focus-visible,"
+                                        },
+                                        {
+                                            "line":  4833,
+                                            "selector":  ".db-panel.db-panel-custom-color \u003e .db-panel-hd:active{"
+                                        },
+                                        {
+                                            "line":  4841,
+                                            "selector":  ".db-panel \u003e .db-panel-hd:focus-visible,"
+                                        },
+                                        {
+                                            "line":  4842,
+                                            "selector":  ".db-panel \u003e .db-panel-hd:active{"
+                                        },
+                                        {
+                                            "line":  4851,
+                                            "selector":  ".db-panel:focus-within,"
+                                        },
+                                        {
+                                            "line":  4852,
+                                            "selector":  ".db-panel.db-panel-collapsed:hover,"
+                                        },
+                                        {
+                                            "line":  4853,
+                                            "selector":  ".db-panel.db-panel-collapsed:focus-within,"
+                                        },
+                                        {
+                                            "line":  4854,
+                                            "selector":  ".db-panel.db-panel-tools-open:hover,"
+                                        },
+                                        {
+                                            "line":  4855,
+                                            "selector":  ".db-panel.db-panel-tools-open:focus-within{"
+                                        },
+                                        {
+                                            "line":  4865,
+                                            "selector":  ".workspace-divider.db-panel:focus-within{"
+                                        },
+                                        {
+                                            "line":  4881,
+                                            "selector":  ".db-panel:focus-within,"
+                                        },
+                                        {
+                                            "line":  4882,
+                                            "selector":  ".db-panel:active,"
+                                        },
+                                        {
+                                            "line":  4883,
+                                            "selector":  ".db-panel.db-panel-collapsed:hover,"
+                                        },
+                                        {
+                                            "line":  4884,
+                                            "selector":  ".db-panel.db-panel-collapsed:focus-within,"
+                                        },
+                                        {
+                                            "line":  4885,
+                                            "selector":  ".db-panel.db-panel-tools-open:hover,"
+                                        },
+                                        {
+                                            "line":  4886,
+                                            "selector":  ".db-panel.db-panel-tools-open:focus-within,"
+                                        },
+                                        {
+                                            "line":  4887,
+                                            "selector":  ".db-panel.db-panel-custom-color:hover,"
+                                        },
+                                        {
+                                            "line":  4888,
+                                            "selector":  ".db-panel.db-panel-custom-color:focus-within,"
+                                        },
+                                        {
+                                            "line":  4889,
+                                            "selector":  ".db-panel.db-panel-custom-color.db-panel-collapsed:hover,"
+                                        },
+                                        {
+                                            "line":  4890,
+                                            "selector":  ".db-panel.db-panel-custom-color.db-panel-collapsed:focus-within,"
+                                        },
+                                        {
+                                            "line":  4891,
+                                            "selector":  ".db-panel.db-panel-custom-color.db-panel-tools-open:hover,"
+                                        },
+                                        {
+                                            "line":  4892,
+                                            "selector":  ".db-panel.db-panel-custom-color.db-panel-tools-open:focus-within,"
+                                        },
+                                        {
+                                            "line":  4893,
+                                            "selector":  ".workspace-divider.db-panel:hover,"
+                                        },
+                                        {
+                                            "line":  4894,
+                                            "selector":  ".workspace-divider.db-panel:focus-within{"
+                                        },
+                                        {
+                                            "line":  4913,
+                                            "selector":  ".db-panel.db-panel-custom-color \u003e .db-panel-hd::before{"
+                                        },
+                                        {
+                                            "line":  4920,
+                                            "selector":  ".db-panel.db-panel-custom-color \u003e .db-panel-hd::after{"
+                                        },
+                                        {
+                                            "line":  4924,
+                                            "selector":  ".db-panel \u003e .db-panel-hd:focus-visible::before,"
+                                        },
+                                        {
+                                            "line":  4925,
+                                            "selector":  ".db-panel.db-panel-custom-color \u003e .db-panel-hd:hover::before,"
+                                        },
+                                        {
+                                            "line":  4926,
+                                            "selector":  ".db-panel.db-panel-custom-color \u003e .db-panel-hd:focus-visible::before{"
+                                        },
+                                        {
+                                            "line":  4932,
+                                            "selector":  ".db-panel \u003e .db-panel-hd:focus-visible::after,"
+                                        },
+                                        {
+                                            "line":  4933,
+                                            "selector":  ".db-panel.db-panel-custom-color \u003e .db-panel-hd:hover::after,"
+                                        },
+                                        {
+                                            "line":  4934,
+                                            "selector":  ".db-panel.db-panel-custom-color \u003e .db-panel-hd:focus-visible::after{"
+                                        },
+                                        {
+                                            "line":  4938,
+                                            "selector":  ".db-panel.db-panel-tools-open,"
+                                        },
+                                        {
+                                            "line":  4939,
+                                            "selector":  ".panel-layout \u003e .db-panel.db-panel-custom-color,"
+                                        },
+                                        {
+                                            "line":  4940,
+                                            "selector":  ".workspace-divider.db-panel{"
+                                        },
+                                        {
+                                            "line":  4947,
+                                            "selector":  ".db-panel:focus-within,"
+                                        },
+                                        {
+                                            "line":  4948,
+                                            "selector":  ".db-panel:active,"
+                                        },
+                                        {
+                                            "line":  4949,
+                                            "selector":  ".db-panel.db-panel-collapsed:hover,"
+                                        },
+                                        {
+                                            "line":  4950,
+                                            "selector":  ".db-panel.db-panel-collapsed:focus-within,"
+                                        },
+                                        {
+                                            "line":  4951,
+                                            "selector":  ".db-panel.db-panel-tools-open:hover,"
+                                        },
+                                        {
+                                            "line":  4952,
+                                            "selector":  ".db-panel.db-panel-tools-open:focus-within,"
+                                        },
+                                        {
+                                            "line":  4953,
+                                            "selector":  ".db-panel.db-panel-custom-color:hover,"
+                                        },
+                                        {
+                                            "line":  4954,
+                                            "selector":  ".db-panel.db-panel-custom-color:focus-within,"
+                                        },
+                                        {
+                                            "line":  4955,
+                                            "selector":  ".db-panel.db-panel-custom-color.db-panel-collapsed:hover,"
+                                        },
+                                        {
+                                            "line":  4956,
+                                            "selector":  ".db-panel.db-panel-custom-color.db-panel-collapsed:focus-within,"
+                                        },
+                                        {
+                                            "line":  4957,
+                                            "selector":  ".db-panel.db-panel-custom-color.db-panel-tools-open:hover,"
+                                        },
+                                        {
+                                            "line":  4958,
+                                            "selector":  ".db-panel.db-panel-custom-color.db-panel-tools-open:focus-within,"
+                                        },
+                                        {
+                                            "line":  4959,
+                                            "selector":  ".workspace-divider.db-panel:hover,"
+                                        },
+                                        {
+                                            "line":  4960,
+                                            "selector":  ".workspace-divider.db-panel:focus-within{"
+                                        },
+                                        {
+                                            "line":  4969,
+                                            "selector":  ".db-panel \u003e .db-panel-hd:focus-visible,"
+                                        },
+                                        {
+                                            "line":  4970,
+                                            "selector":  ".db-panel \u003e .db-panel-hd:active,"
+                                        },
+                                        {
+                                            "line":  4971,
+                                            "selector":  ".db-panel.db-panel-custom-color \u003e .db-panel-hd:hover,"
+                                        },
+                                        {
+                                            "line":  4972,
+                                            "selector":  ".db-panel.db-panel-custom-color \u003e .db-panel-hd:focus-visible,"
+                                        },
+                                        {
+                                            "line":  4973,
+                                            "selector":  ".db-panel.db-panel-custom-color \u003e .db-panel-hd:active{"
+                                        },
+                                        {
+                                            "line":  4977,
+                                            "selector":  ".panel-layout \u003e .db-panel:has(:is(.panel-tools, .panel-tool-drawer, button, input, select, textarea, [contenteditable=\"true\"]):hover):not(.db-panel-dragging):not(.dashboard-active-resize),"
+                                        },
+                                        {
+                                            "line":  4978,
+                                            "selector":  ".panel-layout \u003e .db-panel:has(:is(.panel-tools, .panel-tool-drawer, input, select, textarea, [contenteditable=\"true\"]):focus-within):not(.db-panel-dragging):not(.dashboard-active-resize),"
+                                        },
+                                        {
+                                            "line":  4979,
+                                            "selector":  ".panel-layout \u003e .db-panel.db-panel-custom-color:has(.panel-internal-widget-grid \u003e .widget-card:is(:hover, .surface-response-active)):not(.db-panel-dragging):not(.dashboard-active-resize):not(.db-panel-tools-open):not(.db-panel-collapsed),"
+                                        },
+                                        {
+                                            "line":  4980,
+                                            "selector":  ".panel-layout \u003e .db-panel.db-panel-custom-color:has(:is(.panel-tools, .panel-tool-drawer, button, input, select, textarea, [contenteditable=\"true\"]):hover):not(.db-panel-dragging):not(.dashboard-active-resize),"
+                                        },
+                                        {
+                                            "line":  4981,
+                                            "selector":  ".panel-layout \u003e .db-panel.db-panel-custom-color:has(:is(.panel-tools, .panel-tool-drawer, input, select, textarea, [contenteditable=\"true\"]):focus-within):not(.db-panel-dragging):not(.dashboard-active-resize){"
+                                        },
+                                        {
+                                            "line":  4988,
+                                            "selector":  ".db-panel \u003e .db-panel-hd:focus-visible,"
+                                        },
+                                        {
+                                            "line":  4989,
+                                            "selector":  ".db-panel \u003e .db-panel-hd:active,"
+                                        },
+                                        {
+                                            "line":  4990,
+                                            "selector":  ".db-panel.db-panel-custom-color \u003e .db-panel-hd:hover,"
+                                        },
+                                        {
+                                            "line":  4991,
+                                            "selector":  ".db-panel.db-panel-custom-color \u003e .db-panel-hd:focus-visible,"
+                                        },
+                                        {
+                                            "line":  4992,
+                                            "selector":  ".db-panel.db-panel-custom-color \u003e .db-panel-hd:active{"
+                                        },
+                                        {
+                                            "line":  5000,
+                                            "selector":  ".panel-layout \u003e .db-panel.db-panel-custom-color.panel-child-hover-active:not(.db-panel-tools-open):not(.db-panel-collapsed){"
+                                        },
+                                        {
+                                            "line":  5043,
+                                            "selector":  ".panel-internal-widget-grid \u003e .widget-card,"
+                                        },
+                                        {
+                                            "line":  5044,
+                                            "selector":  ".panel-layout \u003e .db-panel,"
+                                        },
+                                        {
+                                            "line":  5045,
+                                            "selector":  ".db-panel.db-panel-tools-open,"
+                                        },
+                                        {
+                                            "line":  5046,
+                                            "selector":  ".panel-layout \u003e .db-panel.db-panel-custom-color,"
+                                        },
+                                        {
+                                            "line":  5047,
+                                            "selector":  ".workspace-divider.db-panel{"
+                                        },
+                                        {
+                                            "line":  5054,
+                                            "selector":  ".db-panel.db-panel-custom-color \u003e .db-panel-hd{"
+                                        },
+                                        {
+                                            "line":  5061,
+                                            "selector":  ".widget-layout \u003e .widget-card:focus-visible,"
+                                        },
+                                        {
+                                            "line":  5062,
+                                            "selector":  ".panel-internal-widget-grid \u003e .widget-card:hover,"
+                                        },
+                                        {
+                                            "line":  5063,
+                                            "selector":  ".panel-internal-widget-grid \u003e .widget-card:focus-visible,"
+                                        },
+                                        {
+                                            "line":  5064,
+                                            "selector":  ".db-panel:hover,"
+                                        },
+                                        {
+                                            "line":  5065,
+                                            "selector":  ".db-panel:focus-within,"
+                                        },
+                                        {
+                                            "line":  5066,
+                                            "selector":  ".db-panel.db-panel-collapsed:hover,"
+                                        },
+                                        {
+                                            "line":  5067,
+                                            "selector":  ".db-panel.db-panel-collapsed:focus-within,"
+                                        },
+                                        {
+                                            "line":  5068,
+                                            "selector":  ".db-panel.db-panel-tools-open:hover,"
+                                        },
+                                        {
+                                            "line":  5069,
+                                            "selector":  ".db-panel.db-panel-tools-open:focus-within,"
+                                        },
+                                        {
+                                            "line":  5070,
+                                            "selector":  ".db-panel.db-panel-custom-color:hover,"
+                                        },
+                                        {
+                                            "line":  5071,
+                                            "selector":  ".db-panel.db-panel-custom-color:focus-within,"
+                                        },
+                                        {
+                                            "line":  5072,
+                                            "selector":  ".db-panel.db-panel-custom-color.db-panel-collapsed:hover,"
+                                        },
+                                        {
+                                            "line":  5073,
+                                            "selector":  ".db-panel.db-panel-custom-color.db-panel-collapsed:focus-within,"
+                                        },
+                                        {
+                                            "line":  5074,
+                                            "selector":  ".db-panel.db-panel-custom-color.db-panel-tools-open:hover,"
+                                        },
+                                        {
+                                            "line":  5075,
+                                            "selector":  ".db-panel.db-panel-custom-color.db-panel-tools-open:focus-within,"
+                                        },
+                                        {
+                                            "line":  5076,
+                                            "selector":  ".workspace-divider.db-panel:hover,"
+                                        },
+                                        {
+                                            "line":  5077,
+                                            "selector":  ".workspace-divider.db-panel:focus-within{"
+                                        },
+                                        {
+                                            "line":  5088,
+                                            "selector":  ".db-panel \u003e .db-panel-hd:focus-visible,"
+                                        },
+                                        {
+                                            "line":  5089,
+                                            "selector":  ".db-panel.db-panel-custom-color \u003e .db-panel-hd:hover,"
+                                        },
+                                        {
+                                            "line":  5090,
+                                            "selector":  ".db-panel.db-panel-custom-color \u003e .db-panel-hd:focus-visible{"
+                                        },
+                                        {
+                                            "line":  5098,
+                                            "selector":  ".panel-layout \u003e .db-panel:has(:is(.panel-tools, .panel-tool-drawer, button, input, select, textarea, [contenteditable=\"true\"]):hover):not(.db-panel-dragging):not(.dashboard-active-resize),"
+                                        },
+                                        {
+                                            "line":  5099,
+                                            "selector":  ".panel-layout \u003e .db-panel:has(:is(.panel-tools, .panel-tool-drawer, input, select, textarea, [contenteditable=\"true\"]):focus-within):not(.db-panel-dragging):not(.dashboard-active-resize),"
+                                        },
+                                        {
+                                            "line":  5100,
+                                            "selector":  ".panel-layout \u003e .db-panel.db-panel-custom-color:has(.panel-internal-widget-grid \u003e .widget-card:is(:hover, .surface-response-active)):not(.db-panel-dragging):not(.dashboard-active-resize):not(.db-panel-tools-open):not(.db-panel-collapsed),"
+                                        },
+                                        {
+                                            "line":  5101,
+                                            "selector":  ".panel-layout \u003e .db-panel.db-panel-custom-color:has(:is(.panel-tools, .panel-tool-drawer, button, input, select, textarea, [contenteditable=\"true\"]):hover):not(.db-panel-dragging):not(.dashboard-active-resize),"
+                                        },
+                                        {
+                                            "line":  5102,
+                                            "selector":  ".panel-layout \u003e .db-panel.db-panel-custom-color:has(:is(.panel-tools, .panel-tool-drawer, input, select, textarea, [contenteditable=\"true\"]):focus-within):not(.db-panel-dragging):not(.dashboard-active-resize){"
+                                        },
+                                        {
+                                            "line":  5106,
+                                            "selector":  ".widget-layout \u003e .widget-card.db-panel-custom-color.widget-runtime-meaning,"
+                                        },
+                                        {
+                                            "line":  5107,
+                                            "selector":  ".widget-layout \u003e .widget-card.db-panel-custom-color.widget-tools-open,"
+                                        },
+                                        {
+                                            "line":  5108,
+                                            "selector":  ".widget-layout \u003e .widget-card.db-panel-custom-color.widget-tools-open:hover,"
+                                        },
+                                        {
+                                            "line":  5109,
+                                            "selector":  ".widget-layout \u003e .widget-card.db-panel-custom-color.widget-tools-open:focus-visible,"
+                                        },
+                                        {
+                                            "line":  5110,
+                                            "selector":  ".panel-internal-widget-grid \u003e .widget-card.db-panel-custom-color,"
+                                        },
+                                        {
+                                            "line":  5111,
+                                            "selector":  ".panel-internal-widget-grid \u003e .widget-card.db-panel-custom-color.widget-runtime-meaning,"
+                                        },
+                                        {
+                                            "line":  5112,
+                                            "selector":  ".panel-internal-widget-grid \u003e .widget-card.db-panel-custom-color.widget-tools-open,"
+                                        },
+                                        {
+                                            "line":  5113,
+                                            "selector":  ".panel-internal-widget-grid \u003e .widget-card.db-panel-custom-color.widget-tools-open:hover,"
+                                        },
+                                        {
+                                            "line":  5114,
+                                            "selector":  ".panel-internal-widget-grid \u003e .widget-card.db-panel-custom-color.widget-tools-open:focus-visible{"
+                                        },
+                                        {
+                                            "line":  5118,
+                                            "selector":  ".widget-layout \u003e .widget-card.db-panel-custom-color:focus-visible,"
+                                        },
+                                        {
+                                            "line":  5119,
+                                            "selector":  ".widget-layout \u003e .widget-card.db-panel-custom-color.active,"
+                                        },
+                                        {
+                                            "line":  5120,
+                                            "selector":  ".panel-internal-widget-grid \u003e .widget-card.db-panel-custom-color:hover,"
+                                        },
+                                        {
+                                            "line":  5121,
+                                            "selector":  ".panel-internal-widget-grid \u003e .widget-card.db-panel-custom-color:focus-visible{"
+                                        },
+                                        {
+                                            "line":  5126,
+                                            "selector":  ".panel-internal-widget-grid \u003e .widget-card,"
+                                        },
+                                        {
+                                            "line":  5127,
+                                            "selector":  ".panel-layout \u003e .db-panel,"
+                                        },
+                                        {
+                                            "line":  5128,
+                                            "selector":  ".db-panel.db-panel-tools-open,"
+                                        },
+                                        {
+                                            "line":  5129,
+                                            "selector":  ".panel-layout \u003e .db-panel.db-panel-custom-color,"
+                                        },
+                                        {
+                                            "line":  5130,
+                                            "selector":  ".workspace-divider.db-panel{"
+                                        },
+                                        {
+                                            "line":  5536,
+                                            "selector":  ".db-panel.db-panel-custom-color[data-panel-color=\"#ffffff\"] .panel-tools,"
+                                        },
+                                        {
+                                            "line":  5543,
+                                            "selector":  ".db-panel.db-panel-custom-color[data-panel-color=\"#ffffff\"] .panel-tool-drawer,"
+                                        },
+                                        {
+                                            "line":  5554,
+                                            "selector":  ".db-panel.db-panel-custom-color[data-panel-color=\"#ffffff\"] :is(.panel-lock-toggle, .panel-pin-toggle, .panel-settings-toggle, .panel-tool-button),"
+                                        }
+                                    ]
+}
