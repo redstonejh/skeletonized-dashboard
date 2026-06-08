@@ -2140,13 +2140,13 @@ body.panel-resize-active .db-panel:not(.db-panel-dragging):not(.dashboard-active
   position: fixed;
   width: 278px;
   padding: 12px;
-  border: 1.5px solid var(--panel-lock-border, rgba(37, 99, 235, .28));
+  border: 1.5px solid var(--panel-lock-border, rgba(255, 255, 255, .22));
   border-radius: 16px;
-  background: color-mix(in srgb, var(--surface) 82%, var(--panel-accent, #2563eb) 18%);
+  background: color-mix(in srgb, var(--surface) 82%, var(--panel-accent, rgba(255, 255, 255, .24)) 18%);
   backdrop-filter: blur(16px) saturate(1.25);
   -webkit-backdrop-filter: blur(16px) saturate(1.25);
   color: var(--panel-menu-fg, var(--ink-strong));
-  box-shadow: 0 20px 44px rgba(15, 23, 42, .24), 0 0 18px var(--panel-lock-glow, rgba(37, 99, 235, .12)), inset 0 1px 0 rgba(255, 255, 255, .32);
+  box-shadow: 0 20px 44px rgba(15, 23, 42, .24), 0 0 18px var(--panel-lock-glow, rgba(255, 255, 255, .10)), inset 0 1px 0 rgba(255, 255, 255, .32);
   opacity: 0;
   visibility: hidden;
   pointer-events: none;
@@ -2167,30 +2167,7 @@ that put the drawer on top — palette * has to declare its tier explicitly. */ 
 }.panel-color-group + .panel-color-group{
   margin-top: 11px;
   padding-top: 11px;
-  border-top: 1px solid color-mix(in srgb, var(--panel-accent, #2563eb) 28%, transparent);
-}.panel-color-clear-group{
-  margin-bottom: 11px;
-}.panel-color-clear{
-  width: 100%;
-  min-height: 34px;
-  border: 1.5px solid color-mix(in srgb, var(--panel-menu-fg, var(--ink-strong)) 22%, transparent);
-  border-radius: 10px;
-  background:
-    linear-gradient(135deg, transparent calc(50% - 1px), color-mix(in srgb, var(--red) 62%, transparent) 50%, transparent calc(50% + 1px)),
-    color-mix(in srgb, var(--surface-raised) 82%, transparent);
-  color: var(--panel-menu-fg, var(--ink-strong));
-  font: inherit;
-  font-size: 12px;
-  font-weight: 700;
-  cursor: pointer;
-  transition: border-color .16s ease, box-shadow .16s ease, transform .16s ease;
-}.panel-color-clear:hover,
-.panel-color-clear:focus-visible,
-.panel-color-clear.is-selected{
-  border-color: color-mix(in srgb, var(--panel-menu-fg, var(--ink-strong)) 42%, transparent);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--panel-accent, #2563eb) 18%, transparent);
-}.panel-color-clear:active{
-  transform: translateY(1px);
+  border-top: 1px solid color-mix(in srgb, var(--panel-accent, rgba(255, 255, 255, .46)) 28%, transparent);
 }.panel-color-label{
   display: block;
   margin: 0 0 8px;
@@ -2226,6 +2203,34 @@ that put the drawer on top — palette * has to declare its tier explicitly. */ 
 }.panel-color-swatch[data-color="#ffffff"]{
   border-color: rgba(15, 23, 42, .34);
   box-shadow: 0 6px 14px rgba(15, 23, 42, .18), inset 0 0 0 1px rgba(255, 255, 255, .90);
+}.panel-color-swatch[data-color-action="clear"]{
+  position: relative;
+  background:
+    linear-gradient(135deg,
+      transparent calc(50% - 1px),
+      rgba(255, 255, 255, .88) 50%,
+      transparent calc(50% + 1px)),
+    rgba(255, 255, 255, .12) !important;
+  background-color: rgba(255, 255, 255, .12) !important;
+  border-color: rgba(255, 255, 255, .58);
+  color: #ffffff;
+}.panel-color-swatch[data-color-action="clear"].is-selected,
+.panel-color-swatch[data-color-action="clear"]:hover,
+.panel-color-swatch[data-color-action="clear"]:focus,
+.panel-color-swatch[data-color-action="clear"]:focus-visible,
+.panel-color-swatch[data-color-action="clear"]:active{
+  background:
+    linear-gradient(135deg,
+      transparent calc(50% - 1px),
+      rgba(255, 255, 255, .96) 50%,
+      transparent calc(50% + 1px)),
+    rgba(255, 255, 255, .18) !important;
+  background-color: rgba(255, 255, 255, .18) !important;
+  border-color: rgba(255, 255, 255, .78);
+  box-shadow:
+    0 8px 16px rgba(15, 23, 42, .22),
+    0 0 0 3px rgba(255, 255, 255, .18),
+    inset 0 1px 0 rgba(255, 255, 255, .30);
 }.panel-color-swatch:hover,
 .panel-color-swatch:focus,
 .panel-color-swatch:focus-visible,
