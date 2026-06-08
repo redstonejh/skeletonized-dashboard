@@ -5068,6 +5068,10 @@ no card. Active * filter is indicated by a subtle underline + slightly higher * 
 .workspace-tab{
   --tab-lift: 0px;
   --tab-scale: 1;
+  --tab-label-shadow:
+    drop-shadow(0 8px 18px rgba(0, 0, 0, 0.34))
+    drop-shadow(0 16px 34px rgba(0, 0, 0, 0.22))
+    drop-shadow(0 3px 10px rgba(0, 0, 0, 0.28));
   appearance: none;
   -webkit-appearance: none;
   -webkit-tap-highlight-color: transparent;
@@ -5085,6 +5089,7 @@ no card. Active * filter is indicated by a subtle underline + slightly higher * 
   background: transparent;
   box-shadow: none;
   cursor: pointer;
+  filter: var(--tab-label-shadow);
   user-select: none;
   -webkit-user-select: none;
   transform: translateY(var(--tab-lift)) scale(var(--tab-scale));
@@ -5113,10 +5118,7 @@ no card. Active * filter is indicated by a subtle underline + slightly higher * 
   background-clip: border-box;
   -webkit-background-clip: border-box;
   filter: none;
-  text-shadow:
-    0 8px 18px rgba(0, 0, 0, 0.34),
-    0 16px 34px rgba(0, 0, 0, 0.22),
-    0 3px 10px rgba(0, 0, 0, 0.28);
+  text-shadow: none;
   user-select: none;
   -webkit-user-select: none;
 }
