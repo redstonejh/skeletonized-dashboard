@@ -5674,7 +5674,7 @@ no card. Active * filter is indicated by a subtle underline + slightly higher * 
     rgba(var(--panel-accent-rgb), .10) !important;
   background-image: var(--object-shell-wash) !important;
   background-color: rgba(var(--panel-accent-rgb), .10) !important;
-  border-color: var(--panel-accent) !important;
+  border-color: var(--line) !important;
 }
 .widget-card.db-panel-custom-color[data-panel-color-user="true"]:hover,
 .widget-card.db-panel-custom-color[data-panel-color-user="true"]:focus-visible,
@@ -5701,5 +5701,5 @@ no card. Active * filter is indicated by a subtle underline + slightly higher * 
     rgba(var(--panel-accent-rgb), .12) !important;
   background-image: var(--object-shell-wash) !important;
   background-color: rgba(var(--panel-accent-rgb), .12) !important;
-  border-color: var(--panel-accent) !important;
+  border-color: var(--line) !important;
 }

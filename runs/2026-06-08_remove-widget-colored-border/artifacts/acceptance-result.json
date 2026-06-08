@@ -1,0 +1,8 @@
+{
+  "verdict": "SHIP",
+  "summary": "Widget colored edge rules were neutralized so widgets use the same clean border family as panels while retaining glass and recolor tinting.",
+  "tests": {
+    "status": "skipped",
+    "reason": "User explicitly instructed not to run tests, canaries, or validation."
+  }
+}

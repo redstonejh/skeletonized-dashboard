@@ -333,7 +333,7 @@ body.webgl-glass-on .widget-card.db-panel-custom-color{
   padding: 10px 14px 9px;
 }.widget-card-custom{
   background: color-mix(in srgb, var(--surface) 92%, var(--panel-accent, var(--blue)) 8%);
-  border-color: color-mix(in srgb, var(--panel-accent, var(--blue)) 20%, var(--line));
+  border-color: var(--line);
 }.widget-card.widget-conditional-style{
   --conditional-accent-resolved: var(--conditional-accent, var(--panel-accent, var(--blue)));
   --conditional-accent-rgb-resolved: var(--conditional-accent-rgb, var(--panel-accent-rgb, 37, 99, 235));
@@ -517,7 +517,6 @@ body.webgl-glass-on .widget-card.db-panel-custom-color{
 }.widget-card.db-panel-custom-color{
   --widget-custom-color-tint: calc(18% * var(--surface-white-mix-compensation));
   --widget-custom-color-hover-tint: calc(24% * var(--surface-white-mix-compensation));
-  --widget-custom-color-border-tint: calc(32% * var(--surface-white-mix-compensation));
   background:
     linear-gradient(180deg,
       rgba(var(--panel-accent-rgb, 37, 99, 235), .16),
@@ -525,7 +524,7 @@ body.webgl-glass-on .widget-card.db-panel-custom-color{
     color-mix(in srgb,
       rgba(var(--panel-accent-rgb, 37, 99, 235), .34) var(--widget-custom-color-tint),
       var(--glass-surface));
-  border-color: color-mix(in srgb, var(--panel-accent, var(--blue)) var(--widget-custom-color-border-tint), var(--line));
+  border-color: var(--line);
   box-shadow:
     0 1px 3px rgba(15, 23, 42, calc(.045 * var(--surface-white-mix-compensation))),
     inset 0 1px 0 rgba(255, 255, 255, calc(.11 * var(--surface-white-mix-compensation))),
@@ -539,7 +538,7 @@ body.webgl-glass-on .widget-card.db-panel-custom-color{
     color-mix(in srgb,
       rgba(var(--panel-accent-rgb, 37, 99, 235), .40) var(--widget-custom-color-hover-tint),
       var(--glass-surface));
-  border-color: color-mix(in srgb, var(--panel-accent, var(--blue)) calc(44% * var(--surface-white-mix-compensation)), white);
+  border-color: var(--line);
 }.widget-card.db-panel-custom-color:hover .stat-val,
 .widget-card.db-panel-custom-color:hover .stat-lbl{
   color: var(--panel-accent-text);
