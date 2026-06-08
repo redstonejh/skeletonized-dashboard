@@ -291,7 +291,7 @@ export const initializeWorkspacePagesRuntime = ({
     if (page.needsHydration) {
       preview.dataset.workspacePageSnapshotHydrating = "true";
       try {
-        onPageMounted?.({ tabId });
+        onPageMounted?.({ tabId, root: preview });
       } finally {
         delete preview.dataset.workspacePageSnapshotHydrating;
       }
