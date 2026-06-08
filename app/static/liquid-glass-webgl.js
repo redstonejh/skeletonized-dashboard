@@ -238,13 +238,14 @@
   let debugMode = 0;
   let debugObjectIndex = -1;
   let pendingFrame = false;
-  // One cooldown frame after the last running animation completes,
-  // so the canvas captures the resting bounding boxes once the FLIP /
-  // height transition has fully released.
-  let animationCooldownFrames = 0;
-  const ANIMATION_COOLDOWN_FRAMES = 1;
+  // While layout or scroll motion is active, redraw every frame from one
+  // captured viewport/scroll snapshot so backdrop and object geometry stay in
+  // the same coordinate frame.
+  let liveTrackingUntil = 0;
+  const LIVE_TRACKING_COOLDOWN_MS = 140;
   let resizeObserver = null;
   let mutationObserver = null;
+  let scrollHandler = null;
   let resizeHandler = null;
 
   const compileShader = (type, src) => {
@@ -378,7 +379,14 @@
     ctx.drawImage(img, dx, dy, dw, dh);
   };
 
-  const rasterizeBackdropTexture = () => {
+  const captureFrame = () => ({
+    dpr: Math.min(window.devicePixelRatio || 1, 1.5),
+    vw: Math.max(1, window.innerWidth),
+    vh: Math.max(1, window.innerHeight),
+    scrollY: window.scrollY || 0,
+  });
+
+  const rasterizeBackdropTexture = (frame = captureFrame()) => {
     if (!canvas || !gl) return;
     const w = canvas.width;
     const h = canvas.height;
@@ -411,9 +419,17 @@
     offscreenCtx.fillStyle = gradient;
     offscreenCtx.fillRect(0, 0, w, h);
 
-    panels.forEach((panel) => {
-      const rect = panel.getBoundingClientRect();
-      if (rect.width <= 0 || rect.height <= 0 || rect.right <= 0 || rect.bottom <= 0 || rect.left >= window.innerWidth || rect.top >= window.innerHeight) return;
+    panels.forEach((panel, panelIndex) => {
+      const panelTop = (panelIndex * frame.vh) - frame.scrollY;
+      const rect = {
+        left: 0,
+        top: panelTop,
+        right: frame.vw,
+        bottom: panelTop + frame.vh,
+        width: frame.vw,
+        height: frame.vh,
+      };
+      if (rect.width <= 0 || rect.height <= 0 || rect.right <= 0 || rect.bottom <= 0 || rect.left >= frame.vw || rect.top >= frame.vh) return;
       const url = cssUrl(panel.style.backgroundImage || getComputedStyle(panel).backgroundImage || "");
       if (!url) return;
       const record = imageForUrl(url);
@@ -425,10 +441,10 @@
       drawCoverImage(
         offscreenCtx,
         record.img,
-        rect.left * (w / window.innerWidth),
-        rect.top * (h / window.innerHeight),
-        rect.width * (w / window.innerWidth),
-        rect.height * (h / window.innerHeight),
+        rect.left * (w / frame.vw),
+        rect.top * (h / frame.vh),
+        rect.width * (w / frame.vw),
+        rect.height * (h / frame.vh),
       );
     });
 
@@ -468,6 +484,18 @@
     }
   };
 
+  const extendLiveTracking = (now = performance.now()) => {
+    liveTrackingUntil = Math.max(liveTrackingUntil, now + LIVE_TRACKING_COOLDOWN_MS);
+  };
+
+  const shouldLiveTrack = (now = performance.now()) => {
+    if (isAnimatingGlassTarget()) {
+      extendLiveTracking(now);
+      return true;
+    }
+    return now <= liveTrackingUntil;
+  };
+
   const resolveRadiusLength = (value, size) => {
     const text = String(value || "").trim();
     if (!text) return 0;
@@ -498,11 +526,11 @@
     return Math.min(Math.max(0, radius), maxRadius);
   };
 
-  const collectObjects = () => {
+  const collectObjects = (frame = captureFrame()) => {
     const nodes = document.querySelectorAll(OBJECT_SELECTOR);
     const out = [];
-    const vw = window.innerWidth;
-    const vh = window.innerHeight;
+    const vw = frame.vw;
+    const vh = frame.vh;
     const visibleClipRect = (node, rect) => {
       let left = Math.max(rect.left, 0);
       let top = Math.max(rect.top, 0);
@@ -561,33 +589,31 @@
     return out;
   };
 
-  const syncSize = () => {
+  const syncSize = (frame = captureFrame()) => {
     if (!canvas) return;
-    // DPR capped at 1.5 — kills the upscale-blur banding that DPR=1
-    // produced on Retina/HiDPI without doubling fragment-shader cost.
-    const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
-    const w = Math.max(1, Math.floor(window.innerWidth * dpr));
-    const h = Math.max(1, Math.floor(window.innerHeight * dpr));
+    const w = Math.max(1, Math.floor(frame.vw * frame.dpr));
+    const h = Math.max(1, Math.floor(frame.vh * frame.dpr));
     let resized = false;
     if (canvas.width !== w) { canvas.width = w; resized = true; }
     if (canvas.height !== h) { canvas.height = h; resized = true; }
-    canvas.style.width = `${window.innerWidth}px`;
-    canvas.style.height = `${window.innerHeight}px`;
-    if (resized) rasterizeBackdropTexture();
+    canvas.style.width = `${frame.vw}px`;
+    canvas.style.height = `${frame.vh}px`;
+    if (resized) rasterizeBackdropTexture(frame);
   };
 
   const draw = () => {
     pendingFrame = false;
     if (!active || !gl || !canvas) return;
 
-    syncSize();
-    rasterizeBackdropTexture();
+    const frame = captureFrame();
+    syncSize(frame);
+    rasterizeBackdropTexture(frame);
     if (!backdropReady) return;
     gl.viewport(0, 0, canvas.width, canvas.height);
     gl.clearColor(0, 0, 0, 0);
     gl.clear(gl.COLOR_BUFFER_BIT);
 
-    const rects = collectObjects();
+    const rects = collectObjects(frame);
     const flatRects = new Float32Array(MAX_OBJECTS * 4);
     const flatRadii = new Float32Array(MAX_OBJECTS);
     for (let i = 0; i < rects.length; i++) {
@@ -602,7 +628,7 @@
     gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_2D, bgTexture);
     gl.uniform1i(uniforms.u_background, 0);
-    gl.uniform2f(uniforms.u_resolution, window.innerWidth, window.innerHeight);
+    gl.uniform2f(uniforms.u_resolution, frame.vw, frame.vh);
     gl.uniform1i(uniforms.u_count, rects.length);
     gl.uniform1i(uniforms.u_debug, debugMode | 0);
     gl.uniform1i(uniforms.u_debugObject, debugObjectIndex | 0);
@@ -613,19 +639,10 @@
     gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
     gl.drawArrays(gl.TRIANGLES, 0, 6);
 
-    // Live-tracking loop: while any glass-target element is animating
-    // (panel collapse height transition, FLIP collision displacement),
-    // re-draw every frame so the refraction follows the live
-    // getBoundingClientRect() (which already reflects transforms and
-    // transitioned CSS values). One cooldown frame after animations
-    // settle catches the resting state. Otherwise pendingFrame stays
-    // false and we revert to dirty-only mode driven by markDirty().
-    if (isAnimatingGlassTarget()) {
-      animationCooldownFrames = ANIMATION_COOLDOWN_FRAMES;
-      pendingFrame = true;
-      rafHandle = requestAnimationFrame(draw);
-    } else if (animationCooldownFrames > 0) {
-      animationCooldownFrames -= 1;
+    // Live-tracking loop: while scroll or glass-target animation is moving,
+    // keep redrawing from one frame snapshot. The same path handles scroll,
+    // FLIP, collapse, and page-slide motion.
+    if (shouldLiveTrack()) {
       pendingFrame = true;
       rafHandle = requestAnimationFrame(draw);
     }
@@ -653,8 +670,15 @@
         attributeFilter: ["style", "class"],
       });
     }
+    if (!scrollHandler) {
+      scrollHandler = () => {
+        extendLiveTracking();
+        markDirty();
+      };
+      window.addEventListener("scroll", scrollHandler, { passive: true });
+    }
     if (!resizeHandler) {
-      resizeHandler = () => { syncSize(); markDirty(); };
+      resizeHandler = () => { syncSize(captureFrame()); markDirty(); };
       window.addEventListener("resize", resizeHandler);
     }
   };
@@ -664,12 +688,12 @@
     if (!ensureCanvas()) return;
     active = true;
     document.body.classList.add("webgl-glass-on");
-    syncSize();
-    rasterizeBackdropTexture();
+    const frame = captureFrame();
+    syncSize(frame);
+    rasterizeBackdropTexture(frame);
     attachObservers();
-    // Continuous loop during drag/resize is overkill; we redraw on
-    // mutation, resize, and animation cooldown. The first frame may
-    // need to wait for the texture; markDirty schedules it.
+    // The first frame may need to wait for the texture; markDirty schedules it.
+    // Scroll and animation motion then stay on the shared live-tracking loop.
     markDirty();
   };
 
