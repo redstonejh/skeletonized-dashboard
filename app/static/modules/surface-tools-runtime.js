@@ -58,9 +58,81 @@ export function initializeSurfaceToolsRuntime({
       ),
     );
   };
+  const cursorForResizeEdge = (edge) => {
+    switch (edge) {
+      case "left":
+      case "right":
+        return "resize-x";
+      case "top":
+      case "bottom":
+        return "resize-y";
+      case "top-left":
+      case "bottom-right":
+        return "resize-nwse";
+      case "top-right":
+      case "bottom-left":
+        return "resize-nesw";
+      default:
+        return "";
+    }
+  };
+  const surfaceCursorState = { target: null };
+  const clearSurfaceCursor = (target = surfaceCursorState.target) => {
+    target?.removeAttribute?.("data-dashboard-cursor");
+    if (surfaceCursorState.target === target) surfaceCursorState.target = null;
+  };
+  const canSurfaceObjectResize = (item) => Boolean(item &&
+    !item.classList?.contains("db-panel-pinned") &&
+    item.dataset?.locked !== "true" &&
+    item.dataset?.resizable !== "false");
+  const canSurfaceObjectMove = (item) => Boolean(item &&
+    !item.classList?.contains("db-panel-pinned"));
+  const surfaceCursorTargetFromEvent = (event) => {
+    if (isDashboardInteractionActive()) return null;
+    const target = event.target?.closest?.(surfaceResponseSelector);
+    if (!target || !target.isConnected) return null;
+    if (
+      target.classList.contains("widget-placeholder") ||
+      target.classList.contains("db-panel-placeholder") ||
+      target.classList.contains("dashboard-live-resize") ||
+      target.classList.contains("dashboard-resize-preview") ||
+      target.classList.contains("dashboard-active-resize") ||
+      target.classList.contains("dashboard-resize-source") ||
+      target.classList.contains("widget-dragging") ||
+      target.classList.contains("db-panel-dragging") ||
+      target.classList.contains("dashboard-group-boundary") ||
+      target.classList.contains("dashboard-group-member-preview")
+    ) return null;
+    return target;
+  };
+  const syncSurfaceCursor = (event) => {
+    const target = surfaceCursorTargetFromEvent(event);
+    if (surfaceCursorState.target && surfaceCursorState.target !== target) {
+      clearSurfaceCursor();
+    }
+    if (!target) return;
+    const controlTarget = event.target?.closest?.(surfaceResponseControlSelector);
+    const isChildPanelWidget = target.classList.contains("db-panel") &&
+      Boolean(event.target?.closest?.(".panel-internal-widget-grid > .widget-card"));
+    const resizeEligibleTarget = !isChildPanelWidget &&
+      !(controlTarget && controlTarget !== target) &&
+      canSurfaceObjectResize(target);
+    const resizeEdge = resizeEligibleTarget && typeof resizeEdgeFromPointer === "function"
+      ? resizeEdgeFromPointer(event, target)
+      : null;
+    const cursor = cursorForResizeEdge(resizeEdge) ||
+      (surfaceResponseTargetFromEvent(event) && canSurfaceObjectMove(target) ? "move" : "");
+    if (!cursor) {
+      clearSurfaceCursor(target);
+      return;
+    }
+    target.dataset.dashboardCursor = cursor;
+    surfaceCursorState.target = target;
+  };
   const surfaceResponseState = dashboardInteractionState.createSurfaceResponseState(window);
   const clearSurfaceResponse = (target = surfaceResponseState.target) => {
     if (!target) return;
+    clearSurfaceCursor(target);
     target.classList.remove("surface-response-active");
     target.removeAttribute("data-surface-pressed");
     dashboardInteractionState.clearHoverSuppression("surface-response");
@@ -118,6 +190,7 @@ export function initializeSurfaceToolsRuntime({
     dashboardInteractionState.setHoverSuppression("surface-response", target);
   };
   const scheduleSurfaceResponse = (event) => {
+    syncSurfaceCursor(event);
     const target = surfaceResponseTargetFromEvent(event);
     if ((event.buttons || 0) === 0) {
       document.querySelectorAll("[data-surface-pressed='true']").forEach((pressedTarget) => pressedTarget.removeAttribute("data-surface-pressed"));
@@ -137,8 +210,12 @@ export function initializeSurfaceToolsRuntime({
     }
   };
   document.addEventListener("pointermove", scheduleSurfaceResponse, { passive: true });
-  document.addEventListener("pointerleave", () => clearSurfaceResponse(), { passive: true });
+  document.addEventListener("pointerleave", () => {
+    clearSurfaceCursor();
+    clearSurfaceResponse();
+  }, { passive: true });
   document.addEventListener("pointerdown", (event) => {
+    syncSurfaceCursor(event);
     const target = surfaceResponseTargetFromEvent(event);
     if (!target || isDashboardInteractionActive()) {
       clearSurfaceResponse();
@@ -160,7 +237,10 @@ export function initializeSurfaceToolsRuntime({
     document.querySelectorAll("[data-surface-pressed='true']").forEach((target) => target.removeAttribute("data-surface-pressed"));
   };
   document.addEventListener("pointerup", clearSurfacePress, true);
-  document.addEventListener("pointercancel", clearSurfacePress, true);
+  document.addEventListener("pointercancel", () => {
+    clearSurfaceCursor();
+    clearSurfacePress();
+  }, true);
   window.addEventListener("scroll", () => {
     if (!surfaceResponseState.target) return;
     surfaceResponseState.rect = null;

@@ -1523,6 +1523,26 @@ body.resize-auto-zoom-active .dashboard-expanded-footprint-ghost{
 .db-panel-pinned .panel-resize-handle{
   opacity: .42;
   cursor: not-allowed;
+}.widget-card[data-dashboard-cursor="move"],
+.db-panel[data-dashboard-cursor="move"]{
+  cursor: grab;
+}.widget-card.widget-dragging,
+.db-panel.db-panel-dragging,
+.widget-card.widget-dragging[data-dashboard-cursor],
+.db-panel.db-panel-dragging[data-dashboard-cursor]{
+  cursor: grabbing !important;
+}.widget-card[data-dashboard-cursor="resize-x"],
+.db-panel[data-dashboard-cursor="resize-x"]{
+  cursor: ew-resize;
+}.widget-card[data-dashboard-cursor="resize-y"],
+.db-panel[data-dashboard-cursor="resize-y"]{
+  cursor: ns-resize;
+}.widget-card[data-dashboard-cursor="resize-nwse"],
+.db-panel[data-dashboard-cursor="resize-nwse"]{
+  cursor: nwse-resize;
+}.widget-card[data-dashboard-cursor="resize-nesw"],
+.db-panel[data-dashboard-cursor="resize-nesw"]{
+  cursor: nesw-resize;
 }.db-panel-unlocked > .db-panel-hd{
   cursor: grab;
   user-select: none;
