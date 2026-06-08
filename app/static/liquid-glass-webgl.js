@@ -242,7 +242,8 @@
   // so scroll, FLIP, page-slide, and collapse transitions all settle through
   // the same per-frame getBoundingClientRect() path.
   let liveTrackingUntil = 0;
-  const LIVE_TRACKING_COOLDOWN_MS = 120;
+  let lastGeometryKey = "";
+  const LIVE_TRACKING_COOLDOWN_MS = 180;
   let resizeObserver = null;
   let mutationObserver = null;
   let scrollHandler = null;
@@ -473,6 +474,11 @@
     liveTrackingUntil = Math.max(liveTrackingUntil, performance.now() + LIVE_TRACKING_COOLDOWN_MS);
   };
 
+  const trackMovement = () => {
+    extendLiveTracking();
+    markDirty();
+  };
+
   const shouldLiveTrack = () => {
     if (isAnimatingGlassTarget()) {
       extendLiveTracking();
@@ -574,6 +580,10 @@
     return out;
   };
 
+  const geometryKeyFor = (rects) => rects
+    .map((r) => `${r.key || r.type}:${Math.round(r.x)},${Math.round(r.y)},${Math.round(r.w)},${Math.round(r.h)},${Math.round(r.radius)}`)
+    .join("|");
+
   const syncSize = () => {
     if (!canvas) return;
     // DPR capped at 1.5 — kills the upscale-blur banding that DPR=1
@@ -601,6 +611,11 @@
     gl.clear(gl.COLOR_BUFFER_BIT);
 
     const rects = collectObjects();
+    const geometryKey = geometryKeyFor(rects);
+    if (geometryKey !== lastGeometryKey) {
+      lastGeometryKey = geometryKey;
+      extendLiveTracking();
+    }
     const flatRects = new Float32Array(MAX_OBJECTS * 4);
     const flatRadii = new Float32Array(MAX_OBJECTS);
     for (let i = 0; i < rects.length; i++) {
@@ -660,11 +675,10 @@
       });
     }
     if (!scrollHandler) {
-      scrollHandler = () => {
-        extendLiveTracking();
-        markDirty();
-      };
-      window.addEventListener("scroll", scrollHandler, { passive: true });
+      scrollHandler = () => trackMovement();
+      window.addEventListener("scroll", scrollHandler, { passive: true, capture: true });
+      document.addEventListener("scroll", scrollHandler, { passive: true, capture: true });
+      window.visualViewport?.addEventListener?.("scroll", scrollHandler, { passive: true });
     }
     if (!resizeHandler) {
       resizeHandler = () => { syncSize(); markDirty(); };
