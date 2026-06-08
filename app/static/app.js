@@ -1535,7 +1535,7 @@ document.addEventListener("DOMContentLoaded", () => {
       : Math.max(0, (Number(window.innerHeight) || 0) - Math.max(0, Number(viewportAnchor.getBoundingClientRect?.().top) || 0) - pageBottomInset);
     const rowHeight = Math.max(1, Number(resolvedMetrics?.rowHeight) || DASHBOARD_GRID_ROW_HEIGHT);
     const gap = Math.max(0, Number(resolvedMetrics?.gap) || 0);
-    const rows = Math.floor((height + gap) / (rowHeight + gap));
+    const rows = Math.floor((height + gap) / (rowHeight + gap)) + 1;
     return Number.isFinite(rows) && rows > 0 ? Math.max(1, rows) : null;
   };
 

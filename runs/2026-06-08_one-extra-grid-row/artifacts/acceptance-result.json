@@ -1,0 +1,9 @@
+{
+  "verdict": "SHIP",
+  "tests_run": false,
+  "validation_run": false,
+  "reason": "User standing rule for this run explicitly forbids tests and validation. Implementation is scoped to the shared viewport row floor.",
+  "changed_files": [
+    "app/static/app.js"
+  ]
+}
