@@ -4617,7 +4617,7 @@ just composited over a * transparent surface instead of 64% white. */ .db-panel{
   border-color: rgba(255, 255, 255, 0.36) !important;
 }.widget-layout > .widget-card,
 .panel-internal-widget-grid > .widget-card{
-  background: rgba(255, 255, 255, 0.04) !important;
+  background: rgba(255, 255, 255, 0.03) !important;
   border-color: rgba(255, 255, 255, var(--glass-photo-rim-alpha)) !important;
   box-shadow:
     0 14px 30px rgba(0, 0, 0, calc(var(--glass-photo-drop-shadow-alpha) - 0.04)),
@@ -4629,7 +4629,7 @@ just composited over a * transparent surface instead of 64% white. */ .db-panel{
   -webkit-backdrop-filter: blur(var(--glass-photo-blur)) saturate(var(--glass-photo-saturate)) !important;
 }.widget-layout > .widget-card.db-panel-custom-color,
 .panel-internal-widget-grid > .widget-card.db-panel-custom-color{
-  background: rgba(255, 255, 255, 0.04) !important;
+  background: rgba(255, 255, 255, 0.03) !important;
 }.widget-layout > .widget-card:hover,
 .widget-layout > .widget-card:focus-visible,
 .panel-internal-widget-grid > .widget-card:hover,
@@ -5077,7 +5077,7 @@ because the * header sits flush with the panel. */ .db-panel > .db-panel-hd,
 .panel-internal-widget-grid > .widget-card.db-panel-custom-color.widget-tools-open,
 .panel-internal-widget-grid > .widget-card.db-panel-custom-color.widget-tools-open:hover,
 .panel-internal-widget-grid > .widget-card.db-panel-custom-color.widget-tools-open:focus-visible{
-  background: rgba(255, 255, 255, 0.04) !important;
+  background: rgba(255, 255, 255, 0.03) !important;
   background-image: none !important;
   border-color: rgba(255, 255, 255, var(--glass-edge-border-alpha)) !important;
   box-shadow: var(--glass-edge-stack) !important;
@@ -5086,7 +5086,7 @@ because the * header sits flush with the panel. */ .db-panel > .db-panel-hd,
 .widget-layout > .widget-card.db-panel-custom-color.active,
 .panel-internal-widget-grid > .widget-card.db-panel-custom-color:hover,
 .panel-internal-widget-grid > .widget-card.db-panel-custom-color:focus-visible{
-  background: rgba(255, 255, 255, 0.04) !important;
+  background: rgba(255, 255, 255, 0.03) !important;
   background-image: none !important;
   border-color: rgba(255, 255, 255, calc(var(--glass-edge-border-alpha) + 0.10)) !important;
   box-shadow: var(--glass-edge-stack-hover) !important;
@@ -5698,11 +5698,11 @@ no card. Active * filter is indicated by a subtle underline + slightly higher * 
   background:
     var(--object-shell-wash),
     linear-gradient(180deg,
-      rgba(var(--panel-accent-rgb), .20),
-      rgba(var(--panel-accent-rgb), .10)),
-    color-mix(in srgb, var(--glass-surface) 82%, rgba(var(--panel-accent-rgb), .34) 18%) !important;
+      rgba(var(--panel-accent-rgb), .12),
+      rgba(var(--panel-accent-rgb), .06)),
+    rgba(var(--panel-accent-rgb), .10) !important;
   background-image: var(--object-shell-wash) !important;
-  background-color: color-mix(in srgb, var(--glass-surface) 82%, rgba(var(--panel-accent-rgb), .34) 18%) !important;
+  background-color: rgba(var(--panel-accent-rgb), .10) !important;
   border-color: var(--panel-accent) !important;
 }
 .widget-card.db-panel-custom-color[data-panel-color-user="true"]:hover,
@@ -5725,10 +5725,10 @@ no card. Active * filter is indicated by a subtle underline + slightly higher * 
   background:
     var(--object-shell-wash),
     linear-gradient(180deg,
-      rgba(var(--panel-accent-rgb), .24),
-      rgba(var(--panel-accent-rgb), .12)),
-    color-mix(in srgb, var(--glass-surface) 78%, rgba(var(--panel-accent-rgb), .40) 22%) !important;
+      rgba(var(--panel-accent-rgb), .14),
+      rgba(var(--panel-accent-rgb), .08)),
+    rgba(var(--panel-accent-rgb), .12) !important;
   background-image: var(--object-shell-wash) !important;
-  background-color: color-mix(in srgb, var(--glass-surface) 78%, rgba(var(--panel-accent-rgb), .40) 22%) !important;
+  background-color: rgba(var(--panel-accent-rgb), .12) !important;
   border-color: var(--panel-accent) !important;
 }

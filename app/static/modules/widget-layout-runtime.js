@@ -38,7 +38,6 @@ export const createWidgetLayoutRuntime = (deps) => {
     ensureWidgetWorkbenchPanel,
     isDashboardInteractionActive,
     positionDashboardToolDrawer,
-    pointInRect,
     canOpenDashboardTools,
     portalDashboardToolDrawer,
     positionDashboardToolDrawerAtPointer,
@@ -95,7 +94,7 @@ export const createWidgetLayoutRuntime = (deps) => {
   } = deps;
 
   const initWidgetLayout = (layout) => {
-    const { internalLayout, layoutKey, widgets } = hydrateWidgetLayout(layout, {
+    const { layoutKey, widgets } = hydrateWidgetLayout(layout, {
       isPanelInternalWidgetLayout,
       gridItemLayoutKey,
       getActivePanelProfile,
@@ -487,19 +486,6 @@ export const createWidgetLayoutRuntime = (deps) => {
     };
     widgets.forEach(initWidget);
     layout.__initWidget = initWidget;
-    if (internalLayout && layout.dataset.dragRuntimeDelegateBound !== "true") {
-      layout.dataset.dragRuntimeDelegateBound = "true";
-      layout.addEventListener("pointerdown", (event) => {
-        if (event.button !== 0 || !layout.contains(event.target)) return;
-        if (event.target?.closest?.(".widget-card")) return;
-        const handle = [...layout.querySelectorAll(":scope > .widget-card .panel-move-handle")]
-          .filter((candidate) => candidate.offsetParent !== null)
-          .find((candidate) => pointInRect(event.clientX, event.clientY, candidate.getBoundingClientRect()));
-        const widget = handle?.closest?.(".widget-card");
-        if (widget?.parentElement !== layout) return;
-        widget?.__beginWidgetMoveFromDragRuntime?.(event);
-      }, { capture: true });
-    }
   };
 
   return { initWidgetLayout };

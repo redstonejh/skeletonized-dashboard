@@ -1,0 +1,10 @@
+{
+  "verdict": "SHIP",
+  "tests_run": false,
+  "tests_skipped_reason": "User explicitly required no e2e, canary, or validation commands for this run.",
+  "summary": [
+    "Wired missing pointInRect dependency for panel-local ordered drag.",
+    "Removed dead in-panel widget drag delegate and prior internal floor bypass.",
+    "Made widget glass and custom widget tint more translucent."
+  ]
+}
