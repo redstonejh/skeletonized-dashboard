@@ -5425,19 +5425,14 @@ no card. Active * filter is indicated by a subtle underline + slightly higher * 
   height: 34px;
   border: 1px solid color-mix(in srgb, var(--glass-border) 72%, transparent);
   border-radius: 50%;
-  background:
-    linear-gradient(145deg,
-      rgba(255, 255, 255, .18),
-      rgba(255, 255, 255, .06) 42%,
-      rgba(255, 255, 255, .10)),
-    color-mix(in srgb, var(--glass-surface-strong) 84%, rgba(71, 85, 105, .34));
+  background: transparent;
   color: rgba(255, 255, 255, .96);
   box-shadow:
     0 9px 20px rgba(15, 23, 42, .16),
     inset 0 1px 0 color-mix(in srgb, var(--glass-highlight) 76%, transparent),
     inset 0 -8px 16px rgba(15, 23, 42, .08);
-  backdrop-filter: blur(20px) saturate(1.14);
-  -webkit-backdrop-filter: blur(20px) saturate(1.14);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
   cursor: pointer;
   transition:
     transform .18s cubic-bezier(.19, 1, .22, 1),
@@ -5481,12 +5476,7 @@ no card. Active * filter is indicated by a subtle underline + slightly higher * 
 .window-glass-control:focus-visible,
 .control-bar-gear[aria-expanded="true"]{
   color: #ffffff;
-  background:
-    linear-gradient(145deg,
-      rgba(255, 255, 255, .24),
-      rgba(255, 255, 255, .08) 42%,
-      rgba(255, 255, 255, .14)),
-    color-mix(in srgb, var(--glass-surface-strong) 92%, rgba(100, 116, 139, .38));
+  background: transparent;
   box-shadow:
     0 7px 16px rgba(15, 23, 42, .18),
     inset 0 1px 0 color-mix(in srgb, var(--glass-highlight) 88%, transparent),
@@ -5515,7 +5505,7 @@ no card. Active * filter is indicated by a subtle underline + slightly higher * 
   margin: 0;
   opacity: .88;
   overflow: visible;
-  background: color-mix(in srgb, var(--glass-surface-strong) 24%, transparent);
+  background: transparent;
   border-color: color-mix(in srgb, var(--glass-border) 62%, transparent);
   box-shadow:
     0 18px 42px rgba(15, 23, 42, .18),
@@ -5565,16 +5555,6 @@ no card. Active * filter is indicated by a subtle underline + slightly higher * 
 .app-nav.workspace-chrome.floating-control-bar > .app-nav-status,
 .app-nav.workspace-chrome.floating-control-bar > .app-nav-actions{
   z-index: 1;
-}
-.liquid-glass-webgl-panel-canvas{
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  width: 100%;
-  height: 100%;
-  border-radius: inherit;
-  pointer-events: none;
-  opacity: .88;
 }
 .app-nav.workspace-chrome.floating-control-bar .workspace-command-island,
 .app-nav.workspace-chrome.floating-control-bar .appearance-command-island{

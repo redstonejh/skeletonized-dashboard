@@ -45,7 +45,6 @@ export const initializeFloatingControlBarRuntime = async () => {
   let position = readPosition();
   let isOpen = false;
   let dragging = null;
-  let panelGlass = null;
 
   const constrainPosition = (next = position) => {
     const rect = bar.getBoundingClientRect();
@@ -68,7 +67,7 @@ export const initializeFloatingControlBarRuntime = async () => {
     bar.style.setProperty("--control-bar-top", `${position.top}px`);
     bar.style.setProperty("--control-bar-collapsed-x", `${Math.round(gearCenterX - position.left - 18)}px`);
     bar.style.setProperty("--control-bar-collapsed-y", `${Math.round(gearCenterY - position.top - 18)}px`);
-    panelGlass?.refresh?.();
+    window.LiquidGlassWebGL?.markDirty?.();
   };
 
   const setOpen = (nextOpen) => {
@@ -78,20 +77,9 @@ export const initializeFloatingControlBarRuntime = async () => {
     bar.setAttribute("aria-hidden", String(!isOpen));
     gear.setAttribute("aria-expanded", String(isOpen));
     document.body.classList.toggle("control-bar-open", isOpen);
-    if (isOpen) panelGlass?.refresh?.();
+    window.LiquidGlassWebGL?.markDirty?.();
   };
 
-  const ensurePanelGlass = async () => {
-    if (panelGlass) return;
-    if (!window.LiquidGlassWebGL?.mountFloatingPanel) {
-      try {
-        await import("../liquid-glass-webgl.js");
-      } catch {}
-    }
-    panelGlass = window.LiquidGlassWebGL?.mountFloatingPanel?.(bar) || null;
-  };
-
-  await ensurePanelGlass();
   applyPosition();
   setOpen(false);
 
@@ -149,7 +137,7 @@ export const initializeFloatingControlBarRuntime = async () => {
     dragging = null;
     bar.classList.remove("is-dragging");
     writePosition(position);
-    panelGlass?.refresh?.();
+    window.LiquidGlassWebGL?.markDirty?.();
   };
   bar.addEventListener("pointerup", endDrag);
   bar.addEventListener("pointercancel", endDrag);

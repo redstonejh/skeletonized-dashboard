@@ -1,7 +1,7 @@
 /* ── Liquid-glass WebGL overlay (prototype) ─────────────────────────────
  *
  * Single full-viewport WebGL canvas that refracts the live workspace backdrop
- * behind workspace objects (widgets + panels). DOM remains source of
+ * behind dashboard glass surfaces. DOM remains source of
  * truth — pointer-events: none, no interaction in WebGL.
  *
  * Shader concepts (inspired by bergice/liquidglass, not copied):
@@ -18,10 +18,16 @@
  */
 (() => {
   const MAX_OBJECTS = 32;
-  // Workspace objects: widgets and panels. Navbar chrome is filtered out in
-  // collectObjects(); panel-internal widgets use the same glass path as
-  // dashboard widgets.
-  const OBJECT_SELECTOR = ".db-panel, .widget-card";
+  // One glass target set for workspace objects and nav chrome. Panel-internal
+  // widgets, tabs, window controls, and the floating control bar all use this
+  // same full-viewport shader path.
+  const OBJECT_SELECTOR = [
+    ".db-panel",
+    ".widget-card",
+    ".window-glass-control",
+    ".app-nav.workspace-chrome.floating-control-bar",
+    ".workspace-tab",
+  ].join(", ");
 
   const VERT_SRC = `
     attribute vec2 a_position;
@@ -496,10 +502,19 @@
       if (!clip || clip.width <= 4 || clip.height <= 4) return false;
       return true;
     };
+    const objectTypeFor = (node) => (
+      node.classList.contains("db-panel") ? "panel" :
+        node.classList.contains("widget-card") ? "widget" : "chrome"
+    );
+    const objectKeyFor = (node) => (
+      node.dataset.panelKey ||
+      node.dataset.widgetKey ||
+      (node.classList.contains("window-glass-control") ? "window-control" : "") ||
+      (node.matches(".app-nav.workspace-chrome.floating-control-bar") ? "floating-control-bar" : "") ||
+      (node.classList.contains("workspace-tab") ? "workspace-tab" : "")
+    );
     for (const node of nodes) {
       if (node.classList.contains("dragging")) continue;
-      // Navbar is intentionally excluded from the refraction layer.
-      if (node.closest(".app-nav")) continue;
       const r = node.getBoundingClientRect();
       if (r.width <= 4 || r.height <= 4) continue;
       if (r.right < 0 || r.bottom < 0 || r.left > vw || r.top > vh) continue;
@@ -511,8 +526,8 @@
         w: r.width,
         h: r.height,
         radius,
-        key: node.dataset.panelKey || node.dataset.widgetKey || "",
-        type: node.classList.contains("db-panel") ? "panel" : "widget",
+        key: objectKeyFor(node),
+        type: objectTypeFor(node),
       });
       if (out.length >= MAX_OBJECTS) break;
     }
@@ -707,128 +722,6 @@
     return n < 0 ? 0 : n > 2 ? 2 : n;
   };
 
-  const floatingPanelInstances = new WeakMap();
-  const mountFloatingPanel = (host) => {
-    if (!host) return null;
-    const existing = floatingPanelInstances.get(host);
-    if (existing) return existing;
-
-    const panelCanvas = document.createElement("canvas");
-    panelCanvas.className = "liquid-glass-webgl-panel-canvas";
-    panelCanvas.setAttribute("aria-hidden", "true");
-    host.prepend(panelCanvas);
-    const panelGl = panelCanvas.getContext("webgl", { premultipliedAlpha: false, alpha: true, antialias: true });
-    if (!panelGl) {
-      panelCanvas.remove();
-      return null;
-    }
-
-    const panelVertex = `
-      attribute vec2 a_position;
-      varying vec2 v_uv;
-      void main() {
-        v_uv = a_position * 0.5 + 0.5;
-        gl_Position = vec4(a_position, 0.0, 1.0);
-      }
-    `;
-    const panelFragment = `
-      precision mediump float;
-      varying vec2 v_uv;
-      uniform vec2 u_resolution;
-      uniform float u_time;
-
-      float roundedBoxSDF(vec2 p, vec2 b, float r) {
-        vec2 q = abs(p) - b + vec2(r);
-        return length(max(q, 0.0)) - r;
-      }
-
-      void main() {
-        vec2 px = v_uv * u_resolution;
-        vec2 center = u_resolution * 0.5;
-        float d = roundedBoxSDF(px - center, center - vec2(2.0), 18.0);
-        float mask = 1.0 - smoothstep(-1.0, 1.0, d);
-        float rim = 1.0 - smoothstep(0.0, 10.0, abs(d));
-        float wave = sin((v_uv.x * 8.0) + (v_uv.y * 5.0) + u_time * 0.001) * 0.5 + 0.5;
-        vec3 base = mix(vec3(0.82, 0.91, 1.0), vec3(1.0), 0.35 + wave * 0.12);
-        vec3 shade = mix(base, vec3(0.62, 0.72, 0.86), smoothstep(0.25, 1.0, v_uv.y) * 0.18);
-        shade += rim * vec3(0.20, 0.24, 0.30);
-        gl_FragColor = vec4(shade, mask * 0.38);
-      }
-    `;
-    const localCompile = (type, source) => {
-      const shader = panelGl.createShader(type);
-      panelGl.shaderSource(shader, source);
-      panelGl.compileShader(shader);
-      if (!panelGl.getShaderParameter(shader, panelGl.COMPILE_STATUS)) {
-        console.warn("[liquid-glass-webgl] floating panel shader failed", panelGl.getShaderInfoLog(shader));
-        panelGl.deleteShader(shader);
-        return null;
-      }
-      return shader;
-    };
-    const vertexShader = localCompile(panelGl.VERTEX_SHADER, panelVertex);
-    const fragmentShader = localCompile(panelGl.FRAGMENT_SHADER, panelFragment);
-    if (!vertexShader || !fragmentShader) {
-      panelCanvas.remove();
-      return null;
-    }
-    const panelProgram = panelGl.createProgram();
-    panelGl.attachShader(panelProgram, vertexShader);
-    panelGl.attachShader(panelProgram, fragmentShader);
-    panelGl.linkProgram(panelProgram);
-    if (!panelGl.getProgramParameter(panelProgram, panelGl.LINK_STATUS)) {
-      console.warn("[liquid-glass-webgl] floating panel program failed", panelGl.getProgramInfoLog(panelProgram));
-      panelCanvas.remove();
-      return null;
-    }
-    const buffer = panelGl.createBuffer();
-    panelGl.bindBuffer(panelGl.ARRAY_BUFFER, buffer);
-    panelGl.bufferData(panelGl.ARRAY_BUFFER, new Float32Array([
-      -1, -1, 1, -1, -1, 1,
-      -1, 1, 1, -1, 1, 1,
-    ]), panelGl.STATIC_DRAW);
-    const aPosition = panelGl.getAttribLocation(panelProgram, "a_position");
-    const uResolution = panelGl.getUniformLocation(panelProgram, "u_resolution");
-    const uTime = panelGl.getUniformLocation(panelProgram, "u_time");
-
-    const renderPanel = () => {
-      const rect = host.getBoundingClientRect();
-      const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
-      const width = Math.max(1, Math.round(rect.width * dpr));
-      const height = Math.max(1, Math.round(rect.height * dpr));
-      if (panelCanvas.width !== width) panelCanvas.width = width;
-      if (panelCanvas.height !== height) panelCanvas.height = height;
-      panelCanvas.style.width = `${Math.max(1, rect.width)}px`;
-      panelCanvas.style.height = `${Math.max(1, rect.height)}px`;
-      panelGl.viewport(0, 0, panelCanvas.width, panelCanvas.height);
-      panelGl.clearColor(0, 0, 0, 0);
-      panelGl.clear(panelGl.COLOR_BUFFER_BIT);
-      panelGl.useProgram(panelProgram);
-      panelGl.bindBuffer(panelGl.ARRAY_BUFFER, buffer);
-      panelGl.enableVertexAttribArray(aPosition);
-      panelGl.vertexAttribPointer(aPosition, 2, panelGl.FLOAT, false, 0, 0);
-      panelGl.uniform2f(uResolution, panelCanvas.width, panelCanvas.height);
-      panelGl.uniform1f(uTime, performance.now());
-      panelGl.enable(panelGl.BLEND);
-      panelGl.blendFuncSeparate(panelGl.SRC_ALPHA, panelGl.ONE_MINUS_SRC_ALPHA, panelGl.ONE, panelGl.ONE_MINUS_SRC_ALPHA);
-      panelGl.drawArrays(panelGl.TRIANGLES, 0, 6);
-    };
-    const panelObserver = new ResizeObserver(renderPanel);
-    panelObserver.observe(host);
-    const instance = {
-      canvas: panelCanvas,
-      refresh: renderPanel,
-      destroy: () => {
-        panelObserver.disconnect();
-        panelCanvas.remove();
-        floatingPanelInstances.delete(host);
-      },
-    };
-    floatingPanelInstances.set(host, instance);
-    requestAnimationFrame(renderPanel);
-    return instance;
-  };
-
   window.LiquidGlassWebGL = {
     enable: () => {
       reconcile();
@@ -859,7 +752,6 @@
     markDirty,
     setWorkspacePageTransform,
     releaseWorkspacePageTransform,
-    mountFloatingPanel,
     isActive: () => active,
   };
 

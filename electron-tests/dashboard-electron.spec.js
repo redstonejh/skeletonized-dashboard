@@ -431,7 +431,7 @@ test("electron GUI keeps slim navbar controls wired", async () => {
   await closeApp(app);
 });
 
-test("electron GUI floats dashboard controls behind a draggable WebGL gear panel", async () => {
+test("electron GUI floats dashboard controls as unified WebGL glass chrome", async () => {
   const { app, page } = await launchApp();
   await expect(page.locator(".control-bar-gear")).toBeVisible();
   await expect(page.locator("[data-floating-control-bar]")).not.toBeVisible();
@@ -440,16 +440,15 @@ test("electron GUI floats dashboard controls behind a draggable WebGL gear panel
   expect(tabTop).toBeLessThan(90);
 
   const bar = await openControlBar(page);
-  await expect(bar.locator(".liquid-glass-webgl-panel-canvas")).toHaveCount(1);
-  await expect.poll(() => bar.evaluate((node) => {
-    window.LiquidGlassWebGL?.mountFloatingPanel?.(node)?.refresh?.();
-    const canvas = node.querySelector(".liquid-glass-webgl-panel-canvas");
-    const gl = canvas?.getContext("webgl", { premultipliedAlpha: false, alpha: true });
-    if (!gl || canvas.width <= 0 || canvas.height <= 0) return 0;
-    const pixels = new Uint8Array(4);
-    gl.readPixels(Math.floor(canvas.width / 2), Math.floor(canvas.height / 2), 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
-    return Array.from(pixels).reduce((sum, value) => sum + value, 0);
-  })).toBeGreaterThan(0);
+  await expect(bar.locator(".liquid-glass-webgl-panel-canvas")).toHaveCount(0);
+  await expect.poll(() => page.evaluate(() => typeof window.LiquidGlassWebGL?.mountFloatingPanel)).toBe("undefined");
+  await expect.poll(() => page.evaluate(() =>
+    window.LiquidGlassWebGL?.visibleObjects?.().some((item) => item.type === "chrome" && item.key === "floating-control-bar")
+  )).toBe(true);
+  await expect(page.locator(".window-glass-control").first()).toHaveCSS("background-color", "rgba(0, 0, 0, 0)");
+  await expect.poll(() => page.evaluate(() =>
+    window.LiquidGlassWebGL?.visibleObjects?.().filter((item) => item.type === "chrome" && item.key === "window-control").length || 0
+  )).toBeGreaterThan(0);
 
   const before = await bar.boundingBox();
   expect(before).toBeTruthy();

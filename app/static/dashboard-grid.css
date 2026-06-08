@@ -31,11 +31,16 @@ controls * 4. menus / tool drawers (z: var(--z-menu-overlay, 2600)+) * * Canvas 
   position: relative;
   z-index: 1;
 }/* When the WebGL overlay is active,
-strip the CSS glass body so the * shader-refracted live backdrop is visible. Border + rim shadow stay * (the WebGL output already contributes its own rim, but the CSS rim * helps anti-alias the boundary against the canvas edge). Custom-color * panels also drop their tinted fill. CSS glass remains the fallback * only when WebGL is unavailable. Navbar (.app-nav) is intentionally * excluded — its frosted CSS material is preserved. */ body.webgl-glass-on .widget-layout > .widget-card,
+strip the CSS glass body so the * shader-refracted live backdrop is visible. Border + rim shadow stay * (the WebGL output already contributes its own rim, but the CSS rim * helps anti-alias the boundary against the canvas edge). Custom-color * panels also drop their tinted fill. CSS glass remains the fallback * only when WebGL is unavailable. */ body.webgl-glass-on .widget-layout > .widget-card,
 body.webgl-glass-on .panel-layout > .db-panel,
 body.webgl-glass-on .panel-layout > .widget-card,
-body.webgl-glass-on .db-panel.db-panel-tools-open{
+body.webgl-glass-on .db-panel.db-panel-tools-open,
+body.webgl-glass-on .window-glass-control,
+body.webgl-glass-on .app-nav.workspace-chrome.floating-control-bar,
+body.webgl-glass-on .workspace-tab{
   background: transparent !important;
+  background-image: none !important;
+  background-color: transparent !important;
   -webkit-backdrop-filter: none !important;
   backdrop-filter: none !important;
 }body.webgl-glass-on .db-panel.db-panel-custom-color,
