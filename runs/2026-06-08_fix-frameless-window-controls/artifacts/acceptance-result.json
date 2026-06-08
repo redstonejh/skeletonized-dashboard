@@ -1,0 +1,12 @@
+{
+  "verdict": "SHIP",
+  "tests_run": false,
+  "tests_skipped_reason": "User explicitly instructed: NO TESTS; manual verification only.",
+  "changes": [
+    "main.js: enforce frameless hidden title bar and remove the per-window menu",
+    "app/static/themes.css: render masked window-control icons with visible pseudo-element boxes"
+  ],
+  "risks": [
+    "Native chrome behavior was not launched or visually verified because tests and validation were explicitly disabled."
+  ]
+}

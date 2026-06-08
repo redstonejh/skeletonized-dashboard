@@ -6,6 +6,8 @@ function createWindow() {
     width: 1440,
     height: 1000,
     frame: false,
+    titleBarStyle: "hidden",
+    titleBarOverlay: false,
     autoHideMenuBar: true,
     show: process.env.MAW_HEADLESS !== "1",
     minWidth: 1024,
@@ -19,6 +21,10 @@ function createWindow() {
     }
   });
 
+  win.setMenu(null);
+  win.removeMenu?.();
+  win.setAutoHideMenuBar(true);
+  win.setMenuBarVisibility(false);
   win.loadFile(path.join(__dirname, "index.html"));
 }
 

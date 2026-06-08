@@ -5569,6 +5569,8 @@ no card. Active * filter is indicated by a subtle underline + slightly higher * 
 }
 .window-glass-control::before{
   content: "";
+  display: block;
+  flex: 0 0 auto;
   width: 18px;
   height: 18px;
   background: currentColor;
