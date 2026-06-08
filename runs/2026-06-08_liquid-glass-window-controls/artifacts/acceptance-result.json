@@ -1,0 +1,11 @@
+{
+  "verdict": "SHIP",
+  "tests_run": false,
+  "tests_note": "No tests or validation were run because the user explicitly required no tests for this run.",
+  "accepted_changes": [
+    "Frameless Electron window with hidden native menu.",
+    "Liquid-glass refresh, close, and gear controls.",
+    "Preload-safe reload and close IPC.",
+    "Draggable top strip for frameless window movement."
+  ]
+}

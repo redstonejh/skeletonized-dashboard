@@ -1,10 +1,12 @@
-const { app, BrowserWindow } = require("electron");
+const { app, BrowserWindow, Menu, ipcMain } = require("electron");
 const path = require("node:path");
 
 function createWindow() {
   const win = new BrowserWindow({
     width: 1440,
     height: 1000,
+    frame: false,
+    autoHideMenuBar: true,
     show: process.env.MAW_HEADLESS !== "1",
     minWidth: 1024,
     minHeight: 720,
@@ -21,6 +23,15 @@ function createWindow() {
 }
 
 app.whenReady().then(() => {
+  Menu.setApplicationMenu(null);
+  ipcMain.handle("dashboard-window:reload", (event) => {
+    const win = BrowserWindow.fromWebContents(event.sender);
+    win?.webContents?.reload();
+  });
+  ipcMain.handle("dashboard-window:close", (event) => {
+    const win = BrowserWindow.fromWebContents(event.sender);
+    win?.close();
+  });
   createWindow();
   app.on("activate", () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow();

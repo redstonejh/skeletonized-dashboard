@@ -1,5 +1,5 @@
 const STORAGE_KEY = "dashboard-floating-control-bar";
-const DEFAULT_POSITION = Object.freeze({ left: 68, top: 14 });
+const DEFAULT_POSITION = Object.freeze({ left: 166, top: 14 });
 
 const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
 
@@ -37,6 +37,8 @@ const interactiveSelector = [
 export const initializeFloatingControlBarRuntime = async () => {
   const bar = document.querySelector("[data-floating-control-bar]");
   const gear = document.querySelector(".control-bar-gear");
+  const refreshControl = document.querySelector(".window-refresh-control");
+  const closeControl = document.querySelector(".window-close-control");
   if (!bar || !gear) return null;
 
   let position = readPosition();
@@ -94,6 +96,18 @@ export const initializeFloatingControlBarRuntime = async () => {
     event.preventDefault();
     event.stopPropagation();
     setOpen(!isOpen);
+  });
+
+  refreshControl?.addEventListener("click", (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    window.dashboardWindowControls?.reload?.() || window.location.reload();
+  });
+
+  closeControl?.addEventListener("click", (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    window.dashboardWindowControls?.close?.();
   });
 
   bar.addEventListener("pointerdown", (event) => {

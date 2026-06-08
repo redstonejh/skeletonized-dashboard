@@ -1,4 +1,4 @@
-const { contextBridge } = require("electron");
+const { contextBridge, ipcRenderer } = require("electron");
 const fs = require("node:fs");
 const path = require("node:path");
 const os = require("node:os");
@@ -38,5 +38,14 @@ contextBridge.exposeInMainWorld("dashboardPersistence", {
   },
   clear() {
     writeStore({});
+  }
+});
+
+contextBridge.exposeInMainWorld("dashboardWindowControls", {
+  reload() {
+    return ipcRenderer.invoke("dashboard-window:reload");
+  },
+  close() {
+    return ipcRenderer.invoke("dashboard-window:close");
   }
 });
