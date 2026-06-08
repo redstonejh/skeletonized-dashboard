@@ -1,0 +1,9 @@
+{
+  "verdict": "SHIP",
+  "tests_run": false,
+  "validation_run": false,
+  "reason": "User standing rule for this run explicitly forbids tests and validation. Implementation is scoped to panel perimeter CSS and MAW delegation proof is recorded.",
+  "changed_files": [
+    "app/static/themes.css"
+  ]
+}

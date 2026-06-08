@@ -5774,9 +5774,9 @@ no card. Active * filter is indicated by a subtle underline + slightly higher * 
   outline: 0 !important;
 }
 
-/* Widgets use glass without any painted perimeter. Keep this after custom-color
-   and runtime-state material rules so no theme accent can reappear as a border,
-   outline, box-shadow ring, or pseudo-element edge. */
+/* Widgets and panels use glass without any painted perimeter. Keep this after
+   custom-color and runtime-state material rules so no theme accent can reappear
+   as a border, outline, box-shadow ring, or pseudo-element edge. */
 .widget-card,
 .widget-layout > .widget-card,
 .widget-layout > .widget-card:hover,
@@ -5827,7 +5827,59 @@ no card. Active * filter is indicated by a subtle underline + slightly higher * 
 .panel-internal-widget-grid > .widget-card.db-panel-custom-color.widget-runtime-meaning,
 .panel-internal-widget-grid > .widget-card.db-panel-custom-color.widget-tools-open,
 .panel-internal-widget-grid > .widget-card.db-panel-custom-color.widget-tools-open:hover,
-.panel-internal-widget-grid > .widget-card.db-panel-custom-color.widget-tools-open:focus-visible{
+.panel-internal-widget-grid > .widget-card.db-panel-custom-color.widget-tools-open:focus-visible,
+.panel-layout > .db-panel,
+.panel-layout > .db-panel:hover,
+.panel-layout > .db-panel:focus,
+.panel-layout > .db-panel:focus-visible,
+.panel-layout > .db-panel:focus-within,
+.panel-layout > .db-panel:active,
+.panel-layout > .db-panel.active,
+.panel-layout > .db-panel.group-selected,
+.panel-layout > .db-panel.panel-child-hover-active,
+.panel-layout > .db-panel.panel-container-drag-active,
+.panel-layout > .db-panel.db-panel-collapsed,
+.panel-layout > .db-panel.db-panel-collapsed:hover,
+.panel-layout > .db-panel.db-panel-collapsed:focus-within,
+.panel-layout > .db-panel.db-panel-dragging,
+.panel-layout > .db-panel.db-panel-tools-open,
+.panel-layout > .db-panel.db-panel-tools-open:hover,
+.panel-layout > .db-panel.db-panel-tools-open:focus-within,
+.panel-layout > .db-panel.dashboard-active-resize,
+.panel-layout > .db-panel.dashboard-live-resize,
+.panel-layout > .db-panel.dashboard-resize-source,
+.panel-layout > .db-panel.group-transform-member,
+.panel-layout > .db-panel.db-panel-custom-color,
+.panel-layout > .db-panel.db-panel-custom-color:hover,
+.panel-layout > .db-panel.db-panel-custom-color:focus,
+.panel-layout > .db-panel.db-panel-custom-color:focus-visible,
+.panel-layout > .db-panel.db-panel-custom-color:focus-within,
+.panel-layout > .db-panel.db-panel-custom-color.active,
+.panel-layout > .db-panel.db-panel-custom-color.group-selected,
+.panel-layout > .db-panel.db-panel-custom-color.panel-child-hover-active,
+.panel-layout > .db-panel.db-panel-custom-color.panel-container-drag-active,
+.panel-layout > .db-panel.db-panel-custom-color.db-panel-collapsed,
+.panel-layout > .db-panel.db-panel-custom-color.db-panel-collapsed:hover,
+.panel-layout > .db-panel.db-panel-custom-color.db-panel-collapsed:focus-within,
+.panel-layout > .db-panel.db-panel-custom-color.db-panel-dragging,
+.panel-layout > .db-panel.db-panel-custom-color.db-panel-tools-open,
+.panel-layout > .db-panel.db-panel-custom-color.db-panel-tools-open:hover,
+.panel-layout > .db-panel.db-panel-custom-color.db-panel-tools-open:focus-within,
+.panel-layout > .db-panel.db-panel-custom-color.dashboard-active-resize,
+.panel-layout > .db-panel.db-panel-custom-color.dashboard-live-resize,
+.panel-layout > .db-panel.db-panel-custom-color.dashboard-resize-source,
+.panel-layout > .db-panel.db-panel-custom-color.group-transform-member,
+.workspace-divider.db-panel,
+.workspace-divider.db-panel:hover,
+.workspace-divider.db-panel:focus,
+.workspace-divider.db-panel:focus-visible,
+.workspace-divider.db-panel:focus-within,
+.workspace-divider.db-panel.db-panel-custom-color,
+.workspace-divider.db-panel.db-panel-custom-color:hover,
+.workspace-divider.db-panel.db-panel-custom-color:focus-visible,
+.workspace-divider.db-panel.db-panel-custom-color:focus-within{
+  border: 0 !important;
+  border-style: none !important;
   border-width: 0 !important;
   border-color: transparent !important;
   outline: 0 !important;
@@ -5835,7 +5887,9 @@ no card. Active * filter is indicated by a subtle underline + slightly higher * 
   box-shadow: none !important;
 }
 .widget-layout > .widget-card:not(.db-panel-pinned)::after,
-.panel-internal-widget-grid > .widget-card:not(.db-panel-pinned)::after{
+.panel-internal-widget-grid > .widget-card:not(.db-panel-pinned)::after,
+.panel-layout > .db-panel:not(.db-panel-pinned)::after,
+.workspace-divider.db-panel:not(.db-panel-pinned)::after{
   content: none !important;
   box-shadow: none !important;
   filter: none !important;
