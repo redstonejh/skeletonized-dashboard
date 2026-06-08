@@ -238,12 +238,11 @@
   let debugMode = 0;
   let debugObjectIndex = -1;
   let pendingFrame = false;
-  // Keep live geometry tracking active briefly after movement input stops,
-  // so scroll, FLIP, page-slide, and collapse transitions all settle through
-  // the same per-frame getBoundingClientRect() path.
-  let liveTrackingUntil = 0;
-  let lastGeometryKey = "";
-  const LIVE_TRACKING_COOLDOWN_MS = 180;
+  // One cooldown frame after the last running animation completes,
+  // so the canvas captures the resting bounding boxes once the FLIP /
+  // height transition has fully released.
+  let animationCooldownFrames = 0;
+  const ANIMATION_COOLDOWN_FRAMES = 1;
   let resizeObserver = null;
   let mutationObserver = null;
   let scrollHandler = null;
@@ -470,23 +469,6 @@
     }
   };
 
-  const extendLiveTracking = () => {
-    liveTrackingUntil = Math.max(liveTrackingUntil, performance.now() + LIVE_TRACKING_COOLDOWN_MS);
-  };
-
-  const trackMovement = () => {
-    extendLiveTracking();
-    renderMovementFrame();
-  };
-
-  const shouldLiveTrack = () => {
-    if (isAnimatingGlassTarget()) {
-      extendLiveTracking();
-      return true;
-    }
-    return performance.now() <= liveTrackingUntil;
-  };
-
   const resolveRadiusLength = (value, size) => {
     const text = String(value || "").trim();
     if (!text) return 0;
@@ -580,10 +562,6 @@
     return out;
   };
 
-  const geometryKeyFor = (rects) => rects
-    .map((r) => `${r.key || r.type}:${Math.round(r.x)},${Math.round(r.y)},${Math.round(r.w)},${Math.round(r.h)},${Math.round(r.radius)}`)
-    .join("|");
-
   const syncSize = () => {
     if (!canvas) return;
     // DPR capped at 1.5 — kills the upscale-blur banding that DPR=1
@@ -601,7 +579,6 @@
 
   const draw = () => {
     pendingFrame = false;
-    rafHandle = null;
     if (!active || !gl || !canvas) return;
 
     syncSize();
@@ -612,11 +589,6 @@
     gl.clear(gl.COLOR_BUFFER_BIT);
 
     const rects = collectObjects();
-    const geometryKey = geometryKeyFor(rects);
-    if (geometryKey !== lastGeometryKey) {
-      lastGeometryKey = geometryKey;
-      extendLiveTracking();
-    }
     const flatRects = new Float32Array(MAX_OBJECTS * 4);
     const flatRadii = new Float32Array(MAX_OBJECTS);
     for (let i = 0; i < rects.length; i++) {
@@ -642,12 +614,19 @@
     gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
     gl.drawArrays(gl.TRIANGLES, 0, 6);
 
-    // Live-tracking loop: while glass targets are moving (scroll, panel
-    // collapse height transition, FLIP collision displacement, page slide),
-    // re-draw every frame so refraction follows live getBoundingClientRect().
-    // A short cooldown after motion stops captures the resting state before
-    // returning to dirty-only mode driven by markDirty().
-    if (shouldLiveTrack()) {
+    // Live-tracking loop: while any glass-target element is animating
+    // (panel collapse height transition, FLIP collision displacement),
+    // re-draw every frame so the refraction follows the live
+    // getBoundingClientRect() (which already reflects transforms and
+    // transitioned CSS values). One cooldown frame after animations
+    // settle catches the resting state. Otherwise pendingFrame stays
+    // false and we revert to dirty-only mode driven by markDirty().
+    if (isAnimatingGlassTarget()) {
+      animationCooldownFrames = ANIMATION_COOLDOWN_FRAMES;
+      pendingFrame = true;
+      rafHandle = requestAnimationFrame(draw);
+    } else if (animationCooldownFrames > 0) {
+      animationCooldownFrames -= 1;
       pendingFrame = true;
       rafHandle = requestAnimationFrame(draw);
     }
@@ -658,16 +637,6 @@
     if (pendingFrame) return;
     pendingFrame = true;
     rafHandle = requestAnimationFrame(draw);
-  };
-
-  const renderMovementFrame = () => {
-    if (!active) return;
-    if (rafHandle) {
-      cancelAnimationFrame(rafHandle);
-      rafHandle = null;
-    }
-    pendingFrame = false;
-    draw();
   };
 
   const attachObservers = () => {
@@ -686,10 +655,8 @@
       });
     }
     if (!scrollHandler) {
-      scrollHandler = () => trackMovement();
-      window.addEventListener("scroll", scrollHandler, { passive: true, capture: true });
-      document.addEventListener("scroll", scrollHandler, { passive: true, capture: true });
-      window.visualViewport?.addEventListener?.("scroll", scrollHandler, { passive: true });
+      scrollHandler = () => markDirty();
+      window.addEventListener("scroll", scrollHandler, { passive: true });
     }
     if (!resizeHandler) {
       resizeHandler = () => { syncSize(); markDirty(); };
@@ -705,7 +672,9 @@
     syncSize();
     rasterizeBackdropTexture();
     attachObservers();
-    // The first frame may need to wait for the texture; markDirty schedules it.
+    // Continuous loop during drag/resize is overkill; we redraw on
+    // mutation + scroll. The first frame may need to wait for the
+    // texture; markDirty schedules it.
     markDirty();
   };
 
