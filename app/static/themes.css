@@ -1436,20 +1436,11 @@ but make focus unmistakable. */ .panel-tool-drawer .panel-tool-button:focus-visi
   box-shadow: none !important;
   color: var(--widget-surface-fg) !important;
 }.widget-layout > .widget-card.db-panel-custom-color:hover,
-.widget-layout > .widget-card.db-panel-custom-color:focus-visible,
-.widget-layout > .widget-card.db-panel-custom-color.active{
+.widget-layout > .widget-card.db-panel-custom-color:focus-visible{
   background: var(--panel-chrome-hover-bg), var(--panel-chrome-surface) !important;
   border-color: var(--panel-chrome-hover-border) !important;
   box-shadow: none !important;
   transform: translateY(-1px);
-}.widget-layout > .widget-card.db-panel-custom-color.active{
-  outline: 3px solid color-mix(in srgb, var(--panel-material-rim-active) 76%, transparent);
-  outline-offset: 0;
-  border-color: var(--panel-material-rim-active) !important;
-  box-shadow: none !important;
-}.widget-layout > .widget-card.db-panel-custom-color.active:hover{
-  outline-color: color-mix(in srgb, var(--panel-material-rim-active) 86%, transparent);
-  box-shadow: none !important;
 }.widget-layout > .widget-card.db-panel-custom-color.widget-tools-open,
 .widget-layout > .widget-card.db-panel-custom-color.widget-tools-open:hover,
 .widget-layout > .widget-card.db-panel-custom-color.widget-tools-open:focus-visible{
@@ -1478,18 +1469,15 @@ but make focus unmistakable. */ .panel-tool-drawer .panel-tool-button:focus-visi
   --widget-data-quaternary: color-mix(in srgb, var(--panel-accent) 48%, #fca5a5 52%);
   --widget-data-positive: color-mix(in srgb, var(--panel-accent) 50%, #86efac 50%);
   --widget-data-quiet: color-mix(in srgb, var(--panel-accent) 44%, #c4b5fd 56%);
-}.widget-layout > .widget-card.db-panel-custom-color:hover .stat-val,
-.widget-layout > .widget-card.db-panel-custom-color.active .stat-val{
+}.widget-layout > .widget-card.db-panel-custom-color:hover .stat-val{
   color: var(--widget-surface-fg) !important;
 }.widget-layout > .widget-card.db-panel-custom-color .stat-val{
   color: var(--widget-surface-fg) !important;
 }.widget-layout > .widget-card.db-panel-custom-color .stat-lbl,
-.widget-layout > .widget-card.db-panel-custom-color:hover .stat-lbl,
-.widget-layout > .widget-card.db-panel-custom-color.active .stat-lbl{
+.widget-layout > .widget-card.db-panel-custom-color:hover .stat-lbl{
   color: var(--widget-surface-muted) !important;
 }.widget-layout > .widget-card.db-panel-custom-color .stat-runtime-meta,
-.widget-layout > .widget-card.db-panel-custom-color:hover .stat-runtime-meta,
-.widget-layout > .widget-card.db-panel-custom-color.active .stat-runtime-meta{
+.widget-layout > .widget-card.db-panel-custom-color:hover .stat-runtime-meta{
   color: var(--widget-content-meta) !important;
 }.widget-card.db-panel-custom-color .widget-tool-drawer{
   background:
@@ -4070,16 +4058,10 @@ and active drags own emphasis alone. */ .widget-layout > .widget-card:has(:is(.w
 .db-panel.db-panel-custom-color.db-panel-collapsed:focus-within,
 .widget-layout > .widget-card.db-panel-custom-color:hover,
 .widget-layout > .widget-card.db-panel-custom-color:focus-visible,
-.widget-layout > .widget-card.db-panel-custom-color.active,
 .panel-internal-widget-grid > .widget-card.db-panel-custom-color:hover,
 .panel-internal-widget-grid > .widget-card.db-panel-custom-color:focus-visible{
   background: var(--object-shell-hover-bg) !important;
   border-color: var(--object-shell-rim-hover) !important;
-  box-shadow: var(--object-shell-hover-shadow) !important;
-}.widget-layout > .widget-card.db-panel-custom-color.active,
-.panel-internal-widget-grid > .widget-card.db-panel-custom-color.active{
-  border-color: var(--object-shell-rim-active) !important;
-  outline-color: color-mix(in srgb, var(--object-shell-rim-active) 70%, transparent) !important;
   box-shadow: var(--object-shell-hover-shadow) !important;
 }.db-panel > .db-panel-hd::before,
 .db-panel > .db-panel-hd .db-panel-count,
@@ -5053,7 +5035,6 @@ because the * header sits flush with the panel. */ .db-panel > .db-panel-hd,
   box-shadow: 0 12px 26px rgba(0, 0, 0, 0.14) !important;
 }.widget-layout > .widget-card.db-panel-custom-color:hover,
 .widget-layout > .widget-card.db-panel-custom-color:focus-visible,
-.widget-layout > .widget-card.db-panel-custom-color.active,
 .panel-internal-widget-grid > .widget-card.db-panel-custom-color:hover,
 .panel-internal-widget-grid > .widget-card.db-panel-custom-color:focus-visible{
   background: rgba(255, 255, 255, 0.03) !important;
