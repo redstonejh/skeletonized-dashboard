@@ -4603,14 +4603,7 @@ because the same paint computed in both states only * because my synthetic widge
     inset -1px 0 0 rgba(255, 255, 255, var(--glass-photo-side-highlight-alpha)),
     inset 0 -1px 0 rgba(255, 255, 255, 0.10) !important;
   transform: none;
-}/* ── Panel + divider hover regression fix ────────────────────────────── * * User-observed bug: hovering the panel header (or the panel itself) * "reverts to pre-glass material" — panel goes opaque,
-header goes * pastel,
-leaving the panel restores glass. Widgets do not exhibit this * because the widget shell-hover rules paint translucent shells over * a fairly substantive base (.16 alpha). The PANEL is brought to * ~.03 alpha by round-9,
-so: * * (a) The surface-zone-wash ::before that activates on hover via * `.surface-response-active` paints rgba(255,255,255, .07) wash * with `mix-blend-mode: screen` and opacity .45 over the panel * (dashboard-grid.css:2769-2786). Over bright photo regions * (foam, sand, marble) screen-blend pushes the area near pure * white. Over the .03-alpha translucent panel,
-the wash dominates. * Widgets at .16 alpha mask this; panels at .03 do not. * * (b) The shell hover rules (themes.css:1357 custom-color header * hover; 5270 generic header hover; 5309 custom-color panel hover) * repaint with var(--object-shell-hover-bg) — wash + opaque shell * surface. Higher-specificity overrides below force the rest-state * calm paint on hover/focus too. Brings panel + header hover in * line with the visual behavior the user accepts on widgets. */ /* (a) Kill the screen-blend brighten on panel + divider .surface-response-active::before */ .panel-layout > .db-panel.surface-response-active:not(.workspace-divider)::before,
-.workspace-divider.db-panel.surface-response-active::before{
-  opacity: 0 !important;
-}/* (b1) Panel hover/focus on custom-color: paint same calm glass as rest */ .db-panel.db-panel-custom-color:hover,
+}/* Panel hover/focus on custom-color: paint same calm glass as rest. */ .db-panel.db-panel-custom-color:hover,
 .db-panel.db-panel-custom-color:focus-within,
 .db-panel.db-panel-custom-color.db-panel-collapsed:hover,
 .db-panel.db-panel-custom-color.db-panel-collapsed:focus-within,

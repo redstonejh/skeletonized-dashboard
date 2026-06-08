@@ -215,8 +215,6 @@ export function initializeSurfaceToolsRuntime({
       surfaceResponseState.scrollY = window.scrollY || 0;
     }
     if (!target) return;
-    surfaceResponseState.clientX = event.clientX;
-    surfaceResponseState.clientY = event.clientY;
     if (!surfaceResponseState.frame) {
       surfaceResponseState.frame = requestAnimationFrame(updateSurfaceResponse);
     }
@@ -240,8 +238,6 @@ export function initializeSurfaceToolsRuntime({
       surfaceResponseState.scrollX = window.scrollX || 0;
       surfaceResponseState.scrollY = window.scrollY || 0;
     }
-    surfaceResponseState.clientX = event.clientX;
-    surfaceResponseState.clientY = event.clientY;
     target.dataset.surfacePressed = "true";
     target.classList.add("surface-response-active");
   }, true);

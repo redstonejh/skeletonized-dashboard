@@ -99,17 +99,6 @@ body.webgl-glass-on .widget-card.db-panel-custom-color{
   cursor: pointer;
   transition: background var(--motion-fast), border-color var(--motion-fast), box-shadow var(--motion-fast), transform var(--motion-fast), color var(--motion-fast);
 }/* Widget base styles and hover states */ .widget-card{
-  --surface-zone-transform: translateY(-1.5px);
-  --surface-zone-press-transform: translateY(1px);
-  --surface-zone-origin: center;
-  --surface-zone-safe-inset: 3px;
-  --surface-zone-opacity: .45;
-  --surface-zone-wash:
-    linear-gradient(180deg, rgba(255, 255, 255, .07), transparent 58%),
-    linear-gradient(0deg, color-mix(in srgb, var(--panel-accent, var(--blue)) 4%, transparent), transparent 68%);
-  --surface-zone-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, .07),
-    inset 0 -14px 22px rgba(15, 23, 42, .024);
   --workspace-lod-shadow:
     0 1px 3px rgba(15, 23, 42, .045),
     inset 0 1px 0 rgba(255, 255, 255, .11),
@@ -1141,17 +1130,6 @@ body.resize-auto-zoom-active .dashboard-expanded-footprint-ghost{
 }.panel-layout > .db-panel[data-default-span="6"]{
   grid-column: span 6;
 }/* Panel (generic card) */ .db-panel{
-  --surface-zone-transform: translateY(-1.5px);
-  --surface-zone-press-transform: translateY(1px);
-  --surface-zone-origin: center;
-  --surface-zone-safe-inset: 3px;
-  --surface-zone-opacity: .45;
-  --surface-zone-wash:
-    linear-gradient(180deg, rgba(255, 255, 255, .07), transparent 58%),
-    linear-gradient(0deg, color-mix(in srgb, var(--panel-accent, var(--blue)) 4%, transparent), transparent 68%);
-  --surface-zone-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, .07),
-    inset 0 -14px 22px rgba(15, 23, 42, .024);
   --workspace-lod-shadow: var(--shadow-card);
   --workspace-lod-backdrop-filter: none;
   --workspace-lod-transition:
@@ -1204,27 +1182,6 @@ body.resize-auto-zoom-active .dashboard-expanded-footprint-ghost{
   overflow: hidden;
   min-height: 0;
   transition: var(--workspace-lod-transition);
-}.panel-layout > .db-panel:not(.workspace-divider)::before{
-  content: "";
-  position: absolute;
-  inset: var(--surface-zone-safe-inset, 3px);
-  z-index: 3;
-  border-radius: max(10px, calc(var(--radius-lg) - var(--surface-zone-safe-inset, 3px)));
-  background-clip: padding-box;
-  pointer-events: none;
-  background:
-    var(--surface-zone-wash);
-  box-shadow: var(--surface-zone-shadow);
-  opacity: 0;
-  mix-blend-mode: screen;
-  transition: opacity .16s ease, box-shadow .16s ease, background .16s ease;
-}.panel-layout > .db-panel.surface-response-active:not(.workspace-divider)::before{
-  opacity: var(--surface-zone-opacity, .45);
-}.panel-layout > .db-panel.surface-response-active:not(.workspace-divider){
-  transform: var(--surface-zone-transform);
-  transform-origin: var(--surface-zone-origin);
-}.panel-layout > .db-panel.surface-response-active[data-surface-pressed="true"]:not(.workspace-divider){
-  transform: var(--surface-zone-press-transform);
 }.db-panel.db-panel-tools-open{
   overflow: visible;
   transform: none !important;
@@ -1644,9 +1601,6 @@ body.panel-resize-active .dashboard-active-resize,
 body.panel-resize-active .dashboard-resize-source,
 body.panel-resize-active .group-transform-member{
   pointer-events: auto;
-}body.panel-interaction-active .surface-response-active::before,
-body.panel-resize-active .surface-response-active::before{
-  opacity: 0 !important;
 }body.panel-interaction-active .surface-response-active:not(.widget-dragging):not(.db-panel-dragging):not(.dashboard-active-resize),
 body.panel-resize-active .surface-response-active:not(.widget-dragging):not(.db-panel-dragging):not(.dashboard-active-resize){
   transform: none !important;
