@@ -20,6 +20,7 @@ body {
   background: var(--page-background) fixed;
   background-color: var(--bg);
   font: 14px/1.5 "Inter", "Roboto", "Segoe UI", Arial, system-ui, sans-serif;
+  font-weight: var(--ui-text-weight);
   letter-spacing: 0;
   transition: background .18s ease, color .18s ease;
 }
@@ -41,7 +42,6 @@ h1 {
   margin-bottom: 12px;
   color: var(--ink-strong);
   font-size: clamp(36px, 4.8vw, 56px);
-  font-weight: 750;
   line-height: 1.02;
 }
 
@@ -53,7 +53,6 @@ h2 {
   margin-bottom: 0;
   color: var(--ink-strong);
   font-size: 22px;
-  font-weight: 720;
   line-height: 1.24;
 }
 
@@ -95,7 +94,6 @@ button,
   background: var(--blue);
   color: #fff;
   font: inherit;
-  font-weight: 750;
   cursor: pointer;
   box-shadow: 0 10px 22px rgba(37, 99, 235, .20);
   transition: background .18s ease, box-shadow .18s ease, transform .18s ease;
@@ -137,7 +135,6 @@ button.secondary:hover,
 
 .text-link {
   color: var(--blue);
-  font-weight: 750;
 }
 
 .text-link:hover {
@@ -156,7 +153,6 @@ button.secondary:hover,
   border: 1px solid #bfdbfe;
   background: var(--blue-soft);
   color: #1e40af;
-  font-weight: 650;
 }
 
 table {
@@ -175,7 +171,6 @@ td {
 th {
   color: var(--muted);
   font-size: 11px;
-  font-weight: 760;
   letter-spacing: .04em;
   text-transform: uppercase;
 }
@@ -243,7 +238,6 @@ pre {
   display: grid;
   gap: 7px;
   color: var(--ink-strong);
-  font-weight: 680;
 }
 
 .form-grid input,
@@ -300,7 +294,6 @@ pre {
   transform: translateY(-50%);
   color: var(--muted);
   font-size: 13px;
-  font-weight: 540;
   pointer-events: none;
   line-height: 1;
   transition: top .14s ease, transform .14s ease, color .14s ease, font-size .14s ease;
@@ -312,7 +305,6 @@ pre {
   transform: none;
   font-size: 11px;
   color: var(--blue);
-  font-weight: 700;
 }
 
 .form-grid label.fl-wrap > input:not(:placeholder-shown):not(:focus) ~ .fl-lbl {
@@ -324,7 +316,6 @@ pre {
   transform: none;
   font-size: 11px;
   color: var(--muted-strong);
-  font-weight: 700;
 }
 
 .lbl-fixed {
@@ -332,7 +323,6 @@ pre {
   margin-bottom: 8px;
   color: var(--ink-strong);
   font-size: 13px;
-  font-weight: 680;
 }
 
 .full-span,
@@ -362,7 +352,6 @@ pre {
 .sticky-save span {
   color: var(--muted);
   font-size: 12px;
-  font-weight: 650;
   padding-right: 8px;
 }
 
@@ -412,4 +401,3 @@ pre {
     min-width: 680px;
   }
 }
-

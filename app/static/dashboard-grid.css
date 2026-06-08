@@ -166,7 +166,7 @@ body.webgl-glass-on .widget-card.db-panel-custom-color{
   overflow: hidden;
   color: var(--widget-content-title, var(--text-strong));
   font-size: .74rem;
-  font-weight: 780;
+  font-weight: var(--ui-text-weight);
   line-height: 1.05;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -177,7 +177,7 @@ body.webgl-glass-on .widget-card.db-panel-custom-color{
   overflow: hidden;
   color: var(--widget-content-meta, var(--text-muted));
   font-size: .58rem;
-  font-weight: 680;
+  font-weight: var(--ui-text-weight);
   line-height: 1.15;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -296,7 +296,7 @@ body.webgl-glass-on .widget-card.db-panel-custom-color{
     0 14px 28px rgba(15, 23, 42, .18),
     inset 0 1px 0 color-mix(in srgb, var(--glass-highlight) 44%, transparent);
   font-size: 11px;
-  font-weight: 850;
+  font-weight: var(--ui-text-weight);
   letter-spacing: .02em;
   backdrop-filter: blur(12px) saturate(1.06);
   -webkit-backdrop-filter: blur(12px) saturate(1.06);
@@ -362,7 +362,7 @@ body.webgl-glass-on .widget-card.db-panel-custom-color{
   color: color-mix(in srgb, var(--ink-strong) 82%, var(--blue) 18%);
   font: inherit;
   font-size: 11px;
-  font-weight: 780;
+  font-weight: var(--ui-text-weight);
   pointer-events: auto;
   box-shadow: 0 10px 24px rgba(15, 23, 42, .10), inset 0 1px 0 color-mix(in srgb, var(--glass-highlight) 56%, transparent);
   cursor: pointer;
@@ -383,7 +383,7 @@ body.webgl-glass-on .widget-card.db-panel-custom-color{
   margin-bottom: 7px;
   color: color-mix(in srgb, var(--ink-strong) 80%, var(--blue) 20%);
   font-size: 10px;
-  font-weight: 820;
+  font-weight: var(--ui-text-weight);
   text-transform: uppercase;
 }.workspace-minimap-collapse{
   min-height: 22px;
@@ -617,7 +617,7 @@ and ghost states */ .widget-card.widget-tools-open,
   overflow: hidden;
   color: var(--text-strong);
   font-size: .76rem;
-  font-weight: 760;
+  font-weight: var(--ui-text-weight);
   text-overflow: ellipsis;
   white-space: nowrap;
 }.widget-settings-empty-state small,
@@ -626,7 +626,7 @@ and ghost states */ .widget-card.widget-tools-open,
   overflow: hidden;
   color: var(--text-muted);
   font-size: .66rem;
-  font-weight: 700;
+  font-weight: var(--ui-text-weight);
   text-overflow: ellipsis;
   white-space: nowrap;
 }.widget-settings-schema-head{
@@ -636,7 +636,7 @@ and ghost states */ .widget-card.widget-tools-open,
   min-height: 20px;
   color: var(--text-strong);
   font-size: .78rem;
-  font-weight: 750;
+  font-weight: var(--ui-text-weight);
   letter-spacing: .02em;
 }.widget-settings-section{
   display: grid;
@@ -649,7 +649,7 @@ and ghost states */ .widget-card.widget-tools-open,
   padding: 0 0 2px;
   color: var(--text-muted);
   font-size: .68rem;
-  font-weight: 760;
+  font-weight: var(--ui-text-weight);
   text-transform: uppercase;
 }.widget-setting-field{
   display: grid;
@@ -657,7 +657,7 @@ and ghost states */ .widget-card.widget-tools-open,
   min-width: 0;
   color: var(--text);
   font-size: .72rem;
-  font-weight: 700;
+  font-weight: var(--ui-text-weight);
 }.widget-setting-field input,
 .widget-setting-field select,
 .widget-setting-field textarea{
@@ -667,7 +667,7 @@ and ghost states */ .widget-card.widget-tools-open,
   padding: 7px 9px;
   color: var(--text-strong);
   font: inherit;
-  font-weight: 650;
+  font-weight: var(--ui-text-weight);
   border: 1px solid color-mix(in srgb, var(--panel-accent, var(--blue)) 34%, var(--line));
   border-radius: 10px;
   background:
@@ -970,7 +970,7 @@ body.resize-auto-zoom-active .dashboard-expanded-footprint-ghost{
   display: block;
   margin-top: 4px;
   font-size: 11px;
-  font-weight: 720;
+  font-weight: var(--ui-text-weight);
   line-height: 1.18;
   text-transform: none;
   letter-spacing: .01em;
@@ -1001,10 +1001,10 @@ body.resize-auto-zoom-active .dashboard-expanded-footprint-ghost{
   --widget-content-meta-strong: color-mix(in srgb, var(--muted) 78%, transparent);
   --widget-content-meta-quiet: color-mix(in srgb, var(--muted) 58%, transparent);
   --widget-title-size: .69rem;
-  --widget-title-weight: 790;
+  --widget-title-weight: var(--ui-text-weight);
   --widget-label-size: .62rem;
   --widget-meta-size: .55rem;
-  --widget-meta-weight: 620;
+  --widget-meta-weight: var(--ui-text-weight);
   --widget-meta-tracking: 0;
   --widget-timestamp-size: .58rem;
   --widget-metadata-gap: var(--space-6);
@@ -1447,7 +1447,7 @@ body.resize-auto-zoom-active .dashboard-expanded-footprint-ghost{
 }.db-panel-title{
   margin-right: 0;
   font-size: var(--panel-title-size);
-  font-weight: 800;
+  font-weight: var(--ui-text-weight);
   text-transform: none;
   letter-spacing: 0;
   color: var(--muted-strong);
@@ -1485,7 +1485,7 @@ body.resize-auto-zoom-active .dashboard-expanded-footprint-ghost{
   background: rgba(248, 250, 252, .12);
   color: rgba(248, 250, 252, .82);
   font-size: 12px;
-  font-weight: 720;
+  font-weight: var(--ui-text-weight);
   flex-shrink: 0;
 }.panel-lock-toggle{
   --panel-lock-bg: rgba(248, 250, 252, .12);
@@ -2102,7 +2102,7 @@ that put the drawer on top — palette * has to declare its tier explicitly. */ 
   display: block;
   margin: 0 0 8px;
   font-size: 10px;
-  font-weight: 800;
+  font-weight: var(--ui-text-weight);
   line-height: 1.1;
   letter-spacing: 0;
   text-transform: uppercase;
@@ -2163,6 +2163,9 @@ that put the drawer on top — palette * has to declare its tier explicitly. */ 
     0 8px 16px rgba(15, 23, 42, .22),
     0 0 0 3px rgba(255, 255, 255, .18),
     inset 0 1px 0 rgba(255, 255, 255, .30);
+}.workspace-tab-color-menu .panel-color-swatch[data-color-action="clear"]{
+  background: var(--swatch) !important;
+  background-color: var(--swatch) !important;
 }.panel-color-swatch:hover,
 .panel-color-swatch:focus,
 .panel-color-swatch:focus-visible,
@@ -2379,7 +2382,7 @@ that put the drawer on top — palette * has to declare its tier explicitly. */ 
     color-mix(in srgb, var(--surface-raised) 76%, var(--panel-accent, var(--blue)) 24%);
   color: color-mix(in srgb, var(--glass-highlight) 84%, var(--panel-accent, var(--blue)) 16%);
   font-size: 11px;
-  font-weight: 760;
+  font-weight: var(--ui-text-weight);
   line-height: 1;
   pointer-events: none;
   box-shadow: 0 8px 18px color-mix(in srgb, var(--panel-accent, var(--blue)) 9%, transparent), inset 0 1px 0 color-mix(in srgb, var(--glass-highlight) 28%, transparent);
@@ -2401,7 +2404,7 @@ that put the drawer on top — palette * has to declare its tier explicitly. */ 
   justify-content: center;
   color: var(--widget-content-meta);
   font-size: .72rem;
-  font-weight: 620;
+  font-weight: var(--ui-text-weight);
   line-height: 1.2;
   text-align: center;
 }.runtime-table-widget{
@@ -2545,7 +2548,7 @@ that put the drawer on top — palette * has to declare its tier explicitly. */ 
   margin: 0 0 2px;
   color: color-mix(in srgb, var(--panel-accent-text, #ffffff) 74%, transparent);
   font-size: var(--widget-label-size);
-  font-weight: 700;
+  font-weight: var(--ui-text-weight);
   letter-spacing: 0;
   text-transform: none;
 }.filter-widget-field,
@@ -2560,7 +2563,7 @@ that put the drawer on top — palette * has to declare its tier explicitly. */ 
   box-shadow: inset 0 1px 0 color-mix(in srgb, var(--panel-accent-text, #ffffff) 16%, transparent);
   font: inherit;
   font-size: .64rem;
-  font-weight: 720;
+  font-weight: var(--ui-text-weight);
   outline: 0;
   padding: 0 8px;
 }.filter-widget-field::placeholder{
@@ -2592,7 +2595,7 @@ that put the drawer on top — palette * has to declare its tier explicitly. */ 
   background: color-mix(in srgb, var(--surface-raised, #ffffff) 12%, transparent);
   color: color-mix(in srgb, var(--panel-accent-text, #ffffff) 88%, transparent);
   font-size: .58rem;
-  font-weight: 760;
+  font-weight: var(--ui-text-weight);
   line-height: 1;
   padding: 4px 6px;
 }.filter-widget-option input,
@@ -2639,7 +2642,7 @@ that put the drawer on top — palette * has to declare its tier explicitly. */ 
   height: 100%;
   padding: 8px 10px;
   font-size: .8rem;
-  font-weight: 650;
+  font-weight: var(--ui-text-weight);
   line-height: 1.45;
   outline: 0;
   overflow: auto;
@@ -2663,7 +2666,7 @@ that put the drawer on top — palette * has to declare its tier explicitly. */ 
   overflow: hidden;
   padding: 7px 9px;
   font-size: .72rem;
-  font-weight: 720;
+  font-weight: var(--ui-text-weight);
   line-height: 1.35;
   white-space: pre-wrap;
   -webkit-line-clamp: 3;
@@ -2981,7 +2984,7 @@ that put the drawer on top — palette * has to declare its tier explicitly. */ 
 .shift-widget-footer span{
   color: color-mix(in srgb, currentColor 70%, transparent);
   font-size: var(--widget-meta-size);
-  font-weight: 680;
+  font-weight: var(--ui-text-weight);
   letter-spacing: var(--widget-meta-tracking);
   text-transform: none;
 }.shift-widget-core{
@@ -3019,7 +3022,7 @@ that put the drawer on top — palette * has to declare its tier explicitly. */ 
   align-items: center;
   color: var(--widget-content-meta);
   font-size: .52rem;
-  font-weight: 620;
+  font-weight: var(--ui-text-weight);
   line-height: 1.12;
 }.shift-widget-lineage b,
 .shift-widget-lineage code{
@@ -3092,7 +3095,7 @@ that put the drawer on top — palette * has to declare its tier explicitly. */ 
   background: color-mix(in srgb, var(--surface-raised, #ffffff) 12%, transparent);
   font: inherit;
   font-size: .7rem;
-  font-weight: 680;
+  font-weight: var(--ui-text-weight);
   line-height: 1.35;
 }.ai-operator-actions{
   display: flex;
@@ -3107,7 +3110,7 @@ that put the drawer on top — palette * has to declare its tier explicitly. */ 
   background: color-mix(in srgb, var(--surface-raised, #ffffff) 12%, transparent);
   font: inherit;
   font-size: .66rem;
-  font-weight: 800;
+  font-weight: var(--ui-text-weight);
   cursor: pointer;
 }.ai-operator-primary{
   color: var(--panel-accent-text, #ffffff);
@@ -3123,7 +3126,7 @@ that put the drawer on top — palette * has to declare its tier explicitly. */ 
 }.ai-operator-result span{
   color: color-mix(in srgb, var(--panel-accent-text, #ffffff) 70%, transparent);
   font-size: .58rem;
-  font-weight: 680;
+  font-weight: var(--ui-text-weight);
   letter-spacing: var(--widget-meta-tracking);
   text-transform: none;
 }.ai-operator-result p{
@@ -3284,7 +3287,7 @@ that put the drawer on top — palette * has to declare its tier explicitly. */ 
   white-space: nowrap;
   color: var(--widget-content-fg);
   font-size: max(.66rem, calc(var(--widget-title-size) * .94));
-  font-weight: 760;
+  font-weight: var(--ui-text-weight);
   letter-spacing: 0;
   line-height: 1.12;
 }.runtime-chart-meta{
@@ -3555,7 +3558,7 @@ that put the drawer on top — palette * has to declare its tier explicitly. */ 
   gap: 3px;
 }.runtime-chart-header .stat-lbl{
   font-size: max(.66rem, calc(var(--widget-title-size) * .94));
-  font-weight: 760;
+  font-weight: var(--ui-text-weight);
 }.runtime-chart-meta{
   color: var(--widget-content-meta);
   font-size: max(.5rem, calc(var(--widget-meta-size) * .92));

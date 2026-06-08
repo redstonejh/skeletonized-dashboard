@@ -24,7 +24,7 @@
 }.app-nav-brand strong{
   display: block;
   font-size: 20px;
-  font-weight: 820;
+  font-weight: var(--ui-text-weight);
 }.app-nav-brand small,
 .nav-status-item small{
   display: block;
@@ -41,7 +41,7 @@
   background: linear-gradient(145deg, #0f172a, #2563eb);
   color: #fff;
   font-size: 18px;
-  font-weight: 900;
+  font-weight: var(--ui-text-weight);
   letter-spacing: 0;
   box-shadow: 0 12px 26px rgba(37, 99, 235, .24);
 }.settings-brand-group{
@@ -60,7 +60,7 @@
   background: linear-gradient(135deg, #2563eb, #0f4ed8);
   color: #fff;
   font-size: 18px;
-  font-weight: 850;
+  font-weight: var(--ui-text-weight);
   letter-spacing: .02em !important;
   text-decoration: none;
   box-shadow:
@@ -88,7 +88,7 @@
   overflow: hidden;
   color: var(--ink-strong);
   font-size: 20px;
-  font-weight: 820;
+  font-weight: var(--ui-text-weight);
   text-overflow: ellipsis;
   white-space: nowrap;
 }.settings-brand-copy small{
@@ -125,7 +125,7 @@
   overflow: hidden;
   color: var(--ink-strong);
   font-size: 12px;
-  font-weight: 780;
+  font-weight: var(--ui-text-weight);
   text-overflow: ellipsis;
   white-space: nowrap;
 }.nav-icon,
@@ -195,7 +195,7 @@
   padding: 0 14px;
   font-family: inherit;
   font-size: 12px;
-  font-weight: 760;
+  font-weight: var(--ui-text-weight);
   line-height: 1;
 }.panel-add-picker{
   position: relative;
@@ -209,7 +209,7 @@
   padding: 0;
   color: var(--blue);
   font-size: 20px;
-  font-weight: 820;
+  font-weight: var(--ui-text-weight);
   line-height: 1;
   text-align: center;
 }.panel-add-menu{
@@ -262,7 +262,7 @@
   color: var(--muted-strong);
   font-family: inherit;
   font-size: 12px;
-  font-weight: 760;
+  font-weight: var(--ui-text-weight);
   line-height: 1;
   box-shadow: 0 2px 10px rgba(15, 23, 42, .04);
   cursor: pointer;
@@ -351,7 +351,7 @@
   color: var(--muted-strong);
   font-family: inherit;
   font-size: 12px;
-  font-weight: 760;
+  font-weight: var(--ui-text-weight);
   line-height: 1;
   text-align: center;
   box-shadow: 0 2px 10px rgba(15, 23, 42, .04);
@@ -468,7 +468,7 @@
 }.empty-action{
   color: var(--blue);
   font-size: 12px;
-  font-weight: 760;
+  font-weight: var(--ui-text-weight);
 }.esc-timeline-empty{
   padding: 12px;
 }.timeline-dot{
@@ -493,7 +493,7 @@
   color: var(--muted-strong);
   cursor: pointer;
   font-size: 11px;
-  font-weight: 800;
+  font-weight: var(--ui-text-weight);
   letter-spacing: 0;
   outline: 0;
   transition: background .14s ease, border-color .14s ease, color .14s ease, box-shadow .14s ease, transform .14s ease;
@@ -545,7 +545,7 @@
   color: #166534;
   box-shadow: 0 12px 28px rgba(15, 23, 42, .14);
   font-size: 13px;
-  font-weight: 720;
+  font-weight: var(--ui-text-weight);
   opacity: 0;
   transition: opacity .18s ease, transform .18s ease;
 }.toast.show{
@@ -580,14 +580,14 @@
   font-size: 12px;
 }.parse-warning summary{
   cursor: pointer;
-  font-weight: 760;
+  font-weight: var(--ui-text-weight);
 }.parse-warning ul{
   margin: 8px 0 0;
   padding-left: 18px;
 }.parse-warning a{
   color: #92400e;
   font-size: 12px;
-  font-weight: 800;
+  font-weight: var(--ui-text-weight);
   white-space: nowrap;
 }.save-spinner{
   display: none;
@@ -631,7 +631,7 @@ table{
   line-height: 1.25;
 }.app-nav-brand strong{
   font-size: 18px;
-  font-weight: 800;
+  font-weight: var(--ui-text-weight);
   line-height: 1.15;
 }.app-nav-brand small,
 .nav-status-item small,
@@ -648,12 +648,12 @@ table{
 .empty-action,
 .icon-btn{
   font-size: 13px;
-  font-weight: 760;
+  font-weight: var(--ui-text-weight);
   line-height: 1;
 }.cmd-badge,
 .cmd-range-pill{
   font-size: 12px;
-  font-weight: 700;
+  font-weight: var(--ui-text-weight);
   line-height: 1;
 }.stat-val{
   font-size: 34px;
@@ -664,16 +664,16 @@ table{
 }.stat-lbl,
 .al-table th{
   font-size: 11px;
-  font-weight: 700;
+  font-weight: var(--ui-text-weight);
   line-height: 1.2;
   letter-spacing: .01em !important;
   text-transform: none;
 }.db-panel-count{
   font-size: 12px;
-  font-weight: 760;
+  font-weight: var(--ui-text-weight);
 }.db-panel-title{
   font-size: 18px;
-  font-weight: 820;
+  font-weight: var(--ui-text-weight);
   line-height: 1;
   letter-spacing: 0 !important;
 }.al-table{
@@ -693,10 +693,10 @@ table{
   line-height: 1.35;
 }.al-date a,
 .al-host{
-  font-weight: 720;
+  font-weight: var(--ui-text-weight);
 }.al-status{
   color: var(--muted-strong);
-  font-weight: 520;
+  font-weight: var(--ui-text-weight);
 }.toast,
 .parse-warning strong,
 .parse-warning small,
@@ -712,7 +712,7 @@ table{
 }.form-section label,
 .settings-form label{
   font-size: 13px;
-  font-weight: 720;
+  font-weight: var(--ui-text-weight);
   line-height: 1.35;
 }.form-section input,
 .form-section select,
@@ -792,7 +792,7 @@ table{
   color: var(--ink-strong);
   font: inherit;
   font-size: 12px;
-  font-weight: 720;
+  font-weight: var(--ui-text-weight);
   cursor: pointer;
   box-shadow: none;
   transition: border-color .15s ease, background .15s ease, box-shadow .15s ease, transform .15s ease;
@@ -808,7 +808,7 @@ table{
   background: linear-gradient(135deg, #2563eb, #0f4ed8);
   color: #fff;
   font-size: 18px;
-  font-weight: 850;
+  font-weight: var(--ui-text-weight);
   letter-spacing: .02em !important;
   box-shadow:
     0 12px 28px rgba(37, 99, 235, .28),
@@ -866,7 +866,7 @@ table{
 }.dash-switch-opt strong{
   display: block;
   font-size: 13px;
-  font-weight: 760;
+  font-weight: var(--ui-text-weight);
 }.dash-switch-opt small{
   display: block;
   margin-top: 1px;
@@ -881,7 +881,7 @@ table{
   padding-left: 6px;
   color: var(--blue);
   font-size: 13px;
-  font-weight: 800;
+  font-weight: var(--ui-text-weight);
 }/* Compact icons used inside the switcher dropdown */ .dsw-icon{
   display: inline-flex;
   align-items: center;
@@ -891,7 +891,7 @@ table{
   height: 24px;
   border-radius: 6px;
   font-size: 10px;
-  font-weight: 900;
+  font-weight: var(--ui-text-weight);
   color: #fff;
   letter-spacing: 0;
 }.stat-purple{
@@ -1244,7 +1244,7 @@ body::-webkit-scrollbar-thumb:hover{
   margin-bottom: 10px;
   color: var(--ink-strong);
   font-size: 13px;
-  font-weight: 820;
+  font-weight: var(--ui-text-weight);
 }.nav-status-popover dl{
   display: grid;
   gap: var(--space-8);
@@ -1257,7 +1257,7 @@ body::-webkit-scrollbar-thumb:hover{
 }.nav-status-popover dt{
   color: var(--muted);
   font-size: 11px;
-  font-weight: 760;
+  font-weight: var(--ui-text-weight);
   text-transform: uppercase;
   letter-spacing: .04em;
 }.nav-status-popover dd{
@@ -1265,7 +1265,7 @@ body::-webkit-scrollbar-thumb:hover{
   margin: 0;
   color: var(--ink-strong);
   font-size: 12px;
-  font-weight: 720;
+  font-weight: var(--ui-text-weight);
   overflow-wrap: anywhere;
   text-align: right;
 }.nav-status-connected{
@@ -1279,7 +1279,7 @@ body::-webkit-scrollbar-thumb:hover{
   margin-bottom: 4px;
   color: var(--muted);
   font-size: 10px;
-  font-weight: 800;
+  font-weight: var(--ui-text-weight);
   letter-spacing: .05em;
   text-transform: uppercase;
 }.nav-status-connected b{
@@ -1287,7 +1287,7 @@ body::-webkit-scrollbar-thumb:hover{
   min-width: 0;
   color: var(--ink-strong);
   font-size: 12px;
-  font-weight: 780;
+  font-weight: var(--ui-text-weight);
   line-height: 1.25;
   overflow-wrap: anywhere;
 }.nav-status-checklist{
@@ -1303,7 +1303,7 @@ body::-webkit-scrollbar-thumb:hover{
   min-height: 22px;
   color: var(--ink);
   font-size: 12px;
-  font-weight: 760;
+  font-weight: var(--ui-text-weight);
 }.nav-status-check-icon{
   position: relative;
   display: inline-flex;
@@ -1885,12 +1885,12 @@ body.group-transform-active .group-transform-member{
 }.settings-nav .app-nav-brand-group strong{
   color: var(--ink-strong);
   font-size: 20px;
-  font-weight: 820;
+  font-weight: var(--ui-text-weight);
   line-height: 1.1;
 }.settings-nav .app-nav-brand-group small{
   color: var(--muted);
   font-size: 11px;
-  font-weight: 680;
+  font-weight: var(--ui-text-weight);
 }.settings-brand-switch,
 .dash-switch-hero,
 .cmd-btn,
@@ -1964,13 +1964,13 @@ body.group-transform-active .group-transform-member{
   margin-bottom: 18px;
 }.section-heading h2{
   font-size: 20px;
-  font-weight: 780;
+  font-weight: var(--ui-text-weight);
 }.section-heading p{
   max-width: 620px;
   margin: 0;
   color: var(--muted);
   font-size: 13px;
-  font-weight: 560;
+  font-weight: var(--ui-text-weight);
 }.form-grid input,
 .form-grid select,
 .form-grid textarea{
@@ -2013,7 +2013,7 @@ body.group-transform-active .group-transform-member{
 }.settings-save-bar span{
   color: var(--muted-strong);
   font-size: 12px;
-  font-weight: 680;
+  font-weight: var(--ui-text-weight);
 }.sync-note,
 .notice.error{
   border: 1.5px solid color-mix(in srgb, var(--blue) 34%, var(--glass-border));
@@ -2115,7 +2115,7 @@ body.group-transform-active .group-transform-member{
   grid-column: 1 / -1;
   color: var(--muted);
   font-size: 11px;
-  font-weight: 800;
+  font-weight: var(--ui-text-weight);
   line-height: 1;
   text-transform: uppercase;
 }.background-tone-option{
@@ -2128,7 +2128,7 @@ body.group-transform-active .group-transform-member{
   padding: 0 12px;
   border-radius: var(--radius-pill);
   font-size: 12px;
-  font-weight: 760;
+  font-weight: var(--ui-text-weight);
   line-height: 1;
   text-align: left;
 }.background-tone-option::before{
@@ -2242,7 +2242,7 @@ body.group-transform-active .group-transform-member{
   color: var(--ink-strong);
   box-shadow: none;
   font-size: 14px;
-  font-weight: 820;
+  font-weight: var(--ui-text-weight);
 }.app-nav.workspace-chrome button.dash-switch-hero:hover,
 .app-nav.workspace-chrome button.dash-switch-hero:focus-visible{
   background: color-mix(in srgb, var(--glass-surface-strong) 64%, var(--blue-soft));
@@ -2272,7 +2272,7 @@ body.group-transform-active .group-transform-member{
   color: var(--muted-strong);
   box-shadow: none;
   font-size: 12px;
-  font-weight: 760;
+  font-weight: var(--ui-text-weight);
 }.app-nav.workspace-chrome .layout-slot-trigger{
   min-width: 80px;
   color: var(--ink-strong);
@@ -2300,7 +2300,7 @@ body.group-transform-active .group-transform-member{
     0 14px 34px color-mix(in srgb, var(--blue) 18%, transparent),
     inset 0 1px 0 color-mix(in srgb, var(--glass-highlight) 82%, transparent);
   font-size: 22px;
-  font-weight: 580;
+  font-weight: var(--ui-text-weight);
 }.app-nav.workspace-chrome .chrome-add-glyph{
   display: block;
   line-height: 1;
@@ -2367,7 +2367,7 @@ body.group-transform-active .group-transform-member{
   padding: 4px 8px 0;
   color: var(--muted);
   font-size: 10px;
-  font-weight: 820;
+  font-weight: var(--ui-text-weight);
   line-height: 1;
   text-transform: uppercase;
 }.app-nav.workspace-chrome .panel-add-menu.open{
@@ -2641,7 +2641,7 @@ keep the workspace first. */ .app-nav.workspace-chrome{
   z-index: -1;
 }.app-nav.workspace-chrome .chrome-add-glyph{
   font-size: 26px;
-  font-weight: 480;
+  font-weight: var(--ui-text-weight);
   transform: translateY(-2px);
 }.app-nav.workspace-chrome .mode-command-island{
   gap: 3px;
@@ -2845,14 +2845,14 @@ keep the workspace first. */ .app-nav.workspace-chrome{
   color: var(--muted-strong);
   box-shadow: var(--navbar-control-shadow);
   font-size: 12px;
-  font-weight: 760;
+  font-weight: var(--ui-text-weight);
   line-height: 1;
   transform: none;
   transition: background var(--motion-fast), border-color var(--motion-fast), box-shadow var(--motion-fast), color var(--motion-fast), transform var(--motion-fast);
 }.app-nav.workspace-chrome button.dash-switch-hero,
 .app-nav.workspace-chrome .layout-slot-trigger{
   color: var(--ink-strong);
-  font-weight: 820;
+  font-weight: var(--ui-text-weight);
 }.app-nav.workspace-chrome button.dash-switch-hero{
   width: auto;
   min-width: 128px;
@@ -2894,11 +2894,11 @@ keep the workspace first. */ .app-nav.workspace-chrome{
 }.app-nav.workspace-chrome .dash-identity-name{
   color: var(--ink-strong);
   font-size: 11.5px;
-  font-weight: 820;
+  font-weight: var(--ui-text-weight);
 }.app-nav.workspace-chrome .dash-identity-email{
   color: color-mix(in srgb, var(--muted-strong) 72%, transparent);
   font-size: 9.5px;
-  font-weight: 680;
+  font-weight: var(--ui-text-weight);
 }.app-nav.workspace-chrome .layout-slot-button,
 .app-nav.workspace-chrome .panel-reset-button,
 .app-nav.workspace-chrome .workspace-mode-button{
@@ -2936,7 +2936,7 @@ keep the workspace first. */ .app-nav.workspace-chrome{
     inset 0 1px 0 color-mix(in srgb, var(--glass-highlight) 62%, transparent),
     inset 0 -1px 0 color-mix(in srgb, var(--rocker-illumination) 8%, transparent);
   font-size: 21px;
-  font-weight: 560;
+  font-weight: var(--ui-text-weight);
 }.app-nav.workspace-chrome .composition-undo-button{
   --rocker-illumination: var(--red);
 }.app-nav.workspace-chrome .composition-rocker-control::before{
@@ -2952,7 +2952,7 @@ keep the workspace first. */ .app-nav.workspace-chrome{
   width: 14px;
   height: 14px;
   font-size: 0;
-  font-weight: 400;
+  font-weight: var(--ui-text-weight);
   line-height: 0;
   text-align: center;
   transform: none;
@@ -3180,7 +3180,7 @@ keep the workspace first. */ .app-nav.workspace-chrome{
   padding: 2px 8px 1px;
   color: color-mix(in srgb, var(--ink-muted) 94%, var(--ink));
   font-size: 10px;
-  font-weight: 820;
+  font-weight: var(--ui-text-weight);
   letter-spacing: 0;
   line-height: 1.2;
   text-transform: uppercase;
@@ -3207,7 +3207,7 @@ keep the workspace first. */ .app-nav.workspace-chrome{
     inset 0 1px 0 color-mix(in srgb, var(--glass-highlight) 48%, transparent);
   font: inherit;
   font-size: 12px;
-  font-weight: 760;
+  font-weight: var(--ui-text-weight);
   line-height: 1;
   text-align: left;
   cursor: pointer;
@@ -3253,7 +3253,7 @@ keep the workspace first. */ .app-nav.workspace-chrome{
   min-height: 24px;
   color: var(--ink-strong);
   font-size: 12px;
-  font-weight: 760;
+  font-weight: var(--ui-text-weight);
   line-height: 1;
 }.widget-settings-section{
   gap: 7px;
@@ -3261,14 +3261,14 @@ keep the workspace first. */ .app-nav.workspace-chrome{
   padding: 0 2px 1px;
   color: var(--muted);
   font-size: 10px;
-  font-weight: 780;
+  font-weight: var(--ui-text-weight);
   letter-spacing: .02em;
   line-height: 1;
 }.widget-setting-field{
   gap: var(--space-5);
   color: var(--muted-strong);
   font-size: 11px;
-  font-weight: 720;
+  font-weight: var(--ui-text-weight);
 }.widget-setting-field input:not([type="checkbox"]):not([type="radio"]),
 .widget-setting-field select,
 .widget-setting-field textarea,
@@ -3286,7 +3286,7 @@ keep the workspace first. */ .app-nav.workspace-chrome{
     inset 0 1px 0 color-mix(in srgb, var(--glass-highlight) 48%, transparent);
   font: inherit;
   font-size: 12px;
-  font-weight: 720;
+  font-weight: var(--ui-text-weight);
   line-height: 1;
   outline: none;
   transition: background var(--motion-fast), border-color var(--motion-fast), box-shadow var(--motion-fast), color var(--motion-fast), transform var(--motion-fast);
@@ -3360,7 +3360,7 @@ keep the workspace first. */ .app-nav.workspace-chrome{
     inset 0 1px 0 color-mix(in srgb, var(--glass-highlight) 48%, transparent);
   font: inherit;
   font-size: 12px;
-  font-weight: 760;
+  font-weight: var(--ui-text-weight);
   line-height: 1;
   cursor: pointer;
   transition: background var(--motion-fast), border-color var(--motion-fast), box-shadow var(--motion-fast), color var(--motion-fast), transform var(--motion-fast);
@@ -3394,7 +3394,7 @@ keep the workspace first. */ .app-nav.workspace-chrome{
   min-height: 28px;
   color: var(--muted-strong);
   font-size: 11px;
-  font-weight: 720;
+  font-weight: var(--ui-text-weight);
 }.timeframe-filter-selected-row input{
   accent-color: color-mix(in srgb, var(--panel-accent, var(--blue)) 70%, var(--ink));
 }.app-nav.workspace-chrome .layout-slot-menu button:hover,
@@ -3747,7 +3747,7 @@ and active drags own emphasis alone. */ .widget-layout > .widget-card:has(:is(.w
   padding: 1px 8px 2px;
   color: var(--muted);
   font-size: 10px;
-  font-weight: 780;
+  font-weight: var(--ui-text-weight);
   letter-spacing: 0;
   line-height: 1.2;
   text-transform: none;
@@ -3766,7 +3766,7 @@ and active drags own emphasis alone. */ .widget-layout > .widget-card:has(:is(.w
   inset 0 1px 0 color-mix(in srgb, var(--glass-highlight) 42%, transparent);
   font: inherit;
   font-size: 12px;
-  font-weight: 730;
+  font-weight: var(--ui-text-weight);
   line-height: 1;
   text-align: left;
   cursor: pointer;
@@ -4157,7 +4157,7 @@ html.has-photo-background body{
   padding: 0 12px;
   border-radius: var(--radius-pill);
   font-size: 12px;
-  font-weight: 760;
+  font-weight: var(--ui-text-weight);
   line-height: 1;
   text-align: left;
   cursor: pointer;
@@ -4230,10 +4230,10 @@ and dividers for one * shared translucent recipe: low base alpha + backdrop blur
    * more horizontal space than numerals, so matching the stat size
    * makes labels feel oversized. 22px is ~79% of the rendered stat
    * number — same family, same color, same material, smaller voice.
-   * Weight stays at 780 (not max black). Slight negative tracking
+   * Weight uses the shared UI text weight. Slight negative tracking
    * tightens word forms so they read as one shape. */
   --workspace-object-title-size: 22px;
-  --workspace-object-title-weight: 780;
+  --workspace-object-title-weight: var(--ui-text-weight);
   --workspace-object-title-line-height: 1;
   --workspace-object-title-letter-spacing: -0.01em;
   --workspace-object-title-color: rgba(248, 250, 252, 0.94);
@@ -5060,7 +5060,7 @@ no card. Active * filter is indicated by a subtle underline + slightly higher * 
   /* Stat-style text — workspace-object title family, just slightly
    * scaled down so multiple labels fit in the bar. */
   font-size: 22px !important;
-  font-weight: 780 !important;
+  font-weight: var(--ui-text-weight) !important;
   line-height: 1 !important;
   letter-spacing: 0 !important;
   font-variant-numeric: tabular-nums !important;
@@ -5221,7 +5221,7 @@ no card. Active * filter is indicated by a subtle underline + slightly higher * 
   max-width: 100%;
   overflow: hidden;
   font-size: clamp(18px, 2.5vw, 27px);
-  font-weight: 760;
+  font-weight: var(--ui-text-weight);
   line-height: 1.22;
   letter-spacing: 0;
   text-overflow: ellipsis;

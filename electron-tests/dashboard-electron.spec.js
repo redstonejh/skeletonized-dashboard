@@ -628,7 +628,9 @@ test("electron GUI renders plain text tabs with active scaling and persisted edi
 
   await page.locator(".workspace-tab").nth(1).click({ button: "right" });
   await expect(page.locator(".workspace-tab-tools")).toBeVisible();
-  await expect(page.locator('.workspace-tab-tools .panel-color-swatch[data-color="#ffffff"]')).toBeVisible();
+  await page.locator(".workspace-tab-tools .panel-color-toggle").click();
+  await expect(page.locator('.panel-color-menu-open .panel-color-swatch[data-color="#dbe7f3"][data-color-action="clear"]')).toHaveAttribute("aria-pressed", "true");
+  await expect(page.locator('.panel-color-menu-open .panel-color-swatch[data-color="#ffffff"]')).toBeVisible();
   await page.locator(".workspace-tab-tools .panel-title-handle").click();
   const tabLabelEditor = page.locator(".workspace-tab").nth(1).locator('.workspace-tab-label[data-inline-text-editing="true"]');
   await expect(tabLabelEditor).toBeVisible();
@@ -637,10 +639,14 @@ test("electron GUI renders plain text tabs with active scaling and persisted edi
   await expect(page.locator(".workspace-tab").nth(1)).toHaveText("planning");
   await expect(page.locator(".workspace-tab-tools")).toHaveCount(0);
   await page.locator(".workspace-tab").nth(1).click({ button: "right" });
-  await page.locator('.workspace-tab-tools .panel-color-swatch[data-color="#dc2626"]').click();
+  await page.locator(".workspace-tab-tools .panel-color-toggle").click();
+  await page.locator('.panel-color-menu-open .panel-color-swatch[data-color="#dc2626"]').click();
   await expect.poll(() => page.locator(".workspace-tab").nth(1).evaluate((node) => getComputedStyle(node).getPropertyValue("--tab-accent").trim())).toBe("#dc2626");
   await expect(page.locator(".workspace-tab-tools")).toBeVisible();
-  await expect(page.locator('.workspace-tab-tools .panel-color-swatch[data-color="#dc2626"]')).toHaveAttribute("aria-checked", "true");
+  await expect(page.locator('.panel-color-menu-open .panel-color-swatch[data-color="#dc2626"]')).toHaveAttribute("aria-pressed", "true");
+  await page.locator('.panel-color-menu-open .panel-color-swatch[data-color="#dbe7f3"][data-color-action="clear"]').click();
+  await expect.poll(() => page.locator(".workspace-tab").nth(1).evaluate((node) => getComputedStyle(node).getPropertyValue("--tab-accent").trim())).toBe("#dbe7f3");
+  await expect(page.locator('.panel-color-menu-open .panel-color-swatch[data-color="#dbe7f3"][data-color-action="clear"]')).toHaveAttribute("aria-pressed", "true");
   await page.keyboard.press("Escape");
   await expect(page.locator(".workspace-tab-tools")).toHaveCount(0);
 
@@ -648,7 +654,7 @@ test("electron GUI renders plain text tabs with active scaling and persisted edi
   await page.waitForSelector(".dashboard-layout-grid");
   await expect(page.locator(".workspace-tab").nth(1)).toHaveText("planning");
   await expect(page.locator(".workspace-tab").nth(1)).toHaveAttribute("aria-pressed", "true");
-  await expect.poll(() => page.locator(".workspace-tab").nth(1).evaluate((node) => getComputedStyle(node).getPropertyValue("--tab-accent").trim())).toBe("#dc2626");
+  await expect.poll(() => page.locator(".workspace-tab").nth(1).evaluate((node) => getComputedStyle(node).getPropertyValue("--tab-accent").trim())).toBe("#dbe7f3");
 
   await page.emulateMedia({ reducedMotion: "reduce" });
   const reducedMotion = await page.locator(".workspace-tab").nth(1).evaluate((node) => ({

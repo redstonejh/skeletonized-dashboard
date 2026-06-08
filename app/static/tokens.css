@@ -17,6 +17,7 @@
   --glass-surface-strong: rgba(255, 255, 255, .84);
   --glass-border: rgba(190, 202, 220, .82);
   --glass-highlight: rgba(255, 255, 255, .60);
+  --ui-text-weight: 760;
   --liquid-glass-bg-alpha: 0.10;
   --liquid-glass-backdrop-blur: 6px;
   --liquid-glass-saturate: 180%;

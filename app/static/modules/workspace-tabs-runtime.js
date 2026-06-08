@@ -22,6 +22,11 @@ const cleanLabel = (value, fallback) => {
   return (text || fallback).slice(0, 32);
 };
 
+const defaultTabColorForIndex = (index) =>
+  DEFAULT_TABS[index % DEFAULT_TABS.length]?.color || DEFAULT_TABS[0].color;
+
+const tabSwatchDisplayColor = (color) => color === "#ffffff" ? "#d1d5db" : color;
+
 const normalizeState = (value) => {
   const sourceTabs = Array.isArray(value?.tabs) ? value.tabs : DEFAULT_TABS;
   const tabs = sourceTabs.map((tab, index) => ({
@@ -156,7 +161,7 @@ export const initializeWorkspaceTabsRuntime = ({
     const tab = {
       id: `tab-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`,
       label: `tab ${nextNumber}`,
-      color: DEFAULT_TABS[(nextNumber - 1) % DEFAULT_TABS.length]?.color || "#edf2f8",
+      color: defaultTabColorForIndex(nextNumber - 1),
     };
     const previousIndex = state.activeIndex;
     state = { tabs: [...state.tabs, tab], activeIndex: state.tabs.length };
@@ -291,9 +296,16 @@ export const initializeWorkspaceTabsRuntime = ({
     deleteButton?.setAttribute("aria-label", "Delete tab");
     deleteButton?.setAttribute("title", "Delete tab");
     const refreshColorMenuSelection = () => {
-      const tab = state.tabs[Number(menu?.dataset.tabIndex) || 0];
+      const liveIndex = Number(menu?.dataset.tabIndex) || 0;
+      const tab = state.tabs[liveIndex];
+      const defaultColor = defaultTabColorForIndex(liveIndex);
       colorMenu?.querySelectorAll(".panel-color-swatch").forEach((swatch) => {
-        const selected = cleanHex(swatch.dataset.color) === tab?.color;
+        if (swatch.dataset.colorAction === "clear") {
+          swatch.dataset.color = defaultColor;
+          swatch.style.setProperty("--swatch", tabSwatchDisplayColor(defaultColor));
+        }
+        const swatchColor = cleanHex(swatch.dataset.color, defaultColor);
+        const selected = swatchColor === tab?.color;
         swatch.classList.toggle("is-selected", selected);
         swatch.setAttribute("aria-pressed", String(selected));
       });
@@ -305,7 +317,7 @@ export const initializeWorkspaceTabsRuntime = ({
         return;
       }
       colorMenu = document.createElement("div");
-      colorMenu.className = "panel-color-menu panel-color-menu-open";
+      colorMenu.className = "panel-color-menu panel-color-menu-open workspace-tab-color-menu";
       colorMenu.setAttribute("role", "menu");
       const group = document.createElement("div");
       group.className = "panel-color-group";
@@ -314,18 +326,19 @@ export const initializeWorkspaceTabsRuntime = ({
       label.textContent = "Theme color";
       const swatches = document.createElement("div");
       swatches.className = "panel-color-swatches";
-      panelThemePresets.forEach((color) => {
+      const addSwatch = ({ color, label: swatchLabel, action = "" }) => {
         const swatch = document.createElement("button");
         swatch.className = "panel-color-swatch";
         swatch.type = "button";
         swatch.dataset.color = color;
-        swatch.style.setProperty("--swatch", color === "#ffffff" ? "#d1d5db" : color);
-        swatch.setAttribute("aria-label", color);
+        if (action) swatch.dataset.colorAction = action;
+        swatch.style.setProperty("--swatch", tabSwatchDisplayColor(color));
+        swatch.setAttribute("aria-label", swatchLabel || color);
         swatch.addEventListener("click", (event) => {
           event.preventDefault();
           event.stopPropagation();
           const liveIndex = Number(menu?.dataset.tabIndex) || 0;
-          const nextColor = cleanHex(color);
+          const nextColor = cleanHex(color, defaultTabColorForIndex(liveIndex));
           if (state.tabs[liveIndex]?.color !== nextColor) {
             pushUndo();
             state.tabs[liveIndex] = { ...state.tabs[liveIndex], color: nextColor };
@@ -338,7 +351,14 @@ export const initializeWorkspaceTabsRuntime = ({
           positionPanelColorMenu(colorToggle, colorMenu);
         });
         swatches.appendChild(swatch);
+      };
+      const liveIndex = Number(menu?.dataset.tabIndex) || 0;
+      addSwatch({
+        color: defaultTabColorForIndex(liveIndex),
+        label: "Default color",
+        action: "clear",
       });
+      panelThemePresets.forEach((color) => addSwatch({ color }));
       group.append(label, swatches);
       colorMenu.appendChild(group);
       colorMenu.addEventListener("click", (event) => event.stopPropagation());
