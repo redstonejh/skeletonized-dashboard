@@ -4121,6 +4121,10 @@ and dividers for one * shared translucent recipe: low base alpha + diagonal shee
   --dashboard-custom-text-shadow:
     0 1px 2px rgba(0, 0, 0, 0.55),
     0 0 2px rgba(0, 0, 0, 0.35);
+  --dashboard-highlight-text-color: rgba(255, 255, 255, 1.0);
+  --dashboard-selection-underline-color: rgba(255, 255, 255, 0.85);
+  --dashboard-selection-underline-offset: 6px;
+  --dashboard-selection-underline-thickness: 2px;
 
   /* ── Shared workspace-object typography ─────────────────────────────
    *
@@ -4143,7 +4147,7 @@ and dividers for one * shared translucent recipe: low base alpha + diagonal shee
   --workspace-object-title-size: 22px;
   --workspace-object-title-line-height: 1;
   --workspace-object-title-letter-spacing: 0;
-  --workspace-object-title-color: rgba(248, 250, 252, 0.94);
+  --workspace-object-title-color: var(--dashboard-highlight-text-color);
   --workspace-object-title-numeric: tabular-nums;
 
   /* ── Shared liquid-glass edge tokens ────────────────────────────────
@@ -4947,8 +4951,8 @@ no card. Active * filter is indicated by a subtle underline + slightly higher * 
   text-shadow: var(--dashboard-custom-text-shadow) !important;
   cursor: pointer !important;
   text-decoration: none !important;
-  text-underline-offset: 6px !important;
-  text-decoration-thickness: 2px !important;
+  text-underline-offset: var(--dashboard-selection-underline-offset) !important;
+  text-decoration-thickness: var(--dashboard-selection-underline-thickness) !important;
   flex-shrink: 0 !important;
   transition: color .12s ease, text-shadow .12s ease, text-decoration-color .12s ease !important;
 }.timeframe-filter-btn:hover{
@@ -4962,11 +4966,11 @@ no card. Active * filter is indicated by a subtle underline + slightly higher * 
   outline: 0 !important;
   color: rgba(255, 255, 255, 0.96) !important;
 }.timeframe-filter-btn.is-active{
-  color: rgba(255, 255, 255, 1.0) !important;
+  color: var(--dashboard-highlight-text-color) !important;
   background: transparent !important;
   border: 0 !important;
   text-decoration: underline !important;
-  text-decoration-color: rgba(255, 255, 255, 0.85) !important;
+  text-decoration-color: var(--dashboard-selection-underline-color) !important;
   text-shadow:
     0 1px 2px rgba(0, 0, 0, 0.7),
     0 0 3px rgba(0, 0, 0, 0.5),
@@ -5119,6 +5123,9 @@ no card. Active * filter is indicated by a subtle underline + slightly higher * 
   -webkit-background-clip: border-box;
   filter: none;
   text-shadow: var(--dashboard-custom-text-shadow);
+  text-decoration: none;
+  text-underline-offset: var(--dashboard-selection-underline-offset);
+  text-decoration-thickness: var(--dashboard-selection-underline-thickness);
   user-select: none;
   -webkit-user-select: none;
 }
@@ -5167,6 +5174,10 @@ no card. Active * filter is indicated by a subtle underline + slightly higher * 
 }
 .workspace-tab[aria-pressed="true"]{
   --tab-scale: 1.12;
+}
+.workspace-tab[aria-pressed="true"] .workspace-tab-label{
+  text-decoration: underline;
+  text-decoration-color: var(--dashboard-selection-underline-color);
 }
 .workspace-tab[aria-pressed="true"]:hover,
 .workspace-tab[aria-pressed="true"]:focus-visible{
