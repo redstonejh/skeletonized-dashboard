@@ -933,6 +933,61 @@ test("electron GUI keeps object glass material independent from workspace backgr
   await closeApp(app);
 });
 
+test("electron GUI uses the same object material for static and photo backgrounds", async () => {
+  const { app, page } = await launchApp();
+  const dashboardGridCss = fs.readFileSync(path.join(__dirname, "..", "app", "static", "dashboard-grid.css"), "utf8");
+  expect(dashboardGridCss).not.toMatch(/var\(--bg(?:-end)?\b/);
+
+  const captureMaterial = async () => page.evaluate(() => {
+    let divider = document.querySelector(".workspace-divider.db-panel");
+    if (!divider) {
+      divider = document.createElement("section");
+      divider.className = "workspace-divider db-panel";
+      divider.dataset.testDivider = "true";
+      document.querySelector(".panel-layout")?.append(divider);
+    }
+    const props = [
+      "background",
+      "backgroundColor",
+      "backgroundImage",
+      "borderColor",
+      "borderTopColor",
+      "borderBottomColor",
+      "boxShadow",
+      "backdropFilter",
+      "webkitBackdropFilter",
+      "opacity",
+    ];
+    const selectors = {
+      panel: '.panel-layout > .db-panel[data-panel-key="builder-content"]',
+      panelHeader: '.panel-layout > .db-panel[data-panel-key="builder-content"] > .db-panel-hd',
+      panelBody: '.panel-layout > .db-panel[data-panel-key="builder-content"] > .db-panel-body',
+      widget: '.widget-layout:not(.panel-internal-widget-grid) > .widget-card[data-widget-key="widget-1"]',
+      customPanel: '.panel-layout > .db-panel.db-panel-custom-color[data-panel-key="builder-notes"]',
+      divider: ".workspace-divider.db-panel",
+    };
+    return Object.fromEntries(Object.entries(selectors).map(([key, selector]) => {
+      const node = document.querySelector(selector);
+      if (!node) return [key, null];
+      const styles = getComputedStyle(node);
+      return [key, Object.fromEntries(props.map((prop) => [prop, styles[prop] || ""]))];
+    }));
+  });
+
+  const staticMaterial = await captureMaterial();
+  await openControlBar(page);
+  await page.locator(".background-tone-trigger").click({ force: true });
+  await page.locator('.background-photo-option[data-background-tone="photo-earth"]').click({ force: true });
+  await expect(page.locator("html")).toHaveAttribute("data-background", "photo-earth");
+  await expect(page.locator("body")).toHaveClass(/has-photo-background/);
+  const photoMaterial = await captureMaterial();
+
+  expect(Object.values(staticMaterial).every(Boolean)).toBe(true);
+  expect(Object.values(photoMaterial).every(Boolean)).toBe(true);
+  expect(staticMaterial).toEqual(photoMaterial);
+  await closeApp(app);
+});
+
 test("electron GUI scrolls panel expansion into view and restores on collapse", async () => {
   const { app, page } = await launchApp();
   const selector = '.panel-layout > .db-panel[data-panel-key="builder-content"]';

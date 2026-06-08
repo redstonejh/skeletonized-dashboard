@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "material_gate": "static-color object material equals photo-background object material",
+  "photoDiffCount": 0,
+  "staticVsPhotoDiffCount": 0,
+  "photoUnchangedForCapturedObjects": true,
+  "staticMatchesPhotoForCapturedObjects": true,
+  "capturedObjects": [
+    "panel",
+    "panelHeader",
+    "panelBody",
+    "widget",
+    "customPanel"
+  ],
+  "notes": [
+    "The e2e canary also synthesizes a workspace-divider.db-panel because the default fixture does not include one.",
+    "The CSS change is guarded by body:not(.has-photo-background), so the photo-background material rules are not modified."
+  ]
+}

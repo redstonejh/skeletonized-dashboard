@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "verdict": "SHIP",
+  "summary": "Static-color object surfaces now compute to the same material as photo-background object surfaces while the photo state remains unchanged.",
+  "checks": {
+    "discovery_guard": "pass",
+    "delegation_proof": "pass",
+    "photo_unchanged": "pass",
+    "static_matches_photo": "pass",
+    "object_bg_reference_grep": "pass",
+    "custom_color_existing_canary": "pass",
+    "full_e2e": "pass",
+    "verdict_check": "pass"
+  },
+  "material_parity": {
+    "photoDiffCount": 0,
+    "staticVsPhotoDiffCount": 0,
+    "artifact": "artifacts/object-material-parity.json"
+  },
+  "full_e2e": {
+    "command": "npm.cmd run test:e2e -- --workers=1 --reporter=line",
+    "result": "24 passed (6.6m)"
+  },
+  "themes_css_lines": {
+    "before": 5744,
+    "after": 5828,
+    "delta": 84,
+    "note": "The proven implementation used a static-only late override to avoid changing the photo reference. The older object-shell block also defines control variables, so it was not deleted in this run."
+  }
+}
+

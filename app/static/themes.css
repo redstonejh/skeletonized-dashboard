@@ -5763,3 +5763,88 @@ no card. Active * filter is indicated by a subtle underline + slightly higher * 
     padding-top: 12px;
   }
 }
+
+/* Static backgrounds use the photo-background object material exactly.
+   The photo path remains the reference; this static-only layer mirrors the
+   computed material so solid colors show through the same glass recipe. */
+body:not(.has-photo-background) .panel-layout > .db-panel{
+  background:
+    linear-gradient(150deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.02) 30%, rgba(255, 255, 255, 0) 58%, rgba(255, 255, 255, 0.03) 100%),
+    rgba(255, 255, 255, 0.64) !important;
+  border-color: oklab(0.813548 -0.00632241 -0.0400622 / 0.756813) !important;
+  box-shadow:
+    rgba(15, 23, 42, 0.043) 0px 2px 10px 0px,
+    rgba(255, 255, 255, 0.075) 0px 1px 0px 0px inset,
+    rgba(0, 0, 0, 0) 0px 0px 0px 0px inset,
+    rgba(0, 0, 0, 0) 0px 0px 0px 0px inset,
+    rgba(0, 0, 0, 0) 0px 0px 0px 0px inset,
+    rgba(0, 0, 0, 0) 0px 0px 0px 0px inset,
+    rgba(0, 0, 0, 0) 0px 0px 0px 0px inset,
+    rgba(0, 0, 0, 0) 0px 0px 0px 0px inset !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+body:not(.has-photo-background) .panel-layout > .db-panel.db-panel-custom-color[data-panel-key="builder-notes"]{
+  border-color: oklab(0.812451 0.00610432 -0.0410107 / 0.756813) !important;
+}
+body:not(.has-photo-background) .workspace-divider.db-panel{
+  background: rgba(255, 255, 255, 0.64) !important;
+  background-image: none !important;
+}
+body:not(.has-photo-background) .db-panel > .db-panel-hd{
+  border-color: oklab(0.813548 -0.00632241 -0.0400622 / 0.756813) !important;
+  box-shadow:
+    rgba(255, 255, 255, 0.6) 0px 1px 0px 0px inset,
+    rgba(255, 255, 255, 0.32) 0px 6px 10px -6px inset,
+    rgba(255, 255, 255, 0.1) 0px -1px 0px 0px inset !important;
+  backdrop-filter: blur(3px) saturate(1.75) !important;
+  -webkit-backdrop-filter: blur(3px) saturate(1.75) !important;
+}
+body:not(.has-photo-background) .db-panel-body{
+  background: transparent !important;
+  background-color: transparent !important;
+  border-top-color: rgba(255, 255, 255, 0.24) !important;
+  box-shadow:
+    rgba(255, 255, 255, 0.28) 0px 1px 0px 0px inset,
+    rgba(255, 255, 255, 0.1) 1px 0px 0px 0px inset,
+    rgba(255, 255, 255, 0.1) -1px 0px 0px 0px inset,
+    rgba(255, 255, 255, 0.06) 0px -1px 0px 0px inset !important;
+  backdrop-filter: blur(2px) saturate(1.75) !important;
+  -webkit-backdrop-filter: blur(2px) saturate(1.75) !important;
+}
+body:not(.has-photo-background) .widget-layout > .widget-card,
+body:not(.has-photo-background) .panel-internal-widget-grid > .widget-card{
+  border-color: oklab(0.813548 -0.00632241 -0.0400622 / 0.756813) !important;
+  box-shadow:
+    rgba(15, 23, 42, 0.043) 0px 2px 10px 0px,
+    rgba(255, 255, 255, 0.075) 0px 1px 0px 0px inset,
+    rgba(0, 0, 0, 0) 0px 0px 0px 0px inset,
+    rgba(0, 0, 0, 0) 0px 0px 0px 0px inset,
+    rgba(0, 0, 0, 0) 0px 0px 0px 0px inset,
+    rgba(0, 0, 0, 0) 0px 0px 0px 0px inset,
+    rgba(0, 0, 0, 0) 0px 0px 0px 0px inset,
+    rgba(0, 0, 0, 0) 0px 0px 0px 0px inset !important;
+  backdrop-filter: blur(3px) saturate(1.75) !important;
+  -webkit-backdrop-filter: blur(3px) saturate(1.75) !important;
+}
+body:not(.has-photo-background) .widget-layout > .widget-card.db-panel-custom-color,
+body:not(.has-photo-background) .widget-layout > .widget-card.db-panel-custom-color.widget-runtime-meaning,
+body:not(.has-photo-background) .widget-layout > .widget-card.db-panel-custom-color.widget-tools-open,
+body:not(.has-photo-background) .widget-layout > .widget-card.db-panel-custom-color.widget-tools-open:hover,
+body:not(.has-photo-background) .widget-layout > .widget-card.db-panel-custom-color.widget-tools-open:focus-visible,
+body:not(.has-photo-background) .panel-internal-widget-grid > .widget-card.db-panel-custom-color,
+body:not(.has-photo-background) .panel-internal-widget-grid > .widget-card.db-panel-custom-color.widget-runtime-meaning,
+body:not(.has-photo-background) .panel-internal-widget-grid > .widget-card.db-panel-custom-color.widget-tools-open,
+body:not(.has-photo-background) .panel-internal-widget-grid > .widget-card.db-panel-custom-color.widget-tools-open:hover,
+body:not(.has-photo-background) .panel-internal-widget-grid > .widget-card.db-panel-custom-color.widget-tools-open:focus-visible{
+  border-color: oklab(0.813548 -0.00632241 -0.0400622 / 0.756813) !important;
+  box-shadow:
+    rgba(15, 23, 42, 0.043) 0px 2px 10px 0px,
+    rgba(255, 255, 255, 0.075) 0px 1px 0px 0px inset,
+    rgba(0, 0, 0, 0) 0px 0px 0px 0px inset,
+    rgba(0, 0, 0, 0) 0px 0px 0px 0px inset,
+    rgba(0, 0, 0, 0) 0px 0px 0px 0px inset,
+    rgba(0, 0, 0, 0) 0px 0px 0px 0px inset,
+    rgba(0, 0, 0, 0) 0px 0px 0px 0px inset,
+    rgba(0, 0, 0, 0) 0px 0px 0px 0px inset !important;
+}

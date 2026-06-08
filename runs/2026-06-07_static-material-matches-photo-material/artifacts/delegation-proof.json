@@ -1,0 +1,38 @@
+{
+  "schema_version": 1,
+  "delegation_capability": {
+    "available": true,
+    "primitive": "multi_agent_v1.spawn_agent"
+  },
+  "selected_roles": [
+    "conductor",
+    "planner",
+    "worker",
+    "critic",
+    "acceptance_gate"
+  ],
+  "roles": {
+    "conductor": {
+      "agent_id": "019ea493-689e-7e62-ba11-e23e1653c30b",
+      "role_prompt_path": ".codex/agents/conductor.md",
+      "note": "Returned stale repo context; local discovery guard verified dashboard repo."
+    },
+    "planner": {
+      "agent_id": "019ea493-afad-7df0-9279-6fb8ec851db6",
+      "role_prompt_path": ".codex/agents/planner.md"
+    },
+    "worker": {
+      "agent_id": "019ea493-c51c-71d2-ab93-18039f126d8c",
+      "role_prompt_path": ".codex/agents/worker.md"
+    },
+    "critic": {
+      "agent_id": "019ea493-e04d-7f11-a848-5b9b752571e9",
+      "role_prompt_path": ".codex/agents/critic.md"
+    },
+    "acceptance_gate": {
+      "agent_id": "019ea494-2ac3-75e0-812e-217375bfec24",
+      "role_prompt_path": ".codex/agents/acceptance_gate.md"
+    }
+  }
+}
+
