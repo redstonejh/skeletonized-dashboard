@@ -1,0 +1,12 @@
+{
+  "verdict": "NO-SHIP",
+  "reason": "Committed by user direction without full acceptance; user stated the issue is not fixed and requested no further tests.",
+  "focused_test": {
+    "command": "npx.cmd playwright test electron-tests/dashboard-electron.spec.js --workers=1 --reporter=list -g \"WebGL glass canvas with tab slide\"",
+    "result": "passed once"
+  },
+  "full_e2e": {
+    "command": "npm.cmd run test:e2e -- --workers=1",
+    "result": "not completed; command timeout followed by user interruption"
+  }
+}

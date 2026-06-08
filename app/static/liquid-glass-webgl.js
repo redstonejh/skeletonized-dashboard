@@ -549,6 +549,29 @@
     rafHandle = requestAnimationFrame(draw);
   };
 
+  const setWorkspacePageTransform = (transform = "", { transition = "" } = {}) => {
+    if (!canvas) return false;
+    canvas.style.transformOrigin = "top left";
+    canvas.style.transition = transition || "";
+    canvas.style.transform = transform && transform !== "none" ? transform : "";
+    if (canvas.style.transform) {
+      canvas.dataset.workspacePageTransform = canvas.style.transform;
+    } else {
+      delete canvas.dataset.workspacePageTransform;
+    }
+    return true;
+  };
+
+  const releaseWorkspacePageTransform = ({ refresh = true } = {}) => {
+    if (canvas) {
+      canvas.style.transition = "";
+      canvas.style.transform = "";
+      delete canvas.dataset.workspacePageTransform;
+    }
+    if (refresh) markDirty();
+    return Boolean(canvas);
+  };
+
   const tickContinuous = () => {
     if (!active) return;
     draw();
@@ -863,6 +886,8 @@
     },
     diagnostics: logDiagnostics,
     markDirty,
+    setWorkspacePageTransform,
+    releaseWorkspacePageTransform,
     mountFloatingPanel,
     isActive: () => active,
   };

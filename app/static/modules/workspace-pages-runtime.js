@@ -92,6 +92,33 @@ export const initializeWorkspacePagesRuntime = ({
     onPageMounted?.({ tabId });
   };
   const reducedMotion = () => window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
+  const parseTransitionMs = (value = "") => {
+    const parts = String(value).split(",").map((part) => part.trim()).filter(Boolean);
+    const msValues = parts.map((part) => {
+      if (part.endsWith("ms")) return Number.parseFloat(part) || 0;
+      if (part.endsWith("s")) return (Number.parseFloat(part) || 0) * 1000;
+      return Number.parseFloat(part) || 0;
+    });
+    return Math.max(0, ...msValues, 180);
+  };
+  const pageTransition = () => {
+    const style = getComputedStyle(grid);
+    return {
+      css: style.transition || "transform 180ms ease, opacity 180ms ease",
+      ms: parseTransitionMs(style.transitionDuration),
+    };
+  };
+  const setGlassPageTransform = (x, { immediate = false } = {}) => {
+    const api = window.LiquidGlassWebGL;
+    if (!api?.setWorkspacePageTransform) return false;
+    const transition = immediate ? "none" : pageTransition().css;
+    return api.setWorkspacePageTransform(`translateX(${x}px)`, { transition });
+  };
+  const releaseGlassPageTransform = ({ delay = 0 } = {}) => {
+    const api = window.LiquidGlassWebGL;
+    if (!api?.releaseWorkspacePageTransform) return;
+    window.setTimeout(() => api.releaseWorkspacePageTransform({ refresh: true }), Math.max(0, delay));
+  };
   const activatePage = ({ nextTab, direction = 1 } = {}) => {
     const nextTabId = nextTab?.id;
     if (!nextTabId || nextTabId === activeTabId || switching) return;
@@ -99,22 +126,30 @@ export const initializeWorkspacePagesRuntime = ({
     const finish = () => {
       mountPage(nextTabId);
       activeTabId = nextTabId;
-      grid.style.setProperty("--workspace-page-enter-x", `${direction >= 0 ? 28 : -28}px`);
+      const enterX = direction >= 0 ? 28 : -28;
+      const transition = pageTransition();
+      grid.style.setProperty("--workspace-page-enter-x", `${enterX}px`);
       grid.classList.remove("workspace-page-slide-out");
       grid.classList.add("workspace-page-slide-in");
+      setGlassPageTransform(enterX, { immediate: true });
       window.requestAnimationFrame(() => {
         grid.classList.remove("workspace-page-slide-in");
+        setGlassPageTransform(0);
         switching = false;
+        releaseGlassPageTransform({ delay: transition.ms + 40 });
       });
     };
     if (reducedMotion()) {
       mountPage(nextTabId);
       activeTabId = nextTabId;
+      releaseGlassPageTransform();
       return;
     }
     switching = true;
-    grid.style.setProperty("--workspace-page-exit-x", `${direction >= 0 ? -28 : 28}px`);
+    const exitX = direction >= 0 ? -28 : 28;
+    grid.style.setProperty("--workspace-page-exit-x", `${exitX}px`);
     grid.classList.add("workspace-page-slide-out");
+    setGlassPageTransform(exitX);
     window.setTimeout(finish, 130);
   };
 

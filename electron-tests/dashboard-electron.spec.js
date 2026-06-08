@@ -713,6 +713,49 @@ test("electron GUI wires tabs to isolated lazy-loaded workspace pages", async ()
   await closeApp(app);
 });
 
+test("electron GUI moves the WebGL glass canvas with tab slide transforms", async () => {
+  const { app, page } = await launchApp();
+  await openControlBar(page);
+  await page.locator(".background-tone-trigger").click({ force: true });
+  await page.locator('.background-photo-option[data-background-tone="photo-earth"]').click({ force: true });
+  await expect(page.locator("html")).toHaveAttribute("data-background", "photo-earth");
+  await expect(page.locator("body")).toHaveClass(/has-photo-background/);
+  await page.waitForFunction(() => Boolean(window.LiquidGlassWebGL?.isActive?.()));
+  await expect(page.locator(".liquid-glass-webgl-canvas")).toBeVisible();
+
+  await page.locator(".workspace-tab:not(.workspace-tab-add)").nth(1).click({ force: true });
+  await page.waitForFunction(() => {
+    const grid = document.querySelector(".dashboard-layout-grid");
+    const canvas = document.querySelector(".liquid-glass-webgl-canvas");
+    return grid?.classList.contains("workspace-page-slide-out") &&
+      canvas?.dataset.workspacePageTransform &&
+      getComputedStyle(canvas).transform !== "none";
+  });
+  const slideOut = await page.evaluate(() => {
+    const grid = document.querySelector(".dashboard-layout-grid");
+    const canvas = document.querySelector(".liquid-glass-webgl-canvas");
+    return {
+      gridExitX: getComputedStyle(grid).getPropertyValue("--workspace-page-exit-x").trim(),
+      canvasTarget: canvas?.dataset.workspacePageTransform || "",
+      canvasComputed: getComputedStyle(canvas).transform,
+    };
+  });
+  expect(slideOut.gridExitX).toBe("-28px");
+  expect(slideOut.canvasTarget).toBe("translateX(-28px)");
+  expect(slideOut.canvasComputed).not.toBe("none");
+
+  await page.waitForFunction(() => {
+    const grid = document.querySelector(".dashboard-layout-grid");
+    const canvas = document.querySelector(".liquid-glass-webgl-canvas");
+    return !grid?.classList.contains("workspace-page-slide-out") &&
+      !grid?.classList.contains("workspace-page-slide-in") &&
+      !canvas?.dataset.workspacePageTransform &&
+      !canvas?.style.transform;
+  });
+  await expect(page.locator(".liquid-glass-webgl-canvas")).toBeVisible();
+  await closeApp(app);
+});
+
 test("electron GUI keeps widget clicks local and free of orange focus artifacts", async () => {
   const { app, page } = await launchApp();
   const navigationEvents = [];
