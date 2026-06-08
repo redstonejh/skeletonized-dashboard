@@ -5861,3 +5861,31 @@ no card. Active * filter is indicated by a subtle underline + slightly higher * 
   filter: none !important;
   background: none !important;
 }
+.panel-layout > .db-panel,
+.workspace-divider.db-panel{
+  --panel-content-rim: transparent !important;
+  --panel-content-shadow: none !important;
+  --recessed-interior-border: transparent !important;
+  --recessed-interior-shadow: none !important;
+}
+.panel-layout > .db-panel > .db-panel-hd,
+.panel-layout > .db-panel > .db-panel-body,
+.workspace-divider.db-panel > .db-panel-hd,
+.workspace-divider.db-panel > .db-panel-body{
+  border: 0 !important;
+  border-top: 0 !important;
+  border-right: 0 !important;
+  border-bottom: 0 !important;
+  border-left: 0 !important;
+  border-color: transparent !important;
+  outline: 0 !important;
+  outline-offset: 0 !important;
+  box-shadow: none !important;
+}
+.panel-layout > .db-panel > .db-panel-body::after,
+.workspace-divider.db-panel > .db-panel-body::after{
+  content: none !important;
+  box-shadow: none !important;
+  filter: none !important;
+  background: none !important;
+}

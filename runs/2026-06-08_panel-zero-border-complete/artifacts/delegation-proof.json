@@ -1,0 +1,27 @@
+{
+  "capability_detected": "multi_agent_v1.existing_distinct_sessions",
+  "delegation_mode": "available_existing_distinct_sessions_reused",
+  "roles": {
+    "conductor": {
+      "agent_id": "019ea52f-9d6f-7c22-969d-46f955c94cc2",
+      "prompt_path": ".codex/agents/conductor.md"
+    },
+    "planner": {
+      "agent_id": "019ea542-78dd-75a2-852f-db0cb092ea26",
+      "prompt_path": ".codex/agents/planner.md"
+    },
+    "worker": {
+      "agent_id": "019ea542-94dc-7900-ad8d-95199a1f488c",
+      "prompt_path": ".codex/agents/worker.md"
+    },
+    "critic": {
+      "agent_id": "019ea542-aa1f-7b13-8ff6-74d2a2e7e25e",
+      "prompt_path": ".codex/agents/critic.md"
+    },
+    "acceptance_gate": {
+      "agent_id": "019ea52f-b34c-73f1-95d6-15b8296e1dee",
+      "prompt_path": ".codex/agents/acceptance_gate.md"
+    }
+  },
+  "distinct_agent_ids": true
+}
