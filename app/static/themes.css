@@ -4916,15 +4916,18 @@ or fill — the empty body reads as blank glass. */ .db-panel-body > .panel-empt
   display: none !important;
 }/* ── Timeframe task-bar control redesign ────────────────────────────── * * Replace pill buttons with plain stat-style text labels. * * Source markup (widget-registry.js:1879): * <button class="timeframe-filter-btn" data-filter-id="...">label</button> * * Strip the pill shell entirely (background, border, padding, radius, * box-shadow) and re-style as inline text — same family as the stat * widget number / workspace-object title: white,
 bold,
-no card. Active * filter is indicated by a subtle underline + slightly higher * brightness. Hover brightens text only. */ .timeframe-filter-btn{
+no card. Active * filter is indicated by a subtle underline + slightly higher * brightness. Hover brightens text only. */ .timeframe-widget-card .widget-shell-content{
+  display: flex !important;
+  align-items: center !important;
+}.timeframe-filter-btn{
   appearance: none !important;
   -webkit-appearance: none !important;
   display: inline-flex !important;
   align-items: center !important;
   justify-content: center !important;
   height: auto !important;
-  min-height: 0 !important;
-  padding: 4px 8px !important;
+  min-height: 46px !important;
+  padding: 0 8px !important;
   border: 0 !important;
   border-radius: 0 !important;
   background: transparent !important;
@@ -4972,6 +4975,7 @@ no card. Active * filter is indicated by a subtle underline + slightly higher * 
   color: rgba(255, 255, 255, 1.0) !important;
   text-decoration-color: rgba(255, 255, 255, 1.0) !important;
 }/* Tighten the bar layout so the labels read as one row of text */ .timeframe-widget-card .timeframe-body{
+  display: flex !important;
   align-items: center !important;
   align-content: center !important;
   gap: 14px !important;
