@@ -106,21 +106,51 @@
       }
       return { rows: [] };
     };
+    const normalizeIngestEntry = (entry) => {
+      if (Array.isArray(entry)) return { data: normalizeWidgetData(entry), config: null };
+      if (!entry || typeof entry !== "object") return { data: normalizeWidgetData(entry), config: null };
+      const hasConfig = entry.config && typeof entry.config === "object" && !Array.isArray(entry.config);
+      const { config, ...data } = entry;
+      const hasData = Object.keys(data).some((key) => data[key] !== undefined);
+      return {
+        data: hasData ? normalizeWidgetData(data) : null,
+        config: hasConfig ? { ...config } : null,
+      };
+    };
     const widgetDataKeys = (widget, definition = definitionForElement(widget)) => uniqueValues([
       widget?.dataset?.widgetKey,
       widget?.dataset?.contextOverrideId,
       definition?.type ? `type:${definition.type}` : "",
       "*",
     ]);
-    const storedDataForWidget = (widget, definition = definitionForElement(widget)) => {
-      const key = widgetDataKeys(widget, definition).find((candidate) => widgetDataStore.has(candidate));
-      return key ? widgetDataStore.get(key) : null;
-    };
     const dataForWidget = (widget, definition = definitionForElement(widget), instance = null, explicitData = null) => {
       if (explicitData != null) return normalizeWidgetData(explicitData);
-      const stored = storedDataForWidget(widget, definition);
-      if (stored != null) return normalizeWidgetData(stored);
+      const stored = widgetDataKeys(widget, definition)
+        .map((key) => widgetDataStore.get(key))
+        .find((entry) => entry?.data != null);
+      if (stored?.data != null) return normalizeWidgetData(stored.data);
       return normalizeWidgetData(instance?.data || { rows: [] });
+    };
+    const configPatchForWidget = (widget, definition = definitionForElement(widget), explicitConfig = null) => {
+      const patches = widgetDataKeys(widget, definition)
+        .slice()
+        .reverse()
+        .map((key) => widgetDataStore.get(key)?.config)
+        .filter((config) => config && typeof config === "object" && !Array.isArray(config));
+      if (explicitConfig && typeof explicitConfig === "object" && !Array.isArray(explicitConfig)) {
+        patches.push(explicitConfig);
+      }
+      return patches.length ? Object.assign({}, ...patches) : null;
+    };
+    const applyConfigPatchForWidget = (widget, definition = definitionForElement(widget), explicitConfig = null) => {
+      const patch = configPatchForWidget(widget, definition, explicitConfig);
+      if (!patch) return null;
+      const nextConfig = {
+        ...configFromElement(widget, definition),
+        ...patch,
+      };
+      setConfig(widget, nextConfig);
+      return nextConfig;
     };
     const setConfigValue = (widget, key, value) => {
       if (!widget || !key) return;
@@ -305,6 +335,7 @@
     const renderRuntimeContent = (widget, options = {}) => {
       if (!widget?.classList?.contains("widget-card")) return;
       const definition = definitionForElement(widget);
+      applyConfigPatchForWidget(widget, definition, options.config);
       const instance = instanceFromElement(widget, definition);
       const displayState = deps.resolveWidgetDisplayState?.(widget) || instance.displayState || null;
       applyDensityMetadata(widget, instance.density || "standard");
@@ -366,7 +397,7 @@
     const setWidgetData = (key, data, options = {}) => {
       const normalizedKey = String(key || "").trim();
       if (!normalizedKey) return false;
-      widgetDataStore.set(normalizedKey, normalizeWidgetData(data));
+      widgetDataStore.set(normalizedKey, normalizeIngestEntry(data));
       if (options.refresh !== false) refreshAllWidgetData();
       return true;
     };
@@ -384,8 +415,9 @@
       const entries = [];
       if (payload.default !== undefined) entries.push(["*", payload.default]);
       Object.entries(payload.types || {}).forEach(([type, data]) => entries.push([`type:${type}`, data]));
+      Object.entries(payload.contexts || payload.contextData || {}).forEach(([key, data]) => entries.push([key, data]));
       Object.entries(payload.widgets || payload.widgetData || {}).forEach(([key, data]) => entries.push([key, data]));
-      entries.forEach(([key, data]) => widgetDataStore.set(String(key), normalizeWidgetData(data)));
+      entries.forEach(([key, data]) => widgetDataStore.set(String(key), normalizeIngestEntry(data)));
       if (options.refresh !== false) refreshAllWidgetData();
       return true;
     };
@@ -542,6 +574,7 @@
       refreshWidget: refreshWidgetData,
       refreshAll: refreshAllWidgetData,
       dataForWidget,
+      configPatchForWidget,
       queryForWidget,
       queryAllWidgets,
     });
@@ -569,6 +602,7 @@
       renderRuntimeContent,
       hydrateRuntime,
       dataForWidget,
+      configPatchForWidget,
       setWidgetData,
       clearWidgetData,
       ingestWidgetData,

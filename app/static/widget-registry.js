@@ -1439,24 +1439,34 @@
     };
   };
 
-  const queryFieldsForDefinition = (definition, config = {}) => (
+  const schemaFieldsForDefinition = (definition, config = {}, predicate = () => true) => (
     (definition?.settingsSchema?.sections || []).flatMap((section) => (
       (section?.fields || [])
-        .filter((field) => field?.affectsQuery)
+        .filter(predicate)
         .map((field) => ({
           key: field.key,
           label: field.label || field.key,
           type: field.type || "text",
           valueType: field.valueType || "",
+          affectsQuery: Boolean(field.affectsQuery),
           value: config[field.key],
         }))
     ))
+  );
+
+  const queryFieldsForDefinition = (definition, config = {}) => (
+    schemaFieldsForDefinition(definition, config, (field) => field?.affectsQuery)
+  );
+
+  const configFieldsForDefinition = (definition, config = {}) => (
+    schemaFieldsForDefinition(definition, config, (field) => field?.key)
   );
 
   const dataRequestForWidget = (definition, instance = {}) => {
     const resolvedDefinition = typeof definition === "string" ? getWidgetDefinition(definition) : definition;
     const config = instance.config || {};
     const queryFields = queryFieldsForDefinition(resolvedDefinition, config);
+    const configFields = configFieldsForDefinition(resolvedDefinition, config);
     const fieldValues = queryFields
       .map((field) => field.value)
       .flatMap((value) => Array.isArray(value) ? value : [value])
@@ -1469,6 +1479,7 @@
       subcategory: resolvedDefinition.subcategory || "",
       capabilities: { ...(resolvedDefinition.capabilities || {}) },
       config: { ...config },
+      configFields,
       queryFields,
       fields: unique(fieldValues),
       timeRange: instance.timeRange || instance.displayState?.timeRange || null,
@@ -1477,6 +1488,7 @@
         resolvedDefinition.capabilities?.supportsTimeRange ||
         queryFields.length
       ),
+      expectsConfig: Boolean(configFields.length),
     };
   };
 
