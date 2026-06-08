@@ -391,9 +391,7 @@ test("electron GUI keeps slim navbar controls wired", async () => {
   await expect(page.locator(".layout-slot-picker, .layout-slot-trigger, .layout-slot-menu, [data-slot]")).toHaveCount(0);
   await expect(page.getByText(/^Layout [0-9]+$/)).toHaveCount(0);
   await openControlBar(page);
-  await expect(page.locator(".background-tone-popover [data-liquid-glass-toggle]")).toHaveCount(1);
-  await expect(page.locator(".app-nav-status [data-liquid-glass-toggle]")).toHaveCount(0);
-  await expect(page.locator(".app-nav-actions > .appearance-command-island > [data-liquid-glass-toggle]")).toHaveCount(0);
+  await expect(page.locator("[data-liquid-glass-toggle]")).toHaveCount(0);
 
   const modeButtons = await page.locator(".mode-command-island > button").evaluateAll((buttons) =>
     buttons.map((button) => button.textContent?.trim())
@@ -405,20 +403,10 @@ test("electron GUI keeps slim navbar controls wired", async () => {
   await page.locator(".layout-group-button").click({ force: true });
   await expect(page.locator(".layout-group-button")).toHaveAttribute("aria-pressed", "false");
 
-  await openControlBar(page);
-  await page.locator(".background-tone-trigger").click({ force: true });
-  await page.waitForFunction(() => Boolean(window.LiquidGlassWebGL));
-  const glassToggle = page.getByRole("button", { name: "Toggle liquid glass effect" });
-  await expect(glassToggle).toBeVisible();
-  const beforeGlass = await page.evaluate(() => Boolean(window.LIQUID_GLASS_WEBGL));
-  await glassToggle.click({ force: true });
-  await expect.poll(() => page.evaluate(() => Boolean(window.LIQUID_GLASS_WEBGL))).toBe(!beforeGlass);
-  await expect.poll(() => page.evaluate(() => localStorage.getItem("dashboard-liquid-glass-webgl"))).toBe(beforeGlass ? "false" : "true");
+  await expect(page.getByRole("button", { name: "Toggle liquid glass effect" })).toHaveCount(0);
+  await page.locator(".control-bar-gear").click({ force: true });
+  await expect(page.locator("[data-floating-control-bar]")).not.toBeVisible();
 
-  await page.locator(".workspace-tab").nth(1).click({ force: true });
-  await page.locator(".workspace-tab").nth(1).click({ button: "right" });
-  await page.locator(".workspace-tab-rename-input").fill("saved tab");
-  await page.locator(".workspace-tab-rename-input").press("Enter");
   const firstWidget = await addTextWidget(page);
   await expect(firstWidget).toBeVisible();
   await openControlBar(page);
@@ -430,7 +418,6 @@ test("electron GUI keeps slim navbar controls wired", async () => {
   await page.waitForLoadState("domcontentloaded");
   await page.waitForSelector(".dashboard-layout-grid");
   await expect(page.locator('.widget-layout > .widget-card[data-custom-widget="true"]')).toHaveCount(1);
-  await expect(page.locator(".workspace-tab").nth(1)).toHaveText("saved tab");
 
   await openControlBar(page);
   await page.getByRole("button", { name: "Reset to default layout" }).click({ force: true });
@@ -438,6 +425,18 @@ test("electron GUI keeps slim navbar controls wired", async () => {
 
   await addTextWidget(page);
   await expect(page.locator('.widget-layout > .widget-card[data-custom-widget="true"]')).toHaveCount(1);
+  await page.evaluate(() => localStorage.setItem("dashboard-liquid-glass-webgl", "false"));
+  await page.reload();
+  await page.waitForSelector(".dashboard-layout-grid");
+  await expect(page.locator("[data-liquid-glass-toggle]")).toHaveCount(0);
+  await openControlBar(page);
+  await page.locator(".background-tone-trigger").click({ force: true });
+  await page.locator('.background-photo-option[data-background-tone="photo-earth"]').click({ force: true });
+  await expect(page.locator("body")).toHaveClass(/has-photo-background/);
+  await expect.poll(() => page.evaluate(() => Boolean(window.LIQUID_GLASS_WEBGL))).toBe(true);
+  await page.waitForFunction(() => Boolean(window.LiquidGlassWebGL?.isActive?.()));
+  await expect(page.locator(".liquid-glass-webgl-canvas")).toBeVisible();
+  await expect.poll(() => page.evaluate(() => localStorage.getItem("dashboard-liquid-glass-webgl"))).toBe(null);
   expect(failed).toEqual([]);
   await closeApp(app);
 });
@@ -2596,5 +2595,3 @@ test("ordered grid item runtime preserves query semantics", async () => {
   });
   await closeApp(app);
 });
-
-

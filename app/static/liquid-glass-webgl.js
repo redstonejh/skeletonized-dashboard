@@ -12,32 +12,14 @@
  *   - small Gaussian blur on the refracted sample
  *   - inner-rim glow via smoothstep on signed distance
  *
- * Feature flag (off by default):
- *   window.LIQUID_GLASS_WEBGL = true   // before scripts load
- *   LiquidGlassWebGL.enable()          // runtime toggle
- *   LiquidGlassWebGL.disable()
+ * Liquid-glass WebGL is always enabled by default.
+ *   LiquidGlassWebGL.enable()          // refreshes the photo-gated renderer
+ *   LiquidGlassWebGL.disable()         // no-op; kept for legacy callers
  *
- * Activates only when flag is true AND body.has-photo-background. */
+ * Activates only when body.has-photo-background. */
 (() => {
-  const LS_KEY = "dashboard-liquid-glass-webgl";
-  const readStoredFlag = () => {
-    try {
-      const value = localStorage.getItem(LS_KEY);
-      // Default to ON for new users; only OFF if the user explicitly
-      // turned it off via the toggle.
-      if (value === null) return true;
-      return value === "true";
-    } catch {
-      return true;
-    }
-  };
-  const writeStoredFlag = (on) => {
-    try { localStorage.setItem(LS_KEY, on ? "true" : "false"); } catch {}
-  };
-
-  if (typeof window.LIQUID_GLASS_WEBGL === "undefined") {
-    window.LIQUID_GLASS_WEBGL = readStoredFlag();
-  }
+  window.LIQUID_GLASS_WEBGL = true;
+  try { localStorage.removeItem("dashboard-liquid-glass-webgl"); } catch {}
 
   const MAX_OBJECTS = 32;
   // Workspace objects: widgets and panels. Navbar chrome is filtered out in
@@ -646,38 +628,14 @@
   };
 
   const reconcileWithBodyClass = () => {
+    window.LIQUID_GLASS_WEBGL = true;
     const hasPhoto = document.body.classList.contains("has-photo-background");
-    if (window.LIQUID_GLASS_WEBGL && hasPhoto) {
+    if (hasPhoto) {
       // Photo backdrop may have just been created — reload texture.
       if (active) loadBackgroundImage();
       else enable();
     } else if (active) {
       disable();
-    }
-    syncToggleButtons();
-  };
-
-  // The toggle button reflects user preference (window.LIQUID_GLASS_WEBGL),
-  // not active rendering state — preference persists even when the
-  // current background tone is a solid (no photo) and the renderer is
-  // dormant.
-  const syncToggleButtons = () => {
-    const pressed = window.LIQUID_GLASS_WEBGL ? "true" : "false";
-    document.querySelectorAll("[data-liquid-glass-toggle]").forEach((button) => {
-      if (button.getAttribute("aria-pressed") !== pressed) {
-        button.setAttribute("aria-pressed", pressed);
-      }
-    });
-  };
-
-  const handleToggleClick = (event) => {
-    const button = event.target?.closest?.("[data-liquid-glass-toggle]");
-    if (!button) return;
-    event.preventDefault();
-    if (window.LIQUID_GLASS_WEBGL) {
-      window.LiquidGlassWebGL.disable();
-    } else {
-      window.LiquidGlassWebGL.enable();
     }
   };
 
@@ -855,14 +813,11 @@
   window.LiquidGlassWebGL = {
     enable: () => {
       window.LIQUID_GLASS_WEBGL = true;
-      writeStoredFlag(true);
       reconcileWithBodyClass();
     },
     disable: () => {
-      window.LIQUID_GLASS_WEBGL = false;
-      writeStoredFlag(false);
-      disable();
-      syncToggleButtons();
+      window.LIQUID_GLASS_WEBGL = true;
+      reconcileWithBodyClass();
     },
     // debug(0|false) = off, debug(1|true) = mask overlay, debug(2) = UV displacement field
     debug: (mode = 1) => {
@@ -889,21 +844,13 @@
     isActive: () => active,
   };
 
-  const bindToggleButtons = () => {
-    // Delegated click handler — works even if the button is added/removed.
-    document.addEventListener("click", handleToggleClick, true);
-    syncToggleButtons();
-  };
-
   if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", () => {
       watchBodyClass();
       reconcileWithBodyClass();
-      bindToggleButtons();
     });
   } else {
     watchBodyClass();
     reconcileWithBodyClass();
-    bindToggleButtons();
   }
 })();
