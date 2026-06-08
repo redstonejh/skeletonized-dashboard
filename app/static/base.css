@@ -3,13 +3,12 @@ html,
 body {
   min-height: 100%;
   overflow-x: clip;
-  scrollbar-gutter: stable both-edges;
 }
 
 html {
   --page-background: linear-gradient(180deg, var(--bg) 0%, var(--bg-end, var(--bg)) 100%);
   color-scheme: light;
-  overflow-y: scroll;
+  scrollbar-gutter: stable;
   background: var(--page-background) fixed;
   background-color: var(--bg);
   transition: background .18s ease, background-color .18s ease;

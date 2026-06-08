@@ -931,20 +931,17 @@ body{
 body::-webkit-scrollbar{
   width: 12px;
   height: 12px;
-  background: color-mix(in srgb, var(--glass-surface) 22%, transparent);
+  background: transparent;
 }html::-webkit-scrollbar-track,
 body::-webkit-scrollbar-track{
-  background:
-    linear-gradient(180deg,
-      color-mix(in srgb, var(--glass-surface) 18%, transparent),
-      color-mix(in srgb, var(--glass-surface-strong) 12%, transparent));
-  box-shadow: inset 1px 0 0 color-mix(in srgb, var(--glass-border) 42%, transparent);
-  -webkit-backdrop-filter: blur(16px) saturate(1.08);
-  backdrop-filter: blur(16px) saturate(1.08);
+  background: transparent;
+  box-shadow: none;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
   border: 0;
 }html::-webkit-scrollbar-corner,
 body::-webkit-scrollbar-corner{
-  background: color-mix(in srgb, var(--glass-surface) 18%, transparent);
+  background: transparent;
 }html::-webkit-scrollbar-thumb,
 body::-webkit-scrollbar-thumb{
   min-height: 36px;
