@@ -1,0 +1,16 @@
+{
+  "verdict": "SHIP",
+  "tests_run": false,
+  "validation_run": false,
+  "skip_reason": "User explicitly instructed NO TESTS and no validation; manual verification by user.",
+  "changed_files": [
+    "app/static/dashboard-grid.css",
+    "app/static/modules/ordered-drag-runtime.js",
+    "app/static/panel-containment.js"
+  ],
+  "summary": [
+    "Open panel height syncing now fits internal widget content by default instead of preserving stale taller saved heights.",
+    "Panel bodies no longer create internal scroll containers, and panel-internal grids no longer stretch to fill extra body height.",
+    "Panel-local widget drags place only the active widget/placeholder and refuse occupied cells instead of reflowing sibling widgets."
+  ]
+}

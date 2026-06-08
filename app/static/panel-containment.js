@@ -65,7 +65,8 @@
       const requiredHeight = requiredPanelHeightForInternalGrid(panel, options);
       if (!requiredHeight) return false;
       const currentHeight = Number(panel.dataset.savedHeight) || panel.getBoundingClientRect().height || 0;
-      const targetHeight = options.allowShrink
+      const fitContent = options.allowShrink !== false;
+      const targetHeight = fitContent
         ? Math.max(deps.getPanelMinimumHeight(panel), requiredHeight)
         : Math.max(currentHeight, requiredHeight);
       const layout = panel.closest(".panel-layout");

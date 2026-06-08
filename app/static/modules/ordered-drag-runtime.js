@@ -114,6 +114,7 @@ export const createOrderedDragRuntime = (deps = {}) => {
     const workspaceExitLayout = sourcePanelForPanelLocalDrag
       ? workspaceWidgetLayoutForPanel(sourcePanelForPanelLocalDrag)
       : null;
+    const isPanelLocalDrag = Boolean(sourcePanelForPanelLocalDrag);
     const canExitPanelToWorkspace = (
       item.classList.contains("widget-card") &&
       !groupDrag &&
@@ -157,6 +158,27 @@ export const createOrderedDragRuntime = (deps = {}) => {
       };
     };
 
+    const gridBoundsOverlap = (a, b) => (
+      a && b &&
+      a.col <= b.right &&
+      a.right >= b.col &&
+      a.row <= b.bottom &&
+      a.bottom >= b.row
+    );
+
+    const panelInternalOpenCell = (cell, movingItem, metrics = null) => {
+      if (!cell || !isPanelLocalDrag) return cell;
+      const targetBounds = boundsAtGridSlot(movingItem, cell.col, cell.row, metrics);
+      const blocked = [...layout.querySelectorAll(":scope > .widget-card:not([hidden])")]
+        .filter((candidate) => (
+          candidate !== item &&
+          candidate !== movingItem &&
+          !candidate.classList.contains("widget-dragging")
+        ))
+        .some((candidate) => gridBoundsOverlap(targetBounds, gridBoundsForItem(candidate, metrics)));
+      return blocked ? { ...originalCell } : cell;
+    };
+
     const setDragVisualPosition = (left, top) => {
       item.style.left = `${Math.round(left - dragVisualOrigin.left)}px`;
       item.style.top = `${Math.round(top - dragVisualOrigin.top)}px`;
@@ -191,7 +213,9 @@ export const createOrderedDragRuntime = (deps = {}) => {
       item.dataset.lod = "active";
       rect = item.getBoundingClientRect();
       startSnapshot = snapshotGridLayout(layout);
-      committedPageBottomRow = snapshotCommittedPageBottom(layout, snapshotCommittedBottom(startSnapshot));
+      committedPageBottomRow = isPanelLocalDrag
+        ? Infinity
+        : snapshotCommittedPageBottom(layout, snapshotCommittedBottom(startSnapshot));
       const groupItems = groupTransformItems(item)
         .filter((groupItem) => groupItem === item || !groupItem.classList.contains("db-panel-pinned"));
       if (item.classList.contains("group-selected") && groupItems.length > 1) {
@@ -599,9 +623,19 @@ export const createOrderedDragRuntime = (deps = {}) => {
       const rawCell = options.preservePointerOffset
         ? gridCellFromDragPointer(layout, previewItem, clientX, clientY, offsetX, offsetY, metrics, rect)
         : gridCellFromPoint(layout, previewItem, clientX, clientY, metrics);
-      const nextCell = clampCellToCommittedRows(rawCell, groupDrag ? groupDrag.groupBox.bottom - groupDrag.groupBox.row + 1 : gridItemRowSpan(previewItem));
+      const nextCell = isPanelLocalDrag && !groupDrag
+        ? panelInternalOpenCell(rawCell, previewItem, metrics)
+        : clampCellToCommittedRows(rawCell, groupDrag ? groupDrag.groupBox.bottom - groupDrag.groupBox.row + 1 : gridItemRowSpan(previewItem));
       if (targetCell && targetCell.col === nextCell.col && targetCell.row === nextCell.row) return;
       targetCell = nextCell;
+      if (isPanelLocalDrag && !groupDrag) {
+        widgetRuntimeController.applyGridPosition(placeholder, nextCell.col, nextCell.row);
+        syncPanelFootprintToInternalItem(sourcePanelForPanelLocalDrag, placeholder, {
+          includePlaceholders: true,
+          reflow: false,
+        });
+        return;
+      }
       const expandedPanelDrag = !groupDrag && workspaceObjectCapabilities(item).hasExpandedFootprint && !item.classList.contains("db-panel-collapsed");
       const localVacancy = groupDrag
         ? groupBoxBounds(groupDrag.groupBox)
@@ -777,6 +811,17 @@ export const createOrderedDragRuntime = (deps = {}) => {
                 ? { bounds: extracted.bounds, movedItems: extracted.movedItems + 1, extracted: true }
                 : { bounds: boundsAtGridSlot(item, originalCell.col, originalCell.row), movedItems: 0, extracted: false };
               if (!extracted) onCancel?.();
+            } else if (isPanelLocalDrag) {
+              clearPanelExitPreview();
+              restoreGridLayoutSnapshot(startSnapshot, { exclude: [item] });
+              placeholder.remove();
+              const safeCell = panelInternalOpenCell(finalCell, item, dragMetrics);
+              widgetRuntimeController.applyGridPosition(item, safeCell.col, safeCell.row);
+              syncPanelFootprintToInternalItem(sourcePanelForPanelLocalDrag, item, { reflow: false });
+              result = {
+                bounds: gridBoundsForItem(item, dragMetrics),
+                movedItems: 0,
+              };
             } else if (groupDrag) {
               clearPanelExitPreview();
               restoreGridLayoutSnapshot(startSnapshot);
@@ -826,9 +871,11 @@ export const createOrderedDragRuntime = (deps = {}) => {
                 : commitActiveDropSlot(layout, item, finalCell, { localVacancy, rowLimit: committedPageBottomRow });
             }
             const finalBounds = result.bounds;
-            syncCommittedWorkspaceScrollFloor(layout, {
-              preserveViewport: false,
-            });
+            if (!isPanelLocalDrag) {
+              syncCommittedWorkspaceScrollFloor(layout, {
+                preserveViewport: false,
+              });
+            }
             if (result.absorbed === false) {
               // The attempted panel commit failed and onCancel has already restored callers.
             } else if (result.extracted === false) {
