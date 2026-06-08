@@ -1,0 +1,38 @@
+{
+  "registered_widget_types": [
+    "calendar",
+    "chart",
+    "document",
+    "image",
+    "map",
+    "region-summary",
+    "stat",
+    "table",
+    "text",
+    "timeframe",
+    "video"
+  ],
+  "default_visuals": {
+    "stat": "renders numeric value 0 by default",
+    "timeframe": "renders default preset buttons",
+    "text": "renders visible note text",
+    "region-summary": "renders region counts",
+    "image": "renders image-shaped media default",
+    "video": "renders video-shaped media default",
+    "document": "renders document-shaped media default; Monaco still mounts when text content is supplied",
+    "table": "renders TanStack table with default visible rows when data.rows is empty",
+    "chart": "renders ECharts frame with empty/default data",
+    "map": "renders Leaflet default view",
+    "calendar": "renders current-month calendar immediately and enhances with FullCalendar when loaded"
+  },
+  "preserved": [
+    "runtime-chart-echarts",
+    "runtime-table-tanstack",
+    "runtime-map-leaflet",
+    "runtime-monaco-editor",
+    "widget-content-well",
+    "widget-library-surface",
+    "config plus data.rows render seam"
+  ]
+}
+

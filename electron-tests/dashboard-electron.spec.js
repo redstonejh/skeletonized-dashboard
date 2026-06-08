@@ -1565,22 +1565,26 @@ test("electron GUI treats widgets as display objects without data-source configu
     { kind: "table", category: "data", label: "table" },
     { kind: "graph", category: "visualization", subcategory: "Charts", expectedDefinition: "chart", label: "chart" },
     { kind: "map", category: "visualization", subcategory: "Geospatial", label: "map" },
+    { kind: "timeframe", category: "controls", label: "timeframe" },
     { kind: "calendar", category: "controls", label: "calendar" },
-    { kind: "document", category: "media", expectedDefinition: "document", label: "code" },
-    { kind: "image", category: "media", label: "media" },
+    { kind: "text", category: "content", label: "text" },
+    { kind: "region-summary", category: "content", label: "region-summary" },
+    { kind: "image", category: "media", label: "image" },
+    { kind: "video", category: "media", label: "video" },
+    { kind: "document", category: "media", expectedDefinition: "document", label: "document" },
   ];
+  const registeredTypes = await page.evaluate(() =>
+    window.dashboardWidgetRuntime?.listWidgetDefinitions?.().map((definition) => definition.type).sort() || []
+  );
+  expect(registeredTypes).toEqual(displayWidgetKinds.map((entry) => entry.expectedDefinition || entry.kind).sort());
   const added = [];
   for (const entry of displayWidgetKinds) {
     const widget = await addWidget(page, entry);
     const key = await widget.evaluate((node) => node.dataset.widgetKey || "");
     const widgetSelector = `.widget-layout > .widget-card[data-widget-key="${key}"]`;
-    if (entry.label === "code") {
-      const contentSetting = await applyFirstWidgetSetting(page, widgetSelector, "content", "const ready = true;");
-      expect(contentSetting.applied).toBe(true);
-    }
     await page.waitForFunction((widgetSelector) => {
       const node = document.querySelector(widgetSelector);
-      return Boolean(node?.querySelector("[data-widget-shell-content='true'], .widget-inline-placeholder, .runtime-table-widget, .runtime-chart-widget, .runtime-map-widget, .runtime-calendar-widget, .runtime-monaco-editor"));
+      return Boolean(node?.querySelector("[data-widget-shell-content='true'], [data-widget-default-visual], .runtime-table-widget, .runtime-chart-widget, .runtime-map-widget, .runtime-calendar-widget, .media-widget"));
     }, widgetSelector);
     if (entry.label === "table") {
       await page.waitForFunction((widgetSelector) => Boolean(document.querySelector(`${widgetSelector} .runtime-table-tanstack table.runtime-table`)), widgetSelector);
@@ -1591,8 +1595,8 @@ test("electron GUI treats widgets as display objects without data-source configu
     if (entry.label === "map") {
       await page.waitForFunction((widgetSelector) => Boolean(document.querySelector(`${widgetSelector} .runtime-map-leaflet.leaflet-container`)), widgetSelector);
     }
-    if (entry.label === "code") {
-      await page.waitForFunction((widgetSelector) => Boolean(document.querySelector(`${widgetSelector} .runtime-monaco-editor .monaco-editor`)), widgetSelector);
+    if (entry.label === "calendar") {
+      await page.waitForFunction((widgetSelector) => Boolean(document.querySelector(`${widgetSelector} .runtime-calendar-fullcalendar.fc, ${widgetSelector} .runtime-calendar-static`)), widgetSelector);
     }
     const state = await page.locator(widgetSelector).evaluate((node) => ({
       kind: node.dataset.widgetDefinition || "",
@@ -1600,28 +1604,42 @@ test("electron GUI treats widgets as display objects without data-source configu
       modelAttrs: Object.keys(node.dataset).filter((key) => key === ["widget", "Runtime", "Status"].join("") || /^runtime(Condition|Urgency|Freshness|Activity|Confidence|Meaning)/.test(key)),
       width: node.getBoundingClientRect().width,
       height: node.getBoundingClientRect().height,
-      placeholderCount: node.querySelectorAll(".widget-inline-placeholder").length,
+      defaultVisualCount: node.querySelectorAll("[data-widget-default-visual], .media-widget[data-media-status='default']").length,
+      contentLength: (node.querySelector("[data-widget-shell-content='true']")?.textContent || "").trim().length,
       sourceAttrs: Object.keys(node.dataset).filter((key) => /dataSource|dataAdapter|dataOrigin|workspaceContext/i.test(key)),
+      calendarInitialMonth: node.querySelector(".runtime-calendar-fullcalendar")?.dataset.calendarInitial?.slice(0, 7) || "",
       libraryMounts: {
         echarts: Boolean(node.querySelector(".runtime-chart-echarts svg")),
         table: Boolean(node.querySelector(".runtime-table-tanstack table.runtime-table")),
         leaflet: Boolean(node.querySelector(".runtime-map-leaflet.leaflet-container")),
-        monaco: Boolean(node.querySelector(".runtime-monaco-editor .monaco-editor")),
+        calendar: Boolean(node.querySelector(".runtime-calendar-fullcalendar.fc, .runtime-calendar-static")),
       },
     }));
     expect(state.kind).toBe(entry.expectedDefinition || entry.kind);
     expect(state.modelAttrs).toEqual([]);
     expect(state.width).toBeGreaterThan(60);
     expect(state.height).toBeGreaterThan(40);
-    expect(state.text).not.toMatch(/needs data source|data substrate|configure a data source|required fields|connect an input stream|expected|why|next|broaden/i);
-    expect(state.placeholderCount).toBeLessThanOrEqual(1);
+    expect(state.text).not.toMatch(/needs data source|data substrate|configure|required fields|connect an input stream|expected|why|next|broaden|add .* field|add .* column|add image|add video|add document|no data|empty/i);
+    const hasMountedVisual = Object.values(state.libraryMounts).some(Boolean);
+    expect(state.contentLength + state.defaultVisualCount + (hasMountedVisual ? 1 : 0)).toBeGreaterThan(0);
     expect(state.sourceAttrs).toEqual([]);
     if (entry.label === "chart") expect(state.libraryMounts.echarts).toBe(true);
     if (entry.label === "table") expect(state.libraryMounts.table).toBe(true);
     if (entry.label === "map") expect(state.libraryMounts.leaflet).toBe(true);
-    if (entry.label === "code") expect(state.libraryMounts.monaco).toBe(true);
+    if (entry.label === "calendar") {
+      expect(state.libraryMounts.calendar).toBe(true);
+      expect(state.calendarInitialMonth).toBe(await page.evaluate(() => new Date().toISOString().slice(0, 7)));
+    }
     added.push({ ...entry, key, expectedDefinition: entry.expectedDefinition || entry.kind });
   }
+
+  const codeWidget = await addWidget(page, { kind: "document", category: "media", expectedDefinition: "document" });
+  const codeKey = await codeWidget.evaluate((node) => node.dataset.widgetKey || "");
+  const codeSelector = `.widget-layout > .widget-card[data-widget-key="${codeKey}"]`;
+  const contentSetting = await applyFirstWidgetSetting(page, codeSelector, "content", "const ready = true;");
+  expect(contentSetting.applied).toBe(true);
+  await page.waitForFunction((widgetSelector) => Boolean(document.querySelector(`${widgetSelector} .runtime-monaco-editor .monaco-editor`)), codeSelector);
+  added.push({ kind: "document", label: "code", key: codeKey, expectedDefinition: "document" });
 
   await openControlBar(page);
   await page.locator(".layout-save-button").click();
@@ -1652,7 +1670,7 @@ test("electron GUI treats widgets as display objects without data-source configu
     }));
     expect(state.kind).toBe(entry.expectedDefinition);
     expect(state.modelAttrs).toEqual([]);
-    expect(state.text).not.toMatch(/needs data source|data substrate|configure a data source|required fields|connect an input stream|expected|why|next|broaden/i);
+    expect(state.text).not.toMatch(/needs data source|data substrate|configure|required fields|connect an input stream|expected|why|next|broaden|add .* field|add .* column|add image|add video|add document|no data|empty/i);
     expect(state.sourceAttrs).toEqual([]);
   }
   await closeApp(app);

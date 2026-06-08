@@ -1,0 +1,18 @@
+{
+  "verdict": "SHIP",
+  "checks": {
+    "discovery_guard": "passed",
+    "delegation_proof": "passed",
+    "js_syntax": "passed",
+    "prompt_grep": "passed; only false-positive substrings such as configured/current/next remain in broad regex searches",
+    "focused_widget_default_canary": "passed",
+    "e2e": "27 passed",
+    "handoff_validation": "passed",
+    "verdict_check": "passed"
+  },
+  "files_changed": [
+    "app/static/widget-registry.js",
+    "app/static/dashboard-grid.css",
+    "electron-tests/dashboard-electron.spec.js"
+  ]
+}

@@ -592,6 +592,11 @@
     });
   };
   const widgetDataRows = (data) => Array.isArray(data?.rows) ? data.rows : [];
+  const DEFAULT_TABLE_ROWS = [
+    { item: "Pipeline", status: "Ready", value: "$24k" },
+    { item: "Tickets", status: "Open", value: "8" },
+    { item: "Review", status: "Queued", value: "3" },
+  ];
   const aggregateValues = (values, aggregation) => {
     const numeric = values.map(numberValue).filter((value) => value != null);
     if (aggregation === "count") return values.length;
@@ -922,11 +927,12 @@
     if (!target) return null;
     const config = instance?.config || {};
     const rows = widgetDataRows(instance?.data);
+    const renderRows = rows.length ? rows : DEFAULT_TABLE_ROWS;
     const configuredColumns = tableConfiguredColumns(config);
-    const schemaFields = Object.keys(rows[0] || {});
+    const schemaFields = Object.keys(renderRows[0] || {});
     const allFields = unique(configuredColumns.length ? configuredColumns : schemaFields.length ? schemaFields : [""]);
     const visibleFields = allFields.slice(0, tableVisibleColumnCount(instance.cols));
-    const visibleRows = rows.slice(0, tableVisibleRowCount(instance.rows, config.limit));
+    const visibleRows = renderRows.slice(0, tableVisibleRowCount(instance.rows, config.limit));
     let disposed = false;
     loadTanstackTable()
       .then((TableCore) => {
@@ -994,7 +1000,7 @@
       })
       .catch((error) => {
         if (disposed || !target.isConnected) return;
-        target.innerHTML = widgetHint("Table unavailable");
+        target.innerHTML = defaultWidgetVisual("table");
       });
     return () => {
       disposed = true;
@@ -1070,7 +1076,7 @@
       })
       .catch((error) => {
         if (disposed || !target.isConnected) return;
-        target.innerHTML = widgetHint("Editor unavailable");
+        target.innerHTML = defaultWidgetVisual("document");
       });
     return () => {
       disposed = true;
@@ -1100,7 +1106,7 @@
       })
       .catch((error) => {
         if (disposed || !target.isConnected) return;
-        target.innerHTML = widgetHint("Chart unavailable");
+        target.innerHTML = defaultWidgetVisual("chart");
       });
     return () => {
       disposed = true;
@@ -1163,11 +1169,24 @@
     valueRequiredForAggregation: !["bar", "horizontal-bar", "grouped-bar", "stacked-bar", "lollipop", "pie", "donut", "heatmap"].includes(chartType),
   }));
 
-  const widgetHint = (label = "") => {
-    const text = String(label || "").trim();
-    return text
-      ? `<span class="widget-inline-placeholder" role="status">${escapeHtml(text)}</span>`
-      : "";
+  const defaultWidgetVisual = (kind = "widget", label = "") => {
+    const normalized = String(kind || "widget").replace(/[^a-z0-9_-]+/gi, "-").toLowerCase() || "widget";
+    const title = String(label || normalized.replace(/[-_]+/g, " ")).trim();
+    return `
+      <div class="widget-default-visual widget-default-visual-${escapeHtml(normalized)}" data-widget-default-visual="${escapeHtml(normalized)}" aria-label="${escapeHtml(title || "Widget")}">
+        <span></span><span></span><span></span>
+      </div>`;
+  };
+
+  const defaultMediaVisual = (kind, title, caption = "") => {
+    const normalized = String(kind || "media").replace(/[^a-z0-9_-]+/gi, "-").toLowerCase() || "media";
+    return `
+      <div class="media-widget media-widget-${escapeHtml(normalized)}-wrap" data-media-kind="${escapeHtml(normalized)}" data-media-status="default">
+        <figure class="media-widget-stage media-widget-default-stage media-widget-default-${escapeHtml(normalized)}" aria-label="${escapeHtml(title || normalized)}">
+          <span class="media-default-mark media-default-mark-${escapeHtml(normalized)}"></span>
+        </figure>
+        ${mediaCaptionMarkup(caption)}
+      </div>`;
   };
 
   const runtimeMeta = (primary, data = null, options = {}) => {
@@ -1254,7 +1273,7 @@
           </div>
         </header>` : ""}
         <div class="widget-shell-content" data-widget-shell-content="true">
-          ${content || widgetHint()}
+          ${content || defaultWidgetVisual(definition.type || "widget", title)}
         </div>
         ${footer ? `<footer class="widget-shell-footer">${footer}</footer>` : ""}
       </section>`;
@@ -1372,7 +1391,7 @@
     },
     supportedSettings: ["title", "color", "pin", "delete"],
     getDefaultConfig: () => ({ title: `Unsupported: ${type || "unknown"}` }),
-    render: ({ instance }) => widgetHint(`Unsupported widget: ${instance.type || type || "unknown"}`),
+    render: ({ instance }) => defaultWidgetVisual("unsupported", instance.type || type || "unknown"),
   });
 
   const statMetricContext = ({ instance } = {}) => {
@@ -1439,7 +1458,7 @@
       renderContent: typeof definition.renderContent === "function" ? definition.renderContent : null,
       render: typeof definition.render === "function"
         ? definition.render
-        : () => widgetHint(),
+        : ({ definition: resolved = definition }) => defaultWidgetVisual(resolved.type || "widget", resolved.displayName || resolved.label || "Widget"),
     };
   };
 
@@ -1506,7 +1525,7 @@
         ? content
         : renderWidgetShell(resolvedDefinition, renderProps, content);
     } catch (error) {
-      const fallback = widgetHint("Unable to render widget");
+      const fallback = defaultWidgetVisual(resolvedDefinition.type || "widget", resolvedDefinition.displayName || "Widget");
       return resolvedDefinition.shell === false
         ? fallback
         : renderWidgetShell(resolvedDefinition, { ...props, density, instance: { ...instance, density }, definition: resolvedDefinition }, fallback);
@@ -1563,8 +1582,7 @@
       const config = instance.config || {};
       const label = statLabelFor(config);
       const value = config.value ?? "";
-      if (value === "") return widgetHint("Add value");
-      return `<span class="stat-val">${escapeHtml(formatMetricValue(value, config.format))}</span>`;
+      return `<span class="stat-val">${escapeHtml(formatMetricValue(value === "" ? 0 : value, config.format))}</span>`;
     },
   });
 
@@ -1604,13 +1622,15 @@
       const filters = normalizeTimeframeFilters(config);
       const selectedFilterId = selectedTimeframeFilterId(config, filters);
 
-      if (!filters.length) {
-        return `<div class="timeframe-body timeframe-body-empty"><span class="timeframe-empty-hint">Add time controls in settings</span></div>`;
-      }
+      const displayFilters = filters.length ? filters : TIMEFRAME_PRESETS.slice(0, 4).map((preset) => ({
+        id: preset.id,
+        label: preset.label,
+      }));
 
-      const buttons = filters.map((filter) => {
+      const buttons = displayFilters.map((filter, index) => {
         const isActive = filter.id === selectedFilterId;
-        return `<button class="timeframe-filter-btn${isActive ? " is-active" : ""}" type="button" data-filter-id="${escapeHtml(filter.id)}" aria-pressed="${isActive ? "true" : "false"}">${escapeHtml(filter.label)}</button>`;
+        const active = filters.length ? isActive : index === 0;
+        return `<button class="timeframe-filter-btn${active ? " is-active" : ""}" type="button" data-filter-id="${escapeHtml(filter.id)}" aria-pressed="${active ? "true" : "false"}">${escapeHtml(filter.label)}</button>`;
       }).join("");
 
       return `<div class="timeframe-body" role="group" aria-label="${escapeHtml(config.title || "Time filters")}">${buttons}</div>`;
@@ -1650,6 +1670,7 @@
     render: ({ instance }) => {
       const config = instance.config || {};
       const body = String(config.body || "");
+      const displayBody = body || config.placeholder || "Note";
       const cols = Number(instance.cols) || 2;
       const rows = Number(instance.rows) || 2;
       const density = rows <= 1
@@ -1660,8 +1681,8 @@
       return `
         <div class="text-widget-content text-widget-density-${density}">
           ${density === "small"
-            ? `<div class="text-widget-preview" aria-label="${escapeHtml(config.title || "Note")}">${escapeHtml(body || config.placeholder || "Write a note")}</div>`
-            : `<textarea class="text-widget-editor" aria-label="${escapeHtml(config.title || "Note")}" spellcheck="true" placeholder="${escapeHtml(config.placeholder || "Write a note")}">${escapeHtml(body)}</textarea>`}
+            ? `<div class="text-widget-preview" aria-label="${escapeHtml(config.title || "Note")}">${escapeHtml(displayBody)}</div>`
+            : `<textarea class="text-widget-editor" aria-label="${escapeHtml(config.title || "Note")}" spellcheck="true" placeholder="${escapeHtml(config.placeholder || "Note")}">${escapeHtml(displayBody)}</textarea>`}
         </div>`;
     },
   });
@@ -1755,9 +1776,7 @@
       const title = mediaTitle(config, "Image");
       const src = safeMediaUrl(config.src, "image");
       const caption = String(config.caption || "").trim();
-      if (config.assetMissing) return widgetHint("Image unavailable");
-      if (!String(config.src || "").trim()) return widgetHint("Add image");
-      if (src == null) return widgetHint("Image unavailable");
+      if (config.assetMissing || !String(config.src || "").trim() || src == null) return defaultMediaVisual("image", title, caption);
       const fit = safeMediaFit(config.fit);
       const alt = String(config.alt || caption || title || "Image").trim();
       return `
@@ -1808,20 +1827,19 @@
       const title = mediaTitle(config, "Video");
       const caption = String(config.caption || "").trim();
       const embedType = String(config.embedType || "url").toLowerCase();
-      if (config.assetMissing) return widgetHint("Video unavailable");
-      if (!String(config.src || "").trim()) return widgetHint("Add video");
+      if (config.assetMissing || !String(config.src || "").trim()) return defaultMediaVisual("video", title, caption);
       let stage = "";
       if (embedType === "youtube") {
         const embed = youtubeEmbedUrl(config.src);
-        if (!embed) return widgetHint("Video unavailable");
+        if (!embed) return defaultMediaVisual("video", title, caption);
         stage = `<iframe class="media-widget-frame media-widget-video-frame" src="${escapeHtml(embed)}" title="${escapeHtml(title)}" loading="lazy" sandbox="allow-scripts allow-same-origin allow-presentation" allow="encrypted-media; picture-in-picture" allowfullscreen></iframe>`;
       } else if (embedType === "vimeo") {
         const embed = vimeoEmbedUrl(config.src);
-        if (!embed) return widgetHint("Video unavailable");
+        if (!embed) return defaultMediaVisual("video", title, caption);
         stage = `<iframe class="media-widget-frame media-widget-video-frame" src="${escapeHtml(embed)}" title="${escapeHtml(title)}" loading="lazy" sandbox="allow-scripts allow-same-origin allow-presentation" allow="encrypted-media; picture-in-picture" allowfullscreen></iframe>`;
       } else {
         const src = safeMediaUrl(config.src, "video");
-        if (src == null) return widgetHint("Video unavailable");
+        if (src == null) return defaultMediaVisual("video", title, caption);
         stage = `<video class="media-widget-video" src="${escapeHtml(src)}" controls preload="metadata"${config.autoplay ? " autoplay" : ""}${config.muted !== false ? " muted" : ""} playsinline></video>`;
       }
       return `
@@ -1880,10 +1898,9 @@
             ${mediaCaptionMarkup(caption)}
           </div>`;
       }
-      if (config.assetMissing) return widgetHint("Document unavailable");
-      if (!String(config.src || "").trim()) return widgetHint("Add document");
+      if (config.assetMissing || !String(config.src || "").trim()) return defaultMediaVisual("document", title, caption);
       const src = safeMediaUrl(config.src, "document");
-      if (src == null) return widgetHint("Document unavailable");
+      if (src == null) return defaultMediaVisual("document", title, caption);
       const page = Math.max(1, Number(config.currentPage) || 1);
       const frameSrc = kind === "pdf" && !String(src).startsWith("data:")
         ? `${src}#page=${page}`
@@ -1948,7 +1965,8 @@
       const title = config.title || "Table";
       const configuredColumns = tableConfiguredColumns(config);
       const dataRows = widgetDataRows(instance.data);
-      const schemaFields = Object.keys(dataRows[0] || {});
+      const renderRows = dataRows.length ? dataRows : DEFAULT_TABLE_ROWS;
+      const schemaFields = Object.keys(renderRows[0] || {});
       const allFields = unique(configuredColumns.length ? configuredColumns : schemaFields.length ? schemaFields : [""]);
       const visibleFields = allFields.slice(0, tableVisibleColumnCount(instance.cols));
       const tableDensity = Number(instance.rows) <= 2 || Number(instance.cols) <= 2
@@ -2022,8 +2040,7 @@
     render: ({ instance }) => {
       const config = instance.config || {};
       const chartType = config.chartType || "bar";
-      const definition = getChartDefinition(chartType);
-      if (!definition) return widgetHint("Chart unavailable");
+      const definition = getChartDefinition(chartType) || getChartDefinition("bar");
       return definition.render({
         instance,
         definition,
@@ -2177,7 +2194,7 @@
         })
         .catch((error) => {
           if (disposed || !target.isConnected) return;
-          target.innerHTML = widgetHint("Map unavailable");
+          target.innerHTML = defaultWidgetVisual("map");
         });
       return () => {
         disposed = true;
@@ -2223,6 +2240,27 @@
         : null;
     }).filter(Boolean).sort((a, b) => a.date - b.date).slice(0, Number(config.limit) || 12);
   };
+  const staticCalendarMonthMarkup = (initialDate = new Date()) => {
+    const date = initialDate instanceof Date && Number.isFinite(initialDate.getTime()) ? initialDate : new Date();
+    const year = date.getFullYear();
+    const month = date.getMonth();
+    const first = new Date(year, month, 1);
+    const dayCount = new Date(year, month + 1, 0).getDate();
+    const offset = first.getDay();
+    const cells = [];
+    for (let index = 0; index < offset; index += 1) cells.push(`<span class="runtime-calendar-static-cell is-muted"></span>`);
+    for (let day = 1; day <= dayCount; day += 1) {
+      const isToday = year === new Date().getFullYear() && month === new Date().getMonth() && day === new Date().getDate();
+      cells.push(`<span class="runtime-calendar-static-cell${isToday ? " is-today" : ""}">${day}</span>`);
+    }
+    const monthLabel = date.toLocaleString(undefined, { month: "long", year: "numeric" });
+    return `
+      <div class="runtime-calendar-static" data-calendar-static-month="${escapeHtml(`${year}-${String(month + 1).padStart(2, "0")}`)}" aria-label="${escapeHtml(monthLabel)}">
+        <div class="runtime-calendar-static-title">${escapeHtml(monthLabel)}</div>
+        <div class="runtime-calendar-static-weekdays" aria-hidden="true">${["S", "M", "T", "W", "T", "F", "S"].map((day) => `<span>${day}</span>`).join("")}</div>
+        <div class="runtime-calendar-static-grid">${cells.join("")}</div>
+      </div>`;
+  };
 
   registerWidgetDefinition({
     type: "calendar",
@@ -2257,14 +2295,12 @@
     render: ({ instance }) => {
       const title = instance.config.title || "Calendar";
       const config = instance.config || {};
-      const dateField = String(config.dateField || "").trim();
-      if (!dateField) return widgetHint("Add date field");
       const monthName = config.title || "Calendar";
       const initialDate = new Date().toISOString().split("T")[0];
       return `
         <div class="runtime-calendar-widget">
           <div class="widget-content-well widget-library-surface runtime-calendar-fullcalendar-surface">
-            <div class="runtime-calendar-fullcalendar" data-calendar-initial="${escapeHtml(initialDate)}" role="region" aria-label="${escapeHtml(monthName)}"></div>
+            <div class="runtime-calendar-fullcalendar" data-calendar-initial="${escapeHtml(initialDate)}" role="region" aria-label="${escapeHtml(monthName)}">${staticCalendarMonthMarkup(new Date(initialDate))}</div>
           </div>
         </div>`;
     },
@@ -2272,9 +2308,8 @@
       const target = contentRoot?.querySelector?.(".runtime-calendar-fullcalendar");
       if (!target) return null;
       const config = instance?.config || {};
-      const events = [];
-      if (!events.length) return null;
-      const initialDate = target.dataset.calendarInitial || events[0].date.toISOString().split("T")[0];
+      const events = calendarExtractEvents(instance?.data, config, {});
+      const initialDate = target.dataset.calendarInitial || events[0]?.date?.toISOString?.().split("T")[0] || new Date().toISOString().split("T")[0];
       const fcEvents = events.map((event) => ({
         title: event.label,
         start: event.date,
@@ -2306,7 +2341,7 @@
         })
         .catch((error) => {
           if (disposed || !target.isConnected) return;
-          target.innerHTML = widgetHint("Calendar unavailable");
+          target.innerHTML = defaultWidgetVisual("calendar");
         });
       return () => {
         disposed = true;

@@ -285,6 +285,32 @@ body.webgl-glass-on .widget-card.db-panel-custom-color{
   align-self: end;
 }.widget-shell-content > :is(.widget-empty-placeholder, .runtime-table-widget, .runtime-chart-widget, .runtime-map-widget, .runtime-calendar-widget, .timeframe-body, .search-widget-content, .filter-widget-content, .text-widget-content, .media-widget, .meta-widget, .dataset-origin-widget, .data-filter-widget, .shift-widget, .region-summary-widget){
   min-height: 0;
+}.widget-default-visual{
+  display: grid;
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+  place-content: center;
+  grid-template-columns: repeat(3, minmax(18px, 34px));
+  gap: var(--space-5);
+  opacity: .86;
+}.widget-default-visual span{
+  display: block;
+  aspect-ratio: 1;
+  border-radius: 999px;
+  background:
+    radial-gradient(circle at 32% 24%, color-mix(in srgb, var(--panel-accent-text, #ffffff) 46%, transparent), transparent 58%),
+    color-mix(in srgb, var(--panel-accent, var(--blue)) 28%, transparent);
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, var(--panel-accent-text, #ffffff) 26%, transparent),
+    0 8px 18px color-mix(in srgb, var(--panel-accent, var(--blue)) 15%, transparent);
+}.widget-default-visual span:nth-child(2){
+  transform: translateY(-7px);
+  opacity: .72;
+}.widget-default-visual span:nth-child(3){
+  transform: translateY(4px);
+  opacity: .58;
 }.widget-shell[data-shell-runtime-state="loading"]{
   --widget-shell-state-accent: color-mix(in srgb, var(--widget-data-primary, var(--blue)) 62%, transparent);
 }.widget-shell[data-shell-runtime-state="empty"],
@@ -3206,6 +3232,43 @@ that put the drawer on top — palette * has to declare its tier explicitly. */ 
   box-shadow:
     inset 0 1px 0 color-mix(in srgb, var(--panel-accent-text, #ffffff) 14%, transparent),
     inset 0 -18px 36px color-mix(in srgb, var(--panel-accent, #38bdf8) 8%, transparent);
+}.media-widget-default-stage{
+  position: relative;
+  isolation: isolate;
+}.media-default-mark{
+  display: block;
+  width: min(56%, 126px);
+  aspect-ratio: 1.35;
+  border: 1px solid color-mix(in srgb, var(--panel-accent-text, #ffffff) 32%, transparent);
+  border-radius: calc(var(--radius-md) + 1px);
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--panel-accent-text, #ffffff) 24%, transparent), transparent 45%),
+    color-mix(in srgb, var(--panel-accent, #38bdf8) 18%, transparent);
+  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--panel-accent-text, #ffffff) 20%, transparent);
+}.media-default-mark-image{
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
+  background:
+    radial-gradient(circle at 76% 28%, color-mix(in srgb, var(--panel-accent-text, #ffffff) 48%, transparent) 0 9%, transparent 10%),
+    linear-gradient(135deg, transparent 47%, color-mix(in srgb, var(--panel-accent-text, #ffffff) 34%, transparent) 48% 58%, transparent 59%),
+    linear-gradient(45deg, color-mix(in srgb, var(--panel-accent, #38bdf8) 28%, transparent), transparent 62%);
+}.media-default-mark-video{
+  display: grid;
+  place-items: center;
+}.media-default-mark-video::after{
+  content: "";
+  width: 0;
+  height: 0;
+  border-top: 12px solid transparent;
+  border-bottom: 12px solid transparent;
+  border-left: 18px solid color-mix(in srgb, var(--panel-accent-text, #ffffff) 70%, transparent);
+  transform: translateX(2px);
+}.media-default-mark-document{
+  aspect-ratio: .74;
+  width: min(42%, 78px);
+  border-radius: 8px;
+  background:
+    linear-gradient(180deg, transparent 28%, color-mix(in srgb, var(--panel-accent-text, #ffffff) 24%, transparent) 29% 32%, transparent 33% 44%, color-mix(in srgb, var(--panel-accent-text, #ffffff) 18%, transparent) 45% 48%, transparent 49% 60%, color-mix(in srgb, var(--panel-accent-text, #ffffff) 16%, transparent) 61% 64%, transparent 65%),
+    color-mix(in srgb, var(--panel-accent, #38bdf8) 18%, transparent);
 }.media-widget-image,
 .media-widget-video,
 .media-widget-frame{
@@ -3440,6 +3503,45 @@ that put the drawer on top — palette * has to declare its tier explicitly. */ 
   margin-right: 4px;
   color: var(--widget-content-fg);
   font-weight: 700;
+}.runtime-calendar-static{
+  display: grid;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  grid-template-rows: auto auto minmax(0, 1fr);
+  gap: 4px;
+  color: var(--widget-content-fg);
+}.runtime-calendar-static-title{
+  overflow: hidden;
+  color: var(--widget-content-fg);
+  font-size: var(--widget-title-size);
+  font-weight: var(--widget-title-weight);
+  line-height: 1.1;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}.runtime-calendar-static-weekdays,
+.runtime-calendar-static-grid{
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 2px;
+}.runtime-calendar-static-weekdays span,
+.runtime-calendar-static-cell{
+  display: grid;
+  min-width: 0;
+  place-items: center;
+  border-radius: 6px;
+  color: var(--widget-content-meta);
+  font-size: max(.48rem, calc(var(--widget-meta-size) * .9));
+  font-weight: var(--widget-meta-weight);
+  line-height: 1;
+}.runtime-calendar-static-cell{
+  min-height: 14px;
+  background: color-mix(in srgb, var(--panel-accent-text, #ffffff) 6%, transparent);
+}.runtime-calendar-static-cell.is-muted{
+  background: transparent;
+}.runtime-calendar-static-cell.is-today{
+  color: var(--widget-content-fg);
+  background: color-mix(in srgb, var(--panel-accent, var(--blue)) 32%, transparent);
 }:is(.runtime-table-widget, .runtime-chart-widget, .runtime-map-widget, .runtime-calendar-widget, .filter-widget-content, .text-widget-content, .media-widget, .meta-widget, .dataset-origin-widget, .data-filter-widget, .shift-widget, .region-summary-widget){
   color: var(--widget-content-fg);
   gap: var(--widget-composition-gap);
