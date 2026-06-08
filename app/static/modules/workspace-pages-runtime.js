@@ -367,11 +367,7 @@ export const initializeWorkspacePagesRuntime = ({
     const cleanup = () => {
       if (commit) {
         commitPreviewPage(state);
-        tabsRuntime.activateTab(state.targetIndex, {
-          source: "swipe",
-          instant: true,
-          direction: transitionDirection(state.direction),
-        });
+        tabsRuntime.selectTabWithoutActivation(state.targetIndex);
       } else {
         restorePreviewPage(state);
       }

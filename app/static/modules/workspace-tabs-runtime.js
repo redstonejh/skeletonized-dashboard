@@ -170,6 +170,13 @@ export const initializeWorkspaceTabsRuntime = ({
     render();
   };
 
+  const selectTabWithoutActivation = (index) => {
+    if (index === state.activeIndex) return;
+    state = { ...state, activeIndex: index };
+    save();
+    render();
+  };
+
   const createTab = () => {
     pushUndo();
     const nextNumber = state.tabs.length + 1;
@@ -495,6 +502,7 @@ export const initializeWorkspaceTabsRuntime = ({
       stateChangeHandler = typeof handler === "function" ? handler : null;
     },
     activateTab,
+    selectTabWithoutActivation,
     createTab,
     moveTab,
     deleteTab,
