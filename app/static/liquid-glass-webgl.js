@@ -227,22 +227,24 @@
   let uniforms = null;
   let vbo = null;
   let bgTexture = null;
+  let bgImage = null;
+  let bgImageSrc = "";
+  let bgImageReady = false;
   let backdropReady = false;
   let offscreen = null;
   let offscreenCtx = null;
   let lastTextureKey = "";
-  const backdropImageCache = new Map();
 
   let rafHandle = null;
   let active = false;
   let debugMode = 0;
   let debugObjectIndex = -1;
   let pendingFrame = false;
-  // While layout or scroll motion is active, redraw every frame from one
-  // captured viewport/scroll snapshot so backdrop and object geometry stay in
-  // the same coordinate frame.
-  let liveTrackingUntil = 0;
-  const LIVE_TRACKING_COOLDOWN_MS = 140;
+  // One cooldown frame after the last running animation completes,
+  // so the canvas captures the resting bounding boxes once the FLIP /
+  // height transition has fully released.
+  let animationCooldownFrames = 0;
+  const ANIMATION_COOLDOWN_FRAMES = 1;
   let resizeObserver = null;
   let mutationObserver = null;
   let scrollHandler = null;
@@ -338,15 +340,31 @@
     return m ? m[1] : "";
   };
 
-  const imageForUrl = (url) => {
-    if (!url) return null;
-    const cached = backdropImageCache.get(url);
-    if (cached) return cached;
+  const currentPhotoUrl = () => {
+    const panel = document.querySelector(".workspace-photo-panel");
+    if (!panel) return "";
+    return cssUrl(panel.style.backgroundImage || getComputedStyle(panel).backgroundImage || "");
+  };
+
+  const loadBackgroundImage = () => {
+    const url = currentPhotoUrl();
+    if (!url) {
+      if (bgImageSrc) {
+        bgImage = null;
+        bgImageSrc = "";
+        bgImageReady = false;
+        lastTextureKey = "";
+      }
+      return;
+    }
+    if (url === bgImageSrc) return;
+    bgImageSrc = url;
+    bgImageReady = false;
     const img = new Image();
     img.crossOrigin = "anonymous";
-    const record = { img, ready: false };
     img.onload = () => {
-      record.ready = true;
+      bgImage = img;
+      bgImageReady = true;
       lastTextureKey = "";
       rasterizeBackdropTexture();
       markDirty();
@@ -354,39 +372,10 @@
     img.onerror = () => {
       console.warn("[liquid-glass-webgl] backdrop image load failed:", url);
     };
-    backdropImageCache.set(url, record);
     img.src = url;
-    return record;
   };
 
-  const drawCoverImage = (ctx, img, x, y, w, h) => {
-    const iw = img.naturalWidth || img.width || 1;
-    const ih = img.naturalHeight || img.height || 1;
-    const imgAspect = iw / ih;
-    const boxAspect = w / h;
-    let dw, dh, dx, dy;
-    if (imgAspect > boxAspect) {
-      dh = h;
-      dw = h * imgAspect;
-      dx = x + ((w - dw) * 0.5);
-      dy = y;
-    } else {
-      dw = w;
-      dh = w / imgAspect;
-      dx = x;
-      dy = y + ((h - dh) * 0.5);
-    }
-    ctx.drawImage(img, dx, dy, dw, dh);
-  };
-
-  const captureFrame = () => ({
-    dpr: Math.min(window.devicePixelRatio || 1, 1.5),
-    vw: Math.max(1, window.innerWidth),
-    vh: Math.max(1, window.innerHeight),
-    scrollY: window.scrollY || 0,
-  });
-
-  const rasterizeBackdropTexture = (frame = captureFrame()) => {
+  const rasterizeBackdropTexture = () => {
     if (!canvas || !gl) return;
     const w = canvas.width;
     const h = canvas.height;
@@ -405,10 +394,13 @@
       bodyStyle.backgroundColor ||
       "#1f2937";
     const bgEnd = rootStyle.getPropertyValue("--bg-end").trim() || bgStart;
-    const panels = [...document.querySelectorAll(".workspace-photo-panel")]
-      .filter((panel) => !panel.hidden && getComputedStyle(panel).display !== "none");
-    const imageKeys = [];
-    let waitingForImage = false;
+    const photoUrl = currentPhotoUrl();
+    if (photoUrl && photoUrl !== bgImageSrc) loadBackgroundImage();
+    const iw = bgImageReady && bgImage ? (bgImage.naturalWidth || bgImage.width || 1) : 0;
+    const ih = bgImageReady && bgImage ? (bgImage.naturalHeight || bgImage.height || 1) : 0;
+    const key = `${bgStart}|${bgEnd}|${photoUrl}|${bgImageReady ? "ready" : "pending"}|${w}x${h}|${iw}x${ih}`;
+    if (key === lastTextureKey) return;
+    lastTextureKey = key;
 
     offscreenCtx.clearRect(0, 0, w, h);
     offscreenCtx.imageSmoothingEnabled = true;
@@ -419,38 +411,23 @@
     offscreenCtx.fillStyle = gradient;
     offscreenCtx.fillRect(0, 0, w, h);
 
-    panels.forEach((panel, panelIndex) => {
-      const panelTop = (panelIndex * frame.vh) - frame.scrollY;
-      const rect = {
-        left: 0,
-        top: panelTop,
-        right: frame.vw,
-        bottom: panelTop + frame.vh,
-        width: frame.vw,
-        height: frame.vh,
-      };
-      if (rect.width <= 0 || rect.height <= 0 || rect.right <= 0 || rect.bottom <= 0 || rect.left >= frame.vw || rect.top >= frame.vh) return;
-      const url = cssUrl(panel.style.backgroundImage || getComputedStyle(panel).backgroundImage || "");
-      if (!url) return;
-      const record = imageForUrl(url);
-      imageKeys.push(`${url}:${Math.round(rect.left)},${Math.round(rect.top)},${Math.round(rect.width)},${Math.round(rect.height)}`);
-      if (!record?.ready) {
-        waitingForImage = true;
-        return;
+    if (bgImageReady && bgImage) {
+      const imgAspect = iw / ih;
+      const canvasAspect = w / h;
+      let dw, dh, dx, dy;
+      if (imgAspect > canvasAspect) {
+        dh = h;
+        dw = h * imgAspect;
+        dx = (w - dw) * 0.5;
+        dy = 0;
+      } else {
+        dw = w;
+        dh = w / imgAspect;
+        dx = 0;
+        dy = (h - dh) * 0.5;
       }
-      drawCoverImage(
-        offscreenCtx,
-        record.img,
-        rect.left * (w / frame.vw),
-        rect.top * (h / frame.vh),
-        rect.width * (w / frame.vw),
-        rect.height * (h / frame.vh),
-      );
-    });
-
-    const key = `${bgStart}|${bgEnd}|${w}x${h}|${imageKeys.join("|")}|${waitingForImage ? "pending" : "ready"}`;
-    if (key === lastTextureKey) return;
-    lastTextureKey = key;
+      offscreenCtx.drawImage(bgImage, dx, dy, dw, dh);
+    }
     backdropReady = true;
 
     gl.bindTexture(gl.TEXTURE_2D, bgTexture);
@@ -484,18 +461,6 @@
     }
   };
 
-  const extendLiveTracking = (now = performance.now()) => {
-    liveTrackingUntil = Math.max(liveTrackingUntil, now + LIVE_TRACKING_COOLDOWN_MS);
-  };
-
-  const shouldLiveTrack = (now = performance.now()) => {
-    if (isAnimatingGlassTarget()) {
-      extendLiveTracking(now);
-      return true;
-    }
-    return now <= liveTrackingUntil;
-  };
-
   const resolveRadiusLength = (value, size) => {
     const text = String(value || "").trim();
     if (!text) return 0;
@@ -526,11 +491,11 @@
     return Math.min(Math.max(0, radius), maxRadius);
   };
 
-  const collectObjects = (frame = captureFrame()) => {
+  const collectObjects = () => {
     const nodes = document.querySelectorAll(OBJECT_SELECTOR);
     const out = [];
-    const vw = frame.vw;
-    const vh = frame.vh;
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
     const visibleClipRect = (node, rect) => {
       let left = Math.max(rect.left, 0);
       let top = Math.max(rect.top, 0);
@@ -589,31 +554,33 @@
     return out;
   };
 
-  const syncSize = (frame = captureFrame()) => {
+  const syncSize = () => {
     if (!canvas) return;
-    const w = Math.max(1, Math.floor(frame.vw * frame.dpr));
-    const h = Math.max(1, Math.floor(frame.vh * frame.dpr));
+    // DPR capped at 1.5 — kills the upscale-blur banding that DPR=1
+    // produced on Retina/HiDPI without doubling fragment-shader cost.
+    const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
+    const w = Math.max(1, Math.floor(window.innerWidth * dpr));
+    const h = Math.max(1, Math.floor(window.innerHeight * dpr));
     let resized = false;
     if (canvas.width !== w) { canvas.width = w; resized = true; }
     if (canvas.height !== h) { canvas.height = h; resized = true; }
-    canvas.style.width = `${frame.vw}px`;
-    canvas.style.height = `${frame.vh}px`;
-    if (resized) rasterizeBackdropTexture(frame);
+    canvas.style.width = `${window.innerWidth}px`;
+    canvas.style.height = `${window.innerHeight}px`;
+    if (resized) rasterizeBackdropTexture();
   };
 
   const draw = () => {
     pendingFrame = false;
     if (!active || !gl || !canvas) return;
 
-    const frame = captureFrame();
-    syncSize(frame);
-    rasterizeBackdropTexture(frame);
+    syncSize();
+    rasterizeBackdropTexture();
     if (!backdropReady) return;
     gl.viewport(0, 0, canvas.width, canvas.height);
     gl.clearColor(0, 0, 0, 0);
     gl.clear(gl.COLOR_BUFFER_BIT);
 
-    const rects = collectObjects(frame);
+    const rects = collectObjects();
     const flatRects = new Float32Array(MAX_OBJECTS * 4);
     const flatRadii = new Float32Array(MAX_OBJECTS);
     for (let i = 0; i < rects.length; i++) {
@@ -628,7 +595,7 @@
     gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_2D, bgTexture);
     gl.uniform1i(uniforms.u_background, 0);
-    gl.uniform2f(uniforms.u_resolution, frame.vw, frame.vh);
+    gl.uniform2f(uniforms.u_resolution, window.innerWidth, window.innerHeight);
     gl.uniform1i(uniforms.u_count, rects.length);
     gl.uniform1i(uniforms.u_debug, debugMode | 0);
     gl.uniform1i(uniforms.u_debugObject, debugObjectIndex | 0);
@@ -639,10 +606,19 @@
     gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
     gl.drawArrays(gl.TRIANGLES, 0, 6);
 
-    // Live-tracking loop: while scroll or glass-target animation is moving,
-    // keep redrawing from one frame snapshot. The same path handles scroll,
-    // FLIP, collapse, and page-slide motion.
-    if (shouldLiveTrack()) {
+    // Live-tracking loop: while any glass-target element is animating
+    // (panel collapse height transition, FLIP collision displacement),
+    // re-draw every frame so the refraction follows the live
+    // getBoundingClientRect() (which already reflects transforms and
+    // transitioned CSS values). One cooldown frame after animations
+    // settle catches the resting state. Otherwise pendingFrame stays
+    // false and we revert to dirty-only mode driven by markDirty().
+    if (isAnimatingGlassTarget()) {
+      animationCooldownFrames = ANIMATION_COOLDOWN_FRAMES;
+      pendingFrame = true;
+      rafHandle = requestAnimationFrame(draw);
+    } else if (animationCooldownFrames > 0) {
+      animationCooldownFrames -= 1;
       pendingFrame = true;
       rafHandle = requestAnimationFrame(draw);
     }
@@ -671,14 +647,11 @@
       });
     }
     if (!scrollHandler) {
-      scrollHandler = () => {
-        extendLiveTracking();
-        markDirty();
-      };
+      scrollHandler = () => markDirty();
       window.addEventListener("scroll", scrollHandler, { passive: true });
     }
     if (!resizeHandler) {
-      resizeHandler = () => { syncSize(captureFrame()); markDirty(); };
+      resizeHandler = () => { syncSize(); markDirty(); };
       window.addEventListener("resize", resizeHandler);
     }
   };
@@ -688,12 +661,13 @@
     if (!ensureCanvas()) return;
     active = true;
     document.body.classList.add("webgl-glass-on");
-    const frame = captureFrame();
-    syncSize(frame);
-    rasterizeBackdropTexture(frame);
+    loadBackgroundImage();
+    syncSize();
+    rasterizeBackdropTexture();
     attachObservers();
-    // The first frame may need to wait for the texture; markDirty schedules it.
-    // Scroll and animation motion then stay on the shared live-tracking loop.
+    // Continuous loop during drag/resize is overkill; we redraw on
+    // mutation + scroll. The first frame may need to wait for the
+    // texture; markDirty schedules it.
     markDirty();
   };
 
@@ -721,7 +695,8 @@
     console.log("body webgl-glass-on:", document.body.classList.contains("webgl-glass-on"));
     console.log("devicePixelRatio:", window.devicePixelRatio, "(capped at 1.5)");
     console.log("canvas:", canvasInfo);
-    console.log("backdrop ready:", backdropReady, "cached images:", backdropImageCache.size);
+    console.log("backdrop ready:", backdropReady, "bg image:", { src: bgImageSrc, ready: bgImageReady,
+      natural: bgImage ? `${bgImage.naturalWidth}x${bgImage.naturalHeight}` : null });
     console.log("offscreen texture:", offscreen ? `${offscreen.width}x${offscreen.height}` : "none");
     console.log("collected objects:", rects.length, "(max " + MAX_OBJECTS + ")");
     if (rects.length) {
