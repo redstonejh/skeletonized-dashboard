@@ -29,6 +29,7 @@ export const initializeWorkspacePagesRuntime = ({
   storageKey = STORAGE_KEY,
   onPageMounted,
   onPageAttached,
+  persistOnChange = false,
 } = {}) => {
   const grid = document.querySelector(".dashboard-layout-grid[data-dashboard-layout-key='builder'], .dashboard-layout-grid");
   const widgetLayout = () => document.querySelector(".widget-layout[data-widget-layout-key='builder'], .widget-layout");
@@ -137,6 +138,7 @@ export const initializeWorkspacePagesRuntime = ({
   };
 
   const schedulePersistAllPages = () => {
+    if (!persistOnChange) return;
     if (suppressPersistenceObserver) return;
     if (persistTimer) window.clearTimeout(persistTimer);
     persistTimer = window.setTimeout(flushPersistAllPages, PERSIST_DEBOUNCE_MS);
@@ -265,13 +267,15 @@ export const initializeWorkspacePagesRuntime = ({
   tabsRuntime.setActivationHandler((event) => activatePage(event));
   tabsRuntime.setMutationHandler(reconcileAfterTabMutation);
   tabsRuntime.setStateChangeHandler?.(schedulePersistAllPages);
-  window.addEventListener("beforeunload", () => {
-    if (skipBeforeUnloadPersist) {
-      skipBeforeUnloadPersist = false;
-      return;
-    }
-    flushPersistAllPages();
-  });
+  if (persistOnChange) {
+    window.addEventListener("beforeunload", () => {
+      if (skipBeforeUnloadPersist) {
+        skipBeforeUnloadPersist = false;
+        return;
+      }
+      flushPersistAllPages();
+    });
+  }
 
   window.dashboardWorkspacePagesRuntime = {
     persistAllPages: flushPersistAllPages,
