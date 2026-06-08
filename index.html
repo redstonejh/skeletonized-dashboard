@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-dashboard-booting>
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -32,7 +32,20 @@
       } catch {}
     })();
   </script>
-  <link rel="stylesheet" href="./app/static/style.css">
+  <style>
+    html[data-dashboard-booting] .page,
+    html[data-dashboard-booting] .toast-stack,
+    html[data-dashboard-booting] dialog {
+      visibility: hidden;
+    }
+  </style>
+  <link rel="stylesheet" href="./app/static/tokens.css">
+  <link rel="stylesheet" href="./app/static/base.css">
+  <link rel="stylesheet" href="./app/static/layout.css">
+  <link rel="stylesheet" href="./app/static/components.css">
+  <link rel="stylesheet" href="./app/static/dashboard-grid.css">
+  <link rel="stylesheet" href="./app/static/themes.css">
+  <link rel="stylesheet" href="./app/static/utilities.css">
 </head>
 <body>
   <main class="page">

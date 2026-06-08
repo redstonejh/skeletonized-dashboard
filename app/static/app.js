@@ -2766,6 +2766,10 @@ document.addEventListener("DOMContentLoaded", () => {
     pushLiveLayoutUndo,
   });
 
+  window.requestAnimationFrame(() => {
+    document.documentElement.removeAttribute("data-dashboard-booting");
+    document.documentElement.dataset.dashboardReady = "true";
+  });
 });
 
 void import("./liquid-glass-webgl.js");
