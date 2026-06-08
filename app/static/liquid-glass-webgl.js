@@ -476,7 +476,7 @@
 
   const trackMovement = () => {
     extendLiveTracking();
-    markDirty();
+    renderMovementFrame();
   };
 
   const shouldLiveTrack = () => {
@@ -601,6 +601,7 @@
 
   const draw = () => {
     pendingFrame = false;
+    rafHandle = null;
     if (!active || !gl || !canvas) return;
 
     syncSize();
@@ -657,6 +658,16 @@
     if (pendingFrame) return;
     pendingFrame = true;
     rafHandle = requestAnimationFrame(draw);
+  };
+
+  const renderMovementFrame = () => {
+    if (!active) return;
+    if (rafHandle) {
+      cancelAnimationFrame(rafHandle);
+      rafHandle = null;
+    }
+    pendingFrame = false;
+    draw();
   };
 
   const attachObservers = () => {
