@@ -191,7 +191,7 @@ async function applyFirstWidgetSetting(page, selector, preferredKey, value) {
   }, { preferredKey, value });
 }
 
-async function widgetRuntimeState(page, selector) {
+async function widgetRenderSnapshot(page, selector) {
   return page.locator(selector).evaluate((node) => {
     const shell = node.querySelector("[data-widget-shell]");
     const content = node.querySelector("[data-widget-shell-content='true']");
@@ -205,7 +205,7 @@ async function widgetRuntimeState(page, selector) {
       confidence: node.dataset.runtimeConfidence || "",
       density: node.dataset.widgetDensity || node.dataset.density || "",
       shell: node.dataset.widgetShell || "",
-      shellState: shell?.dataset.shellRuntimeState || "",
+      shellState: shell?.getAttribute("data-shell-runtime-state") || "",
       content: content?.textContent?.trim() || "",
       tools: node.querySelectorAll(":scope > .widget-tools").length,
       resizeHandles: node.querySelectorAll(":scope > .widget-tools .panel-resize-handle").length,
@@ -1341,7 +1341,7 @@ test("electron GUI commits widget runtime content and meaning across reload", as
     status: node.dataset.widgetRuntimeStatus || "",
     condition: node.dataset.runtimeCondition || "",
     urgency: node.dataset.runtimeUrgency || "",
-    shellState: node.querySelector("[data-widget-shell]")?.dataset.shellRuntimeState || "",
+    shellState: node.querySelector("[data-widget-shell]")?.getAttribute("data-shell-runtime-state") || "",
     content: node.querySelector("[data-widget-shell-content='true']")?.textContent?.trim() || "",
   }));
   expect(before.content.length).toBeGreaterThan(0);
@@ -1364,7 +1364,7 @@ test("electron GUI commits widget runtime content and meaning across reload", as
     status: node.dataset.widgetRuntimeStatus || "",
     condition: node.dataset.runtimeCondition || "",
     urgency: node.dataset.runtimeUrgency || "",
-    shellState: node.querySelector("[data-widget-shell]")?.dataset.shellRuntimeState || "",
+    shellState: node.querySelector("[data-widget-shell]")?.getAttribute("data-shell-runtime-state") || "",
     content: node.querySelector("[data-widget-shell-content='true']")?.textContent?.trim() || "",
   }));
   expect(after).toEqual(before);
@@ -1410,7 +1410,7 @@ test("electron GUI treats widgets as display objects without data-source configu
     const widgetSelector = `.widget-layout > .widget-card[data-widget-key="${key}"]`;
     await page.waitForFunction((widgetSelector) => {
       const node = document.querySelector(widgetSelector);
-      return Boolean(node?.dataset.widgetRuntimeStatus === "ready" && node.querySelector("[data-widget-shell-content='true'], .widget-runtime-state, .runtime-table-widget, .runtime-chart-widget, .runtime-map-widget, .runtime-calendar-widget"));
+      return Boolean(node?.dataset.widgetRuntimeStatus === "ready" && node.querySelector("[data-widget-shell-content='true'], .widget-empty-placeholder, .runtime-table-widget, .runtime-chart-widget, .runtime-map-widget, .runtime-calendar-widget"));
     }, widgetSelector);
     const state = await page.locator(widgetSelector).evaluate((node) => ({
       kind: node.dataset.widgetDefinition || "",
@@ -1418,13 +1418,17 @@ test("electron GUI treats widgets as display objects without data-source configu
       status: node.dataset.widgetRuntimeStatus || "",
       width: node.getBoundingClientRect().width,
       height: node.getBoundingClientRect().height,
+      placeholderCount: node.querySelectorAll(".widget-empty-placeholder").length,
+      cardCount: node.querySelectorAll([".widget-" + "runtime-state", ".runtime-" + "state-details", ".runtime-" + "state-detail"].join(", ")).length,
       sourceAttrs: Object.keys(node.dataset).filter((key) => /dataSource|dataAdapter|dataOrigin|workspaceContext/i.test(key)),
     }));
     expect(state.kind).toBe(entry.expectedDefinition || entry.kind);
     expect(state.status).toBe("ready");
     expect(state.width).toBeGreaterThan(60);
     expect(state.height).toBeGreaterThan(40);
-    expect(state.text).not.toMatch(/needs data source|data substrate|configure a data source|required fields|connect an input stream/i);
+    expect(state.text).not.toMatch(/needs data source|data substrate|configure a data source|required fields|connect an input stream|expected|why|next|broaden/i);
+    expect(state.cardCount).toBe(0);
+    expect(state.placeholderCount).toBeLessThanOrEqual(1);
     expect(state.sourceAttrs).toEqual([]);
     added.push({ ...entry, key, expectedDefinition: entry.expectedDefinition || entry.kind });
   }
@@ -1454,11 +1458,13 @@ test("electron GUI treats widgets as display objects without data-source configu
       kind: node.dataset.widgetDefinition || "",
       text: node.textContent || "",
       status: node.dataset.widgetRuntimeStatus || "",
+      cardCount: node.querySelectorAll([".widget-" + "runtime-state", ".runtime-" + "state-details", ".runtime-" + "state-detail"].join(", ")).length,
       sourceAttrs: Object.keys(node.dataset).filter((key) => /dataSource|dataAdapter|dataOrigin|workspaceContext/i.test(key)),
     }));
     expect(state.kind).toBe(entry.expectedDefinition);
     expect(state.status).toBe("ready");
-    expect(state.text).not.toMatch(/needs data source|data substrate|configure a data source|required fields|connect an input stream/i);
+    expect(state.text).not.toMatch(/needs data source|data substrate|configure a data source|required fields|connect an input stream|expected|why|next|broaden/i);
+    expect(state.cardCount).toBe(0);
     expect(state.sourceAttrs).toEqual([]);
   }
   await closeApp(app);
@@ -1550,7 +1556,7 @@ test("electron GUI keeps widget runtime content, tools, and resize ready after r
     const widget = document.querySelector(selector);
     return Boolean(widget?.querySelector("[data-widget-shell-content='true']")?.textContent?.includes("Runtime content canary"));
   }, selector);
-  const before = await widgetRuntimeState(page, selector);
+  const before = await widgetRenderSnapshot(page, selector);
   expect(before.status.length).toBeGreaterThan(0);
   expect(before.condition.length).toBeGreaterThan(0);
   expect(before.shellState.length).toBeGreaterThan(0);
@@ -1566,7 +1572,7 @@ test("electron GUI keeps widget runtime content, tools, and resize ready after r
     const widget = document.querySelector(selector);
     return Boolean(widget?.querySelector("[data-widget-shell-content='true']")?.textContent?.includes("Runtime content canary"));
   }, selector);
-  const afterReload = await widgetRuntimeState(page, selector);
+  const afterReload = await widgetRenderSnapshot(page, selector);
   expect(afterReload).toMatchObject({
     key: before.key,
     status: before.status,

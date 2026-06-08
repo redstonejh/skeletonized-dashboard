@@ -1,0 +1,18 @@
+{
+    "passed":  true,
+    "checked":  [
+                    "runtimeState",
+                    "runtimeStateDetails",
+                    "runtimeStateDetailMarkup",
+                    "inferRuntimeState",
+                    "runtime-state-kicker",
+                    "No display rows",
+                    "broaden the widget scope",
+                    "Runtime content that matches",
+                    "No data",
+                    "EXPECTED|WHY|NEXT (case-sensitive labels)"
+                ],
+    "hits":  [
+
+             ]
+}

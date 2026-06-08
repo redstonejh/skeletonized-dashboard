@@ -1027,7 +1027,7 @@
       })
       .catch((error) => {
         if (disposed || !target.isConnected) return;
-        target.innerHTML = `<div class="widget-runtime-state" data-runtime-state="error"><span class="stat-lbl">${escapeHtml(error?.message || "Unable to load table renderer")}</span></div>`;
+        target.innerHTML = widgetPlaceholder("Table unavailable");
       });
     return () => {
       disposed = true;
@@ -1103,7 +1103,7 @@
       })
       .catch((error) => {
         if (disposed || !target.isConnected) return;
-        target.innerHTML = `<div class="widget-runtime-state" data-runtime-state="error"><span class="stat-lbl">${escapeHtml(error?.message || "Unable to load editor")}</span></div>`;
+        target.innerHTML = widgetPlaceholder("Editor unavailable");
       });
     return () => {
       disposed = true;
@@ -1133,7 +1133,7 @@
       })
       .catch((error) => {
         if (disposed || !target.isConnected) return;
-        target.innerHTML = `<div class="widget-runtime-state" data-runtime-state="error"><span class="stat-lbl">${escapeHtml(error?.message || "Unable to load chart renderer")}</span></div>`;
+        target.innerHTML = widgetPlaceholder("Chart unavailable");
       });
     return () => {
       disposed = true;
@@ -1199,72 +1199,11 @@
     valueRequiredForAggregation: !["bar", "horizontal-bar", "grouped-bar", "stacked-bar", "lollipop", "pie", "donut", "heatmap"].includes(chartType),
   }));
 
-  const inferRuntimeState = (label = "", helper = "") => {
-    const text = `${label} ${helper}`.toLowerCase();
-    if (text.includes("loading")) return "loading";
-    if (text.includes("error") || text.includes("unable") || text.includes("failed")) return "error";
-    if (text.includes("unsupported")) return "unsupported";
-    if (text.includes("configure") || text.includes("map a ")) return "configure";
-    if (text.includes("empty") || text.includes("no data") || text.includes("no rows") || text.includes("no map rows") || text.includes("no date rows") || text.includes("no numeric") || text.includes("no valid") || text.includes("no coordinates")) return "empty";
-    return "idle";
-  };
-
-  const runtimeStateLabel = (state) => ({
-    configure: "Configure",
-    empty: "Empty",
-    error: "Error",
-    loading: "Loading",
-    unsupported: "Unsupported",
-    idle: "State",
-  }[state] || "State");
-
-  const runtimeStateDetails = (label = "", helper = "", state = "idle", options = {}) => {
-    const text = `${label} ${helper}`.toLowerCase();
-    const isConfigure = state === "configure";
-    const isEmpty = state === "empty";
-    const expected = options.expected || (() => {
-      if (text.includes("location") || text.includes("coordinate") || text.includes("geospatial") || text.includes("map")) return "Geospatial rows with location or coordinate fields.";
-      if (text.includes("date") || text.includes("time")) return "Dated records from the active context.";
-      if (text.includes("numeric") || text.includes("value") || text.includes("metric") || text.includes("gauge") || text.includes("trend")) return "Numeric values mapped to the widget metric.";
-      if (text.includes("column") || text.includes("table") || text.includes("row")) return "Rows with configured display columns.";
-      if (text.includes("chart") || text.includes("field") || text.includes("group") || text.includes("series") || text.includes("category")) return "Rows with the configured chart fields.";
-      if (text.includes("image") || text.includes("video") || text.includes("document") || text.includes("asset") || text.includes("url")) return "A safe configured media asset reference.";
-      if (text.includes("source")) return "Display content that matches this widget configuration.";
-      return "Runtime content that matches this widget configuration.";
-    })();
-    const reason = options.reason || (() => {
-      if (state === "loading") return "The widget is preparing content.";
-      if (state === "error") return "The widget reported a load or configuration error.";
-      if (state === "unsupported") return "This saved object uses a widget type that is not registered.";
-      if (isConfigure || text.includes("map a ") || text.includes("configure")) return "This widget needs one local setting before it can render.";
-      if (isEmpty && (text.includes("match") || text.includes("current view"))) return "The current filters or time range returned zero rows.";
-      if (isEmpty && (text.includes("numeric") || text.includes("coordinate") || text.includes("valid"))) return "Rows exist, but the required field values are missing or incompatible.";
-      if (isEmpty) return "No display rows are available for this widget.";
-      return "The widget is waiting for runtime input.";
-    })();
-    const action = options.action || (() => {
-      if (state === "loading") return "Keep the widget in place while data loads.";
-      if (state === "error") return "Open settings and inspect the widget configuration.";
-      if (state === "unsupported") return "Install or restore the missing registry definition.";
-      if (text.includes("image") || text.includes("video") || text.includes("document") || text.includes("asset") || text.includes("url")) return "Open settings and provide a safe asset URL or reference.";
-      if (isConfigure || text.includes("field") || text.includes("column")) return "Open settings and choose the local display fields.";
-      if (isEmpty && text.includes("current view")) return "Adjust filters or time range.";
-      if (isEmpty) return "Check the widget content or broaden the widget scope.";
-      return "Adjust the widget settings or content.";
-    })();
-    return { expected, reason, action };
-  };
-
-  const runtimeStateDetailMarkup = (details) => {
-    const items = [
-      ["Expected", details.expected],
-      ["Why", details.reason],
-      ["Next", details.action],
-    ].filter(([, value]) => String(value || "").trim());
-    if (!items.length) return "";
-    return `<div class="runtime-state-details">${items.map(([label, value]) => `
-          <span class="runtime-state-detail"><b>${escapeHtml(label)}</b><span>${escapeHtml(value)}</span></span>`).join("")}
-        </div>`;
+  const widgetPlaceholder = (label = "") => {
+    const text = String(label || "").trim();
+    return text
+      ? `<span class="widget-empty-placeholder" role="status">${escapeHtml(text)}</span>`
+      : "";
   };
 
   const runtimeMeta = (primary, data = null, options = {}) => {
@@ -1276,19 +1215,6 @@
   };
 
   const runtimeSource = (data = null) => data?.demo ? "demo" : "runtime";
-
-  const runtimeState = (label, helper = "", options = {}) => {
-    const state = options.state || inferRuntimeState(label, helper);
-    const details = runtimeStateDetails(label, helper, state, options);
-    const className = ["widget-runtime-state", options.className].filter(Boolean).join(" ");
-    return `
-      <div class="${escapeHtml(className)}" role="status" data-runtime-state="${escapeHtml(state)}">
-        <span class="runtime-state-kicker">${escapeHtml(options.kicker || runtimeStateLabel(state))}</span>
-        <span class="stat-val">${escapeHtml(label)}</span>
-        ${helper ? `<span class="stat-lbl">${escapeHtml(helper)}</span>` : ""}
-        ${runtimeStateDetailMarkup(details)}
-      </div>`;
-  };
 
   const safeMediaUrl = (value, kind = "generic") => {
     const raw = String(value || "").trim();
@@ -1313,14 +1239,6 @@
   };
 
   const safeMediaFit = (value) => ["contain", "cover", "fill", "center"].includes(value) ? value : "contain";
-  const mediaState = (label, helper, state = "empty", options = {}) => `
-      <div class="media-widget-state media-widget-state-${escapeHtml(state)}" role="status" data-runtime-state="${escapeHtml(state)}">
-        <span class="runtime-state-kicker">${escapeHtml(runtimeStateLabel(state))}</span>
-        <span class="stat-val">${escapeHtml(label)}</span>
-        ${helper ? `<span class="stat-lbl">${escapeHtml(helper)}</span>` : ""}
-        ${runtimeStateDetailMarkup(runtimeStateDetails(label, helper, state, options))}
-      </div>`;
-
   const mediaTitle = (config, fallback) => String(config?.title || fallback || "").trim();
   const mediaCaptionMarkup = (caption) => caption
     ? `<div class="media-widget-caption">${escapeHtml(caption)}</div>`
@@ -1384,7 +1302,7 @@
           </div>
         </header>` : ""}
         <div class="widget-shell-content" data-widget-shell-content="true">
-          ${content || runtimeState(title || definition.displayName || "Widget", "No content")}
+          ${content || widgetPlaceholder()}
         </div>
         ${footer ? `<footer class="widget-shell-footer">${footer}</footer>` : ""}
       </section>`;
@@ -1579,13 +1497,7 @@
     },
     supportedSettings: ["title", "color", "pin", "delete"],
     getDefaultConfig: () => ({ title: `Unsupported: ${type || "unknown"}` }),
-    render: ({ instance }) => runtimeState("Unsupported widget", instance.type || type || "unknown", {
-      className: "unsupported-widget-state",
-      state: "unsupported",
-      expected: "A widget type registered in the runtime registry.",
-      reason: "The saved layout references a type this build cannot render.",
-      action: "Restore the registry definition or replace this object.",
-    }),
+    render: ({ instance }) => widgetPlaceholder(`Unsupported widget: ${instance.type || type || "unknown"}`),
   });
 
   const statMetricContext = ({ instance, resolvedContext, data } = {}) => {
@@ -1647,8 +1559,6 @@
       getTitle: typeof definition.getTitle === "function" ? definition.getTitle : null,
       getMetadata: typeof definition.getMetadata === "function" ? definition.getMetadata : null,
       getFooter: typeof definition.getFooter === "function" ? definition.getFooter : null,
-      getRuntimeState: typeof definition.getRuntimeState === "function" ? definition.getRuntimeState : null,
-      getEmptyState: typeof definition.getEmptyState === "function" ? definition.getEmptyState : null,
       densityRules: definition.densityRules || definition.densityBehavior || {},
       getDemoData: typeof definition.getDemoData === "function" ? definition.getDemoData : null,
       mountBodyRenderer: typeof definition.mountBodyRenderer === "function" ? definition.mountBodyRenderer : null,
@@ -1656,7 +1566,7 @@
       renderContent: typeof definition.renderContent === "function" ? definition.renderContent : null,
       render: typeof definition.render === "function"
         ? definition.render
-        : ({ instance }) => runtimeState(instance.config?.title || definition.displayName, ""),
+        : () => widgetPlaceholder(),
     };
   };
 
@@ -1723,7 +1633,7 @@
         ? content
         : renderWidgetShell(resolvedDefinition, renderProps, content);
     } catch (error) {
-      const fallback = runtimeState("Widget error", error?.message || "Render failed", { state: "error" });
+      const fallback = widgetPlaceholder("Unable to render widget");
       return resolvedDefinition.shell === false
         ? fallback
         : renderWidgetShell(resolvedDefinition, { ...props, density, instance: { ...instance, density }, definition: resolvedDefinition, status: "error" }, fallback);
@@ -1770,7 +1680,6 @@
       titleClass: "stat-lbl",
       metadataClass: "stat-runtime-meta",
       hideHeaderDensities: ["tiny"],
-      hideHeaderForRuntimeStates: true,
     },
     getTitle: ({ instance }) => statLabelFor(instance?.config || {}),
     getMetadata: (props) => {
@@ -1783,16 +1692,16 @@
       const config = instance.config || {};
       const label = statLabelFor(config);
       const { metric, valueField, rows, total } = statMetricContext({ instance, resolvedContext, data });
-      if (metric !== "count" && !valueField) return runtimeState(label, "Map a value field");
-      if (status === "loading") return runtimeState(label, "Loading");
-      if (status === "error") return runtimeState(label, data?.error || "Unable to load metric");
-      if (!rows.length && total <= 0) return runtimeState(label, "No data");
+      if (metric !== "count" && !valueField) return widgetPlaceholder("Add value field");
+      if (status === "loading") return widgetPlaceholder("Loading");
+      if (status === "error") return widgetPlaceholder("Metric unavailable");
+      if (!rows.length && total <= 0) return widgetPlaceholder("Empty");
       const numericValues = valueField
         ? rows.map((row) => numberValue(row?.[valueField])).filter((value) => value != null)
         : [];
       let value = total;
       if (metric !== "count") {
-        if (!numericValues.length) return runtimeState(label, "No numeric data");
+        if (!numericValues.length) return widgetPlaceholder("Empty");
         if (metric === "sum") value = numericValues.reduce((sum, current) => sum + current, 0);
         if (metric === "avg") value = numericValues.reduce((sum, current) => sum + current, 0) / numericValues.length;
         if (metric === "min") value = Math.min(...numericValues);
@@ -1989,9 +1898,9 @@
       const title = mediaTitle(config, "Image");
       const src = safeMediaUrl(config.src, "image");
       const caption = String(config.caption || "").trim();
-      if (config.assetMissing) return mediaState(title, "Missing image asset", "error");
-      if (!String(config.src || "").trim()) return mediaState(title, "Configure image asset", "empty");
-      if (src == null) return mediaState(title, "Unsupported image URL", "error");
+      if (config.assetMissing) return widgetPlaceholder("Image unavailable");
+      if (!String(config.src || "").trim()) return widgetPlaceholder("Add image");
+      if (src == null) return widgetPlaceholder("Image unavailable");
       const fit = safeMediaFit(config.fit);
       const alt = String(config.alt || caption || title || "Image").trim();
       return `
@@ -2042,20 +1951,20 @@
       const title = mediaTitle(config, "Video");
       const caption = String(config.caption || "").trim();
       const embedType = String(config.embedType || "url").toLowerCase();
-      if (config.assetMissing) return mediaState(title, "Missing video asset", "error");
-      if (!String(config.src || "").trim()) return mediaState(title, "Configure video asset", "empty");
+      if (config.assetMissing) return widgetPlaceholder("Video unavailable");
+      if (!String(config.src || "").trim()) return widgetPlaceholder("Add video");
       let stage = "";
       if (embedType === "youtube") {
         const embed = youtubeEmbedUrl(config.src);
-        if (!embed) return mediaState(title, "Unsupported embed URL", "error");
+        if (!embed) return widgetPlaceholder("Video unavailable");
         stage = `<iframe class="media-widget-frame media-widget-video-frame" src="${escapeHtml(embed)}" title="${escapeHtml(title)}" loading="lazy" sandbox="allow-scripts allow-same-origin allow-presentation" allow="encrypted-media; picture-in-picture" allowfullscreen></iframe>`;
       } else if (embedType === "vimeo") {
         const embed = vimeoEmbedUrl(config.src);
-        if (!embed) return mediaState(title, "Unsupported embed URL", "error");
+        if (!embed) return widgetPlaceholder("Video unavailable");
         stage = `<iframe class="media-widget-frame media-widget-video-frame" src="${escapeHtml(embed)}" title="${escapeHtml(title)}" loading="lazy" sandbox="allow-scripts allow-same-origin allow-presentation" allow="encrypted-media; picture-in-picture" allowfullscreen></iframe>`;
       } else {
         const src = safeMediaUrl(config.src, "video");
-        if (src == null) return mediaState(title, "Unsupported video URL", "error");
+        if (src == null) return widgetPlaceholder("Video unavailable");
         stage = `<video class="media-widget-video" src="${escapeHtml(src)}" controls preload="metadata"${config.autoplay ? " autoplay" : ""}${config.muted !== false ? " muted" : ""} playsinline></video>`;
       }
       return `
@@ -2114,10 +2023,10 @@
             ${mediaCaptionMarkup(caption)}
           </div>`;
       }
-      if (config.assetMissing) return mediaState(title, "Missing document asset", "error");
-      if (!String(config.src || "").trim()) return mediaState(title, "Configure document asset", "empty");
+      if (config.assetMissing) return widgetPlaceholder("Document unavailable");
+      if (!String(config.src || "").trim()) return widgetPlaceholder("Add document");
       const src = safeMediaUrl(config.src, "document");
-      if (src == null) return mediaState(title, "Unsupported document URL", "error");
+      if (src == null) return widgetPlaceholder("Document unavailable");
       const page = Math.max(1, Number(config.currentPage) || 1);
       const frameSrc = kind === "pdf" && !String(src).startsWith("data:")
         ? `${src}#page=${page}`
@@ -2181,14 +2090,14 @@
       const config = instance.config || {};
       const densityTier = normalizeDensity(density);
       const title = config.title || "Table";
-      if (status === "loading") return runtimeState(title, "Loading");
-      if (status === "error") return runtimeState(title, data?.error || "Unable to load rows");
+      if (status === "loading") return widgetPlaceholder("Loading");
+      if (status === "error") return widgetPlaceholder("Rows unavailable");
       const displayData = Array.isArray(data?.rows) && data.rows.length ? data : demoDataResult({ widgetType: "table", config });
       const rows = displayData?.rows || [];
       const configuredColumns = tableConfiguredColumns(config);
       const schemaFields = displaySchemaFields(displayData).length ? displaySchemaFields(displayData) : Object.keys(rows[0] || {});
       const allFields = unique(configuredColumns.length ? configuredColumns : schemaFields);
-      if (!allFields.length || !rows.length) return runtimeState(title, "No display rows");
+      if (!allFields.length || !rows.length) return widgetPlaceholder("Empty");
       const visibleFields = allFields.slice(0, tableVisibleColumnCount(instance.cols));
       const visibleRows = rows.slice(0, tableVisibleRowCount(instance.rows, config.limit));
       const tableDensity = Number(instance.rows) <= 2 || Number(instance.cols) <= 2
@@ -2272,15 +2181,15 @@
       const chartType = config.chartType || "bar";
       const definition = getChartDefinition(chartType);
       const title = config.title || "Chart";
-      if (!definition) return runtimeState(title, "Unsupported chart config");
+      if (!definition) return widgetPlaceholder("Chart unavailable");
       const displayData = Array.isArray(data?.rows) && data.rows.length ? data : demoDataResult({ widgetType: "chart", config });
       const renderContext = { ...(resolvedContext || {}), semanticMapping: displayMappingFor(resolvedContext, displayData) };
       const requiredMessage = chartRequiredFieldMessage(definition, config, renderContext);
-      if (requiredMessage) return runtimeState(title, requiredMessage);
-      if (status === "loading") return runtimeState(title, "Loading");
-      if (status === "error") return runtimeState(title, data?.error || "Unable to load chart");
+      if (requiredMessage) return widgetPlaceholder("Add chart fields");
+      if (status === "loading") return widgetPlaceholder("Loading");
+      if (status === "error") return widgetPlaceholder("Chart unavailable");
       const rows = Array.isArray(displayData?.rows) ? displayData.rows : [];
-      if (!rows.length) return runtimeState(title, "No chart rows");
+      if (!rows.length) return widgetPlaceholder("Empty");
       return definition.render({
         instance,
         definition,
@@ -2390,13 +2299,13 @@
       const latitudeField = String(config.latitudeField || mapping.latitudeField || "").trim();
       const longitudeField = String(config.longitudeField || mapping.longitudeField || "").trim();
       const locationField = String(config.locationField || mapping.locationField || "").trim();
-      if ((!latitudeField || !longitudeField) && !locationField) return runtimeState(title, "Configure location fields");
-      if (status === "loading") return runtimeState(title, "Loading");
-      if (status === "error") return runtimeState(title, data?.error || "Unable to load map data");
+      if ((!latitudeField || !longitudeField) && !locationField) return widgetPlaceholder("Add location fields");
+      if (status === "loading") return widgetPlaceholder("Loading");
+      if (status === "error") return widgetPlaceholder("Map unavailable");
       const rows = Array.isArray(displayData?.rows) ? displayData.rows : [];
-      if (!rows.length) return runtimeState(title, "No map rows");
+      if (!rows.length) return widgetPlaceholder("Empty");
       const points = mapExtractPoints(displayData, config, mapping);
-      if (!points.length) return runtimeState(title, "No coordinates");
+      if (!points.length) return widgetPlaceholder("Empty");
       const density = chartVisualDensity(instance.density || "standard");
       const labels = points.slice(0, density === "large" ? 4 : 2).map((point) => `<span>${escapeHtml(point.label)}</span>`).join("");
       return `
@@ -2449,7 +2358,7 @@
         })
         .catch((error) => {
           if (disposed || !target.isConnected) return;
-          target.innerHTML = `<div class="widget-runtime-state" data-runtime-state="error"><span class="stat-lbl">${escapeHtml(error?.message || "Unable to load map renderer")}</span></div>`;
+          target.innerHTML = widgetPlaceholder("Map unavailable");
         });
       return () => {
         disposed = true;
@@ -2533,13 +2442,13 @@
       const displayData = Array.isArray(data?.rows) && data.rows.length ? data : demoDataResult({ widgetType: "calendar", config });
       const mapping = displayMappingFor(resolvedContext, displayData);
       const dateField = String(config.dateField || mapping.dateField || "").trim();
-      if (!dateField) return runtimeState(title, "Configure date field");
-      if (status === "loading") return runtimeState(title, "Loading");
-      if (status === "error") return runtimeState(title, data?.error || "Unable to load dates");
+      if (!dateField) return widgetPlaceholder("Add date field");
+      if (status === "loading") return widgetPlaceholder("Loading");
+      if (status === "error") return widgetPlaceholder("Calendar unavailable");
       const rows = Array.isArray(displayData?.rows) ? displayData.rows : [];
-      if (!rows.length) return runtimeState(title, "No date rows");
+      if (!rows.length) return widgetPlaceholder("Empty");
       const events = calendarExtractEvents(displayData, config, mapping);
-      if (!events.length) return runtimeState(title, "No valid dates");
+      if (!events.length) return widgetPlaceholder("Empty");
       const first = events[0].date;
       const monthName = first.toLocaleDateString(undefined, { month: "short", year: "numeric" });
       const initialDate = first.toISOString().split("T")[0];
@@ -2592,7 +2501,7 @@
         })
         .catch((error) => {
           if (disposed || !target.isConnected) return;
-          target.innerHTML = `<div class="widget-runtime-state" data-runtime-state="error"><span class="stat-lbl">${escapeHtml(error?.message || "Unable to load calendar renderer")}</span></div>`;
+          target.innerHTML = widgetPlaceholder("Calendar unavailable");
         });
       return () => {
         disposed = true;

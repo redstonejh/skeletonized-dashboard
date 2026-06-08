@@ -1,0 +1,9 @@
+{
+  "verdict": "SHIP",
+  "reason": "Runtime empty-state explainer helpers, call sites, and card CSS removed; forbidden grep terms clean; Electron e2e passed hidden once; delegation proof passed.",
+  "checks": {
+    "grep_proof": "artifacts/grep-proof.json",
+    "test_results": "artifacts/test-results.json",
+    "delegation_proof": "artifacts/delegation-proof.json"
+  }
+}

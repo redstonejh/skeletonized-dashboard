@@ -1,0 +1,8 @@
+{
+  "command": "npm.cmd run test:e2e -- --workers=1 --reporter=line",
+  "env": { "MAW_HEADLESS": "1" },
+  "passed": true,
+  "tests": 24,
+  "failed": 0,
+  "duration": "6.6m"
+}

@@ -283,7 +283,7 @@ body.webgl-glass-on .widget-card.db-panel-custom-color{
   align-content: end;
 }.widget-shell-stat .stat-val{
   align-self: end;
-}.widget-shell-content > :is(.widget-runtime-state, .runtime-table-widget, .runtime-chart-widget, .runtime-map-widget, .runtime-calendar-widget, .timeframe-body, .search-widget-content, .filter-widget-content, .text-widget-content, .media-widget, .meta-widget, .dataset-origin-widget, .data-filter-widget, .shift-widget, .region-summary-widget){
+}.widget-shell-content > :is(.widget-empty-placeholder, .runtime-table-widget, .runtime-chart-widget, .runtime-map-widget, .runtime-calendar-widget, .timeframe-body, .search-widget-content, .filter-widget-content, .text-widget-content, .media-widget, .meta-widget, .dataset-origin-widget, .data-filter-widget, .shift-widget, .region-summary-widget){
   min-height: 0;
 }.widget-shell[data-shell-runtime-state="loading"]{
   --widget-shell-state-accent: color-mix(in srgb, var(--widget-data-primary, var(--blue)) 62%, transparent);
@@ -1016,8 +1016,7 @@ body.resize-auto-zoom-active .dashboard-expanded-footprint-ghost{
   text-transform: none;
   letter-spacing: .01em;
   color: var(--muted);
-}.stat-runtime-meta,
-.runtime-state-kicker{
+}.stat-runtime-meta{
   display: block;
   color: var(--widget-content-meta);
   font-size: var(--widget-meta-size);
@@ -1032,9 +1031,6 @@ body.resize-auto-zoom-active .dashboard-expanded-footprint-ghost{
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-}.runtime-state-kicker{
-  margin-bottom: 3px;
-  color: var(--runtime-state-accent, var(--widget-content-meta));
 }.widget-card{
   --widget-density-scale: 1;
   --widget-density-pad: 1;
@@ -2404,8 +2400,21 @@ that put the drawer on top — palette * has to declare its tier explicitly. */ 
 .workspace-divider > .workspace-context-badge{
   top: 10px;
   bottom: auto;
-}.widget-runtime-state,
-.runtime-table-widget{
+}.widget-empty-placeholder{
+  position: relative;
+  z-index: 1;
+  display: flex;
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  align-items: center;
+  justify-content: center;
+  color: var(--widget-content-meta);
+  font-size: .72rem;
+  font-weight: 620;
+  line-height: 1.2;
+  text-align: center;
+}.runtime-table-widget{
   position: relative;
   z-index: 1;
   display: flex;
@@ -2415,124 +2424,6 @@ that put the drawer on top — palette * has to declare its tier explicitly. */ 
   flex-direction: column;
   justify-content: center;
   gap: var(--space-4);
-}.widget-runtime-state{
-  --runtime-state-accent: var(--widget-content-meta);
-  padding: 5px 7px 5px 10px;
-  border: 1px solid color-mix(in srgb, var(--runtime-state-accent) 18%, transparent);
-  border-radius: var(--widget-composition-stage-radius, 8px);
-  background:
-    linear-gradient(180deg, color-mix(in srgb, var(--glass-surface) 20%, transparent), color-mix(in srgb, var(--glass-surface) 10%, transparent));
-  background-color: color-mix(in srgb, var(--glass-surface) 14%, transparent);
-  box-shadow:
-    inset 0 1px 0 color-mix(in srgb, var(--glass-highlight) 18%, transparent),
-    inset 0 -10px 18px color-mix(in srgb, var(--runtime-state-accent) 5%, transparent);
-  text-align: left;
-}.widget-runtime-state::before{
-  content: "";
-  position: absolute;
-  top: 5px;
-  bottom: 5px;
-  left: 4px;
-  width: 2px;
-  border-radius: var(--radius-pill);
-  background: var(--runtime-state-accent);
-  opacity: .46;
-}.widget-runtime-state[data-runtime-state="configure"]{
-  --runtime-state-accent: color-mix(in srgb, var(--widget-data-secondary) 54%, var(--widget-content-meta) 46%);
-}.widget-runtime-state[data-runtime-state="empty"]{
-  --runtime-state-accent: color-mix(in srgb, var(--widget-content-meta) 78%, transparent);
-}.widget-runtime-state[data-runtime-state="loading"]{
-  --runtime-state-accent: color-mix(in srgb, var(--widget-data-primary) 68%, var(--widget-content-meta) 32%);
-}.widget-runtime-state[data-runtime-state="error"]{
-  --runtime-state-accent: color-mix(in srgb, var(--red) 56%, var(--widget-content-meta) 44%);
-}.widget-runtime-state[data-runtime-state="unsupported"]{
-  --runtime-state-accent: color-mix(in srgb, var(--amber) 58%, var(--widget-content-meta) 42%);
-}.widget-runtime-state .stat-val,
-.widget-runtime-state .stat-lbl{
-  display: block;
-}.widget-runtime-state .stat-val{
-  font-size: clamp(.78rem, 1.2vw, 1rem);
-  line-height: 1.05;
-}.widget-runtime-state .stat-lbl{
-  margin-top: 2px;
-  font-size: .58rem;
-  line-height: 1.12;
-}.runtime-state-details{
-  display: grid;
-  min-width: 0;
-  gap: 2px;
-  margin-top: 4px;
-}.runtime-state-detail{
-  display: grid;
-  min-width: 0;
-  grid-template-columns: 44px minmax(0, 1fr);
-  align-items: baseline;
-  gap: var(--space-5);
-  color: var(--widget-content-meta);
-  font-size: .52rem;
-  font-weight: 620;
-  line-height: 1.14;
-}.runtime-state-detail b{
-  color: color-mix(in srgb, var(--runtime-state-accent) 74%, var(--widget-content-meta) 26%);
-  font-size: .49rem;
-  font-weight: 780;
-  letter-spacing: 0;
-}.runtime-state-detail span{
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: normal;
-}.widget-card > .widget-runtime-state{
-  position: absolute;
-  top: 50%;
-  right: var(--widget-density-control-reserve, 44px);
-  left: 12px;
-  width: auto;
-  height: auto;
-  max-height: calc(100% - 12px);
-  overflow: hidden;
-  transform: translateY(-50%);
-  align-items: flex-start;
-}.widget-card.widget-density-tiny > .widget-runtime-state,
-.widget-card.widget-density-compact > .widget-runtime-state{
-  left: 10px;
-  right: 36px;
-  padding-top: 6px;
-  padding-bottom: 6px;
-}.widget-card > .widget-runtime-state .runtime-state-kicker{
-  line-height: 1;
-}.widget-card > .widget-runtime-state .stat-val{
-  font-size: clamp(.72rem, 1.05vw, .92rem);
-}.widget-card > .widget-runtime-state .stat-lbl{
-  font-size: .54rem;
-}.widget-card > .widget-runtime-state .runtime-state-details{
-  display: flex;
-  min-width: 0;
-  max-width: 100%;
-  flex-wrap: nowrap;
-  gap: var(--space-5);
-}.widget-card > .widget-runtime-state .runtime-state-detail{
-  display: inline-flex;
-  min-width: 0;
-  flex: 1 1 0;
-  gap: 3px;
-  font-size: .47rem;
-}.widget-card > .widget-runtime-state .runtime-state-detail span{
-  white-space: nowrap;
-}.widget-card > .widget-runtime-state .runtime-state-detail b{
-  flex: 0 0 auto;
-  font-size: .45rem;
-}.widget-card > .widget-runtime-state:not(:has(.runtime-state-details)){
-  padding-top: 4px;
-  padding-bottom: 4px;
-}.widget-card.widget-density-tiny > .widget-runtime-state .runtime-state-details,
-.widget-card[data-grid-row-span="1"] > .widget-runtime-state .runtime-state-details{
-  gap: var(--space-4);
-}.widget-card.widget-density-tiny > .widget-runtime-state .runtime-state-detail,
-.widget-card[data-grid-row-span="1"] > .widget-runtime-state .runtime-state-detail{
-  font-size: .49rem;
-}.unsupported-widget-state .stat-val{
-  font-size: 0.86rem;
 }.runtime-table-widget{
   justify-content: flex-start;
   overflow: hidden;
@@ -3335,49 +3226,6 @@ that put the drawer on top — palette * has to declare its tier explicitly. */ 
   object-fit: none;
 }.media-widget-video{
   object-fit: contain;
-}.media-widget-state{
-  --runtime-state-accent: color-mix(in srgb, var(--panel-accent, var(--blue)) 42%, var(--panel-accent-text, #ffffff) 58%);
-  display: grid;
-  min-width: 0;
-  min-height: 0;
-  height: 100%;
-  align-content: center;
-  justify-content: stretch;
-  gap: var(--space-4);
-  padding: 6px 7px 6px 10px;
-  border: 1px solid color-mix(in srgb, var(--panel-accent-text, #ffffff) 16%, transparent);
-  border-radius: var(--widget-composition-stage-radius, 8px);
-  background:
-    linear-gradient(180deg, color-mix(in srgb, var(--surface-raised, #ffffff) 14%, transparent), color-mix(in srgb, var(--surface-raised, #ffffff) 7%, transparent));
-  background-color: color-mix(in srgb, var(--surface-raised, #ffffff) 10%, transparent);
-  box-shadow:
-    inset 0 1px 0 color-mix(in srgb, var(--panel-accent-text, #ffffff) 12%, transparent),
-    inset 0 -10px 18px color-mix(in srgb, var(--panel-accent, var(--blue)) 5%, transparent);
-  text-align: left;
-}.media-widget-state .stat-val,
-.media-widget-state .stat-lbl,
-.media-widget-state .runtime-state-kicker{
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}.media-widget-state .stat-val{
-  font-size: clamp(.86rem, 1.35vw, 1.08rem);
-  line-height: 1.05;
-}.media-widget-state .stat-lbl{
-  font-size: .62rem;
-  line-height: 1.15;
-}.media-widget-state .runtime-state-kicker{
-  color: color-mix(in srgb, var(--panel-accent-text, #ffffff) 54%, transparent);
-  font-size: .54rem;
-  line-height: 1;
-}.media-widget-state .runtime-state-details{
-  margin-top: 3px;
-}.media-widget-state .runtime-state-detail{
-  grid-template-columns: 38px minmax(0, 1fr);
-  font-size: .52rem;
-}.media-widget-state-error .stat-lbl{
-  color: color-mix(in srgb, #ef4444 62%, var(--panel-accent-text, #ffffff) 38%);
 }.media-widget-card[data-grid-row-span="1"] .media-widget,
 .panel-internal-widget-grid > .media-widget-card[data-grid-row-span="1"] .media-widget{
   grid-template-rows: minmax(0, 1fr) auto;
