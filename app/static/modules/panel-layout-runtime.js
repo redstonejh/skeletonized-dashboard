@@ -262,7 +262,6 @@ export const createPanelLayoutRuntime = ({
           panelToolSession.setSuppressHeaderToggleUntil(0);
           const nextOpen = !colorMenu?.classList.contains("panel-color-menu-open");
           if (nextOpen) {
-            syncPanelThemeVars(panel, colorMenu);
             colorToggle.__refreshPanelColorMenu?.();
             positionPanelColorMenu(colorToggle, colorMenu);
           }

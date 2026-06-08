@@ -145,6 +145,12 @@ export const createPanelColorMenuFactory = ({
       const value = String(color || "").replace("#", "").toLowerCase();
       return value ? `#${value}` : "";
     };
+    const swatchDisplayColor = (color) => {
+      const normalized = cleanColor(color);
+      if (!normalized) return "rgba(255, 255, 255, .16)";
+      if (normalized === "#ffffff") return "#d1d5db";
+      return normalized;
+    };
     const refreshSwatchSelection = () => {
       const activeTheme = panel.dataset.panelColor ? cleanColor(panel.dataset.panelColor) : "";
       menu.querySelectorAll(".panel-color-swatch").forEach((swatch) => {
@@ -174,7 +180,7 @@ export const createPanelColorMenuFactory = ({
         if (isClear) swatch.dataset.colorAction = "clear";
         swatch.setAttribute("aria-label", isClear ? "No color" : color);
         swatch.setAttribute("aria-pressed", "false");
-        swatch.style.setProperty("--swatch", isClear ? "transparent" : color);
+        swatch.style.setProperty("--swatch", swatchDisplayColor(color));
         swatch.addEventListener("click", (event) => {
           event.preventDefault();
           event.stopPropagation();
@@ -208,7 +214,6 @@ export const createPanelColorMenuFactory = ({
               }
             });
           }
-          syncPanelThemeVars(panel, menu);
           if (typeof panel.__saveWidgetLayout === "function") {
             panel.__saveWidgetLayout();
           } else {

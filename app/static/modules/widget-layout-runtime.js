@@ -368,7 +368,6 @@ export const createWidgetLayoutRuntime = (deps) => {
         event.stopPropagation();
         const nextOpen = !colorMenu?.classList.contains("panel-color-menu-open");
         if (nextOpen) {
-          syncPanelThemeVars(widget, colorMenu);
           colorToggle.__refreshPanelColorMenu?.();
           positionPanelColorMenu(colorToggle, colorMenu);
         }
