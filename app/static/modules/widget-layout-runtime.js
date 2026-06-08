@@ -304,10 +304,20 @@ export const createWidgetLayoutRuntime = (deps) => {
         );
         return interactiveTarget && interactiveTarget !== widget && widget.contains(interactiveTarget);
       };
+      widget.addEventListener("pointerdown", (event) => {
+        if (event.button !== 0 || isInteractiveWidgetSurfaceTarget(event)) return;
+        requestAnimationFrame(() => {
+          if (document.activeElement === widget) widget.blur?.();
+        });
+      }, true);
       widget.addEventListener("click", (event) => {
         if (event.target?.closest?.(".widget-tools")) return;
         if (isInteractiveWidgetSurfaceTarget(event)) return;
         if (widget.tagName === "A") event.preventDefault();
+        if (event.detail !== 0) {
+          if (document.activeElement === widget) widget.blur?.();
+          return;
+        }
         try {
           widget.focus?.({ preventScroll: true });
         } catch {

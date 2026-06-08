@@ -1435,12 +1435,6 @@ but make focus unmistakable. */ .panel-tool-drawer .panel-tool-button:focus-visi
   border-color: var(--panel-chrome-border) !important;
   box-shadow: none !important;
   color: var(--widget-surface-fg) !important;
-}.widget-layout > .widget-card.db-panel-custom-color:hover,
-.widget-layout > .widget-card.db-panel-custom-color:focus-visible{
-  background: var(--panel-chrome-hover-bg), var(--panel-chrome-surface) !important;
-  border-color: var(--panel-chrome-hover-border) !important;
-  box-shadow: none !important;
-  transform: translateY(-1px);
 }.widget-layout > .widget-card.db-panel-custom-color.widget-tools-open,
 .widget-layout > .widget-card.db-panel-custom-color.widget-tools-open:hover,
 .widget-layout > .widget-card.db-panel-custom-color.widget-tools-open:focus-visible{
@@ -1469,15 +1463,11 @@ but make focus unmistakable. */ .panel-tool-drawer .panel-tool-button:focus-visi
   --widget-data-quaternary: color-mix(in srgb, var(--panel-accent) 48%, #fca5a5 52%);
   --widget-data-positive: color-mix(in srgb, var(--panel-accent) 50%, #86efac 50%);
   --widget-data-quiet: color-mix(in srgb, var(--panel-accent) 44%, #c4b5fd 56%);
-}.widget-layout > .widget-card.db-panel-custom-color:hover .stat-val{
-  color: var(--widget-surface-fg) !important;
 }.widget-layout > .widget-card.db-panel-custom-color .stat-val{
   color: var(--widget-surface-fg) !important;
-}.widget-layout > .widget-card.db-panel-custom-color .stat-lbl,
-.widget-layout > .widget-card.db-panel-custom-color:hover .stat-lbl{
+}.widget-layout > .widget-card.db-panel-custom-color .stat-lbl{
   color: var(--widget-surface-muted) !important;
-}.widget-layout > .widget-card.db-panel-custom-color .stat-runtime-meta,
-.widget-layout > .widget-card.db-panel-custom-color:hover .stat-runtime-meta{
+}.widget-layout > .widget-card.db-panel-custom-color .stat-runtime-meta{
   color: var(--widget-content-meta) !important;
 }.widget-card.db-panel-custom-color .widget-tool-drawer{
   background:
@@ -3565,27 +3555,7 @@ never geometry or layout state. */ .dashboard-layout-grid .widget-card[data-lod]
   backdrop-filter: none !important;
   -webkit-backdrop-filter: none !important;
   transform: none !important;
-}/* Hover ownership: compact controls,
-nested widgets,
-and active drags own emphasis alone. */ .widget-layout > .widget-card:has(:is(.widget-tools, .panel-tool-drawer, [data-widget-control-surface="true"], button, input, select, textarea, [contenteditable="true"]):hover),
-.widget-layout > .widget-card:has(:is(.widget-tools, .panel-tool-drawer, [data-widget-control-surface="true"], input, select, textarea, [contenteditable="true"]):focus-within),
-.panel-internal-widget-grid > .widget-card:has(:is(.widget-tools, .panel-tool-drawer, [data-widget-control-surface="true"], button, input, select, textarea, [contenteditable="true"]):hover),
-.panel-internal-widget-grid > .widget-card:has(:is(.widget-tools, .panel-tool-drawer, [data-widget-control-surface="true"], input, select, textarea, [contenteditable="true"]):focus-within){
-  border-color: var(--line) !important;
-  box-shadow: var(--shadow-soft) !important;
-  transform: none !important;
-}.widget-layout > .widget-card.db-panel-custom-color:has(:is(.widget-tools, .panel-tool-drawer, [data-widget-control-surface="true"], button, input, select, textarea, [contenteditable="true"]):hover),
-.widget-layout > .widget-card.db-panel-custom-color:has(:is(.widget-tools, .panel-tool-drawer, [data-widget-control-surface="true"], input, select, textarea, [contenteditable="true"]):focus-within),
-.panel-internal-widget-grid > .widget-card.db-panel-custom-color:has(:is(.widget-tools, .panel-tool-drawer, [data-widget-control-surface="true"], button, input, select, textarea, [contenteditable="true"]):hover),
-.panel-internal-widget-grid > .widget-card.db-panel-custom-color:has(:is(.widget-tools, .panel-tool-drawer, [data-widget-control-surface="true"], input, select, textarea, [contenteditable="true"]):focus-within){
-  background: var(--panel-chrome-hover-bg), var(--panel-chrome-surface) !important;
-  border-color: var(--panel-chrome-hover-border) !important;
-  box-shadow: none !important;
-  transform: none !important;
-}.widget-layout > .widget-card:has(:is(.widget-tools, .panel-tool-drawer, [data-widget-control-surface="true"], button, input, select, textarea, [contenteditable="true"]):hover)::before,
-.widget-layout > .widget-card:has(:is(.widget-tools, .panel-tool-drawer, [data-widget-control-surface="true"], input, select, textarea, [contenteditable="true"]):focus-within)::before,
-.panel-internal-widget-grid > .widget-card:has(:is(.widget-tools, .panel-tool-drawer, [data-widget-control-surface="true"], button, input, select, textarea, [contenteditable="true"]):hover)::before,
-.panel-internal-widget-grid > .widget-card:has(:is(.widget-tools, .panel-tool-drawer, [data-widget-control-surface="true"], input, select, textarea, [contenteditable="true"]):focus-within)::before,
+}/* Hover ownership: compact panel controls and active drags own emphasis alone. */
 .panel-layout > .db-panel:has(:is(.panel-tools, .panel-tool-drawer, button, input, select, textarea, [contenteditable="true"]):hover)::before,
 .panel-layout > .db-panel:has(:is(.panel-tools, .panel-tool-drawer, input, select, textarea, [contenteditable="true"]):focus-within)::before{
   opacity: 0 !important;
@@ -4013,22 +3983,14 @@ and active drags own emphasis alone. */ .widget-layout > .widget-card:has(:is(.w
 .db-panel.db-panel-collapsed:hover,
 .db-panel.db-panel-collapsed:focus-within,
 .db-panel.db-panel-tools-open:hover,
-.db-panel.db-panel-tools-open:focus-within,
-.widget-layout > .widget-card:hover,
-.widget-layout > .widget-card:focus-visible,
-.panel-internal-widget-grid > .widget-card:hover,
-.panel-internal-widget-grid > .widget-card:focus-visible{
+.db-panel.db-panel-tools-open:focus-within{
   border-color: var(--object-shell-rim-hover) !important;
   box-shadow: var(--object-shell-hover-shadow) !important;
 }.db-panel:hover,
 .db-panel:focus-within{
   background: var(--object-shell-surface) !important;
 }.db-panel > .db-panel-hd:hover,
-.db-panel > .db-panel-hd:focus-visible,
-.widget-layout > .widget-card:hover,
-.widget-layout > .widget-card:focus-visible,
-.panel-internal-widget-grid > .widget-card:hover,
-.panel-internal-widget-grid > .widget-card:focus-visible{
+.db-panel > .db-panel-hd:focus-visible{
   background: var(--object-shell-hover-bg) !important;
   border-color: var(--object-shell-rim-hover) !important;
 }.db-panel.db-panel-custom-color,
@@ -4055,11 +4017,7 @@ and active drags own emphasis alone. */ .widget-layout > .widget-card:has(:is(.w
 }.db-panel.db-panel-custom-color:hover,
 .db-panel.db-panel-custom-color:focus-within,
 .db-panel.db-panel-custom-color.db-panel-collapsed:hover,
-.db-panel.db-panel-custom-color.db-panel-collapsed:focus-within,
-.widget-layout > .widget-card.db-panel-custom-color:hover,
-.widget-layout > .widget-card.db-panel-custom-color:focus-visible,
-.panel-internal-widget-grid > .widget-card.db-panel-custom-color:hover,
-.panel-internal-widget-grid > .widget-card.db-panel-custom-color:focus-visible{
+.db-panel.db-panel-custom-color.db-panel-collapsed:focus-within{
   background: var(--object-shell-hover-bg) !important;
   border-color: var(--object-shell-rim-hover) !important;
   box-shadow: var(--object-shell-hover-shadow) !important;
@@ -4360,17 +4318,6 @@ not a fog. */ .db-panel-body::before{
     inset 1px 0 0 rgba(255, 255, 255, var(--glass-photo-side-highlight-alpha)),
     inset -1px 0 0 rgba(255, 255, 255, var(--glass-photo-side-highlight-alpha)),
     inset 0 -1px 0 rgba(255, 255, 255, 0.10);
-}.widget-layout > .widget-card:hover,
-.widget-layout > .widget-card:focus-visible{
-  background:
-    linear-gradient(150deg,
-      rgba(255, 255, 255, calc(var(--glass-photo-sheen-alpha) + 0.06)) 0%,
-      rgba(255, 255, 255, 0.07) 28%,
-      rgba(255, 255, 255, 0.02) 56%,
-      rgba(255, 255, 255, 0.09) 100%
-    ),
-    rgba(255, 255, 255, var(--glass-photo-base-alpha-strong));
-  border-color: rgba(255, 255, 255, calc(var(--glass-photo-rim-alpha) + 0.12));
 }.panel-internal-widget-grid > .widget-card{
   background:
     linear-gradient(150deg,
@@ -4619,19 +4566,6 @@ just composited over a * transparent surface instead of 64% white. */ .db-panel{
 }.widget-layout > .widget-card.db-panel-custom-color,
 .panel-internal-widget-grid > .widget-card.db-panel-custom-color{
   background: rgba(255, 255, 255, 0.03) !important;
-}.widget-layout > .widget-card:hover,
-.widget-layout > .widget-card:focus-visible,
-.panel-internal-widget-grid > .widget-card:hover,
-.panel-internal-widget-grid > .widget-card:focus-visible{
-  background:
-    linear-gradient(150deg,
-      rgba(255, 255, 255, calc(var(--glass-photo-sheen-alpha) + 0.06)) 0%,
-      rgba(255, 255, 255, 0.07) 28%,
-      rgba(255, 255, 255, 0.02) 56%,
-      rgba(255, 255, 255, 0.09) 100%
-    ),
-    rgba(255, 255, 255, var(--glass-photo-base-alpha-strong)) !important;
-  border-color: rgba(255, 255, 255, calc(var(--glass-photo-rim-alpha) + 0.12)) !important;
 }/* Custom-color WIDGETS and objects — keep the accent wash; these are * the colored objects (the contained "409", workspace stat tiles, * objects). Drop only the opaque white surface backing. */ .widget-layout > .widget-card.db-panel-custom-color,
 .panel-internal-widget-grid > .widget-card.db-panel-custom-color{
   background:
@@ -4971,9 +4905,7 @@ because the * header sits flush with the panel. */ .db-panel > .db-panel-hd,
     var(--glass-edge-top-line),
     var(--glass-edge-top-glow),
     inset 0 -1px 0 rgba(255, 255, 255, 0.10) !important;
-}/* Hover/focus: brighter rim for panels and dividers. Widgets keep a clean edge in every state. */ .widget-layout > .widget-card:hover,
-.widget-layout > .widget-card:focus-visible,
-.panel-internal-widget-grid > .widget-card:hover,
+}/* Focus: widgets keep a clean pointer edge; keyboard focus remains explicit. */ .widget-layout > .widget-card:focus-visible,
 .panel-internal-widget-grid > .widget-card:focus-visible{
   border-color: transparent !important;
   outline: 0 !important;
@@ -5033,9 +4965,7 @@ because the * header sits flush with the panel. */ .db-panel > .db-panel-hd,
   border-color: transparent !important;
   outline: 0 !important;
   box-shadow: 0 12px 26px rgba(0, 0, 0, 0.14) !important;
-}.widget-layout > .widget-card.db-panel-custom-color:hover,
-.widget-layout > .widget-card.db-panel-custom-color:focus-visible,
-.panel-internal-widget-grid > .widget-card.db-panel-custom-color:hover,
+}.widget-layout > .widget-card.db-panel-custom-color:focus-visible,
 .panel-internal-widget-grid > .widget-card.db-panel-custom-color:focus-visible{
   background: rgba(255, 255, 255, 0.03) !important;
   background-image: none !important;
@@ -5595,22 +5525,10 @@ no card. Active * filter is indicated by a subtle underline + slightly higher * 
   border-color: transparent !important;
   outline: 0 !important;
 }
-.widget-card.db-panel-custom-color[data-panel-color-user="true"]:hover,
-.widget-card.db-panel-custom-color[data-panel-color-user="true"]:focus-visible,
 .widget-card.db-panel-custom-color.widget-tools-open[data-panel-color-user="true"],
-.widget-layout > .widget-card.db-panel-custom-color[data-panel-color-user="true"]:hover,
-.widget-layout > .widget-card.db-panel-custom-color[data-panel-color-user="true"]:focus-visible,
 .widget-layout > .widget-card.db-panel-custom-color.widget-tools-open[data-panel-color-user="true"],
-.widget-layout > .widget-card.db-panel-custom-color.widget-runtime-meaning[data-panel-color-user="true"]:hover,
-.widget-layout > .widget-card.db-panel-custom-color.widget-runtime-meaning[data-panel-color-user="true"]:focus-visible,
-.widget-layout > .widget-card.db-panel-custom-color.widget-tools-open[data-panel-color-user="true"]:hover,
-.widget-layout > .widget-card.db-panel-custom-color.widget-tools-open[data-panel-color-user="true"]:focus-visible,
-.panel-internal-widget-grid > .widget-card.db-panel-custom-color[data-panel-color-user="true"]:hover,
-.panel-internal-widget-grid > .widget-card.db-panel-custom-color[data-panel-color-user="true"]:focus-visible,
 .panel-internal-widget-grid > .widget-card.db-panel-custom-color.widget-tools-open[data-panel-color-user="true"],
-.panel-internal-widget-grid > .widget-card.db-panel-custom-color.widget-runtime-meaning[data-panel-color-user="true"]:hover,
-.panel-internal-widget-grid > .widget-card.db-panel-custom-color.widget-runtime-meaning[data-panel-color-user="true"]:focus-visible,
-.panel-internal-widget-grid > .widget-card.db-panel-custom-color.widget-tools-open[data-panel-color-user="true"]:hover,
+.widget-layout > .widget-card.db-panel-custom-color.widget-tools-open[data-panel-color-user="true"]:focus-visible,
 .panel-internal-widget-grid > .widget-card.db-panel-custom-color.widget-tools-open[data-panel-color-user="true"]:focus-visible{
   background:
     var(--object-shell-wash),
@@ -5772,6 +5690,15 @@ no card. Active * filter is indicated by a subtle underline + slightly higher * 
   background: none !important;
 }
 
+body.group-select-active :is(.widget-layout > .widget-card.group-selected, .panel-internal-widget-grid > .widget-card.group-selected),
+:is(.widget-layout > .widget-card.group-selected, .panel-internal-widget-grid > .widget-card.group-selected)[aria-selected="true"]{
+  outline: 1.5px solid color-mix(in srgb, var(--panel-accent, var(--blue)) 62%, rgba(255, 255, 255, .72)) !important;
+  outline-offset: 5px !important;
+  box-shadow:
+    0 0 0 1px rgba(var(--panel-accent-rgb, 37, 99, 235), .18),
+    0 0 22px rgba(var(--panel-accent-rgb, 37, 99, 235), .14) !important;
+}
+
 /* Unified object hover/press response. JS owns the shared state for panels,
    top-level widgets, and panel-internal widgets; CSS only moves the live
    object and leaves material, color, rim, and selection styling unchanged. */
@@ -5781,13 +5708,13 @@ no card. Active * filter is indicated by a subtle underline + slightly higher * 
   translate: 0 0;
   transition-property: background, border-color, box-shadow, color, transform, translate;
 }
-.widget-layout > .widget-card:is(:hover, :active, .surface-response-active, [data-surface-pressed="true"]),
-.panel-internal-widget-grid > .widget-card:is(:hover, :active, .surface-response-active, [data-surface-pressed="true"]),
+.widget-layout > .widget-card:is(.surface-response-active, [data-surface-pressed="true"]),
+.panel-internal-widget-grid > .widget-card:is(.surface-response-active, [data-surface-pressed="true"]),
 .panel-layout > .db-panel:not(.workspace-divider):is(:hover, :active, :focus-within, .surface-response-active, [data-surface-pressed="true"]){
   transform: none !important;
 }
-body.webgl-glass-on .widget-layout > .widget-card:is(:hover, :active, .surface-response-active, [data-surface-pressed="true"]),
-body.webgl-glass-on .panel-internal-widget-grid > .widget-card:is(:hover, :active, .surface-response-active, [data-surface-pressed="true"]),
+body.webgl-glass-on .widget-layout > .widget-card:is(.surface-response-active, [data-surface-pressed="true"]),
+body.webgl-glass-on .panel-internal-widget-grid > .widget-card:is(.surface-response-active, [data-surface-pressed="true"]),
 body.webgl-glass-on .panel-layout > .db-panel:not(.workspace-divider):is(:hover, :active, :focus-within, .surface-response-active, [data-surface-pressed="true"]){
   background: transparent !important;
   background-image: none !important;

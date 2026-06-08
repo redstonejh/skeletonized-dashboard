@@ -73,6 +73,7 @@ export function initializeSurfaceToolsRuntime({
     if (isDashboardInteractionActive()) return null;
     const target = event.target?.closest?.(surfaceResponseSelector);
     if (!target || !target.isConnected) return null;
+    if (target.classList.contains("widget-card") && event.target !== target) return null;
     const controlTarget = event.target?.closest?.(surfaceResponseControlSelector);
     if (controlTarget && controlTarget !== target) return null;
     if (
