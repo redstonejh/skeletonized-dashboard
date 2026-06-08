@@ -46,6 +46,7 @@ export const createOrderedDragRuntime = (deps = {}) => {
     syncCommittedWorkspaceScrollFloor,
     scheduleWorkspaceVisualLodRefresh,
     applyGroupDelta,
+    viewportRowFloorForLayout,
   } = deps;
 
   const runOrderedDrag = ({
@@ -140,19 +141,9 @@ export const createOrderedDragRuntime = (deps = {}) => {
     const snapshotCommittedPageBottom = (targetLayout, fallback = Infinity, metrics = null) => {
       if (!targetLayout) return fallback;
       const resolvedMetrics = metrics || createGridMetrics(targetLayout);
-      const host = gridHostForLayout(targetLayout) || targetLayout;
-      const height = Math.max(
-        Number(targetLayout?.scrollHeight) || 0,
-        Number(targetLayout?.clientHeight) || 0,
-        Number(resolvedMetrics?.rect?.height) || 0,
-        Number(host?.scrollHeight) || 0,
-        Number(host?.clientHeight) || 0
-      );
-      const rowHeight = Math.max(1, Number(resolvedMetrics?.rowHeight) || DASHBOARD_GRID_ROW_HEIGHT);
-      const gap = Math.max(0, Number(resolvedMetrics?.gap) || 0);
-      const rows = Math.floor((height + gap) / (rowHeight + gap));
+      const rows = viewportRowFloorForLayout?.(targetLayout, resolvedMetrics);
       const fallbackRows = Number.isFinite(fallback) ? Math.max(1, Math.round(fallback)) : fallback;
-      return Number.isFinite(rows) && rows > 0 ? Math.max(fallbackRows, rows) : fallbackRows;
+      return Number.isFinite(rows) && rows > 0 ? Math.max(1, rows) : fallbackRows;
     };
 
     const clampCellToCommittedRows = (cell, rowSpan = null, maxBottom = committedPageBottomRow) => {
@@ -512,7 +503,12 @@ export const createOrderedDragRuntime = (deps = {}) => {
       state.targetCell = nextCell;
       animateOrderedGridReflow(state.layout, () => {
         restoreGridLayoutSnapshot(state.snapshot, { exclude: [state.placeholder] });
-        resolveSparseGridLayout(state.layout, state.placeholder, nextCell, { afterOnly: true, metrics, items: state.reflowItems });
+        resolveSparseGridLayout(state.layout, state.placeholder, nextCell, {
+          afterOnly: true,
+          metrics,
+          items: state.reflowItems,
+          rowLimit: state.committedPageBottomRow,
+        });
       }, state.placeholder, { items: state.reflowItems, metrics });
       syncPanelFootprintToInternalItem(state.panel, state.placeholder, {
         includePlaceholders: true,
@@ -581,7 +577,12 @@ export const createOrderedDragRuntime = (deps = {}) => {
       state.targetCell = nextCell;
       animateOrderedGridReflow(state.layout, () => {
         restoreGridLayoutSnapshot(state.snapshot, { exclude: [state.placeholder] });
-        resolveSparseGridLayout(state.layout, state.placeholder, nextCell, { afterOnly: true, metrics, items: state.reflowItems });
+        resolveSparseGridLayout(state.layout, state.placeholder, nextCell, {
+          afterOnly: true,
+          metrics,
+          items: state.reflowItems,
+          rowLimit: state.committedPageBottomRow,
+        });
       }, state.placeholder, { items: state.reflowItems, metrics });
       if (shouldPlayExitTransition) {
         state.exitTransitionPlayed = true;
@@ -614,7 +615,13 @@ export const createOrderedDragRuntime = (deps = {}) => {
             col: nextCell.col,
             row: nextCell.row,
           });
-          resolveSparseGridLayout(layout, placeholder, nextCell, { afterOnly: true, metrics, localVacancy, items: reflowItems });
+          resolveSparseGridLayout(layout, placeholder, nextCell, {
+            afterOnly: true,
+            metrics,
+            localVacancy,
+            items: reflowItems,
+            rowLimit: committedPageBottomRow,
+          });
         } else {
           resolveSparseGridLayout(layout, placeholder, nextCell, {
             afterOnly: true,
@@ -622,6 +629,7 @@ export const createOrderedDragRuntime = (deps = {}) => {
             localVacancy,
             verticalDisplacement: expandedPanelDrag,
             items: reflowItems,
+            rowLimit: committedPageBottomRow,
           });
         }
       }, item, { items: reflowItems, metrics });
@@ -777,7 +785,13 @@ export const createOrderedDragRuntime = (deps = {}) => {
                 col: finalCell.col,
                 row: finalCell.row,
               });
-              resolveSparseGridLayout(layout, placeholder, finalCell, { afterOnly: true, metrics: dragMetrics, localVacancy, items: reflowItems });
+              resolveSparseGridLayout(layout, placeholder, finalCell, {
+                afterOnly: true,
+                metrics: dragMetrics,
+                localVacancy,
+                items: reflowItems,
+                rowLimit: committedPageBottomRow,
+              });
               const resolvedCell = {
                 col: Number(placeholder.dataset.gridCol) || finalCell.col,
                 row: Number(placeholder.dataset.gridRow) || finalCell.row,
@@ -807,8 +821,8 @@ export const createOrderedDragRuntime = (deps = {}) => {
               const expandedPanelDrag = workspaceObjectCapabilities(item).hasExpandedFootprint && !item.classList.contains("db-panel-collapsed");
               const localVacancy = expandedPanelDrag ? null : boundsAtGridSlot(item, originalCell.col, originalCell.row, dragMetrics);
               result = expandedPanelDrag
-                ? commitExpandedPanelDropSlot(layout, item, finalCell, { localVacancy })
-                : commitActiveDropSlot(layout, item, finalCell, { localVacancy });
+                ? commitExpandedPanelDropSlot(layout, item, finalCell, { localVacancy, rowLimit: committedPageBottomRow })
+                : commitActiveDropSlot(layout, item, finalCell, { localVacancy, rowLimit: committedPageBottomRow });
             }
             const finalBounds = result.bounds;
             syncCommittedWorkspaceScrollFloor(layout, {

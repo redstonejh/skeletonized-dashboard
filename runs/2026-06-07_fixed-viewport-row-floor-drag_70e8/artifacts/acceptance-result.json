@@ -1,0 +1,14 @@
+{
+    "verdict":  "SHIP",
+    "reason":  "Fixed viewport-row floor is enforced on direct drag and collision/reflow; ratchet canary and full e2e suite pass.",
+    "evidence":  [
+                     "artifacts/delegation-proof.json",
+                     "artifacts/behavior-diff.json",
+                     "artifacts/test-results.json"
+                 ],
+    "checks":  {
+                   "delegation":  "passed",
+                   "handoffs":  "passed",
+                   "verdict_check":  "passed"
+               }
+}

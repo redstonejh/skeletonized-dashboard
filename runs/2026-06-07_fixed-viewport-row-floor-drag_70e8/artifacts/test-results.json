@@ -1,0 +1,30 @@
+{
+  "targeted": {
+    "command": "npm.cmd run test:e2e -- --workers=1 --reporter=line -g \"drag cursor aligned\"",
+    "result": "pass",
+    "tests": 1
+  },
+  "full_suite_first": {
+    "command": "npm.cmd run test:e2e -- --workers=1 --reporter=line",
+    "result": "fail",
+    "tests_passed": 23,
+    "failure": "electron GUI keeps drag and resize handlers active timed out locating builder-notes during setup; isolated rerun passed."
+  },
+  "isolated_failure_rerun": {
+    "command": "npm.cmd run test:e2e -- --workers=1 --reporter=line -g \"drag and resize handlers active\"",
+    "result": "pass",
+    "tests": 1
+  },
+  "full_suite_clean_rerun": {
+    "command": "npm.cmd run test:e2e -- --workers=1 --reporter=line",
+    "result": "pass",
+    "tests": 24
+  },
+  "syntax": {
+    "commands": [
+      "node --check app/static/collision-reflow.js",
+      "node --check app/static/modules/ordered-drag-runtime.js"
+    ],
+    "result": "pass"
+  }
+}

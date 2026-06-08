@@ -1,0 +1,16 @@
+{
+  "task_type": "refactor-task",
+  "intentional_behavior_change": true,
+  "summary": "Enforce a fixed viewport-row floor for ordered drag and collision/reflow. The floor is derived from the relevant grid host clientHeight and is independent of scrollHeight, content height, or occupied rows.",
+  "changed_files": [
+    "app/static/app.js",
+    "app/static/collision-reflow.js",
+    "app/static/modules/ordered-drag-runtime.js",
+    "electron-tests/dashboard-electron.spec.js"
+  ],
+  "floor_source": "app.js viewportRowFloorForLayout(layout, metrics)",
+  "direct_drag": "ordered-drag-runtime snapshotCommittedPageBottom consumes viewportRowFloorForLayout and passes rowLimit into preview and final commit calls.",
+  "collision_reflow": "collision-reflow consumes viewportRowFloorForLayout by default and rowLimit from drag callers; sparse-slot, local displacement, vertical fallback, active drop, and expanded drop paths reject or rollback placements below the floor.",
+  "panel_expansion_exception": "applyVerticalPanelExpansion and explicit insertion pushdown remain outside the drag rowLimit path; existing panel expansion scroll test passed.",
+  "ratchet_canary": "electron GUI keeps drag cursor aligned and prevents drag-created vertical growth now repeats a collapsed-panel collision at the floor three times and asserts max bottom, scrollHeight, and grid height do not grow past the viewport floor."
+}

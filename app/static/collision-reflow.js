@@ -47,17 +47,33 @@
     const gridHostForLayout = (layout) => deps.gridHostForLayout(layout);
     const globalGridItems = (layout, options = {}) => deps.globalGridItems(layout, options);
     const visualGridOrder = (items, metrics = null) => deps.visualGridOrder(items, metrics);
+    const viewportRowFloorForLayout = (layout, metrics = null) => deps.viewportRowFloorForLayout?.(layout, metrics) || null;
+
+    const boundsWithinRowFloor = (bounds, rowFloor = null) => (
+      !Number.isFinite(rowFloor) || rowFloor < 1 || bounds.bottom <= rowFloor
+    );
+
+    const canPlaceWithinFloor = (bounds, occupied, rowFloor = null) => (
+      boundsWithinRowFloor(bounds, rowFloor) && canPlaceBounds(bounds, occupied)
+    );
+
+    const clampBoundsToRowFloor = (bounds, rowFloor = null) => {
+      if (!bounds || !Number.isFinite(rowFloor) || rowFloor < 1 || bounds.bottom <= rowFloor) return bounds;
+      const maxRow = Math.max(1, Math.round(rowFloor) - Math.max(1, Math.round(bounds.rowSpan || 1)) + 1);
+      return geometry.boundsAtRow(bounds, maxRow);
+    };
 
     const nearestSparseSlot = (item, preferred, occupied, rowLimit = null, metrics = null) => {
       const base = boundsAtGridSlot(item, preferred?.col || 1, preferred?.row || 1, metrics);
       const maxCol = columns - base.span + 1;
+      const hardLimit = Number.isFinite(rowLimit) && rowLimit > 0 ? rowLimit : null;
       const maxOccupiedRow = occupied.reduce((max, entry) => Math.max(max, entry.bounds.bottom), base.row);
-      const limit = Math.max(base.row + 48, maxOccupiedRow + 24, rowLimit || 0);
+      const limit = hardLimit || Math.max(base.row + 48, maxOccupiedRow + 24);
       let best = null;
       for (let row = 1; row <= limit; row += 1) {
         for (let col = 1; col <= maxCol; col += 1) {
           const candidate = boundsAtGridSlot(item, col, row, metrics);
-          if (!canPlaceBounds(candidate, occupied)) continue;
+          if (!canPlaceWithinFloor(candidate, occupied, hardLimit)) continue;
           const upwardPenalty = row < base.row ? .65 : 0;
           const leftPenalty = row === base.row && col < base.col ? .15 : 0;
           const score = (Math.abs(row - base.row) * columns) + Math.abs(col - base.col) + upwardPenalty + leftPenalty;
@@ -66,22 +82,23 @@
           }
         }
       }
-      return best?.bounds || base;
+      return best?.bounds || null;
     };
 
     const nearestSparseSlotAtOrAfter = (item, preferred, occupied, rowLimit = null, metrics = null) => {
       const base = boundsAtGridSlot(item, preferred?.col || 1, preferred?.row || 1, metrics);
       const maxCol = columns - base.span + 1;
+      const hardLimit = Number.isFinite(rowLimit) && rowLimit > 0 ? rowLimit : null;
       const maxOccupiedRow = occupied.reduce((max, entry) => Math.max(max, entry.bounds.bottom), base.row);
-      const limit = Math.max(base.row + 80, maxOccupiedRow + 40, rowLimit || 0);
+      const limit = hardLimit || Math.max(base.row + 80, maxOccupiedRow + 40);
       for (let row = base.row; row <= limit; row += 1) {
         const startCol = row === base.row ? base.col : 1;
         for (let col = startCol; col <= maxCol; col += 1) {
           const candidate = boundsAtGridSlot(item, col, row, metrics);
-          if (canPlaceBounds(candidate, occupied)) return candidate;
+          if (canPlaceWithinFloor(candidate, occupied, hardLimit)) return candidate;
         }
       }
-      return nearestSparseSlot(item, base, occupied, limit, metrics);
+      return nearestSparseSlot(item, base, occupied, hardLimit, metrics);
     };
 
     const localVacancyCandidates = (item, vacancy, metrics = null) => {
@@ -99,7 +116,7 @@
       canPlaceBounds(bounds, occupied) && canPlaceBounds(bounds, reserved)
     );
 
-    const localBelowDisplacementSlot = (item, base, occupied, reserved = [], metrics = null) => {
+    const localBelowDisplacementSlot = (item, base, occupied, reserved = [], metrics = null, rowLimit = null) => {
       const conflicts = indexedCollisionEntries(base, occupied)
         .map((entry) => entry?.bounds)
         .filter((bounds) => bounds && geometry.gridBoundsOverlap(base, bounds));
@@ -112,12 +129,12 @@
         .filter((row, index, rows) => index === 0 || row !== rows[index - 1]);
       for (const row of candidateRows) {
         const candidate = boundsAtGridSlot(item, base.col, row, metrics);
-        if (canPlaceLocalDisplacementBounds(candidate, occupied, reserved)) return candidate;
+        if (boundsWithinRowFloor(candidate, rowLimit) && canPlaceLocalDisplacementBounds(candidate, occupied, reserved)) return candidate;
       }
       return null;
     };
 
-    const localLeftDisplacementSlot = (item, base, occupied, localVacancy = null, reserved = [], metrics = null) => {
+    const localLeftDisplacementSlot = (item, base, occupied, localVacancy = null, reserved = [], metrics = null, rowLimit = null) => {
       const explicitPrevious = base.col > 1
         ? boundsAtGridSlot(item, base.col - 1, base.row, metrics)
         : null;
@@ -128,16 +145,17 @@
           b.col - a.col
         ));
       return [explicitPrevious, ...leftVacancyCandidates]
-        .filter((candidate) => candidate && canPlaceLocalDisplacementBounds(candidate, occupied, reserved))[0] || null;
+        .filter((candidate) => candidate && boundsWithinRowFloor(candidate, rowLimit) && canPlaceLocalDisplacementBounds(candidate, occupied, reserved))[0] || null;
     };
 
     const verticalSlotAtOrAfter = (item, preferred, occupied, rowLimit = null, metrics = null) => {
       const base = boundsAtGridSlot(item, preferred?.col || 1, preferred?.row || 1, metrics);
+      const hardLimit = Number.isFinite(rowLimit) && rowLimit > 0 ? rowLimit : null;
       const maxOccupiedRow = occupied.reduce((max, entry) => Math.max(max, entry.bounds.bottom), base.row);
-      const limit = Math.max(base.row + 80, maxOccupiedRow + 40, rowLimit || 0);
+      const limit = hardLimit || Math.max(base.row + 80, maxOccupiedRow + 40);
       for (let row = base.row; row <= limit; row += 1) {
         const candidate = boundsAtGridSlot(item, base.col, row, metrics);
-        if (canPlaceBounds(candidate, occupied)) return candidate;
+        if (canPlaceWithinFloor(candidate, occupied, hardLimit)) return candidate;
       }
       return null;
     };
@@ -146,14 +164,15 @@
       const metrics = options.metrics || null;
       const base = boundsAtGridSlot(item, preferred?.col || 1, preferred?.row || 1, metrics);
       const reserved = options.reserved || [];
-      const below = localBelowDisplacementSlot(item, base, occupied, reserved, metrics);
-      if (below) return below;
-      const left = localLeftDisplacementSlot(item, base, occupied, options.localVacancy, reserved, metrics);
+      const rowLimit = Number.isFinite(options.rowLimit) && options.rowLimit > 0 ? options.rowLimit : null;
+      const left = localLeftDisplacementSlot(item, base, occupied, options.localVacancy, reserved, metrics, rowLimit);
       if (left) return left;
-      const fallback = options.fallback || nearestSparseSlotAtOrAfter(item, base, occupied, null, metrics);
-      return canPlaceBounds(fallback, occupied)
+      const below = localBelowDisplacementSlot(item, base, occupied, reserved, metrics, rowLimit);
+      if (below) return below;
+      const fallback = options.fallback || nearestSparseSlotAtOrAfter(item, base, occupied, rowLimit, metrics);
+      return fallback && canPlaceWithinFloor(fallback, occupied, rowLimit)
         ? fallback
-        : nearestSparseSlotAtOrAfter(item, base, occupied, null, metrics);
+        : nearestSparseSlotAtOrAfter(item, base, occupied, rowLimit, metrics);
     };
 
     const firstVerticalOpenRow = (bounds, occupied) => {
@@ -208,6 +227,9 @@
     const resolveSparseGridLayout = (layout, activeItem = null, preferredTarget = null, options = {}) => {
       const metrics = options.metrics || null;
       const localVacancy = options.localVacancy || null;
+      const rowLimit = Number.isFinite(options.rowLimit) && options.rowLimit > 0
+        ? options.rowLimit
+        : viewportRowFloorForLayout(layout, metrics);
       const items = deps.layoutItemsForLogicalResolution(layout, {
         includePlaceholders: true,
         items: options.items,
@@ -225,12 +247,13 @@
 
       if (activeItem?.isConnected) {
         const target = preferredTarget || gridGeometryEntry(activeItem, records, metrics).bounds;
-        let activeBounds = boundsAtGridSlot(activeItem, target.col, target.row, metrics);
-        if (!canPlaceBounds(activeBounds, occupied)) {
+        let activeBounds = clampBoundsToRowFloor(boundsAtGridSlot(activeItem, target.col, target.row, metrics), rowLimit);
+        if (!canPlaceWithinFloor(activeBounds, occupied, rowLimit)) {
           activeBounds = options.afterOnly
-            ? nearestSparseSlotAtOrAfter(activeItem, activeBounds, occupied, null, metrics)
-            : nearestSparseSlot(activeItem, activeBounds, occupied, null, metrics);
+            ? nearestSparseSlotAtOrAfter(activeItem, activeBounds, occupied, rowLimit, metrics)
+            : nearestSparseSlot(activeItem, activeBounds, occupied, rowLimit, metrics);
         }
+        if (!activeBounds) activeBounds = gridGeometryEntry(activeItem, records, metrics).bounds;
         placements.set(activeItem, activeBounds);
         occupied.push({ item: activeItem, bounds: activeBounds });
       }
@@ -245,13 +268,14 @@
             metrics
           );
           const verticalFallback = options.verticalDisplacement
-            ? verticalSlotAtOrAfter(item, current, occupied, null, metrics) || nearestSparseSlotAtOrAfter(item, current, occupied, null, metrics)
+            ? verticalSlotAtOrAfter(item, current, occupied, rowLimit, metrics) || nearestSparseSlotAtOrAfter(item, current, occupied, rowLimit, metrics)
             : null;
-          const bounds = canPlaceBounds(current, occupied)
+          const bounds = canPlaceWithinFloor(current, occupied, rowLimit)
             ? current
             : options.afterOnly
-              ? nearestLocalDisplacementSlot(item, current, occupied, { localVacancy, metrics, reserved, fallback: verticalFallback })
-              : nearestSparseSlot(item, current, occupied, null, metrics);
+              ? nearestLocalDisplacementSlot(item, current, occupied, { localVacancy, metrics, reserved, fallback: verticalFallback, rowLimit })
+              : nearestSparseSlot(item, current, occupied, rowLimit, metrics);
+          if (!bounds) return;
           placements.set(item, bounds);
           occupied.push({ item, bounds });
         });
@@ -262,6 +286,9 @@
 
     const resolveSparseGridLayoutForActiveItems = (layout, activeItems = [], options = {}) => {
       const metrics = options.metrics || null;
+      const rowLimit = Number.isFinite(options.rowLimit) && options.rowLimit > 0
+        ? options.rowLimit
+        : viewportRowFloorForLayout(layout, metrics);
       const activeList = visualGridOrder([].concat(activeItems || []).filter((item) => item?.isConnected), metrics);
       if (!activeList.length) return new Map();
       const activeSet = new Set(activeList);
@@ -285,12 +312,13 @@
 
       activeList.forEach((item) => {
         const target = gridGeometryEntry(item, records, metrics).bounds;
-        let bounds = boundsAtGridSlot(item, target.col, target.row, metrics);
-        if (!canPlaceBounds(bounds, occupied)) {
+        let bounds = clampBoundsToRowFloor(boundsAtGridSlot(item, target.col, target.row, metrics), rowLimit);
+        if (!canPlaceWithinFloor(bounds, occupied, rowLimit)) {
           bounds = options.afterOnly
-            ? nearestSparseSlotAtOrAfter(item, bounds, occupied, null, metrics)
-            : nearestSparseSlot(item, bounds, occupied, null, metrics);
+            ? nearestSparseSlotAtOrAfter(item, bounds, occupied, rowLimit, metrics)
+            : nearestSparseSlot(item, bounds, occupied, rowLimit, metrics);
         }
+        if (!bounds) bounds = gridGeometryEntry(item, records, metrics).bounds;
         placements.set(item, bounds);
         occupied.push({ item, bounds });
       });
@@ -304,15 +332,17 @@
             records,
             metrics
           );
-          const bounds = canPlaceBounds(current, occupied)
+          const bounds = canPlaceWithinFloor(current, occupied, rowLimit)
             ? current
             : options.afterOnly
               ? nearestLocalDisplacementSlot(item, current, occupied, {
                 metrics,
                 reserved,
-                fallback: verticalSlotAtOrAfter(item, current, occupied, null, metrics) || nearestSparseSlotAtOrAfter(item, current, occupied, null, metrics),
+                rowLimit,
+                fallback: verticalSlotAtOrAfter(item, current, occupied, rowLimit, metrics) || nearestSparseSlotAtOrAfter(item, current, occupied, rowLimit, metrics),
               })
-              : nearestSparseSlot(item, current, occupied, null, metrics);
+              : nearestSparseSlot(item, current, occupied, rowLimit, metrics);
+          if (!bounds) return;
           placements.set(item, bounds);
           occupied.push({ item, bounds });
         });
@@ -322,25 +352,31 @@
     };
 
     const resolveActiveDropSlot = (layout, item, preferredTarget) => {
+      const rowLimit = viewportRowFloorForLayout(layout);
       const occupied = globalGridItems(layout, { includePlaceholders: false, exclude: [item] })
         .map((other) => ({ item: other, bounds: gridBoundsForItem(other) }));
       const target = preferredTarget || gridBoundsForItem(item);
-      let bounds = boundsAtGridSlot(item, target.col, target.row);
-      if (!canPlaceBounds(bounds, occupied)) bounds = nearestSparseSlotAtOrAfter(item, bounds, occupied);
-      return bounds;
+      let bounds = clampBoundsToRowFloor(boundsAtGridSlot(item, target.col, target.row), rowLimit);
+      if (!canPlaceWithinFloor(bounds, occupied, rowLimit)) bounds = nearestSparseSlotAtOrAfter(item, bounds, occupied, rowLimit);
+      return bounds || gridBoundsForItem(item);
     };
 
     const commitActiveDropSlot = (layout, item, preferredTarget, options = {}) => {
       const localVacancy = options.localVacancy || null;
+      const rowLimit = Number.isFinite(options.rowLimit) && options.rowLimit > 0
+        ? options.rowLimit
+        : viewportRowFloorForLayout(layout);
+      const originalActiveBounds = gridBoundsForItem(item);
       const target = preferredTarget || gridBoundsForItem(item);
-      let activeBounds = boundsAtGridSlot(item, target.col, target.row);
+      let activeBounds = clampBoundsToRowFloor(boundsAtGridSlot(item, target.col, target.row), rowLimit);
+      if (!boundsWithinRowFloor(activeBounds, rowLimit)) activeBounds = nearestSparseSlotAtOrAfter(item, activeBounds, [], rowLimit) || originalActiveBounds;
       const items = globalGridItems(layout, { includePlaceholders: false, exclude: [item] });
       const pinned = items
         .filter((other) => other.classList.contains("db-panel-pinned"))
         .map((other) => ({ item: other, bounds: gridBoundsForItem(other) }));
 
-      if (!canPlaceBounds(activeBounds, pinned)) {
-        activeBounds = nearestSparseSlotAtOrAfter(item, activeBounds, pinned);
+      if (!canPlaceWithinFloor(activeBounds, pinned, rowLimit)) {
+        activeBounds = nearestSparseSlotAtOrAfter(item, activeBounds, pinned, rowLimit) || originalActiveBounds;
         applyGridItemPosition(item, activeBounds.col, activeBounds.row);
         return { bounds: activeBounds, movedItems: 0 };
       }
@@ -355,53 +391,96 @@
       const occupied = [...pinned, { item, bounds: activeBounds }];
       applyGridItemPosition(item, activeBounds.col, activeBounds.row);
       let movedItems = 0;
+      const movedOriginals = new Map();
+      let rejected = false;
       visualGridOrder(movableItems).forEach((other) => {
+        if (rejected) return;
         const current = gridBoundsForItem(other);
         const reserved = items
           .filter((item) => item !== other)
           .map((item) => ({ item, bounds: gridBoundsForItem(item) }));
-        const next = canPlaceBounds(current, occupied)
+        const next = canPlaceWithinFloor(current, occupied, rowLimit)
           ? current
           : nearestLocalDisplacementSlot(other, current, occupied, {
             localVacancy,
             reserved,
-            fallback: nearestSparseSlotAtOrAfter(other, current, occupied),
+            rowLimit,
+            fallback: nearestSparseSlotAtOrAfter(other, current, occupied, rowLimit),
           });
+        if (!next) {
+          rejected = true;
+          return;
+        }
         if (next.col !== current.col || next.row !== current.row) movedItems += 1;
+        movedOriginals.set(other, current);
         applyGridItemPosition(other, next.col, next.row);
         occupied.push({ item: other, bounds: next });
       });
+      if (rejected) {
+        movedOriginals.forEach((bounds, movedItem) => applyGridItemPosition(movedItem, bounds.col, bounds.row));
+        applyGridItemPosition(item, originalActiveBounds.col, originalActiveBounds.row);
+        return { bounds: originalActiveBounds, movedItems: 0 };
+      }
+      if (Number.isFinite(rowLimit) && occupied.some((entry) => !boundsWithinRowFloor(entry.bounds, rowLimit))) {
+        movedOriginals.forEach((bounds, movedItem) => applyGridItemPosition(movedItem, bounds.col, bounds.row));
+        applyGridItemPosition(item, originalActiveBounds.col, originalActiveBounds.row);
+        return { bounds: originalActiveBounds, movedItems: 0 };
+      }
       return { bounds: activeBounds, movedItems };
     };
 
     const commitExpandedPanelDropSlot = (layout, item, preferredTarget, options = {}) => {
       const localVacancy = options.localVacancy || null;
+      const rowLimit = Number.isFinite(options.rowLimit) && options.rowLimit > 0
+        ? options.rowLimit
+        : viewportRowFloorForLayout(layout);
+      const originalActiveBounds = gridBoundsForItem(item);
       const target = preferredTarget || gridBoundsForItem(item);
-      let activeBounds = boundsAtGridSlot(item, target.col, target.row);
+      let activeBounds = clampBoundsToRowFloor(boundsAtGridSlot(item, target.col, target.row), rowLimit);
+      if (!boundsWithinRowFloor(activeBounds, rowLimit)) activeBounds = nearestSparseSlotAtOrAfter(item, activeBounds, [], rowLimit) || originalActiveBounds;
       const items = globalGridItems(layout, { includePlaceholders: false, exclude: [item] });
       const pinned = items
         .filter((other) => other.classList.contains("db-panel-pinned"))
         .map((other) => ({ item: other, bounds: gridBoundsForItem(other) }));
-      if (!canPlaceBounds(activeBounds, pinned)) activeBounds = nearestSparseSlotAtOrAfter(item, activeBounds, pinned);
+      if (!canPlaceWithinFloor(activeBounds, pinned, rowLimit)) activeBounds = nearestSparseSlotAtOrAfter(item, activeBounds, pinned, rowLimit) || originalActiveBounds;
       applyGridItemPosition(item, activeBounds.col, activeBounds.row);
       const occupied = [...pinned, { item, bounds: activeBounds }];
       let movedItems = 0;
+      const movedOriginals = new Map();
+      let rejected = false;
       visualGridOrder(items.filter((other) => !other.classList.contains("db-panel-pinned"))).forEach((other) => {
+        if (rejected) return;
         const current = gridBoundsForItem(other);
         const reserved = items
           .filter((item) => item !== other)
           .map((item) => ({ item, bounds: gridBoundsForItem(item) }));
-        const next = canPlaceBounds(current, occupied)
+        const next = canPlaceWithinFloor(current, occupied, rowLimit)
           ? current
           : nearestLocalDisplacementSlot(other, current, occupied, {
             localVacancy,
             reserved,
-            fallback: verticalSlotAtOrAfter(other, current, occupied) || nearestSparseSlotAtOrAfter(other, current, occupied),
+            rowLimit,
+            fallback: verticalSlotAtOrAfter(other, current, occupied, rowLimit) || nearestSparseSlotAtOrAfter(other, current, occupied, rowLimit),
           });
+        if (!next) {
+          rejected = true;
+          return;
+        }
         if (next.col !== current.col || next.row !== current.row) movedItems += 1;
+        movedOriginals.set(other, current);
         applyGridItemPosition(other, next.col, next.row);
         occupied.push({ item: other, bounds: next });
       });
+      if (rejected) {
+        movedOriginals.forEach((bounds, movedItem) => applyGridItemPosition(movedItem, bounds.col, bounds.row));
+        applyGridItemPosition(item, originalActiveBounds.col, originalActiveBounds.row);
+        return { bounds: originalActiveBounds, movedItems: 0 };
+      }
+      if (Number.isFinite(rowLimit) && occupied.some((entry) => !boundsWithinRowFloor(entry.bounds, rowLimit))) {
+        movedOriginals.forEach((bounds, movedItem) => applyGridItemPosition(movedItem, bounds.col, bounds.row));
+        applyGridItemPosition(item, originalActiveBounds.col, originalActiveBounds.row);
+        return { bounds: originalActiveBounds, movedItems: 0 };
+      }
       return { bounds: activeBounds, movedItems };
     };
 

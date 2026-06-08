@@ -1535,6 +1535,17 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const gridBoundsShareColumns = (a, b) => dashboardGeometry.gridBoundsShareColumns(a, b);
 
+  const viewportRowFloorForLayout = (layout, metrics = null) => {
+    if (!layout) return null;
+    const host = gridHostForLayout(layout) || layout;
+    const resolvedMetrics = metrics || createGridMetrics(layout);
+    const height = Number(host?.clientHeight) || Number(layout?.clientHeight) || 0;
+    const rowHeight = Math.max(1, Number(resolvedMetrics?.rowHeight) || DASHBOARD_GRID_ROW_HEIGHT);
+    const gap = Math.max(0, Number(resolvedMetrics?.gap) || 0);
+    const rows = Math.floor((height + gap) / (rowHeight + gap));
+    return Number.isFinite(rows) && rows > 0 ? Math.max(1, rows) : null;
+  };
+
   collisionReflowRuntime = dashboardCollisionReflowRuntime.createRuntime({
     columns: DASHBOARD_GRID_COLUMNS,
     boundsAtGridSlot,
@@ -1549,6 +1560,7 @@ document.addEventListener("DOMContentLoaded", () => {
     ensureRenderedGridPosition,
     orderedLayoutStartRow: (layout) => orderedLayoutStartRow(layout),
     orderedGridItems: (layout, options = {}) => orderedGridItems(layout, options),
+    viewportRowFloorForLayout,
   });
 
   const firstVerticalOpenRow = (bounds, occupied) => collisionReflowRuntime.firstVerticalOpenRow(bounds, occupied);
@@ -2111,6 +2123,7 @@ document.addEventListener("DOMContentLoaded", () => {
     syncCommittedWorkspaceScrollFloor,
     scheduleWorkspaceVisualLodRefresh,
     applyGroupDelta,
+    viewportRowFloorForLayout,
   }));
 
 
