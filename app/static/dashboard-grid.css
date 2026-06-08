@@ -1526,10 +1526,18 @@ body.resize-auto-zoom-active .dashboard-expanded-footprint-ghost{
 }.widget-card[data-dashboard-cursor="move"],
 .db-panel[data-dashboard-cursor="move"]{
   cursor: grab;
+}.widget-card[data-dashboard-cursor="move"] :where(:not(:is(button, button *, a, a *, input, input *, select, select *, textarea, textarea *, [contenteditable="true"], [contenteditable="true"] *))),
+.db-panel[data-dashboard-cursor="move"] > .db-panel-hd,
+.db-panel[data-dashboard-cursor="move"] > .db-panel-hd :where(:not(:is(button, button *, a, a *, input, input *, select, select *, textarea, textarea *, [contenteditable="true"], [contenteditable="true"] *))){
+  cursor: grab;
 }.widget-card.widget-dragging,
 .db-panel.db-panel-dragging,
 .widget-card.widget-dragging[data-dashboard-cursor],
 .db-panel.db-panel-dragging[data-dashboard-cursor]{
+  cursor: grabbing !important;
+}.widget-card.widget-dragging :where(:not(:is(button, button *, a, a *, input, input *, select, select *, textarea, textarea *, [contenteditable="true"], [contenteditable="true"] *))),
+.db-panel.db-panel-dragging > .db-panel-hd,
+.db-panel.db-panel-dragging > .db-panel-hd :where(:not(:is(button, button *, a, a *, input, input *, select, select *, textarea, textarea *, [contenteditable="true"], [contenteditable="true"] *))){
   cursor: grabbing !important;
 }.widget-card[data-dashboard-cursor="resize-nwse"],
 .db-panel[data-dashboard-cursor="resize-nwse"]{

@@ -92,6 +92,12 @@ export function initializeSurfaceToolsRuntime({
     item.dataset?.resizable !== "false");
   const canSurfaceObjectMove = (item) => Boolean(item &&
     !item.classList?.contains("db-panel-pinned"));
+  const isSurfaceMoveCursorTarget = (event, target) => {
+    if (!event || !target || !canSurfaceObjectMove(target)) return false;
+    if (target.classList.contains("db-panel") && event.target?.closest?.(".panel-internal-widget-grid > .widget-card")) return false;
+    const controlTarget = event.target?.closest?.(surfaceResponseControlSelector);
+    return !(controlTarget && controlTarget !== target);
+  };
   const surfaceCursorTargetFromEvent = (event) => {
     if (isDashboardInteractionActive()) return null;
     const target = event.target?.closest?.(surfaceResponseSelector);
@@ -126,7 +132,7 @@ export function initializeSurfaceToolsRuntime({
       ? resizeEdgeFromPointer(event, target)
       : null;
     const resizeCursor = cursorForResizeCorner(resizeCornerFromPointer(event, target, resizeEdge));
-    const moveCursor = !resizeEdge && surfaceResponseTargetFromEvent(event) && canSurfaceObjectMove(target) ? "move" : "";
+    const moveCursor = !resizeEdge && isSurfaceMoveCursorTarget(event, target) ? "move" : "";
     const cursor = resizeCursor || moveCursor;
     if (!cursor) {
       clearSurfaceCursor(target);
