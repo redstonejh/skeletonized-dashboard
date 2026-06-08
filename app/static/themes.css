@@ -4171,12 +4171,11 @@ and dividers for one * shared translucent recipe: low base alpha + backdrop blur
    * more horizontal space than numerals, so matching the stat size
    * makes labels feel oversized. 22px is ~79% of the rendered stat
    * number — same family, same color, same material, smaller voice.
-   * Weight uses the shared UI text weight. Slight negative tracking
-   * tightens word forms so they read as one shape. */
+   * Weight and tracking use the shared UI text system so panel titles
+   * match timeframe option labels. */
   --workspace-object-title-size: 22px;
-  --workspace-object-title-weight: var(--ui-text-weight);
   --workspace-object-title-line-height: 1;
-  --workspace-object-title-letter-spacing: -0.01em;
+  --workspace-object-title-letter-spacing: 0;
   --workspace-object-title-color: rgba(248, 250, 252, 0.94);
   --workspace-object-title-numeric: tabular-nums;
 
@@ -4362,14 +4361,14 @@ not a fog. */ .db-panel-body::before{
   box-shadow:
     0 1px 2px rgba(0, 0, 0, 0.18),
     inset 0 1px 0 rgba(255, 255, 255, 0.30);
-}/* Workspace-object title typography (the "458" font system) applied to * panel titles,
-divider titles,
-and object labels. Open panel title,
-* collapsed panel title,
-and divider title all share `.db-panel-title`,
+}/* Workspace-object title typography (the "458" font system) applied to
+panel titles, divider titles, and object labels. Open panel title,
+collapsed panel title, and divider title all share `.db-panel-title`. */
+.db-panel-title,
 .workspace-divider .db-panel-title{
+  font-family: inherit !important;
   font-size: var(--workspace-object-title-size) !important;
-  font-weight: var(--workspace-object-title-weight) !important;
+  font-weight: var(--ui-text-weight) !important;
   line-height: var(--workspace-object-title-line-height) !important;
   letter-spacing: var(--workspace-object-title-letter-spacing) !important;
   color: var(--workspace-object-title-color) !important;
