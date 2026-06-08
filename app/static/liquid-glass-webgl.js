@@ -59,8 +59,9 @@
     // (0,0), which produced rectangular bands at the flat-zone
     // boundary in the old single-SDF approach.
     float roundedBoxSDF(vec2 p, vec2 halfSize, float r) {
-      vec2 d = abs(p) - halfSize + vec2(r);
-      return length(max(d, 0.0)) - r;
+      float radius = clamp(r, 0.0, min(halfSize.x, halfSize.y));
+      vec2 d = abs(p) - halfSize + vec2(radius);
+      return length(max(d, 0.0)) - radius;
     }
 
     // Axis-aligned interior depth — linear and non-flat throughout
@@ -469,6 +470,36 @@
     }
   };
 
+  const resolveRadiusLength = (value, size) => {
+    const text = String(value || "").trim();
+    if (!text) return 0;
+    const amount = Number.parseFloat(text);
+    if (!Number.isFinite(amount)) return 0;
+    if (text.endsWith("%")) return Math.max(0, amount / 100) * size;
+    return Math.max(0, amount);
+  };
+
+  const resolveRadiusPair = (value, rect) => {
+    const parts = String(value || "").trim().split(/\s+/).filter(Boolean);
+    if (!parts.length) return 0;
+    const horizontal = resolveRadiusLength(parts[0], rect.width);
+    const vertical = resolveRadiusLength(parts[1] || parts[0], rect.height);
+    return Math.min(horizontal, vertical);
+  };
+
+  const resolveGlassCornerRadius = (node, rect) => {
+    const style = getComputedStyle(node);
+    const maxRadius = Math.max(0, Math.min(rect.width, rect.height) * 0.5);
+    const radii = [
+      style.borderTopLeftRadius,
+      style.borderTopRightRadius,
+      style.borderBottomRightRadius,
+      style.borderBottomLeftRadius,
+    ].map((value) => resolveRadiusPair(value, rect));
+    const radius = radii.some((value) => value > 0) ? Math.max(...radii) : 14;
+    return Math.min(Math.max(0, radius), maxRadius);
+  };
+
   const collectObjects = () => {
     const nodes = document.querySelectorAll(OBJECT_SELECTOR);
     const out = [];
@@ -517,7 +548,7 @@
       if (r.width <= 4 || r.height <= 4) continue;
       if (r.right < 0 || r.bottom < 0 || r.left > vw || r.top > vh) continue;
       if (!isVisibleGlassTarget(node, r)) continue;
-      const radius = parseFloat(getComputedStyle(node).borderRadius) || 14;
+      const radius = resolveGlassCornerRadius(node, r);
       out.push({
         x: r.left,
         y: r.top,
