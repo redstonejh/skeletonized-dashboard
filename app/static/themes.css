@@ -4925,6 +4925,8 @@ bold,
 no card. Active * filter is indicated by a subtle underline + slightly higher * brightness. Hover brightens text only. */ .timeframe-widget-card .widget-shell-content{
   display: flex !important;
   align-items: center !important;
+  justify-content: center !important;
+  overflow: visible !important;
 }.timeframe-filter-btn{
   appearance: none !important;
   -webkit-appearance: none !important;
@@ -4982,10 +4984,11 @@ no card. Active * filter is indicated by a subtle underline + slightly higher * 
   display: flex !important;
   align-items: center !important;
   align-content: center !important;
+  min-height: 100% !important;
   gap: 14px !important;
   flex-wrap: nowrap !important;
   overflow-x: auto !important;
-  overflow-y: hidden !important;
+  overflow-y: visible !important;
   scrollbar-width: none !important;
   -ms-overflow-style: none;
 }.timeframe-widget-card .timeframe-body::-webkit-scrollbar{
