@@ -5686,9 +5686,12 @@ no card. Active * filter is indicated by a subtle underline + slightly higher * 
 .panel-internal-widget-grid > .widget-card.db-panel-custom-color.widget-tools-open[data-panel-color-user="true"]:focus-visible{
   background:
     var(--object-shell-wash),
-    color-mix(in srgb, var(--glass-surface) 72%, var(--panel-accent) 28%) !important;
+    linear-gradient(180deg,
+      rgba(var(--panel-accent-rgb), .20),
+      rgba(var(--panel-accent-rgb), .10)),
+    color-mix(in srgb, var(--glass-surface) 82%, rgba(var(--panel-accent-rgb), .34) 18%) !important;
   background-image: var(--object-shell-wash) !important;
-  background-color: color-mix(in srgb, var(--glass-surface) 72%, var(--panel-accent) 28%) !important;
+  background-color: color-mix(in srgb, var(--glass-surface) 82%, rgba(var(--panel-accent-rgb), .34) 18%) !important;
   border-color: var(--panel-accent) !important;
 }
 .widget-card.db-panel-custom-color[data-panel-color-user="true"]:hover,
@@ -5710,8 +5713,11 @@ no card. Active * filter is indicated by a subtle underline + slightly higher * 
 .panel-internal-widget-grid > .widget-card.db-panel-custom-color.widget-tools-open[data-panel-color-user="true"]:focus-visible{
   background:
     var(--object-shell-wash),
-    color-mix(in srgb, var(--glass-surface) 66%, var(--panel-accent) 34%) !important;
+    linear-gradient(180deg,
+      rgba(var(--panel-accent-rgb), .24),
+      rgba(var(--panel-accent-rgb), .12)),
+    color-mix(in srgb, var(--glass-surface) 78%, rgba(var(--panel-accent-rgb), .40) 22%) !important;
   background-image: var(--object-shell-wash) !important;
-  background-color: color-mix(in srgb, var(--glass-surface) 66%, var(--panel-accent) 34%) !important;
+  background-color: color-mix(in srgb, var(--glass-surface) 78%, rgba(var(--panel-accent-rgb), .40) 22%) !important;
   border-color: var(--panel-accent) !important;
 }

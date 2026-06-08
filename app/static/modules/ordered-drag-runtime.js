@@ -140,6 +140,7 @@ export const createOrderedDragRuntime = (deps = {}) => {
 
     const snapshotCommittedPageBottom = (targetLayout, fallback = Infinity, metrics = null) => {
       if (!targetLayout) return fallback;
+      if (isPanelInternalWidgetLayout(targetLayout)) return Infinity;
       const resolvedMetrics = metrics || createGridMetrics(targetLayout);
       const rows = viewportRowFloorForLayout?.(targetLayout, resolvedMetrics);
       const fallbackRows = Number.isFinite(fallback) ? Math.max(1, Math.round(fallback)) : fallback;

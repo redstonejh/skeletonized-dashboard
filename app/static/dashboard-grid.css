@@ -515,10 +515,16 @@ body.webgl-glass-on .widget-card.db-panel-custom-color{
   stroke-width: 1.4;
   vector-effect: non-scaling-stroke;
 }.widget-card.db-panel-custom-color{
-  --widget-custom-color-tint: calc(12% * var(--surface-white-mix-compensation));
-  --widget-custom-color-hover-tint: calc(16% * var(--surface-white-mix-compensation));
+  --widget-custom-color-tint: calc(18% * var(--surface-white-mix-compensation));
+  --widget-custom-color-hover-tint: calc(24% * var(--surface-white-mix-compensation));
   --widget-custom-color-border-tint: calc(32% * var(--surface-white-mix-compensation));
-  background: color-mix(in srgb, var(--panel-accent, var(--blue)) var(--widget-custom-color-tint), var(--surface));
+  background:
+    linear-gradient(180deg,
+      rgba(var(--panel-accent-rgb, 37, 99, 235), .16),
+      rgba(var(--panel-accent-rgb, 37, 99, 235), .08)),
+    color-mix(in srgb,
+      rgba(var(--panel-accent-rgb, 37, 99, 235), .34) var(--widget-custom-color-tint),
+      var(--glass-surface));
   border-color: color-mix(in srgb, var(--panel-accent, var(--blue)) var(--widget-custom-color-border-tint), var(--line));
   box-shadow:
     0 1px 3px rgba(15, 23, 42, calc(.045 * var(--surface-white-mix-compensation))),
@@ -526,7 +532,13 @@ body.webgl-glass-on .widget-card.db-panel-custom-color{
     inset 0 -10px 18px rgba(15, 23, 42, calc(.02 * var(--surface-white-mix-compensation)));
 }.widget-card.db-panel-custom-color:hover,
 .widget-card.db-panel-custom-color.active{
-  background: color-mix(in srgb, var(--panel-accent, var(--blue)) var(--widget-custom-color-hover-tint), var(--surface));
+  background:
+    linear-gradient(180deg,
+      rgba(var(--panel-accent-rgb, 37, 99, 235), .20),
+      rgba(var(--panel-accent-rgb, 37, 99, 235), .10)),
+    color-mix(in srgb,
+      rgba(var(--panel-accent-rgb, 37, 99, 235), .40) var(--widget-custom-color-hover-tint),
+      var(--glass-surface));
   border-color: color-mix(in srgb, var(--panel-accent, var(--blue)) calc(44% * var(--surface-white-mix-compensation)), white);
 }.widget-card.db-panel-custom-color:hover .stat-val,
 .widget-card.db-panel-custom-color:hover .stat-lbl{

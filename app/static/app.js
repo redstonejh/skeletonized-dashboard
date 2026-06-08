@@ -1521,18 +1521,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const viewportRowFloorForLayout = (layout, metrics = null) => {
     if (!layout) return null;
+    if (isPanelInternalWidgetLayout(layout)) return null;
     const resolvedMetrics = metrics || createGridMetrics(layout);
-    const panelBody = isPanelInternalWidgetLayout(layout)
-      ? layout.closest(".db-panel-body")
-      : null;
     const viewportAnchor = gridHostForLayout(layout) || layout;
-    const pageShell = panelBody ? null : viewportAnchor.closest?.(".page");
+    const pageShell = viewportAnchor.closest?.(".page");
     const pageBottomInset = pageShell
       ? Math.max(0, parseFloat(getComputedStyle(pageShell).paddingBottom || "0") || 0)
       : 0;
-    const height = panelBody
-      ? Math.max(0, Number(panelBody.getBoundingClientRect?.().height) || 0)
-      : Math.max(0, (Number(window.innerHeight) || 0) - Math.max(0, Number(viewportAnchor.getBoundingClientRect?.().top) || 0) - pageBottomInset);
+    const height = Math.max(0, (Number(window.innerHeight) || 0) - Math.max(0, Number(viewportAnchor.getBoundingClientRect?.().top) || 0) - pageBottomInset);
     const rowHeight = Math.max(1, Number(resolvedMetrics?.rowHeight) || DASHBOARD_GRID_ROW_HEIGHT);
     const gap = Math.max(0, Number(resolvedMetrics?.gap) || 0);
     const rows = Math.floor((height + gap) / (rowHeight + gap));
