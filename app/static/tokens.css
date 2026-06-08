@@ -1,13 +1,9 @@
 :root {
-  --base-tone: #edf2f8;
+  --base-tone: #1f2937;
   --bg: color-mix(in srgb, var(--base-tone) calc(72% + (var(--workspace-bg-darkness) * 20%)), white);
   --bg-end: color-mix(in srgb, var(--base-tone) calc(55% + (var(--workspace-bg-darkness) * 18%)), white);
-  /* Default values for default bright bg (luminance ≈ 0.78, darkness ≈ 0.22).
-     JS overwrites these dynamically when a background is applied. Formula:
-       whiteMixCompensation  = 0.70 + darkness × 0.22
-       saturationCompensation = min(1.10, 1.08 − max(0, darkness − 0.10) × 0.34)
-       surfaceGlassAlpha     = 0.68 − darkness × 0.18
-       exposureCompensation  = 0.24 − darkness × 0.22 */
+  /* Material compensation values are fixed. The selected background color is
+     applied through --base-tone by the background controller. */
   --workspace-bg-luminance: 0.78;
   --workspace-bg-darkness: 0.22;
   --surface-exposure-compensation: 0.1916;

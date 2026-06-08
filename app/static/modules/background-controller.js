@@ -68,44 +68,43 @@ export function initializeBackgroundController({ portalFloatingMenu, restoreFloa
     return roots.filter((element) => element instanceof HTMLElement);
   };
   const COLOR_PRESETS = {
-    "tone-frosted": { label: "Frosted", hex: "#edf2f8" },
-    "tone-mist": { label: "Mist", hex: "#dbe7f3" },
-    "tone-warm": { label: "Warm grey", hex: "#ded8cf" },
+    "tone-black": { label: "Black", hex: "#000000" },
+    "tone-dark-grey": { label: "Dark grey", hex: "#1f2937" },
     "tone-slate": { label: "Slate", hex: "#475569" },
     "tone-graphite": { label: "Graphite", hex: "#111827" },
     "tone-midnight": { label: "Midnight", hex: "#071225" },
   };
   const LEGACY_TONE_MIGRATIONS = {
-    "warm-white": "tone-warm",
-    "cool-white": "tone-frosted",
-    "soft-grey": "tone-frosted",
-    "cool-grey": "tone-mist",
-    "medium-cool-grey": "tone-mist",
+    "warm-white": "tone-dark-grey",
+    "cool-white": "tone-dark-grey",
+    "soft-grey": "tone-dark-grey",
+    "cool-grey": "tone-dark-grey",
+    "medium-cool-grey": "tone-dark-grey",
     "darker-soft-grey": "tone-slate",
-    "warm-grey": "tone-warm",
-    "slate": "tone-mist",
+    "warm-grey": "tone-dark-grey",
+    "slate": "tone-slate",
     "slate-grey": "tone-slate",
     "graphite-light": "tone-slate",
     "graphite-grey": "tone-slate",
-    "light-blue-grey": "tone-frosted",
-    "muted-blue-grey": "tone-mist",
+    "light-blue-grey": "tone-dark-grey",
+    "muted-blue-grey": "tone-slate",
     "blue-slate": "tone-slate",
-    "neutral-dim": "tone-warm",
+    "neutral-dim": "tone-slate",
     "stone-slate": "tone-slate",
-    "stone-grey": "tone-warm",
+    "stone-grey": "tone-dark-grey",
     "industrial-grey": "tone-slate",
-    "blue-mist": "tone-frosted",
-    "frosted-light": "tone-frosted",
-    "very-pale-grey": "tone-frosted",
-    "pale-cool-grey": "tone-frosted",
-    "pale-warm-grey": "tone-warm",
-    "medium-soft-grey": "tone-mist",
+    "blue-mist": "tone-dark-grey",
+    "frosted-light": "tone-dark-grey",
+    "very-pale-grey": "tone-dark-grey",
+    "pale-cool-grey": "tone-dark-grey",
+    "pale-warm-grey": "tone-dark-grey",
+    "medium-soft-grey": "tone-slate",
     "medium-grey": "tone-slate",
     "neutral-grey": "tone-slate",
     "charcoal-grey": "tone-graphite",
     "deep-grey": "tone-graphite",
     "near-black-grey": "tone-graphite",
-    "black": "tone-graphite",
+    "black": "tone-black",
     "near-black": "tone-graphite",
     "soft-black": "tone-graphite",
     "warm-near-black": "tone-graphite",
@@ -113,7 +112,7 @@ export function initializeBackgroundController({ portalFloatingMenu, restoreFloa
     "soft-charcoal": "tone-graphite",
     "graphite": "tone-graphite",
     "gunmetal": "tone-graphite",
-    "dark-grey": "tone-graphite",
+    "dark-grey": "tone-dark-grey",
     "dark-blue-grey": "tone-midnight",
     "deep-navy": "tone-midnight",
     "desaturated-dark-blue": "tone-midnight",
@@ -133,10 +132,10 @@ export function initializeBackgroundController({ portalFloatingMenu, restoreFloa
     return /^#[0-9a-f]{6}$/i.test(trimmed) ? trimmed.toLowerCase() : null;
   };
   const stateLabel = (state) => {
-    if (!state) return COLOR_PRESETS["tone-frosted"].label;
+    if (!state) return COLOR_PRESETS["tone-dark-grey"].label;
     if (state.kind === "custom") return `Custom ${state.hex}`;
     if (state.kind === "photo") return state.tone.replace(/-/g, " ");
-    return COLOR_PRESETS[state.tone]?.label || COLOR_PRESETS["tone-frosted"].label;
+    return COLOR_PRESETS[state.tone]?.label || COLOR_PRESETS["tone-dark-grey"].label;
   };
   // Adaptive material compensation was removed: objects now use one stable
   // material recipe regardless of background luminance. The fixed default
@@ -333,7 +332,7 @@ export function initializeBackgroundController({ portalFloatingMenu, restoreFloa
     document.body.classList.remove("has-photo-background");
   };
   
-  const backgroundDefault = "tone-frosted";
+  const backgroundDefault = "tone-dark-grey";
   const backgroundStorageKey = "dashboard-background";
   const customBackgroundStorageKey = "dashboard-background-custom-color";
   const parseBackgroundState = (value) => {

@@ -1,0 +1,11 @@
+{
+  "verdict": "SHIP",
+  "tests_run": false,
+  "tests_skipped_reason": "User explicitly instructed not to run e2e, canaries, or validation.",
+  "changed_scope": [
+    "background preset model",
+    "background preset markup",
+    "background fallback base tone"
+  ]
+}
+

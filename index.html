@@ -7,11 +7,10 @@
   <script>
     (() => {
       try {
-        const saved = localStorage.getItem("dashboard-background") || "tone-frosted";
+        const saved = localStorage.getItem("dashboard-background") || "tone-dark-grey";
         const presets = {
-          "tone-frosted": "#edf2f8",
-          "tone-mist": "#dbe7f3",
-          "tone-warm": "#ded8cf",
+          "tone-black": "#000000",
+          "tone-dark-grey": "#1f2937",
           "tone-slate": "#475569",
           "tone-graphite": "#111827",
           "tone-midnight": "#071225"
@@ -25,7 +24,7 @@
             baseTone = parsed.hex;
           }
         } else if (!saved.startsWith("photo-") && saved !== "solar-system") {
-          background = presets[saved] ? saved : "tone-frosted";
+          background = presets[saved] ? saved : "tone-dark-grey";
           baseTone = presets[background];
         }
         if (baseTone) document.documentElement.style.setProperty("--base-tone", baseTone);
@@ -70,15 +69,14 @@
       <div class="background-tone-popover nav-menu-shell floating-glass-menu glass-menu-scroll-region">
         <div class="background-tone-group background-tone-group-derived" aria-label="Color backgrounds">
           <span class="background-tone-label">Color</span>
-          <button type="button" class="background-tone-option" data-background-tone="tone-frosted" style="--base-tone: #edf2f8;">Frosted</button>
-          <button type="button" class="background-tone-option" data-background-tone="tone-mist" style="--base-tone: #dbe7f3;">Mist</button>
-          <button type="button" class="background-tone-option" data-background-tone="tone-warm" style="--base-tone: #ded8cf;">Warm grey</button>
+          <button type="button" class="background-tone-option" data-background-tone="tone-black" style="--base-tone: #000000;">Black</button>
+          <button type="button" class="background-tone-option" data-background-tone="tone-dark-grey" style="--base-tone: #1f2937;">Dark grey</button>
           <button type="button" class="background-tone-option" data-background-tone="tone-slate" style="--base-tone: #475569;">Slate</button>
           <button type="button" class="background-tone-option" data-background-tone="tone-graphite" style="--base-tone: #111827;">Graphite</button>
           <button type="button" class="background-tone-option" data-background-tone="tone-midnight" style="--base-tone: #071225;">Midnight</button>
           <label class="background-custom-color">
             <span class="background-custom-color-text">Custom</span>
-            <input class="background-custom-color-input" type="color" value="#edf2f8" aria-label="Custom background color">
+            <input class="background-custom-color-input" type="color" value="#1f2937" aria-label="Custom background color">
           </label>
         </div>
         <div class="background-glass-group" aria-label="Glass material">
