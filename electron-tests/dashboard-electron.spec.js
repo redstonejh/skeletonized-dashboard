@@ -1384,6 +1384,7 @@ test("electron GUI treats widgets as display objects without data-source configu
     { kind: "graph", category: "visualization", subcategory: "Charts", expectedDefinition: "chart", label: "chart" },
     { kind: "map", category: "visualization", subcategory: "Geospatial", label: "map" },
     { kind: "calendar", category: "controls", label: "calendar" },
+    { kind: "document", category: "media", expectedDefinition: "document", label: "code" },
     { kind: "image", category: "media", label: "media" },
   ];
   const added = [];
@@ -1391,10 +1392,26 @@ test("electron GUI treats widgets as display objects without data-source configu
     const widget = await addWidget(page, entry);
     const key = await widget.evaluate((node) => node.dataset.widgetKey || "");
     const widgetSelector = `.widget-layout > .widget-card[data-widget-key="${key}"]`;
+    if (entry.label === "code") {
+      const contentSetting = await applyFirstWidgetSetting(page, widgetSelector, "content", "const ready = true;");
+      expect(contentSetting.applied).toBe(true);
+    }
     await page.waitForFunction((widgetSelector) => {
       const node = document.querySelector(widgetSelector);
-      return Boolean(node?.querySelector("[data-widget-shell-content='true'], .widget-inline-placeholder, .runtime-table-widget, .runtime-chart-widget, .runtime-map-widget, .runtime-calendar-widget"));
+      return Boolean(node?.querySelector("[data-widget-shell-content='true'], .widget-inline-placeholder, .runtime-table-widget, .runtime-chart-widget, .runtime-map-widget, .runtime-calendar-widget, .runtime-monaco-editor"));
     }, widgetSelector);
+    if (entry.label === "table") {
+      await page.waitForFunction((widgetSelector) => Boolean(document.querySelector(`${widgetSelector} .runtime-table-tanstack table.runtime-table`)), widgetSelector);
+    }
+    if (entry.label === "chart") {
+      await page.waitForFunction((widgetSelector) => Boolean(document.querySelector(`${widgetSelector} .runtime-chart-echarts svg`)), widgetSelector);
+    }
+    if (entry.label === "map") {
+      await page.waitForFunction((widgetSelector) => Boolean(document.querySelector(`${widgetSelector} .runtime-map-leaflet.leaflet-container`)), widgetSelector);
+    }
+    if (entry.label === "code") {
+      await page.waitForFunction((widgetSelector) => Boolean(document.querySelector(`${widgetSelector} .runtime-monaco-editor .monaco-editor`)), widgetSelector);
+    }
     const state = await page.locator(widgetSelector).evaluate((node) => ({
       kind: node.dataset.widgetDefinition || "",
       text: node.textContent || "",
@@ -1403,6 +1420,12 @@ test("electron GUI treats widgets as display objects without data-source configu
       height: node.getBoundingClientRect().height,
       placeholderCount: node.querySelectorAll(".widget-inline-placeholder").length,
       sourceAttrs: Object.keys(node.dataset).filter((key) => /dataSource|dataAdapter|dataOrigin|workspaceContext/i.test(key)),
+      libraryMounts: {
+        echarts: Boolean(node.querySelector(".runtime-chart-echarts svg")),
+        table: Boolean(node.querySelector(".runtime-table-tanstack table.runtime-table")),
+        leaflet: Boolean(node.querySelector(".runtime-map-leaflet.leaflet-container")),
+        monaco: Boolean(node.querySelector(".runtime-monaco-editor .monaco-editor")),
+      },
     }));
     expect(state.kind).toBe(entry.expectedDefinition || entry.kind);
     expect(state.modelAttrs).toEqual([]);
@@ -1411,6 +1434,10 @@ test("electron GUI treats widgets as display objects without data-source configu
     expect(state.text).not.toMatch(/needs data source|data substrate|configure a data source|required fields|connect an input stream|expected|why|next|broaden/i);
     expect(state.placeholderCount).toBeLessThanOrEqual(1);
     expect(state.sourceAttrs).toEqual([]);
+    if (entry.label === "chart") expect(state.libraryMounts.echarts).toBe(true);
+    if (entry.label === "table") expect(state.libraryMounts.table).toBe(true);
+    if (entry.label === "map") expect(state.libraryMounts.leaflet).toBe(true);
+    if (entry.label === "code") expect(state.libraryMounts.monaco).toBe(true);
     added.push({ ...entry, key, expectedDefinition: entry.expectedDefinition || entry.kind });
   }
 

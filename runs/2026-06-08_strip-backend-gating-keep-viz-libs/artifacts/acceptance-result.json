@@ -1,0 +1,27 @@
+{
+  "verdict": "SHIP",
+  "checks": {
+    "discovery_guard": "passed",
+    "legacy_runtime_grep": "passed",
+    "js_syntax": "passed",
+    "focused_viz_library_canary": "passed",
+    "e2e": "24 passed",
+    "critic": "PASS",
+    "delegation_proof": "pending check"
+  },
+  "kept": [
+    "ECharts loader and runtime-chart-echarts mount",
+    "TanStack Table loader and runtime-table-tanstack mount",
+    "Monaco loader and runtime-monaco-editor mount",
+    "Leaflet loader and runtime-map-leaflet mount",
+    "widget content wells and library surfaces",
+    "config + data.rows render seam"
+  ],
+  "removed": [
+    "chart required-field render gating",
+    "Add chart fields prompt",
+    "Add columns prompt",
+    "demo runtime metadata marker",
+    "empty map no-mount gate"
+  ]
+}

@@ -1,0 +1,37 @@
+{
+  "explicit_runtime_grep": {
+    "patterns": [
+      "Missing aggregation",
+      "Missing x field",
+      "Missing y field",
+      "Missing series field",
+      "Add .* fields",
+      "requiredFields",
+      "getDemoData",
+      "runtimeState",
+      "data-runtime",
+      "widgetShellState",
+      "resolvedContext",
+      "Configure location fields",
+      "needs data source",
+      "data substrate",
+      "connect an input stream",
+      "defaultQueryFields",
+      "queryRequirements",
+      "requiresDataSource",
+      "dataSource",
+      "dataAdapter",
+      "dataOrigin",
+      "WorkspaceContext"
+    ],
+    "result": "zero matches in app/static/widget-registry.js"
+  },
+  "syntax": [
+    "node --check app/static/widget-registry.js",
+    "node --check app/static/widget-runtime.js"
+  ],
+  "tests": [
+    "npx.cmd playwright test electron-tests/dashboard-electron.spec.js --grep \"display objects without data-source configuration\" --workers=1: passed",
+    "npm.cmd run test:e2e -- --workers=1: 24 passed"
+  ]
+}

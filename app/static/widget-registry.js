@@ -591,20 +591,7 @@
       return av > bv ? direction : -direction;
     });
   };
-  const chartRequiredFieldMessage = (definition, config) => {
-    const supportedAggregations = Array.isArray(definition.supportedAggregations) && definition.supportedAggregations.length
-      ? definition.supportedAggregations
-      : CHART_AGGREGATIONS;
-    if (config?.aggregation && !supportedAggregations.includes(config.aggregation)) return "Missing aggregation";
-    const aggregation = chartConfiguredAggregation(config);
-    const needsX = definition.requiredFields.includes("xField");
-    const needsY = definition.requiredFields.includes("yField") || (definition.valueRequiredForAggregation !== false && aggregation !== "count");
-    const needsSeries = definition.requiredFields.includes("seriesField");
-    if (needsX && !chartXField(config)) return "Missing x field";
-    if (needsY && !chartValueField(config)) return "Missing y field";
-    if (needsSeries && !chartSeriesField(config)) return "Missing series field";
-    return "";
-  };
+  const widgetDataRows = (data) => Array.isArray(data?.rows) ? data.rows : [];
   const aggregateValues = (values, aggregation) => {
     const numeric = values.map(numberValue).filter((value) => value != null);
     if (aggregation === "count") return values.length;
@@ -934,10 +921,10 @@
     const target = contentRoot?.querySelector?.(".runtime-table-tanstack");
     if (!target) return null;
     const config = instance?.config || {};
-    const rows = [];
+    const rows = widgetDataRows(instance?.data);
     const configuredColumns = tableConfiguredColumns(config);
     const schemaFields = Object.keys(rows[0] || {});
-    const allFields = unique(configuredColumns.length ? configuredColumns : schemaFields);
+    const allFields = unique(configuredColumns.length ? configuredColumns : schemaFields.length ? schemaFields : [""]);
     const visibleFields = allFields.slice(0, tableVisibleColumnCount(instance.cols));
     const visibleRows = rows.slice(0, tableVisibleRowCount(instance.rows, config.limit));
     let disposed = false;
@@ -982,7 +969,7 @@
         table.getHeaderGroups().forEach((hg) => {
           hg.headers.forEach((header) => {
             const th = document.createElement("th");
-            const label = String(header.column.columnDef.header || header.id);
+            const label = String(header.column.columnDef.header || header.id || "");
             th.textContent = label;
             th.title = label;
             headerTr.appendChild(th);
@@ -1104,7 +1091,7 @@
     loadEcharts()
       .then((echarts) => {
         if (disposed || !target.isConnected) return;
-        const rows = [];
+        const rows = widgetDataRows(instance?.data);
         chart = echarts.init(target, null, { renderer: "svg" });
         chart.setOption(chartEchartsOption({ instance, definition: chartDefinition, rows, element: target }), true);
         resizeObserver = new ResizeObserver(() => chart?.resize());
@@ -1127,7 +1114,6 @@
     if (!chartType) return false;
     chartDefinitions.set(chartType, {
       category: "general",
-      requiredFields: [],
       supportedAggregations: CHART_AGGREGATIONS,
       defaultConfig: {},
       valueRequiredForAggregation: true,
@@ -1143,37 +1129,35 @@
     chartType: definition.chartType,
     displayName: definition.displayName,
     category: definition.category,
-    requiredFields: definition.requiredFields,
     supportedAggregations: definition.supportedAggregations,
     defaultConfig: definition.defaultConfig,
   }));
   [
-    ["bar", "Bar", "basic-comparison", ["xField"]],
-    ["horizontal-bar", "Horizontal Bar", "basic-comparison", ["xField"]],
-    ["grouped-bar", "Grouped Bar", "basic-comparison", ["xField", "seriesField"]],
-    ["stacked-bar", "Stacked Bar", "basic-comparison", ["xField", "seriesField"]],
-    ["lollipop", "Lollipop", "basic-comparison", ["xField"]],
-    ["line", "Line", "time-series", ["xField", "yField"]],
-    ["multi-line", "Multi-line", "time-series", ["xField", "yField"]],
-    ["area", "Area", "time-series", ["xField", "yField"]],
-    ["stacked-area", "Stacked Area", "time-series", ["xField", "yField"]],
-    ["sparkline", "Sparkline", "time-series", ["xField", "yField"]],
-    ["histogram", "Histogram", "distribution", ["yField"]],
-    ["box-plot", "Box Plot", "distribution", ["yField"]],
-    ["scatter", "Scatter", "relationship", ["xField", "yField"]],
-    ["bubble", "Bubble", "relationship", ["xField", "yField"]],
-    ["heatmap", "Heatmap", "relationship", ["xField", "seriesField"]],
-    ["pie", "Pie", "composition", ["xField"]],
-    ["donut", "Donut", "composition", ["xField"]],
-    ["gauge", "Gauge", "ranking-progress", ["yField"]],
-    ["radial-progress", "Radial Progress", "ranking-progress", ["yField"]],
-    ["progress-bar", "Progress Bar", "ranking-progress", ["yField"]],
-    ["kpi-trend", "KPI Trend Card", "ranking-progress", ["xField", "yField"]],
-  ].forEach(([chartType, displayName, category, requiredFields, render]) => registerChartDefinition({
+    ["bar", "Bar", "basic-comparison"],
+    ["horizontal-bar", "Horizontal Bar", "basic-comparison"],
+    ["grouped-bar", "Grouped Bar", "basic-comparison"],
+    ["stacked-bar", "Stacked Bar", "basic-comparison"],
+    ["lollipop", "Lollipop", "basic-comparison"],
+    ["line", "Line", "time-series"],
+    ["multi-line", "Multi-line", "time-series"],
+    ["area", "Area", "time-series"],
+    ["stacked-area", "Stacked Area", "time-series"],
+    ["sparkline", "Sparkline", "time-series"],
+    ["histogram", "Histogram", "distribution"],
+    ["box-plot", "Box Plot", "distribution"],
+    ["scatter", "Scatter", "relationship"],
+    ["bubble", "Bubble", "relationship"],
+    ["heatmap", "Heatmap", "relationship"],
+    ["pie", "Pie", "composition"],
+    ["donut", "Donut", "composition"],
+    ["gauge", "Gauge", "ranking-progress"],
+    ["radial-progress", "Radial Progress", "ranking-progress"],
+    ["progress-bar", "Progress Bar", "ranking-progress"],
+    ["kpi-trend", "KPI Trend Card", "ranking-progress"],
+  ].forEach(([chartType, displayName, category, render]) => registerChartDefinition({
     chartType,
     displayName,
     category,
-    requiredFields,
     render: render || renderEchartsChartFrame,
     defaultConfig: { chartType },
     valueRequiredForAggregation: !["bar", "horizontal-bar", "grouped-bar", "stacked-bar", "lollipop", "pie", "donut", "heatmap"].includes(chartType),
@@ -1189,7 +1173,6 @@
   const runtimeMeta = (primary, data = null, options = {}) => {
     const parts = [primary].filter(Boolean);
     if (options.filtered) parts.push("filtered");
-    if (data?.demo) parts.push("demo");
     if (options.stale) parts.push("stale");
     return parts.join(" / ");
   };
@@ -1495,6 +1478,7 @@
       cols,
       rows,
       config,
+      data: overrides.data && typeof overrides.data === "object" ? overrides.data : { rows: [] },
       layer: normalizeWidgetLayer(overrides.layer, resolvedDefinition.layer || "presentation"),
       density,
       availableSize: overrides.availableSize || null,
@@ -1511,7 +1495,8 @@
       const renderProps = {
         ...props,
         density,
-        instance: { ...instance, density },
+        data: props.data || instance.data || { rows: [] },
+        instance: { ...instance, density, data: props.data || instance.data || { rows: [] } },
         definition: resolvedDefinition,
       };
       const content = typeof resolvedDefinition.renderContent === "function"
@@ -1962,8 +1947,9 @@
       const densityTier = normalizeDensity(density);
       const title = config.title || "Table";
       const configuredColumns = tableConfiguredColumns(config);
-      const allFields = unique(configuredColumns);
-      if (!allFields.length) return widgetHint("Add columns");
+      const dataRows = widgetDataRows(instance.data);
+      const schemaFields = Object.keys(dataRows[0] || {});
+      const allFields = unique(configuredColumns.length ? configuredColumns : schemaFields.length ? schemaFields : [""]);
       const visibleFields = allFields.slice(0, tableVisibleColumnCount(instance.cols));
       const tableDensity = Number(instance.rows) <= 2 || Number(instance.cols) <= 2
         ? "compact"
@@ -2037,14 +2023,11 @@
       const config = instance.config || {};
       const chartType = config.chartType || "bar";
       const definition = getChartDefinition(chartType);
-      const title = config.title || "Chart";
       if (!definition) return widgetHint("Chart unavailable");
-      const requiredMessage = chartRequiredFieldMessage(definition, config);
-      if (requiredMessage) return widgetHint("Add chart fields");
       return definition.render({
         instance,
         definition,
-        rows: [],
+        rows: widgetDataRows(instance.data),
         display: chartDisplayConfig(config),
       });
     },
@@ -2141,7 +2124,7 @@
     render: ({ instance }) => {
       const config = instance.config || {};
       const title = config.title || "Map";
-      const points = [];
+      const points = mapExtractPoints(instance.data, config, {});
       const density = chartVisualDensity(instance.density || "standard");
       const labels = points.slice(0, density === "large" ? 4 : 2).map((point) => `<span>${escapeHtml(point.label)}</span>`).join("");
       return `
@@ -2156,8 +2139,7 @@
       const target = contentRoot?.querySelector?.(".runtime-map-leaflet");
       if (!target) return null;
       const config = instance?.config || {};
-      const points = [];
-      if (!points.length) return null;
+      const points = mapExtractPoints(instance?.data, config, {});
       let disposed = false;
       let map = null;
       let resizeObserver = null;
@@ -2179,7 +2161,9 @@
               .bindTooltip(point.label, { sticky: false, offset: [0, -4] })
               .addTo(map);
           });
-          if (points.length === 1) {
+          if (!points.length) {
+            map.setView([20, 0], 2);
+          } else if (points.length === 1) {
             map.setView([points[0].latitude, points[0].longitude], 12);
           } else {
             map.fitBounds(

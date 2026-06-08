@@ -276,12 +276,13 @@
       const html = registry?.renderWidget?.(definition, {
         instance: renderInstance,
         definition,
+        data: options.data,
       }) || definition.render({ instance: renderInstance, definition });
       widget.dataset.widgetShell = definition.shell === false ? "legacy" : "shared";
       setRuntimeContent(widget, html);
       mountWidgetBodyRenderer(widget, {
         definition,
-        instance: renderInstance,
+        instance: { ...renderInstance, data: options.data || renderInstance.data || { rows: [] } },
       });
       deps.applyStyleRulesForWidget?.(widget, {
         definition,

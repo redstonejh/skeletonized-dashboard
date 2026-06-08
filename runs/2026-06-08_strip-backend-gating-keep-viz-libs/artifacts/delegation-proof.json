@@ -1,0 +1,30 @@
+{
+  "delegation_capability": {
+    "available": true,
+    "primitive": "multi_agent_v1.spawn_agent/resume_agent"
+  },
+  "selected_roles": [
+    "planner",
+    "worker",
+    "critic",
+    "acceptance_gate"
+  ],
+  "roles": {
+    "planner": {
+      "agent_id": "019ea542-78dd-75a2-852f-db0cb092ea26",
+      "prompt_path": ".codex/agents/planner.md"
+    },
+    "worker": {
+      "agent_id": "019ea52f-9d6f-7c22-969d-46f955c94cc2",
+      "prompt_path": ".codex/agents/worker.md"
+    },
+    "critic": {
+      "agent_id": "019ea542-94dc-7900-ad8d-95199a1f488c",
+      "prompt_path": ".codex/agents/critic.md"
+    },
+    "acceptance_gate": {
+      "agent_id": "019ea542-aa1f-7b13-8ff6-74d2a2e7e25e",
+      "prompt_path": ".codex/agents/acceptance_gate.md"
+    }
+  }
+}
