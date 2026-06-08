@@ -26,6 +26,7 @@ Visible dashboard names and text surfaces edit in place on the displayed text el
 ## Object Customization
 
 Panel and widget customization drawers open from right-click at the cursor position. The drawer is positioned once, clamped to the viewport, and remains fixed there until an outside click, Escape, or an action closes it.
+Multi-object selection is toggled directly with Ctrl-left-click on dashboard objects; selected objects keep using the shared group move/resize behavior.
 
 ## Widget Wells
 

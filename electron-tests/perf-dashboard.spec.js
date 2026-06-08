@@ -266,13 +266,11 @@ test("dashboard hot interactions perf baseline", async () => {
         }));
       }
 
-      if (shouldRunInteraction("select-mode-multi-move")) {
+      if (shouldRunInteraction("ctrl-click-multi-move")) {
         await prepareScene(page, count);
         const multiPanel = await openTools(page, '.panel-layout > .db-panel[data-panel-key="builder-content"]');
-        await page.keyboard.down("Shift");
-        await page.locator('.panel-layout > .db-panel[data-panel-key="builder-notes"]').click({ force: true });
-        await page.keyboard.up("Shift");
-        results.push(await collectMetrics(page, "select-mode-multi-move", count, async () => {
+        await page.locator('.panel-layout > .db-panel[data-panel-key="builder-notes"]').click({ modifiers: ["Control"], force: true });
+        results.push(await collectMetrics(page, "ctrl-click-multi-move", count, async () => {
           await pointerDrag(page, multiPanel.locator(".panel-move-handle"), -240, 200, 60);
         }));
       }

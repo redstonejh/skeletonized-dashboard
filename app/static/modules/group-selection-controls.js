@@ -1,5 +1,4 @@
 export const createGroupSelectionRuntime = () => {
-  let groupMode = false;
   const groupSelection = new Set();
   const groupSelectedIds = new Set();
   const groupItemKind = (item) => item?.classList?.contains("widget-card") ? "widget" : "panel";
@@ -31,6 +30,7 @@ export const createGroupSelectionRuntime = () => {
       groupSelection.delete(item);
       groupSelectedIds.delete(id);
     }
+    syncGroupSelectionState();
   };
   const restoreGroupSelection = () => {
     groupSelection.clear();
@@ -52,17 +52,10 @@ export const createGroupSelectionRuntime = () => {
     });
     groupSelection.clear();
     groupSelectedIds.clear();
+    syncGroupSelectionState();
   };
-  const syncGroupButtons = () => {
-    document.body.classList.toggle("group-select-active", groupMode);
-    document.querySelectorAll(".layout-group-button").forEach((button) => {
-      button.setAttribute("aria-pressed", groupMode.toString());
-    });
-  };
-  const setGroupMode = (enabled) => {
-    groupMode = Boolean(enabled);
-    if (!groupMode) clearGroupSelection();
-    syncGroupButtons();
+  const syncGroupSelectionState = () => {
+    document.body.classList.toggle("group-select-active", groupSelectedIds.size > 0);
   };
   const toggleGroupItem = (item) => {
     if (!item) return;
@@ -86,7 +79,6 @@ export const createGroupSelectionRuntime = () => {
 
   return {
     clearGroupSelection,
-    getGroupMode: () => groupMode,
     groupItemId,
     groupItemKind,
     groupItemLayout,
@@ -98,29 +90,18 @@ export const createGroupSelectionRuntime = () => {
     restoreGroupSelection,
     selectedGroupItems,
     setGroupItemSelected,
-    setGroupMode,
-    syncGroupButtons,
     toggleGroupItem,
   };
 };
 
 export const initializeGroupSelectionControls = ({
-  getGroupMode,
-  setGroupMode,
   toggleGroupItem,
-  showToast,
 }) => {
-  document.querySelectorAll(".layout-group-button").forEach((button) => {
-    button.addEventListener("click", () => {
-      setGroupMode(!getGroupMode());
-      showToast(getGroupMode() ? "Select mode enabled." : "Selection cleared.");
-    });
-  });
-
-  document.addEventListener("click", (event) => {
-    if (!getGroupMode() || event.button !== 0) return;
+  document.addEventListener("pointerdown", (event) => {
+    if (event.button !== 0 || !event.ctrlKey) return;
     if (event.target?.closest?.(".app-nav, .workspace-menu-overlay-layer, .panel-tools, .widget-tools, .panel-color-menu, .panel-add-menu, .nav-status-popover")) return;
-    const item = event.target?.closest?.(".widget-layout > .widget-card, .panel-layout > .db-panel");
+    if (event.target?.closest?.("button, a, input, select, textarea, [contenteditable='true'], [role='textbox']")) return;
+    const item = event.target?.closest?.(".widget-layout > .widget-card, .panel-internal-widget-grid > .widget-card, .panel-layout > .db-panel");
     if (!item) return;
     event.preventDefault();
     event.stopPropagation();

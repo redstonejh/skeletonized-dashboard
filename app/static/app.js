@@ -191,7 +191,6 @@ document.addEventListener("DOMContentLoaded", () => {
   });
   const {
     clearGroupSelection,
-    getGroupMode,
     groupItemId,
     groupItemKind,
     groupItemLayout,
@@ -203,8 +202,6 @@ document.addEventListener("DOMContentLoaded", () => {
     restoreGroupSelection,
     selectedGroupItems,
     setGroupItemSelected,
-    setGroupMode,
-    syncGroupButtons,
     toggleGroupItem,
   } = createGroupSelectionRuntime();
   const undoTransientItemClasses = [...layoutPersistence.transientClasses];
@@ -2705,10 +2702,7 @@ document.addEventListener("DOMContentLoaded", () => {
     indexedCollisionEntries,
   });
   initializeGroupSelectionControls({
-    getGroupMode,
-    setGroupMode,
     toggleGroupItem,
-    showToast,
   });
 
   initializeObjectAddRuntime({

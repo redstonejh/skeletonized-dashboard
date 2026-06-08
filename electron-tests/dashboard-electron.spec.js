@@ -394,12 +394,8 @@ test("electron GUI keeps slim navbar controls wired", async () => {
   const modeButtons = await page.locator(".mode-command-island > button").evaluateAll((buttons) =>
     buttons.map((button) => button.textContent?.trim())
   );
-  expect(modeButtons).toEqual(["Select", "Reset"]);
-
-  await page.locator(".layout-group-button").click({ force: true });
-  await expect(page.locator(".layout-group-button")).toHaveAttribute("aria-pressed", "true");
-  await page.locator(".layout-group-button").click({ force: true });
-  await expect(page.locator(".layout-group-button")).toHaveAttribute("aria-pressed", "false");
+  expect(modeButtons).toEqual(["Reset"]);
+  await expect(page.locator(".layout-group-button")).toHaveCount(0);
 
   await page.locator(".control-bar-gear").click({ force: true });
   await expect(page.locator("[data-floating-control-bar]")).not.toBeVisible();
@@ -1535,23 +1531,20 @@ test("electron GUI keeps drag and resize handlers active", async () => {
     "drag-with-live-ghost",
     "grid-snap",
     "collision-reflow",
-    "select-mode-multi-move",
+    "ctrl-click-multi-move",
     "no-interaction-scroll",
   ], { moveBefore, afterMove });
 
   await closeApp(app);
 });
 
-test("electron GUI keeps select-mode multi-resize deterministic", async () => {
+test("electron GUI keeps ctrl-click multi-resize deterministic", async () => {
   const { app, page } = await launchApp();
   const firstSelector = '.panel-layout > .db-panel[data-panel-key="builder-notes"]';
   const secondSelector = '.panel-layout > .db-panel[data-panel-key="builder-content"]';
 
-  await openControlBar(page);
-  await page.locator(".layout-group-button").click({ force: true });
-  await expect(page.locator(".layout-group-button")).toHaveAttribute("aria-pressed", "true");
-  await page.locator(firstSelector).click({ force: true });
-  await page.locator(secondSelector).click({ force: true });
+  await page.locator(firstSelector).click({ modifiers: ["Control"], force: true });
+  await page.locator(secondSelector).click({ modifiers: ["Control"], force: true });
   await expect(page.locator(firstSelector)).toHaveAttribute("aria-selected", "true");
   await expect(page.locator(secondSelector)).toHaveAttribute("aria-selected", "true");
 
@@ -1609,7 +1602,7 @@ test("electron GUI keeps select-mode multi-resize deterministic", async () => {
   }, { firstSelector, secondSelector });
   expect(after.first).not.toEqual(before.first);
   expect(after.second).not.toEqual(before.second);
-  await writeInteractionScenarios(page, ["select-mode-multi-resize"], { before, after });
+  await writeInteractionScenarios(page, ["ctrl-click-multi-resize"], { before, after });
   await closeApp(app);
 });
 
