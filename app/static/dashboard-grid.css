@@ -2243,8 +2243,6 @@ that put the drawer on top — palette * has to declare its tier explicitly. */ 
   border-top: 1px solid var(--panel-content-rim);
   background: var(--panel-content-surface);
   background-clip: padding-box;
-  backdrop-filter: blur(18px) saturate(1.25);
-  -webkit-backdrop-filter: blur(18px) saturate(1.25);
   box-shadow: var(--panel-content-shadow);
   overflow: visible;
   max-height: none;
@@ -2300,8 +2298,6 @@ that put the drawer on top — palette * has to declare its tier explicitly. */ 
   color: color-mix(in srgb, var(--glass-highlight) 76%, var(--panel-accent, var(--blue)) 24%);
   text-align: center;
   text-shadow: 0 1px 2px color-mix(in srgb, var(--ink-strong) 40%, transparent);
-  backdrop-filter: blur(10px) saturate(1.02);
-  -webkit-backdrop-filter: blur(10px) saturate(1.02);
 }.db-panel-body > .panel-empty-state strong{
   color: color-mix(in srgb, var(--glass-highlight) 86%, var(--panel-accent, var(--blue)) 14%);
 }.db-panel-body > .panel-empty-state small{

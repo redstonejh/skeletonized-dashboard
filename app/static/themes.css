@@ -3533,8 +3533,6 @@ never geometry or layout state. */ .dashboard-layout-grid .widget-card[data-lod]
 .dashboard-layout-grid .widget-card[data-visual-lod="near"]:not(:focus-within):not(.active):not(.group-selected):not(.widget-dragging):not(.dashboard-active-resize):not(.widget-tools-open),
 .dashboard-layout-grid .db-panel[data-visual-lod="near"]:not(:focus-within):not(.active):not(.group-selected):not(.db-panel-dragging):not(.dashboard-active-resize):not(.db-panel-tools-open){
   box-shadow: var(--workspace-lod-near-shadow) !important;
-  backdrop-filter: blur(2px) saturate(1.02);
-  -webkit-backdrop-filter: blur(2px) saturate(1.02);
   transition: var(--workspace-lod-near-transition) !important;
 }.dashboard-layout-grid .widget-card[data-lod="far"]:not(:focus-within):not(.active):not(.group-selected):not(.widget-dragging):not(.dashboard-active-resize):not(.widget-tools-open),
 .dashboard-layout-grid .db-panel[data-lod="far"]:not(:focus-within):not(.active):not(.group-selected):not(.db-panel-dragging):not(.dashboard-active-resize):not(.db-panel-tools-open),
@@ -3865,8 +3863,6 @@ never geometry or layout state. */ .dashboard-layout-grid .widget-card[data-lod]
   --object-shell-accent-wash-primary: calc(0.34 * var(--surface-saturation-compensation));
   --object-shell-accent-wash-secondary: calc(0.18 * var(--surface-saturation-compensation));
   --object-shell-liquid-bg-alpha: var(--liquid-glass-bg-alpha);
-  --object-shell-liquid-backdrop-blur: var(--liquid-glass-backdrop-blur);
-  --object-shell-liquid-saturate: var(--liquid-glass-saturate);
   --object-shell-liquid-border-alpha: var(--liquid-glass-border-alpha);
   --object-shell-liquid-inner-highlight-alpha: var(--liquid-glass-inner-highlight-alpha);
   --object-shell-liquid-shine-bg-alpha: calc(var(--liquid-glass-shine-bg-alpha) * var(--surface-white-mix-compensation));
@@ -3874,7 +3870,6 @@ never geometry or layout state. */ .dashboard-layout-grid .widget-card[data-lod]
   --object-shell-liquid-top-highlight-alpha: var(--liquid-glass-top-highlight-alpha);
   --object-shell-liquid-sheen-alpha: var(--liquid-glass-sheen-alpha);
   --object-shell-liquid-shine-opacity: var(--liquid-glass-shine-opacity);
-  --object-shell-liquid-shine-blur: var(--liquid-glass-shine-blur);
   --object-shell-liquid-shine-filter-blur: var(--liquid-glass-shine-filter-blur);
   --object-shell-liquid-drop-shadow-alpha: var(--liquid-glass-drop-shadow-alpha);
   --object-shell-liquid-shine-brightness: var(--liquid-glass-shine-brightness);
@@ -3916,8 +3911,6 @@ never geometry or layout state. */ .dashboard-layout-grid .widget-card[data-lod]
   --panel-control-hover-border: var(--object-control-hover-border);
 }.db-panel{
   background: var(--object-shell-surface) !important;
-  backdrop-filter: blur(var(--object-shell-liquid-backdrop-blur)) saturate(var(--object-shell-liquid-saturate));
-  -webkit-backdrop-filter: blur(var(--object-shell-liquid-backdrop-blur)) saturate(var(--object-shell-liquid-saturate));
   border-color: var(--object-shell-rim) !important;
   box-shadow: var(--object-shell-shadow) !important;
 }.db-panel::after,
@@ -3935,8 +3928,6 @@ never geometry or layout state. */ .dashboard-layout-grid .widget-card[data-lod]
       rgba(255, 255, 255, 0) 52%
     ),
     rgba(255, 255, 255, var(--object-shell-liquid-bg-alpha));
-  -webkit-backdrop-filter: blur(var(--object-shell-liquid-shine-blur));
-  backdrop-filter: blur(var(--object-shell-liquid-shine-blur));
   box-shadow:
     inset 0px 1px 0px -1px rgba(255, 255, 255, var(--object-shell-liquid-top-highlight-alpha)),
     inset -10px -8px 0px -11px rgba(255, 255, 255, var(--object-shell-liquid-shine-edge-alpha)),
@@ -3965,8 +3956,6 @@ never geometry or layout state. */ .dashboard-layout-grid .widget-card[data-lod]
   border-color: var(--object-shell-rim) !important;
   box-shadow: var(--object-shell-shadow) !important;
   background-clip: padding-box !important;
-  backdrop-filter: blur(var(--object-shell-liquid-backdrop-blur)) saturate(var(--object-shell-liquid-saturate)) !important;
-  -webkit-backdrop-filter: blur(var(--object-shell-liquid-backdrop-blur)) saturate(var(--object-shell-liquid-saturate)) !important;
 }.db-panel:not(.db-panel-collapsed) > .db-panel-hd{
   border-bottom-color: var(--object-shell-inner-line) !important;
 }.db-panel.db-panel-collapsed > .db-panel-hd{
@@ -4134,17 +4123,9 @@ not .db-panel-body. This layer swaps * the chrome of panels,
 headers,
 widgets,
 objects,
-and dividers for one * shared translucent recipe: low base alpha + backdrop blur/saturate + * diagonal sheen + inset rim highlights. Inner panel widgets skip * backdrop-filter to avoid double-blur inside .db-panel-body's already * isolated glass. */ :root{
+and dividers for one * shared translucent recipe: low base alpha + diagonal sheen + inset rim highlights. */ :root{
   --glass-photo-base-alpha: 0.12;
   --glass-photo-base-alpha-strong: 0.20;
-  /* Object blur sits intentionally LOW. Each step up smears photo detail
-   * into a flatter field; even at 6px outer objects still read as a
-   * gray-blue haze over busy photos. Two separate tokens so the body
-   * can have a touch more material than the outer shell without
-   * compounding heavily. */
-  --glass-photo-blur: 3px;
-  --glass-photo-body-blur: 4px;
-  --glass-photo-saturate: 175%;
   --glass-photo-sheen-alpha: 0.22;
   --glass-photo-rim-alpha: 0.50;
   --glass-photo-rim-highlight-alpha: 0.42;
@@ -4232,8 +4213,6 @@ and dividers for one * shared translucent recipe: low base alpha + backdrop blur
     ),
     rgba(255, 255, 255, 0.04);
   border-color: rgba(255, 255, 255, var(--glass-photo-rim-alpha));
-  backdrop-filter: blur(var(--glass-photo-blur)) saturate(var(--glass-photo-saturate));
-  -webkit-backdrop-filter: blur(var(--glass-photo-blur)) saturate(var(--glass-photo-saturate));
   box-shadow:
     0 18px 42px rgba(0, 0, 0, var(--glass-photo-drop-shadow-alpha)),
     inset 0 1px 0 rgba(255, 255, 255, var(--glass-photo-rim-highlight-alpha)),
@@ -4263,17 +4242,9 @@ and dividers for one * shared translucent recipe: low base alpha + backdrop blur
     ),
     rgba(255, 255, 255, 0.03);
   border-bottom-color: rgba(255, 255, 255, 0.30);
-  backdrop-filter: blur(var(--glass-photo-blur)) saturate(var(--glass-photo-saturate));
-  -webkit-backdrop-filter: blur(var(--glass-photo-blur)) saturate(var(--glass-photo-saturate));
 }.db-panel-body{
   background: transparent;
   border-top-color: rgba(255, 255, 255, 0.24);
-  /* Override the base 18px blur from dashboard-grid.css:4070 — it stacks
-   * on top of the panel's own backdrop-filter and crushes photo detail
-   * into uniform haze. Tiny body-specific blur keeps the body reading as
-   * recessed material without smearing the photo. */
-  backdrop-filter: blur(var(--glass-photo-body-blur)) saturate(var(--glass-photo-saturate));
-  -webkit-backdrop-filter: blur(var(--glass-photo-body-blur)) saturate(var(--glass-photo-saturate));
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.28),
     inset 1px 0 0 rgba(255, 255, 255, 0.10),
@@ -4306,8 +4277,6 @@ not a fog. */ .db-panel-body::before{
     ),
     rgba(255, 255, 255, var(--glass-photo-base-alpha));
   border-color: rgba(255, 255, 255, var(--glass-photo-rim-alpha));
-  backdrop-filter: blur(var(--glass-photo-blur)) saturate(var(--glass-photo-saturate));
-  -webkit-backdrop-filter: blur(var(--glass-photo-blur)) saturate(var(--glass-photo-saturate));
   box-shadow:
     0 14px 30px rgba(0, 0, 0, calc(var(--glass-photo-drop-shadow-alpha) - 0.04)),
     inset 0 1px 0 rgba(255, 255, 255, var(--glass-photo-rim-highlight-alpha)),
@@ -4342,8 +4311,6 @@ not a fog. */ .db-panel-body::before{
     ),
     rgba(255, 255, 255, 0.05);
   border-color: rgba(255, 255, 255, 0.34);
-  backdrop-filter: blur(var(--glass-photo-blur)) saturate(var(--glass-photo-saturate));
-  -webkit-backdrop-filter: blur(var(--glass-photo-blur)) saturate(var(--glass-photo-saturate));
   box-shadow:
     0 8px 18px rgba(0, 0, 0, 0.14),
     inset 0 1px 0 rgba(255, 255, 255, 0.32),
@@ -4388,21 +4355,6 @@ so * the !important rule paints lavender-on-white — the slab visible in the * 
 * so the photo bleeds through without changing any of the paint rules. */ .db-panel-custom-color,
 .widget-card.db-panel-custom-color{
   --panel-chrome-surface: transparent !important;
-}/* Custom-color panel headers (Notes/Menu) — the chrome rule at * themes.css:1352 paints `background: var(--panel-chrome-bg),
-* var(--panel-chrome-surface) !important;` (lavender gradient over what * is now transparent from the var swap above). That paint is * translucent but flat — it does not saturate or blur the photo * underneath,
-so it reads as foggy lavender. The !important is on * background/border-color/box-shadow only,
-NOT on backdrop-filter,
-so * adding a higher-specificity backdrop-filter declaration applies and * turns the header into stained-glass that matches the stat widgets. */ .db-panel.db-panel-custom-color > .db-panel-hd,
-.db-panel.db-panel-custom-color > .db-panel-hd:hover,
-.db-panel.db-panel-custom-color > .db-panel-hd:focus-visible{
-  backdrop-filter: blur(var(--glass-photo-blur)) saturate(var(--glass-photo-saturate));
-  -webkit-backdrop-filter: blur(var(--glass-photo-blur)) saturate(var(--glass-photo-saturate));
-}/* Custom-color panel container: when collapsed,
-only the header shows,
-* but when expanded the panel base sits behind body+header. Giving it * its own backdrop-filter ensures the photo behind the whole panel is * saturated/blurred coherently regardless of state. The base .db-panel * paint is already brought near-transparent above,
-so this is purely * a filter on whatever is behind the panel. */ .db-panel.db-panel-custom-color{
-  backdrop-filter: blur(var(--glass-photo-blur)) saturate(var(--glass-photo-saturate));
-  -webkit-backdrop-filter: blur(var(--glass-photo-blur)) saturate(var(--glass-photo-saturate));
 }/* The actual "opaque white/blue slab" inside an open panel body: * .widget-content-well / .widget-library-surface (dashboard-grid.css:2515) * paint `background: var(--widget-library-surface-bg)` which is * `linear-gradient(rgba(255,255,255,.94) + tiny panel-accent, rgba(248,250,252,.92) + tiny panel-accent)` * — effectively opaque white tinted faintly blue. The runtime stages * (.text-widget-preview, .runtime-chart-stage, * .runtime-table-scroll, etc.) at dashboard-grid.css:6181 paint * `var(--widget-content-stage-bg)` which inherits the same recessed * interior values. Both layers sit INSIDE .widget-card,
 so they cover * the panel-body translucent fill and any photo bleed-through. * * --widget-library-surface-bg is defined on .widget-card itself,
 so * overriding it on body doesn't propagate (widget-card redefines for * its subtree). Retarget the paint selectors directly instead. Both * base rules have specificity (0,1,0); these (0,2,1) overrides win * without !important. */ .widget-content-well,
@@ -4503,9 +4455,8 @@ panel-contained * widgets,
 objects,
 and custom-color variants with `!important` on * `background`,
 `border-color`,
-`box-shadow`,
-and `backdrop-filter`. * --object-shell-surface resolves to rgba(255,255,255,~0.64),
-so every * surface lands at ~64% white — too opaque for photo-glass even on top * of body. Every prior photo-bg override here was * at (0,2,1)-(0,3,1) without !important and lost to those shell rules. * * This block re-skins those exact selectors with the photo-glass * recipe (translucent base + small backdrop blur + sheen rim shadows) * and uses !important to match the shell's !important. The shell * system itself is unchanged — it stays the resting material for solid * color backgrounds. Custom-color accent wash is preserved through * --panel-chrome-bg / --object-shell-wash,
+and `box-shadow`. * --object-shell-surface resolves to rgba(255,255,255,~0.64),
+so every * surface lands at ~64% white — too opaque for photo-glass even on top * of body. Every prior photo-bg override here was * at (0,2,1)-(0,3,1) without !important and lost to those shell rules. * * This block re-skins those exact selectors with the photo-glass * recipe (translucent base + sheen rim shadows) * and uses !important to match the shell's !important. The shell * system itself is unchanged — it stays the resting material for solid * color backgrounds. Custom-color accent wash is preserved through * --panel-chrome-bg / --object-shell-wash,
 just composited over a * transparent surface instead of 64% white. */ .db-panel{
   background: rgba(255, 255, 255, 0.03) !important;
   border-color: rgba(255, 255, 255, var(--glass-photo-rim-alpha)) !important;
@@ -4515,8 +4466,6 @@ just composited over a * transparent surface instead of 64% white. */ .db-panel{
     inset 1px 0 0 rgba(255, 255, 255, var(--glass-photo-side-highlight-alpha)),
     inset -1px 0 0 rgba(255, 255, 255, var(--glass-photo-side-highlight-alpha)),
     inset 0 -1px 0 rgba(255, 255, 255, 0.10) !important;
-  backdrop-filter: blur(var(--glass-photo-blur)) saturate(var(--glass-photo-saturate));
-  -webkit-backdrop-filter: blur(var(--glass-photo-blur)) saturate(var(--glass-photo-saturate));
 }.db-panel:hover,
 .db-panel:focus-within{
   background:
@@ -4536,8 +4485,6 @@ just composited over a * transparent surface instead of 64% white. */ .db-panel{
     rgba(255, 255, 255, 0.03) !important;
   border-color: rgba(255, 255, 255, 0.30) !important;
   box-shadow: none !important;
-  backdrop-filter: blur(var(--glass-photo-blur)) saturate(var(--glass-photo-saturate)) !important;
-  -webkit-backdrop-filter: blur(var(--glass-photo-blur)) saturate(var(--glass-photo-saturate)) !important;
 }.db-panel > .db-panel-hd:hover,
 .db-panel > .db-panel-hd:focus-visible{
   background:
@@ -4557,8 +4504,6 @@ just composited over a * transparent surface instead of 64% white. */ .db-panel{
     inset 1px 0 0 rgba(255, 255, 255, var(--glass-photo-side-highlight-alpha)),
     inset -1px 0 0 rgba(255, 255, 255, var(--glass-photo-side-highlight-alpha)),
     inset 0 -1px 0 rgba(255, 255, 255, 0.10) !important;
-  backdrop-filter: blur(var(--glass-photo-blur)) saturate(var(--glass-photo-saturate)) !important;
-  -webkit-backdrop-filter: blur(var(--glass-photo-blur)) saturate(var(--glass-photo-saturate)) !important;
 }.widget-layout > .widget-card.db-panel-custom-color,
 .panel-internal-widget-grid > .widget-card.db-panel-custom-color{
   background: rgba(255, 255, 255, 0.03) !important;
@@ -4583,14 +4528,15 @@ so the rule's (0,5,1) * specificity beat the round-8 photo-glass override at (0,
   background:
     var(--object-shell-wash),
     rgba(255, 255, 255, 0.04) !important;
-}/* Custom-color panel CONTAINER — drop the accent wash entirely so the * body's backdrop-filter samples a near-clear surface and shows photo * detail without the lavender/blue wash bleeding through. The header * paint above provides the colored strip; the body interior now reads * as clean recessed glass. Matches what the user calls the "perfect" * material seen during internal widget drag. */ .db-panel.db-panel-custom-color{
+}/* Custom-color panel CONTAINER — drop the accent wash entirely so the
+* body shows photo detail without the lavender/blue wash bleeding
+* through. The header paint above provides the colored strip; the body
+* interior now reads as clean recessed glass. Matches what the user calls
+* the "perfect" material seen during internal widget drag. */ .db-panel.db-panel-custom-color{
   background: rgba(255, 255, 255, 0.03) !important;
 }/* Open panel body: keep it the calmest surface in the system. Drop the * lavender-tinted --panel-content-surface that custom-color panels * still set on the body,
-knock the diffusion ::before down further,
-* and use a tiny backdrop blur so photo detail stays legible. */ .db-panel-body{
+knock the diffusion ::before down further. */ .db-panel-body{
   background: transparent !important;
-  backdrop-filter: blur(2px) saturate(var(--glass-photo-saturate)) !important;
-  -webkit-backdrop-filter: blur(2px) saturate(var(--glass-photo-saturate)) !important;
 }.db-panel-body::before{
   opacity: 0.05 !important;
 }/* ── Drag/interaction states must not revert panel + contained widgets * to solid var(--surface) ── * * Interaction-state rules in dashboard-grid.css can force panel/widget chrome back to * opaque white the moment the user starts dragging a widget into a * panel: * * 1. body.panel-interaction-active .panel-internal-widget-grid > .widget-card…:hover/:focus-visible * — dashboard-grid.css:3341-3353,
