@@ -4118,11 +4118,14 @@ and dividers for one * shared translucent recipe: low base alpha + diagonal shee
   --glass-photo-side-highlight-alpha: 0.16;
   --glass-photo-drop-shadow-alpha: 0.26;
   --glass-photo-text-shadow: 0 1px 2px rgba(0, 0, 0, 0.32);
+  --dashboard-custom-text-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.55),
+    0 0 2px rgba(0, 0, 0, 0.35);
 
   /* ── Shared workspace-object typography ─────────────────────────────
    *
    * Source of truth: stat widget number (.stat-val) — 34px / weight 780 /
-   * tabular-nums / no text-shadow, rendered in --widget-surface-fg
+   * tabular-nums / shared custom text shadow, rendered in --widget-surface-fg
    * (rgba(248,250,252, .94)) under photo-bg.
    *
    * Panel titles, divider titles, and object labels inherit this so
@@ -4323,16 +4326,15 @@ collapsed panel title, and divider title all share `.db-panel-title`. */
   letter-spacing: var(--workspace-object-title-letter-spacing) !important;
   color: var(--workspace-object-title-color) !important;
   font-variant-numeric: var(--workspace-object-title-numeric) !important;
-  /* No text-shadow — matches the stat-val source of truth exactly. */
-  text-shadow: none !important;
+  text-shadow: var(--dashboard-custom-text-shadow) !important;
 }/* Custom-color panels override .db-panel-title color at higher * specificity in the default theme — re-enforce the shared color here * so Content / Notes / Menu titles use the workspace-object color * rather than the panel-accent-text. */ .db-panel.db-panel-custom-color > .db-panel-hd .db-panel-title{
   color: var(--workspace-object-title-color) !important;
-}/* Secondary labels stay secondary — no inheritance,
-no change. The * existing rules for .stat-lbl,
-.panel-empty-state strong/small,
-* .stat-runtime-meta,
-REGION pill (.workspace-context-badge),
-and * helper text are not touched. */ /* Custom-color panels (Notes, etc.): every painted surface for * .db-panel.db-panel-custom-color > .db-panel-hd,
+}/* Dashboard display text shares the timeframe control's tight 3D shadow. */
+.widget-layout > .widget-card :is(.stat-val, .stat-lbl, .stat-runtime-meta, .widget-shell-title, .widget-shell-meta, .widget-shell-footer, .widget-empty-placeholder, .runtime-table-meta, .runtime-chart-meta, .runtime-map-meta, .runtime-calendar-meta, .runtime-calendar-static-title, .filter-widget-meta, .filter-widget-label, .filter-widget-control legend, .media-widget-meta, .media-widget-caption, .meta-widget-kicker, .dataset-origin-kicker, .dataset-origin-entry-head strong, .dataset-origin-entry-head span, .dataset-origin-meta, .dataset-origin-fields, .dataset-origin-more, .data-filter-kicker, .data-filter-footer span, .shift-widget-kicker, .shift-widget-core strong, .shift-widget-lineage b, .shift-widget-footer span, .region-summary-title, .region-summary-range, .region-summary-context, .region-summary-metrics span, .region-summary-metrics b),
+.panel-internal-widget-grid > .widget-card :is(.stat-val, .stat-lbl, .stat-runtime-meta, .widget-shell-title, .widget-shell-meta, .widget-shell-footer, .widget-empty-placeholder, .runtime-table-meta, .runtime-chart-meta, .runtime-map-meta, .runtime-calendar-meta, .runtime-calendar-static-title, .filter-widget-meta, .filter-widget-label, .filter-widget-control legend, .media-widget-meta, .media-widget-caption, .meta-widget-kicker, .dataset-origin-kicker, .dataset-origin-entry-head strong, .dataset-origin-entry-head span, .dataset-origin-meta, .dataset-origin-fields, .dataset-origin-more, .data-filter-kicker, .data-filter-footer span, .shift-widget-kicker, .shift-widget-core strong, .shift-widget-lineage b, .shift-widget-footer span, .region-summary-title, .region-summary-range, .region-summary-context, .region-summary-metrics span, .region-summary-metrics b),
+.panel-layout > .db-panel :is(.stat-val, .stat-lbl, .stat-runtime-meta, .widget-shell-title, .widget-shell-meta, .widget-shell-footer, .db-panel-title, .db-panel-count, .workspace-context-badge, .panel-empty-state){
+  text-shadow: var(--dashboard-custom-text-shadow) !important;
+}/* Custom-color panels (Notes, etc.): every painted surface for * .db-panel.db-panel-custom-color > .db-panel-hd,
 custom-color widgets in * the workspace and inside panels,
 and custom-color objects goes through * `background: var(--panel-chrome-bg),
 var(--panel-chrome-surface) !important` * (themes.css lines 1352, 1358, 1836, 1849, 1857, 1885, 4693). The chrome-bg * gradient is already translucent lavender,
@@ -4942,9 +4944,7 @@ no card. Active * filter is indicated by a subtle underline + slightly higher * 
   letter-spacing: 0 !important;
   font-variant-numeric: tabular-nums !important;
   color: rgba(255, 255, 255, 0.70) !important;
-  text-shadow:
-    0 1px 2px rgba(0, 0, 0, 0.55),
-    0 0 2px rgba(0, 0, 0, 0.35) !important;
+  text-shadow: var(--dashboard-custom-text-shadow) !important;
   cursor: pointer !important;
   text-decoration: none !important;
   text-underline-offset: 6px !important;
@@ -5118,7 +5118,7 @@ no card. Active * filter is indicated by a subtle underline + slightly higher * 
   background-clip: border-box;
   -webkit-background-clip: border-box;
   filter: none;
-  text-shadow: none;
+  text-shadow: var(--dashboard-custom-text-shadow);
   user-select: none;
   -webkit-user-select: none;
 }
