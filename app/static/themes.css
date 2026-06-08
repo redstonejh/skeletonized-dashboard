@@ -5277,7 +5277,7 @@ no card. Active * filter is indicated by a subtle underline + slightly higher * 
   box-sizing: border-box;
   width: min(100%, 680px);
   max-width: 100%;
-  margin: 2px auto 22px;
+  margin: 2px auto 0;
   padding: 0 clamp(16px, 4vw, 34px);
   overflow: visible;
 }

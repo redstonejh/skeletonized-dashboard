@@ -54,7 +54,7 @@ body.webgl-glass-on .widget-card.db-panel-custom-color{
   gap: var(--panel-gap);
   width: 100%;
   margin-inline: auto;
-  margin-top: 16px;
+  margin-top: var(--panel-gap);
   overflow-x: visible;
   padding-bottom: 2px;
 }.widget-card[hidden],
