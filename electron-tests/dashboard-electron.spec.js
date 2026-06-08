@@ -716,7 +716,7 @@ test("electron GUI wires tabs to isolated live workspace pages", async () => {
   await closeApp(app);
 });
 
-test("electron GUI moves the WebGL glass canvas with tab slide transforms", async () => {
+test("electron GUI tracks WebGL glass geometry through tab slide transforms", async () => {
   const { app, page } = await launchApp();
   await page.waitForFunction(() => Boolean(window.LiquidGlassWebGL?.isActive?.()));
   await expect(page.locator(".liquid-glass-webgl-canvas")).toBeVisible();
@@ -726,21 +726,30 @@ test("electron GUI moves the WebGL glass canvas with tab slide transforms", asyn
     const grid = document.querySelector(".dashboard-layout-grid");
     const canvas = document.querySelector(".liquid-glass-webgl-canvas");
     return grid?.classList.contains("workspace-page-slide-out") &&
-      canvas?.dataset.workspacePageTransform &&
-      getComputedStyle(canvas).transform !== "none";
+      !canvas?.dataset.workspacePageTransform &&
+      !canvas?.style.transform &&
+      getComputedStyle(canvas).transform === "none";
   });
   const slideOut = await page.evaluate(() => {
     const grid = document.querySelector(".dashboard-layout-grid");
     const canvas = document.querySelector(".liquid-glass-webgl-canvas");
+    const widget = document.querySelector(".widget-layout > .widget-card");
+    const widgetRect = widget?.getBoundingClientRect();
+    const glassRect = window.LiquidGlassWebGL?.visibleObjects?.().find((item) =>
+      item.type === "widget" && item.key === widget?.dataset.widgetKey
+    );
     return {
       gridExitX: getComputedStyle(grid).getPropertyValue("--workspace-page-exit-x").trim(),
       canvasTarget: canvas?.dataset.workspacePageTransform || "",
       canvasComputed: getComputedStyle(canvas).transform,
+      widgetLeft: Math.round(widgetRect?.left || 0),
+      glassLeft: Math.round(glassRect?.x || 0),
     };
   });
   expect(slideOut.gridExitX).toBe("-28px");
-  expect(slideOut.canvasTarget).toBe("translateX(-28px)");
-  expect(slideOut.canvasComputed).not.toBe("none");
+  expect(slideOut.canvasTarget).toBe("");
+  expect(slideOut.canvasComputed).toBe("none");
+  expect(slideOut.glassLeft).toBe(slideOut.widgetLeft);
 
   await page.waitForFunction(() => {
     const grid = document.querySelector(".dashboard-layout-grid");

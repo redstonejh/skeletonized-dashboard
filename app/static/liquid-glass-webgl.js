@@ -450,11 +450,9 @@
     gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
   };
 
-  // True if any glass-target element currently has a running animation
-  // (WAAPI from collision FLIP or CSS height transition from panel
-  // collapse/expand — both surface in document.getAnimations()). Filter
-  // to direct glass targets so unrelated chart/widget-internal
-  // animations don't keep the loop alive.
+  // True if any glass target, or an ancestor moving glass targets, currently
+  // has a running animation. The live getBoundingClientRect() loop then follows
+  // FLIP, collapse, and page-slide motion through the same geometry path.
   const isAnimatingGlassTarget = () => {
     try {
       const animations = document.getAnimations?.();
@@ -463,6 +461,7 @@
         if (anim.playState !== "running") continue;
         const target = anim.effect?.target;
         if (target?.matches?.(OBJECT_SELECTOR)) return true;
+        if (target?.querySelector?.(OBJECT_SELECTOR)) return true;
       }
       return false;
     } catch {
@@ -640,29 +639,6 @@
     rafHandle = requestAnimationFrame(draw);
   };
 
-  const setWorkspacePageTransform = (transform = "", { transition = "" } = {}) => {
-    if (!canvas) return false;
-    canvas.style.transformOrigin = "top left";
-    canvas.style.transition = transition || "";
-    canvas.style.transform = transform && transform !== "none" ? transform : "";
-    if (canvas.style.transform) {
-      canvas.dataset.workspacePageTransform = canvas.style.transform;
-    } else {
-      delete canvas.dataset.workspacePageTransform;
-    }
-    return true;
-  };
-
-  const releaseWorkspacePageTransform = ({ refresh = true } = {}) => {
-    if (canvas) {
-      canvas.style.transition = "";
-      canvas.style.transform = "";
-      delete canvas.dataset.workspacePageTransform;
-    }
-    if (refresh) markDirty();
-    return Boolean(canvas);
-  };
-
   const attachObservers = () => {
     if (!resizeObserver) {
       resizeObserver = new ResizeObserver(() => markDirty());
@@ -779,8 +755,6 @@
     visibleObjects: () => collectObjects().map((rect) => ({ ...rect })),
     visibleObjectCount: () => collectObjects().length,
     markDirty,
-    setWorkspacePageTransform,
-    releaseWorkspacePageTransform,
     isActive: () => active,
   };
 
