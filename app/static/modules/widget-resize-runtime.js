@@ -145,7 +145,11 @@ export const bindWidgetResizeRuntime = ({
         applyWidgetSpan(peer, peerStartSpan + delta);
         applyWidgetGridPosition(peer, peer.dataset.gridCol, peer.dataset.gridRow, peerStartRows + rowDelta);
       });
-      resolveSparseGridLayout(layout, resizePreview, { col: snappedCol, row: previewStartCell.row }, { metrics: layoutMetrics, items: reflowItems });
+      resolveSparseGridLayout(layout, resizePreview, { col: snappedCol, row: previewStartCell.row }, {
+        metrics: layoutMetrics,
+        items: reflowItems,
+        enforceViewportFloor: false,
+      });
       if (resizeParentPanel) syncOpenPanelHeightToInternalGrid(resizeParentPanel, { includePlaceholders: true });
       previewSpan = snappedSpan;
       previewRows = snappedRows;
@@ -214,6 +218,7 @@ export const bindWidgetResizeRuntime = ({
           resolveSparseGridLayout(layout, widget, { col: finalCol, row: startRow }, {
             metrics: layoutMetrics,
             items: reflowItems,
+            enforceViewportFloor: false,
           });
           if (resizeParentPanel) syncOpenPanelHeightToInternalGrid(resizeParentPanel);
         }, widget, { items: reflowItems, metrics: layoutMetrics });

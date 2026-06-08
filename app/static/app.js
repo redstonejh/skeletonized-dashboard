@@ -2585,7 +2585,6 @@ document.addEventListener("DOMContentLoaded", () => {
       refreshGridMetricsRect,
       alignedResizeHeight,
       clearLiveResizeSurface,
-      applyOrderedGridLayout,
       syncCommittedWorkspaceScrollFloor,
       beginResizeLifecycle,
       resizeEdgeFromPointer,

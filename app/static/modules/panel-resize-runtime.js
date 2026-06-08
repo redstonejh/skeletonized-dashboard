@@ -47,7 +47,6 @@ export const bindPanelResizeRuntime = ({
   refreshGridMetricsRect,
   alignedResizeHeight,
   clearLiveResizeSurface,
-  applyOrderedGridLayout,
   emitWorkspaceEvent,
   workspaceObjectType,
   WORKSPACE_OBJECT_TYPES,
@@ -158,7 +157,11 @@ export const bindPanelResizeRuntime = ({
         applyPanelSpan(peer, peerStartSpan + delta);
         applyPanelHeight(peer, Math.max(getPanelMinimumHeight(peer), nextHeight));
       });
-      resolveSparseGridLayout(layout, resizePreview, { col: snappedCol, row: previewStartCell.row }, { metrics: layoutMetrics, items: reflowItems });
+      resolveSparseGridLayout(layout, resizePreview, { col: snappedCol, row: previewStartCell.row }, {
+        metrics: layoutMetrics,
+        items: reflowItems,
+        enforceViewportFloor: false,
+      });
       previewSpan = snappedSpan;
       previewHeight = nextHeight;
       previewRows = nextRows;
@@ -241,7 +244,11 @@ export const bindPanelResizeRuntime = ({
             applyPanelSpan(peer, peerStartSpan + delta);
             applyPanelHeight(peer, Math.max(getPanelMinimumHeight(peer), snappedHeight));
           });
-          applyOrderedGridLayout(layout);
+          resolveSparseGridLayout(layout, panel, { col: finalCol, row: startRow }, {
+            metrics: layoutMetrics,
+            items: reflowItems,
+            enforceViewportFloor: false,
+          });
         }, panel, { items: reflowItems, metrics: layoutMetrics });
         saveSharedGridLayouts(layout);
         emitWorkspaceEvent({

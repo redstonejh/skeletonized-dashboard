@@ -48,6 +48,10 @@
     const globalGridItems = (layout, options = {}) => deps.globalGridItems(layout, options);
     const visualGridOrder = (items, metrics = null) => deps.visualGridOrder(items, metrics);
     const viewportRowFloorForLayout = (layout, metrics = null) => deps.viewportRowFloorForLayout?.(layout, metrics) || null;
+    const rowLimitForOptions = (layout, metrics = null, options = {}) => {
+      if (Number.isFinite(options.rowLimit) && options.rowLimit > 0) return options.rowLimit;
+      return options.enforceViewportFloor === false ? null : viewportRowFloorForLayout(layout, metrics);
+    };
 
     const boundsWithinRowFloor = (bounds, rowFloor = null) => (
       !Number.isFinite(rowFloor) || rowFloor < 1 || bounds.bottom <= rowFloor
@@ -227,9 +231,7 @@
     const resolveSparseGridLayout = (layout, activeItem = null, preferredTarget = null, options = {}) => {
       const metrics = options.metrics || null;
       const localVacancy = options.localVacancy || null;
-      const rowLimit = Number.isFinite(options.rowLimit) && options.rowLimit > 0
-        ? options.rowLimit
-        : viewportRowFloorForLayout(layout, metrics);
+      const rowLimit = rowLimitForOptions(layout, metrics, options);
       const items = deps.layoutItemsForLogicalResolution(layout, {
         includePlaceholders: true,
         items: options.items,
@@ -286,9 +288,7 @@
 
     const resolveSparseGridLayoutForActiveItems = (layout, activeItems = [], options = {}) => {
       const metrics = options.metrics || null;
-      const rowLimit = Number.isFinite(options.rowLimit) && options.rowLimit > 0
-        ? options.rowLimit
-        : viewportRowFloorForLayout(layout, metrics);
+      const rowLimit = rowLimitForOptions(layout, metrics, options);
       const activeList = visualGridOrder([].concat(activeItems || []).filter((item) => item?.isConnected), metrics);
       if (!activeList.length) return new Map();
       const activeSet = new Set(activeList);
@@ -364,9 +364,7 @@
     const commitActiveDropSlot = (layout, item, preferredTarget, options = {}) => {
       const localVacancy = options.localVacancy || null;
       const metrics = options.metrics || null;
-      const rowLimit = Number.isFinite(options.rowLimit) && options.rowLimit > 0
-        ? options.rowLimit
-        : viewportRowFloorForLayout(layout, metrics);
+      const rowLimit = rowLimitForOptions(layout, metrics, options);
       const fallbackToNearestOpenSlot = Boolean(options.fallbackToNearestOpenSlot);
       const originalActiveBounds = gridBoundsForItem(item, metrics);
       const target = preferredTarget || gridBoundsForItem(item);
@@ -452,9 +450,7 @@
 
     const commitExpandedPanelDropSlot = (layout, item, preferredTarget, options = {}) => {
       const localVacancy = options.localVacancy || null;
-      const rowLimit = Number.isFinite(options.rowLimit) && options.rowLimit > 0
-        ? options.rowLimit
-        : viewportRowFloorForLayout(layout);
+      const rowLimit = rowLimitForOptions(layout, null, options);
       const originalActiveBounds = gridBoundsForItem(item);
       const target = preferredTarget || gridBoundsForItem(item);
       let activeBounds = clampBoundsToRowFloor(boundsAtGridSlot(item, target.col, target.row), rowLimit);

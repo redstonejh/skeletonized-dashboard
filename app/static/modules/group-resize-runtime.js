@@ -512,6 +512,7 @@ export const createGroupResizeRuntime = (deps = {}) => {
           metrics: layoutMetrics,
           exclude: [groupFootprint.footprint],
           items: resizeSession.getReflowItems(),
+          enforceViewportFloor: false,
         });
         if (resizeParentPanel) syncOpenPanelHeightToInternalGrid(resizeParentPanel, { includePlaceholders: true });
       }, source, { items: resizeSession.getReflowItems(), metrics: layoutMetrics });
@@ -541,6 +542,7 @@ export const createGroupResizeRuntime = (deps = {}) => {
             metrics: layoutMetrics,
             exclude: [groupFootprint.footprint],
             items: resizeSession.getReflowItems(),
+            enforceViewportFloor: false,
           });
           commitGroupResizeFromPreviews(previewEntries, layout);
           previewEntries.forEach((entry) => entry.preview.remove());

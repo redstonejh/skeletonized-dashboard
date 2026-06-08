@@ -94,6 +94,7 @@ Protected behavior includes:
 - pinned-item protection
 - grouped selection and multi-object movement
 - no auto-scroll during drag/resize edge contact; normal page scrolling remains available
+- viewport-row floor enforcement applies to manual drag placement; resize reflow may extend the layout below the viewport
 - panel containment behavior
 - per-object rename, recolor, pin, collapse, and delete controls
 - layout save/load/reset and undo
