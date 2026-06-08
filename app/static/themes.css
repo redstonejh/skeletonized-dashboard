@@ -4928,7 +4928,7 @@ no card. Active * filter is indicated by a subtle underline + slightly higher * 
   align-items: center !important;
   justify-content: center !important;
   height: auto !important;
-  min-height: 46px !important;
+  min-height: 0 !important;
   padding: 0 8px !important;
   border: 0 !important;
   border-radius: 0 !important;
