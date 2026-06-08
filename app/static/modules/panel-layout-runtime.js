@@ -36,7 +36,6 @@ export const createPanelLayoutRuntime = ({
   buildPanelColorMenu,
   canOpenDashboardTools,
   portalDashboardToolDrawer,
-  positionDashboardToolDrawerAtPointer,
   positionDashboardToolDrawer,
   syncLayoutToolsActive,
   restoreDashboardToolDrawer,
@@ -175,9 +174,7 @@ export const createPanelLayoutRuntime = ({
           if (!canOpenDashboardTools(panel)) return;
           panelToolSession.clearToolsCloseTimer();
           portalDashboardToolDrawer(panelToolDrawer, settingsButton || panel);
-          const positioned = pointerCoords
-            ? positionDashboardToolDrawerAtPointer(panel, panelToolDrawer, pointerCoords.clientX, pointerCoords.clientY)
-            : positionDashboardToolDrawer(panel, settingsButton, panelToolDrawer);
+          const positioned = positionDashboardToolDrawer(panel, panelToolDrawer);
           if (!positioned) {
             restoreDashboardToolDrawer(panelToolDrawer);
             return;

@@ -1,4 +1,4 @@
-import { clampViewportCoord, clampViewportTop, objectMenuAnchorRect, stableElementRect } from "./object-menu-positioning.js";
+import { positionObjectMenuSurface } from "./object-menu-positioning.js";
 
 export const hexToRgb = (hex) => {
   const clean = String(hex || "").replace("#", "").trim();
@@ -110,35 +110,24 @@ export const applyPanelTitleColor = (panel, color) => {
   }
 };
 
-const panelColorMenuAnchorRect = (anchor) => {
-  return stableElementRect(anchor);
-};
-
-const panelColorMenuOwnerAnchorRect = (owner) => {
-  return objectMenuAnchorRect(owner);
-};
-
-const positionPanelColorMenuAtRect = (rect, menu, anchor = null) => {
-  if (!menu || !rect) return false;
-  if (anchor) menu.__panelColorAnchor = anchor;
-  menu.__panelColorAnchorRect = rect;
-  const width = menu.offsetWidth || 248;
-  const height = menu.offsetHeight || menu.getBoundingClientRect().height || 0;
-  const gutter = 12;
-  const left = clampViewportCoord(rect.right - width + 2, width, gutter);
-  const belowTop = rect.bottom + 12;
-  const aboveTop = rect.top - height - 12;
-  const top = belowTop + height > window.innerHeight - gutter && aboveTop >= gutter
-    ? clampViewportTop(aboveTop, height, gutter)
-    : clampViewportTop(belowTop, height, gutter);
-  menu.style.left = `${left}px`;
-  menu.style.top = `${top}px`;
-  return true;
+const positionPanelColorMenuForOwner = (owner, menu) => {
+  if (!menu) return false;
+  menu.__panelColorAnchor = owner;
+  return positionObjectMenuSurface(owner, menu, {
+    gutter: 12,
+    gap: 12,
+    fallbackWidth: 278,
+  });
 };
 
 export const positionPanelColorMenu = (anchor, menu) => {
-  const rect = panelColorMenuAnchorRect(anchor);
-  return positionPanelColorMenuAtRect(rect, menu, anchor);
+  if (!menu) return false;
+  menu.__panelColorAnchor = anchor;
+  return positionObjectMenuSurface(anchor, menu, {
+    gutter: 12,
+    gap: 12,
+    fallbackWidth: 278,
+  });
 };
 
 export const createPanelColorMenuFactory = ({
@@ -232,7 +221,7 @@ export const createPanelColorMenuFactory = ({
     const openMenu = (nextTrigger = anchorToggle) => {
       updateTrigger(nextTrigger);
       refreshSwatchSelection();
-      if (!positionPanelColorMenuAtRect(panelColorMenuOwnerAnchorRect(panel), menu, panel)) {
+      if (!positionPanelColorMenuForOwner(panel, menu)) {
         closeMenu();
         return false;
       }

@@ -3,6 +3,7 @@ import { hydrateWidgetLayout } from "./widget-layout-hydration.js";
 import { bindWidgetActionControls } from "./widget-action-controls.js";
 import { bindWidgetMoveRuntime } from "./widget-move-runtime.js";
 import { bindWidgetResizeRuntime } from "./widget-resize-runtime.js";
+import { positionObjectMenuSurface } from "./object-menu-positioning.js";
 
 export const createWidgetLayoutRuntime = (deps) => {
   const {
@@ -40,7 +41,6 @@ export const createWidgetLayoutRuntime = (deps) => {
     positionDashboardToolDrawer,
     canOpenDashboardTools,
     portalDashboardToolDrawer,
-    positionDashboardToolDrawerAtPointer,
     setWidgetLinkNavigationSuspended,
     syncLayoutToolsActive,
     restoreFloatingMenu,
@@ -170,9 +170,7 @@ export const createWidgetLayoutRuntime = (deps) => {
         if (!canOpenDashboardTools(widget)) return;
         widgetToolSession.clearCloseTimer();
         portalDashboardToolDrawer(drawer, settings || widget);
-        const positioned = pointerCoords
-          ? positionDashboardToolDrawerAtPointer(widget, drawer, pointerCoords.clientX, pointerCoords.clientY)
-          : positionDashboardToolDrawer(widget, settings, drawer);
+        const positioned = positionDashboardToolDrawer(widget, drawer);
         if (!positioned) {
           restoreDashboardToolDrawer(drawer);
           return;
@@ -230,20 +228,14 @@ export const createWidgetLayoutRuntime = (deps) => {
           });
           panel.dataset.panelColor = widget.dataset.panelColor || "";
           portalFloatingMenu(panel, settings || widget, { skipPosition: true });
-          panel.style.left = "0px";
-          panel.style.top = "0px";
           panel.hidden = false;
-          const panelWidth = panel.offsetWidth || 318;
-          const panelHeight = panel.offsetHeight || 200;
-          const vg = 8;
-          const coords = pointerCoords || (() => {
-            const r = (settings || widget).getBoundingClientRect();
-            return { clientX: r.right, clientY: r.top };
-          })();
-          const left = Math.max(vg, Math.min(coords.clientX - panelWidth, window.innerWidth - vg - panelWidth));
-          const top = Math.max(vg, Math.min(coords.clientY, window.innerHeight - vg - panelHeight));
-          panel.style.left = `${Math.round(left)}px`;
-          panel.style.top = `${Math.round(top)}px`;
+          if (!positionObjectMenuSurface(widget, panel, { gutter: 8, gap: 46, fallbackWidth: 318, fallbackHeight: 200 })) {
+            restoreFloatingMenu(panel);
+            widget.classList.remove("widget-workbench-open");
+            panel.setAttribute("hidden", "");
+            setWidgetLinkNavigationSuspended(widget, false);
+            return;
+          }
         }
         syncLayoutToolsActive();
       };
