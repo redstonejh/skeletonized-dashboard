@@ -5649,13 +5649,13 @@ body.group-select-active :is(.widget-layout > .widget-card.group-selected, .pane
 .panel-layout > .db-panel:not(.workspace-divider):is(.surface-response-active, [data-surface-pressed="true"]){
   transform: none !important;
 }
-body.webgl-glass-on .widget-layout > .widget-card:is(.surface-response-active, [data-surface-pressed="true"]),
-body.webgl-glass-on .panel-internal-widget-grid > .widget-card:is(.surface-response-active, [data-surface-pressed="true"]),
-body.webgl-glass-on .panel-layout > .db-panel:not(.workspace-divider):is(.surface-response-active, [data-surface-pressed="true"]){
+body.webgl-glass-on .widget-layout > .widget-card:not(.db-panel-custom-color):is(.surface-response-active, [data-surface-pressed="true"]),
+body.webgl-glass-on .panel-internal-widget-grid > .widget-card:not(.db-panel-custom-color):is(.surface-response-active, [data-surface-pressed="true"]),
+body.webgl-glass-on .panel-layout > .db-panel:not(.workspace-divider):not(.db-panel-custom-color):is(.surface-response-active, [data-surface-pressed="true"]){
   background: transparent !important;
   background-image: none !important;
 }
-.panel-layout > .db-panel:not(.workspace-divider):is(:hover, :active, :focus-within):not(.surface-response-active):not([data-surface-pressed="true"]){
+.panel-layout > .db-panel:not(.workspace-divider):not(.db-panel-custom-color):is(:hover, :active, :focus-within):not(.surface-response-active):not([data-surface-pressed="true"]){
   transform: none !important;
   translate: 0 0 !important;
   background: transparent !important;
