@@ -68,61 +68,60 @@ export function initializeBackgroundController({ portalFloatingMenu, restoreFloa
     return roots.filter((element) => element instanceof HTMLElement);
   };
   const COLOR_PRESETS = {
-    "tone-black": { label: "Black", hex: "#000000" },
+    "tone-light-grey": { label: "Light grey", hex: "#d1d5db" },
+    "tone-grey": { label: "Grey", hex: "#6b7280" },
     "tone-dark-grey": { label: "Dark grey", hex: "#1f2937" },
-    "tone-slate": { label: "Slate", hex: "#475569" },
-    "tone-graphite": { label: "Graphite", hex: "#111827" },
-    "tone-midnight": { label: "Midnight", hex: "#071225" },
+    "tone-black": { label: "Black", hex: "#000000" },
   };
   const LEGACY_TONE_MIGRATIONS = {
-    "warm-white": "tone-dark-grey",
-    "cool-white": "tone-dark-grey",
-    "soft-grey": "tone-dark-grey",
-    "cool-grey": "tone-dark-grey",
-    "medium-cool-grey": "tone-dark-grey",
-    "darker-soft-grey": "tone-slate",
-    "warm-grey": "tone-dark-grey",
-    "slate": "tone-slate",
-    "slate-grey": "tone-slate",
-    "graphite-light": "tone-slate",
-    "graphite-grey": "tone-slate",
-    "light-blue-grey": "tone-dark-grey",
-    "muted-blue-grey": "tone-slate",
-    "blue-slate": "tone-slate",
-    "neutral-dim": "tone-slate",
-    "stone-slate": "tone-slate",
-    "stone-grey": "tone-dark-grey",
-    "industrial-grey": "tone-slate",
-    "blue-mist": "tone-dark-grey",
-    "frosted-light": "tone-dark-grey",
-    "very-pale-grey": "tone-dark-grey",
-    "pale-cool-grey": "tone-dark-grey",
-    "pale-warm-grey": "tone-dark-grey",
-    "medium-soft-grey": "tone-slate",
-    "medium-grey": "tone-slate",
-    "neutral-grey": "tone-slate",
-    "charcoal-grey": "tone-graphite",
-    "deep-grey": "tone-graphite",
-    "near-black-grey": "tone-graphite",
+    "warm-white": "tone-light-grey",
+    "cool-white": "tone-light-grey",
+    "soft-grey": "tone-light-grey",
+    "cool-grey": "tone-light-grey",
+    "medium-cool-grey": "tone-grey",
+    "darker-soft-grey": "tone-grey",
+    "warm-grey": "tone-grey",
+    "slate": "tone-grey",
+    "slate-grey": "tone-grey",
+    "graphite-light": "tone-grey",
+    "graphite-grey": "tone-grey",
+    "light-blue-grey": "tone-light-grey",
+    "muted-blue-grey": "tone-grey",
+    "blue-slate": "tone-grey",
+    "neutral-dim": "tone-grey",
+    "stone-slate": "tone-grey",
+    "stone-grey": "tone-grey",
+    "industrial-grey": "tone-grey",
+    "blue-mist": "tone-light-grey",
+    "frosted-light": "tone-light-grey",
+    "very-pale-grey": "tone-light-grey",
+    "pale-cool-grey": "tone-light-grey",
+    "pale-warm-grey": "tone-light-grey",
+    "medium-soft-grey": "tone-grey",
+    "medium-grey": "tone-grey",
+    "neutral-grey": "tone-grey",
+    "charcoal-grey": "tone-dark-grey",
+    "deep-grey": "tone-dark-grey",
+    "near-black-grey": "tone-dark-grey",
     "black": "tone-black",
-    "near-black": "tone-graphite",
-    "soft-black": "tone-graphite",
-    "warm-near-black": "tone-graphite",
-    "charcoal": "tone-graphite",
-    "soft-charcoal": "tone-graphite",
-    "graphite": "tone-graphite",
-    "gunmetal": "tone-graphite",
+    "near-black": "tone-black",
+    "soft-black": "tone-dark-grey",
+    "warm-near-black": "tone-dark-grey",
+    "charcoal": "tone-dark-grey",
+    "soft-charcoal": "tone-dark-grey",
+    "graphite": "tone-dark-grey",
+    "gunmetal": "tone-dark-grey",
     "dark-grey": "tone-dark-grey",
-    "dark-blue-grey": "tone-midnight",
-    "deep-navy": "tone-midnight",
-    "desaturated-dark-blue": "tone-midnight",
-    "muted-navy": "tone-midnight",
-    "muted-midnight-blue": "tone-midnight",
-    "deep-slate": "tone-midnight",
-    "cool-dark-steel": "tone-graphite",
-    "dark-steel": "tone-graphite",
-    "soft-cinema": "tone-graphite",
-    "dark-frosted": "tone-midnight",
+    "dark-blue-grey": "tone-dark-grey",
+    "deep-navy": "tone-dark-grey",
+    "desaturated-dark-blue": "tone-dark-grey",
+    "muted-navy": "tone-dark-grey",
+    "muted-midnight-blue": "tone-dark-grey",
+    "deep-slate": "tone-dark-grey",
+    "cool-dark-steel": "tone-dark-grey",
+    "dark-steel": "tone-dark-grey",
+    "soft-cinema": "tone-dark-grey",
+    "dark-frosted": "tone-dark-grey",
   };
   const normalizeHex = (value) => {
     if (typeof value !== "string") return null;
@@ -133,7 +132,6 @@ export function initializeBackgroundController({ portalFloatingMenu, restoreFloa
   };
   const stateLabel = (state) => {
     if (!state) return COLOR_PRESETS["tone-dark-grey"].label;
-    if (state.kind === "custom") return `Custom ${state.hex}`;
     if (state.kind === "photo") return state.tone.replace(/-/g, " ");
     return COLOR_PRESETS[state.tone]?.label || COLOR_PRESETS["tone-dark-grey"].label;
   };
@@ -334,32 +332,20 @@ export function initializeBackgroundController({ portalFloatingMenu, restoreFloa
   
   const backgroundDefault = "tone-dark-grey";
   const backgroundStorageKey = "dashboard-background";
-  const customBackgroundStorageKey = "dashboard-background-custom-color";
   const parseBackgroundState = (value) => {
     if (typeof value === "string" && value.trim().startsWith("{")) {
-      try {
-        const parsed = JSON.parse(value);
-        const hex = normalizeHex(parsed?.hex);
-        if (parsed?.kind === "custom" && hex) return { kind: "custom", hex };
-      } catch {}
+      return { kind: "preset", tone: backgroundDefault, hex: COLOR_PRESETS[backgroundDefault].hex };
     }
     if (isPhotoTone(value)) return { kind: "photo", tone: value };
     const migrated = LEGACY_TONE_MIGRATIONS[value] || value;
     const preset = COLOR_PRESETS[migrated] ? migrated : backgroundDefault;
     return { kind: "preset", tone: preset, hex: COLOR_PRESETS[preset].hex };
   };
-  const serializeBackgroundState = (state) =>
-    state?.kind === "custom"
-      ? JSON.stringify({ kind: "custom", hex: state.hex })
-      : (state?.tone || backgroundDefault);
+  const serializeBackgroundState = (state) => state?.tone || backgroundDefault;
   const savedBackgroundState = () => {
     try {
       const stored = localStorage.getItem(backgroundStorageKey);
-      const state = parseBackgroundState(stored || backgroundDefault);
-      if (state.kind === "custom") return state;
-      const fallbackHex = normalizeHex(localStorage.getItem(customBackgroundStorageKey));
-      if (stored === "custom-color" && fallbackHex) return { kind: "custom", hex: fallbackHex };
-      return state;
+      return parseBackgroundState(stored || backgroundDefault);
     } catch {
       return parseBackgroundState(backgroundDefault);
     }
@@ -367,10 +353,9 @@ export function initializeBackgroundController({ portalFloatingMenu, restoreFloa
   const persistBackgroundState = (state) => {
     try {
       localStorage.setItem(backgroundStorageKey, serializeBackgroundState(state));
-      if (state.kind === "custom") localStorage.setItem(customBackgroundStorageKey, state.hex);
     } catch {}
   };
-  const stateKey = (state) => state?.kind === "custom" ? "custom-color" : state?.tone;
+  const stateKey = (state) => state?.tone;
   const backgroundHistory = [];
   let previewBackgroundState = null;
   let currentCommittedState = savedBackgroundState();
@@ -385,16 +370,6 @@ export function initializeBackgroundController({ portalFloatingMenu, restoreFloa
       const sel = btn.dataset.backgroundTone === activeKey;
       btn.classList.toggle("is-selected", sel);
       btn.setAttribute("aria-pressed", sel.toString());
-    });
-    document.querySelectorAll(".background-custom-color").forEach((control) => {
-      control.classList.toggle("is-selected", activeState?.kind === "custom");
-    });
-    document.querySelectorAll(".background-custom-color-input").forEach((input) => {
-      const hex = activeState?.kind === "custom"
-        ? activeState.hex
-        : (previewBackgroundState?.kind === "custom" ? previewBackgroundState.hex : COLOR_PRESETS[backgroundDefault].hex);
-      input.value = hex;
-      input.style.setProperty("--base-tone", hex);
     });
     document.querySelectorAll(".background-tone-trigger").forEach((trigger) => {
       trigger.setAttribute("aria-label", `Workspace background: ${stateLabel(activeState)}`);
@@ -426,12 +401,12 @@ export function initializeBackgroundController({ portalFloatingMenu, restoreFloa
       setPhotoPreloadReady(Promise.resolve([]));
     }
 
-    const baseTone = state.kind === "custom" ? state.hex : (COLOR_PRESETS[state.tone]?.hex || COLOR_PRESETS[backgroundDefault].hex);
+    const baseTone = COLOR_PRESETS[state.tone]?.hex || COLOR_PRESETS[backgroundDefault].hex;
     themeRoots.forEach((themeRoot) => {
-      themeRoot.dataset.background = state.kind === "custom" ? "custom-color" : state.tone;
+      themeRoot.dataset.background = state.tone;
       themeRoot.style.setProperty("--base-tone", baseTone);
-      themeRoot.style.removeProperty("--bg");
-      themeRoot.style.removeProperty("--bg-end");
+      themeRoot.style.setProperty("--bg", baseTone);
+      themeRoot.style.setProperty("--bg-end", baseTone);
     });
     setBackgroundExposureCompensation(stateKey(state), { bg: baseTone, bgEnd: baseTone }, themeRoots);
     syncSelectionUI(selectedState);
@@ -477,20 +452,6 @@ export function initializeBackgroundController({ portalFloatingMenu, restoreFloa
         originalMenuParent(button.closest(".background-tone-popover"));
       closeBackgroundToneMenu(toneMenu);
     });
-  });
-  document.querySelectorAll(".background-custom-color-input").forEach((input) => {
-    input.addEventListener("input", () => {
-      const hex = normalizeHex(input.value);
-      if (!hex) return;
-      previewBackgroundState = { kind: "custom", hex };
-      applyBackgroundState(previewBackgroundState, { preview: true });
-    });
-    input.addEventListener("change", () => {
-      const hex = normalizeHex(input.value);
-      if (!hex) return;
-      commitBackgroundState({ kind: "custom", hex });
-    });
-    input.addEventListener("click", (event) => event.stopPropagation());
   });
   document.querySelectorAll(".panel-undo-button").forEach((button) => {
     button.addEventListener("click", (event) => {

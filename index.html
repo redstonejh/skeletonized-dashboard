@@ -9,25 +9,25 @@
       try {
         const saved = localStorage.getItem("dashboard-background") || "tone-dark-grey";
         const presets = {
-          "tone-black": "#000000",
+          "tone-light-grey": "#d1d5db",
+          "tone-grey": "#6b7280",
           "tone-dark-grey": "#1f2937",
-          "tone-slate": "#475569",
-          "tone-graphite": "#111827",
-          "tone-midnight": "#071225"
+          "tone-black": "#000000",
         };
         let background = saved;
         let baseTone = "";
         if (saved.startsWith("{")) {
-          const parsed = JSON.parse(saved);
-          if (parsed && parsed.kind === "custom" && /^#[0-9a-f]{6}$/i.test(parsed.hex || "")) {
-            background = "custom-color";
-            baseTone = parsed.hex;
-          }
+          background = "tone-dark-grey";
+          baseTone = presets[background];
         } else if (!saved.startsWith("photo-") && saved !== "solar-system") {
           background = presets[saved] ? saved : "tone-dark-grey";
           baseTone = presets[background];
         }
-        if (baseTone) document.documentElement.style.setProperty("--base-tone", baseTone);
+        if (baseTone) {
+          document.documentElement.style.setProperty("--base-tone", baseTone);
+          document.documentElement.style.setProperty("--bg", baseTone);
+          document.documentElement.style.setProperty("--bg-end", baseTone);
+        }
         document.documentElement.dataset.background = background;
       } catch {}
     })();
@@ -69,15 +69,10 @@
       <div class="background-tone-popover nav-menu-shell floating-glass-menu glass-menu-scroll-region">
         <div class="background-tone-group background-tone-group-derived" aria-label="Color backgrounds">
           <span class="background-tone-label">Color</span>
-          <button type="button" class="background-tone-option" data-background-tone="tone-black" style="--base-tone: #000000;">Black</button>
+          <button type="button" class="background-tone-option" data-background-tone="tone-light-grey" style="--base-tone: #d1d5db;">Light grey</button>
+          <button type="button" class="background-tone-option" data-background-tone="tone-grey" style="--base-tone: #6b7280;">Grey</button>
           <button type="button" class="background-tone-option" data-background-tone="tone-dark-grey" style="--base-tone: #1f2937;">Dark grey</button>
-          <button type="button" class="background-tone-option" data-background-tone="tone-slate" style="--base-tone: #475569;">Slate</button>
-          <button type="button" class="background-tone-option" data-background-tone="tone-graphite" style="--base-tone: #111827;">Graphite</button>
-          <button type="button" class="background-tone-option" data-background-tone="tone-midnight" style="--base-tone: #071225;">Midnight</button>
-          <label class="background-custom-color">
-            <span class="background-custom-color-text">Custom</span>
-            <input class="background-custom-color-input" type="color" value="#1f2937" aria-label="Custom background color">
-          </label>
+          <button type="button" class="background-tone-option" data-background-tone="tone-black" style="--base-tone: #000000;">Black</button>
         </div>
         <div class="background-glass-group" aria-label="Glass material">
           <span class="background-tone-label">Material</span>

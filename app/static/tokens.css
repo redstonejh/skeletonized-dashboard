@@ -1,7 +1,7 @@
 :root {
   --base-tone: #1f2937;
-  --bg: color-mix(in srgb, var(--base-tone) calc(72% + (var(--workspace-bg-darkness) * 20%)), white);
-  --bg-end: color-mix(in srgb, var(--base-tone) calc(55% + (var(--workspace-bg-darkness) * 18%)), white);
+  --bg: var(--base-tone);
+  --bg-end: var(--base-tone);
   /* Material compensation values are fixed. The selected background color is
      applied through --base-tone by the background controller. */
   --workspace-bg-luminance: 0.78;

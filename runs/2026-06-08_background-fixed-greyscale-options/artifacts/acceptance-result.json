@@ -1,0 +1,8 @@
+{
+  "verdict": "SHIP",
+  "summary": "Custom background color picker removed and replaced with four fixed greyscale presets. Photo backgrounds remain untouched.",
+  "tests": {
+    "status": "skipped",
+    "reason": "User explicitly instructed not to run tests, canaries, or validation."
+  }
+}

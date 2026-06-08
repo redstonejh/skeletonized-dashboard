@@ -2144,36 +2144,7 @@ body.group-select-active .panel-layout > .db-panel{
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, .30),
     0 4px 10px rgba(15, 23, 42, .10);
-}.background-custom-color{
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  min-height: 34px;
-  gap: var(--space-8);
-  padding: 0 10px 0 12px;
-  border: 1.5px solid var(--glass-border);
-  border-radius: var(--radius-pill);
-  background: color-mix(in srgb, var(--glass-surface-strong) 86%, var(--surface-soft));
-  color: var(--muted-strong);
-  font-size: 12px;
-  font-weight: 760;
-  line-height: 1;
-}.background-custom-color.is-selected{
-  border-color: color-mix(in srgb, var(--blue) 62%, var(--glass-border));
-  background: color-mix(in srgb, var(--blue) 16%, var(--glass-surface-strong));
-  color: var(--blue);
-}.background-custom-color-input{
-  width: 28px;
-  height: 24px;
-  min-width: 28px;
-  padding: 0;
-  border: 1px solid color-mix(in srgb, var(--base-tone) 56%, var(--glass-border));
-  border-radius: var(--radius-pill);
-  background: var(--base-tone);
-  cursor: pointer;
-}.background-custom-color-input:focus-visible{
-  outline: 2px solid color-mix(in srgb, var(--blue) 72%, white);
-  outline-offset: 2px;}.background-tone-option.is-selected{
+}.background-tone-option.is-selected{
   border-color: color-mix(in srgb, var(--blue) 62%, var(--glass-border));
   background: color-mix(in srgb, var(--blue) 16%, var(--glass-surface-strong));
   color: var(--blue);
