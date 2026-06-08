@@ -973,9 +973,6 @@ body::-webkit-scrollbar-thumb:hover{
     0 2px 10px rgba(15, 23, 42, calc(.06 * var(--surface-white-mix-compensation))),
     0 0 0 1px color-mix(in srgb, var(--glass-border) 36%, transparent);
   transform: translateY(-1px);
-}.db-panel.db-panel-custom-color.panel-child-hover-active:not(.db-panel-tools-open):not(.db-panel-collapsed){
-  border-color: var(--panel-material-rim-hover) !important;
-  box-shadow: var(--shadow-card);
 }.db-panel.db-panel-custom-color > .db-panel-hd{
   --panel-header-control-bg: color-mix(in srgb, var(--surface-raised) 52%, var(--panel-accent) 48%);
   --panel-header-control-fg: var(--panel-accent-text);
@@ -3600,19 +3597,16 @@ and active drags own emphasis alone. */ .widget-layout > .widget-card:has(:is(.w
 .widget-layout > .widget-card:has(:is(.widget-tools, .panel-tool-drawer, [data-widget-control-surface="true"], input, select, textarea, [contenteditable="true"]):focus-within)::before,
 .panel-internal-widget-grid > .widget-card:has(:is(.widget-tools, .panel-tool-drawer, [data-widget-control-surface="true"], button, input, select, textarea, [contenteditable="true"]):hover)::before,
 .panel-internal-widget-grid > .widget-card:has(:is(.widget-tools, .panel-tool-drawer, [data-widget-control-surface="true"], input, select, textarea, [contenteditable="true"]):focus-within)::before,
-.panel-layout > .db-panel:has(.panel-internal-widget-grid > .widget-card:is(:hover, .surface-response-active))::before,
 .panel-layout > .db-panel:has(:is(.panel-tools, .panel-tool-drawer, button, input, select, textarea, [contenteditable="true"]):hover)::before,
 .panel-layout > .db-panel:has(:is(.panel-tools, .panel-tool-drawer, input, select, textarea, [contenteditable="true"]):focus-within)::before{
   opacity: 0 !important;
-}.panel-layout > .db-panel:has(.panel-internal-widget-grid > .widget-card:is(:hover, .surface-response-active)):not(.db-panel-dragging):not(.dashboard-active-resize):not(.db-panel-tools-open):not(.db-panel-collapsed),
-.panel-layout > .db-panel:has(:is(.panel-tools, .panel-tool-drawer, button, input, select, textarea, [contenteditable="true"]):hover):not(.db-panel-dragging):not(.dashboard-active-resize),
+}.panel-layout > .db-panel:has(:is(.panel-tools, .panel-tool-drawer, button, input, select, textarea, [contenteditable="true"]):hover):not(.db-panel-dragging):not(.dashboard-active-resize),
 .panel-layout > .db-panel:has(:is(.panel-tools, .panel-tool-drawer, input, select, textarea, [contenteditable="true"]):focus-within):not(.db-panel-dragging):not(.dashboard-active-resize){
   background: var(--surface) !important;
   border-color: var(--line) !important;
   box-shadow: var(--shadow-card) !important;
   transform: none !important;
-}.panel-layout > .db-panel.db-panel-custom-color:has(.panel-internal-widget-grid > .widget-card:is(:hover, .surface-response-active)):not(.db-panel-dragging):not(.dashboard-active-resize):not(.db-panel-tools-open):not(.db-panel-collapsed),
-.panel-layout > .db-panel.db-panel-custom-color:has(:is(.panel-tools, .panel-tool-drawer, button, input, select, textarea, [contenteditable="true"]):hover):not(.db-panel-dragging):not(.dashboard-active-resize),
+}.panel-layout > .db-panel.db-panel-custom-color:has(:is(.panel-tools, .panel-tool-drawer, button, input, select, textarea, [contenteditable="true"]):hover):not(.db-panel-dragging):not(.dashboard-active-resize),
 .panel-layout > .db-panel.db-panel-custom-color:has(:is(.panel-tools, .panel-tool-drawer, input, select, textarea, [contenteditable="true"]):focus-within):not(.db-panel-dragging):not(.dashboard-active-resize){
   border-color: color-mix(in srgb, var(--panel-accent) 38%, var(--line)) !important;
   box-shadow: var(--shadow-card) !important;
@@ -4048,9 +4042,6 @@ and active drags own emphasis alone. */ .widget-layout > .widget-card:has(:is(.w
 .panel-internal-widget-grid > .widget-card:focus-visible{
   background: var(--object-shell-hover-bg) !important;
   border-color: var(--object-shell-rim-hover) !important;
-}.db-panel.panel-child-hover-active:not(.db-panel-tools-open):not(.db-panel-collapsed){
-  border-color: var(--object-shell-rim) !important;
-  box-shadow: var(--object-shell-shadow) !important;
 }.db-panel.db-panel-custom-color,
 .db-panel.db-panel-custom-color > .db-panel-hd,
 .widget-layout > .widget-card.db-panel-custom-color,
@@ -4645,43 +4636,17 @@ knock the diffusion ::before down further,
   -webkit-backdrop-filter: blur(2px) saturate(var(--glass-photo-saturate)) !important;
 }.db-panel-body::before{
   opacity: 0.05 !important;
-}/* Drop-state safety: the panel briefly gets .panel-child-hover-active * when a dragged widget hovers in and the panel base rule at * dashboard-grid.css:2854 paints `background: var(--surface)` (#ffffff) * with specificity (0,4,0). Without !important on the photo-bg side,
-* the original photo-glass override at (0,6,1) won at rest but lost * to the shell system's !important. Force the photo-glass material on * this transient state with !important so the drop never flashes * white. Custom-color variant gets the same treatment so the lavender * panel + custom-color drop doesn't briefly slam to surface. */ .panel-layout > .db-panel.panel-child-hover-active:not(.db-panel-tools-open):not(.db-panel-collapsed){
-  background:
-    linear-gradient(150deg,
-      rgba(255, 255, 255, 0.10) 0%,
-      rgba(255, 255, 255, 0.03) 30%,
-      rgba(255, 255, 255, 0) 58%,
-      rgba(255, 255, 255, 0.04) 100%
-    ),
-    rgba(255, 255, 255, 0.04) !important;
-  border-color: rgba(255, 255, 255, var(--glass-photo-rim-alpha)) !important;
-}.panel-layout > .db-panel.db-panel-custom-color.panel-child-hover-active:not(.db-panel-tools-open):not(.db-panel-collapsed){
-  background: rgba(255, 255, 255, 0.03) !important;
 }/* ── Resting state must match the drag-state material ── * * The "perfect glass" the user observed only during internal widget * drag was not caused by a unique paint rule — it was caused by * `body.panel-interaction-active .db-panel:has(.panel-internal-widget-grid > .widget-dragging)` * at dashboard-grid.css:3300 setting `will-change: auto`. At rest the * base .db-panel rule (dashboard-grid.css:2765) keeps `will-change: * transform`,
 which in Chromium promotes the panel to its own * compositing layer. backdrop-filter on .db-panel-body samples through * the parent layer using the screen's underlying backdrop image; across * the panel's compositing-layer boundary it cannot see the photo * cleanly,
 so the body's filter falls back to compositing against the * panel's own paint and reads as an opaque pale slab. Removing the * `will-change: transform` promotion at rest makes the body's * backdrop-filter see the photo background the same way it does during * the drag — the resting state visually equals the drag state. No * paint rules change; only the compositing hint is suppressed for the * photo-background path. Solid-color backgrounds keep `will-change: * transform` because there's no photo to sample through,
 so drag perf * is unaffected outside photo mode. */ .db-panel{
   will-change: auto;
-}/* ── Drag/interaction states must not revert panel + contained widgets * to solid var(--surface) ── * * Three rules in dashboard-grid.css force panel/widget chrome back to * opaque white the moment the user starts dragging a widget into a * panel: * * 1. .db-panel.panel-child-hover-active:not(.db-panel-tools-open):not(.db-panel-collapsed) * — dashboard-grid.css:2854,
-specificity (0,4,0),
-no !important. * Fires on the panel as soon as a child widget gains hover during * drag-over,
-slamming `background: var(--surface)` (#ffffff). * * 2. body.panel-interaction-active .panel-internal-widget-grid > .widget-card…:hover/:focus-visible * — dashboard-grid.css:3341-3353,
+}/* ── Drag/interaction states must not revert panel + contained widgets * to solid var(--surface) ── * * Interaction-state rules in dashboard-grid.css can force panel/widget chrome back to * opaque white the moment the user starts dragging a widget into a * panel: * * 1. body.panel-interaction-active .panel-internal-widget-grid > .widget-card…:hover/:focus-visible * — dashboard-grid.css:3341-3353,
 specificity (0,8,1) with * `background: var(--surface) !important`. Fires on the contained * widget itself during drag. * * 3. body.panel-interaction-active .db-panel…:hover/:focus-within * — dashboard-grid.css:3355-3363,
 similar high specificity with * `!important`. Fires on the panel chrome. * * Earlier photo-glass overrides only matched the resting selectors * (.panel-layout > .db-panel, .panel-internal-widget-grid > .widget-card) * so they were beaten the moment those state classes appeared. Restore * the translucent recipe for these specific drag-interaction paths * only. Match-or-beat the original specificity,
 add !important only * where the rule being overridden already uses it. transform: none,
 * pointer-events,
-and border/box-shadow drag affordances are NOT * touched — only the slab `background` is replaced. */ /* (1) Panel ring while a child widget hovers/drags inside it. */ .panel-layout > .db-panel.panel-child-hover-active:not(.db-panel-tools-open):not(.db-panel-collapsed){
-  background:
-    linear-gradient(150deg,
-      rgba(255, 255, 255, 0.10) 0%,
-      rgba(255, 255, 255, 0.03) 30%,
-      rgba(255, 255, 255, 0) 58%,
-      rgba(255, 255, 255, 0.04) 100%
-    ),
-    rgba(255, 255, 255, 0.04);
-  border-color: rgba(255, 255, 255, var(--glass-photo-rim-alpha));
-}/* (2) Contained widgets during drag/resize interaction. Original rule * uses !important,
+and border/box-shadow drag affordances are NOT * touched — only the slab `background` is replaced. */ /* Contained widgets during drag/resize interaction. Original rule * uses !important,
 so this override must too. Selector specificity is * matched and lifted by the leading `body` so the * !important origin and specificity tie-break in our favor. */ .panel-interaction-active .panel-internal-widget-grid > .widget-card:not(.widget-dragging):not(.dashboard-active-resize):not(.dashboard-resize-source):not(.group-transform-member):hover,
 .panel-interaction-active .panel-internal-widget-grid > .widget-card:not(.widget-dragging):not(.dashboard-active-resize):not(.dashboard-resize-source):not(.group-transform-member):focus-visible,
 .panel-resize-active .panel-internal-widget-grid > .widget-card:not(.widget-dragging):not(.dashboard-active-resize):not(.dashboard-resize-source):not(.group-transform-member):hover,
@@ -4724,9 +4689,8 @@ so this override must too. Selector specificity is * matched and lifted by the l
  *     border-color: var(--line) !important;
  *     box-shadow: var(--shadow-card) !important;
  *     transform: none !important;
- *   }* * Selector specificity (0, 9, 0) with !important. Earlier * panel-child-hover-active overrides at (0, 7, 1) lose the cascade. * The :has() parent selector triggers regardless of whether * panel-child-hover-active is on the panel — so even my diagnostic * (which captured panel-child-hover-active correctly) didn't surface * a paint diff,
-because the same paint computed in both states only * because my synthetic widget wasn't actually receiving :hover at * the moment of capture in the way the user's real cursor was. * * Match the full selector list at higher specificity and pin * everything to the rest paint. Same treatment for the sibling rule * at themes.css:4718 for custom-color panels. The same rule block at * 4710-4711 also targets panels with active tools (button/input/etc * :hover or :focus-within) — covered by the same override. */ .panel-layout > .db-panel:has(.panel-internal-widget-grid > .widget-card:is(:hover, .surface-response-active)):not(.db-panel-dragging):not(.dashboard-active-resize):not(.db-panel-tools-open):not(.db-panel-collapsed),
-.panel-layout > .db-panel:has(:is(.panel-tools, .panel-tool-drawer, button, input, select, textarea, [contenteditable="true"]):hover):not(.db-panel-dragging):not(.dashboard-active-resize),
+ *   }* * Selector specificity (0, 9, 0) with !important. The :has() parent selector triggers from live descendant hover/focus, so even diagnostics can miss the paint diff,
+because the same paint computed in both states only * because my synthetic widget wasn't actually receiving :hover at * the moment of capture in the way the user's real cursor was. * * Match the full selector list at higher specificity and pin * everything to the rest paint. The same rule block also targets panels with active tools (button/input/etc * :hover or :focus-within) — covered by the same override. */ .panel-layout > .db-panel:has(:is(.panel-tools, .panel-tool-drawer, button, input, select, textarea, [contenteditable="true"]):hover):not(.db-panel-dragging):not(.dashboard-active-resize),
 .panel-layout > .db-panel:has(:is(.panel-tools, .panel-tool-drawer, input, select, textarea, [contenteditable="true"]):focus-within):not(.db-panel-dragging):not(.dashboard-active-resize){
   background:
     linear-gradient(150deg,
@@ -4744,8 +4708,7 @@ because the same paint computed in both states only * because my synthetic widge
     inset -1px 0 0 rgba(255, 255, 255, var(--glass-photo-side-highlight-alpha)),
     inset 0 -1px 0 rgba(255, 255, 255, 0.10) !important;
   transform: none;
-}/* Custom-color panel variant of the :has() trap — calmer base because * the colored header carries the accent; body stays clean glass. */ .panel-layout > .db-panel.db-panel-custom-color:has(.panel-internal-widget-grid > .widget-card:is(:hover, .surface-response-active)):not(.db-panel-dragging):not(.dashboard-active-resize):not(.db-panel-tools-open):not(.db-panel-collapsed),
-.panel-layout > .db-panel.db-panel-custom-color:has(:is(.panel-tools, .panel-tool-drawer, button, input, select, textarea, [contenteditable="true"]):hover):not(.db-panel-dragging):not(.dashboard-active-resize),
+}/* Custom-color panel variant of the :has() trap — calmer base because * the colored header carries the accent; body stays clean glass. */ .panel-layout > .db-panel.db-panel-custom-color:has(:is(.panel-tools, .panel-tool-drawer, button, input, select, textarea, [contenteditable="true"]):hover):not(.db-panel-dragging):not(.dashboard-active-resize),
 .panel-layout > .db-panel.db-panel-custom-color:has(:is(.panel-tools, .panel-tool-drawer, input, select, textarea, [contenteditable="true"]):focus-within):not(.db-panel-dragging):not(.dashboard-active-resize){
   background: rgba(255, 255, 255, 0.03) !important;
   border-color: rgba(255, 255, 255, var(--glass-photo-rim-alpha)) !important;
@@ -4760,7 +4723,7 @@ because the same paint computed in both states only * because my synthetic widge
 header goes * pastel,
 leaving the panel restores glass. Widgets do not exhibit this * because the widget shell-hover rules paint translucent shells over * a fairly substantive base (.16 alpha). The PANEL is brought to * ~.03 alpha by round-9,
 so: * * (a) The surface-zone-wash ::before that activates on hover via * `.surface-response-active` paints rgba(255,255,255, .07) wash * with `mix-blend-mode: screen` and opacity .45 over the panel * (dashboard-grid.css:2769-2786). Over bright photo regions * (foam, sand, marble) screen-blend pushes the area near pure * white. Over the .03-alpha translucent panel,
-the wash dominates. * Widgets at .16 alpha mask this; panels at .03 do not. * * (b) The shell hover rules (themes.css:1357 custom-color header * hover; 5270 generic header hover; 5309 custom-color panel hover) * repaint with var(--object-shell-hover-bg) — wash + opaque shell * surface. Higher-specificity overrides below force the rest-state * calm paint on hover/focus too. Brings panel + header hover in * line with the visual behavior the user accepts on widgets. */ /* (a) Kill the screen-blend brighten on panel + divider .surface-response-active::before */ .panel-layout > .db-panel.surface-response-active:not(.workspace-divider):not(.panel-child-hover-active)::before,
+the wash dominates. * Widgets at .16 alpha mask this; panels at .03 do not. * * (b) The shell hover rules (themes.css:1357 custom-color header * hover; 5270 generic header hover; 5309 custom-color panel hover) * repaint with var(--object-shell-hover-bg) — wash + opaque shell * surface. Higher-specificity overrides below force the rest-state * calm paint on hover/focus too. Brings panel + header hover in * line with the visual behavior the user accepts on widgets. */ /* (a) Kill the screen-blend brighten on panel + divider .surface-response-active::before */ .panel-layout > .db-panel.surface-response-active:not(.workspace-divider)::before,
 .workspace-divider.db-panel.surface-response-active::before{
   opacity: 0 !important;
 }/* (b1) Panel hover/focus on custom-color: paint same calm glass as rest */ .db-panel.db-panel-custom-color:hover,
@@ -4916,10 +4879,8 @@ no outer drop. Result: flat glass that floats on the photo * without a halo. */ 
 .db-panel.db-panel-custom-color > .db-panel-hd:active{
   box-shadow: none !important;
   transform: none;
-}/* The contained-widget-hover :has() trap rules from earlier this round * still paint a `0 18px 42px` drop shadow in their box-shadow. Drop * that outer shadow so the contained-widget-hover state stays flat * too. Keeps the inset rim highlights from those rules. */ .panel-layout > .db-panel:has(.panel-internal-widget-grid > .widget-card:is(:hover, .surface-response-active)):not(.db-panel-dragging):not(.dashboard-active-resize):not(.db-panel-tools-open):not(.db-panel-collapsed),
-.panel-layout > .db-panel:has(:is(.panel-tools, .panel-tool-drawer, button, input, select, textarea, [contenteditable="true"]):hover):not(.db-panel-dragging):not(.dashboard-active-resize),
+}/* Tool/control :has() trap rules from earlier this round still paint a `0 18px 42px` drop shadow in their box-shadow. Drop that outer shadow so the state stays flat too. Keeps the inset rim highlights from those rules. */ .panel-layout > .db-panel:has(:is(.panel-tools, .panel-tool-drawer, button, input, select, textarea, [contenteditable="true"]):hover):not(.db-panel-dragging):not(.dashboard-active-resize),
 .panel-layout > .db-panel:has(:is(.panel-tools, .panel-tool-drawer, input, select, textarea, [contenteditable="true"]):focus-within):not(.db-panel-dragging):not(.dashboard-active-resize),
-.panel-layout > .db-panel.db-panel-custom-color:has(.panel-internal-widget-grid > .widget-card:is(:hover, .surface-response-active)):not(.db-panel-dragging):not(.dashboard-active-resize):not(.db-panel-tools-open):not(.db-panel-collapsed),
 .panel-layout > .db-panel.db-panel-custom-color:has(:is(.panel-tools, .panel-tool-drawer, button, input, select, textarea, [contenteditable="true"]):hover):not(.db-panel-dragging):not(.dashboard-active-resize),
 .panel-layout > .db-panel.db-panel-custom-color:has(:is(.panel-tools, .panel-tool-drawer, input, select, textarea, [contenteditable="true"]):focus-within):not(.db-panel-dragging):not(.dashboard-active-resize){
   box-shadow:
@@ -4936,19 +4897,6 @@ no outer drop. Result: flat glass that floats on the photo * without a halo. */ 
   border-color: rgba(255, 255, 255, 0.30) !important;
   box-shadow: none !important;
   transform: none;
-}/* ── Widget-placed-inside-panel: pin panel material to rest ── * * When the cursor is over a contained widget,
-JS adds * `.panel-child-hover-active` to the panel (app.js:11724). The base * rules (dashboard-grid.css:2854 and themes.css:1256 / 5280) then * change border,
-box-shadow,
-and background. Round-7 covered the * background; this extends to all visual properties so the panel * looks completely identical whether or not the cursor is over a * contained child. The user's symptom — "panel turns white when * placing a widget inside" — matches this state if the cursor remains * over the dropped widget through the drop transition. */ .panel-layout > .db-panel.panel-child-hover-active:not(.db-panel-tools-open):not(.db-panel-collapsed),
-.panel-layout > .db-panel.db-panel-custom-color.panel-child-hover-active:not(.db-panel-tools-open):not(.db-panel-collapsed){
-  transform: none;
-  border-color: rgba(255, 255, 255, var(--glass-photo-rim-alpha)) !important;
-  box-shadow:
-    0 18px 42px rgba(0, 0, 0, var(--glass-photo-drop-shadow-alpha)),
-    inset 0 1px 0 rgba(255, 255, 255, var(--glass-photo-rim-highlight-alpha)),
-    inset 1px 0 0 rgba(255, 255, 255, var(--glass-photo-side-highlight-alpha)),
-    inset -1px 0 0 rgba(255, 255, 255, var(--glass-photo-side-highlight-alpha)),
-    inset 0 -1px 0 rgba(255, 255, 255, 0.10) !important;
 }/* ── Active drag-into-panel state ── * * During the drop pipeline the body gets `.panel-interaction-active` * and `.panel-container-drag-active` is on the receiving panel * (app.js:9745). Combined with :hover and :focus-within propagation * from the dragging widget,
 the shell hover rules fire on the panel * and trigger the "white slab" the user reports during placement. * Pin everything for those states too — no white flash during drop. */ body.panel-interaction-active .panel-layout > .db-panel,
 body.panel-interaction-active .panel-layout > .db-panel:hover,
@@ -5037,10 +4985,8 @@ because the * header sits flush with the panel. */ .db-panel > .db-panel-hd,
     inset 0 8px 12px -7px rgba(255, 255, 255, 0.40),
     inset 0 -1px 0 rgba(255, 255, 255, 0.14) !important;
   transform: none;
-}/* Contained-widget :has() hover trap from earlier round: keep its * background pin but switch the box-shadow to the shared edge stack * so the parent panel uses the same rim system. */ .panel-layout > .db-panel:has(.panel-internal-widget-grid > .widget-card:is(:hover, .surface-response-active)):not(.db-panel-dragging):not(.dashboard-active-resize):not(.db-panel-tools-open):not(.db-panel-collapsed),
-.panel-layout > .db-panel:has(:is(.panel-tools, .panel-tool-drawer, button, input, select, textarea, [contenteditable="true"]):hover):not(.db-panel-dragging):not(.dashboard-active-resize),
+}/* Tool/control :has() hover trap from earlier round: keep its background pin but switch the box-shadow to the shared edge stack so the parent panel uses the same rim system. */ .panel-layout > .db-panel:has(:is(.panel-tools, .panel-tool-drawer, button, input, select, textarea, [contenteditable="true"]):hover):not(.db-panel-dragging):not(.dashboard-active-resize),
 .panel-layout > .db-panel:has(:is(.panel-tools, .panel-tool-drawer, input, select, textarea, [contenteditable="true"]):focus-within):not(.db-panel-dragging):not(.dashboard-active-resize),
-.panel-layout > .db-panel.db-panel-custom-color:has(.panel-internal-widget-grid > .widget-card:is(:hover, .surface-response-active)):not(.db-panel-dragging):not(.dashboard-active-resize):not(.db-panel-tools-open):not(.db-panel-collapsed),
 .panel-layout > .db-panel.db-panel-custom-color:has(:is(.panel-tools, .panel-tool-drawer, button, input, select, textarea, [contenteditable="true"]):hover):not(.db-panel-dragging):not(.dashboard-active-resize),
 .panel-layout > .db-panel.db-panel-custom-color:has(:is(.panel-tools, .panel-tool-drawer, input, select, textarea, [contenteditable="true"]):focus-within):not(.db-panel-dragging):not(.dashboard-active-resize){
   border-color: rgba(255, 255, 255, var(--glass-edge-border-alpha)) !important;
@@ -5762,7 +5708,6 @@ no card. Active * filter is indicated by a subtle underline + slightly higher * 
 .panel-layout > .db-panel:active,
 .panel-layout > .db-panel.active,
 .panel-layout > .db-panel.group-selected,
-.panel-layout > .db-panel.panel-child-hover-active,
 .panel-layout > .db-panel.panel-container-drag-active,
 .panel-layout > .db-panel.db-panel-collapsed,
 .panel-layout > .db-panel.db-panel-collapsed:hover,
@@ -5782,7 +5727,6 @@ no card. Active * filter is indicated by a subtle underline + slightly higher * 
 .panel-layout > .db-panel.db-panel-custom-color:focus-within,
 .panel-layout > .db-panel.db-panel-custom-color.active,
 .panel-layout > .db-panel.db-panel-custom-color.group-selected,
-.panel-layout > .db-panel.db-panel-custom-color.panel-child-hover-active,
 .panel-layout > .db-panel.db-panel-custom-color.panel-container-drag-active,
 .panel-layout > .db-panel.db-panel-custom-color.db-panel-collapsed,
 .panel-layout > .db-panel.db-panel-custom-color.db-panel-collapsed:hover,
@@ -5848,4 +5792,45 @@ no card. Active * filter is indicated by a subtle underline + slightly higher * 
   box-shadow: none !important;
   filter: none !important;
   background: none !important;
+}
+
+/* Unified object hover/press response. JS owns the shared state for panels,
+   top-level widgets, and panel-internal widgets; CSS only moves the live
+   object and leaves material, color, rim, and selection styling unchanged. */
+.widget-layout > .widget-card,
+.panel-internal-widget-grid > .widget-card,
+.panel-layout > .db-panel:not(.workspace-divider){
+  translate: 0 0;
+  transition-property: background, border-color, box-shadow, color, transform, translate;
+}
+.widget-layout > .widget-card:is(:hover, :active, .surface-response-active, [data-surface-pressed="true"]),
+.panel-internal-widget-grid > .widget-card:is(:hover, :active, .surface-response-active, [data-surface-pressed="true"]),
+.panel-layout > .db-panel:not(.workspace-divider):is(:hover, :active, :focus-within, .surface-response-active, [data-surface-pressed="true"]){
+  transform: none !important;
+}
+body.webgl-glass-on .widget-layout > .widget-card:is(:hover, :active, .surface-response-active, [data-surface-pressed="true"]),
+body.webgl-glass-on .panel-internal-widget-grid > .widget-card:is(:hover, :active, .surface-response-active, [data-surface-pressed="true"]),
+body.webgl-glass-on .panel-layout > .db-panel:not(.workspace-divider):is(:hover, :active, :focus-within, .surface-response-active, [data-surface-pressed="true"]){
+  background: transparent !important;
+  background-image: none !important;
+}
+.widget-layout > .widget-card.surface-response-active:not(.widget-dragging):not(.dashboard-active-resize):not(.dashboard-resize-source):not(.group-transform-member),
+.panel-internal-widget-grid > .widget-card.surface-response-active:not(.widget-dragging):not(.dashboard-active-resize):not(.dashboard-resize-source):not(.group-transform-member),
+.panel-layout > .db-panel.surface-response-active:not(.workspace-divider):not(.db-panel-dragging):not(.dashboard-active-resize):not(.dashboard-resize-source):not(.group-transform-member){
+  translate: 0 -1.5px;
+}
+.widget-layout > .widget-card[data-surface-pressed="true"]:not(.widget-dragging):not(.dashboard-active-resize):not(.dashboard-resize-source):not(.group-transform-member),
+.panel-internal-widget-grid > .widget-card[data-surface-pressed="true"]:not(.widget-dragging):not(.dashboard-active-resize):not(.dashboard-resize-source):not(.group-transform-member),
+.panel-layout > .db-panel[data-surface-pressed="true"]:not(.workspace-divider):not(.db-panel-dragging):not(.dashboard-active-resize):not(.dashboard-resize-source):not(.group-transform-member){
+  translate: 0 1px;
+}
+body.panel-interaction-active :is(.widget-layout > .widget-card, .panel-internal-widget-grid > .widget-card, .panel-layout > .db-panel:not(.workspace-divider)),
+body.panel-resize-active :is(.widget-layout > .widget-card, .panel-internal-widget-grid > .widget-card, .panel-layout > .db-panel:not(.workspace-divider)){
+  translate: 0 0 !important;
+}
+.widget-layout > .widget-card:focus-visible,
+.panel-internal-widget-grid > .widget-card:focus-visible,
+.panel-layout > .db-panel:not(.workspace-divider):focus-visible{
+  outline: 2px solid rgba(255, 255, 255, .62) !important;
+  outline-offset: 4px !important;
 }

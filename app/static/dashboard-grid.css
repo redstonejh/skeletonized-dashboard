@@ -130,101 +130,6 @@ body.webgl-glass-on .widget-card.db-panel-custom-color{
 }.widget-layout > .widget-card,
 .panel-internal-widget-grid > .widget-card{
   border: 1.5px solid transparent;
-}.widget-card[data-hover-zone="top-left"],
-.db-panel[data-hover-zone="top-left"]{
-  --surface-zone-origin: 18% 18%;
-  --surface-zone-transform: translateY(-1.5px) rotateX(.16deg) rotateY(-.18deg);
-  --surface-zone-press-transform: translateY(.9px) rotateX(-.08deg) rotateY(.09deg);
-  --surface-zone-wash:
-    linear-gradient(135deg, rgba(255, 255, 255, .09), rgba(255, 255, 255, .03) 30%, transparent 62%),
-    linear-gradient(315deg, rgba(15, 23, 42, .028), transparent 46%);
-  --surface-zone-shadow:
-    inset 1px 1px 0 rgba(255, 255, 255, .095),
-    inset -10px -10px 22px rgba(15, 23, 42, .032);
-}.widget-card[data-hover-zone="top-center"],
-.db-panel[data-hover-zone="top-center"]{
-  --surface-zone-origin: 50% 16%;
-  --surface-zone-transform: translateY(-1.7px) rotateX(.18deg);
-  --surface-zone-press-transform: translateY(.9px) rotateX(-.09deg);
-  --surface-zone-wash:
-    linear-gradient(180deg, rgba(255, 255, 255, .085), rgba(255, 255, 255, .028) 34%, transparent 66%);
-  --surface-zone-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, .095),
-    inset 0 -12px 22px rgba(15, 23, 42, .03);
-}.widget-card[data-hover-zone="top-right"],
-.db-panel[data-hover-zone="top-right"]{
-  --surface-zone-origin: 82% 18%;
-  --surface-zone-transform: translateY(-1.5px) rotateX(.16deg) rotateY(.18deg);
-  --surface-zone-press-transform: translateY(.9px) rotateX(-.08deg) rotateY(-.09deg);
-  --surface-zone-wash:
-    linear-gradient(225deg, rgba(255, 255, 255, .09), rgba(255, 255, 255, .03) 30%, transparent 62%),
-    linear-gradient(45deg, rgba(15, 23, 42, .028), transparent 46%);
-  --surface-zone-shadow:
-    inset -1px 1px 0 rgba(255, 255, 255, .095),
-    inset 10px -10px 22px rgba(15, 23, 42, .032);
-}.widget-card[data-hover-zone="middle-left"],
-.db-panel[data-hover-zone="middle-left"]{
-  --surface-zone-origin: 16% 50%;
-  --surface-zone-transform: translateY(-1.4px) rotateY(-.18deg);
-  --surface-zone-press-transform: translateY(.9px) rotateY(.09deg);
-  --surface-zone-wash:
-    linear-gradient(90deg, rgba(255, 255, 255, .075), rgba(255, 255, 255, .024) 34%, transparent 66%);
-  --surface-zone-shadow:
-    inset 1px 0 0 rgba(255, 255, 255, .085),
-    inset -12px 0 22px rgba(15, 23, 42, .028);
-}.widget-card[data-hover-zone="center"],
-.db-panel[data-hover-zone="center"]{
-  --surface-zone-origin: center;
-  --surface-zone-transform: translateY(-1.5px);
-  --surface-zone-press-transform: translateY(.9px);
-  --surface-zone-wash:
-    linear-gradient(180deg, rgba(255, 255, 255, .05), transparent 56%),
-    linear-gradient(0deg, color-mix(in srgb, var(--panel-accent, var(--blue)) 2.5%, transparent), transparent 70%);
-  --surface-zone-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, .078),
-    inset 0 -10px 18px rgba(15, 23, 42, .024);
-}.widget-card[data-hover-zone="middle-right"],
-.db-panel[data-hover-zone="middle-right"]{
-  --surface-zone-origin: 84% 50%;
-  --surface-zone-transform: translateY(-1.4px) rotateY(.18deg);
-  --surface-zone-press-transform: translateY(.9px) rotateY(-.09deg);
-  --surface-zone-wash:
-    linear-gradient(270deg, rgba(255, 255, 255, .075), rgba(255, 255, 255, .024) 34%, transparent 66%);
-  --surface-zone-shadow:
-    inset -1px 0 0 rgba(255, 255, 255, .085),
-    inset 12px 0 22px rgba(15, 23, 42, .028);
-}.widget-card[data-hover-zone="bottom-left"],
-.db-panel[data-hover-zone="bottom-left"]{
-  --surface-zone-origin: 18% 82%;
-  --surface-zone-transform: translateY(-1.35px) rotateX(-.16deg) rotateY(-.18deg);
-  --surface-zone-press-transform: translateY(.9px) rotateX(.08deg) rotateY(.09deg);
-  --surface-zone-wash:
-    linear-gradient(45deg, rgba(255, 255, 255, .078), rgba(255, 255, 255, .026) 32%, transparent 64%),
-    linear-gradient(225deg, rgba(15, 23, 42, .03), transparent 48%);
-  --surface-zone-shadow:
-    inset 1px -1px 0 rgba(255, 255, 255, .082),
-    inset -10px 10px 22px rgba(15, 23, 42, .03);
-}.widget-card[data-hover-zone="bottom-center"],
-.db-panel[data-hover-zone="bottom-center"]{
-  --surface-zone-origin: 50% 84%;
-  --surface-zone-transform: translateY(-1.35px) rotateX(-.18deg);
-  --surface-zone-press-transform: translateY(.9px) rotateX(.09deg);
-  --surface-zone-wash:
-    linear-gradient(0deg, rgba(255, 255, 255, .072), rgba(255, 255, 255, .024) 34%, transparent 66%);
-  --surface-zone-shadow:
-    inset 0 -1px 0 rgba(255, 255, 255, .08),
-    inset 0 12px 22px rgba(15, 23, 42, .028);
-}.widget-card[data-hover-zone="bottom-right"],
-.db-panel[data-hover-zone="bottom-right"]{
-  --surface-zone-origin: 82% 82%;
-  --surface-zone-transform: translateY(-1.35px) rotateX(-.16deg) rotateY(.18deg);
-  --surface-zone-press-transform: translateY(.9px) rotateX(.08deg) rotateY(-.09deg);
-  --surface-zone-wash:
-    linear-gradient(315deg, rgba(255, 255, 255, .078), rgba(255, 255, 255, .026) 32%, transparent 64%),
-    linear-gradient(135deg, rgba(15, 23, 42, .03), transparent 48%);
-  --surface-zone-shadow:
-    inset -1px -1px 0 rgba(255, 255, 255, .082),
-    inset 10px 10px 22px rgba(15, 23, 42, .03);
 }.widget-shell{
   position: relative;
   z-index: 2;
@@ -1025,8 +930,7 @@ body.resize-auto-zoom-active .dashboard-expanded-footprint-ghost{
 }.widget-layout > .widget-card:has(:is(.widget-tools, .panel-tool-drawer, [data-widget-control-surface="true"], button, input, select, textarea, [contenteditable="true"]):hover)::before,
 .widget-layout > .widget-card:has(:is(.widget-tools, .panel-tool-drawer, [data-widget-control-surface="true"], input, select, textarea, [contenteditable="true"]):focus-within)::before,
 .panel-internal-widget-grid > .widget-card:has(:is(.widget-tools, .panel-tool-drawer, [data-widget-control-surface="true"], button, input, select, textarea, [contenteditable="true"]):hover)::before,
-.panel-internal-widget-grid > .widget-card:has(:is(.widget-tools, .panel-tool-drawer, [data-widget-control-surface="true"], input, select, textarea, [contenteditable="true"]):focus-within)::before,
-.panel-layout > .db-panel:has(.panel-internal-widget-grid > .widget-card:is(:hover, .surface-response-active))::before{
+.panel-internal-widget-grid > .widget-card:has(:is(.widget-tools, .panel-tool-drawer, [data-widget-control-surface="true"], input, select, textarea, [contenteditable="true"]):focus-within)::before{
   opacity: 0 !important;
 }.widget-layout > .stat-card.active:hover{
   border-color: var(--line);
@@ -1355,12 +1259,12 @@ body.resize-auto-zoom-active .dashboard-expanded-footprint-ghost{
   opacity: 0;
   mix-blend-mode: screen;
   transition: opacity .16s ease, box-shadow .16s ease, background .16s ease;
-}.panel-layout > .db-panel.surface-response-active:not(.workspace-divider):not(.panel-child-hover-active)::before{
+}.panel-layout > .db-panel.surface-response-active:not(.workspace-divider)::before{
   opacity: var(--surface-zone-opacity, .45);
-}.panel-layout > .db-panel.surface-response-active:not(.workspace-divider):not(.panel-child-hover-active){
+}.panel-layout > .db-panel.surface-response-active:not(.workspace-divider){
   transform: var(--surface-zone-transform);
   transform-origin: var(--surface-zone-origin);
-}.panel-layout > .db-panel.surface-response-active[data-surface-pressed="true"]:not(.workspace-divider):not(.panel-child-hover-active){
+}.panel-layout > .db-panel.surface-response-active[data-surface-pressed="true"]:not(.workspace-divider){
   transform: var(--surface-zone-press-transform);
 }.db-panel.db-panel-tools-open{
   overflow: visible;
@@ -1402,11 +1306,6 @@ body.resize-auto-zoom-active .dashboard-expanded-footprint-ghost{
   box-shadow:
     0 14px 30px rgba(15, 23, 42, .14),
     0 1px 0 rgba(255, 255, 255, .62) inset;
-}.db-panel.panel-child-hover-active:not(.db-panel-tools-open):not(.db-panel-collapsed){
-  transform: none;
-  background: var(--surface);
-  border-color: var(--line);
-  box-shadow: var(--shadow-card);
 }.workspace-divider.db-panel{
   --panel-header-min-height: var(--dashboard-grid-row-height, 81px);
   --panel-title-size: 15px;
@@ -2310,7 +2209,7 @@ that put the drawer on top — palette * has to declare its tier explicitly. */ 
 .db-panel-custom-color.db-panel-collapsed:hover,
 .db-panel-custom-color.db-panel-collapsed:focus-within{
   transform: translateY(-1px);
-}.panel-layout > .db-panel.db-panel-custom-color.surface-response-active:not(.workspace-divider):not(.panel-child-hover-active){
+}.panel-layout > .db-panel.db-panel-custom-color.surface-response-active:not(.workspace-divider){
   transform: translateY(-1px);
 }.db-panel-custom-color > .db-panel-hd{
   --panel-header-control-bg: color-mix(in srgb, var(--surface-raised) 58%, var(--panel-accent) 42%);

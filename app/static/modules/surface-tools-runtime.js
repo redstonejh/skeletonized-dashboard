@@ -60,22 +60,12 @@ export function initializeSurfaceToolsRuntime({
   const clearSurfaceResponse = (target = surfaceResponseState.target) => {
     if (!target) return;
     target.classList.remove("surface-response-active");
-    target.removeAttribute("data-hover-zone");
     target.removeAttribute("data-surface-pressed");
     dashboardInteractionState.clearHoverSuppression("surface-response");
     if (surfaceResponseState.target === target) {
       surfaceResponseState.target = null;
       surfaceResponseState.rect = null;
     }
-  };
-  const surfaceZoneForPoint = (rect, clientX, clientY) => {
-    if (!rect?.width || !rect?.height) return "center";
-    const normalizedX = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
-    const normalizedY = Math.max(0, Math.min(1, (clientY - rect.top) / rect.height));
-    const horizontal = normalizedX < 1 / 3 ? "left" : normalizedX > 2 / 3 ? "right" : "center";
-    const vertical = normalizedY < 1 / 3 ? "top" : normalizedY > 2 / 3 ? "bottom" : "middle";
-    if (horizontal === "center" && vertical === "middle") return "center";
-    return `${vertical}-${horizontal}`;
   };
   const surfaceResponseTargetFromEvent = (event) => {
     if (isDashboardInteractionActive()) return null;
@@ -120,7 +110,6 @@ export function initializeSurfaceToolsRuntime({
       clearSurfaceResponse(target);
       return;
     }
-    target.dataset.hoverZone = surfaceZoneForPoint(rect, surfaceResponseState.clientX, surfaceResponseState.clientY);
     target.classList.add("surface-response-active");
     dashboardInteractionState.setHoverSuppression("surface-response", target);
   };
@@ -160,32 +149,9 @@ export function initializeSurfaceToolsRuntime({
     }
     surfaceResponseState.clientX = event.clientX;
     surfaceResponseState.clientY = event.clientY;
-    target.dataset.hoverZone = surfaceZoneForPoint(surfaceResponseState.rect, event.clientX, event.clientY);
     target.dataset.surfacePressed = "true";
     target.classList.add("surface-response-active");
-    requestAnimationFrame(() => {
-      if (!target.isConnected || isDashboardInteractionActive()) return;
-      if (target.dataset.surfacePressed !== "true") return;
-      const rect = target.getBoundingClientRect();
-      target.dataset.hoverZone = surfaceZoneForPoint(rect, event.clientX, event.clientY);
-      target.dataset.surfacePressed = "true";
-      target.classList.add("surface-response-active");
-      surfaceResponseState.target = target;
-      surfaceResponseState.rect = rect;
-    });
   }, true);
-  document.addEventListener("pointerdown", (event) => {
-    const target = surfaceResponseTargetFromEvent(event);
-    if (!target || isDashboardInteractionActive()) return;
-    const rect = target.getBoundingClientRect();
-    target.dataset.hoverZone = surfaceZoneForPoint(rect, event.clientX, event.clientY);
-    target.dataset.surfacePressed = "true";
-    target.classList.add("surface-response-active");
-    surfaceResponseState.target = target;
-    surfaceResponseState.rect = rect;
-    surfaceResponseState.clientX = event.clientX;
-    surfaceResponseState.clientY = event.clientY;
-  });
   const clearSurfacePress = () => {
     document.querySelectorAll("[data-surface-pressed='true']").forEach((target) => target.removeAttribute("data-surface-pressed"));
   };
@@ -246,12 +212,7 @@ export function initializeSurfaceToolsRuntime({
     surfaceResponseControlSelector,
     isWorkspaceSurfaceDragStart,
     isWorkspaceObjectInteractiveSurfaceTarget,
-    surfaceResponseState,
     clearSurfaceResponse,
-    surfaceZoneForPoint,
-    surfaceResponseTargetFromEvent,
-    updateSurfaceResponse,
-    scheduleSurfaceResponse,
     canOpenDashboardTools,
     dashboardSettingsToggleForItem,
     dashboardColorToggleForItem,

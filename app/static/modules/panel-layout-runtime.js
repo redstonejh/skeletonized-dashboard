@@ -1,5 +1,4 @@
 import { bindPanelActionControls } from "./panel-action-controls.js";
-import { bindPanelChildHoverRuntime } from "./panel-child-hover-runtime.js";
 import { hydratePanelLayout } from "./panel-layout-hydration.js";
 import { bindPanelMoveRuntime } from "./panel-move-runtime.js";
 import { bindPanelResizeRuntime } from "./panel-resize-runtime.js";
@@ -34,8 +33,6 @@ export const createPanelLayoutRuntime = ({
   initWidgetLayout,
   syncOpenPanelHeightToInternalGrid,
   isDashboardInteractionActive,
-  surfaceResponseState,
-  updateSurfaceResponse,
   buildPanelColorMenu,
   canOpenDashboardTools,
   portalDashboardToolDrawer,
@@ -151,13 +148,6 @@ export const createPanelLayoutRuntime = ({
         const internalWidgetGrid = capabilities.hasPanelContentArea ? ensurePanelInternalWidgetGrid(panel) : null;
         if (internalWidgetGrid) initWidgetLayout(internalWidgetGrid);
         if (internalWidgetGrid) syncOpenPanelHeightToInternalGrid(panel, { reflow: false });
-        bindPanelChildHoverRuntime({
-          panel,
-          internalWidgetGrid,
-          isDashboardInteractionActive,
-          surfaceResponseState,
-          updateSurfaceResponse,
-        });
         const colorMenu = buildPanelColorMenu(panel, layout, colorToggle);
         pinButton?.setAttribute("aria-pressed", panel.classList.contains("db-panel-pinned").toString());
         const panelToolSession = createPanelToolSession();
