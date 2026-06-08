@@ -5368,10 +5368,13 @@ no card. Active * filter is indicated by a subtle underline + slightly higher * 
   left: var(--control-bar-left, 16px);
   z-index: calc(var(--z-menu-overlay, 2600) + 10);
   width: max-content;
-  max-width: min(calc(100vw - 18px), 760px);
+  max-width: none;
   margin: 0;
   opacity: .88;
   overflow: visible;
+  flex-wrap: nowrap;
+  align-items: center;
+  white-space: nowrap;
   background: transparent;
   border-color: color-mix(in srgb, var(--glass-border) 62%, transparent);
   box-shadow:
@@ -5421,11 +5424,20 @@ no card. Active * filter is indicated by a subtle underline + slightly higher * 
 }
 .app-nav.workspace-chrome.floating-control-bar > .app-nav-status,
 .app-nav.workspace-chrome.floating-control-bar > .app-nav-actions{
+  display: flex;
+  flex: 0 0 auto;
+  flex-wrap: nowrap;
+  align-items: center;
   z-index: 1;
 }
 .app-nav.workspace-chrome.floating-control-bar .workspace-command-island,
-.app-nav.workspace-chrome.floating-control-bar .appearance-command-island{
+.app-nav.workspace-chrome.floating-control-bar .appearance-command-island,
+.app-nav.workspace-chrome.floating-control-bar .layout-slot-controls{
   position: relative;
+  display: inline-flex;
+  flex: 0 0 auto;
+  flex-wrap: nowrap;
+  align-items: center;
   z-index: 1;
 }
 .workspace-tab-bar{
@@ -5437,12 +5449,6 @@ no card. Active * filter is indicated by a subtle underline + slightly higher * 
   .app-nav.workspace-chrome.floating-control-bar:not(.settings-nav),
   .workspace-tab-bar{
     transition: none !important;
-  }
-}
-@media (max-width: 760px){
-  .app-nav.workspace-chrome.floating-control-bar:not(.settings-nav){
-    max-width: calc(100vw - 16px);
-    padding-top: 12px;
   }
 }
 .widget-card.db-panel-custom-color[data-panel-color-user="true"],
