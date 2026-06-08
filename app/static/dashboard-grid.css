@@ -2168,6 +2168,29 @@ that put the drawer on top — palette * has to declare its tier explicitly. */ 
   margin-top: 11px;
   padding-top: 11px;
   border-top: 1px solid color-mix(in srgb, var(--panel-accent, #2563eb) 28%, transparent);
+}.panel-color-clear-group{
+  margin-bottom: 11px;
+}.panel-color-clear{
+  width: 100%;
+  min-height: 34px;
+  border: 1.5px solid color-mix(in srgb, var(--panel-menu-fg, var(--ink-strong)) 22%, transparent);
+  border-radius: 10px;
+  background:
+    linear-gradient(135deg, transparent calc(50% - 1px), color-mix(in srgb, var(--red) 62%, transparent) 50%, transparent calc(50% + 1px)),
+    color-mix(in srgb, var(--surface-raised) 82%, transparent);
+  color: var(--panel-menu-fg, var(--ink-strong));
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: border-color .16s ease, box-shadow .16s ease, transform .16s ease;
+}.panel-color-clear:hover,
+.panel-color-clear:focus-visible,
+.panel-color-clear.is-selected{
+  border-color: color-mix(in srgb, var(--panel-menu-fg, var(--ink-strong)) 42%, transparent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--panel-accent, #2563eb) 18%, transparent);
+}.panel-color-clear:active{
+  transform: translateY(1px);
 }.panel-color-label{
   display: block;
   margin: 0 0 8px;

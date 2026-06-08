@@ -5673,3 +5673,45 @@ no card. Active * filter is indicated by a subtle underline + slightly higher * 
     padding-top: 12px;
   }
 }
+.widget-card.db-panel-custom-color[data-panel-color-user="true"],
+.widget-layout > .widget-card.db-panel-custom-color[data-panel-color-user="true"],
+.widget-layout > .widget-card.db-panel-custom-color.widget-runtime-meaning[data-panel-color-user="true"],
+.widget-layout > .widget-card.db-panel-custom-color.widget-tools-open[data-panel-color-user="true"],
+.widget-layout > .widget-card.db-panel-custom-color.widget-tools-open[data-panel-color-user="true"]:hover,
+.widget-layout > .widget-card.db-panel-custom-color.widget-tools-open[data-panel-color-user="true"]:focus-visible,
+.panel-internal-widget-grid > .widget-card.db-panel-custom-color[data-panel-color-user="true"],
+.panel-internal-widget-grid > .widget-card.db-panel-custom-color.widget-runtime-meaning[data-panel-color-user="true"],
+.panel-internal-widget-grid > .widget-card.db-panel-custom-color.widget-tools-open[data-panel-color-user="true"],
+.panel-internal-widget-grid > .widget-card.db-panel-custom-color.widget-tools-open[data-panel-color-user="true"]:hover,
+.panel-internal-widget-grid > .widget-card.db-panel-custom-color.widget-tools-open[data-panel-color-user="true"]:focus-visible{
+  background:
+    var(--object-shell-wash),
+    color-mix(in srgb, var(--glass-surface) 72%, var(--panel-accent) 28%) !important;
+  background-image: var(--object-shell-wash) !important;
+  background-color: color-mix(in srgb, var(--glass-surface) 72%, var(--panel-accent) 28%) !important;
+  border-color: var(--panel-accent) !important;
+}
+.widget-card.db-panel-custom-color[data-panel-color-user="true"]:hover,
+.widget-card.db-panel-custom-color[data-panel-color-user="true"]:focus-visible,
+.widget-card.db-panel-custom-color.widget-tools-open[data-panel-color-user="true"],
+.widget-layout > .widget-card.db-panel-custom-color[data-panel-color-user="true"]:hover,
+.widget-layout > .widget-card.db-panel-custom-color[data-panel-color-user="true"]:focus-visible,
+.widget-layout > .widget-card.db-panel-custom-color.widget-tools-open[data-panel-color-user="true"],
+.widget-layout > .widget-card.db-panel-custom-color.widget-runtime-meaning[data-panel-color-user="true"]:hover,
+.widget-layout > .widget-card.db-panel-custom-color.widget-runtime-meaning[data-panel-color-user="true"]:focus-visible,
+.widget-layout > .widget-card.db-panel-custom-color.widget-tools-open[data-panel-color-user="true"]:hover,
+.widget-layout > .widget-card.db-panel-custom-color.widget-tools-open[data-panel-color-user="true"]:focus-visible,
+.panel-internal-widget-grid > .widget-card.db-panel-custom-color[data-panel-color-user="true"]:hover,
+.panel-internal-widget-grid > .widget-card.db-panel-custom-color[data-panel-color-user="true"]:focus-visible,
+.panel-internal-widget-grid > .widget-card.db-panel-custom-color.widget-tools-open[data-panel-color-user="true"],
+.panel-internal-widget-grid > .widget-card.db-panel-custom-color.widget-runtime-meaning[data-panel-color-user="true"]:hover,
+.panel-internal-widget-grid > .widget-card.db-panel-custom-color.widget-runtime-meaning[data-panel-color-user="true"]:focus-visible,
+.panel-internal-widget-grid > .widget-card.db-panel-custom-color.widget-tools-open[data-panel-color-user="true"]:hover,
+.panel-internal-widget-grid > .widget-card.db-panel-custom-color.widget-tools-open[data-panel-color-user="true"]:focus-visible{
+  background:
+    var(--object-shell-wash),
+    color-mix(in srgb, var(--glass-surface) 66%, var(--panel-accent) 34%) !important;
+  background-image: var(--object-shell-wash) !important;
+  background-color: color-mix(in srgb, var(--glass-surface) 66%, var(--panel-accent) 34%) !important;
+  border-color: var(--panel-accent) !important;
+}

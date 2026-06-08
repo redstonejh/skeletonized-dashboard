@@ -760,6 +760,8 @@ document.addEventListener("DOMContentLoaded", () => {
           gridRow: Number(panel.dataset.gridRow) || null,
           height: panel.dataset.savedHeight ? parseFloat(panel.dataset.savedHeight) : null,
           color: panel.dataset.panelColor || null,
+          colorCleared: panel.dataset.panelColorCleared === "true",
+          colorUser: panel.dataset.panelColorUser === "true",
           title: panel.dataset.panelTitle || null,
           pinned: panel.classList.contains("db-panel-pinned"),
           collapsed: panel.classList.contains("db-panel-collapsed"),
@@ -1968,6 +1970,7 @@ document.addEventListener("DOMContentLoaded", () => {
   };
 
   const absorbWidgetIntoPanel = (options) => {
+    restoreDashboardToolDrawer(options?.widget?.__dashboardToolDrawer);
     const result = panelContainmentRuntime.absorbWidgetIntoPanel(options);
     if (!result) return null;
     const panelLayout = options?.panel?.closest?.(".panel-layout");
@@ -2156,6 +2159,8 @@ document.addEventListener("DOMContentLoaded", () => {
           gridRow: Number(widget.dataset.gridRow) || null,
           rowSpan: Number(widget.dataset.gridRowSpan) || 1,
           color: widget.dataset.panelColor || null,
+          colorCleared: widget.dataset.panelColorCleared === "true",
+          colorUser: widget.dataset.panelColorUser === "true",
           title: widget.dataset.panelTitle || null,
           pinned: widget.classList.contains("db-panel-pinned"),
           type: widget.dataset.widgetType || null,

@@ -56,11 +56,18 @@ export const applyPanelColor = (panel, color) => {
     panel.style.removeProperty("--panel-custom-control-border");
     panel.style.removeProperty("--panel-custom-control-hover-border");
     panel.style.removeProperty("--panel-custom-control-shadow");
+    if (panel.classList.contains("widget-card")) {
+      panel.style.removeProperty("border");
+      panel.style.removeProperty("border-color");
+    }
     delete panel.dataset.panelColor;
+    panel.dataset.panelColorCleared = "true";
+    delete panel.dataset.panelColorUser;
     return;
   }
   const textColor = readableTextFor(rgb);
   const isWhite = String(color).replace("#", "").toLowerCase() === "ffffff";
+  delete panel.dataset.panelColorCleared;
   panel.dataset.panelColor = `#${String(color).replace("#", "")}`;
   panel.classList.add("db-panel-custom-color");
   panel.style.setProperty("--panel-accent", panel.dataset.panelColor);
@@ -68,6 +75,9 @@ export const applyPanelColor = (panel, color) => {
   panel.style.setProperty("--panel-accent-text", textColor, "important");
   panel.style.setProperty("--panel-header-control-fg", textColor, "important");
   panel.style.setProperty("--panel-lock-fg", textColor, "important");
+  if (panel.classList.contains("widget-card") && panel.dataset.panelColorUser === "true") {
+    panel.style.setProperty("border", `1.5px solid ${panel.dataset.panelColor}`, "important");
+  }
   if (isWhite) {
     panel.style.setProperty("--panel-custom-control-bg", "color-mix(in srgb, var(--surface-raised) 74%, #ffffff 26%)", "important");
     panel.style.setProperty("--panel-custom-control-border", "rgba(15, 23, 42, .32)", "important");
@@ -130,6 +140,11 @@ export const createPanelColorMenuFactory = ({
         swatch.classList.toggle("is-selected", selected);
         swatch.setAttribute("aria-pressed", selected.toString());
       });
+      menu.querySelectorAll(".panel-color-clear").forEach((button) => {
+        const selected = !panel.dataset.panelColor;
+        button.classList.toggle("is-selected", selected);
+        button.setAttribute("aria-pressed", selected.toString());
+      });
     };
     colorToggle.__refreshPanelColorMenu = refreshSwatchSelection;
 
@@ -154,9 +169,19 @@ export const createPanelColorMenuFactory = ({
           event.preventDefault();
           event.stopPropagation();
           onSelect(color);
+          panel.dataset.panelColorUser = "true";
+          if (panel.classList.contains("widget-card")) {
+            panel.style.setProperty("border", `1.5px solid ${panel.dataset.panelColor}`, "important");
+          }
           if (panel.classList.contains("group-selected")) {
             const peers = selectedGroupItems(null, groupItemLayoutKey(panel)).filter((item) => item !== panel);
-            peers.forEach((item) => applyPanelColor(item, color));
+            peers.forEach((item) => {
+              applyPanelColor(item, color);
+              item.dataset.panelColorUser = "true";
+              if (item.classList.contains("widget-card")) {
+                item.style.setProperty("border", `1.5px solid ${item.dataset.panelColor}`, "important");
+              }
+            });
             [...new Set(peers.map(groupItemLayout).filter(Boolean))].forEach((peerLayout) => {
               if (peerLayout.classList.contains("widget-layout")) {
                 saveWidgetLayouts(peerLayout);
@@ -181,6 +206,41 @@ export const createPanelColorMenuFactory = ({
       group.append(groupLabel, swatches);
       menu.appendChild(group);
     };
+
+    const clearGroup = document.createElement("div");
+    clearGroup.className = "panel-color-group panel-color-clear-group";
+    const clearButton = document.createElement("button");
+    clearButton.className = "panel-color-clear";
+    clearButton.type = "button";
+    clearButton.textContent = "No color";
+    clearButton.setAttribute("aria-pressed", "false");
+    clearButton.addEventListener("click", (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      applyPanelColor(panel, null);
+      if (panel.classList.contains("group-selected")) {
+        const peers = selectedGroupItems(null, groupItemLayoutKey(panel)).filter((item) => item !== panel);
+        peers.forEach((item) => applyPanelColor(item, null));
+        [...new Set(peers.map(groupItemLayout).filter(Boolean))].forEach((peerLayout) => {
+          if (peerLayout.classList.contains("widget-layout")) {
+            saveWidgetLayouts(peerLayout);
+          } else {
+            savePanelLayouts(peerLayout);
+          }
+        });
+      }
+      if (typeof panel.__saveWidgetLayout === "function") {
+        panel.__saveWidgetLayout();
+      } else {
+        savePanelLayouts(layout);
+      }
+      refreshSwatchSelection();
+      colorToggle.setAttribute("aria-expanded", "true");
+      positionPanelColorMenu(colorToggle, menu);
+      menu.classList.add("panel-color-menu-open");
+    });
+    clearGroup.appendChild(clearButton);
+    menu.appendChild(clearGroup);
 
     addGroup("Theme color", panelThemePresets, (color) => applyPanelColor(panel, color), "theme");
     menu.addEventListener("click", (event) => event.stopPropagation());

@@ -91,7 +91,15 @@ export const hydrateWidgetLayout = (layout, {
     if (saved?.minH) widget.dataset.minH = String(saved.minH);
     if (saved?.locked) widget.dataset.locked = "true";
     if (saved?.resizable === false) widget.dataset.resizable = "false";
-    applyPanelColor(widget, saved?.color || widget.dataset.panelColor || widget.querySelector(".panel-color-toggle")?.dataset.defaultTheme);
+    if (saved?.colorCleared) {
+      applyPanelColor(widget, null);
+    } else {
+      applyPanelColor(widget, saved?.color || widget.dataset.panelColor || widget.querySelector(".panel-color-toggle")?.dataset.defaultTheme);
+      if (saved?.colorUser) {
+        widget.dataset.panelColorUser = "true";
+        if (widget.dataset.panelColor) widget.style.setProperty("border", `1.5px solid ${widget.dataset.panelColor}`, "important");
+      }
+    }
     applyPanelTitleColor(widget, "");
     if (saved?.title) {
       widget.dataset.panelTitle = saved.title;

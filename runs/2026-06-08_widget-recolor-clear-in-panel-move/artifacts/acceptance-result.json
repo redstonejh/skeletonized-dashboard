@@ -1,0 +1,24 @@
+{
+  "verdict": "SHIP",
+  "checks": {
+    "discovery_guard": "passed",
+    "delegation_proof": "passed",
+    "js_syntax": "passed",
+    "focused_recolor_clear": "passed",
+    "focused_panel_contained_move": "passed",
+    "focused_material_parity": "passed",
+    "e2e": "27 passed",
+    "handoff_validation": "passed",
+    "verdict_check": "passed"
+  },
+  "files_changed": [
+    "app/static/app.js",
+    "app/static/dashboard-grid.css",
+    "app/static/modules/panel-appearance-runtime.js",
+    "app/static/modules/panel-layout-hydration.js",
+    "app/static/modules/persisted-workspace-runtime.js",
+    "app/static/modules/widget-layout-hydration.js",
+    "app/static/themes.css",
+    "electron-tests/dashboard-electron.spec.js"
+  ]
+}

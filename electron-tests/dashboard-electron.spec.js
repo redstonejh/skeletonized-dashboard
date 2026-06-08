@@ -802,17 +802,22 @@ test("electron GUI keeps panel-contained widgets movable and mounted across tab 
     col: Number(node.dataset.gridCol) || 0,
     row: Number(node.dataset.gridRow) || 0,
   }));
-  const childDragPlan = await page.locator(panelChildSelector).evaluate((node) => {
+  await page.locator(panelChildSelector).click({ button: "right", force: true });
+  const childDrawer = page.locator(".workspace-menu-overlay-layer > .panel-tool-drawer.dashboard-tool-drawer-open").last();
+  await expect(childDrawer).toBeVisible();
+  const childMoveHandle = await childDrawer.locator(".panel-move-handle").boundingBox();
+  expect(childMoveHandle).toBeTruthy();
+  const childDragPlan = await page.locator(panelChildSelector).evaluate((node, handleBox) => {
     const body = node.closest(".db-panel-body");
     const bodyRect = body.getBoundingClientRect();
     const itemRect = node.getBoundingClientRect();
     return {
-      startX: Math.round(itemRect.left + Math.min(itemRect.width - 8, Math.max(8, itemRect.width * 0.45))),
-      startY: Math.round(itemRect.top + Math.min(itemRect.height - 8, Math.max(8, itemRect.height * 0.45))),
+      startX: Math.round(handleBox.x + (handleBox.width / 2)),
+      startY: Math.round(handleBox.y + (handleBox.height / 2)),
       endX: Math.round(Math.min(bodyRect.right - 42, itemRect.left + itemRect.width / 2 + 180)),
       endY: Math.round(Math.min(bodyRect.bottom - 42, itemRect.top + itemRect.height / 2 + 210)),
     };
-  });
+  }, childMoveHandle);
   await dispatchPointerDragUntilMove(
     page,
     childDragPlan.startX,
@@ -873,15 +878,77 @@ test("electron GUI keeps panel-contained widgets movable and mounted across tab 
 test("electron GUI recolors widgets through the right-click customization drawer", async () => {
   const { app, page } = await launchApp();
   const widget = await addTextWidget(page);
+  await page.mouse.click(12, 12);
+  await expect.poll(() => widget.evaluate((node) => (
+    !node.classList.contains("active") &&
+    !node.classList.contains("widget-tools-open") &&
+    !node.classList.contains("widget-workbench-open")
+  ))).toBe(true);
+  const defaultWidgetMaterial = await widget.evaluate((node) => {
+    const style = getComputedStyle(node);
+    return {
+      background: style.backgroundImage,
+      borderColor: style.borderColor,
+    };
+  });
   await widget.click({ button: "right" });
   const drawer = page.locator(".workspace-menu-overlay-layer > .panel-tool-drawer.dashboard-tool-drawer-open").last();
   await expect(drawer).toBeVisible();
   await drawer.locator(".panel-color-toggle").click({ force: true });
+  await expect(page.locator(".panel-color-menu-open .panel-color-clear")).toBeVisible();
   const swatch = page.locator('.panel-color-menu-open .panel-color-swatch[data-color="#dc2626"]').first();
   await swatch.click({ force: true });
   await expect.poll(() => widget.evaluate((node) => node.dataset.panelColor || "")).toBe("#dc2626");
   const coloredAccent = await widget.evaluate((node) => getComputedStyle(node).getPropertyValue("--panel-accent").trim());
   expect(coloredAccent).toBe("#dc2626");
+  const coloredInlineBorder = await widget.evaluate((node) => node.style.getPropertyValue("border"));
+  expect(coloredInlineBorder).toContain("220, 38, 38");
+  const coloredWidgetMaterial = await widget.evaluate((node) => {
+    const style = getComputedStyle(node);
+    return {
+      background: style.backgroundImage,
+      borderColor: style.borderColor,
+    };
+  });
+  expect(coloredWidgetMaterial.background).not.toBe(defaultWidgetMaterial.background);
+
+  await page.locator(".panel-color-menu-open .panel-color-clear").click({ force: true });
+  await expect.poll(() => widget.evaluate((node) => ({
+    panelColor: node.dataset.panelColor || "",
+    hasClass: node.classList.contains("db-panel-custom-color"),
+    accent: node.style.getPropertyValue("--panel-accent"),
+    border: node.style.getPropertyValue("border"),
+  }))).toEqual({ panelColor: "", hasClass: false, accent: "", border: "" });
+  await page.mouse.click(12, 12);
+  await expect.poll(() => widget.evaluate((node) => node.classList.contains("widget-tools-open"))).toBe(false);
+  const clearedWidgetMaterial = await widget.evaluate((node) => {
+    const style = getComputedStyle(node);
+    return {
+      background: style.backgroundImage,
+      borderColor: style.borderColor,
+    };
+  });
+  expect(clearedWidgetMaterial.background).not.toBe(coloredWidgetMaterial.background);
+
+  await widget.click({ button: "right", force: true });
+  await expect(drawer).toBeVisible();
+  await drawer.locator(".panel-color-toggle").click({ force: true });
+  await page.locator('.panel-color-menu-open .panel-color-swatch[data-color="#dc2626"]').first().click({ force: true });
+  await expect.poll(() => widget.evaluate((node) => node.dataset.panelColor || "")).toBe("#dc2626");
+
+  const panel = page.locator('.panel-layout > .db-panel[data-panel-key="builder-notes"]');
+  await panel.click({ button: "right", force: true });
+  const panelDrawer = page.locator(".workspace-menu-overlay-layer > .panel-tool-drawer.dashboard-tool-drawer-open").last();
+  await expect(panelDrawer).toBeVisible();
+  await panelDrawer.locator(".panel-color-toggle").click({ force: true });
+  await page.locator('.panel-color-menu-open .panel-color-swatch[data-color="#0ea5e9"]').first().click({ force: true });
+  await expect.poll(() => panel.evaluate((node) => node.dataset.panelColor || "")).toBe("#0ea5e9");
+  await page.locator(".panel-color-menu-open .panel-color-clear").click({ force: true });
+  await expect.poll(() => panel.evaluate((node) => ({
+    panelColor: node.dataset.panelColor || "",
+    hasClass: node.classList.contains("db-panel-custom-color"),
+    accent: node.style.getPropertyValue("--panel-accent"),
+  }))).toEqual({ panelColor: "", hasClass: false, accent: "" });
 
   await openControlBar(page);
   await page.locator(".layout-save-button").click({ force: true });
@@ -891,7 +958,20 @@ test("electron GUI recolors widgets through the right-click customization drawer
   await expect.poll(() => persistedWidget.evaluate((node) => node.dataset.panelColor || "")).toBe("#dc2626");
   const persistedAccent = await persistedWidget.evaluate((node) => getComputedStyle(node).getPropertyValue("--panel-accent").trim());
   expect(persistedAccent).toBe("#dc2626");
-  await writeInteractionScenarios(page, ["right-click-widget-recolor-persists"], { coloredAccent, persistedAccent });
+  const persistedPanelClear = await page.locator('.panel-layout > .db-panel[data-panel-key="builder-notes"]').evaluate((node) => ({
+    panelColor: node.dataset.panelColor || "",
+    hasClass: node.classList.contains("db-panel-custom-color"),
+    accent: node.style.getPropertyValue("--panel-accent"),
+  }));
+  expect(persistedPanelClear).toEqual({ panelColor: "", hasClass: false, accent: "" });
+  await writeInteractionScenarios(page, ["right-click-widget-recolor-persists-clear-color"], {
+    coloredAccent,
+    persistedAccent,
+    defaultWidgetMaterial,
+    coloredWidgetMaterial,
+    clearedWidgetMaterial,
+    persistedPanelClear,
+  });
   await closeApp(app);
 });
 

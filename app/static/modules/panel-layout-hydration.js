@@ -82,7 +82,12 @@ export const hydratePanelLayout = (layout, {
     applyPanelSpan(panel, saved?.span ?? panel.dataset.defaultSpan ?? 6);
     if (saved?.gridCol && saved?.gridRow) applyPanelGridPosition(panel, saved.gridCol, saved.gridRow);
     if (saved?.height) applyPanelHeight(panel, saved.height);
-    applyPanelColor(panel, saved?.color || defaultTheme);
+    if (saved?.colorCleared) {
+      applyPanelColor(panel, null);
+    } else {
+      applyPanelColor(panel, saved?.color || defaultTheme);
+      if (saved?.colorUser) panel.dataset.panelColorUser = "true";
+    }
     applyPanelTitleColor(panel, "");
     if (saved?.title && titleEl) {
       panel.dataset.panelTitle = saved.title;

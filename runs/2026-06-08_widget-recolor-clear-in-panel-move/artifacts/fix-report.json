@@ -1,0 +1,18 @@
+{
+  "root_causes": {
+    "widget_recolor": "The shared color runtime set --panel-accent on widgets, but late object material rules kept the widget card body on the fixed glass surface. Only tool buttons visibly changed.",
+    "clear_color": "A missing color serialized the same as an uncustomized object, so hydration fell back to each object's default theme color.",
+    "panel_internal_move": "Absorption cloned the widget while its tool drawer was portalled to the overlay, leaving the panel-contained clone without its customization drawer and move handle."
+  },
+  "fixes": {
+    "widget_recolor": "User-selected widget colors get data-panel-color-user=true and a scoped body tint using --panel-accent.",
+    "clear_color": "The shared color menu exposes No color and persists colorCleared separately from color.",
+    "panel_internal_move": "The widget drawer is restored before absorption cloning so the child widget can reopen customization and move inside the panel."
+  },
+  "tests": {
+    "focused_recolor_clear": "passed",
+    "focused_panel_contained_move": "passed",
+    "focused_material_parity": "passed",
+    "full_e2e": "27 passed"
+  }
+}
