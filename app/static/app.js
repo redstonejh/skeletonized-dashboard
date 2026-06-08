@@ -2642,6 +2642,7 @@ document.addEventListener("DOMContentLoaded", () => {
     showToast,
     regionIdForWorkspaceItem,
     WORKSPACE_OBJECT_TYPES,
+    workspaceTabsRuntime,
   });
   initializeHistoryResetRuntime({
     restoreLayoutUndo,

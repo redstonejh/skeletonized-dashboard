@@ -34,6 +34,7 @@ export function initializeObjectAddRuntime(deps) {
     showToast,
     regionIdForWorkspaceItem,
     WORKSPACE_OBJECT_TYPES,
+    workspaceTabsRuntime,
   } = deps;
   const objectAddCategories = [
     { id: "data", label: "Data" },
@@ -68,6 +69,7 @@ export function initializeObjectAddRuntime(deps) {
     { category: "media", displayName: "Video", actionClass: "widget-add-action", dataset: { widgetKind: "video" } },
     { category: "media", displayName: "PDF / Document", actionClass: "widget-add-action", dataset: { widgetKind: "document" } },
     { category: "containers", displayName: "Panel", actionClass: "panel-add-action", dataset: { panelKind: "panel" } },
+    { category: "navigation", displayName: "Tab", actionClass: "tab-add-action", dataset: { tabKind: "workspace-page" } },
     { category: "dividers", displayName: "Divider", actionClass: "divider-add-action", dataset: { dividerKind: "context-divider" } },
   ];
   const objectAddItemRuntimeDefinition = (item = {}) => {
@@ -107,7 +109,7 @@ export function initializeObjectAddRuntime(deps) {
     button.type = "button";
     button.className = `object-add-action glass-menu-item ${item.actionClass || ""}`.trim();
     button.textContent = item.displayName;
-    if (item.actionClass === "panel-add-action" || item.actionClass === "divider-add-action") {
+    if (item.actionClass === "panel-add-action" || item.actionClass === "divider-add-action" || item.actionClass === "tab-add-action") {
       button.dataset.layoutTarget = layoutKey;
     } else {
       button.dataset.widgetTarget = layoutKey;
@@ -534,9 +536,29 @@ export function initializeObjectAddRuntime(deps) {
         },
       });
   };
+
+  const handleTabAddAction = (button) => {
+      closeObjectAddMenu(button);
+      if (!workspaceTabsRuntime?.createTab) return;
+      const before = workspaceTabsRuntime.getState?.();
+      workspaceTabsRuntime.createTab();
+      const after = workspaceTabsRuntime.getState?.();
+      const tab = after?.tabs?.[after.activeIndex];
+      showToast(`${tab?.label || "Tab"} added.`, "info", {
+        type: "object-created",
+        source: "object-add",
+        layoutKey: button.dataset.layoutTarget || "default",
+        objectId: tab?.id || null,
+        objectType: "tab",
+        payload: {
+          previousIndex: before?.activeIndex ?? null,
+          activeIndex: after?.activeIndex ?? null,
+        },
+      });
+  };
   
   document.addEventListener("click", (event) => {
-    const button = event.target?.closest?.(".panel-add-action, .divider-add-action, .widget-add-action");
+    const button = event.target?.closest?.(".panel-add-action, .divider-add-action, .widget-add-action, .tab-add-action");
     if (!button) return;
     event.preventDefault();
     event.stopPropagation();
@@ -544,6 +566,8 @@ export function initializeObjectAddRuntime(deps) {
       handlePanelAddAction(button);
     } else if (button.classList.contains("divider-add-action")) {
       handleDividerAddAction(button);
+    } else if (button.classList.contains("tab-add-action")) {
+      handleTabAddAction(button);
     } else {
       handleWidgetAddAction(button);
     }
@@ -555,5 +579,6 @@ export function initializeObjectAddRuntime(deps) {
     handlePanelAddAction,
     handleDividerAddAction,
     handleWidgetAddAction,
+    handleTabAddAction,
   };
 }

@@ -165,6 +165,13 @@ export const initializeWorkspacePagesRuntime = ({
     save();
   };
 
+  const reconcileAfterTabMutation = () => {
+    const state = tabsRuntime.getState();
+    const nextActiveTabId = state.tabs[state.activeIndex]?.id || activeTabId;
+    reconcileTabs();
+    activeTabId = nextActiveTabId;
+  };
+
   const initialState = tabsRuntime.getState();
   activeTabId = initialState.tabs[initialState.activeIndex]?.id || activeTabId;
   const hadStoredActivePage = Boolean(store.pages[activeTabId]);
@@ -173,6 +180,7 @@ export const initializeWorkspacePagesRuntime = ({
 
   tabsRuntime.setCreateHandler(({ tab }) => ensurePage(tab.id, emptyPage()));
   tabsRuntime.setActivationHandler((event) => activatePage(event));
+  tabsRuntime.setMutationHandler(reconcileAfterTabMutation);
   window.addEventListener("beforeunload", () => {
     if (skipBeforeUnloadPersist) {
       skipBeforeUnloadPersist = false;

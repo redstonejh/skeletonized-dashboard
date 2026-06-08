@@ -23,7 +23,7 @@ const normalizeState = (value) => {
     label: cleanLabel(tab?.label, DEFAULT_TABS[index]?.label || `tab ${index + 1}`),
     color: cleanHex(tab?.color, DEFAULT_TABS[index]?.color || "#edf2f8"),
   }));
-  while (tabs.length < 3) {
+  while (tabs.length < 1) {
     const fallback = DEFAULT_TABS[tabs.length];
     tabs.push({ id: fallback.id, label: fallback.label, color: fallback.color });
   }
@@ -49,11 +49,44 @@ export const initializeWorkspaceTabsRuntime = ({
   let menuActionInProgress = false;
   let activationHandler = typeof onActivate === "function" ? onActivate : null;
   let createHandler = typeof onCreateTab === "function" ? onCreateTab : null;
+  let mutationHandler = null;
+  const undoStack = [];
 
   root.setAttribute("role", "toolbar");
   root.setAttribute("aria-label", "Workspace tabs");
 
   const save = () => writeJsonStore(storageKey, state);
+  const stateSnapshot = () => normalizeState({
+    tabs: state.tabs.map((tab) => ({ ...tab })),
+    activeIndex: state.activeIndex,
+  });
+  const pushUndo = () => {
+    undoStack.push(stateSnapshot());
+    if (undoStack.length > 40) undoStack.shift();
+  };
+  const notifyMutation = (type, detail = {}) => {
+    mutationHandler?.({ type, state: normalizeState(state), ...detail });
+  };
+  const applyState = (nextState, { type = "update", direction = 0 } = {}) => {
+    const previousState = stateSnapshot();
+    const previousIndex = previousState.activeIndex;
+    const previousTab = previousState.tabs[previousIndex] || null;
+    state = normalizeState(nextState);
+    save();
+    const nextTab = state.tabs[state.activeIndex] || null;
+    if (previousTab?.id !== nextTab?.id) {
+      activationHandler?.({
+        previousIndex,
+        nextIndex: state.activeIndex,
+        previousTab,
+        nextTab,
+        direction: direction || (state.activeIndex > previousIndex ? 1 : -1),
+        state: normalizeState(state),
+      });
+    }
+    notifyMutation(type, { previousState });
+    render();
+  };
 
   const closeMenu = ({ restoreFocus = true } = {}) => {
     const focusTarget = invokingTab;
@@ -100,6 +133,7 @@ export const initializeWorkspaceTabsRuntime = ({
   };
 
   const createTab = () => {
+    pushUndo();
     const nextNumber = state.tabs.length + 1;
     const tab = {
       id: `tab-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`,
@@ -119,6 +153,33 @@ export const initializeWorkspaceTabsRuntime = ({
       state: normalizeState(state),
     });
     render();
+  };
+
+  const moveTab = (index, direction) => {
+    const nextIndex = Math.max(0, Math.min(state.tabs.length - 1, index + direction));
+    if (nextIndex === index) return;
+    pushUndo();
+    const tabs = [...state.tabs];
+    const [tab] = tabs.splice(index, 1);
+    tabs.splice(nextIndex, 0, tab);
+    const activeTab = state.tabs[state.activeIndex];
+    const activeIndex = Math.max(0, tabs.findIndex((item) => item.id === activeTab?.id));
+    applyState({ tabs, activeIndex }, { type: "move", direction });
+  };
+
+  const deleteTab = (index) => {
+    if (state.tabs.length <= 1) return;
+    pushUndo();
+    const tabs = state.tabs.filter((_, tabIndex) => tabIndex !== index);
+    const activeIndex = Math.max(0, Math.min(tabs.length - 1, index <= state.activeIndex ? state.activeIndex - 1 : state.activeIndex));
+    applyState({ tabs, activeIndex }, { type: "delete", direction: index <= state.activeIndex ? -1 : 0 });
+  };
+
+  const undoLastTabChange = () => {
+    const previous = undoStack.pop();
+    if (!previous) return false;
+    applyState(previous, { type: "undo" });
+    return true;
   };
 
   const render = () => {
@@ -170,27 +231,17 @@ export const initializeWorkspaceTabsRuntime = ({
       });
       root.appendChild(button);
     });
-    const addButton = document.createElement("button");
-    addButton.type = "button";
-    addButton.className = "workspace-tab workspace-tab-add";
-    addButton.setAttribute("aria-label", "Add workspace page");
-    addButton.title = "Add workspace page";
-    addButton.dataset.tabLabel = "+";
-    const addLabel = document.createElement("span");
-    addLabel.className = "workspace-tab-label";
-    addLabel.textContent = "+";
-    addButton.appendChild(addLabel);
-    addButton.addEventListener("click", createTab);
-    root.appendChild(addButton);
   };
 
   const commitRename = (index, input, { renderTabs = true } = {}) => {
+    pushUndo();
     const fallback = state.tabs[index]?.label || `tab ${index + 1}`;
     state.tabs[index] = {
       ...state.tabs[index],
       label: cleanLabel(input.value, fallback),
     };
     save();
+    notifyMutation("rename");
     if (renderTabs) render();
   };
 
@@ -204,11 +255,45 @@ export const initializeWorkspaceTabsRuntime = ({
     menu.setAttribute("role", "menu");
     menu.dataset.tabIndex = String(index);
 
+    const moveGroup = document.createElement("div");
+    moveGroup.className = "workspace-tab-menu-group workspace-tab-move-group";
+    const moveLabel = document.createElement("span");
+    moveLabel.className = "panel-color-label";
+    moveLabel.textContent = "Move";
+    const moveControls = document.createElement("div");
+    moveControls.className = "workspace-tab-menu-actions";
+    const leftButton = document.createElement("button");
+    leftButton.type = "button";
+    leftButton.className = "panel-tool-button workspace-tab-menu-action workspace-tab-move-left";
+    leftButton.setAttribute("aria-label", "Move tab left");
+    leftButton.disabled = index <= 0;
+    leftButton.textContent = "Left";
+    const rightButton = document.createElement("button");
+    rightButton.type = "button";
+    rightButton.className = "panel-tool-button workspace-tab-menu-action workspace-tab-move-right";
+    rightButton.setAttribute("aria-label", "Move tab right");
+    rightButton.disabled = index >= state.tabs.length - 1;
+    rightButton.textContent = "Right";
+    leftButton.addEventListener("click", (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      moveTab(index, -1);
+      closeMenu({ restoreFocus: false });
+    });
+    rightButton.addEventListener("click", (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      moveTab(index, 1);
+      closeMenu({ restoreFocus: false });
+    });
+    moveControls.append(leftButton, rightButton);
+    moveGroup.append(moveLabel, moveControls);
+
     const renameGroup = document.createElement("div");
     renameGroup.className = "workspace-tab-menu-group";
     const renameLabel = document.createElement("label");
     renameLabel.className = "panel-color-label";
-    renameLabel.textContent = "Rename tab";
+    renameLabel.textContent = "Text";
     const input = document.createElement("input");
     input.className = "workspace-tab-rename-input";
     input.type = "text";
@@ -256,9 +341,11 @@ export const initializeWorkspaceTabsRuntime = ({
       swatch.addEventListener("click", (event) => {
         event.preventDefault();
         event.stopPropagation();
+        pushUndo();
         const nextColor = cleanHex(color);
         state.tabs[index] = { ...state.tabs[index], color: nextColor };
         save();
+        notifyMutation("color");
         render();
         invokingTab = root.querySelector(`[data-tab-index="${index}"]`);
         menu?.querySelectorAll(".panel-color-swatch").forEach((item) => {
@@ -269,7 +356,22 @@ export const initializeWorkspaceTabsRuntime = ({
       swatches.appendChild(swatch);
     });
     colorGroup.append(colorLabel, swatches);
-    menu.append(renameGroup, colorGroup);
+    const deleteGroup = document.createElement("div");
+    deleteGroup.className = "workspace-tab-menu-group workspace-tab-delete-group";
+    const deleteButton = document.createElement("button");
+    deleteButton.type = "button";
+    deleteButton.className = "panel-tool-button workspace-tab-menu-action workspace-tab-delete-action";
+    deleteButton.textContent = "Delete";
+    deleteButton.disabled = state.tabs.length <= 1;
+    deleteButton.setAttribute("aria-label", "Delete tab");
+    deleteButton.addEventListener("click", (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      deleteTab(index);
+      closeMenu({ restoreFocus: false });
+    });
+    deleteGroup.appendChild(deleteButton);
+    menu.append(moveGroup, colorGroup, renameGroup, deleteGroup);
     menu.addEventListener("pointerdown", (event) => {
       menuActionInProgress = !event.target?.closest?.(".workspace-tab-rename-input");
       if (menuActionInProgress) event.preventDefault();
@@ -286,6 +388,15 @@ export const initializeWorkspaceTabsRuntime = ({
   }, true);
   document.addEventListener("keydown", (event) => {
     if (event.key === "Escape") closeMenu();
+  }, true);
+  document.addEventListener("keydown", (event) => {
+    if (event.defaultPrevented) return;
+    if (!(event.ctrlKey || event.metaKey) || event.altKey || event.shiftKey) return;
+    if (event.key.toLowerCase() !== "z") return;
+    if (event.target?.closest?.("input, textarea, select, [contenteditable='true'], [role='textbox']")) return;
+    if (!undoLastTabChange()) return;
+    event.preventDefault();
+    event.stopPropagation();
   }, true);
   window.addEventListener("resize", () => {
     if (!menu) return;
@@ -307,7 +418,13 @@ export const initializeWorkspaceTabsRuntime = ({
     setCreateHandler: (handler) => {
       createHandler = typeof handler === "function" ? handler : null;
     },
+    setMutationHandler: (handler) => {
+      mutationHandler = typeof handler === "function" ? handler : null;
+    },
     activateTab,
     createTab,
+    moveTab,
+    deleteTab,
+    undoLastTabChange,
   };
 };
