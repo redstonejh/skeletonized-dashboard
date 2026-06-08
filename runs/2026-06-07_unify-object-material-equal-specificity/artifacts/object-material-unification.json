@@ -1,0 +1,13 @@
+{
+  "check": "object_material_equal_specificity",
+  "passed": true,
+  "photoDiffCount": 0,
+  "staticVsPhotoDiffCount": 0,
+  "themesCssLinesBefore": 5791,
+  "themesCssLinesAfter": 5717,
+  "staticReplayBlockCount": 0,
+  "sharedEqualSpecificitySelectorCount": 226,
+  "selectorStrategy": "body:is(.has-photo-background, :not(.has-photo-background)) preserves body-plus-class specificity while sharing one declaration block",
+  "duplicatedComputedStaticBlockRemoved": true
+}
+

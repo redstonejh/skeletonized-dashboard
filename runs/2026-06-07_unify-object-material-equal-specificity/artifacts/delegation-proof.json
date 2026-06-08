@@ -1,0 +1,37 @@
+{
+  "schema_version": 1,
+  "delegation_capability": {
+    "available": true,
+    "primitive": "multi_agent_v1.spawn_agent"
+  },
+  "selected_roles": [
+    "conductor",
+    "planner",
+    "worker",
+    "critic",
+    "acceptance_gate"
+  ],
+  "roles": {
+    "conductor": {
+      "agent_id": "019ea4e3-79fd-7491-935c-9001a7de3430",
+      "role_prompt_path": ".codex/agents/conductor.md"
+    },
+    "planner": {
+      "agent_id": "019ea4e4-0d3d-7a93-b07a-7ee3559c1b50",
+      "role_prompt_path": ".codex/agents/planner.md"
+    },
+    "worker": {
+      "agent_id": "019ea4e4-2c18-7ee2-8f84-87c4950a9b6a",
+      "role_prompt_path": ".codex/agents/worker.md"
+    },
+    "critic": {
+      "agent_id": "019ea4e4-42c0-7de2-8927-a344f5b4703b",
+      "role_prompt_path": ".codex/agents/critic.md"
+    },
+    "acceptance_gate": {
+      "agent_id": "019ea4e4-59e0-7271-9320-47dade7e0a7f",
+      "role_prompt_path": ".codex/agents/acceptance_gate.md"
+    }
+  }
+}
+

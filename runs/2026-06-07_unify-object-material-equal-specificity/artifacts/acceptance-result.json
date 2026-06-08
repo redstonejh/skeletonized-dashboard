@@ -1,0 +1,16 @@
+{
+  "verdict": "SHIP",
+  "checks": {
+    "photoDiffCountZero": true,
+    "staticEqualsPhoto": true,
+    "noStaticReplayBlock": true,
+    "equalSpecificitySelectors": true,
+    "fullE2e": true,
+    "delegationProof": true
+  },
+  "evidence": {
+    "focusedMaterial": "npm.cmd run test:e2e -- --workers=1 --reporter=line -g \"uses the same object material\" passed",
+    "fullE2e": "npm.cmd run test:e2e -- --workers=1 --reporter=line passed 24/24"
+  }
+}
+

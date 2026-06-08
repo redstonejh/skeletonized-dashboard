@@ -1,0 +1,13 @@
+{
+  "focused_material_e2e": {
+    "command": "npm.cmd run test:e2e -- --workers=1 --reporter=line -g \"uses the same object material\"",
+    "passed": true,
+    "result": "1 passed"
+  },
+  "full_e2e": {
+    "command": "npm.cmd run test:e2e -- --workers=1 --reporter=line",
+    "passed": true,
+    "result": "24 passed"
+  }
+}
+
