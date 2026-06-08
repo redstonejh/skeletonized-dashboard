@@ -5187,18 +5187,6 @@ no card. Active * filter is indicated by a subtle underline + slightly higher * 
   user-select: none;
   will-change: transform;
 }
-body.workspace-page-swipe-dragging .workspace-page-surface.workspace-page-swipe-active{
-  transition: none !important;
-}
-.workspace-page-swipe-preview{
-  position: fixed;
-  z-index: 1;
-  margin: 0;
-  pointer-events: none;
-  transition: none;
-  user-select: none;
-  will-change: transform;
-}
 body.workspace-page-swipe-dragging{
   user-select: none;
 }

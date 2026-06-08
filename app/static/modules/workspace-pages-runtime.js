@@ -53,6 +53,7 @@ export const initializeWorkspacePagesRuntime = ({
   let persistTimer = null;
   let suppressPersistenceObserver = false;
   let swipeState = null;
+  let swipeGestureActive = false;
 
   grid.classList.add("workspace-page-surface");
 
@@ -61,7 +62,6 @@ export const initializeWorkspacePagesRuntime = ({
     panels: fragmentFromHtml(panelHtml),
     mounted: false,
     needsHydration: Boolean(widgetHtml || panelHtml),
-    transitionPreview: null,
   });
 
   const ensurePage = (tabId, storedPage = null) => {
@@ -123,12 +123,6 @@ export const initializeWorkspacePagesRuntime = ({
       return {
         widgetHtml: cleanTransientMarkup(widgetLayout()),
         panelHtml: cleanTransientMarkup(panelLayout()),
-      };
-    }
-    if (page?.transitionPreview) {
-      return {
-        widgetHtml: cleanTransientMarkup(page.transitionPreview.widgets),
-        panelHtml: cleanTransientMarkup(page.transitionPreview.panels),
       };
     }
     return {
@@ -251,7 +245,7 @@ export const initializeWorkspacePagesRuntime = ({
 
   const isBareWorkspacePointer = (event) => {
     if (!event || event.button !== 0 || event.ctrlKey || event.metaKey || event.altKey || event.shiftKey) return false;
-    if (switching || swipeState) return false;
+    if (switching || swipeState || swipeGestureActive) return false;
     if (event.target?.closest?.(workspaceSwipeBlockSelector)) return false;
     const x = Number(event.clientX);
     const y = Number(event.clientY);
@@ -263,144 +257,33 @@ export const initializeWorkspacePagesRuntime = ({
       y <= window.innerHeight;
   };
 
-  const createSwipePreview = (tabId, direction) => {
-    const page = ensurePage(tabId);
-    if (!page) return null;
-    const transitionSign = transitionDirection(direction);
-    const preview = document.createElement("div");
-    preview.className = "dashboard-layout-grid workspace-page-swipe-preview";
-    preview.setAttribute("aria-hidden", "true");
-    preview.dataset.swipeDirection = String(transitionSign);
-    const widgets = document.createElement("div");
-    widgets.className = "stat-band widget-layout";
-    widgets.dataset.widgetLayoutKey = "builder";
-    const panels = document.createElement("div");
-    panels.className = "panel-layout";
-    panels.dataset.layoutKey = "builder";
-    moveChildren(page.widgets, widgets);
-    moveChildren(page.panels, panels);
-    preview.append(widgets, panels);
-    const rect = grid.getBoundingClientRect();
-    preview.style.left = `${rect.left}px`;
-    preview.style.top = `${rect.top}px`;
-    preview.style.width = `${rect.width}px`;
-    preview.style.minHeight = `${Math.max(rect.height, grid.scrollHeight || 0)}px`;
-    document.body.appendChild(preview);
-    const transitionPreview = { surface: preview, widgets, panels, tabId };
-    page.transitionPreview = transitionPreview;
-    if (page.needsHydration) {
-      preview.dataset.workspacePageSnapshotHydrating = "true";
-      try {
-        onPageMounted?.({ tabId, root: preview });
-      } finally {
-        delete preview.dataset.workspacePageSnapshotHydrating;
-      }
-      page.needsHydration = false;
-    }
-    return transitionPreview;
-  };
-
-  const clearSwipeStyles = (state = swipeState) => {
+  const clearTransitionStyles = (state = swipeState) => {
     grid.classList.remove("workspace-page-swipe-active");
     grid.style.removeProperty("transform");
     grid.style.removeProperty("transition");
-    state?.preview?.surface?.remove();
     document.body.classList.remove("workspace-page-swipe-dragging");
     if (swipeState === state) swipeState = null;
-  };
-
-  const restorePreviewPage = (state) => {
-    const preview = state?.preview;
-    const page = preview ? ensurePage(preview.tabId) : null;
-    if (!preview || !page) return;
-    moveChildren(preview.widgets, page.widgets);
-    moveChildren(preview.panels, page.panels);
-    page.mounted = false;
-    if (page.transitionPreview === preview) page.transitionPreview = null;
-  };
-
-  const commitPreviewPage = (state) => {
-    const preview = state?.preview;
-    const page = preview ? ensurePage(preview.tabId) : null;
-    if (!preview || !page) return;
-    suppressPersistenceObserver = true;
-    try {
-      parkActivePage();
-      const widgets = widgetLayout();
-      const panels = panelLayout();
-      if (widgets) widgets.textContent = "";
-      if (panels) panels.textContent = "";
-      moveChildren(preview.widgets, widgets);
-      moveChildren(preview.panels, panels);
-      page.mounted = true;
-      if (page.transitionPreview === preview) page.transitionPreview = null;
-      grid.dataset.activeWorkspacePage = preview.tabId;
-      activeTabId = preview.tabId;
-    } finally {
-      suppressPersistenceObserver = false;
-    }
-    onPageAttached?.({ tabId: preview.tabId });
-  };
-
-  const setSwipeOffset = (offset, state = swipeState) => {
-    if (!state) return;
-    const { width, preview } = state;
-    const direction = transitionDirection(state.direction);
-    const activeX = offset;
-    const previewX = (direction > 0 ? width : -width) + offset;
-    grid.style.transform = `translateX(${activeX}px)`;
-    if (preview?.surface) preview.surface.style.transform = `translateX(${previewX}px)`;
-    window.LiquidGlassWebGL?.markDirty?.();
-  };
-
-  const finishSwipe = ({ commit }) => {
-    if (!swipeState) return;
-    const state = swipeState;
-    const direction = transitionDirection(state.direction);
-    const targetX = commit ? -direction * state.width : 0;
-    document.body.classList.remove("workspace-page-swipe-dragging");
-    grid.style.transition = "transform 220ms cubic-bezier(.19, 1, .22, 1)";
-    if (state.preview?.surface) {
-      state.preview.surface.style.transition = "transform 220ms cubic-bezier(.19, 1, .22, 1)";
-    }
-    setSwipeOffset(targetX, state);
-    const cleanup = () => {
-      if (commit) {
-        commitPreviewPage(state);
-        tabsRuntime.selectTabWithoutActivation(state.targetIndex);
-      } else {
-        restorePreviewPage(state);
-      }
-      clearSwipeStyles(state);
-      switching = false;
-      window.LiquidGlassWebGL?.markDirty?.();
-    };
-    window.setTimeout(cleanup, 230);
   };
 
   const animateToPage = (nextTabId, direction) => {
     if (!nextTabId || switching) return;
     const transitionSign = transitionDirection(direction);
     const width = Math.max(1, grid.getBoundingClientRect().width || window.innerWidth || 1);
-    const state = {
-      width,
-      direction: transitionSign,
-      preview: createSwipePreview(nextTabId, transitionSign),
-    };
+    const state = { width, direction: transitionSign };
     swipeState = state;
     switching = true;
     grid.classList.add("workspace-page-swipe-active");
-    setSwipeOffset(0, state);
+    grid.style.transition = "none";
+    grid.style.transform = `translateX(${transitionSign * width}px)`;
+    switchToPage(nextTabId);
+    window.LiquidGlassWebGL?.markDirty?.();
     window.requestAnimationFrame(() => {
       grid.style.transition = "transform 220ms cubic-bezier(.19, 1, .22, 1)";
-      if (state.preview?.surface) {
-        state.preview.surface.style.transition = "transform 220ms cubic-bezier(.19, 1, .22, 1)";
-      }
-      setSwipeOffset(-transitionSign * width, state);
+      grid.style.transform = "translateX(0px)";
+      window.LiquidGlassWebGL?.markDirty?.();
     });
     window.setTimeout(() => {
-      commitPreviewPage(state);
-      clearSwipeStyles(state);
+      clearTransitionStyles(state);
       switching = false;
       window.LiquidGlassWebGL?.markDirty?.();
     }, 240);
@@ -417,6 +300,9 @@ export const initializeWorkspacePagesRuntime = ({
     const pointerId = event.pointerId;
     let locked = false;
     let canceled = false;
+    let swipeDirection = 0;
+    let targetIndex = startIndex;
+    let edge = false;
 
     const cleanupListeners = () => {
       window.removeEventListener("pointermove", onPointerMove, true);
@@ -426,41 +312,18 @@ export const initializeWorkspacePagesRuntime = ({
 
     const cancelPending = () => {
       canceled = true;
+      swipeGestureActive = false;
+      document.body.classList.remove("workspace-page-swipe-dragging");
       cleanupListeners();
     };
 
     const startLockedSwipe = (moveEvent, dx) => {
-      const direction = swipeDirectionFromDelta(dx);
-      const targetIndex = startIndex + direction;
-      if (targetIndex < 0 || targetIndex >= startState.tabs.length) {
-        const width = Math.max(1, grid.getBoundingClientRect().width || window.innerWidth || 1);
-        swipeState = {
-          pointerId,
-          startX,
-          startTime,
-          width,
-          direction,
-          targetIndex: startIndex,
-          preview: null,
-          edge: true,
-        };
-      } else {
-        const width = Math.max(1, grid.getBoundingClientRect().width || window.innerWidth || 1);
-        swipeState = {
-          pointerId,
-          startX,
-          startTime,
-          width,
-          direction,
-          targetIndex,
-          preview: createSwipePreview(startState.tabs[targetIndex]?.id, direction),
-          edge: false,
-        };
-      }
+      swipeDirection = swipeDirectionFromDelta(dx);
+      targetIndex = startIndex + swipeDirection;
+      edge = targetIndex < 0 || targetIndex >= startState.tabs.length;
       locked = true;
-      switching = true;
+      swipeGestureActive = true;
       document.body.classList.add("workspace-page-swipe-dragging");
-      grid.classList.add("workspace-page-swipe-active");
       try {
         grid.setPointerCapture?.(pointerId);
       } catch {}
@@ -481,11 +344,6 @@ export const initializeWorkspacePagesRuntime = ({
         }
         startLockedSwipe(moveEvent, dx);
       }
-      if (!swipeState) return;
-      const rawOffset = moveEvent.clientX - startX;
-      const directionalOffset = swipeState.direction > 0 ? Math.min(0, rawOffset) : Math.max(0, rawOffset);
-      const offset = swipeState.edge ? directionalOffset * 0.28 : directionalOffset;
-      setSwipeOffset(offset);
       moveEvent.preventDefault();
       moveEvent.stopPropagation();
     }
@@ -493,14 +351,19 @@ export const initializeWorkspacePagesRuntime = ({
     function onPointerUp(upEvent) {
       if (upEvent.pointerId !== pointerId) return;
       cleanupListeners();
-      if (!locked || !swipeState) return;
+      if (!locked) return;
       const dx = upEvent.clientX - startX;
       const elapsed = Math.max(1, performance.now() - startTime);
       const velocity = dx / elapsed;
-      const progress = Math.min(1, Math.abs(dx) / swipeState.width);
-      const directionMatches = swipeState.direction > 0 ? dx < 0 : dx > 0;
-      const commit = !swipeState.edge && directionMatches && (progress > 0.32 || Math.abs(velocity) > 0.55);
-      finishSwipe({ commit });
+      const width = Math.max(1, grid.getBoundingClientRect().width || window.innerWidth || 1);
+      const progress = Math.min(1, Math.abs(dx) / width);
+      const directionMatches = swipeDirection > 0 ? dx < 0 : dx > 0;
+      const commit = !edge && directionMatches && (progress > 0.32 || Math.abs(velocity) > 0.55);
+      swipeGestureActive = false;
+      document.body.classList.remove("workspace-page-swipe-dragging");
+      if (commit) {
+        tabsRuntime.activateTab(targetIndex, { source: "swipe", direction: swipeDirection });
+      }
       upEvent.preventDefault();
       upEvent.stopPropagation();
     }
@@ -508,7 +371,8 @@ export const initializeWorkspacePagesRuntime = ({
     function onPointerCancel(cancelEvent) {
       if (cancelEvent.pointerId !== pointerId) return;
       cleanupListeners();
-      if (swipeState) finishSwipe({ commit: false });
+      swipeGestureActive = false;
+      document.body.classList.remove("workspace-page-swipe-dragging");
     }
 
     window.addEventListener("pointermove", onPointerMove, true);

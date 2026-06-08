@@ -2627,12 +2627,9 @@ document.addEventListener("DOMContentLoaded", () => {
   });
   bindDashboardKeywordForms();
 
-  const refreshMountedWorkspacePage = ({ root = document } = {}) => {
-    initPanelLayouts(root);
-    const widgetLayouts = root?.matches?.(".widget-layout")
-      ? [root]
-      : [...(root?.querySelectorAll?.(".widget-layout") || [])];
-    widgetLayouts.forEach(initWidgetLayout);
+  const refreshMountedWorkspacePage = () => {
+    initPanelLayouts();
+    document.querySelectorAll(".widget-layout").forEach(initWidgetLayout);
     bindDashboardKeywordForms();
     refreshWidgetDisplayState("builder");
     scheduleRestoredLayoutReconciliation("builder");

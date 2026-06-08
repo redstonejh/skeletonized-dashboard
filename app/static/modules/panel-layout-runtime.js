@@ -91,11 +91,8 @@ export const createPanelLayoutRuntime = ({
   beginResizeLifecycle,
   resizeEdgeFromPointer,
 }) => {
-  const initPanelLayouts = (root = document) => {
-    const layouts = root?.matches?.(".panel-layout")
-      ? [root]
-      : [...(root?.querySelectorAll?.(".panel-layout") || [])];
-    layouts.forEach((layout) => {
+  const initPanelLayouts = () => {
+    document.querySelectorAll(".panel-layout").forEach((layout) => {
       const { layoutKey, panels } = hydratePanelLayout(layout, {
         getActivePanelProfile,
         readJsonStore,
