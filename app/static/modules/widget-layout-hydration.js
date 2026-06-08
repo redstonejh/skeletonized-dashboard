@@ -97,7 +97,6 @@ export const hydrateWidgetLayout = (layout, {
       applyPanelColor(widget, saved?.color || widget.dataset.panelColor || widget.querySelector(".panel-color-toggle")?.dataset.defaultTheme);
       if (saved?.colorUser) {
         widget.dataset.panelColorUser = "true";
-        if (widget.dataset.panelColor) widget.style.setProperty("border", `1.5px solid ${widget.dataset.panelColor}`, "important");
       }
     }
     applyPanelTitleColor(widget, "");

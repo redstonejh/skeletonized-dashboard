@@ -84,9 +84,6 @@ export const applyPanelColor = (panel, color) => {
   panel.style.setProperty("--panel-accent-text", textColor, "important");
   panel.style.setProperty("--panel-header-control-fg", textColor, "important");
   panel.style.setProperty("--panel-lock-fg", textColor, "important");
-  if (panel.classList.contains("widget-card") && panel.dataset.panelColorUser === "true") {
-    panel.style.setProperty("border", `1.5px solid ${panel.dataset.panelColor}`, "important");
-  }
   if (isWhite) {
     panel.style.setProperty("--panel-custom-control-bg", "color-mix(in srgb, var(--surface-raised) 74%, #ffffff 26%)", "important");
     panel.style.setProperty("--panel-custom-control-border", "rgba(15, 23, 42, .32)", "important");
@@ -190,9 +187,6 @@ export const createPanelColorMenuFactory = ({
           } else {
             panel.dataset.panelColorUser = "true";
           }
-          if (!isClear && panel.classList.contains("widget-card")) {
-            panel.style.setProperty("border", `1.5px solid ${panel.dataset.panelColor}`, "important");
-          }
           if (panel.classList.contains("group-selected")) {
             const peers = selectedGroupItems(null, groupItemLayoutKey(panel)).filter((item) => item !== panel);
             peers.forEach((item) => {
@@ -201,9 +195,6 @@ export const createPanelColorMenuFactory = ({
                 delete item.dataset.panelColorUser;
               } else {
                 item.dataset.panelColorUser = "true";
-              }
-              if (!isClear && item.classList.contains("widget-card")) {
-                item.style.setProperty("border", `1.5px solid ${item.dataset.panelColor}`, "important");
               }
             });
             [...new Set(peers.map(groupItemLayout).filter(Boolean))].forEach((peerLayout) => {

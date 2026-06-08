@@ -1656,23 +1656,21 @@ but make focus unmistakable. */ .panel-tool-drawer .panel-tool-button:focus-visi
 }body.group-select-active .widget-layout > .widget-card,
 body.group-select-active .panel-layout > .db-panel{
   cursor: pointer;
-}.widget-layout > .widget-card.group-selected,
-.panel-layout > .db-panel.group-selected{
+}.panel-layout > .db-panel.group-selected{
   outline: 1.5px solid color-mix(in srgb, var(--panel-accent, var(--blue)) 62%, rgba(255, 255, 255, .72));
   outline-offset: 5px;
   box-shadow:
     var(--shadow-card),
     0 0 0 1px rgba(var(--panel-accent-rgb, 37, 99, 235), .18),
     0 0 22px rgba(var(--panel-accent-rgb, 37, 99, 235), .14) !important;
-}.widget-layout > .widget-card.active.group-selected,
+}.widget-layout > .widget-card.group-selected,
+.widget-layout > .widget-card.active.group-selected,
 .widget-layout > .widget-card.db-panel-custom-color.active.group-selected{
-  outline: 2px solid color-mix(in srgb, var(--panel-accent, var(--blue)) 72%, rgba(255, 255, 255, .78)) !important;
-  outline-offset: 6px !important;
-  box-shadow:
-    var(--shadow-card),
-    0 0 0 1px rgba(var(--panel-accent-rgb, 37, 99, 235), .26),
-    0 0 28px rgba(var(--panel-accent-rgb, 37, 99, 235), .20) !important;
-}body.group-transform-active .group-transform-member{
+  outline: 0 !important;
+  outline-offset: 0 !important;
+  box-shadow: 0 12px 26px rgba(0, 0, 0, 0.14) !important;
+}
+body.group-transform-active .group-transform-member{
   transform-origin: center;
 }/* Compact controls settle into the glass on contact; large dashboard objects keep their hover lift. */ .settings-brand-switch:hover,
 .cmd-btn:hover,
@@ -4975,14 +4973,17 @@ body.panel-interaction-active .panel-layout > .db-panel.db-panel-custom-color:fo
 panels,
 * panel headers,
 dividers,
-and objects with the shared edge stack * defined at the top of this section. Border itself reduced to a * hairline alpha; the optical edge is carried by the box-shadow * layers (outer separation + top/left bright rim + soft inner glow * + bottom curl). Hover swaps to the brighter -hover variant. * * Higher specificity than the rest paints and the shell-system * hover rules so the edge stack wins regardless of state. */ .widget-layout > .widget-card,
-.panel-internal-widget-grid > .widget-card,
-.panel-layout > .db-panel,
+and objects with the shared edge stack * defined at the top of this section. Panels keep the optical edge; widgets intentionally carry no visible border/outline. */ .panel-layout > .db-panel,
 .db-panel.db-panel-tools-open,
 .panel-layout > .db-panel.db-panel-custom-color,
 .workspace-divider.db-panel{
   border-color: rgba(255, 255, 255, var(--glass-edge-border-alpha)) !important;
   box-shadow: var(--glass-edge-stack) !important;
+}.widget-layout > .widget-card,
+.panel-internal-widget-grid > .widget-card{
+  border-color: transparent !important;
+  outline: 0 !important;
+  box-shadow: 0 12px 26px rgba(0, 0, 0, 0.14) !important;
 }/* Panel header: same edge family but ONLY a top hairline + soft top * glow + bottom hairline. Headers are strips,
 not full panels,
 so * vertical curl doesnt apply. No outer separation either,
@@ -4993,11 +4994,15 @@ because the * header sits flush with the panel. */ .db-panel > .db-panel-hd,
     var(--glass-edge-top-line),
     var(--glass-edge-top-glow),
     inset 0 -1px 0 rgba(255, 255, 255, 0.10) !important;
-}/* Hover/focus: brighter rim across all object types. Same selectors as * the rest set above plus :hover/:focus-within/:focus-visible. */ .widget-layout > .widget-card:hover,
+}/* Hover/focus: brighter rim for panels and dividers. Widgets keep a clean edge in every state. */ .widget-layout > .widget-card:hover,
 .widget-layout > .widget-card:focus-visible,
 .panel-internal-widget-grid > .widget-card:hover,
-.panel-internal-widget-grid > .widget-card:focus-visible,
-.db-panel:hover,
+.panel-internal-widget-grid > .widget-card:focus-visible{
+  border-color: transparent !important;
+  outline: 0 !important;
+  box-shadow: 0 14px 30px rgba(0, 0, 0, 0.16) !important;
+  transform: none;
+}.db-panel:hover,
 .db-panel:focus-within,
 .db-panel.db-panel-collapsed:hover,
 .db-panel.db-panel-collapsed:focus-within,
@@ -5050,8 +5055,9 @@ because the * header sits flush with the panel. */ .db-panel > .db-panel-hd,
 .panel-internal-widget-grid > .widget-card.db-panel-custom-color.widget-tools-open:focus-visible{
   background: rgba(255, 255, 255, 0.03) !important;
   background-image: none !important;
-  border-color: rgba(255, 255, 255, var(--glass-edge-border-alpha)) !important;
-  box-shadow: var(--glass-edge-stack) !important;
+  border-color: transparent !important;
+  outline: 0 !important;
+  box-shadow: 0 12px 26px rgba(0, 0, 0, 0.14) !important;
 }.widget-layout > .widget-card.db-panel-custom-color:hover,
 .widget-layout > .widget-card.db-panel-custom-color:focus-visible,
 .widget-layout > .widget-card.db-panel-custom-color.active,
@@ -5059,8 +5065,9 @@ because the * header sits flush with the panel. */ .db-panel > .db-panel-hd,
 .panel-internal-widget-grid > .widget-card.db-panel-custom-color:focus-visible{
   background: rgba(255, 255, 255, 0.03) !important;
   background-image: none !important;
-  border-color: rgba(255, 255, 255, calc(var(--glass-edge-border-alpha) + 0.10)) !important;
-  box-shadow: var(--glass-edge-stack-hover) !important;
+  border-color: transparent !important;
+  outline: 0 !important;
+  box-shadow: 0 14px 30px rgba(0, 0, 0, 0.16) !important;
   transform: none;
 }.widget-layout > .widget-card,
 .panel-internal-widget-grid > .widget-card,
@@ -5674,7 +5681,8 @@ no card. Active * filter is indicated by a subtle underline + slightly higher * 
     rgba(var(--panel-accent-rgb), .10) !important;
   background-image: var(--object-shell-wash) !important;
   background-color: rgba(var(--panel-accent-rgb), .10) !important;
-  border-color: var(--line) !important;
+  border-color: transparent !important;
+  outline: 0 !important;
 }
 .widget-card.db-panel-custom-color[data-panel-color-user="true"]:hover,
 .widget-card.db-panel-custom-color[data-panel-color-user="true"]:focus-visible,
@@ -5701,5 +5709,44 @@ no card. Active * filter is indicated by a subtle underline + slightly higher * 
     rgba(var(--panel-accent-rgb), .12) !important;
   background-image: var(--object-shell-wash) !important;
   background-color: rgba(var(--panel-accent-rgb), .12) !important;
-  border-color: var(--line) !important;
+  border-color: transparent !important;
+  outline: 0 !important;
+}
+
+/* Widgets use glass without a painted rim. Keep this after custom-color and
+   runtime-state material rules so no theme accent can reappear as an outline. */
+.widget-layout > .widget-card,
+.widget-layout > .widget-card:hover,
+.widget-layout > .widget-card:focus,
+.widget-layout > .widget-card:focus-visible,
+.widget-layout > .widget-card.active,
+.widget-layout > .widget-card.widget-tools-open,
+.widget-layout > .widget-card.widget-tools-open:hover,
+.widget-layout > .widget-card.widget-tools-open:focus-visible,
+.widget-layout > .widget-card.db-panel-custom-color,
+.widget-layout > .widget-card.db-panel-custom-color:hover,
+.widget-layout > .widget-card.db-panel-custom-color:focus-visible,
+.widget-layout > .widget-card.db-panel-custom-color.active,
+.widget-layout > .widget-card.db-panel-custom-color.widget-runtime-meaning,
+.widget-layout > .widget-card.db-panel-custom-color.widget-tools-open,
+.widget-layout > .widget-card.db-panel-custom-color.widget-tools-open:hover,
+.widget-layout > .widget-card.db-panel-custom-color.widget-tools-open:focus-visible,
+.panel-internal-widget-grid > .widget-card,
+.panel-internal-widget-grid > .widget-card:hover,
+.panel-internal-widget-grid > .widget-card:focus,
+.panel-internal-widget-grid > .widget-card:focus-visible,
+.panel-internal-widget-grid > .widget-card.active,
+.panel-internal-widget-grid > .widget-card.widget-tools-open,
+.panel-internal-widget-grid > .widget-card.widget-tools-open:hover,
+.panel-internal-widget-grid > .widget-card.widget-tools-open:focus-visible,
+.panel-internal-widget-grid > .widget-card.db-panel-custom-color,
+.panel-internal-widget-grid > .widget-card.db-panel-custom-color:hover,
+.panel-internal-widget-grid > .widget-card.db-panel-custom-color:focus-visible,
+.panel-internal-widget-grid > .widget-card.db-panel-custom-color.active,
+.panel-internal-widget-grid > .widget-card.db-panel-custom-color.widget-runtime-meaning,
+.panel-internal-widget-grid > .widget-card.db-panel-custom-color.widget-tools-open,
+.panel-internal-widget-grid > .widget-card.db-panel-custom-color.widget-tools-open:hover,
+.panel-internal-widget-grid > .widget-card.db-panel-custom-color.widget-tools-open:focus-visible{
+  border-color: transparent !important;
+  outline: 0 !important;
 }

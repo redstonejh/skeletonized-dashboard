@@ -129,7 +129,7 @@ body.webgl-glass-on .widget-card.db-panel-custom-color{
   transition: var(--workspace-lod-transition);
 }.widget-layout > .widget-card,
 .panel-internal-widget-grid > .widget-card{
-  border: 1.5px solid var(--line);
+  border: 1.5px solid transparent;
 }.widget-card[data-hover-zone="top-left"],
 .db-panel[data-hover-zone="top-left"]{
   --surface-zone-origin: 18% 18%;
@@ -524,7 +524,7 @@ body.webgl-glass-on .widget-card.db-panel-custom-color{
     color-mix(in srgb,
       rgba(var(--panel-accent-rgb, 37, 99, 235), .34) var(--widget-custom-color-tint),
       var(--glass-surface));
-  border-color: var(--line);
+  border-color: transparent;
   box-shadow:
     0 1px 3px rgba(15, 23, 42, calc(.045 * var(--surface-white-mix-compensation))),
     inset 0 1px 0 rgba(255, 255, 255, calc(.11 * var(--surface-white-mix-compensation))),
@@ -538,7 +538,7 @@ body.webgl-glass-on .widget-card.db-panel-custom-color{
     color-mix(in srgb,
       rgba(var(--panel-accent-rgb, 37, 99, 235), .40) var(--widget-custom-color-hover-tint),
       var(--glass-surface));
-  border-color: var(--line);
+  border-color: transparent;
 }.widget-card.db-panel-custom-color:hover .stat-val,
 .widget-card.db-panel-custom-color:hover .stat-lbl{
   color: var(--panel-accent-text);
@@ -888,7 +888,7 @@ and ghost states */ .widget-card.widget-tools-open,
   backdrop-filter: none !important;
   -webkit-backdrop-filter: none !important;
   transform: rotate(.12deg) scale(1.006) !important;
-  box-shadow: 0 26px 58px rgba(15, 23, 42, .24), 0 0 0 1px rgba(37, 99, 235, .18);
+  box-shadow: 0 26px 58px rgba(15, 23, 42, .24);
 }.dashboard-live-resize{
   position: fixed !important;
   z-index: var(--z-drag-ghost);
@@ -897,7 +897,7 @@ and ghost states */ .widget-card.widget-tools-open,
   pointer-events: none;
   opacity: .74;
   transform: none !important;
-  box-shadow: 0 26px 58px rgba(15, 23, 42, .20), 0 0 0 1px rgba(37, 99, 235, .16);
+  box-shadow: 0 26px 58px rgba(15, 23, 42, .20);
   transition: none !important;
   will-change: width, height, transform;
 }body.resize-auto-zoom-active .dashboard-layout-grid{
@@ -939,8 +939,8 @@ body.resize-auto-zoom-active .dashboard-expanded-footprint-ghost{
   visibility: visible !important;
   pointer-events: none;
   opacity: .86;
-  outline: 1.5px solid color-mix(in srgb, var(--panel-accent, var(--blue)) 62%, rgba(255, 255, 255, .72));
-  outline-offset: 5px;
+  outline: 0;
+  outline-offset: 0;
   transform: none !important;
   box-shadow:
     0 22px 52px rgba(51, 65, 85, .18),
@@ -1009,7 +1009,7 @@ body.resize-auto-zoom-active .dashboard-expanded-footprint-ghost{
 .panel-internal-widget-grid > .widget-card:has(> .widget-tools .panel-settings-toggle:focus-visible),
 .panel-internal-widget-grid > .widget-card:has(> .widget-tools .panel-tool-button:hover),
 .panel-internal-widget-grid > .widget-card:has(> .widget-tools .panel-tool-button:focus-visible){
-  border-color: var(--line);
+  border-color: transparent;
   box-shadow:
     0 1px 3px rgba(15, 23, 42, .045),
     inset 0 1px 0 rgba(255, 255, 255, .11),
@@ -1019,7 +1019,7 @@ body.resize-auto-zoom-active .dashboard-expanded-footprint-ghost{
 .widget-layout > .widget-card:has(:is(.widget-tools, .panel-tool-drawer, [data-widget-control-surface="true"], input, select, textarea, [contenteditable="true"]):focus-within),
 .panel-internal-widget-grid > .widget-card:has(:is(.widget-tools, .panel-tool-drawer, [data-widget-control-surface="true"], button, input, select, textarea, [contenteditable="true"]):hover),
 .panel-internal-widget-grid > .widget-card:has(:is(.widget-tools, .panel-tool-drawer, [data-widget-control-surface="true"], input, select, textarea, [contenteditable="true"]):focus-within){
-  border-color: var(--line);
+  border-color: transparent;
   box-shadow: var(--shadow-soft);
   transform: none;
 }.widget-layout > .widget-card:has(:is(.widget-tools, .panel-tool-drawer, [data-widget-control-surface="true"], button, input, select, textarea, [contenteditable="true"]):hover)::before,
@@ -1387,7 +1387,7 @@ body.resize-auto-zoom-active .dashboard-expanded-footprint-ghost{
 .widget-layout > .widget-card:hover,
 .widget-layout > .widget-card:focus-visible{
   transform: translateY(-1.5px);
-  border-color: #5f91ee;
+  border-color: transparent;
   box-shadow:
     0 14px 30px rgba(15, 23, 42, .14),
     0 1px 0 rgba(255, 255, 255, .62) inset;
@@ -1789,7 +1789,7 @@ body.panel-resize-active .widget-layout > .widget-card:not(.widget-dragging):not
 body.panel-resize-active .panel-internal-widget-grid > .widget-card:not(.widget-dragging):not(.dashboard-active-resize):not(.dashboard-resize-source):not(.group-transform-member):hover,
 body.panel-resize-active .panel-internal-widget-grid > .widget-card:not(.widget-dragging):not(.dashboard-active-resize):not(.dashboard-resize-source):not(.group-transform-member):focus-visible{
   transform: none !important;
-  border-color: var(--line) !important;
+  border-color: transparent !important;
   box-shadow: var(--shadow-soft) !important;
 }body.panel-interaction-active .db-panel:not(.db-panel-dragging):not(.dashboard-active-resize):not(.dashboard-resize-source):not(.group-transform-member):hover,
 body.panel-interaction-active .db-panel:not(.db-panel-dragging):not(.dashboard-active-resize):not(.dashboard-resize-source):not(.group-transform-member):focus-within,
