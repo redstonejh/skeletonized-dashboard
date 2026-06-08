@@ -145,10 +145,14 @@ document.addEventListener("DOMContentLoaded", () => {
   const readRawStore = layoutPersistence.readRaw;
   const writeRawStore = layoutPersistence.writeRaw;
   const removeStore = layoutPersistence.remove;
+  const workspacePagesStore = readJsonStore("dashboard-workspace-pages:builder", null);
+  const legacyWorkspaceTabsStore = readJsonStore("dashboard-workspace-tabs:builder", null);
   const workspaceTabsRuntime = initializeWorkspaceTabsRuntime({
     readJsonStore,
     writeJsonStore,
     panelThemePresets,
+    initialState: workspacePagesStore?.tabs || legacyWorkspaceTabsStore || null,
+    persistTabs: false,
   });
   let workspacePagesRuntime = null;
   const {
@@ -1983,7 +1987,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const internalGrid = result.closest?.(".panel-internal-widget-grid");
     if (internalGrid) initWidgetLayout(internalGrid);
     if (panelLayout) savePanelLayouts(panelLayout);
-    window.dashboardWorkspacePagesRuntime?.persistActivePage?.();
+    window.dashboardWorkspacePagesRuntime?.schedulePersistAllPages?.();
     return result;
   };
 
@@ -1998,7 +2002,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (targetLayout) initWidgetLayout(targetLayout);
     const sourcePanelLayout = options?.panel?.closest?.(".panel-layout");
     if (sourcePanelLayout) savePanelLayouts(sourcePanelLayout);
-    window.dashboardWorkspacePagesRuntime?.persistActivePage?.();
+    window.dashboardWorkspacePagesRuntime?.schedulePersistAllPages?.();
     return result;
   };
 

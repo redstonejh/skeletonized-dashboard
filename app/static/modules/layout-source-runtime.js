@@ -33,7 +33,7 @@ export function initializeLayoutSourceRuntime(deps) {
   scheduleWorkspaceVisualLodRefresh();
 
   const saveSingleWorkspaceState = (layoutKey = "builder") => {
-    window.dashboardWorkspacePagesRuntime?.persistActivePage?.();
+    window.dashboardWorkspacePagesRuntime?.persistAllPages?.();
     if (window.dashboardWorkspacePagesRuntime) {
       showToast("Workspace saved.", "info", {
         type: "layout-save-completed",
@@ -41,7 +41,7 @@ export function initializeLayoutSourceRuntime(deps) {
         layoutKey,
         payload: { profile: singleProfile, pages: window.dashboardWorkspacePagesRuntime.pageIds?.() || [] },
       });
-      if (window.dashboardWorkspacePagesRuntime.activeTabId?.() !== "tab-1") return;
+      return;
     }
     layoutPersistence?.setActiveProfile?.(layoutKey, singleProfile);
     layoutPersistence?.remove?.(layoutPersistence.key.layoutSource(layoutKey));

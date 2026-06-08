@@ -1,13 +1,25 @@
 const STORAGE_KEY = "dashboard-workspace-pages:builder";
+const PERSIST_DEBOUNCE_MS = 350;
 
-const emptyPage = () => ({
+const emptyStoredPage = () => ({
   widgetHtml: "",
   panelHtml: "",
 });
 
 const normalizeStore = (value) => {
   const pages = value?.pages && typeof value.pages === "object" ? value.pages : {};
-  return { pages: { ...pages } };
+  return { tabs: value?.tabs || null, pages: { ...pages } };
+};
+
+const fragmentFromHtml = (html = "") => {
+  const template = document.createElement("template");
+  template.innerHTML = html || "";
+  return template.content;
+};
+
+const moveChildren = (from, to) => {
+  if (!from || !to) return;
+  while (from.firstChild) to.appendChild(from.firstChild);
 };
 
 export const initializeWorkspacePagesRuntime = ({
@@ -22,14 +34,31 @@ export const initializeWorkspacePagesRuntime = ({
   const panelLayout = () => document.querySelector(".panel-layout[data-layout-key='builder'], .panel-layout");
   if (!grid || !tabsRuntime || !readJsonStore || !writeJsonStore) return null;
 
-  let store = normalizeStore(readJsonStore(storageKey, null));
+  const stored = normalizeStore(readJsonStore(storageKey, null));
+  const pages = new Map();
   let activeTabId = tabsRuntime.getState().tabs[tabsRuntime.getState().activeIndex]?.id || "tab-1";
   let switching = false;
   let skipBeforeUnloadPersist = false;
+  let persistTimer = null;
+  let suppressPersistenceObserver = false;
 
   grid.classList.add("workspace-page-surface");
 
-  const save = () => writeJsonStore(storageKey, store);
+  const createDetachedPage = ({ widgetHtml = "", panelHtml = "" } = {}) => ({
+    widgets: fragmentFromHtml(widgetHtml),
+    panels: fragmentFromHtml(panelHtml),
+    mounted: false,
+    needsHydration: Boolean(widgetHtml || panelHtml),
+  });
+
+  const ensurePage = (tabId, storedPage = null) => {
+    if (!tabId) return null;
+    if (!pages.has(tabId)) {
+      pages.set(tabId, createDetachedPage(storedPage || emptyStoredPage()));
+    }
+    return pages.get(tabId);
+  };
+
   const restorePortaledToolDrawers = () => {
     document.querySelectorAll(".db-panel, .widget-card").forEach((item) => {
       const drawer = item.__dashboardToolDrawer;
@@ -42,6 +71,7 @@ export const initializeWorkspacePagesRuntime = ({
       } catch {}
     });
   };
+
   const cleanTransientMarkup = (root) => {
     const clone = root?.cloneNode?.(true);
     if (!clone) return "";
@@ -65,32 +95,98 @@ export const initializeWorkspacePagesRuntime = ({
     clone.querySelectorAll("[aria-expanded='true']").forEach((node) => node.setAttribute("aria-expanded", "false"));
     return clone.innerHTML;
   };
-  const serializeCurrentPage = () => ({
-    widgetHtml: (restorePortaledToolDrawers(), cleanTransientMarkup(widgetLayout())),
-    panelHtml: cleanTransientMarkup(panelLayout()),
-  });
-  const ensurePage = (tabId, page = null) => {
-    if (!tabId) return;
-    if (!store.pages[tabId]) {
-      store.pages[tabId] = page || emptyPage();
-      save();
+
+  const serializeFragment = (fragment) => {
+    const shell = document.createElement("div");
+    fragment?.childNodes?.forEach((node) => shell.appendChild(node.cloneNode(true)));
+    return cleanTransientMarkup(shell);
+  };
+
+  const serializePage = (tabId) => {
+    const page = ensurePage(tabId);
+    if (tabId === activeTabId && page?.mounted) {
+      restorePortaledToolDrawers();
+      return {
+        widgetHtml: cleanTransientMarkup(widgetLayout()),
+        panelHtml: cleanTransientMarkup(panelLayout()),
+      };
     }
+    return {
+      widgetHtml: serializeFragment(page?.widgets),
+      panelHtml: serializeFragment(page?.panels),
+    };
   };
-  const persistActivePage = () => {
-    ensurePage(activeTabId);
-    store.pages[activeTabId] = serializeCurrentPage();
-    save();
+
+  const serializeAllPages = () => {
+    const state = tabsRuntime.getState();
+    const nextPages = {};
+    state.tabs.forEach((tab) => {
+      ensurePage(tab.id);
+      nextPages[tab.id] = serializePage(tab.id);
+    });
+    return { tabs: state, pages: nextPages };
   };
-  const mountPage = (tabId) => {
-    ensurePage(tabId);
-    const page = store.pages[tabId] || emptyPage();
+
+  const flushPersistAllPages = () => {
+    if (persistTimer) {
+      window.clearTimeout(persistTimer);
+      persistTimer = null;
+    }
+    writeJsonStore(storageKey, serializeAllPages());
+  };
+
+  const schedulePersistAllPages = () => {
+    if (suppressPersistenceObserver) return;
+    if (persistTimer) window.clearTimeout(persistTimer);
+    persistTimer = window.setTimeout(flushPersistAllPages, PERSIST_DEBOUNCE_MS);
+  };
+
+  const parkActivePage = () => {
+    const activeStillExists = tabsRuntime.getState().tabs.some((tab) => tab.id === activeTabId);
+    if (!activeStillExists) {
+      restorePortaledToolDrawers();
+      const widgets = widgetLayout();
+      const panels = panelLayout();
+      if (widgets) widgets.textContent = "";
+      if (panels) panels.textContent = "";
+      return;
+    }
+    const page = ensurePage(activeTabId);
+    restorePortaledToolDrawers();
+    page.widgets.textContent = "";
+    page.panels.textContent = "";
+    moveChildren(widgetLayout(), page.widgets);
+    moveChildren(panelLayout(), page.panels);
+    page.mounted = false;
+  };
+
+  const attachPage = (tabId) => {
+    const page = ensurePage(tabId);
     const widgets = widgetLayout();
     const panels = panelLayout();
-    if (widgets) widgets.innerHTML = page.widgetHtml || "";
-    if (panels) panels.innerHTML = page.panelHtml || "";
+    if (widgets) widgets.textContent = "";
+    if (panels) panels.textContent = "";
+    moveChildren(page.widgets, widgets);
+    moveChildren(page.panels, panels);
+    page.mounted = true;
     grid.dataset.activeWorkspacePage = tabId;
-    onPageMounted?.({ tabId });
+    activeTabId = tabId;
+    if (page.needsHydration) {
+      onPageMounted?.({ tabId });
+      page.needsHydration = false;
+    }
   };
+
+  const switchToPage = (tabId) => {
+    suppressPersistenceObserver = true;
+    try {
+      parkActivePage();
+      attachPage(tabId);
+    } finally {
+      suppressPersistenceObserver = false;
+    }
+  };
+
   const reducedMotion = () => window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
   const parseTransitionMs = (value = "") => {
     const parts = String(value).split(",").map((part) => part.trim()).filter(Boolean);
@@ -119,13 +215,12 @@ export const initializeWorkspacePagesRuntime = ({
     if (!api?.releaseWorkspacePageTransform) return;
     window.setTimeout(() => api.releaseWorkspacePageTransform({ refresh: true }), Math.max(0, delay));
   };
+
   const activatePage = ({ nextTab, direction = 1 } = {}) => {
     const nextTabId = nextTab?.id;
     if (!nextTabId || nextTabId === activeTabId || switching) return;
-    persistActivePage();
     const finish = () => {
-      mountPage(nextTabId);
-      activeTabId = nextTabId;
+      switchToPage(nextTabId);
       const enterX = direction >= 0 ? 28 : -28;
       const transition = pageTransition();
       grid.style.setProperty("--workspace-page-enter-x", `${enterX}px`);
@@ -140,8 +235,7 @@ export const initializeWorkspacePagesRuntime = ({
       });
     };
     if (reducedMotion()) {
-      mountPage(nextTabId);
-      activeTabId = nextTabId;
+      switchToPage(nextTabId);
       releaseGlassPageTransform();
       return;
     }
@@ -155,48 +249,84 @@ export const initializeWorkspacePagesRuntime = ({
 
   const reconcileTabs = () => {
     const state = tabsRuntime.getState();
-    state.tabs.forEach((tab, index) => {
-      ensurePage(tab.id, index === 0 ? serializeCurrentPage() : emptyPage());
-    });
+    state.tabs.forEach((tab) => ensurePage(tab.id, stored.pages[tab.id] || emptyStoredPage()));
     const validIds = new Set(state.tabs.map((tab) => tab.id));
-    Object.keys(store.pages).forEach((id) => {
-      if (!validIds.has(id)) delete store.pages[id];
+    [...pages.keys()].forEach((id) => {
+      if (!validIds.has(id)) pages.delete(id);
     });
-    save();
+    schedulePersistAllPages();
   };
 
   const reconcileAfterTabMutation = () => {
-    const state = tabsRuntime.getState();
-    const nextActiveTabId = state.tabs[state.activeIndex]?.id || activeTabId;
     reconcileTabs();
-    activeTabId = nextActiveTabId;
+  };
+
+  const observeActiveLayouts = () => {
+    const observer = new MutationObserver(schedulePersistAllPages);
+    const config = {
+      attributes: true,
+      childList: true,
+      subtree: true,
+      characterData: true,
+    };
+    const widgets = widgetLayout();
+    const panels = panelLayout();
+    if (widgets) observer.observe(widgets, config);
+    if (panels) observer.observe(panels, config);
   };
 
   const initialState = tabsRuntime.getState();
   activeTabId = initialState.tabs[initialState.activeIndex]?.id || activeTabId;
-  const hadStoredActivePage = Boolean(store.pages[activeTabId]);
+  initialState.tabs.forEach((tab) => ensurePage(tab.id, stored.pages[tab.id] || emptyStoredPage()));
+  const activeStoredPage = stored.pages[activeTabId];
+  if (activeStoredPage || initialState.activeIndex > 0) {
+    attachPage(activeTabId);
+  } else {
+    const page = ensurePage(activeTabId);
+    page.mounted = true;
+    page.needsHydration = false;
+    grid.dataset.activeWorkspacePage = activeTabId;
+  }
   reconcileTabs();
-  if (hadStoredActivePage || initialState.activeIndex > 0) mountPage(activeTabId);
+  observeActiveLayouts();
 
-  tabsRuntime.setCreateHandler(({ tab }) => ensurePage(tab.id, emptyPage()));
+  tabsRuntime.setCreateHandler(({ tab }) => {
+    ensurePage(tab.id, emptyStoredPage());
+    schedulePersistAllPages();
+  });
   tabsRuntime.setActivationHandler((event) => activatePage(event));
   tabsRuntime.setMutationHandler(reconcileAfterTabMutation);
+  tabsRuntime.setStateChangeHandler?.(schedulePersistAllPages);
   window.addEventListener("beforeunload", () => {
     if (skipBeforeUnloadPersist) {
       skipBeforeUnloadPersist = false;
       return;
     }
-    persistActivePage();
+    flushPersistAllPages();
   });
 
   window.dashboardWorkspacePagesRuntime = {
-    persistActivePage,
+    persistAllPages: flushPersistAllPages,
+    schedulePersistAllPages,
     skipNextBeforeUnloadPersist: () => {
       skipBeforeUnloadPersist = true;
     },
     activeTabId: () => activeTabId,
-    pageIds: () => Object.keys(store.pages),
-    pageForTab: (tabId) => store.pages[tabId] || null,
+    pageIds: () => [...pages.keys()],
+    pageForTab: (tabId) => {
+      const page = pages.get(tabId);
+      if (!page) return null;
+      return {
+        mounted: page.mounted,
+        needsHydration: page.needsHydration,
+        widgetCount: tabId === activeTabId && page.mounted
+          ? widgetLayout()?.children?.length || 0
+          : page.widgets.children.length,
+        panelCount: tabId === activeTabId && page.mounted
+          ? panelLayout()?.children?.length || 0
+          : page.panels.children.length,
+      };
+    },
   };
   return window.dashboardWorkspacePagesRuntime;
 };

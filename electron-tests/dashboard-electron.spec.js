@@ -662,7 +662,7 @@ test("electron GUI renders glass text tabs with active scaling and persisted edi
   await closeApp(app);
 });
 
-test("electron GUI wires tabs to isolated lazy-loaded workspace pages", async () => {
+test("electron GUI wires tabs to isolated live workspace pages", async () => {
   const { app, page } = await launchApp();
   await expect(page.locator(".workspace-tab:not(.workspace-tab-add)")).toHaveCount(3);
   await expect(page.locator(".widget-layout > .widget-card")).toHaveCount(4);
@@ -686,13 +686,13 @@ test("electron GUI wires tabs to isolated lazy-loaded workspace pages", async ()
   await expect(page.locator(`.widget-layout > .widget-card[data-widget-key="${pageFourKey}"]`)).toBeVisible();
   await expect(page.locator(".widget-layout > .widget-card")).toHaveCount(1);
   const pageRuntime = await page.evaluate(() => ({
-    persisted: window.dashboardWorkspacePagesRuntime?.persistActivePage?.(),
     activeTabId: window.dashboardWorkspacePagesRuntime?.activeTabId?.(),
     pageIds: window.dashboardWorkspacePagesRuntime?.pageIds?.(),
-    activePageWidgetHtml: window.dashboardWorkspacePagesRuntime?.pageForTab?.(window.dashboardWorkspacePagesRuntime?.activeTabId?.())?.widgetHtml || "",
+    activePage: window.dashboardWorkspacePagesRuntime?.pageForTab?.(window.dashboardWorkspacePagesRuntime?.activeTabId?.()),
   }));
   expect(pageRuntime.pageIds.length).toBe(4);
-  expect(pageRuntime.activePageWidgetHtml).toContain(pageFourKey);
+  expect(pageRuntime.activePage.widgetCount).toBe(1);
+  expect(pageRuntime.activePage.mounted).toBe(true);
 
   await openControlBar(page);
   await page.locator(".layout-save-button").click({ force: true });
@@ -886,15 +886,11 @@ test("electron GUI keeps panel-contained widgets movable and mounted across tab 
   }));
   expect(childAfterMove.col).toBeGreaterThan(0);
   expect(childAfterMove.row).toBeGreaterThan(0);
-  const storedBeforeSwitch = await page.evaluate((key) => {
-    window.dashboardWorkspacePagesRuntime?.persistActivePage?.();
-    const page = window.dashboardWorkspacePagesRuntime?.pageForTab?.("tab-1");
-    return {
-      hasChildInPanelHtml: Boolean(page?.panelHtml?.includes(key)),
-      panelHtmlLength: page?.panelHtml?.length || 0,
-    };
-  }, 'data-widget-key="widget-1"');
-  expect(storedBeforeSwitch.hasChildInPanelHtml).toBe(true);
+  const storedBeforeSwitch = await page.evaluate(() => {
+    window.dashboardWorkspacePagesRuntime?.persistAllPages?.();
+    return window.dashboardWorkspacePagesRuntime?.pageForTab?.("tab-1");
+  });
+  expect(storedBeforeSwitch.panelCount).toBeGreaterThan(0);
 
   await page.locator(".workspace-tab:not(.workspace-tab-add)").nth(1).click({ force: true });
   await expect.poll(() => page.evaluate(() => window.dashboardWorkspacePagesRuntime?.activeTabId?.())).toBe("tab-2");

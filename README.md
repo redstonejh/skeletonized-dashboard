@@ -16,6 +16,8 @@ Persistence is handled by the Electron preload bridge, not by a server.
 
 `main.js` creates the Electron window with `contextIsolation: true` and `nodeIntegration: false`. `preload.js` exposes `window.dashboardPersistence`, which stores layout data in a JSON file under the user's home directory. Renderer code in `app/static/layout-persistence.js` uses that bridge when available and falls back to browser storage when it is not.
 
+Workspace tabs are kept as one live renderer state. The active tab is mounted in the single dashboard grid, inactive tabs are parked as detached DOM nodes in memory, and the combined tab/page store is written through the existing persistence bridge on a debounce and before unload.
+
 ## Project Layout
 
 - `main.js` - Electron main process and window creation.

@@ -41,16 +41,20 @@ export const initializeWorkspaceTabsRuntime = ({
   writeJsonStore,
   panelThemePresets,
   storageKey = STORAGE_KEY,
+  initialState = null,
+  persistTabs = true,
+  onStateChange,
   onActivate,
   onCreateTab,
 } = {}) => {
   const root = document.querySelector("[data-workspace-tabs]");
   if (!root || !readJsonStore || !writeJsonStore) return null;
 
-  let state = normalizeState(readJsonStore(storageKey, null));
+  let state = normalizeState(initialState || readJsonStore(storageKey, null));
   let menu = null;
   let colorMenu = null;
   let invokingTab = null;
+  let stateChangeHandler = typeof onStateChange === "function" ? onStateChange : null;
   let activationHandler = typeof onActivate === "function" ? onActivate : null;
   let createHandler = typeof onCreateTab === "function" ? onCreateTab : null;
   let mutationHandler = null;
@@ -59,11 +63,15 @@ export const initializeWorkspaceTabsRuntime = ({
   root.setAttribute("role", "toolbar");
   root.setAttribute("aria-label", "Workspace tabs");
 
-  const save = () => writeJsonStore(storageKey, state);
   const stateSnapshot = () => normalizeState({
     tabs: state.tabs.map((tab) => ({ ...tab })),
     activeIndex: state.activeIndex,
   });
+  const save = () => {
+    const snapshot = stateSnapshot();
+    if (persistTabs) writeJsonStore(storageKey, snapshot);
+    stateChangeHandler?.(snapshot);
+  };
   const pushUndo = () => {
     undoStack.push(stateSnapshot());
     if (undoStack.length > 40) undoStack.shift();
@@ -458,6 +466,9 @@ export const initializeWorkspaceTabsRuntime = ({
     },
     setMutationHandler: (handler) => {
       mutationHandler = typeof handler === "function" ? handler : null;
+    },
+    setStateChangeHandler: (handler) => {
+      stateChangeHandler = typeof handler === "function" ? handler : null;
     },
     activateTab,
     createTab,
